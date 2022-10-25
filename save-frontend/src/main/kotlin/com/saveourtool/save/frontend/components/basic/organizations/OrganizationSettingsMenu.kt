@@ -5,7 +5,10 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
+import com.saveourtool.save.frontend.components.views.usersettings.actionButton
+import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
@@ -145,9 +148,14 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    deleteOrganizationButton {
-                        organizationName = props.organizationName
-                        onDeletionSuccess = {
+                    actionButton {
+                        typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
+                        title = "WARNING: You want to delete an organization"
+                        errorTitle = "You cannot delete ${props.organizationName}"
+                        message = "Are you sure you want to delete an organization ${props.organizationName}?"
+                        clickMessage = "Change to ban mode"
+                        url = "$apiUrl/organizations/${props.organizationName}/delete"
+                        onActionSuccess = {
                             window.location.href = "${window.location.origin}/"
                         }
                         buttonStyleBuilder = { childrenBuilder ->
@@ -156,7 +164,18 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
-                        userRole = props.selfRole
+                        modalButtons = { action, window, childrenBuilder ->
+                            with(childrenBuilder) {
+                                buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+                                    action()
+                                    window.closeWindow()
+                                }
+                                buttonBuilder("Cancel") {
+                                    window.closeWindow()
+                                }
+                            }
+                        }
+                        conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                     }
                 }
             }

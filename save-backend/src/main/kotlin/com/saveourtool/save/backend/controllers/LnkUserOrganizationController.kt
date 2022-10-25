@@ -11,7 +11,6 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toUser
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -22,6 +21,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -305,6 +305,34 @@ class LnkUserOrganizationController(
         .filter {
             it.organization != null && ((it.organization?.status == OrganizationStatus.DELETED) ||
                     (it.role != null && it.role!!.isHigherOrEqualThan(Role.SUPER_ADMIN) && it.organization?.status == OrganizationStatus.BANNED))
+        }
+        .map {
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+        }
+
+
+    @GetMapping("/by-user/banned")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get banned user's organizations.",
+        description = "Get banned organizations where user is a member, and his roles in those organizations.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+    @Suppress("UnsafeCallOnNullableType")
+    fun getBannedOrganizationWithRoles(
+        authentication: Authentication,
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+    )
+        .switchIfEmptyToNotFound()
+        .flatMapMany {
+            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+        }
+        .filter {
+            it.organization != null && (it.organization?.status == OrganizationStatus.BANNED)
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))

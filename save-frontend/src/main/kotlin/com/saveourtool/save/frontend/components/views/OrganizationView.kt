@@ -30,7 +30,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import history.Location
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
@@ -598,7 +597,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString()
         }
 
-    private fun postImageUpload(element: HTMLInputElement) =
+    private fun postImageUpload(element: dom.html.HTMLInputElement) =
             scope.launch {
                 setState {
                     isUploading = true

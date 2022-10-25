@@ -12,6 +12,7 @@ import com.saveourtool.save.v1
 import csstype.BorderRadius
 
 import csstype.ClassName
+import kotlinx.browser.window
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -65,10 +66,16 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
-                                    deleteOrganizationButton {
-                                        organizationName = organizationDto.name
-                                        onDeletionSuccess = {
+                                val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
+                                if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
+                                    actionButton {
+                                        typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
+                                        title = "WARNING: You want to delete an organization"
+                                        errorTitle = "You cannot delete ${organizationDto.name}"
+                                        message = "Are you sure you want to delete an organization ${organizationDto.name}?"
+                                        clickMessage = "Change to ban mode"
+                                        url = "$apiUrl/organizations/${organizationDto.name}/delete"
+                                        onActionSuccess = {
                                             setState {
                                                 selfOrganizationDtos = selfOrganizationDtos.minus(organizationDto)
                                                 selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plus(organizationDto)
@@ -80,7 +87,18 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = "btn mr-3"
-                                        userRole = role
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder("Yes, delete ${organizationDto.name}", "danger") {
+                                                    action()
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                                     }
                                 }
                                 div {
@@ -91,6 +109,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
+
 
                 state.selfDeletedOrganizationDtos.forEach { organizationDto ->
                     li {
@@ -119,10 +138,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
                                 if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
-                                    recoveryOrganizationButton {
-                                        userRole = highestLocalRole
-                                        organizationName = organizationDto.name
-                                        onRecoverySuccess = {
+                                    actionButton {
+                                        typeOfOperation = TypeOfAction.RECOVERY_ORGANIZATION
+                                        title = "WARNING: You want to delete an organization"
+                                        errorTitle = "You cannot recovery ${organizationDto.name}"
+                                        message = "Are you sure you want to recovery an organization ${organizationDto.name}?"
+                                        clickMessage = "Change to ban mode"
+                                        url = "$apiUrl/organizations/${organizationDto.name}/recovery"
+                                        onActionSuccess = {
                                             setState {
                                                 selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minus(organizationDto)
                                                 selfOrganizationDtos = selfOrganizationDtos.plus(organizationDto)
@@ -134,8 +157,55 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = "btn mr-3"
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder("Yes, recovery ${organizationDto.name}", "warning") {
+                                                    action()
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                                     }
                                 }
+                                div {
+                                    className = ClassName("mr-3")
+                                    +role.formattedName
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                state.selfBannedOrganizationDtos.forEach { organizationDto ->
+                    li {
+                        className = ClassName("list-group-item")
+                        div {
+                            className = ClassName("row justify-content-between align-items-center")
+                            div {
+                                className = ClassName("align-items-center ml-3")
+                                img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                    src = organizationDto.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    height = 60.0
+                                    width = 60.0
+                                }
+                                +organizationDto.name
+                                ReactHTML.span {
+                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                    style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                    +"banned"
+                                }
+                            }
+                            div {
+                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 div {
                                     className = ClassName("mr-3")
                                     +role.formattedName

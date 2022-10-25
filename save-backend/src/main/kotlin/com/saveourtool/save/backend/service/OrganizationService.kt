@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -46,8 +47,16 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization =
-        changeOrganizationStatus(organizationName, status)
+    fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization {
+        if (status == OrganizationStatus.BANNED) {
+            val projects = projectService.getAllByOrganizationName(organizationName)
+            projects.forEach {
+                it.status = ProjectStatus.BANNED
+                projectService.updateProject(it)
+            }
+        }
+        return changeOrganizationStatus(organizationName, status)
+    }
 
 
     /**
@@ -70,7 +79,7 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType")
     fun changeOrganizationStatus(organizationName: String, changeStatus: OrganizationStatus): Organization = getByName(organizationName)
         .apply {
-            status = changeStatus
+            status = OrganizationStatus.DELETED
         }
         .let {
             organizationRepository.save(it)
@@ -83,7 +92,7 @@ class OrganizationService(
      * @return not deleted Organizations
      */
     fun getNotDeletedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
-        val name = organizationFilters?.name?.let { "%$it%" }
+        val name = organizationFilters?.prefix?.let { "%$it%" }
         val organizations = organizationRepository.findAll { root, _, cb ->
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
@@ -93,6 +102,8 @@ class OrganizationService(
         }
         return organizations
     }
+
+
     /**
      * @param organizationName
      * @return [true] if number of Organization projects is zero, else - [false]
@@ -103,7 +114,7 @@ class OrganizationService(
      * @param organizationName
      * @return number of Organization projects
      */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).size
+    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).filter { it.status == ProjectStatus.CREATED }.size
 
     /**
      * @param organizationId
