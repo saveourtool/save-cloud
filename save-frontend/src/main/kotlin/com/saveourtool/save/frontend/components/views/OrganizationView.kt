@@ -744,7 +744,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         val response = delete(
             url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
             headers = jsonHeaders,
-            body = undefined,
             loadingHandler = ::noopLoadingHandler,
             errorHandler = ::noopResponseHandler,
         )

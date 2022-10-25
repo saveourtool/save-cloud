@@ -229,7 +229,6 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             val response = delete(
                 props.getUrlForFileDeletion(fileToDelete),
                 jsonHeaders,
-                undefined,
                 loadingHandler = ::noopLoadingHandler,
             )
 
