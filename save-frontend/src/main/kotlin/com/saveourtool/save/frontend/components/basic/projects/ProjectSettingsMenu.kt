@@ -97,7 +97,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         val responseFromDeleteProject = delete(
             "$apiUrl/projects/$projectPath/delete",
             jsonHeaders,
-            body = undefined,
             loadingHandler = ::noopLoadingHandler,
         )
         if (responseFromDeleteProject.ok) {

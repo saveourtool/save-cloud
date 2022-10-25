@@ -5704,10 +5704,14 @@
         "operationId": "getAllOrganizations",
         "parameters": [
           {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of an organization",
-            "required": true
+            "name": "onlyActive",
+            "in": "query",
+            "description": "Whether deleted organizations should be excluded from the response. The default is false.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {

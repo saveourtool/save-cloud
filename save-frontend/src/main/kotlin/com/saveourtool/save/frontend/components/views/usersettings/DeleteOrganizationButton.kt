@@ -34,7 +34,6 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
                 delete(
                     "$apiUrl/organizations/${props.organizationName}/delete",
                     headers = jsonHeaders,
-                    body = undefined,
                     loadingHandler = ::noopLoadingHandler,
                     errorHandler = ::noopResponseHandler,
                 )
