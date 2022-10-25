@@ -336,7 +336,7 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            organizationService.organizationHasNoProjects(it.name)
+            !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
