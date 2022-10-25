@@ -236,7 +236,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             onClick = {
                 windowOpenness.openWindow()
             }
-            +"Delete selected executions"
+            +"Delete selected contests"
         }
         button {
             type = ButtonType.button
