@@ -193,10 +193,9 @@ suspend fun ComponentWithScope<*, *>.post(
 suspend fun ComponentWithScope<*, *>.delete(
     url: String,
     headers: Headers,
-    body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-) = request(url, "DELETE", headers, body, loadingHandler = loadingHandler, responseHandler = responseHandler)
+) = request(url, "DELETE", headers, loadingHandler = loadingHandler, responseHandler = responseHandler)
 
 /**
  * Perform GET request from a functional component
@@ -231,8 +230,6 @@ suspend fun WithRequestStatusContext.post(
  * @param url the request URL.
  * @param headers the HTTP request headers.
  *   Use [jsonHeaders] for the standard `Accept` and `Content-Type` headers.
- * @param body the HTTP request body.
- *   Use [undefined] for an empty body.
  * @param loadingHandler use either [WithRequestStatusContext.loadingHandler],
  *   or [noopLoadingHandler].
  * @param errorHandler the response handler to be invoked.
@@ -254,10 +251,9 @@ suspend fun WithRequestStatusContext.post(
 suspend fun WithRequestStatusContext.delete(
     url: String,
     headers: Headers,
-    body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     errorHandler: (Response) -> Unit = this::withModalResponseHandler,
-) = request(url, "DELETE", headers, body, loadingHandler = loadingHandler, responseHandler = errorHandler)
+) = request(url, "DELETE", headers, loadingHandler = loadingHandler, responseHandler = errorHandler)
 
 /**
  * Handler that allows to show loading modal

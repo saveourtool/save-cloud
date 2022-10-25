@@ -95,8 +95,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-                // TODO: body is forbidden in delete in some implementations, probably we should not support it
-                body = undefined
             )
             setTestSuitesSourceSnapshotKeyToDelete(null)
         }
