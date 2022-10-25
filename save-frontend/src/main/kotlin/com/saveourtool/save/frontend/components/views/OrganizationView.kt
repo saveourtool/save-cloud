@@ -6,7 +6,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
@@ -203,7 +202,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 /*
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
-                if (state.selfRole.isHigherOrEqualThan(SUPER_ADMIN)) {
+                if (state.selfRole.isSuperAdmin()) {
                     column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                         Fragment.create {
                             td {
