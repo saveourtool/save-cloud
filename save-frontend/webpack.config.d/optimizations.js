@@ -6,9 +6,9 @@ config.plugins.push(
     })
 );
 
-config.output.filename = () => {
+/*config.output.filename = () => {
     "save-frontend-[name].[contenthash].js"
-}
+}*/
 
 if (config.mode === "production") {
     config.optimization = {
