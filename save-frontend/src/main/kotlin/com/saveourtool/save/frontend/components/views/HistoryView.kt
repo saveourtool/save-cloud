@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
-import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -167,20 +166,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                         }
                     }
                 }
-                column("contestName", "Participating in contest", { contestName ?: "N/A" }) { cellProps ->
-                    Fragment.create {
-                        td {
-                            a {
-                                val newLocation = cellProps.row.original.contestName?.let {
-                                    "${window.location.origin}/#/contests/$it"
-                                } ?: "${window.location}"
-                                href = newLocation
-                                +cellProps.value
-                                fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
-                            }
-                        }
-                    }
-                }
                 column("running", "Running", { runningTests }) { cellProps ->
                     Fragment.create {
                         td {
@@ -244,7 +229,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                                 type = ButtonType.button
                                 className = ClassName("btn btn-small")
                                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                                disabled = cellProps.value.contestName != null
                                 onClick = {
                                     deleteExecution(cellProps.value.id)
                                 }

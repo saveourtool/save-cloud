@@ -23,7 +23,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
-import org.w3c.dom.*
+import dom.html.*
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy

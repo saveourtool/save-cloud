@@ -21,6 +21,7 @@ services:
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "DOCKER_NETWORK_NAME=${DOCKER_NETWORK_NAME}"
     ports:
       - "5100:5100"
     volumes:
@@ -37,7 +38,7 @@ services:
     image: ghcr.io/saveourtool/save-sandbox:${SANDBOX_TAG}
     user: root  # to access host's docker socket
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
     secrets:
       - db_username
       - db_password
@@ -124,7 +125,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.1.7
+    image: grafana/grafana:9.2.0
     ports:
       - "9100:3000"
     volumes:

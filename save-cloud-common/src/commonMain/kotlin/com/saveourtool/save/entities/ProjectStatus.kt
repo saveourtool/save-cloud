@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class ProjectStatus {
     /**
+     * The project is banned by a super admin
+     */
+    BANNED,
+
+    /**
      * Project created
      */
     CREATED,
@@ -16,10 +21,5 @@ enum class ProjectStatus {
      * Project deleted
      */
     DELETED,
-
-    /**
-     * The project is banned by a super admin
-     */
-    BANNED,
     ;
 }

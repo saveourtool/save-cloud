@@ -167,6 +167,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 formType = InputTypes.SOURCE_TAG
                 validInput = selectedValue != null
                 classes = "mb-2"
+                selectClasses = "custom-select"
                 formName = "Source tag:"
                 getData = {
                     get(
@@ -189,6 +190,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
         TestSuitesSourceFetchMode.BY_BRANCH -> div {
             branchSelector {
                 formType = InputTypes.SOURCE_BRANCH
+                selectClasses = "custom-select"
                 validInput = selectedValue != null
                 classes = "mb-2"
                 formName = "Source branch:"

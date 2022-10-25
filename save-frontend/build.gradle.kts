@@ -25,11 +25,13 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.http)
 }
 
 kotlin {
@@ -72,6 +74,7 @@ kotlin {
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("devicon", "^2.15.1"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0"))

@@ -10,8 +10,7 @@ import com.saveourtool.save.domain.SandboxFileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
-import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.modal.displayModal
@@ -21,13 +20,12 @@ import com.saveourtool.save.frontend.externals.fontawesome.faArrowLeft
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.info.UserInfo
 
 import csstype.AlignItems
 import csstype.ClassName
 import csstype.Color
 import csstype.Display
+import io.ktor.http.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
@@ -40,41 +38,15 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
 /**
- * [Props] of [SandboxView]
- */
-external interface SandboxViewProps : Props {
-    /**
-     * [UserInfo] of a current user
-     */
-    var currentUserInfo: UserInfo?
-}
-
-/**
  * [State] for [SandboxView]
  */
 external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
-    /**
-     * Code from text editor
-     */
-    var codeText: String
-
-    /**
-     * Config from text editor
-     */
-    var configText: String
-
-    /**
-     * setup.sh from text editor
-     */
-    var setupShText: String
-
     /**
      * Selected files
      */
@@ -84,11 +56,6 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Result of save-cli execution
      */
     var debugInfo: TestResultDebugInfo?
-
-    /**
-     * Currently selected FileType - config, test or setup.sh
-     */
-    var selectedFile: FileType?
 
     /**
      * Selected SDK
@@ -106,19 +73,15 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
+class SandboxView : AbstractView<Props, SandboxViewState>(true) {
     private val closeModal = {
         setState {
             isModalOpen = false
         }
     }
     init {
-        state.codeText = ""
-        state.configText = ""
-        state.setupShText = ""
         state.debugInfo = null
         state.files = listOf()
-        state.selectedFile = null
         state.selectedSdk = Sdk.Default
         state.isModalOpen = false
     }
@@ -196,30 +159,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private fun ChildrenBuilder.renderCodeEditor() {
         div {
             className = ClassName("")
-            codeEditorComponent {
+            sandboxCodeEditorComponent {
                 editorTitle = ""
-                selectedFile = state.selectedFile
-                onSelectedFileUpdate = {
-                    setState { selectedFile = it }
-                }
-                editorText = when (state.selectedFile) {
-                    FileType.CODE -> state.codeText
-                    FileType.SAVE_TOML -> state.configText
-                    FileType.SETUP_SH -> state.setupShText
-                    else -> "Press on any of the buttons above to start editing"
-                }
-                onEditorTextUpdate = {
-                    setState {
-                        when (state.selectedFile) {
-                            FileType.CODE -> codeText = it
-                            FileType.SAVE_TOML -> configText = it
-                            FileType.SETUP_SH -> setupShText = it
-                            else -> {}
-                        }
-                    }
-                }
-                doUploadChanges = ::uploadChanges
-                doReloadChanges = ::reloadChanges
                 doRunExecution = ::runExecution
                 doResultReload = ::resultReload
             }
@@ -257,14 +198,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     role = "alert".unsafeCast<AriaRole>()
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-link p-0")
-                            +"See more details..."
-                            onClick = {
-                                setState {
-                                    isModalOpen = true
-                                }
+                        buttonBuilder("See more details...", "link", classes = "p-0") {
+                            setState {
+                                isModalOpen = true
                             }
                         }
                     }
@@ -289,96 +225,61 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         div {
             className = ClassName("col-6")
             fileUploaderForSandbox(
-                props.currentUserInfo?.name,
-                state.files
-            ) { selectedFiles ->
+                state.files,
+                { fileToAdd ->
+                    setState {
+                        files = files + fileToAdd
+                    }
+                }
+            ) { fileToDelete ->
                 setState {
-                    files = selectedFiles
+                    files = files - fileToDelete
                 }
             }
         }
     }
 
-    private fun uploadChanges() {
-        scope.launch {
-            postContentAsText("test", "test", state.codeText)
-            postContentAsText("test", "save.toml", state.configText)
-            postContentAsText("file", "setup.sh", state.setupShText)
-        }
-    }
-
-    private fun reloadChanges() {
-        scope.launch {
-            val newCodeText = getContentAsText("test", "test")
-            val newConfigText = getContentAsText("test", "save.toml")
-            val newSetupShText = getContentAsText("file", "setup.sh")
-
-            setState {
-                codeText = newCodeText
-                configText = newConfigText
-                setupShText = newSetupShText
-            }
-        }
-    }
-
-    private suspend fun postContentAsText(
-        urlPart: String,
-        fileName: String,
-        text: String,
-    ) {
-        post(
-            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
-            headers = jsonHeaders,
-            body = text,
-            loadingHandler = ::noopLoadingHandler,
-        )
-    }
-
-    private suspend fun getContentAsText(
-        urlPart: String,
-        fileName: String,
-    ): String = props.currentUserInfo?.name?.let { userName ->
-        val response = get(
-            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-        if (response.ok) {
-            response.text().await()
-        } else {
-            response.unpackMessage()
-        }
-    } ?: "Unknown user"
-
     private fun resultReload() {
         scope.launch {
-            val resultDebugInfo: TestResultDebugInfo = get(
-                "$sandboxApiUrl/get-debug-info?userName=${props.currentUserInfo?.name}",
+            val response = get(
+                "$sandboxApiUrl/get-debug-info",
                 Headers().apply {
                     set("Accept", "application/octet-stream")
                 },
                 loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
-                .decodeFromJsonString()
-            setState {
-                debugInfo = resultDebugInfo
+
+            if (response.ok) {
+                val resultDebugInfo: TestResultDebugInfo = response.decodeFromJsonString()
+                setState {
+                    debugInfo = resultDebugInfo
+                }
+            } else {
+                window.alert("There is no debug info yet. Try to run execution and wait until it is finished.")
             }
         }
     }
 
-    private fun runExecution() {
+    private fun runExecution(successMessage: String) {
         scope.launch {
-            post(
-                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
+            val response = post(
+                url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
                 headers = jsonHeaders,
                 body = undefined,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
             )
+            if (response.ok) {
+                window.alert(successMessage)
+            } else if (response.isConflict()) {
+                window.alert("There is already a running execution")
+            }
         }
     }
 
     companion object :
-        RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
+        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         init {
             ContestView.contextType = requestStatusContext
         }

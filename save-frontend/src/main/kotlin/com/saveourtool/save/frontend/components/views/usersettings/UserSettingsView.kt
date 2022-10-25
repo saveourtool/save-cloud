@@ -17,7 +17,7 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
@@ -83,6 +83,8 @@ external interface UserSettingsViewState : State {
      * Organizations deleted to user
      */
     var selfDeletedOrganizationDtos: List<OrganizationDto>
+
+    var selfBannedOrganizationDtos: List<OrganizationDto>
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -94,6 +96,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         state.isUploading = false
         state.selfOrganizationDtos = emptyList()
         state.selfDeletedOrganizationDtos = emptyList()
+        state.selfOrganizationDtos = emptyList()
     }
 
     /**
@@ -116,12 +119,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 ?.let { getUser(it) }
             val organizationDtos = getOrganizationDtos()
             val deletedOrganizationDtos = getDeletedOrganizationDtos()
+            val bannedOrganizationDtos = getBannedOrganizationDtos()
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationDtos = organizationDtos
                 selfDeletedOrganizationDtos = deletedOrganizationDtos
+                selfBannedOrganizationDtos = bannedOrganizationDtos
             }
         }
     }
@@ -354,6 +359,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     @Suppress("TYPE_ALIAS")
     private suspend fun getDeletedOrganizationDtos() = get(
         "$apiUrl/organizations/by-user/deleted",
+        Headers(),
+        loadingHandler = ::classLoadingHandler,
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getBannedOrganizationDtos() = get(
+        "$apiUrl/organizations/by-user/banned",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )

@@ -10,6 +10,7 @@ backend:
   profile: dev,secure,kubernetes
   imageName: save-backend
   containerPort: 5800
+  managementPort: 5801
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
@@ -21,6 +22,7 @@ orchestrator:
   name: orchestrator
   imageName: save-orchestrator
   containerPort: 5100
+  managementPort: 5101
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
@@ -28,6 +30,7 @@ sandbox:
   name: sandbox
   imageName: save-sandbox
   containerPort: 5400
+  managementPort: 5401
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
@@ -35,6 +38,7 @@ preprocessor:
   name: preprocessor
   imageName: save-preprocessor
   containerPort: 5200
+  managementPort: 5201
   # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
   clusterIP: null
 gateway:
