@@ -21,10 +21,10 @@ import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
@@ -74,7 +74,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column("checkBox", "") { cellProps ->
                 Fragment.create {
                     td {
-                        ReactHTML.input {
+                        input {
                             type = InputType.checkbox
                             id = "checkbox"
                             defaultChecked = props.selectedContestDtos.contains(cellProps.row.original)
