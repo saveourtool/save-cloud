@@ -26,10 +26,8 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import csstype.Background
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
