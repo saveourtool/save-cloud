@@ -97,11 +97,6 @@ external interface HistoryViewState : State {
      * All filters in one value [filters]
      */
     var filters: ExecutionFilters
-
-    /**
-     * List ids of selected executions
-     */
-    var selectedExecutionIds: MutableList<Long>
 }
 
 /**
@@ -126,6 +121,7 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     "TOO_MANY_LINES_IN_LAMBDA",
 )
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
+    private val selectedExecutionIds = mutableListOf<Long>()
     private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {
             columns {
@@ -257,7 +253,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                             input {
                                 type = InputType.checkbox
                                 id = "checkbox"
-                                defaultChecked = state.selectedExecutionIds.contains(cellProps.row.original.id)
+                                defaultChecked = selectedExecutionIds.contains(cellProps.row.original.id)
                                 onChange = { event ->
                                     setState {
                                         if (event.target.checked) {
@@ -292,7 +288,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     )
     init {
-        state.selectedExecutionIds = mutableListOf()
         state.isConfirmWindowOpen = false
         state.isDeleteExecutionWindowOpen = false
     }
@@ -340,7 +335,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             buttonBuilder(
                 classes = "mb-4 mr-2",
                 label = "Delete selected executions",
-                isDisabled = state.selectedExecutionIds.isEmpty(),
+                isDisabled = selectedExecutionIds.isEmpty(),
                 isOutline = true,
                 style = "danger"
             ) {
@@ -445,7 +440,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/delete?executionIds=${state.selectedExecutionIds.joinToString(DATABASE_DELIMITER)}",
+                        "$apiUrl/execution/delete?executionIds=${selectedExecutionIds.joinToString(DATABASE_DELIMITER)}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler
