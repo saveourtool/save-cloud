@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -47,6 +48,9 @@ class ProjectControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
+    @Autowired
+    private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
+
     @Test
     @WithMockUser
     fun `should return all public projects`() {
@@ -71,7 +75,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin")
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `should return project based on name and owner`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
@@ -113,7 +117,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin")
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `delete project with owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
@@ -136,7 +140,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "JohnDoe")
+    @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
     fun `delete project without owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
