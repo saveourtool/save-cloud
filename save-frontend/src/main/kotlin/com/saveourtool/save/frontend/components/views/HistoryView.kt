@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.externals.calendar.calendar
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
 import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
@@ -28,9 +27,11 @@ import csstype.Background
 import csstype.ClassName
 import react.*
 import react.dom.html.ButtonType
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
@@ -98,6 +99,11 @@ external interface HistoryViewState : State {
      * All filters in one value [filters]
      */
     var filters: ExecutionFilters
+
+    /**
+     * List ids of selected executions
+     */
+    var selectedExecutionIds: MutableList<Long>
 }
 
 /**
@@ -119,6 +125,7 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     "MAGIC_NUMBER",
     "TYPE_ALIAS",
     "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "TOO_MANY_LINES_IN_LAMBDA",
 )
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
@@ -249,12 +256,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("checkBox", "") { cellProps ->
                     Fragment.create {
                         td {
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn btn-small")
-                                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                                onClick = {
-                                    deleteExecution(cellProps.value.id)
+                            input {
+                                type = InputType.checkbox
+                                id = "checkbox"
+                                defaultChecked = state.selectedExecutionIds.contains(cellProps.row.original.id)
+                                onChange = { event ->
+                                    setState {
+                                        if (event.target.checked) {
+                                            selectedExecutionIds.add(cellProps.row.original.id)
+                                        } else {
+                                            selectedExecutionIds.remove(cellProps.row.original.id)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -281,6 +294,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     )
     init {
+        state.selectedExecutionIds = mutableListOf()
         state.isConfirmWindowOpen = false
         state.isDeleteExecutionWindowOpen = false
     }
@@ -315,7 +329,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             { setState { isDeleteExecutionWindowOpen = false } }
         ) {
             buttonBuilder("Ok") {
-                deleteExecutionBuilder(state.deleteExecutionId)
+                deleteSelectedExecutionsBuilder()
                 setState { isDeleteExecutionWindowOpen = false }
             }
             buttonBuilder("Cancel", "secondary") {
@@ -324,10 +338,19 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
 
         div {
-            className = ClassName("d-flex bd-highlight")
+            className = ClassName("d-flex justify-content-end")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-danger mb-4 ml-auto bd-highlight mr-5")
+                className = ClassName("btn btn-outline-danger mb-4 mr-2")
+                onClick = {
+                    deleteSelectedExecutions()
+                }
+                disabled = state.selectedExecutionIds.isEmpty()
+                +"Delete selected executions"
+            }
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-danger mb-4 mr-5")
                 onClick = {
                     deleteExecutions()
                 }
@@ -412,21 +435,20 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun deleteExecution(id: Long) {
+    private fun deleteSelectedExecutions() {
         setState {
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isDeleteExecutionWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this execution?"
-            deleteExecutionId = listOf(id)
+            confirmMessage = "Are you sure you want to delete selected executions?"
         }
     }
 
-    private fun deleteExecutionBuilder(executionIds: List<Long>) {
+    private fun deleteSelectedExecutionsBuilder() {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
+                        "$apiUrl/execution/delete?executionIds=${state.selectedExecutionIds.joinToString(DATABASE_DELIMITER)}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler
