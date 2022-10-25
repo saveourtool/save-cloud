@@ -2,7 +2,6 @@ package com.saveourtool.save.sandbox.entity
 
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.spring.entity.BaseEntity
-import reactor.core.publisher.Mono
 
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -49,12 +48,3 @@ fun AgentDto.toEntity(executionResolver: (Long) -> SandboxExecution) = SandboxAg
     execution = executionResolver(executionId),
     version = version
 )
-
-/**
- * @param executionResolver resolves [SandboxExecution] by [AgentDto.executionId]
- * @return [SandboxAgent] from [AgentDto]
- */
-fun Mono<AgentDto>.toEntity(executionResolver: (Long) -> Mono<SandboxExecution>) = flatMap { agentDto ->
-    executionResolver(agentDto.executionId)
-        .map { execution -> agentDto.toEntity { execution } }
-}
