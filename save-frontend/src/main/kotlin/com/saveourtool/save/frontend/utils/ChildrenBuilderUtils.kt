@@ -71,7 +71,7 @@ fun ChildrenBuilder.buttonBuilder(
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.buttonBuilder(
     icon: FontAwesomeIconModule,
-    style: String = "primary",
+    style: String? = "primary",
     isDisabled: Boolean = false,
     isOutline: Boolean = false,
     isActive: Boolean = false,
@@ -115,7 +115,7 @@ fun ChildrenBuilder.selectorBuilder(
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "LAMBDA_IS_NOT_LAST_PARAMETER")
 private fun ChildrenBuilder.buttonBuilder(
     labelBuilder: ChildrenBuilder.() -> Unit,
-    style: String = "primary",
+    style: String? = "primary",
     isDisabled: Boolean = false,
     isOutline: Boolean = false,
     isActive: Boolean = false,
@@ -126,13 +126,16 @@ private fun ChildrenBuilder.buttonBuilder(
     button {
         type = ButtonType.button
         val builtClasses = buildString {
-            append("btn btn-")
-            if (isOutline) {
-                append("outline-")
-            }
-            append(style)
-            if (isActive) {
-                append(" active")
+            append("btn")
+            style?.let {
+                append(" btn-")
+                if (isOutline) {
+                    append("outline-")
+                }
+                append(it)
+                if (isActive) {
+                    append(" active")
+                }
             }
             append(" $classes")
         }
