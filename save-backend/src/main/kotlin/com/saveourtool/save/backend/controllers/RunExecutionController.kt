@@ -203,7 +203,7 @@ class RunExecutionController(
         .bodyValue(
             execution.toRunRequest(
                 saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = "${configProperties.url}/internal/files/download-save-agent",
+                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
             )
         )
         .retrieve()

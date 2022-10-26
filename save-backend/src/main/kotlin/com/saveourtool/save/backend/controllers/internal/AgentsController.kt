@@ -56,7 +56,7 @@ class AgentsController(
             it.execution
         }
         .map { execution ->
-            val backendUrl = configProperties.url
+            val backendUrl = configProperties.agentSettings.backendUrl
 
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
@@ -108,10 +108,12 @@ class AgentsController(
         }
         .filter { (_, testBatch) -> testBatch.isNotEmpty() }
         .map { (execution, testBatch) ->
+            val backendUrl = configProperties.agentSettings.backendUrl
+
             testBatch to AgentRunConfig(
                 cliArgs = testBatch.constructCliCommand(),
-                executionDataUploadUrl = "${configProperties.url}/internal/saveTestResult",
-                debugInfoUploadUrl = "${configProperties.url}/internal/files/debug-info?executionId=${execution.requiredId()}"
+                executionDataUploadUrl = "$backendUrl/internal/saveTestResult",
+                debugInfoUploadUrl = "$backendUrl/internal/files/debug-info?executionId=${execution.requiredId()}"
             )
         }
         .asyncEffect { (testBatch, _) ->
