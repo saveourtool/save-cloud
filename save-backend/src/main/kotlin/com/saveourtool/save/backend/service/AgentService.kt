@@ -23,10 +23,4 @@ class AgentService(private val agentRepository: AgentRepository) {
      */
     internal fun deleteAgentByExecutionIds(executionIds: List<Long>) =
             agentRepository.deleteByExecutionIdIn(executionIds)
-
-    /**
-     * @param containerId
-     * @return ID of [Execution]
-     */
-    internal fun getExecutionId(containerId: String): Long? = agentRepository.findByContainerId(containerId)?.requiredId()
 }
