@@ -214,8 +214,10 @@ tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
     dependsOn(generateVersionFileTaskProvider)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
-    kotlinWebpack.doFirst {
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
+    // Since we inject timestamp into HTML file, we would like this task to always be re-run.
+    inputs.property("Build timestamp", System.currentTimeMillis())
+    doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
             include("index.html")
