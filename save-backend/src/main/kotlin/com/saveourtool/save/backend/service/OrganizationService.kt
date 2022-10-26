@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus.DELETED
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -54,16 +55,14 @@ class OrganizationService(
         }
 
     /**
-     * @param organizationName
-     * @return [true] if number of Organization projects is zero, else - [false]
+     * @param organizationName the unique name of the organization.
+     * @return `true` if this organization has at least one non-deleted project,
+     *   `false` otherwise.
      */
-    fun organizationHasNoProjects(organizationName: String) = numberOfProjectInOrganization(organizationName) == 0
-
-    /**
-     * @param organizationName
-     * @return number of Organization projects
-     */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).size
+    fun hasProjects(organizationName: String): Boolean =
+            projectService.getAllByOrganizationName(organizationName).any { project ->
+                project.status != DELETED
+            }
 
     /**
      * @param organizationId

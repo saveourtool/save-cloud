@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
@@ -133,7 +134,6 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         val response = delete(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
             headers = jsonHeaders,
-            body = Json.encodeToString(userToDelete),
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
@@ -154,7 +154,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
+        if (!props.wasConfirmationModalShown && role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
             props.showGlobalRoleWarning()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
@@ -231,8 +231,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                         type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
-                        val canDelete = selfRole == Role.SUPER_ADMIN ||
-                                selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                        val canDelete = selfRole.isSuperAdmin() ||
+                                selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
                                 userRole.isLowerThan(selfRole)
                         id = "remove-user-$userIndex"
                         hidden = !canDelete
@@ -259,8 +259,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                                     +it.formattedName
                                 }
                             }
-                        disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) ||
-                                !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
+                        disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
+                                !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
                     }
                 }
             }
@@ -272,5 +272,5 @@ private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = othe
 
 private fun rolesAssignableBy(role: Role) = Role.values()
     .filter { it != Role.NONE }
-    .filter { it != Role.SUPER_ADMIN }
-    .filter { role == Role.OWNER || it.isLowerThan(role) || role == it }
+    .filterNot(Role::isSuperAdmin)
+    .filter { role == OWNER || it.isLowerThan(role) || role == it }
