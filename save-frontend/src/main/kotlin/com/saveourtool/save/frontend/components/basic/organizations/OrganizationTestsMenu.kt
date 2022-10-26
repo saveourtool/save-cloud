@@ -12,20 +12,15 @@ import com.saveourtool.save.frontend.components.basic.organizations.testsuitespe
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.manageTestSuitePermissionsComponent
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.td
-import react.table.columns
+
+import kotlinx.browser.window
 
 /**
  * TESTS tab in OrganizationView
@@ -49,6 +44,7 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
+    useTooltip()
     val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
@@ -71,12 +67,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
     )
 
-    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
+    val (selectedTestSuitesSourceWithId, setSelectedTestSuitesSourceWithId) = useState<TestSuitesSourceDtoWithId>()
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
-        selectedTestSuitesSource?.let { testSuitesSource ->
+        selectedTestSuitesSourceWithId?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.content.organizationName}/${encodeURIComponent(testSuitesSource.content.name)}/list-snapshot",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
@@ -99,17 +95,15 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-                // TODO: body is forbidden in delete in some implementations, probably we should not support it
-                body = undefined
             )
             setTestSuitesSourceSnapshotKeyToDelete(null)
         }
     }
-    val selectHandler: (TestSuitesSourceDto) -> Unit = {
-        if (selectedTestSuitesSource == it) {
-            setSelectedTestSuitesSource(null)
+    val selectHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        if (selectedTestSuitesSourceWithId == it) {
+            setSelectedTestSuitesSourceWithId(null)
         } else {
-            setSelectedTestSuitesSource(it)
+            setSelectedTestSuitesSourceWithId(it)
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
@@ -122,13 +116,13 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceWithIdToUpsert(it)
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
-        setTestSuitesSourceSnapshotKeyToDelete(it)
-        deleteTestSuitesSourcesSnapshotKey()
-        setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.testSuitesSourceName}?")) {
+            setTestSuitesSourceSnapshotKeyToDelete(it)
+            deleteTestSuitesSourcesSnapshotKey()
+            setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+        }
     }
-    val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
     val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {
         organizationName = props.organizationName
@@ -143,10 +137,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     ) {
         setIsSourceCreated { !it }
     }
+
     div {
         className = ClassName("d-flex justify-content-center mb-3")
         buttonBuilder("+ Create test suites source", "primary", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2") {
-            setTestSuiteSourceWithIdToUpsert(null)
             testSuitesSourceUpsertWindowOpenness.openWindow()
         }
         buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2 ml-2") {
@@ -156,175 +150,19 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setManagePermissionsMode(PermissionManagerMode.PUBLISH)
         }
     }
+
     div {
         className = ClassName("mb-2")
-        testSuitesSourcesTable {
-            getData = { _, _ ->
-                testSuitesSourcesWithId.toTypedArray()
-            }
-            content = testSuitesSourcesWithId
-        }
-    }
-
-    selectedTestSuitesSource?.let {
-        div {
-            className = ClassName("mb-2")
-            testSuitesSourceSnapshotKeysTable {
-                getData = { _, _ ->
-                    testSuitesSourceSnapshotKeys.toTypedArray()
-                }
-                content = testSuitesSourceSnapshotKeys
-            }
+        when (selectedTestSuitesSourceWithId) {
+            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler)
+            else -> showTestSuitesSourceSnapshotKeys(
+                selectedTestSuitesSourceWithId,
+                testSuitesSourceSnapshotKeys,
+                selectHandler,
+                editHandler,
+                fetchHandler,
+                deleteHandler,
+            )
         }
     }
 }
-
-/**
- * Extensions for [TableProps] which adds content field (where content of table is taken from external variable)
- */
-external interface TablePropsWithContent<D : Any> : TableProps<D> {
-    /**
-     * Signal to update table
-     */
-    var content: List<D>
-}
-
-@Suppress(
-    "MAGIC_NUMBER",
-    "TYPE_ALIAS",
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "LAMBDA_IS_NOT_LAST_PARAMETER",
-)
-private fun prepareTestSuitesSourcesTable(
-    selectHandler: (TestSuitesSourceDto) -> Unit,
-    fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDtoWithId>> = tableComponent(
-    columns = {
-        columns {
-            column(id = "organizationName", header = "Organization", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +cellProps.value.organizationName
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +cellProps.value.name
-                    }
-                }
-            }
-            column(id = "description", header = "Description", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +(cellProps.value.description ?: "Description is not provided")
-                    }
-                }
-            }
-            column(id = "git-url", header = "Git location", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        a {
-                            // a little hack -- GitHub redirect from master to main if it's required
-                            href = "${cellProps.value.gitDto.url}/tree/master/${cellProps.value.testRootPath}"
-                            +"source"
-                        }
-                    }
-                }
-            }
-            column(id = "fetch", header = "Fetch new version", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                fetchHandler(cellProps.value)
-                            }
-                            +"fetch"
-                        }
-                    }
-                }
-            }
-            column(id = "edit", header = "Edit", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                editHandler(cellProps.value)
-                            }
-                            +"edit"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)
-
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private fun prepareTestSuitesSourceSnapshotKeysTable(
-    deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit
-): FC<TablePropsWithContent<TestSuitesSourceSnapshotKey>> = tableComponent(
-    columns = {
-        columns {
-            column(id = "version", header = "Version", { version }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value
-                    }
-                }
-            }
-            column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value.toString()
-                    }
-                }
-            }
-            column(id = "delete", header = "Delete version", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                deleteHandler(cellProps.value)
-                            }
-                            +"delete"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)

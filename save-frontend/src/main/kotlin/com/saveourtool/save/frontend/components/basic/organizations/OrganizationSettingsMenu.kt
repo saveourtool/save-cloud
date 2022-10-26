@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
@@ -119,7 +120,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
             div {
                 className = ClassName("card card-body mt-0 p-0")
-                if (props.selfRole == Role.SUPER_ADMIN) {
+                if (props.selfRole.isSuperAdmin()) {
                     div {
                         className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
                         div {
