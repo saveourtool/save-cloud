@@ -8457,13 +8457,13 @@
               "DECEMBER"
             ]
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -8549,10 +8549,6 @@
           "date": {
             "$ref": "#/components/schemas/LocalDate"
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date-time"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
@@ -8560,6 +8556,10 @@
           "nanosecond": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -8588,12 +8588,12 @@
             "type": "integer",
             "format": "int32"
           },
-          "value$kotlinx_datetime": {
-            "$ref": "#/components/schemas/LocalTime"
-          },
           "nanosecond": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "$ref": "#/components/schemas/LocalTime"
           }
         }
       },
