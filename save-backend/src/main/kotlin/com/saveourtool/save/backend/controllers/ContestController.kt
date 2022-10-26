@@ -12,6 +12,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
@@ -355,7 +356,11 @@ internal class ContestController(
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            if (contestRequest.status == ContestStatus.DELETED ) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            }
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."
@@ -392,7 +397,11 @@ internal class ContestController(
             "Either organization [${contestsRequest.first().organizationName}] or one or more contests in [${contestsRequest.map { it.name }}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            if (contestsRequest.none { it.status == ContestStatus.DELETED }) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            }
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."

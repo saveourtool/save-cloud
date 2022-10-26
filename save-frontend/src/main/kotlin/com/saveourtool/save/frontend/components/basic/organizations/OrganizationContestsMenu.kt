@@ -139,7 +139,7 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
     /**
      * Selected contests
      */
-    var selectedContestDtos: List<ContestDto>
+    var selectedContestDtos: Set<ContestDto>
 }
 
 @Suppress(
@@ -152,7 +152,7 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
 private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
     val (isToUpdateTable, setIsToUpdateTable) = useState(false)
     val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
-    val (selectedContests, setSelectedContests) = useState(mutableListOf<ContestDto>())
+    val (selectedContests, setSelectedContests) = useState<Set<ContestDto>>(setOf())
     val (contests, setContests) = useState<Set<ContestDto>>(setOf())
     val refreshTable = { setIsToUpdateTable { !it } }
     val deleteContestsFun = useDeferredRequest {
@@ -168,7 +168,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         )
         if (response.ok) {
             setContests(contests.minus(selectedContests))
-            selectedContests.clear()
+            setSelectedContests(setOf())
             refreshTable()
         }
     }
@@ -251,10 +251,10 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             }
             isContestCreated = isToUpdateTable
             addSelectedContests = { contest ->
-                selectedContests.add(contest)
+                setSelectedContests(selectedContests.plus(contest))
             }
             removeSelectedContests = { contest ->
-                selectedContests.remove(contest)
+                setSelectedContests(selectedContests.minus(contest))
             }
             selectedContestDtos = selectedContests
         }
