@@ -117,13 +117,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
         setSortedResults(results)
     }
     div {
-        className = ClassName("mb-3")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            flexDirection = FlexDirection.column
-            alignItems = AlignItems.center
-        }
+        className = ClassName("mb-3 justify-content-center align-items-center")
         if (sortedResults.isEmpty()) {
             h6 {
                 className = ClassName("text-center")
