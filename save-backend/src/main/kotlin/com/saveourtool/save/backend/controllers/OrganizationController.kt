@@ -78,11 +78,22 @@ internal class OrganizationController(
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(
+            name = "onlyActive",
+            `in` = ParameterIn.QUERY,
+            description = "Whether deleted organizations should be excluded from the response. The default is false.",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations() = Mono.fromCallable {
-        organizationService.findAll()
+    fun getAllOrganizations(
+        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
+    ): Mono<List<Organization>> = Mono.fromCallable {
+        when {
+            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
+
+            else -> organizationService.findAll()
+        }
     }
 
     @PostMapping("/not-deleted")
@@ -97,8 +108,9 @@ internal class OrganizationController(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication,
     ): Flux<OrganizationDto> =
-            organizationService.getNotDeletedOrganizations(organizationFilters)
-                .toFlux<Organization>()
+            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
+                .let { organizationService.getFiltered(it) }
+                .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it
@@ -136,7 +148,6 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
     ): Flux<Organization> = authentication.toMono()
@@ -149,6 +160,20 @@ internal class OrganizationController(
         .mapNotNull {
             it.organization as Organization
         }
+
+    @GetMapping("/get/by-prefix")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organization by prefix.",
+        description = "Get list of organizations matching prefix.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationNamesByPrefix(
+        @RequestParam prefix: String
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
+        .map { it.name }
+        .toMono()
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
@@ -322,7 +347,7 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            organizationService.organizationHasNoProjects(it.name)
+            !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."

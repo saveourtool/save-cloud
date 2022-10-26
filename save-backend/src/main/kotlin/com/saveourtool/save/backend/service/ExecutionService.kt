@@ -104,6 +104,21 @@ class ExecutionService(
     /**
      * @param name name of project
      * @param organization organization of project
+     * @param start start date
+     * @param end end date
+     * @return list of executions
+     */
+    fun getExecutionByNameAndOrganizationAndStartTimeBetween(
+        name: String,
+        organization: Organization,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ) =
+            executionRepository.findByProjectNameAndProjectOrganizationAndStartTimeBetween(name, organization, start, end)
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
      * @return list of execution dtos
      */
     fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }

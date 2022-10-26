@@ -12,6 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.orchestrator.managementPort }}
     orchestrator.agent-settings.heartbeat-url=http://{{ .Values.orchestrator.name }}/heartbeat
     orchestrator.agent-settings.debug=true
 

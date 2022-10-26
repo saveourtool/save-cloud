@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus.DELETED
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -54,32 +55,14 @@ class OrganizationService(
         }
 
     /**
-     * @param organizationFilters
-     * @return not deleted Organizations
+     * @param organizationName the unique name of the organization.
+     * @return `true` if this organization has at least one non-deleted project,
+     *   `false` otherwise.
      */
-    fun getNotDeletedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
-        val name = organizationFilters?.name?.let { "%$it%" }
-        val organizations = organizationRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
-            cb.and(
-                namePredicate,
-                cb.notEqual(root.get<String>("status"), OrganizationStatus.DELETED)
-            )
-        }
-        return organizations
-    }
-
-    /**
-     * @param organizationName
-     * @return [true] if number of Organization projects is zero, else - [false]
-     */
-    fun organizationHasNoProjects(organizationName: String) = numberOfProjectInOrganization(organizationName) == 0
-
-    /**
-     * @param organizationName
-     * @return number of Organization projects
-     */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).size
+    fun hasProjects(organizationName: String): Boolean =
+            projectService.getAllByOrganizationName(organizationName).any { project ->
+                project.status != DELETED
+            }
 
     /**
      * @param organizationId
@@ -100,6 +83,19 @@ class OrganizationService(
      */
     fun getByName(name: String) = findByName(name)
         ?: throw NoSuchElementException("There is no organization with name $name.")
+
+    /**
+     * @param organizationFilters
+     * @return list of organizations with that match [organizationFilters]
+     */
+    fun getFiltered(organizationFilters: OrganizationFilters) = if (organizationFilters.prefix.isBlank()) {
+        organizationRepository.findByStatus(organizationFilters.status)
+    } else {
+        organizationRepository.findByNameStartingWithAndStatus(
+            organizationFilters.prefix,
+            organizationFilters.status,
+        )
+    }
 
     /**
      * @param organization

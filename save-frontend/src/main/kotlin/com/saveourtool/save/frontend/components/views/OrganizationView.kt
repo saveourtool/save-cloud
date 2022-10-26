@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
+import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -20,9 +21,6 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
@@ -30,11 +28,10 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import dom.html.HTMLInputElement
 import history.Location
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
@@ -61,6 +58,28 @@ import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * The mandatory column id.
+ * For each cell, this will be transformed into "cell_%d_delete_button" and
+ * visible as the key in the "Components" tab of the developer tools.
+ */
+const val DELETE_BUTTON_COLUMN_ID = "delete_button"
+
+/**
+ * Empty table header.
+ */
+const val EMPTY_COLUMN_HEADER = ""
+
+/**
+ * CSS classes of the "delete project" button.
+ */
+val deleteButtonClasses: List<String> = listOf("btn", "btn-small")
+
+/**
+ * CSS classes of the "delete project" icon.
+ */
+val deleteIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
@@ -94,7 +113,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * List of projects for `this` organization
      */
-    var projects: Array<Project>?
+    var projects: MutableList<Project>
 
     /**
      * Message of error
@@ -112,11 +131,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     var errorLabel: String
 
     /**
-     * Message of warning
-     */
-    var confirmMessage: String
-
-    /**
      * State for the creation of unified confirmation logic
      */
     var confirmationType: ConfirmationType
@@ -125,11 +139,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Flag to handle confirm Window
      */
     var isConfirmWindowOpen: Boolean
-
-    /**
-     * Label of confirm Window
-     */
-    var confirmLabel: String
 
     /**
      * Whether editing of organization info is disabled
@@ -163,7 +172,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
         columns = {
-            columns<Project> {
+            columns {
                 column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                     Fragment.create {
                         td {
@@ -189,18 +198,57 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                     }
                 }
+
+                /*
+                 * A "secret" possibility to delete projects (intended for super-admins).
+                 */
+                if (state.selfRole.isSuperAdmin()) {
+                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                        Fragment.create {
+                            td {
+                                deleteButton {
+                                    val project = cellProps.row.original
+                                    val projectName = project.name
+
+                                    id = "delete-project-$projectName"
+                                    classes = deleteButtonClasses
+                                    tooltipText = "Delete the project"
+                                    elementChildren = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                        }
+                                    }
+
+                                    confirmDialog = ModalDialogStrings(
+                                        title = "Delete Project",
+                                        message = """Are you sure you want to delete the project "$projectName"?""",
+                                    )
+                                    action = deleteProject(project)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         useServerPaging = false,
         usePageSelection = false,
+        getAdditionalDependencies = { tableProps ->
+            /*-
+             * Necessary for the table to get re-rendered once a project gets
+             * deleted.
+             *
+             * The order and size of the array must remain constant.
+             */
+            arrayOf(tableProps)
+        }
     )
-    private lateinit var responseFromDeleteOrganization: Response
 
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.defaultTab
-        state.projects = emptyArray()
+        state.projects = mutableListOf()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
@@ -300,15 +348,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
         // ================= Rows for TOP projects ================
-        val topProjects = state.projects?.sortedByDescending { it.contestRating }?.take(TOP_PROJECTS_NUMBER)
+        val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
 
         div {
             className = ClassName("row")
             style = jso {
                 justifyContent = JustifyContent.center
             }
-            renderTopProject(topProjects?.getOrNull(0))
-            renderTopProject(topProjects?.getOrNull(1))
+            renderTopProject(topProjects.getOrNull(0))
+            renderTopProject(topProjects.getOrNull(1))
         }
 
         @Suppress("MAGIC_NUMBER")
@@ -317,8 +365,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             style = jso {
                 justifyContent = JustifyContent.center
             }
-            renderTopProject(topProjects?.getOrNull(2))
-            renderTopProject(topProjects?.getOrNull(3))
+            renderTopProject(topProjects.getOrNull(2))
+            renderTopProject(topProjects.getOrNull(3))
         }
 
         div {
@@ -414,7 +462,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                 tableWithProjects {
                     getData = { _, _ ->
-                        getProjectsFromCache()
+                        getProjectsFromCache().toTypedArray()
                     }
                     getPageCount = null
                 }
@@ -499,9 +547,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): Array<Project> = state.projects ?: emptyArray()
+    private fun getProjectsFromCache(): List<Project> = state.projects
 
-    private suspend fun getProjectsForOrganization(): Array<Project> = get(
+    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
         url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
         headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
@@ -679,6 +727,31 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Returns a lambda which, when invoked, deletes the specified project and
+     * updates the state of this view, passing an error message, if any, to the
+     * externally supplied [ErrorHandler].
+     *
+     * @param project the project to delete.
+     * @return the lambda which deletes [project].
+     * @see ErrorHandler
+     */
+    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
+        val response = delete(
+            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+            errorHandler = ::noopResponseHandler,
+        )
+        if (response.ok) {
+            setState {
+                projects -= project
+            }
+        } else {
+            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 

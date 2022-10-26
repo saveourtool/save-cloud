@@ -12,6 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.sandbox.managementPort }}
     sandbox.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     sandbox.agent-settings.debug=true
 

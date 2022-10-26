@@ -5,9 +5,11 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.SUPER_ADMIN
+import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -24,6 +26,23 @@ import react.dom.html.ReactHTML.tr
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * An error message.
+ */
+internal typealias ErrorMessage = String
+
+/**
+ * A generic error handler.
+ */
+internal typealias ErrorHandler = (ErrorMessage) -> Unit
+
+/**
+ * The body of a [useDeferredRequest] invocation.
+ *
+ * @param T the return type of this action.
+ */
+internal typealias DeferredRequestAction<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
 
 /**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization
@@ -65,6 +84,20 @@ fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
  */
 fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
         { event -> this(event.target.value) }
+
+/**
+ * @return `true` if this user is a super-admin, `false` otherwise.
+ * @see Role.isSuperAdmin
+ */
+internal fun UserInfo?.isSuperAdmin(): Boolean =
+        this?.globalRole.isSuperAdmin()
+
+/**
+ * @return `true` if this is a super-admin role, `false` otherwise.
+ * @see UserInfo.isSuperAdmin
+ */
+internal fun Role?.isSuperAdmin(): Boolean =
+        this?.isHigherOrEqualThan(SUPER_ADMIN) ?: false
 
 /**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
