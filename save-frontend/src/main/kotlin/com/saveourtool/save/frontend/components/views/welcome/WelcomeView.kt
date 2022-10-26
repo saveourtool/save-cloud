@@ -18,7 +18,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import csstype.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -298,6 +297,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
                 menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                if (props.userInfo.isSuperAdmin()) {
+                    hrNoMargin()
+                    menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }

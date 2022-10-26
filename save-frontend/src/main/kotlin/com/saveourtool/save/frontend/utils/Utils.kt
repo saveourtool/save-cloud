@@ -5,6 +5,8 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.SUPER_ADMIN
+import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
 import dom.html.HTMLInputElement
@@ -82,6 +84,20 @@ fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
  */
 fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
         { event -> this(event.target.value) }
+
+/**
+ * @return `true` if this user is a super-admin, `false` otherwise.
+ * @see Role.isSuperAdmin
+ */
+internal fun UserInfo?.isSuperAdmin(): Boolean =
+        this?.globalRole.isSuperAdmin()
+
+/**
+ * @return `true` if this is a super-admin role, `false` otherwise.
+ * @see UserInfo.isSuperAdmin
+ */
+internal fun Role?.isSuperAdmin(): Boolean =
+        this?.isHigherOrEqualThan(SUPER_ADMIN) ?: false
 
 /**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
