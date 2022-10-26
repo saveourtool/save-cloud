@@ -63,7 +63,8 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     "TOO_MANY_PARAMETERS",
     "TOO_LONG_FUNCTION",
     "LongParameterList",
-    "LongMethod"
+    "LongMethod",
+    "ComplexMethod",
 )
 private fun ChildrenBuilder.showBreadcrumb(
     selectedOrganization: String?,
@@ -82,6 +83,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                 className = ClassName("breadcrumb-item")
                 a {
                     role = "button".unsafeCast<AriaRole>()
+                    className = selectedOrganization?.let { ClassName("btn-link") }
                     onClick = {
                         selectedOrganization?.let {
                             onOrganizationsClick()
@@ -96,6 +98,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                     className = ClassName("breadcrumb-item $isActive")
                     a {
                         role = "button".unsafeCast<AriaRole>()
+                        className = selectedTestSuiteSource?.let { ClassName("btn-link") }
                         onClick = {
                             selectedTestSuiteSource?.let {
                                 onSelectedOrganizationClick()
@@ -111,6 +114,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                     className = ClassName("breadcrumb-item $isActive")
                     a {
                         role = "button".unsafeCast<AriaRole>()
+                        className = selectedTestSuiteVersion?.let { ClassName("btn-link") }
                         onClick = {
                             if (shouldDisplayVersion) {
                                 selectedTestSuiteVersion?.let {
