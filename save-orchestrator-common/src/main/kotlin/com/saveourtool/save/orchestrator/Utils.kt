@@ -102,7 +102,7 @@ internal fun fillAgentPropertiesFromConfiguration(
     put(AgentEnvName.AGENT_VERSION, agentVersion)
 
     with(agentSettings) {
-        heartbeatUrl?.let { put(AgentEnvName.HEARTBEAT_URL, it) }
+        put(AgentEnvName.HEARTBEAT_URL, heartbeatUrl)
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 }

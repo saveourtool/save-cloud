@@ -37,7 +37,7 @@ data class ConfigProperties(
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
-    val agentSettings: AgentSettings = AgentSettings(),
+    val agentSettings: AgentSettings,
     val agentsStartTimeoutMillis: Long,
     val agentsStartCheckIntervalMillis: Long,
 ) {
@@ -97,7 +97,7 @@ data class ConfigProperties(
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
-        val heartbeatUrl: String? = null,
+        val heartbeatUrl: String,
         val debug: Boolean? = null,
     )
 
