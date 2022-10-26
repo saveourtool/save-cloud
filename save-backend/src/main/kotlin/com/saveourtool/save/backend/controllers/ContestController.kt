@@ -356,7 +356,7 @@ internal class ContestController(
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
-            if (contestRequest.status == ContestStatus.DELETED ) {
+            if (contestRequest.status == ContestStatus.DELETED) {
                 organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
             } else {
                 organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
