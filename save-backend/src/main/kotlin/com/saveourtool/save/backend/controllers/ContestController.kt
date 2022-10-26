@@ -355,7 +355,7 @@ internal class ContestController(
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."
@@ -392,7 +392,7 @@ internal class ContestController(
             "Either organization [${contestsRequest.first().organizationName}] or one or more contests in [${contestsRequest.map { it.name }}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."
