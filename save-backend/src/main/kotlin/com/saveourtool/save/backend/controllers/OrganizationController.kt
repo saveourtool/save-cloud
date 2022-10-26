@@ -78,11 +78,22 @@ internal class OrganizationController(
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(
+            name = "onlyActive",
+            `in` = ParameterIn.QUERY,
+            description = "Whether deleted organizations should be excluded from the response. The default is false.",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations() = Mono.fromCallable {
-        organizationService.findAll()
+    fun getAllOrganizations(
+        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
+    ): Mono<List<Organization>> = Mono.fromCallable {
+        when {
+            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
+
+            else -> organizationService.findAll()
+        }
     }
 
     @PostMapping("/not-deleted")
