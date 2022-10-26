@@ -41,7 +41,7 @@ class WebSecurityConfig(
         // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/actuator/**", "/internal/**", "/heartbeat", "/sandbox/internal/**", *publicEndpoints.toTypedArray())
+            .pathMatchers(*publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
             .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
@@ -87,7 +87,9 @@ class WebSecurityConfig(
          * Or we can use custom AccessDecisionManager later.
          */
         internal val publicEndpoints = listOf(
+            "/",
             "/error",
+            "/actuator/**",
             // `CollectionView` is a public page
             "/api/$v1/projects/not-deleted",
             "/api/$v1/awesome-benchmarks",
@@ -103,6 +105,9 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/public-test",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
+            "/internal/**",
+            "/heartbeat",
+            "/sandbox/internal/**"
         )
     }
 }
