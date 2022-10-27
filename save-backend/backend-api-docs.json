@@ -8637,11 +8637,11 @@
             "type": "string",
             "format": "date-time"
           },
-          "monthNumber": {
+          "nanosecond": {
             "type": "integer",
             "format": "int32"
           },
-          "nanosecond": {
+          "monthNumber": {
             "type": "integer",
             "format": "int32"
           }
