@@ -9,18 +9,15 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
+import com.saveourtool.save.frontend.components.basic.projects.projectRunMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
-import com.saveourtool.save.frontend.externals.fontawesome.faHistory
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
@@ -28,20 +25,14 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import history.Location
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
@@ -62,38 +53,13 @@ external interface ProjectViewProps : PropsWithChildren {
 }
 
 /**
- * [State] of project view component for CONTEST run
- */
-external interface ContestRunState : State {
-    /**
-     * Currently selected contest
-     */
-    var selectedContest: ContestDto
-
-    /**
-     * All available contest
-     */
-    var availableContests: List<ContestDto>
-
-    /**
-     * All available contest
-     */
-    var selectedContestTestSuites: List<TestSuiteDto>
-}
-
-/**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole, ContestRunState, HasSelectedMenu<ProjectMenuBar> {
+external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenuBar> {
     /**
      * Currently loaded for display Project
      */
     var project: Project
-
-    /**
-     * Files required for tests execution for this project
-     */
-    var files: List<FileInfo>
 
     /**
      * Message of error
@@ -109,36 +75,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Error label
      */
     var errorLabel: String
-
-    /**
-     * Selected sdk
-     */
-    var selectedSdk: Sdk
-
-    /**
-     * Flag to handle upload type project
-     */
-    var testingType: TestingType
-
-    /**
-     * List of Test Suites of private [TestSuiteDto] for execution run
-     */
-    var selectedPrivateTestSuites: List<TestSuiteDto>
-
-    /**
-     * List of Test Suites of public [TestSuiteDto] for execution run
-     */
-    var selectedPublicTestSuites: List<TestSuiteDto>
-
-    /**
-     * Execution command for standard mode
-     */
-    var execCmd: String
-
-    /**
-     * Batch size for static analyzer tool in standard mode
-     */
-    var batchSizeForAnalyzer: String
 
     /**
      * latest execution id for this project
@@ -164,38 +100,14 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
-    private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
-    private val typeSelection = cardComponent()
-
     init {
         state.project = Project.stub(null, Organization.stub(null))
-        state.selectedContest = ContestDto.empty
-        state.availableContests = emptyList()
-        state.selectedPrivateTestSuites = emptyList()
-        state.selectedPublicTestSuites = emptyList()
-        state.execCmd = ""
-        state.batchSizeForAnalyzer = ""
-        state.testingType = TestingType.PRIVATE_TESTS
-        state.selectedContest = ContestDto.empty
-        state.availableContests = emptyList()
         state.isErrorOpen = false
         state.errorMessage = ""
         state.errorLabel = ""
-        state.files = mutableListOf()
-        state.selectedSdk = Sdk.Default
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
-        state.selectedContestTestSuites = emptyList()
-    }
-
-    private fun showNotification(notificationLabel: String, notificationMessage: String) {
-        setState {
-            isErrorOpen = true
-            errorLabel = notificationLabel
-            errorMessage = notificationMessage
-            closeButtonLabel = "Confirm"
-        }
     }
 
     override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
@@ -203,9 +115,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
-        }
-        if (prevState.selectedContestTestSuites != state.selectedContestTestSuites) {
-            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
@@ -245,42 +154,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
             urlAnalysis(ProjectMenuBar, role, false)
 
-            val contests = getContests()
-            setState {
-                availableContests = contests
-                contests.firstOrNull()?.let { selectedContest = it }
-            }
-
             fetchLatestExecutionId()
-            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
-    }
-
-    @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
-    private fun NavigateFunctionContext.submitExecutionRequest() {
-        when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuites, state.testingType)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuites, state.testingType)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContestTestSuites, state.testingType)
-            else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
-        }
-    }
-
-    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
-        val executionRequest = CreateExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = state.project.organization.name,
-                projectName = state.project.name
-            ),
-            testSuiteIds = selectedTestSuites.map { it.requiredId() },
-            files = state.files.map { it.key },
-            sdk = state.selectedSdk,
-            execCmd = state.execCmd.takeUnless { it.isBlank() },
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
-            testingType = testingType,
-            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { state.selectedContest.name }
-        )
-        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun NavigateFunctionContext.submitRequest(url: String, headers: Headers, body: dynamic) {
@@ -293,23 +168,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             )
             if (response.ok) {
                 navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
-            }
-        }
-    }
-
-    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
-    private fun fetchTestSuiteDtos(ids: List<Long>) {
-        scope.launch {
-            val testSuitesFromBackend: List<TestSuiteDto> = post(
-                url = "$apiUrl/test-suites/${props.owner}/get-by-ids",
-                headers = jsonHeaders,
-                body = Json.encodeToString(ids),
-                loadingHandler = ::classLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-                .decodeFromJsonString()
-            setState {
-                selectedContestTestSuites = testSuitesFromBackend
             }
         }
     }
@@ -381,184 +239,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun ChildrenBuilder.renderRun() {
-        div {
-            className = ClassName("row justify-content-center ml-5")
-            // ===================== LEFT COLUMN =======================================================================
-            div {
-                className = ClassName("col-2 mr-3")
-                div {
-                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Testing types"
-                }
-
-                typeSelection {
-                    div {
-                        className = ClassName("text-left")
-                        testingTypeButton(
-                            TestingType.PRIVATE_TESTS,
-                            "Evaluate your tool with your own tests",
-                            "mr-2"
-                        )
-                        testingTypeButton(
-                            TestingType.PUBLIC_TESTS,
-                            "Evaluate your tool with public test suites",
-                            "mt-3 mr-2"
-                        )
-                        if (state.project.public) {
-                            testingTypeButton(
-                                TestingType.CONTEST_MODE,
-                                "Participate in SAVE contests with your tool",
-                                "mt-3 mr-2"
-                            )
-                        }
-                    }
-                }
-            }
-            // ===================== MIDDLE COLUMN =====================================================================
-            div {
-                className = ClassName("col-4")
-                div {
-                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Test configuration"
-                }
-
-                // ======== file selector =========
-                div {
-                    className = ClassName("mb-2")
-                    label {
-                        className =
-                                ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                        +"1. Upload or select the tool (and other resources) for testing:"
-                    }
-                    fileUploaderForProjectRun(
-                        ProjectCoordinates(props.owner, props.name),
-                        state.files,
-                        { fileToAdd ->
-                            setState {
-                                files = files + fileToAdd
-                            }
-                        }
-                    ) { fileToRemove ->
-                        setState {
-                            files = files - fileToRemove
-                        }
-                    }
-                }
-
-                // ======== sdk selection =========
-                sdkSelection {
-                    title = "2. Select the SDK if needed:"
-                    selectedSdk = state.selectedSdk
-                    onSdkChange = {
-                        setState {
-                            selectedSdk = it
-                        }
-                    }
-                }
-
-                // ======== test resources selection =========
-                testResourcesSelection {
-                    testingType = state.testingType
-                    // properties for CONTEST_TESTS mode
-                    projectName = props.name
-                    organizationName = props.owner
-                    onContestEnrollerResponse = {
-                        setState {
-                            isErrorOpen = true
-                            errorMessage = it
-                            errorLabel = "Contest enrollment"
-                        }
-                    }
-                    selectedContest = state.selectedContest
-                    setSelectedContest = { selectedContest ->
-                        setState {
-                            this.selectedContest = selectedContest
-                        }
-                    }
-                    availableContests = state.availableContests
-                    // properties for PRIVATE_TESTS mode
-                    selectedPrivateTestSuiteDtos = state.selectedPrivateTestSuites
-                    setSelectedPrivateTestSuiteDtos = { selectedTestSuiteDtos ->
-                        setState {
-                            this.selectedPrivateTestSuites = selectedTestSuiteDtos
-                        }
-                    }
-                    // properties for PUBLIC_TESTS mode
-                    selectedPublicTestSuiteDtos = state.selectedPublicTestSuites
-                    setSelectedPublicTestSuiteDtos = { selectedTestSuiteDtos ->
-                        setState {
-                            this.selectedPublicTestSuites = selectedTestSuiteDtos
-                        }
-                    }
-                    // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
-                    execCmd = state.execCmd
-                    setExecCmd = { execCmd ->
-                        setState {
-                            this.execCmd = execCmd
-                        }
-                    }
-                    batchSizeForAnalyzer = state.batchSizeForAnalyzer
-                    setBatchSizeForAnalyzer = { batchSizeForAnalyzer ->
-                        setState {
-                            this.batchSizeForAnalyzer = batchSizeForAnalyzer
-                        }
-                    }
-                }
-
-                div {
-                    className = ClassName("d-sm-flex align-items-center justify-content-center")
-                    withNavigate { navigateContext ->
-                        buttonBuilder("Test the tool now", isDisabled = isRunButtonDisabled()) {
-                            navigateContext.submitExecutionRequest()
-                        }
-                    }
-                }
-            }
-            // ===================== RIGHT COLUMN ======================================================================
-            div {
-                className = ClassName("col-3 ml-2")
-                div {
-                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Information"
-                }
-
-                projectInfoCard {
-                    projectInfo {
-                        project = state.project
-                        onProjectUpdate = {
-                            setState {
-                                project = it
-                            }
-                        }
-                    }
-
-                    div {
-                        className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
-                        fontAwesomeIcon(icon = faHistory)
-                        withNavigate { navigateContext ->
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn btn-link text-left")
-                                +"Latest Execution"
-                                disabled = state.latestExecutionId == null
-                                onClick = {
-                                    navigateContext.navigateToLinkWithSuffix(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
-                                }
-                            }
-                        }
-                    }
-                    div {
-                        className = ClassName("ml-3 align-items-left")
-                        fontAwesomeIcon(icon = faCalendarAlt)
-                        a {
-                            href = "#${state.paths.pathDefaultTab}/history"
-                            className = ClassName("btn btn-link text-left")
-                            +"Execution History"
-                        }
-                    }
-                }
+        projectRunMenu {
+            organizationName = props.owner
+            projectName = props.name
+            latestExecutionId = state.latestExecutionId
+            pathToView = state.paths.pathDefaultTab
+            submitExecutionRequest = { context, executionRequest ->
+                context.submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
             }
         }
     }
@@ -587,18 +275,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                     errorLabel = response.statusText
                     errorMessage = message
                     isErrorOpen = true
-                }
-            }
-            updateNotificationMessage = ::showNotification
-        }
-    }
-
-    private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
-        div {
-            className = ClassName(divClass)
-            buttonBuilder(text, isOutline = true, isActive = state.testingType == selectedTestingType) {
-                setState {
-                    testingType = selectedTestingType
                 }
             }
         }
@@ -631,19 +307,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             }
         }
     }
-
-    private fun isRunButtonDisabled() = state.files.isEmpty() ||
-            (state.testingType == TestingType.PRIVATE_TESTS && state.selectedPrivateTestSuites.isEmpty()) ||
-            (state.testingType == TestingType.PUBLIC_TESTS && state.selectedPublicTestSuites.isEmpty())
-
-    private suspend fun getContests() = get(
-        "$apiUrl/contests/active",
-        jsonHeaders,
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<List<ContestDto>>()
-        }
 
     companion object :
         RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
