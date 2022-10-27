@@ -7,16 +7,18 @@
 
 package com.saveourtool.save.frontend.components.basic.organizations
 
-import com.saveourtool.save.frontend.externals.fontawesome.faEdit
-import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.prettyPrint
+import com.saveourtool.save.utils.secondsToInstant
 
 import csstype.ClassName
 import csstype.Cursor
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
@@ -47,13 +49,22 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             className = ClassName("d-flex w-100 justify-content-between")
             button {
                 className = ClassName("btn btn-lg btn-link p-0 mb-1")
-                style = jso {
-                    cursor = "pointer".unsafeCast<Cursor>()
-                }
                 onClick = {
                     selectHandler(testSuitesSourceDtoWithId)
                 }
-                +(testSuitesSourceDtoWithId.content.name)
+                label {
+                    style = jso {
+                        cursor = "pointer".unsafeCast<Cursor>()
+                    }
+                    fontAwesomeIcon(
+                        if (isSelected) {
+                            faArrowLeft
+                        } else {
+                            faArrowRight
+                        }
+                    )
+                    +("  ${testSuitesSourceDtoWithId.content.name}")
+                }
             }
 
             buttonBuilder(faEdit, null, title = "Edit source") {
@@ -157,12 +168,12 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
                             className = ClassName("float-left")
                             +testSuitesSourceSnapshotKey.version
                         }
-                        buttonBuilder(faTimesCircle, style = null, classes = "float-right btn-sm") {
+                        buttonBuilder(faTimesCircle, style = null, classes = "float-right btn-sm pt-0 pb-0") {
                             deleteHandler(testSuitesSourceSnapshotKey)
                         }
                         div {
                             className = ClassName("float-right")
-                            +testSuitesSourceSnapshotKey.creationTimeInMills.toString()
+                            +testSuitesSourceSnapshotKey.creationTimeInMills.secondsToInstant().prettyPrint()
                         }
                     }
                 }
