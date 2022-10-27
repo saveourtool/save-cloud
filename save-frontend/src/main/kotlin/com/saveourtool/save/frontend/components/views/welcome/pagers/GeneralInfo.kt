@@ -56,34 +56,18 @@ private const val CONTESTS_TEXT = """
 fun ChildrenBuilder.renderGeneralInfoPage() {
     div {
         style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            alignItems = AlignItems.center
-            alignSelf = AlignSelf.center
             color = "rgb(6, 7, 89)".unsafeCast<Color>()
         }
-        className = ClassName("row")
+        className = ClassName("row justify-content-center")
 
         div {
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.center
-            }
-            className = ClassName("row mt-5")
+            className = ClassName("row justify-content-center mt-5")
             text("Framework", SAVE_CLI_TEXT)
             text("Easy CI", EASY_CI_TEXT)
         }
 
         div {
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.center
-            }
-
+            className = ClassName("row justify-content-center")
             text("Benchmarks", BENCHMARKS_TEXT)
             text("Contests", CONTESTS_TEXT)
         }

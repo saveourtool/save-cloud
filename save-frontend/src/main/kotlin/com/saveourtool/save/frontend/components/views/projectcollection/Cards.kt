@@ -122,12 +122,7 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
             }
 
             div {
-                className = ClassName("col-lg-6")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("col-lg-6 justify-content-center align-items-center")
                 img {
                     src = image
                     style = jso {

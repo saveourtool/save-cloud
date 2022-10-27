@@ -25,7 +25,7 @@ class SandboxAgent(
     @JoinColumn(name = "execution_id")
     var execution: SandboxExecution,
 
-    var version: String? = null,
+    var version: String,
 ) : BaseEntity() {
     /**
      * @return [AgentDto] from [Agent]

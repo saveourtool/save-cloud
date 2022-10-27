@@ -3022,6 +3022,90 @@
         ]
       }
     },
+    "/api/v1/contests/update-all": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Update contest.",
+        "description": "Change existing contest settings.",
+        "operationId": "updateAllContest",
+        "parameters": [
+          {
+            "name": "contestRequest",
+            "in": "query",
+            "description": "name of an organization",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Not enough permission to edit current contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either organization or contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/featured/add-or-delete": {
       "post": {
         "tags": [
@@ -8457,13 +8541,13 @@
               "DECEMBER"
             ]
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -8549,10 +8633,6 @@
           "date": {
             "$ref": "#/components/schemas/LocalDate"
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date-time"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
@@ -8560,6 +8640,10 @@
           "nanosecond": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -8588,12 +8672,12 @@
             "type": "integer",
             "format": "int32"
           },
-          "value$kotlinx_datetime": {
-            "$ref": "#/components/schemas/LocalTime"
-          },
           "nanosecond": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "$ref": "#/components/schemas/LocalTime"
           }
         }
       },

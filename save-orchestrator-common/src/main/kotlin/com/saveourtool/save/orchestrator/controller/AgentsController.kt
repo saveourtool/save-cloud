@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.controller
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentLogService
 import com.saveourtool.save.orchestrator.service.AgentRepository
@@ -40,7 +39,6 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val agentRunner: AgentRunner,
-    private val configProperties: ConfigProperties,
     private val agentLogService: AgentLogService,
     private val agentRepository: AgentRepository,
 ) {
@@ -58,7 +56,7 @@ class AgentsController(
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
             log.info {
-                "Starting preparations for launching execution [project=${request.projectCoordinates}, id=${request.executionId}]"
+                "Starting preparations for launching execution id=${request.executionId}"
             }
             Mono.fromCallable {
                 // todo: pass SDK via request body
@@ -79,7 +77,12 @@ class AgentsController(
                     agentService.saveAgentsWithInitialStatuses(
                         containerIds.map { containerId ->
                             val containerName = agentRunner.getContainerIdentifier(containerId)
-                            AgentDto(containerId, containerName, request.executionId)
+                            AgentDto(
+                                containerId = containerId,
+                                containerName = containerName,
+                                executionId = request.executionId,
+                                version = request.saveAgentVersion
+                            )
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->

@@ -86,19 +86,20 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  * Build map of env variables that can be read by save-agent to override settings from properties file
  *
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
+ * @param agentVersion version of save-agent
  * @param executionId ID of [com.saveourtool.save.entities.Execution] which to be processed
  * @return map of env variables with their values
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
+    agentVersion: String,
     executionId: Long,
 ): Map<AgentEnvName, String> = buildMap {
-    put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
     put(AgentEnvName.EXECUTION_ID, executionId.toString())
+    put(AgentEnvName.AGENT_VERSION, agentVersion)
 
     with(agentSettings) {
-        backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        put(AgentEnvName.HEARTBEAT_URL, heartbeatUrl)
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 }

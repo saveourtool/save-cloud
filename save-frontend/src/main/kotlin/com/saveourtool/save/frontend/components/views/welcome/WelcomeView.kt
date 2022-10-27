@@ -153,16 +153,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
                 div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        alignItems = AlignItems.center
-                        position = Position.absolute
-                        bottom = 7.em
-                        left = "50%".unsafeCast<Left>()
-                    }
+                    className = ClassName("row justify-content-center")
                     h1 {
                         className = ClassName("animate__animated animate__pulse animate__infinite")
                         style = jso {
