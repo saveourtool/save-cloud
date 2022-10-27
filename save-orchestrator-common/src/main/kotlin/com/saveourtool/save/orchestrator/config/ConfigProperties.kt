@@ -10,8 +10,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 /**
  * Class for properties
  *
- * @property backendUrl url of save-backend
- * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property kubernetes configuration for setup in Kubernetes
  * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
@@ -28,8 +26,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
-    val backendUrl: String,
-    val testResources: TestResources,
     val docker: DockerSettings?,
     val kubernetes: KubernetesSettings?,
     val dockerResourcesLifetime: String = "720h",
@@ -39,21 +35,10 @@ data class ConfigProperties(
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
-    val agentSettings: AgentSettings = AgentSettings(),
+    val agentSettings: AgentSettings,
     val agentsStartTimeoutMillis: Long,
     val agentsStartCheckIntervalMillis: Long,
 ) {
-    /**
-     * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
-     * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
-     * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
-     * To be able to access resources, orchestrator and this intermediate container should have a shared mount, and [tmpPath] serves
-     * as a host location for this shared mount.
-     */
-    data class TestResources(
-        val tmpPath: String = "/tmp",
-    )
-
     /**
      * @property host hostname of docker daemon
      * @property runtime OCI compliant runtime for docker
@@ -95,13 +80,11 @@ data class ConfigProperties(
     )
 
     /**
-     * @property backendUrl url of save-backend that will be used by save-agent
-     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+     * @property heartbeatUrl url that will be used by save-agent to post heartbeats
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
-        val backendUrl: String? = null,
-        val orchestratorUrl: String? = null,
+        val heartbeatUrl: String,
         val debug: Boolean? = null,
     )
 

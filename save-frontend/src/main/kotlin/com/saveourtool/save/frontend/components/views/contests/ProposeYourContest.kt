@@ -47,13 +47,7 @@ fun ChildrenBuilder.proposeContest() {
         }
 
         div {
-            className = ClassName("col-lg-9")
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.flexEnd
-            }
+            className = ClassName("col-lg-9 justify-content-center")
 
             a {
                 href = "mailto:saveourtool@gmail.com"
