@@ -10,19 +10,21 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.prettyPrint
+import com.saveourtool.save.utils.secondsToInstant
 
 import csstype.ClassName
 import csstype.Cursor
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.label
 
 /**
  * Display single TestSuiteSource as list option
@@ -171,7 +173,7 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
                         }
                         div {
                             className = ClassName("float-right")
-                            +testSuitesSourceSnapshotKey.creationTimeInMills.toString()
+                            +testSuitesSourceSnapshotKey.creationTimeInMills.secondsToInstant().prettyPrint()
                         }
                     }
                 }
