@@ -152,7 +152,6 @@ services:
 
 networks:
   default:
-    driver: overlay
     attachable: true
 
 volumes:
