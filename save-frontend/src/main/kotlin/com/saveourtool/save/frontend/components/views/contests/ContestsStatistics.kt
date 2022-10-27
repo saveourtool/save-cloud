@@ -7,9 +7,7 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.AlignItems
 import csstype.ClassName
-import csstype.JustifyContent
 import csstype.rem
 import react.ChildrenBuilder
 import react.VFC

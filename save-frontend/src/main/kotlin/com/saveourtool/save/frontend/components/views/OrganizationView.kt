@@ -330,9 +330,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         // ================= Title for TOP projects ===============
         div {
             className = ClassName("row justify-content-center mb-2")
-                h4 {
-                    +"Top Tools"
-                }
+            h4 {
+                +"Top Tools"
+            }
         }
 
         // ================= Rows for TOP projects ================

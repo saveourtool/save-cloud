@@ -13,8 +13,6 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.js.jso
-
 /**
  * SUMMARY tab in ContestView
  */
