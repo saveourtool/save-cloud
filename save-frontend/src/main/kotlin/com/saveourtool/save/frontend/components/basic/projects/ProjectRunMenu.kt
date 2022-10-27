@@ -18,15 +18,12 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML
-import react.router.dom.Link
 
 private val typeSelection = cardComponent()
 
