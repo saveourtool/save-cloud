@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property fileStorage configuration of file storage
  * @property orchestratorUrl url of save-orchestrator
  * @property scheduling configuration for scheduled tasks
- * @property agentSettings overrides the defaults in `agent.properties`.
+ * @property agentSettings properties for save-agents
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")

@@ -1,9 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.agent.AgentInitConfig
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
-import com.saveourtool.save.agent.SaveCliOverrides
+import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
@@ -11,7 +8,7 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
@@ -26,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller to manipulate with Agent related data
@@ -88,20 +87,42 @@ class AgentsController(
         }
 
     /**
-     * @param containerId
-     * @return test batches
+     * @param containerId [Agent.containerId]
+     * @return [Mono] with [AgentRunConfig]
      */
-    @GetMapping("/agents/get-next-test-batch")
+    @GetMapping("/agents/get-next-run-config")
     @Transactional
-    fun getNextTestBatch(
+    fun getNextRunConfig(
         @RequestParam containerId: String,
-    ): Mono<TestBatch> = testService.getTestBatches(containerId)
-        .asyncEffectIf(TestBatch::isNotEmpty) { testBatch ->
+    ): Mono<AgentRunConfig> = blockingToMono {
+        agentRepository.findByContainerId(containerId)
+    }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
+        .map {
+            it.execution
+        }
+        .zipWhen { execution ->
+            testService.getTestBatches(execution)
+        }
+        .filter { (_, testBatch) -> testBatch.isNotEmpty() }
+        .map { (execution, testBatch) ->
+            val backendUrl = configProperties.agentSettings.backendUrl
+
+            testBatch to AgentRunConfig(
+                cliArgs = testBatch.constructCliCommand(),
+                executionDataUploadUrl = "$backendUrl/internal/saveTestResult",
+                debugInfoUploadUrl = "$backendUrl/internal/files/debug-info?executionId=${execution.requiredId()}"
+            )
+        }
+        .asyncEffect { (testBatch, _) ->
             blockingToMono { testExecutionService.assignAgentByTest(containerId, testBatch) }
                 .doOnSuccess {
                     log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
                 }
         }
+        .map { (_, runConfig) -> runConfig }
 
     /**
      * @param agents list of [AgentDto]s to save into the DB
@@ -143,17 +164,6 @@ class AgentsController(
                     agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
                 }
             }
-        }
-    }
-
-    /**
-     * @param agentVersion [AgentVersion] to update agent version
-     */
-    @PostMapping("/saveAgentVersion")
-    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
-        agentRepository.findByContainerId(agentVersion.containerId)?.let {
-            it.version = agentVersion.version
-            agentRepository.save(it)
         }
     }
 
@@ -230,6 +240,11 @@ class AgentsController(
         }
         return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
     }
+
+    private fun List<TestDto>.constructCliCommand() = joinToString(" ") { it.filePath }
+        .also {
+            log.debug("Constructed cli args for SAVE-cli: $it")
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

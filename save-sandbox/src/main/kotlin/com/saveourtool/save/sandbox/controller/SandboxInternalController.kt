@@ -1,9 +1,7 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
@@ -24,6 +22,7 @@ import reactor.kotlin.core.publisher.toMono
 import java.nio.ByteBuffer
 
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
 
@@ -37,7 +36,6 @@ typealias StringResponse = ResponseEntity<String>
 @RequestMapping("/sandbox/internal")
 class SandboxInternalController(
     private val storage: SandboxStorage,
-    private val agentRepository: SandboxAgentRepository,
     private val objectMapper: ObjectMapper,
 ) {
     /**
@@ -51,7 +49,7 @@ class SandboxInternalController(
     fun downloadTestFiles(
         @RequestParam userId: Long,
     ): Mono<ByteBufferFluxResponse> {
-        val archiveFile = kotlin.io.path.createTempFile(
+        val archiveFile = createTempFile(
             prefix = "tests-",
             suffix = ARCHIVE_EXTENSION
         )
@@ -125,48 +123,33 @@ class SandboxInternalController(
     /**
      * @return content of save-agent
      */
-    @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
                 .filter { it.exists() }
                 .switchIfEmptyToNotFound()
 
     /**
-     * @param agentVersion
-     * @return Mono with empty body
-     */
-    @PostMapping("/saveAgentVersion")
-    fun saveAdditionalData(
-        @RequestBody agentVersion: AgentVersion
-    ): Mono<Unit> = {
-        // Do nothing for now
-    }.toMono()
-
-    /**
      * @param testExecutionsDto
      * @return response with text value
      */
-    @PostMapping("/saveTestResult")
+    @PostMapping("/upload-execution-data")
     fun saveExecutionData(
         @RequestBody testExecutionsDto: List<TestExecutionDto>
     ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
         .toMono()
 
     /**
-     * @param executionId
+     * @param userId
      * @param testResultDebugInfo
      * @return [Mono] with count of uploaded bytes
      */
-    @PostMapping("/files/debug-info")
+    @PostMapping("/upload-debug-info")
     fun uploadDebugInfo(
-        @RequestParam executionId: Long,
+        @RequestParam userId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = agentRepository.getUserIdAsMonoByExecutionId(executionId)
-        .map { userId -> SandboxStorageKey.debugInfoKey(userId) }
-        .flatMap { storageKey ->
-            storage.overwrite(
-                key = storageKey,
-                content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
-            )
-        }
+    ): Mono<Long> = storage.overwrite(
+        key = SandboxStorageKey.debugInfoKey(userId),
+        content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
+    )
 }
