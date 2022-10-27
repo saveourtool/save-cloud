@@ -23,13 +23,13 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableReactiveMethodSecurity
 @Import(KubernetesAuthenticationUtils::class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-class WebSecurityConfig {
+class KubernetesServiceAccountWebSecurityConfig {
     /**
      * Configures spring-security to use ServiceAccount based authentication.
      * Beans [serviceAccountTokenExtractorConverter] and [serviceAccountAuthenticatingManager] need to be passed into
      * [serviceAccountTokenAuthentication].
      */
-    @Bean
+    @Bean(name = ["kubernetesServiceAccountSecurityWebFilterChain"])
     @Suppress("KDOC_WITHOUT_PARAM_TAG", "KDOC_WITHOUT_RETURN_TAG")
     fun securityWebFilterChain(
         http: ServerHttpSecurity,
