@@ -25,6 +25,8 @@ import react.dom.html.ReactHTML.label
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.dom.html.ReactHTML
+import react.router.dom.Link
 
 private val typeSelection = cardComponent()
 
@@ -293,9 +295,9 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 div {
                     className = ClassName("ml-3 align-items-left")
                     fontAwesomeIcon(icon = faCalendarAlt)
-                    a {
-                        href = "#${props.pathToView}/history"
+                    Link {
                         className = ClassName("btn btn-link text-left")
+                        to = "#${props.pathToView}/history"
                         +"Execution History"
                     }
                 }
