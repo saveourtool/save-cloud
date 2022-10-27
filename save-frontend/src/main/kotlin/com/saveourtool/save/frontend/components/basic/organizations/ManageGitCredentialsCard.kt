@@ -44,20 +44,10 @@ external interface ManageGitCredentialsCardProps : Props {
     var organizationName: String
 
     /**
-     * Flag that shows if the confirm windows was shown or not
-     */
-    var wasConfirmationModalShown: Boolean
-
-    /**
      * Lambda to show error after fail response
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
-
-    /**
-     * Lambda to show warning if current user is super admin
-     */
-    var showGlobalRoleWarning: () -> Unit
 }
 
 /**
@@ -76,8 +66,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
-            props.showGlobalRoleWarning()
+        if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
+            showGlobalRoleConfirmation()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
