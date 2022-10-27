@@ -14,6 +14,7 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -57,9 +58,6 @@ class DockerServiceTest {
 
     @BeforeEach
     fun setUp() {
-        Files.createDirectories(
-            Paths.get(configProperties.testResources.tmpPath)
-        )
         whenever(agentRepository.updateExecutionByDto(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
@@ -74,7 +72,13 @@ class DockerServiceTest {
             sdk = "Java:11"
             status = ExecutionStatus.PENDING
         }
-        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest())
+        val url = "/internal/files/download-save-agent"
+        val configuration = dockerService.prepareConfiguration(
+            testExecution.toRunRequest(
+                saveAgentVersion = SAVE_AGENT_VERSION,
+                saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
+            )
+        )
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -83,7 +87,7 @@ class DockerServiceTest {
 
         // start container and query backend
         mockServer.enqueue(
-            "/internal/files/download-save-agent",
+            url,
             MockResponse()
                 .setHeader("Content-Type", "application/octet-stream")
                 .setResponseCode(200)
@@ -116,9 +120,6 @@ class DockerServiceTest {
 
     @AfterEach
     fun tearDown() {
-        FileSystemUtils.deleteRecursively(
-            Paths.get(configProperties.testResources.tmpPath)
-        )
         if (::testContainerId.isInitialized) {
             dockerClient.removeContainerCmd(testContainerId).exec()
         }

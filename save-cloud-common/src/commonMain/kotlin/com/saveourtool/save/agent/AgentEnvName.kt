@@ -6,12 +6,11 @@ package com.saveourtool.save.agent
 enum class AgentEnvName {
     AGENT_ID,
     AGENT_NAME,
-    BACKEND_URL,
+    AGENT_VERSION,
     CLI_COMMAND,
     DEBUG,
     EXECUTION_ID,
-    GET_AGENT_LINK,
-    ORCHESTRATOR_URL,
+    HEARTBEAT_URL,
     TEST_SUITES_DIR,
     ;
 }

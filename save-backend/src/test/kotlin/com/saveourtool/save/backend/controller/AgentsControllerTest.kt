@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -27,7 +26,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import org.springframework.web.reactive.function.BodyInserters
 import java.time.LocalDateTime
 import java.time.Month
 import javax.persistence.EntityManager
@@ -153,21 +151,6 @@ class AgentsControllerTest {
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
             }
-    }
-
-    @Test
-    fun `check save agent version`() {
-        val agentVersion = AgentVersion("container-1", "0.0.1")
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/internal/saveAgentVersion")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(agentVersion))
-            .exchange()
-            .expectStatus()
-            .isOk
-        Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
     }
 
     private fun updateAgentStatuses(body: AgentStatusDto) {

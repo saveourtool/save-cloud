@@ -4,20 +4,17 @@ metadata:
   name: {{ .Values.sandbox.name }}-config
 data:
   application.properties: |
-    sandbox.backendUrl=N/A
-
-    sandbox.kubernetes.apiServerUrl=http://kubernetes.default.svc
-    sandbox.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
-    sandbox.kubernetes.namespace=${POD_NAMESPACE}
+    orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
+    orchestrator.kubernetes.namespace=${POD_NAMESPACE}
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.sandbox.managementPort }}
-    sandbox.agent-settings.orchestrator-url=http://{{ .Values.sandbox.name }}
-    sandbox.agent-settings.backend-url=http://{{ .Values.sandbox.name }}
-    sandbox.agent-settings.debug=true
+    spring.datasource.url=${spring.datasource.sandbox-url}
 
-    sandbox.test-resources.tmp-path=/tmp/save/resources
+    orchestrator.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
+    orchestrator.agent-settings.debug=true
 
     logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
 

@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.test.TestDto
-
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
@@ -66,11 +64,10 @@ object ContinueResponse : HeartbeatResponse()
 data class InitResponse(val config: AgentInitConfig) : HeartbeatResponse()
 
 /**
- * @property tests a list of new jobs for this agent
- * @property cliArgs command line arguments for SAVE launch
+ * @property config configuration to run agent
  */
 @Serializable
-data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
+data class NewJobResponse(val config: AgentRunConfig) : HeartbeatResponse()
 
 /**
  * A response that indicates that agent should exit gracefully

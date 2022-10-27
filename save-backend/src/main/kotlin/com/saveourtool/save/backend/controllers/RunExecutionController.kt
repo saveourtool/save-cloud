@@ -21,6 +21,7 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -51,7 +52,7 @@ class RunExecutionController(
     private val testExecutionService: TestExecutionService,
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
 ) {
     private val webClientOrchestrator = WebClient.builder()
@@ -199,7 +200,12 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution.toRunRequest())
+        .bodyValue(
+            execution.toRunRequest(
+                saveAgentVersion = SAVE_CLOUD_VERSION,
+                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
+            )
+        )
         .retrieve()
         .toBodilessEntity()
 
