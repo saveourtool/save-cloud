@@ -295,10 +295,10 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 div {
                     className = ClassName("ml-3 align-items-left")
                     fontAwesomeIcon(icon = faCalendarAlt)
-                    Link {
-                        className = ClassName("btn btn-link text-left")
-                        to = "#${props.pathToView}/history"
-                        +"Execution History"
+                    withNavigate { navigateContext ->
+                        buttonBuilder("Execution History", "link", classes = "text-left") {
+                            navigateContext.navigateToLinkWithSuffix(props.pathToView, "history")
+                        }
                     }
                 }
             }
