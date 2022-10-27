@@ -28,6 +28,7 @@ orchestrator:
   dockerHost: tcp://${HOST_IP}:2375
 sandbox:
   name: sandbox
+  profile: dev,secure
   imageName: save-sandbox
   containerPort: 5400
   managementPort: 5401

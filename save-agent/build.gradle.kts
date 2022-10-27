@@ -1,6 +1,4 @@
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.pathToSaveCliVersion
-import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
@@ -128,37 +126,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
 configureSpotless()
-
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    inputs.file(pathToSaveCliVersion)
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        val saveCliVersion = readSaveCliVersion()
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
-
-            """.trimIndent()
-        )
-    }
-}
-val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-kotlin.sourceSets.getByName("commonMain").dependsOn(generatedKotlinSrc)
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
-    dependsOn(generateVersionFileTaskProvider)
-}
 
 /*
  * On Windows, it's impossible to link a Linux executable against

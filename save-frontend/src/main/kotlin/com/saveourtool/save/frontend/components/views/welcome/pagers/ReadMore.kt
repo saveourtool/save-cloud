@@ -28,13 +28,13 @@ fun ChildrenBuilder.renderReadMorePage() {
 
         div {
             className = ClassName("col")
+
             style = jso {
                 justifyContent = JustifyContent.center
                 display = Display.flex
                 alignItems = AlignItems.center
                 alignSelf = AlignSelf.center
             }
-
             link("https://github.com/saveourtool/save-cloud", "Github")
             link("https://github.com/saveourtool/save-cloud/blob/master/info/SaveMotivation.md", "Motivation")
             link("https://github.com/saveourtool/save-cloud/graphs/contributors", "About us")
@@ -44,13 +44,7 @@ fun ChildrenBuilder.renderReadMorePage() {
 
 private fun ChildrenBuilder.wantToKnowMore() {
     div {
-        className = ClassName("col")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            flexDirection = FlexDirection.column
-            alignItems = AlignItems.center
-        }
+        className = ClassName("col justify-content-center")
         h1 {
             style = jso {
                 textAlign = TextAlign.center

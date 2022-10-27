@@ -102,7 +102,7 @@ class HeartbeatController(private val agentService: AgentService,
             agentService.getInitConfig(agentId)
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
-            agentService.getNewTestsIds(agentId)
+            agentService.getNextRunConfig(agentId)
                 .asyncEffectIf({ this is NewJobResponse }) {
                     agentService.updateAgentStatusesWithDto(BUSY.newAgentStatus(agentId))
                 }

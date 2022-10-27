@@ -7,9 +7,7 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.AlignItems
 import csstype.ClassName
-import csstype.JustifyContent
 import csstype.rem
 import react.ChildrenBuilder
 import react.VFC
@@ -33,22 +31,14 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
         div {
             className = ClassName("col-lg-6 mt-2 mb-2")
             div {
-                className = ClassName("row")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("row justify-content-center")
                 strong {
                     className = ClassName("d-inline-block mb-2 card-text")
                     +"Active contests:"
                 }
             }
             div {
-                className = ClassName("row")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("row justify-content-center")
                 h1 {
                     className = ClassName("text-dark")
                     +activeContests.size.toString()
@@ -58,22 +48,14 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
         div {
             className = ClassName("col-lg-6 mt-2")
             div {
-                className = ClassName("row")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("row justify-content-center")
                 strong {
                     className = ClassName("d-inline-block mb-2 card-text ")
                     +"Finished contests:"
                 }
             }
             div {
-                className = ClassName("row")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("row justify-content-center")
                 h1 {
                     className = ClassName("text-dark")
                     +finishedContests.size.toString()
@@ -99,7 +81,7 @@ private fun statistics() = VFC {
     val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
     useRequest {
         val contests: List<ContestDto> = get(
-            url = "$apiUrl/contests/active",
+            url = "$apiUrl/contests/finished",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
