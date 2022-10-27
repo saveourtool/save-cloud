@@ -16,8 +16,6 @@ data:
     sandbox.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     sandbox.agent-settings.debug=true
 
-    sandbox.test-resources.tmp-path=/tmp/save/resources
-
     logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
 
     {{ if .Values.sandbox.applicationProperties }}

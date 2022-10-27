@@ -58,9 +58,6 @@ class DockerServiceTest {
 
     @BeforeEach
     fun setUp() {
-        Files.createDirectories(
-            Paths.get(configProperties.testResources.tmpPath)
-        )
         whenever(agentRepository.updateExecutionByDto(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
@@ -123,9 +120,6 @@ class DockerServiceTest {
 
     @AfterEach
     fun tearDown() {
-        FileSystemUtils.deleteRecursively(
-            Paths.get(configProperties.testResources.tmpPath)
-        )
         if (::testContainerId.isInitialized) {
             dockerClient.removeContainerCmd(testContainerId).exec()
         }
