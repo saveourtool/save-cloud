@@ -94,16 +94,21 @@ class HeartbeatControllerTest {
     @Test
     fun `should respond with NewJobResponse when there are tests`() {
         val agentContainerId = "container-1"
-        val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
-        doReturn(Mono.just(list))
-            .whenever(agentRepository)
-            .getNextTestBatch(agentContainerId)
+        val cliArgs = "qwe"
+        whenever(agentRepository.getNextRunConfig(agentContainerId))
+            .thenReturn(
+                AgentRunConfig(
+                    cliArgs = cliArgs,
+                    executionDataUploadUrl = "N/A",
+                    debugInfoUploadUrl = "N/A"
+                ).toMono()
+            )
 
-        val monoResponse = agentService.getNewTestsIds(agentContainerId).block() as NewJobResponse
+        val monoResponse = agentService.getNextRunConfig(agentContainerId).block() as NewJobResponse
 
-        assertTrue(monoResponse.tests.isNotEmpty())
-        assertEquals("qwe", monoResponse.tests.first().filePath)
-        verify(agentRepository).getNextTestBatch(any())
+        assertTrue(monoResponse.config.cliArgs.isNotEmpty())
+        assertEquals(cliArgs, monoResponse.config.cliArgs)
+        verify(agentRepository).getNextRunConfig(any())
     }
 
     @Test
@@ -115,7 +120,7 @@ class HeartbeatControllerTest {
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
-            testBatch = emptyList(),
+            testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 1,
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
@@ -133,7 +138,7 @@ class HeartbeatControllerTest {
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
-            testBatch = listOf(
+            testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
@@ -157,7 +162,7 @@ class HeartbeatControllerTest {
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
-            testBatch = emptyList(),
+            testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
@@ -182,7 +187,7 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 2.seconds)
             ),
             initConfigs = listOf(initConfig),
-            testBatch = listOf(
+            testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
@@ -217,7 +222,7 @@ class HeartbeatControllerTest {
             ),
             heartBeatInterval = 1_000,
             initConfigs = listOf(initConfig),
-            testBatch = listOf(
+            testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
@@ -245,7 +250,7 @@ class HeartbeatControllerTest {
             ),
             heartBeatInterval = 0,
             initConfigs = listOf(initConfig),
-            testBatch = listOf(
+            testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
@@ -269,7 +274,7 @@ class HeartbeatControllerTest {
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
-            testBatch = emptyList(),
+            testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
@@ -321,7 +326,7 @@ class HeartbeatControllerTest {
             ),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
-            testBatch = null,
+            testBatchNullable = null,
             mockUpdateAgentStatusesCount = 1
         ) {
             // not interested in any checks for heartbeats
@@ -335,8 +340,8 @@ class HeartbeatControllerTest {
      *
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
      * @param heartbeats a [Heartbeat] that is received by sandbox
-     * @param testBatch a batch of tests returned from backend (mocked response)
-     * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
+     * @param testBatchNullable a batch of tests returned from backend (mocked response)
+     * @param mockAgentStatusesForSameExecution whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param verification a lambda for test assertions
      */
     @Suppress(
@@ -350,7 +355,7 @@ class HeartbeatControllerTest {
         heartbeats: List<Heartbeat>,
         heartBeatInterval: Long = 0,
         initConfigs: List<AgentInitConfig>,
-        testBatch: TestBatch?,
+        testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
         mockAgentStatusesForSameExecution: Boolean = false,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
@@ -359,9 +364,18 @@ class HeartbeatControllerTest {
             whenever(agentRepository.getInitConfig(any()))
                 .thenReturn(Mono.just(it))
         }
-        testBatch?.let {
-            whenever(agentRepository.getNextTestBatch(any()))
-                .thenReturn(Mono.just(it))
+        testBatchNullable?.let { testBatch ->
+            val returnValue = if (testBatch.isNotEmpty()) {
+                AgentRunConfig(
+                    cliArgs = testBatch.joinToString(" ") { it.filePath },
+                    executionDataUploadUrl = "N/A",
+                    debugInfoUploadUrl = "N/A",
+                ).toMono()
+            } else {
+                Mono.empty()
+            }
+            whenever(agentRepository.getNextRunConfig(any()))
+                .thenReturn(returnValue)
         }
 
         repeat(mockUpdateAgentStatusesCount) {
@@ -400,8 +414,8 @@ class HeartbeatControllerTest {
 
         verify(agentRepository, times(initConfigs.size)).getInitConfig(any())
         heartbeatResponses.filterIsInstance<InitResponse>().shouldHaveSize(initConfigs.size)
-        testBatch?.let {
-            verify(agentRepository).getNextTestBatch(any())
+        testBatchNullable?.let {
+            verify(agentRepository).getNextRunConfig(any())
         }
         verify(agentRepository, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
         if (mockAgentStatusesForSameExecution) {

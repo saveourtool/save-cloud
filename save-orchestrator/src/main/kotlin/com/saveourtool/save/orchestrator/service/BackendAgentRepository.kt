@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentInitConfig
+import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
@@ -11,10 +12,11 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.*
+
 import org.slf4j.Logger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.ResponseEntity
-
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -28,22 +30,23 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
 @Component
 class BackendAgentRepository(
     configProperties: ConfigProperties,
+    @Value("\${orchestrator.backend-url}") private val backendUrl: String,
     customizers: List<WebClientCustomizer>,
 ) : AgentRepository {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backendUrl)
         .applyAll(customizers)
         .build()
-
+        
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 
-    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = webClientBackend
+    override fun getNextRunConfig(containerId: String): Mono<AgentRunConfig> = webClientBackend
         .get()
-        .uri("/agents/get-next-test-batch?containerId=$containerId")
+        .uri("/agents/get-next-run-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 

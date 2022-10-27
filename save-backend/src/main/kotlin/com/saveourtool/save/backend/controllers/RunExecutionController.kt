@@ -13,6 +13,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.CreateExecutionRequest
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -21,7 +22,7 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.spring.utils.applyAll
+import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -53,7 +54,7 @@ class RunExecutionController(
     private val testExecutionService: TestExecutionService,
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -203,7 +204,12 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution.toRunRequest())
+        .bodyValue(
+            execution.toRunRequest(
+                saveAgentVersion = SAVE_CLOUD_VERSION,
+                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
+            )
+        )
         .retrieve()
         .toBodilessEntity()
 
