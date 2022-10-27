@@ -38,8 +38,6 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
-        // they are not proxied from gateway.
         authorizeExchange()
             .pathMatchers(*publicEndpoints.toTypedArray())
             .permitAll()
@@ -89,7 +87,13 @@ class WebSecurityConfig(
         internal val publicEndpoints = listOf(
             "/",
             "/error",
+            // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+            // they are not proxied from gateway.
             "/actuator/**",
+            "/internal/**",
+            "/sandbox/internal/**",
+            // Agents should communicate with sandbox without authorization
+            "/heartbeat",
             // `CollectionView` is a public page
             "/api/$v1/projects/not-deleted",
             "/api/$v1/awesome-benchmarks",
@@ -105,9 +109,6 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/public-test",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
-            "/internal/**",
-            "/heartbeat",
-            "/sandbox/internal/**"
         )
     }
 }
