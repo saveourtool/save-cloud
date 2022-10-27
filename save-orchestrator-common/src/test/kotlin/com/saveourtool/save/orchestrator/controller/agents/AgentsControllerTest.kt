@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -76,7 +77,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution.toRunRequest())
+            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -92,7 +93,7 @@ class AgentsControllerTest {
         val execution = Execution.stub(project)
 
         assertThrows<IllegalArgumentException> {
-            execution.toRunRequest()
+            execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl")
         }
     }
 

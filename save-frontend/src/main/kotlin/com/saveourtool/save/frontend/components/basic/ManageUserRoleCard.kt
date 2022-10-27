@@ -16,7 +16,6 @@ import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
@@ -49,26 +48,9 @@ external interface ManageUserRoleCardProps : Props {
     var groupType: String
 
     /**
-     * Flag that shows if the confirm windows was shown or not
-     */
-    var wasConfirmationModalShown: Boolean
-
-    /**
-     * Lambda to show error after fail response
-     * todo: remove [updateErrorMessage] and use response handlers
-     */
-    @Suppress("TYPE_ALIAS")
-    var updateErrorMessage: (Response, String) -> Unit
-
-    /**
      * Lambda to get users from project/organization
      */
     var getUserGroups: (UserInfo) -> Map<String, Role>
-
-    /**
-     * Lambda to show warning if current user is super admin
-     */
-    var showGlobalRoleWarning: () -> Unit
 }
 
 /**
@@ -105,9 +87,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             Json.encodeToString(roleChange),
             loadingHandler = ::noopLoadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response, response.unpackMessage())
-        } else {
+        if (response.ok) {
             getUsersFromGroup()
         }
     }
@@ -119,13 +99,10 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             headers = jsonHeaders,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
             getUsersFromGroup()
-        } else {
-            props.updateErrorMessage(response, response.unpackMessage())
         }
     }
 
@@ -136,9 +113,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response, response.unpackMessage())
-        } else {
+        if (response.ok) {
             getUsersFromGroup()
         }
     }
@@ -154,8 +129,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
-            props.showGlobalRoleWarning()
+        if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
+            showGlobalRoleConfirmation()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
