@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.entity
 
-import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -33,19 +32,22 @@ class SandboxExecution(
     var failReason: String?,
 ) : BaseEntity() {
     /**
+     * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]
+     * @param saveAgentUrl an url to download save-agent
      * @return [RunExecutionRequest] created from current entity
      */
-    fun toRunRequest(): RunExecutionRequest {
+    fun toRunRequest(
+        saveAgentVersion: String,
+        saveAgentUrl: String,
+    ): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
         }
         return RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = "sandbox",
-                projectName = "user-$userId",
-            ),
             executionId = requiredId(),
-            sdk = sdk.toSdk()
+            sdk = sdk.toSdk(),
+            saveAgentVersion = saveAgentVersion,
+            saveAgentUrl = saveAgentUrl,
         )
     }
 }

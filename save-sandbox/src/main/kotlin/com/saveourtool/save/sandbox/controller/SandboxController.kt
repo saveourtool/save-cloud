@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
@@ -41,6 +42,7 @@ import javax.transaction.Transactional
  * @property storage
  * @property sandboxExecutionRepository
  * @property agentsController
+ * @property agentRepository
  */
 @ApiSwaggerSupport
 @Tags(
@@ -53,6 +55,7 @@ class SandboxController(
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
     val agentsController: AgentsController,
+    val agentRepository: SandboxAgentRepository,
 ) {
     @Operation(
         method = "GET",
@@ -316,7 +319,7 @@ class SandboxController(
                 )
             }
             .map { sandboxExecutionRepository.save(it) }
-            .map { it.toRunRequest() }
+            .map { agentRepository.getRunRequest(it) }
             .flatMap { request ->
                 agentsController.initialize(request)
             }

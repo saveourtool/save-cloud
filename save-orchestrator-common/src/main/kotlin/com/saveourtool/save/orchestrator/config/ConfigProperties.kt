@@ -10,7 +10,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 /**
  * Class for properties
  *
- * @property backendUrl url of save-backend
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property kubernetes configuration for setup in Kubernetes
@@ -28,7 +27,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
-    val backendUrl: String,
     val testResources: TestResources,
     val docker: DockerSettings?,
     val kubernetes: KubernetesSettings?,
@@ -39,7 +37,7 @@ data class ConfigProperties(
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
-    val agentSettings: AgentSettings = AgentSettings(),
+    val agentSettings: AgentSettings,
     val agentsStartTimeoutMillis: Long,
     val agentsStartCheckIntervalMillis: Long,
 ) {
@@ -95,13 +93,11 @@ data class ConfigProperties(
     )
 
     /**
-     * @property backendUrl url of save-backend that will be used by save-agent
-     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+     * @property heartbeatUrl url that will be used by save-agent to post heartbeats
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
-        val backendUrl: String? = null,
-        val orchestratorUrl: String? = null,
+        val heartbeatUrl: String,
         val debug: Boolean? = null,
     )
 
