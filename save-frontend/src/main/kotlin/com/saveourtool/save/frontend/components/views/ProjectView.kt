@@ -33,6 +33,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
+import csstype.Cursor
 import history.Location
 import org.w3c.fetch.Headers
 import react.*
@@ -47,6 +48,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
+import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -365,6 +367,9 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                     .forEach { projectMenu ->
                         li {
                             className = ClassName("nav-item")
+                            style = jso {
+                                cursor = "pointer".unsafeCast<Cursor>()
+                            }
                             val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
