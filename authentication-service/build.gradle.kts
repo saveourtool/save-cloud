@@ -26,7 +26,7 @@ dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
-    // implementation(libs.spring.jdbc.starter)
+    implementation(libs.spring.jdbc.starter)
 }
 
 configureJacoco()
