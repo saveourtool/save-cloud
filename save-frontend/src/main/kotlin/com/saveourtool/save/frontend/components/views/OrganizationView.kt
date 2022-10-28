@@ -247,7 +247,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         val projectName = project.name
 
                                         typeOfOperation = TypeOfAction.DELETE_PROJECT
-                                        title = "WARNING: You want to delete an project"
+                                        title = "WARNING: You want to delete a project"
                                         errorTitle = "You cannot delete $projectName"
                                         message = "Are you sure you want to delete an organization $projectName?"
                                         clickMessage = "Change to ban mode"
@@ -293,11 +293,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         val projectName = project.name
 
                                         typeOfOperation = TypeOfAction.RECOVERY_PROJECT
-                                        title = "WARNING: You want to delete an project"
+                                        title = "WARNING: You want to recovery a project"
                                         errorTitle = "You cannot recovery $projectName"
                                         message =
                                                 "Are you sure you want to recovery an organization $projectName?"
-                                        clickMessage = "Change to ban mode"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(
@@ -849,7 +848,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
         delete(
             url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
             headers = jsonHeaders,
@@ -858,7 +857,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         )
     }
 
-    private fun responseRecoveryProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    private fun responseRecoveryProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
         post(
             url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/recovery"),
             headers = jsonHeaders,

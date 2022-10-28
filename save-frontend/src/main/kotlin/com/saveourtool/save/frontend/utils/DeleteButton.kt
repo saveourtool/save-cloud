@@ -75,5 +75,5 @@ internal external interface DeleteButtonProps : Props {
     /**
      * The action to invoke once user confirmation is received.
      */
-    var action: DeferredRequestAction<Unit>
+    var action: DeferredRequestWithActionByError<Unit>
 }

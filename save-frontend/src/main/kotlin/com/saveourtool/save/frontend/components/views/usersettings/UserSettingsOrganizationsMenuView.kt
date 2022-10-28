@@ -141,10 +141,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
                                         typeOfOperation = TypeOfAction.RECOVERY_ORGANIZATION
-                                        title = "WARNING: You want to delete an organization"
+                                        title = "WARNING: You want to recovery an organization"
                                         errorTitle = "You cannot recovery ${organizationDto.name}"
                                         message = "Are you sure you want to recovery an organization ${organizationDto.name}?"
-                                        clickMessage = "Change to ban mode"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(icon = faRedo)

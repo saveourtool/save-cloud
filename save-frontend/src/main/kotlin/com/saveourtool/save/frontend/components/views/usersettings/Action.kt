@@ -15,6 +15,71 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
+
+/**
+ * Button with modal for something action
+ *
+ * @return noting
+ */
+external interface ActionProps : Props {
+    /**
+     * Type of action
+     */
+    var typeOfOperation: TypeOfAction
+
+    /**
+     * Title of the modal
+     */
+    var title: String
+
+    /**
+     * Error title of the modal
+     */
+    var errorTitle: String
+
+    /**
+     * Message of the modal
+     */
+    var message: String
+
+    /**
+     * Message when clicked
+     */
+    var clickMessage: String
+
+    /**
+     * If the action (request) is successful, this is done
+     */
+    var onActionSuccess: (Boolean) -> Unit
+
+    /**
+     * Button View
+     */
+    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
+
+    /**
+     * Classname for the button
+     */
+    var classes: String
+
+    /**
+     * Modal buttons
+     */
+    @Suppress("TYPE_ALIAS")
+    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
+
+    /**
+     * Condition for click
+     */
+    var conditionClick: Boolean
+
+    /**
+     * Request
+     */
+    var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
+}
+
+
 val actionButton: FC<ActionProps> = FC {props ->
     val windowOpenness = useWindowOpenness()
     val (displayTitle, setDisplayTitle) = useState(props.title)
@@ -69,71 +134,9 @@ val actionButton: FC<ActionProps> = FC {props ->
     )
 }
 
-/**
- * Button with modal for action with something
- *
- * @return noting
- */
-external interface ActionProps : Props {
-    /**
-     * type of action
-     */
-    var typeOfOperation: TypeOfAction
-
-    /**
-     * title of the modal
-     */
-    var title: String
-
-    /**
-     * error title of the modal
-     */
-    var errorTitle: String
-
-    /**
-     * message of the modal
-     */
-    var message: String
-
-    /**
-     * message when clicked
-     */
-    var clickMessage: String
-
-    /**
-     * if the action (request) is successful, this is done
-     */
-    var onActionSuccess: (Boolean) -> Unit
-
-    /**
-     * Button View
-     */
-    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
-
-    /**
-     * Classname for the button
-     */
-    var classes: String
-
-    /**
-     * modal buttons
-     */
-    @Suppress("TYPE_ALIAS")
-    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
-
-    /**
-     * condition for click
-     */
-    var conditionClick: Boolean
-
-    /**
-     * request
-     */
-    var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
-}
 
 /**
- * Any type of action
+ * Type of action
  */
 enum class TypeOfAction {
     DELETE_ORGANIZATION,
@@ -143,7 +146,7 @@ enum class TypeOfAction {
     ;
 
     /**
-     * is click mode
+     * Is click mode
      */
     var isClickMode: Boolean = false
 

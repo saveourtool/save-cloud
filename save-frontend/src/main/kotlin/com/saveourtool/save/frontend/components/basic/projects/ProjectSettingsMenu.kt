@@ -276,9 +276,9 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         actionButton {
                             typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
-                            title = "WARNING: You want to delete an organization"
+                            title = "WARNING: You want to delete a project"
                             errorTitle = "You cannot delete ${props.project.name}"
-                            message = "Are you sure you want to delete an project $projectPath?"
+                            message = "Are you sure you want to delete a project $projectPath?"
                             clickMessage = "Change to ban mode"
                             onActionSuccess = {
                                 window.location.href = "${window.location.origin}/"
