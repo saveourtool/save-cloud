@@ -21,7 +21,6 @@ services:
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
-      - "DOCKER_NETWORK_NAME=${DOCKER_NETWORK_NAME}"
     ports:
       - "5100:5100"
     volumes:
