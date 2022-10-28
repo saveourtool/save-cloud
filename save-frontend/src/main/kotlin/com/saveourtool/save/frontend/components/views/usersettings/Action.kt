@@ -15,6 +15,59 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
+val actionButton: FC<ActionProps> = FC {props ->
+    val windowOpenness = useWindowOpenness()
+    val (displayTitle, setDisplayTitle) = useState(props.title)
+    val (displayMessage, setDisplayMessage) = useState(props.message)
+    val (isError, setError) = useState(false)
+
+    val action = useDeferredRequest {
+        val response = props.sendRequest(props.typeOfOperation)(this) {}
+        if (response.ok) {
+            props.onActionSuccess(props.typeOfOperation.isClickMode)
+        } else {
+            setDisplayTitle(props.errorTitle)
+            setDisplayMessage(response.unpackMessage())
+            setError(true)
+            windowOpenness.openWindow()
+        }
+    }
+
+    div {
+        button {
+            type = ButtonType.button
+            className = ClassName(props.classes)
+            props.buttonStyleBuilder(this)
+            onClick = {
+                setDisplayTitle(props.title)
+                setDisplayMessage(props.message)
+                windowOpenness.openWindow()
+            }
+        }
+    }
+
+    displayModalWithClick(
+        title = displayTitle,
+        message = displayMessage,
+        clickMessage = props.clickMessage,
+        isOpen = windowOpenness.isOpen(),
+        conditionClickIcon = props.conditionClick && !isError,
+        onCloseButtonPressed = windowOpenness.closeWindowAction(),
+        buttonBuilder = {
+            if (isError) {
+                buttonBuilder("Ok") {
+                    windowOpenness.closeWindow()
+                    setError(false)
+                }
+            } else {
+                props.modalButtons(action, windowOpenness, this)
+            }
+        },
+        changeClickMode = {
+            props.typeOfOperation.changeClickMode(it)
+        }
+    )
+}
 
 /**
  * Button with modal for something action
@@ -78,62 +131,6 @@ external interface ActionProps : Props {
      */
     var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
 }
-
-
-val actionButton: FC<ActionProps> = FC {props ->
-    val windowOpenness = useWindowOpenness()
-    val (displayTitle, setDisplayTitle) = useState(props.title)
-    val (displayMessage, setDisplayMessage) = useState(props.message)
-    val (isError, setError) = useState(false)
-
-    val action = useDeferredRequest {
-        val response = props.sendRequest(props.typeOfOperation)(this) {}
-        if (response.ok) {
-            props.onActionSuccess(props.typeOfOperation.isClickMode)
-        } else {
-            setDisplayTitle(props.errorTitle)
-            setDisplayMessage(response.unpackMessage())
-            setError(true)
-            windowOpenness.openWindow()
-        }
-    }
-
-    div {
-        button {
-            type = ButtonType.button
-            className = ClassName(props.classes)
-            props.buttonStyleBuilder(this)
-            onClick = {
-                setDisplayTitle(props.title)
-                setDisplayMessage(props.message)
-                windowOpenness.openWindow()
-            }
-        }
-    }
-
-    displayModalWithClick(
-        title = displayTitle,
-        message = displayMessage,
-        clickMessage = props.clickMessage,
-        isOpen = windowOpenness.isOpen(),
-        conditionClickIcon = props.conditionClick && !isError,
-        onCloseButtonPressed = windowOpenness.closeWindowAction(),
-        buttonBuilder = {
-            if (isError) {
-                buttonBuilder("Ok") {
-                    windowOpenness.closeWindow()
-                    setError(false)
-                }
-            } else {
-                props.modalButtons(action, windowOpenness, this)
-            }
-        },
-        changeClickMode = {
-            props.typeOfOperation.changeClickMode(it)
-        }
-    )
-}
-
 
 /**
  * Type of action
