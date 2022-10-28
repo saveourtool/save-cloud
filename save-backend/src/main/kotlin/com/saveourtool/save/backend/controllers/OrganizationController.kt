@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -127,13 +126,16 @@ internal class OrganizationController(
         authentication: Authentication,
     ) = Mono.fromCallable {
         organizationService.findByName(organizationName)
-    }.switchIfEmptyToNotFound {
-        "Organization not found by name $organizationName"
-    }.filter {
-        it?.status == OrganizationStatus.CREATED
-    }.switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-        "Organization $organizationName status is not ${OrganizationStatus.CREATED.name}"
     }
+        .switchIfEmptyToNotFound {
+            "Organization not found by name $organizationName"
+        }
+        .filter {
+            it?.status == OrganizationStatus.CREATED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Organization $organizationName status is not ${OrganizationStatus.CREATED.name}"
+        }
 
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
@@ -248,7 +250,6 @@ internal class OrganizationController(
             logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
@@ -387,7 +388,6 @@ internal class OrganizationController(
             organizationService.recoveryOrganization(it.name)
             ResponseEntity.ok("Successful restoration of the organization")
         }
-
 
     @GetMapping("/{organizationName}/list-git")
     @RequiresAuthorizationSourceHeader

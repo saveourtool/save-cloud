@@ -58,7 +58,6 @@ class OrganizationService(
         return changeOrganizationStatus(organizationName, status)
     }
 
-
     /**
      * Mark organization with [organizationName] as recovery
      *
@@ -66,8 +65,7 @@ class OrganizationService(
      * @return deleted organization
      */
     fun recoveryOrganization(organizationName: String): Organization =
-        changeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
-
+            changeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
 
     /**
      * Mark organization with [organizationName] as recovery
@@ -85,8 +83,6 @@ class OrganizationService(
             organizationRepository.save(it)
         }
 
-
-
     /**
      * @param organizationFilters
      * @return not deleted Organizations
@@ -103,7 +99,6 @@ class OrganizationService(
         return organizations
     }
 
-
     /**
      * @param organizationName
      * @return [true] if number of Organization projects is zero, else - [false]
@@ -114,7 +109,7 @@ class OrganizationService(
      * @param organizationName
      * @return number of Organization projects
      */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).filter { it.status == ProjectStatus.CREATED }.size
+    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).count { it.status == ProjectStatus.CREATED }
 
     /**
      * @param organizationId

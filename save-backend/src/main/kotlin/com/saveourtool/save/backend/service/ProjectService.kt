@@ -9,7 +9,6 @@ import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -100,37 +99,52 @@ class ProjectService(
         return projects
     }
 
-
+    /**
+     * @param project
+     * @return [project] with status [ProjectStatus.CREATED]
+     */
     fun recoveryProject(project: Project) = changeProjectStatus(project, ProjectStatus.CREATED)
 
+    /**
+     * @param project
+     * @param status
+     * @return [project] with status [ProjectStatus.DELETED] or [ProjectStatus.BANNED]
+     */
     fun deleteProject(project: Project, status: ProjectStatus) = changeProjectStatus(project, status)
 
+    /**
+     * @param project
+     * @param changeStatus
+     * @return [project] with status [changeStatus]
+     */
     @Suppress("UnsafeCallOnNullableType")
     fun changeProjectStatus(project: Project, changeStatus: ProjectStatus) =
-        project.apply {
-            status = changeStatus
-        }
-            .let {
-                updateProject(it)
+            project.apply {
+                status = changeStatus
             }
-
-
+                .let {
+                    updateProject(it)
+                }
 
     /**
      * @param organizationName
      * @param authentication
-     * @return list of not deleted projects
+     * @return list of not deleted projects owned by organization [organizationName]
      */
     fun getNotDeletedProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = getALLProjectsByOrganizationName(organizationName, authentication)
+    ): Flux<Project> = getAllProjectsByOrganizationName(organizationName, authentication)
         .filter {
             it.status == ProjectStatus.CREATED
         }
 
-
-    fun getALLProjectsByOrganizationName(
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return all project`s owned by organization [organizationName]
+     */
+    fun getAllProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
     ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)

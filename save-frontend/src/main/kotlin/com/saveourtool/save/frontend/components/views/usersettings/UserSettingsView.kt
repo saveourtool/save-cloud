@@ -84,6 +84,9 @@ external interface UserSettingsViewState : State {
      */
     var selfDeletedOrganizationDtos: List<OrganizationDto>
 
+    /**
+     * Organizations banned to user
+     */
     var selfBannedOrganizationDtos: List<OrganizationDto>
 }
 
@@ -347,7 +350,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     isUploading = false
                 }
             }
-
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getNotDeletedOrganizationDtos() = get(

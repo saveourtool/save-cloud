@@ -16,7 +16,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import kotlinx.browser.window
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
@@ -32,6 +31,7 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -300,7 +300,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                     }
                                 }
                             }
-                            sendRequest = { typeOfAction->
+                            sendRequest = { typeOfAction ->
                                 responseDeleteProject(typeOfAction, props.project)
                             }
                             conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
@@ -314,7 +314,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
 private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
     delete(
-        url = typeOfAction.createRequest("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
+        url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
         headers = jsonHeaders,
         loadingHandler = ::noopLoadingHandler,
         errorHandler = ::noopResponseHandler,

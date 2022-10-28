@@ -1,32 +1,32 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
-import csstype.BorderRadius
 
+import csstype.BorderRadius
 import csstype.ClassName
-import kotlinx.js.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
-
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.ul
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.ul
+
+import kotlinx.js.jso
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
+    @Suppress("ComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         organizationListCard {
             div {
@@ -79,7 +79,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         classes = "btn mr-3"
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style ="danger", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }
@@ -88,7 +88,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { clickMode : Boolean ->
+                                        onActionSuccess = { clickMode: Boolean ->
                                             setState {
                                                 selfOrganizationDtos = selfOrganizationDtos.minus(organizationDto)
                                                 if (clickMode) {
@@ -99,7 +99,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
-                                        sendRequest = { typeOfAction->
+                                        sendRequest = { typeOfAction ->
                                             responseDeleteOrganization(typeOfAction, organizationDto.name)
                                         }
                                     }
@@ -153,7 +153,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         classes = "btn mr-3"
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, recovery ${organizationDto.name}", style ="warning", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, recovery ${organizationDto.name}", style = "warning", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }
@@ -182,8 +182,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
-
-
                 state.selfBannedOrganizationDtos.forEach { organizationDto ->
                     li {
                         className = ClassName("list-group-item")
@@ -221,10 +219,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
 
-
     private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
-        delete (
-            url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/delete"),
+        delete(
+            url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             errorHandler = ::noopResponseHandler,
@@ -232,8 +229,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     }
 
     private fun responseRecoveryOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
-        post (
-            url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/recovery"),
+        post(
+            url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/recovery"),
             headers = jsonHeaders,
             body = undefined,
             loadingHandler = ::noopLoadingHandler,

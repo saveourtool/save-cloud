@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class OrganizationStatus {
     /**
+     * The organization is banned by a super admin
+     */
+    BANNED,
+
+    /**
      * Organization created
      */
     CREATED,
@@ -16,10 +21,5 @@ enum class OrganizationStatus {
      * Organization deleted
      */
     DELETED,
-
-    /**
-     * The organization is banned by a super admin
-     */
-    BANNED,
     ;
 }

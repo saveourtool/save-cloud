@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
@@ -14,7 +13,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AuthenticationDetails
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -169,7 +167,6 @@ class ProjectController(
         authentication: Authentication?,
     ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
 
-
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -279,14 +276,14 @@ class ProjectController(
             )
                 .filter {
                     it.status == ProjectStatus.CREATED
-                }.switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     "Could not find created project with name $projectName."
                 }
                 .map {
                     projectService.deleteProject(it, ProjectStatus.valueOf(status.uppercase()))
                     ResponseEntity.ok("Successful deletion of the project")
                 }
-
 
     @PostMapping("/{organizationName}/{projectName}/recovery")
     @RequiresAuthorizationSourceHeader
@@ -305,19 +302,19 @@ class ProjectController(
         @PathVariable projectName: String,
         authentication: Authentication
     ): Mono<StringResponse> =
-        projectService.findWithPermissionByNameAndOrganization(
-            authentication, projectName, organizationName, Permission.RECOVERY
-        )
-            .filter {
-                it.status == ProjectStatus.DELETED
-            }
-            .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                "Could not find deleted project with name $projectName."
-            }
-            .map {
-                projectService.recoveryProject(it)
-                ResponseEntity.ok("Successful restoration of the project")
-            }
+            projectService.findWithPermissionByNameAndOrganization(
+                authentication, projectName, organizationName, Permission.RECOVERY
+            )
+                .filter {
+                    it.status == ProjectStatus.DELETED
+                }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Could not find deleted project with name $projectName."
+                }
+                .map {
+                    projectService.recoveryProject(it)
+                    ResponseEntity.ok("Successful restoration of the project")
+                }
 
     companion object {
         @JvmStatic

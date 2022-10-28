@@ -254,7 +254,6 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-
     @GetMapping("/by-user/all")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -278,7 +277,6 @@ class LnkUserOrganizationController(
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
-
 
     @GetMapping("/by-user/not-deleted")
     @RequiresAuthorizationSourceHeader
@@ -307,7 +305,6 @@ class LnkUserOrganizationController(
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
-
     @GetMapping("/by-user/deleted")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -335,7 +332,6 @@ class LnkUserOrganizationController(
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
-
     @GetMapping("/by-user/banned")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -362,7 +358,6 @@ class LnkUserOrganizationController(
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
-
 
     private fun getUserAndOrganizationWithPermissions(
         userName: String,

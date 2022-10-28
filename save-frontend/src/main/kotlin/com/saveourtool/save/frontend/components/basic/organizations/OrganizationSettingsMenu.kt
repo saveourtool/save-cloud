@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
 import com.saveourtool.save.frontend.components.views.usersettings.actionButton
@@ -173,7 +172,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 }
                             }
                         }
-                        sendRequest = { typeOfAction->
+                        sendRequest = { typeOfAction ->
                             responseDeleteOrganization(typeOfAction, props.organizationName)
                         }
                         conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
@@ -185,8 +184,8 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
 }
 
 private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
-    delete (
-        url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/delete"),
+    delete(
+        url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
         headers = jsonHeaders,
         loadingHandler = ::noopLoadingHandler,
         errorHandler = ::noopResponseHandler,

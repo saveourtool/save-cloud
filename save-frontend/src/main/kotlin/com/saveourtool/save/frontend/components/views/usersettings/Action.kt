@@ -15,59 +15,16 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
-/**
- * Button for delete organization
- *
- * @return noting
- */
-
-
-
-external interface ActionProps:Props {
-    var typeOfOperation: TypeOfAction
-
-    var title: String
-
-    var errorTitle: String
-
-    var message: String
-
-    var clickMessage: String
-
-    /**
-     * lambda to change [organizationName]
-     */
-    var onActionSuccess: (Boolean) -> Unit
-
-    /**
-     * Button View
-     */
-    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
-
-    /**
-     * Classname for the button
-     */
-    var classes: String
-
-    var modalButtons: ( action: () -> Unit , WindowOpenness , ChildrenBuilder) -> Unit
-
-    var conditionClick: Boolean
-
-    var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
-}
-
-
-val actionButton: FC<ActionProps> = FC {props->
+val actionButton: FC<ActionProps> = FC {props ->
     val windowOpenness = useWindowOpenness()
     val (displayTitle, setDisplayTitle) = useState(props.title)
     val (displayMessage, setDisplayMessage) = useState(props.message)
     val (isError, setError) = useState(false)
 
-
     val action = useDeferredRequest {
         val response = props.sendRequest(props.typeOfOperation)(this) {}
-        if (response.ok){
-            props.onActionSuccess(props.typeOfOperation.clickMode)
+        if (response.ok) {
+            props.onActionSuccess(props.typeOfOperation.isClickMode)
         } else {
             setDisplayTitle(props.errorTitle)
             setDisplayMessage(response.unpackMessage())
@@ -89,13 +46,12 @@ val actionButton: FC<ActionProps> = FC {props->
         }
     }
 
-    displayModalWithClick (
+    displayModalWithClick(
         title = displayTitle,
         message = displayMessage,
         clickMessage = props.clickMessage,
         isOpen = windowOpenness.isOpen(),
-        isErrorMode = isError,
-        conditionClickIcon = props.conditionClick,
+        conditionClickIcon = props.conditionClick && !isError,
         onCloseButtonPressed = windowOpenness.closeWindowAction(),
         buttonBuilder = {
             if (isError) {
@@ -113,27 +69,107 @@ val actionButton: FC<ActionProps> = FC {props->
     )
 }
 
+/**
+ * Button with modal for action with something
+ *
+ * @return noting
+ */
+external interface ActionProps : Props {
+    /**
+     * type of action
+     */
+    var typeOfOperation: TypeOfAction
 
+    /**
+     * title of the modal
+     */
+    var title: String
+
+    /**
+     * error title of the modal
+     */
+    var errorTitle: String
+
+    /**
+     * message of the modal
+     */
+    var message: String
+
+    /**
+     * message when clicked
+     */
+    var clickMessage: String
+
+    /**
+     * if the action (request) is successful, this is done
+     */
+    var onActionSuccess: (Boolean) -> Unit
+
+    /**
+     * Button View
+     */
+    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
+
+    /**
+     * Classname for the button
+     */
+    var classes: String
+
+    /**
+     * modal buttons
+     */
+    @Suppress("TYPE_ALIAS")
+    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
+
+    /**
+     * condition for click
+     */
+    var conditionClick: Boolean
+
+    /**
+     * request
+     */
+    var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
+}
+
+/**
+ * Any type of action
+ */
 enum class TypeOfAction {
-    DELETE_PROJECT,
-    RECOVERY_PROJECT,
     DELETE_ORGANIZATION,
+    DELETE_PROJECT,
     RECOVERY_ORGANIZATION,
+    RECOVERY_PROJECT,
     ;
 
-    var clickMode: Boolean = false
+    /**
+     * is click mode
+     */
+    var isClickMode: Boolean = false
 
+    /**
+     * Changed click mode
+     *
+     * @param elem
+     */
     fun changeClickMode(elem: Boolean) {
-        clickMode = elem
+        isClickMode = elem
     }
-    fun createRequest(url: String): String {
+
+    /**
+     * Generates a new url based on the old (basic) one
+     *
+     * @param url
+     * @return new_url
+     */
+    fun createRequestUrl(url: String): String {
         val type = this
         return buildString {
             append(url)
-            when(type){
+            when (type) {
                 DELETE_ORGANIZATION, DELETE_PROJECT -> {
                     append("?status=")
-                    if (clickMode) append("banned") else append("deleted")
+                    if (isClickMode) append("banned") else append("deleted")
                 }
                 else -> {}
             }

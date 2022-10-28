@@ -77,20 +77,23 @@ fun ChildrenBuilder.displayModal(
 }
 
 /**
- * @param displayText
- * @param isOpen
- * @param modalStyle
- * @param onCloseButtonPressed
- * @param buttonBuilder
- * @param conditionClickIcon
- * @param clickButtonBuilder
+ * Universal function to create modals with click condition styles inside react modals
+ *
+ * @param isOpen modal openness indicator - should be in state
+ * @param modalStyle that will be applied to react modal
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param conditionClickIcon condition who can click on the check mark and change the state
+ * @param title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param clickMessage a message next to the checkmark notifying what it does
+ * @param changeClickMode changes the normal events and the events after the click when the button is clicked
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.displayModalWithClick(
     title: String,
     message: String,
     clickMessage: String,
-    isErrorMode: Boolean,
     conditionClickIcon: Boolean,
     isOpen: Boolean,
     modalStyle: Styles = mediumTransparentModalStyle,
@@ -102,7 +105,7 @@ fun ChildrenBuilder.displayModalWithClick(
         props.isOpen = isOpen
         props.style = modalStyle
         modalBuilderWithClick(
-            title, message, clickMessage, isErrorMode, conditionClickIcon,
+            title, message, clickMessage, conditionClickIcon,
             onCloseButtonPressed, buttonBuilder, changeClickMode,
         )
     }
@@ -267,17 +270,21 @@ fun ChildrenBuilder.modalBuilder(
 }
 
 /**
- * @param displayText
- * @param onCloseButtonPressed
- * @param buttonBuilder
- * @param conditionClickIcon
- * @param clickButtonBuilder
+ * Universal function to create modals with click condition styles inside react modals
+ *
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param conditionClickIcon condition who can click on the check mark and change the state
+ * @param title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param clickMessage a message next to the checkmark notifying what it does
+ * @param changeClickMode changes the normal events and the events after the click when the button is clicked
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.modalBuilderWithClick(
     title: String,
     message: String,
     clickMessage: String,
-    isErrorMode: Boolean,
     conditionClickIcon: Boolean,
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
@@ -293,8 +300,8 @@ fun ChildrenBuilder.modalBuilderWithClick(
                 +message
             }
         },
-        buttonAfterClick = {
-            if (conditionClickIcon && !isErrorMode) {
+        clickBuilder = {
+            if (conditionClickIcon) {
                 div {
                     className = ClassName("d-sm-flex justify-content-center form-check")
                     div {
@@ -333,19 +340,20 @@ fun ChildrenBuilder.modalBuilderWithClick(
 }
 
 /**
- * @param title
- * @param classes
- * @param onCloseButtonPressed
- * @param bodyBuilder
- * @param buttonBuilder
- * @param buttonAfterClick
+ * Universal function to create modals with bootstrap styles.
+ *
+ * @param title title of the modal that will be shown in top-left corner
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param bodyBuilder lambda that generates body of modal
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param clickBuilder lambda that generates body of click
  */
 fun ChildrenBuilder.modalBuilderWithClick(
     title: String,
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    buttonAfterClick: ChildrenBuilder.() -> Unit,
+    clickBuilder: ChildrenBuilder.() -> Unit,
 ) {
     div {
         className = ClassName("modal-dialog")
@@ -379,7 +387,7 @@ fun ChildrenBuilder.modalBuilderWithClick(
             }
             div {
                 className = ClassName("d-sm-flex justify-content-center form-check")
-                buttonAfterClick()
+                clickBuilder()
             }
             div {
                 className = ClassName("d-sm-flex justify-content-center form-check")
