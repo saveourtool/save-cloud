@@ -118,7 +118,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationDtos = getAllOrganizationDtos()
+            val organizationDtos = getNotDeletedOrganizationDtos()
             val deletedOrganizationDtos = getDeletedOrganizationDtos()
             val bannedOrganizationDtos = getBannedOrganizationDtos()
             console.log("${organizationDtos.size}  ${deletedOrganizationDtos.size}  ${bannedOrganizationDtos.size}")
@@ -349,6 +349,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     isUploading = false
                 }
             }
+
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getNotDeletedOrganizationDtos() = get(
+        "$apiUrl/organizations/by-user/not-deleted",
+        Headers(),
+        loadingHandler = ::classLoadingHandler,
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getDeletedOrganizationDtos() = get(

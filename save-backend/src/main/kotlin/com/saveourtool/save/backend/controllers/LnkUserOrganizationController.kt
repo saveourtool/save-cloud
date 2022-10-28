@@ -329,8 +329,7 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && ((it.organization?.status == OrganizationStatus.DELETED) ||
-                    (it.role != null && it.role!!.isHigherOrEqualThan(Role.SUPER_ADMIN) && it.organization?.status == OrganizationStatus.BANNED))
+            it.organization != null && it.organization?.status == OrganizationStatus.DELETED
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
@@ -358,7 +357,7 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && (it.organization?.status == OrganizationStatus.BANNED)
+            it.organization != null && it.organization?.status == OrganizationStatus.BANNED
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))

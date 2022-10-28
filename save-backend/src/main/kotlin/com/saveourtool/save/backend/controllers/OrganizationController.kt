@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -122,10 +123,13 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
+        authentication: Authentication,
     ) = Mono.fromCallable {
         organizationService.findByName(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
+    }.filter {
+        organizationPermissionEvaluator.filterForOrganizationStatusPermissions(it?.status, authentication)
     }
 
     @GetMapping("/get/list")
@@ -169,7 +173,7 @@ internal class OrganizationController(
 
     @PostMapping("/{organizationName}/manage-contest-permission")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    //@PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
         method = "POST",
         summary = "Make an organization to be able to create contests.",
@@ -290,11 +294,11 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @PostMapping("/{organizationName}/delete")
+    @DeleteMapping("/{organizationName}/delete")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "POST",
+        method = "DELETE",
         summary = "Delete or banned existing organization.",
         description = "Delete or banned existing organization by its name.",
     )

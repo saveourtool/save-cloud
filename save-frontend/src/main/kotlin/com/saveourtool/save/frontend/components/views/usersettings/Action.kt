@@ -127,14 +127,16 @@ enum class TypeOfAction {
         clickMode = elem
     }
     fun createRequest(url: String): String {
-        return when (this) {
-            DELETE_ORGANIZATION, DELETE_PROJECT ->
-                buildString {
-                    append(url)
+        val type = this
+        return buildString {
+            append(url)
+            when(type){
+                DELETE_ORGANIZATION, DELETE_PROJECT -> {
                     append("?status=")
                     if (clickMode) append("banned") else append("deleted")
                 }
-            else -> url
+                else -> {}
+            }
         }
     }
 }

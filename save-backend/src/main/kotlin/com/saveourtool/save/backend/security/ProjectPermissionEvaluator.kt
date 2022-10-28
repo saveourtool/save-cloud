@@ -85,12 +85,15 @@ class ProjectPermissionEvaluator(
     private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
             userId?.let { projectRole == Role.ADMIN } ?: false
 
-    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
-        projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
-    } ?: false
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = hasRecoveryAccess(userId, projectRole)
 
     private fun hasRecoveryAccess(userId: Long?, projectRole: Role): Boolean =
-        userId?.let { projectRole.isHigherOrEqualThan(Role.ADMIN) } ?: false
+        userId?.let { projectRole.isHigherOrEqualThan(Role.OWNER) } ?: false
+
+    fun filterForProjectStatusPermissions(status: ProjectStatus?, authentication: Authentication) =
+        status.let {
+            it == ProjectStatus.CREATED || (it == ProjectStatus.DELETED && authentication.hasRole(Role.OWNER)) || authentication.hasRole(Role.SUPER_ADMIN)
+        }
 
 
     /**

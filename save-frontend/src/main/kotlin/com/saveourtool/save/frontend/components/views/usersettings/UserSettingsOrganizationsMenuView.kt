@@ -191,9 +191,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         div {
                             className = ClassName("row justify-content-between align-items-center")
                             div {
-                                className = ClassName("align-items-center ml-3")
+                                className = ClassName("align-items-center ml-3 text-danger")
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2 ")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"

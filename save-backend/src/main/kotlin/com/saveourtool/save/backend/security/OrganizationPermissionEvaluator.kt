@@ -4,6 +4,8 @@ import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AuthenticationDetails
@@ -75,8 +77,11 @@ class OrganizationPermissionEvaluator(
     private fun hasRecoveryAccess(userId: Long?, organizationRole: Role): Boolean =
         userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
-    private fun hasRecoveryBan(userId: Long?, organizationRole: Role): Boolean =
-        userId?.let { organizationRole.isHigherOrEqualThan(Role.SUPER_ADMIN) } ?: false
+    fun filterForOrganizationStatusPermissions(status: OrganizationStatus?, authentication: Authentication) =
+        status.let {
+            it == OrganizationStatus.CREATED || (it == OrganizationStatus.DELETED && authentication.hasRole(Role.OWNER)) || authentication.hasRole(Role.SUPER_ADMIN)
+        }
+
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.

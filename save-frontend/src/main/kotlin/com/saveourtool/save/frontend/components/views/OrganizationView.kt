@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -62,8 +61,7 @@ import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.fetch.Response
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.s
+
 
 /**
  * The mandatory column id.
@@ -80,12 +78,12 @@ const val EMPTY_COLUMN_HEADER = ""
 /**
  * CSS classes of the "delete project" button.
  */
-val deleteButtonClasses: List<String> = listOf("btn", "btn-small")
+val actionButtonClasses: List<String> = listOf("btn", "btn-small")
 
 /**
  * CSS classes of the "delete project" icon.
  */
-val deleteIconClasses: List<String> = listOf("trash-alt")
+val actionIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
@@ -119,17 +117,17 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: List<Project>
 
     /**
      * List of projects for `this` organization
      */
-    var deletedProjects: MutableList<Project>
+    var deletedProjects: List<Project>
 
     /**
      * List of projects for `this` organization
      */
-    var bannedProjects: MutableList<Project>
+    var bannedProjects: List<Project>
 
     /**
      * Message of error
@@ -210,11 +208,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     }
                                 }
                                 ProjectStatus.BANNED -> {
-                                    +cellProps.value
-                                    span {
-                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-                                        style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
-                                        +"banned"
+                                    div {
+                                        className = ClassName("text-danger")
+                                        +cellProps.value
+                                        span {
+                                            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                            style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                            +"banned"
+                                        }
                                     }
                                 }
                             }
@@ -245,95 +246,95 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             when (project.status) {
                                 ProjectStatus.CREATED -> {
                                     if (state.selfRole.isHigherOrEqualThan(ADMIN)) {
-                                                actionButton {
-                                                    val projectName = project.name
+                                        actionButton {
+                                            val projectName = project.name
 
-                                                    typeOfOperation = TypeOfAction.DELETE_PROJECT
-                                                    title = "WARNING: You want to delete an project"
-                                                    errorTitle = "You cannot delete $projectName"
-                                                    message =
-                                                        "Are you sure you want to delete an organization $projectName?"
-                                                    clickMessage = "Change to ban mode"
-                                                    buttonStyleBuilder = { childrenBuilder ->
-                                                        with(childrenBuilder) {
-                                                            fontAwesomeIcon(
-                                                                icon = faTrashAlt,
-                                                                classes = deleteIconClasses.joinToString(" ")
-                                                            )
-                                                        }
+                                            typeOfOperation = TypeOfAction.DELETE_PROJECT
+                                            title = "WARNING: You want to delete an project"
+                                            errorTitle = "You cannot delete $projectName"
+                                            message =
+                                                "Are you sure you want to delete an organization $projectName?"
+                                            clickMessage = "Change to ban mode"
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(
+                                                        icon = faTrashAlt,
+                                                        classes = actionIconClasses.joinToString(" ")
+                                                    )
+                                                }
+                                            }
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, window, childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder("Yes, delete $projectName", "danger") {
+                                                        action()
+                                                        window.closeWindow()
                                                     }
-                                                    classes = "btn mr-3"
-                                                    modalButtons = { action, window, childrenBuilder ->
-                                                        with(childrenBuilder) {
-                                                            buttonBuilder("Yes, delete $projectName", "danger") {
-                                                                action()
-                                                                window.closeWindow()
-                                                            }
-                                                            buttonBuilder("Cancel") {
-                                                                window.closeWindow()
-                                                            }
-                                                        }
-                                                    }
-                                                    onActionSuccess = { clickMode: Boolean ->
-                                                        setState {
-                                                            projects -= project
-                                                            if (clickMode) {
-                                                                bannedProjects += project
-                                                            } else {
-                                                                deletedProjects += project
-                                                            }
-                                                        }
-                                                    }
-                                                    conditionClick = state.selfRole.isHigherOrEqualThan(SUPER_ADMIN)
-                                                    sendRequest = { typeOfAction ->
-                                                        responseDeleteProject(typeOfAction, project)
+                                                    buttonBuilder("Cancel") {
+                                                        window.closeWindow()
                                                     }
                                                 }
+                                            }
+                                            onActionSuccess = { clickMode: Boolean ->
+                                                setState {
+                                                    projects = projects.minus(project)
+                                                    if (clickMode) {
+                                                        bannedProjects = bannedProjects.plus(project)
+                                                    } else {
+                                                        deletedProjects = deletedProjects.plus(project)
+                                                    }
+                                                }
+                                            }
+                                            conditionClick = state.selfRole.isHigherOrEqualThan(SUPER_ADMIN)
+                                            sendRequest = { typeOfAction ->
+                                                responseDeleteProject(typeOfAction, project)
+                                            }
+                                        }
                                     }
                                 }
 
                                 ProjectStatus.DELETED -> {
                                     if (state.selfRole.isHigherOrEqualThan(ADMIN)) {
-                                                actionButton {
-                                                    val projectName = project.name
+                                        actionButton {
+                                            val projectName = project.name
 
-                                                    typeOfOperation = TypeOfAction.RECOVERY_PROJECT
-                                                    title = "WARNING: You want to delete an project"
-                                                    errorTitle = "You cannot recovery $projectName"
-                                                    message =
-                                                        "Are you sure you want to recovery an organization $projectName?"
-                                                    clickMessage = "Change to ban mode"
-                                                    buttonStyleBuilder = { childrenBuilder ->
-                                                        with(childrenBuilder) {
-                                                            fontAwesomeIcon(
-                                                                icon = faRedo,
-                                                                classes = deleteIconClasses.joinToString(" ")
-                                                            )
-                                                        }
+                                            typeOfOperation = TypeOfAction.RECOVERY_PROJECT
+                                            title = "WARNING: You want to delete an project"
+                                            errorTitle = "You cannot recovery $projectName"
+                                            message =
+                                                "Are you sure you want to recovery an organization $projectName?"
+                                            clickMessage = "Change to ban mode"
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(
+                                                        icon = faRedo,
+                                                        classes = actionIconClasses.joinToString(" ")
+                                                    )
+                                                }
+                                            }
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, window, childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder("Yes, recovery $projectName", "warning") {
+                                                        action()
+                                                        window.closeWindow()
                                                     }
-                                                    classes = "btn mr-3"
-                                                    modalButtons = { action, window, childrenBuilder ->
-                                                        with(childrenBuilder) {
-                                                            buttonBuilder("Yes, recovery $projectName", "warning") {
-                                                                action()
-                                                                window.closeWindow()
-                                                            }
-                                                            buttonBuilder("Cancel") {
-                                                                window.closeWindow()
-                                                            }
-                                                        }
-                                                    }
-                                                    onActionSuccess = { _: Boolean ->
-                                                        setState {
-                                                            deletedProjects -= project
-                                                            projects += project
-                                                        }
-                                                    }
-                                                    conditionClick = false
-                                                    sendRequest = { typeOfAction ->
-                                                        responseRecoveryProject(typeOfAction, project)
+                                                    buttonBuilder("Cancel") {
+                                                        window.closeWindow()
                                                     }
                                                 }
+                                            }
+                                            onActionSuccess = { _: Boolean ->
+                                                setState {
+                                                    deletedProjects = deletedProjects.minus(project)
+                                                    projects = projects.plus(project)
+                                                }
+                                            }
+                                            conditionClick = false
+                                            sendRequest = { typeOfAction ->
+                                                responseRecoveryProject(typeOfAction, project)
+                                            }
+                                        }
                                     }
                                 }
                                 ProjectStatus.BANNED -> {
@@ -362,11 +363,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.defaultTab
-        state.projects = mutableListOf()
-        state.deletedProjects = mutableListOf()
-        state.bannedProjects = mutableListOf()
+        state.projects = listOf()
+        state.deletedProjects = listOf()
+        state.bannedProjects = listOf()
         state.closeButtonLabel = null
-        state.selfRole = Role.NONE
+        state.selfRole = NONE
         state.draftOrganizationDescription = ""
         state.isConfirmWindowOpen = false
         state.isErrorOpen = false
@@ -404,9 +405,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
-                projects = projectsLoaded.filter { it.status == ProjectStatus.CREATED }.toMutableList()
-                deletedProjects = projectsLoaded.filter { it.status == ProjectStatus.DELETED }.toMutableList()
-                bannedProjects = projectsLoaded.filter { it.status == ProjectStatus.BANNED }.toMutableList()
+                projects = projectsLoaded.filter { it.status == ProjectStatus.CREATED }
+                deletedProjects = projectsLoaded.filter { it.status == ProjectStatus.DELETED }
+                bannedProjects = projectsLoaded.filter { it.status == ProjectStatus.BANNED }
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
@@ -676,7 +677,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 //            it.decodeFromJsonString()
 //        }
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
+    private suspend fun getProjectsForOrganization(): List<Project> = get(
         url = "$apiUrl/projects/get/not-all-projects-by-organization?organizationName=${props.organizationName}",
         headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,

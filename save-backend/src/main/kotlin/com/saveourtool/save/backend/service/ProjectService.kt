@@ -4,14 +4,12 @@ import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -97,10 +95,26 @@ class ProjectService(
      */
     fun getNotDeletedProjects(): List<Project> {
         val projects = projectRepository.findAll { root, _, cb ->
-            cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
+            cb.notEqual(root.get<String>("status"), ProjectStatus.CREATED)
         }
         return projects
     }
+
+
+    fun recoveryProject(project: Project) = changeProjectStatus(project, ProjectStatus.CREATED)
+
+    fun deleteProject(project: Project, status: ProjectStatus) = changeProjectStatus(project, status)
+
+    @Suppress("UnsafeCallOnNullableType")
+    fun changeProjectStatus(project: Project, changeStatus: ProjectStatus) =
+        project.apply {
+            status = changeStatus
+        }
+            .let {
+                updateProject(it)
+            }
+
+
 
     /**
      * @param organizationName
@@ -112,7 +126,7 @@ class ProjectService(
         authentication: Authentication?,
     ): Flux<Project> = getALLProjectsByOrganizationName(organizationName, authentication)
         .filter {
-            it.status != ProjectStatus.DELETED
+            it.status == ProjectStatus.CREATED
         }
 
 
@@ -134,7 +148,7 @@ class ProjectService(
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
-                cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
+                cb.equal(root.get<String>("status"), ProjectStatus.CREATED)
             )
         }
         return projects

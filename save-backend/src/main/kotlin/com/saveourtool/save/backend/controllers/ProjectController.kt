@@ -121,6 +121,8 @@ class ProjectController(
     ): Mono<Project> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
+        }.filter {
+            projectPermissionEvaluator.filterForProjectStatusPermissions(it?.status, authentication)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
@@ -162,24 +164,6 @@ class ProjectController(
         @RequestParam organizationName: String,
         authentication: Authentication?,
     ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
-
-
-    @GetMapping("/get/not-all-projects-by-organization")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get non-deleted projects by organization name.",
-        description = "Get non-deleted projects by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getALLProjectsByOrganizationName(
-        @RequestParam organizationName: String,
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getALLProjectsByOrganizationName(organizationName, authentication)
 
 
     @PostMapping("/save")
@@ -283,7 +267,7 @@ class ProjectController(
     fun deleteProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestParam setStatus: String,
+        @RequestParam status: String,
         authentication: Authentication
     ): Mono<StringResponse> =
             projectService.findWithPermissionByNameAndOrganization(
@@ -295,15 +279,11 @@ class ProjectController(
                 .switchIfEmptyToNotFound {
                     "Could not find created project with name $projectName."
                 }
-                .map { projectFromDb ->
-                    projectFromDb.apply {
-                        status = ProjectStatus.valueOf(setStatus)
-                    }
+                .map {
+                    projectService.deleteProject(it, ProjectStatus.valueOf(status.uppercase()))
+                    ResponseEntity.ok("Successfully deleted project")
                 }
-                .map { updatedProject ->
-                    projectService.updateProject(updatedProject)
-                    ResponseEntity.ok("Successfully $setStatus project")
-                }
+
 
     @PostMapping("/{organizationName}/{projectName}/recovery")
     @RequiresAuthorizationSourceHeader
@@ -331,14 +311,9 @@ class ProjectController(
             .switchIfEmptyToNotFound {
                 "Could not find deleted project with name $projectName."
             }
-            .map { projectFromDb ->
-                projectFromDb.apply {
-                    status = ProjectStatus.CREATED
-                }
-            }
-            .map { updatedProject ->
-                projectService.updateProject(updatedProject)
-                ResponseEntity.ok("Successfully recovery a project")
+            .map {
+                projectService.recoveryProject(it)
+                ResponseEntity.ok("Successfully recovery project")
             }
 
     companion object {
