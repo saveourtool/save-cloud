@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
-    alias(libs.plugins.download)
+    id("de.undercouch.download")
     id("org.gradle.test-retry") version "1.4.1"
 }
 
