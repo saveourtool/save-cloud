@@ -22,7 +22,7 @@ val actionButton: FC<ActionProps> = FC {props ->
     val (isError, setError) = useState(false)
 
     val action = useDeferredRequest {
-        val response = props.sendRequest(props.typeOfOperation)(this) {}
+        val response = props.sendRequest(props.typeOfOperation)(this)
         if (response.ok) {
             props.onActionSuccess(props.typeOfOperation.isClickMode)
         } else {

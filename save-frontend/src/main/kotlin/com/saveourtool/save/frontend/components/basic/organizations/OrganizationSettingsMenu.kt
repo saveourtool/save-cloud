@@ -150,7 +150,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                         title = "WARNING: You want to delete an organization"
                         errorTitle = "You cannot delete ${props.organizationName}"
-                        message = "Are you sure you want to delete an organization ${props.organizationName}?"
+                        message = "Are you sure you want to delete a ${props.organizationName}?"
                         clickMessage = "Change to ban mode"
                         onActionSuccess = {
                             window.location.href = "${window.location.origin}/"
@@ -183,7 +183,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
     }
 }
 
-private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
     delete(
         url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
         headers = jsonHeaders,

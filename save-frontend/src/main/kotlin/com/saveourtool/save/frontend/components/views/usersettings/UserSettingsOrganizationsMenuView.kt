@@ -69,7 +69,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                                         title = "WARNING: You want to delete an organization"
                                         errorTitle = "You cannot delete ${organizationDto.name}"
-                                        message = "Are you sure you want to delete an organization ${organizationDto.name}?"
+                                        message = "Are you sure you want to delete a ${organizationDto.name}?"
                                         clickMessage = "Change to ban mode"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
@@ -218,7 +218,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
 
-    private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
         delete(
             url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
             headers = jsonHeaders,
@@ -227,7 +227,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         )
     }
 
-    private fun responseRecoveryOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    private fun responseRecoveryOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
         post(
             url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/recovery"),
             headers = jsonHeaders,

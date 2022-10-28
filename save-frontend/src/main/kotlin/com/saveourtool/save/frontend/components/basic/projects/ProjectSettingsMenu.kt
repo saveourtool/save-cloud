@@ -278,7 +278,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                             title = "WARNING: You want to delete a project"
                             errorTitle = "You cannot delete ${props.project.name}"
-                            message = "Are you sure you want to delete a project $projectPath?"
+                            message = "Are you sure you want to delete a $projectPath?"
                             clickMessage = "Change to ban mode"
                             onActionSuccess = {
                                 window.location.href = "${window.location.origin}/"
@@ -312,7 +312,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
 }
 
-private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
     delete(
         url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
         headers = jsonHeaders,

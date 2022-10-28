@@ -248,8 +248,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                                         typeOfOperation = TypeOfAction.DELETE_PROJECT
                                         title = "WARNING: You want to delete a project"
-                                        errorTitle = "You cannot delete $projectName"
-                                        message = "Are you sure you want to delete an organization $projectName?"
+                                        errorTitle = "You cannot delete a $projectName"
+                                        message = "Are you sure you want to delete a $projectName?"
                                         clickMessage = "Change to ban mode"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
@@ -295,8 +295,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         typeOfOperation = TypeOfAction.RECOVERY_PROJECT
                                         title = "WARNING: You want to recovery a project"
                                         errorTitle = "You cannot recovery $projectName"
-                                        message =
-                                                "Are you sure you want to recovery an organization $projectName?"
+                                        message = "Are you sure you want to recovery an $projectName?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(
