@@ -122,7 +122,7 @@ class ProjectController(
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
         }.filter {
-            projectPermissionEvaluator.filterForProjectStatusPermissions(it?.status, authentication)
+            it?.status == ProjectStatus.CREATED
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)

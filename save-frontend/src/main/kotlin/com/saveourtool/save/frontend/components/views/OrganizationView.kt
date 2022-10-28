@@ -252,8 +252,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             typeOfOperation = TypeOfAction.DELETE_PROJECT
                                             title = "WARNING: You want to delete an project"
                                             errorTitle = "You cannot delete $projectName"
-                                            message =
-                                                "Are you sure you want to delete an organization $projectName?"
+                                            message = "Are you sure you want to delete an organization $projectName?"
                                             clickMessage = "Change to ban mode"
                                             buttonStyleBuilder = { childrenBuilder ->
                                                 with(childrenBuilder) {
@@ -279,9 +278,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                                 setState {
                                                     projects = projects.minus(project)
                                                     if (clickMode) {
-                                                        bannedProjects = bannedProjects.plus(project)
+                                                        bannedProjects = bannedProjects.plus(project.copy(status = ProjectStatus.BANNED))
                                                     } else {
-                                                        deletedProjects = deletedProjects.plus(project)
+                                                        deletedProjects = deletedProjects.plus(project.copy(status = ProjectStatus.DELETED))
                                                     }
                                                 }
                                             }
@@ -324,10 +323,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                                     }
                                                 }
                                             }
-                                            onActionSuccess = { _: Boolean ->
+                                            onActionSuccess = { _ ->
                                                 setState {
                                                     deletedProjects = deletedProjects.minus(project)
-                                                    projects = projects.plus(project)
+                                                    projects = projects.plus(project.copy(status = ProjectStatus.CREATED))
                                                 }
                                             }
                                             conditionClick = false
@@ -355,7 +354,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps)
+            arrayOf(tableProps, state.projects, state.deletedProjects, state.bannedProjects)
         }
     )
 
@@ -678,7 +677,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 //        }
 
     private suspend fun getProjectsForOrganization(): List<Project> = get(
-        url = "$apiUrl/projects/get/not-all-projects-by-organization?organizationName=${props.organizationName}",
+        url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
         headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
@@ -858,30 +857,30 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    /**
-     * Returns a lambda which, when invoked, deletes the specified project and
-     * updates the state of this view, passing an error message, if any, to the
-     * externally supplied [ErrorHandler].
-     *
-     * @param project the project to delete.
-     * @return the lambda which deletes [project].
-     * @see ErrorHandler
-     */
-    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                projects -= project
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
-        }
-    }
+//    /**
+//     * Returns a lambda which, when invoked, deletes the specified project and
+//     * updates the state of this view, passing an error message, if any, to the
+//     * externally supplied [ErrorHandler].
+//     *
+//     * @param project the project to delete.
+//     * @return the lambda which deletes [project].
+//     * @see ErrorHandler
+//     */
+//    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
+//        val response = delete(
+//            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
+//            headers = jsonHeaders,
+//            loadingHandler = ::noopLoadingHandler,
+//            errorHandler = ::noopResponseHandler,
+//        )
+//        if (response.ok) {
+//            setState {
+//                projects -= project
+//            }
+//        } else {
+//            errorHandler(response.unpackMessageOrHttpStatus())
+//        }
+//    }
 
     companion object :
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(

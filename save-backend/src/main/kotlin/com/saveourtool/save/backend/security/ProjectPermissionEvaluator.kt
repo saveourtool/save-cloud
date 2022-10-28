@@ -90,11 +90,6 @@ class ProjectPermissionEvaluator(
     private fun hasRecoveryAccess(userId: Long?, projectRole: Role): Boolean =
         userId?.let { projectRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
-    fun filterForProjectStatusPermissions(status: ProjectStatus?, authentication: Authentication) =
-        status.let {
-            it == ProjectStatus.CREATED || (it == ProjectStatus.DELETED && authentication.hasRole(Role.OWNER)) || authentication.hasRole(Role.SUPER_ADMIN)
-        }
-
 
     /**
      * @param authentication

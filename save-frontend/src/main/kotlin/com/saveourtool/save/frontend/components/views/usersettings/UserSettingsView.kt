@@ -113,7 +113,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     }
 
     override fun componentDidMount() {
-        console.log("component")
         super.componentDidMount()
         scope.launch {
             val user = props.userName
@@ -121,7 +120,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val organizationDtos = getNotDeletedOrganizationDtos()
             val deletedOrganizationDtos = getDeletedOrganizationDtos()
             val bannedOrganizationDtos = getBannedOrganizationDtos()
-            console.log("${organizationDtos.size}  ${deletedOrganizationDtos.size}  ${bannedOrganizationDtos.size}")
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)

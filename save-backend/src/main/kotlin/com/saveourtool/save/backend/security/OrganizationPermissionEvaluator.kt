@@ -77,11 +77,6 @@ class OrganizationPermissionEvaluator(
     private fun hasRecoveryAccess(userId: Long?, organizationRole: Role): Boolean =
         userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
-    fun filterForOrganizationStatusPermissions(status: OrganizationStatus?, authentication: Authentication) =
-        status.let {
-            it == OrganizationStatus.CREATED || (it == OrganizationStatus.DELETED && authentication.hasRole(Role.OWNER)) || authentication.hasRole(Role.SUPER_ADMIN)
-        }
-
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.

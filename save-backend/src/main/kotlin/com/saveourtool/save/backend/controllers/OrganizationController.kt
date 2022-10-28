@@ -129,7 +129,7 @@ internal class OrganizationController(
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }.filter {
-        organizationPermissionEvaluator.filterForOrganizationStatusPermissions(it?.status, authentication)
+        it?.status == OrganizationStatus.CREATED
     }
 
     @GetMapping("/get/list")
