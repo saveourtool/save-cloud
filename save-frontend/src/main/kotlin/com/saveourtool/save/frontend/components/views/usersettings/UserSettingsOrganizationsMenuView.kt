@@ -3,19 +3,15 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 import csstype.BorderRadius
 
 import csstype.ClassName
-import kotlinx.browser.window
 import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
@@ -25,12 +21,14 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.dom.html.ReactHTML.span
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+        console.log("renderMenu")
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
@@ -74,13 +72,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         errorTitle = "You cannot delete ${organizationDto.name}"
                                         message = "Are you sure you want to delete an organization ${organizationDto.name}?"
                                         clickMessage = "Change to ban mode"
-                                        url = "$apiUrl/organizations/${organizationDto.name}/delete"
-                                        onActionSuccess = {
-                                            setState {
-                                                selfOrganizationDtos = selfOrganizationDtos.minus(organizationDto)
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plus(organizationDto)
-                                            }
-                                        }
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(icon = faTrashAlt)
@@ -98,7 +89,20 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
+                                        onActionSuccess = { clickMode : Boolean ->
+                                            setState {
+                                                selfOrganizationDtos = selfOrganizationDtos.minus(organizationDto)
+                                                if (clickMode) {
+                                                    selfBannedOrganizationDtos = selfBannedOrganizationDtos.plus(organizationDto)
+                                                } else {
+                                                    selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plus(organizationDto)
+                                                }
+                                            }
+                                        }
                                         conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
+                                        sendRequest = { typeOfAction->
+                                            responseDeleteOrganization(typeOfAction, organizationDto.name)
+                                        }
                                     }
                                 }
                                 div {
@@ -109,7 +113,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
-
 
                 state.selfDeletedOrganizationDtos.forEach { organizationDto ->
                     li {
@@ -136,21 +139,13 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
-                                if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
+                                if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
                                         typeOfOperation = TypeOfAction.RECOVERY_ORGANIZATION
                                         title = "WARNING: You want to delete an organization"
                                         errorTitle = "You cannot recovery ${organizationDto.name}"
                                         message = "Are you sure you want to recovery an organization ${organizationDto.name}?"
                                         clickMessage = "Change to ban mode"
-                                        url = "$apiUrl/organizations/${organizationDto.name}/recovery"
-                                        onActionSuccess = {
-                                            setState {
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minus(organizationDto)
-                                                selfOrganizationDtos = selfOrganizationDtos.plus(organizationDto)
-                                            }
-                                        }
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(icon = faRedo)
@@ -168,7 +163,16 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
-                                        conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
+                                        onActionSuccess = {
+                                            setState {
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minus(organizationDto)
+                                                selfOrganizationDtos = selfOrganizationDtos.plus(organizationDto)
+                                            }
+                                        }
+                                        conditionClick = false
+                                        sendRequest = { typeOfAction ->
+                                            responseRecoveryOrganization(typeOfAction, organizationDto.name)
+                                        }
                                     }
                                 }
                                 div {
@@ -197,7 +201,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 +organizationDto.name
-                                ReactHTML.span {
+                                span {
                                     className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
                                     style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
                                     +"banned"
@@ -216,5 +220,25 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                 }
             }
         }
+    }
+
+
+    private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+        delete (
+            url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/delete"),
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+            errorHandler = ::noopResponseHandler,
+        )
+    }
+
+    private fun responseRecoveryOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+        post (
+            url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/recovery"),
+            headers = jsonHeaders,
+            body = undefined,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
     }
 }

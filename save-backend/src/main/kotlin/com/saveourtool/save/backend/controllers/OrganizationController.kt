@@ -290,11 +290,11 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @DeleteMapping("/{organizationName}/delete")
+    @PostMapping("/{organizationName}/delete")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE",
+        method = "POST",
         summary = "Delete or banned existing organization.",
         description = "Delete or banned existing organization by its name.",
     )
@@ -367,7 +367,7 @@ internal class OrganizationController(
         .filter {
             it.status == OrganizationStatus.DELETED
         }
-        .switchIfEmptyToNotFound{
+        .switchIfEmptyToNotFound {
             "Could not find deleted organization with name $organizationName."
         }
         .filter {

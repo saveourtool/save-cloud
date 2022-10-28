@@ -254,6 +254,32 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
+
+    @GetMapping("/by-user/all")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get all user's organizations.",
+        description = "Get all organizations where user is a member, and his roles in those organizations.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+    @Suppress("UnsafeCallOnNullableType")
+    fun getAllOrganizationWithRoles(
+        authentication: Authentication,
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+    )
+        .switchIfEmptyToNotFound()
+        .flatMapMany {
+            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+        }
+        .map {
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+        }
+
+
     @GetMapping("/by-user/not-deleted")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

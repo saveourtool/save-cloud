@@ -8,12 +8,15 @@ import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponen
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
+import com.saveourtool.save.frontend.components.views.usersettings.actionButton
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import kotlinx.browser.window
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
@@ -271,18 +274,49 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-danger")
-                            disabled = !props.selfRole.hasDeletePermission()
-                            onClick = {
-                                deletionModalOpener.openWindow()
+                        actionButton {
+                            typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
+                            title = "WARNING: You want to delete an organization"
+                            errorTitle = "You cannot delete ${props.project.name}"
+                            message = "Are you sure you want to delete an project $projectPath?"
+                            clickMessage = "Change to ban mode"
+                            onActionSuccess = {
+                                window.location.href = "${window.location.origin}/"
                             }
-                            +"Delete project"
+                            buttonStyleBuilder = { childrenBuilder ->
+                                with(childrenBuilder) {
+                                    +"Delete ${props.project.name}"
+                                }
+                            }
+                            classes = "btn btn-sm btn-danger"
+                            modalButtons = { action, window, childrenBuilder ->
+                                with(childrenBuilder) {
+                                    buttonBuilder("Yes, delete ${props.project.name}", "danger") {
+                                        action()
+                                        window.closeWindow()
+                                    }
+                                    buttonBuilder("Cancel") {
+                                        window.closeWindow()
+                                    }
+                                }
+                            }
+                            sendRequest = { typeOfAction->
+                                responseDeleteProject(typeOfAction, props.project)
+                            }
+                            conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    delete(
+        url = typeOfAction.createRequest("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
+        headers = jsonHeaders,
+        loadingHandler = ::noopLoadingHandler,
+        errorHandler = ::noopResponseHandler,
+    )
 }

@@ -79,7 +79,7 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType")
     fun changeOrganizationStatus(organizationName: String, changeStatus: OrganizationStatus): Organization = getByName(organizationName)
         .apply {
-            status = OrganizationStatus.DELETED
+            status = changeStatus
         }
         .let {
             organizationRepository.save(it)

@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
@@ -13,6 +14,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -161,6 +163,25 @@ class ProjectController(
         authentication: Authentication?,
     ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
 
+
+    @GetMapping("/get/not-all-projects-by-organization")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get non-deleted projects by organization name.",
+        description = "Get non-deleted projects by organization name.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
+    fun getALLProjectsByOrganizationName(
+        @RequestParam organizationName: String,
+        authentication: Authentication?,
+    ): Flux<Project> = projectService.getALLProjectsByOrganizationName(organizationName, authentication)
+
+
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -258,6 +279,7 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for project deletion.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
+    @ApiResponse(responseCode = "409", description = "Could not find created project with such name.")
     fun deleteProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -267,6 +289,12 @@ class ProjectController(
             projectService.findWithPermissionByNameAndOrganization(
                 authentication, projectName, organizationName, Permission.DELETE
             )
+                .filter {
+                    it.status == ProjectStatus.CREATED
+                }
+                .switchIfEmptyToNotFound {
+                    "Could not find created project with name $projectName."
+                }
                 .map { projectFromDb ->
                     projectFromDb.apply {
                         status = ProjectStatus.valueOf(setStatus)
@@ -288,6 +316,7 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully recovery a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for project recovery.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
+    @ApiResponse(responseCode = "409", description = "Could not find deleted project with such name.")
     fun recoveryProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -296,6 +325,12 @@ class ProjectController(
         projectService.findWithPermissionByNameAndOrganization(
             authentication, projectName, organizationName, Permission.RECOVERY
         )
+            .filter {
+                it.status == ProjectStatus.DELETED
+            }
+            .switchIfEmptyToNotFound {
+                "Could not find deleted project with name $projectName."
+            }
             .map { projectFromDb ->
                 projectFromDb.apply {
                     status = ProjectStatus.CREATED

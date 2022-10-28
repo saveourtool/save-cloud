@@ -96,7 +96,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         state.isUploading = false
         state.selfOrganizationDtos = emptyList()
         state.selfDeletedOrganizationDtos = emptyList()
-        state.selfOrganizationDtos = emptyList()
+        state.selfBannedOrganizationDtos = emptyList()
     }
 
     /**
@@ -113,13 +113,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     }
 
     override fun componentDidMount() {
+        console.log("component")
         super.componentDidMount()
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationDtos = getOrganizationDtos()
+            val organizationDtos = getAllOrganizationDtos()
             val deletedOrganizationDtos = getDeletedOrganizationDtos()
             val bannedOrganizationDtos = getBannedOrganizationDtos()
+            console.log("${organizationDtos.size}  ${deletedOrganizationDtos.size}  ${bannedOrganizationDtos.size}")
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
@@ -349,14 +351,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
 
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/not-deleted",
-        Headers(),
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
-
-    @Suppress("TYPE_ALIAS")
     private suspend fun getDeletedOrganizationDtos() = get(
         "$apiUrl/organizations/by-user/deleted",
         Headers(),
@@ -367,6 +361,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     @Suppress("TYPE_ALIAS")
     private suspend fun getBannedOrganizationDtos() = get(
         "$apiUrl/organizations/by-user/banned",
+        Headers(),
+        loadingHandler = ::classLoadingHandler,
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getAllOrganizationDtos() = get(
+        "$apiUrl/organizations/by-user/all",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )

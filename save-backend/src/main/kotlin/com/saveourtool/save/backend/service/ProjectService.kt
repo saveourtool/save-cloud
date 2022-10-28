@@ -110,10 +110,16 @@ class ProjectService(
     fun getNotDeletedProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
+    ): Flux<Project> = getALLProjectsByOrganizationName(organizationName, authentication)
         .filter {
             it.status != ProjectStatus.DELETED
         }
+
+
+    fun getALLProjectsByOrganizationName(
+        organizationName: String,
+        authentication: Authentication?,
+    ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }

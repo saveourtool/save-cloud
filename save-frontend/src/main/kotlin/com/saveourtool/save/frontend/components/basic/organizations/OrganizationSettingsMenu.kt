@@ -4,12 +4,11 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
 import com.saveourtool.save.frontend.components.views.usersettings.actionButton
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -154,7 +153,6 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         errorTitle = "You cannot delete ${props.organizationName}"
                         message = "Are you sure you want to delete an organization ${props.organizationName}?"
                         clickMessage = "Change to ban mode"
-                        url = "$apiUrl/organizations/${props.organizationName}/delete"
                         onActionSuccess = {
                             window.location.href = "${window.location.origin}/"
                         }
@@ -175,10 +173,22 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 }
                             }
                         }
+                        sendRequest = { typeOfAction->
+                            responseDeleteOrganization(typeOfAction, props.organizationName)
+                        }
                         conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                     }
                 }
             }
         }
     }
+}
+
+private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.(ErrorHandler) -> Response = {
+    delete (
+        url =  typeOfAction.createRequest("$apiUrl/organizations/$organizationName/delete"),
+        headers = jsonHeaders,
+        loadingHandler = ::noopLoadingHandler,
+        errorHandler = ::noopResponseHandler,
+    )
 }
