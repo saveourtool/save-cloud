@@ -79,7 +79,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         classes = "btn mr-3"
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder("Yes, delete ${organizationDto.name}", "danger") {
+                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style ="danger", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }
@@ -153,7 +153,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         classes = "btn mr-3"
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder("Yes, recovery ${organizationDto.name}", "warning") {
+                                                buttonBuilder(label = "Yes, recovery ${organizationDto.name}", style ="warning", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }

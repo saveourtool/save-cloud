@@ -121,6 +121,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization by it's name.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @ApiResponse(responseCode = "409", description = "Organization status is not Created.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -130,6 +131,8 @@ internal class OrganizationController(
         "Organization not found by name $organizationName"
     }.filter {
         it?.status == OrganizationStatus.CREATED
+    }.switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+        "Organization $organizationName status is not ${OrganizationStatus.CREATED.name}"
     }
 
     @GetMapping("/get/list")
@@ -173,7 +176,7 @@ internal class OrganizationController(
 
     @PostMapping("/{organizationName}/manage-contest-permission")
     @RequiresAuthorizationSourceHeader
-    //@PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
         method = "POST",
         summary = "Make an organization to be able to create contests.",
@@ -341,7 +344,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.deleteOrganization(it.name, OrganizationStatus.valueOf(status.uppercase()))
-            ResponseEntity.ok("Organization deleted")
+            ResponseEntity.ok("Successful deletion of an organization")
         }
 
     @PostMapping("/{organizationName}/recovery")
@@ -382,7 +385,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.recoveryOrganization(it.name)
-            ResponseEntity.ok("Organization recovery")
+            ResponseEntity.ok("Successful restoration of the organization")
         }
 
 

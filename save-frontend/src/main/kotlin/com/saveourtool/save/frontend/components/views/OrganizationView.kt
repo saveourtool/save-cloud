@@ -265,7 +265,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             classes = actionButtonClasses.joinToString(" ")
                                             modalButtons = { action, window, childrenBuilder ->
                                                 with(childrenBuilder) {
-                                                    buttonBuilder("Yes, delete $projectName", "danger") {
+                                                    buttonBuilder(label = "Yes, delete $projectName", style ="danger", classes = "mr-2") {
                                                         action()
                                                         window.closeWindow()
                                                     }
@@ -314,7 +314,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             classes = actionButtonClasses.joinToString(" ")
                                             modalButtons = { action, window, childrenBuilder ->
                                                 with(childrenBuilder) {
-                                                    buttonBuilder("Yes, recovery $projectName", "warning") {
+                                                    buttonBuilder(label = "Yes, recovery $projectName", style ="warning", classes = "mr-2") {
                                                         action()
                                                         window.closeWindow()
                                                     }
@@ -336,9 +336,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         }
                                     }
                                 }
-                                ProjectStatus.BANNED -> {
-
-                                }
+                                ProjectStatus.BANNED -> { }
                             }
                         }
                     }

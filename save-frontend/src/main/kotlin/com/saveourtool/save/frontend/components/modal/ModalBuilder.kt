@@ -342,14 +342,13 @@ fun ChildrenBuilder.modalBuilderWithClick(
  */
 fun ChildrenBuilder.modalBuilderWithClick(
     title: String,
-    classes: String = "",
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: ChildrenBuilder.() -> Unit,
     buttonAfterClick: ChildrenBuilder.() -> Unit,
 ) {
     div {
-        className = ClassName("modal-dialog $classes")
+        className = ClassName("modal-dialog")
         div {
             className = ClassName("modal-content")
             div {

@@ -291,7 +291,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             classes = "btn btn-sm btn-danger"
                             modalButtons = { action, window, childrenBuilder ->
                                 with(childrenBuilder) {
-                                    buttonBuilder("Yes, delete ${props.project.name}", "danger") {
+                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
                                         action()
                                         window.closeWindow()
                                     }

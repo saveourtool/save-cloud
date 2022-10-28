@@ -164,7 +164,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         classes = "btn btn-sm btn-danger"
                         modalButtons = { action, window, childrenBuilder ->
                             with(childrenBuilder) {
-                                buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action()
                                     window.closeWindow()
                                 }
