@@ -107,7 +107,7 @@ dependencies {
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
-        runtimeOnly(files("$buildDir/agentDistro").apply {
+        runtimeOnly(fileTree("$buildDir/agentDistro").apply {
             builtBy(downloadSaveAgentDistroTaskProvider)
         })
     } else {
@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.reactor.extra)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
+    implementation(projects.authenticationService)
 }
 
 configureJacoco()

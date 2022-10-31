@@ -71,8 +71,8 @@ class LnkOrganizationTestSuiteController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get list of test suites that are available for given organization.",
-        description = "Get list of test suites that are available for given organization.",
+        summary = "Get the list of test suites that are available for given organization.",
+        description = "Get the list of test suites that are available for given organization.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
