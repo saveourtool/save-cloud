@@ -63,11 +63,10 @@ class LnkContestExecutionService(
     fun createLink(execution: Execution, contestName: String): Mono<LnkContestExecution> = blockingToMono {
         contestRepository.findByName(contestName)
     }
-        .filter { it.isPresent }
         .switchIfEmptyToNotFound()
         .map {
             lnkContestExecutionRepository.save(
-                LnkContestExecution(execution = execution, contest = it.get())
+                LnkContestExecution(execution = execution, contest = it)
             )
         }
 }

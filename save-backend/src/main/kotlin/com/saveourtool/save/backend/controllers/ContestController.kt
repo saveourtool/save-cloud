@@ -15,6 +15,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -312,7 +313,9 @@ internal class ContestController(
             "Contest with name [${contestDto.name}] already exists!"
         }
         .zipWith(
-            testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.requiredId() }).toMono()
+            Mono.fromCallable {
+                testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.requiredId() })
+            }
         )
         .map { (contest, testSuites) ->
             testSuites.map { testSuite ->
@@ -343,7 +346,7 @@ internal class ContestController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
         organizationService.findByName(contestRequest.organizationName).toMono(),
-        Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
+        contestService.findByName(contestRequest.name).toMono(),
     )
         .switchIfEmptyToNotFound {
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
@@ -386,7 +389,7 @@ internal class ContestController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
         organizationService.findByName(contestsRequest.first().organizationName).toMono(),
-        Mono.justOrEmpty(contestsRequest.map { contestRequest -> contestService.findByName(contestRequest.name) }),
+        contestsRequest.map { contestRequest -> contestService.findByName(contestRequest.name) }.toMono(),
     )
         .switchIfEmptyToNotFound {
             "Either organization [${contestsRequest.first().organizationName}] or one or more contests in [${contestsRequest.map { it.name }}] was not found."
@@ -403,10 +406,12 @@ internal class ContestController(
         }
         .map { (organization, contests) ->
             contestsRequest.map { contestRequest ->
-                contests.single {
-                    contestRequest.name == it.get().name && contestRequest.organizationName == it.get().organization.name
+                contests.singleOrNull {
+                    contestRequest.name == it?.name && contestRequest.organizationName == it.organization.name
                 }
-                    .get()
+                    .orNotFound {
+                        "Could not find contest with name ${contestRequest.name} from organization ${contestRequest.organizationName}"
+                    }
                     .let { contest ->
                         contestService.updateContest(
                             contestRequest.toContest(organization, contest.testSuiteLinks).apply {
@@ -418,10 +423,9 @@ internal class ContestController(
             ResponseEntity.ok("Contest successfully updated")
         }
 
-    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.justOrEmpty(
-        contestService.findByName(contestName)
-    )
-        .switchIfEmptyToNotFound {
+    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.fromCallable {
+        contestService.findByName(contestName).orNotFound {
             "Could not find contest with name $contestName."
         }
+    }
 }
