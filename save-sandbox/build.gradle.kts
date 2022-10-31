@@ -55,7 +55,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
     inputs.file(pathToSaveCliVersion)
 
     src(KotlinClosure0(function = { getSaveCliPath() }))
-    dest("$buildDir/download")
+    dest(KotlinClosure0(function = { "$buildDir/download/${getSaveCliPath().substringAfterLast("/")}" }))
     outputs.dir("$buildDir/download")
     overwrite(false)
 }
@@ -85,8 +85,10 @@ dependencies {
     implementation(libs.save.plugins.warn.jvm)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
+    implementation(projects.authenticationService)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
+    implementation(libs.save.common.jvm)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

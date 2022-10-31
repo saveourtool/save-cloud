@@ -31,6 +31,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: DATABASE_SECRETS_PATH
+              value: {{ .Values.mysql.dbPasswordFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
             - name: POD_NAMESPACE

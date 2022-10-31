@@ -42,7 +42,7 @@ class SandboxAgentRepository(
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
-    @Value("\${sandbox.url}/sandbox/internal") private val sandboxUrl: String,
+    @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
 ) : com.saveourtool.save.orchestrator.service.AgentRepository {
     override fun getContainerName(containerId: String): Mono<String> = blockingToMono {
         getAgent(containerId).containerName
@@ -52,7 +52,7 @@ class SandboxAgentRepository(
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
                 .map { storageKey ->
-                    storageKey.fileName to "$sandboxUrl/download-file?userId=${storageKey.userId}&fileName=${storageKey.fileName}"
+                    storageKey.fileName to "$sandboxUrlForAgent/download-file?userId=${storageKey.userId}&fileName=${storageKey.fileName}"
                 }
                 .collectList()
                 .map {
@@ -61,8 +61,8 @@ class SandboxAgentRepository(
         }
         .map { (execution, fileToUrls) ->
             AgentInitConfig(
-                saveCliUrl = "$sandboxUrl/download-save-cli?version=$SAVE_CORE_VERSION",
-                testSuitesSourceSnapshotUrl = "$sandboxUrl/download-test-files?userId=${execution.userId}",
+                saveCliUrl = "$sandboxUrlForAgent/download-save-cli?version=$SAVE_CORE_VERSION",
+                testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
                 // sandbox doesn't support save-cli overrides for now
                 saveCliOverrides = SaveCliOverrides(),
@@ -82,8 +82,8 @@ class SandboxAgentRepository(
         .map { (cliArgs, userId) ->
             AgentRunConfig(
                 cliArgs = cliArgs,
-                executionDataUploadUrl = "$sandboxUrl/upload-execution-data",
-                debugInfoUploadUrl = "$sandboxUrl/upload-debug-info?userId=$userId",
+                executionDataUploadUrl = "$sandboxUrlForAgent/upload-execution-data",
+                debugInfoUploadUrl = "$sandboxUrlForAgent/upload-debug-info?userId=$userId",
             )
         }
 
@@ -162,7 +162,7 @@ class SandboxAgentRepository(
      */
     fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
         saveAgentVersion = SAVE_CORE_VERSION,
-        saveAgentUrl = "$sandboxUrl/download-save-agent",
+        saveAgentUrl = "$sandboxUrlForAgent/download-save-agent",
     )
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository

@@ -11,6 +11,8 @@ data:
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.sandbox.managementPort }}
+    spring.datasource.url=${spring.datasource.sandbox-url}
+
     orchestrator.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     orchestrator.agent-settings.debug=true
 

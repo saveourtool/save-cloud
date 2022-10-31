@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
@@ -15,7 +16,6 @@ import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException

@@ -1,6 +1,7 @@
-package com.saveourtool.save.utils
+package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.utils.getLogger
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User as SpringUser
