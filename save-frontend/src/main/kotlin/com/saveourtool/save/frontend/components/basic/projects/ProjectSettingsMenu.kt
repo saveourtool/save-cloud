@@ -67,11 +67,6 @@ external interface ProjectSettingsMenuProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
-
-    /**
-     * Callback to show notification message
-     */
-    var updateNotificationMessage: (String, String) -> Unit
 }
 
 @Suppress(
