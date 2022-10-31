@@ -66,17 +66,19 @@ class Beans {
      * @return a [LogConfig] bean
      */
     @Bean
-    fun logConfig(configProperties: ConfigProperties): LogConfig = configProperties.lokiServiceUrl?.let {
-        LogConfig(
-            LogConfig.LoggingType.LOKI,
-            mapOf(
-                // similar to config in docker-compose.yaml
-                "mode" to "non-blocking",
-                "loki-url" to "$it/loki/api/v1/push",
-                "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+    fun logConfig(configProperties: ConfigProperties): LogConfig = configProperties.lokiServiceUrl
+        ?.takeIf { it.isNotBlank() }
+        ?.let {
+            LogConfig(
+                LogConfig.LoggingType.LOKI,
+                mapOf(
+                    // similar to config in docker-compose.yaml
+                    "mode" to "non-blocking",
+                    "loki-url" to "$it/loki/api/v1/push",
+                    "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                )
             )
-        )
-    } ?: LogConfig(LogConfig.LoggingType.DEFAULT)
+        } ?: LogConfig(LogConfig.LoggingType.DEFAULT)
 
     /**
      * @param configProperties
@@ -84,7 +86,9 @@ class Beans {
      * @return [AgentLogService] from Docker or Loki if loki is available
      */
     @Bean
-    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): AgentLogService = configProperties.lokiServiceUrl?.let {
-        LokiAgentLogService(it)
-    } ?: DockerAgentLogService(dockerClient)
+    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): AgentLogService = configProperties.lokiServiceUrl
+        ?.takeIf { it.isNotBlank() }
+        ?.let {
+            LokiAgentLogService(it)
+        } ?: DockerAgentLogService(dockerClient)
 }
