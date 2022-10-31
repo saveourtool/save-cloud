@@ -29,10 +29,5 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
 }
 
-tasks.withType<Test> {
-    jvmArgs("--enable-preview")
-    useJUnitPlatform()
-}
-
 configureJacoco()
 configureSpotless()
