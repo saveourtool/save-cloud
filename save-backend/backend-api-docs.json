@@ -8541,13 +8541,13 @@
               "DECEMBER"
             ]
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -8633,13 +8633,13 @@
           "date": {
             "$ref": "#/components/schemas/LocalDate"
           },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date-time"
-          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
           },
           "nanosecond": {
             "type": "integer",
