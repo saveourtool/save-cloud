@@ -24,9 +24,9 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import react.router.useNavigate
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -185,6 +185,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
     }
     val windowOpenness = useWindowOpenness()
     val windowErrorOpenness = useWindowOpenness()
+    val navigate = useNavigate()
 
     useRequest {
         val response = get(
@@ -227,7 +228,9 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         isContestCreationModalOpen,
         {
             setIsContestCreationModalOpen(false)
-            window.location.href = it
+            navigate(
+                to = it,
+            )
         },
         {
             setIsContestCreationModalOpen(false)
