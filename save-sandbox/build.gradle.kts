@@ -8,6 +8,7 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
+    id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
     id("org.gradle.test-retry") version "1.4.1"
     kotlin("plugin.allopen")

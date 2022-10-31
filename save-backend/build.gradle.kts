@@ -11,6 +11,7 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
+    id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
@@ -75,6 +76,7 @@ tasks.register<Exec>("cleanupDbAndStorage") {
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.authenticationService)
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)

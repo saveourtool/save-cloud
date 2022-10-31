@@ -11,19 +11,10 @@ import org.ajoberstar.reckon.gradle.ReckonPlugin
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import java.net.URL
 import java.time.Duration
 import java.util.Properties
-
-/**
- * @return path to the file with save-cli version for current build
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
 
 /**
  * Configures reckon plugin for [this] project, should be applied for root project only
@@ -67,6 +58,12 @@ fun Project.configureVersioning() {
 fun Project.versionForDockerImages(): String =
         (project.findProperty("build.dockerTag") as String? ?: version.toString())
             .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
+
+/**
+ * @return path to the file with save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest
