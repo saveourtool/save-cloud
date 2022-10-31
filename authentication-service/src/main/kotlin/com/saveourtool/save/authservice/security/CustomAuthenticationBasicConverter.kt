@@ -1,6 +1,6 @@
-package com.saveourtool.save.sandbox.security
+package com.saveourtool.save.authservice.security
 
-import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
