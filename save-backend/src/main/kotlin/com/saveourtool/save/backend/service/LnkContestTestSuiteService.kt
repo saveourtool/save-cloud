@@ -15,17 +15,10 @@ class LnkContestTestSuiteService(
      * @param contest
      * @return all [TestSuite]s with [contest]
      */
-    fun getAllTestSuitesByContest(contest: Contest) =
-            lnkContestTestSuiteRepository.findByContest(contest)
-                .map {
-                    it.testSuite
-                }
-
-    /**
-     * @param contest
-     * @return list of TestSuiteDtos
-     */
-    fun getAllTestSuiteDtosByContest(contest: Contest) = getAllTestSuitesByContest(contest).map { it.toDto() }
+    fun getAllTestSuitesByContest(contest: Contest) = lnkContestTestSuiteRepository.findByContest(contest)
+        .map {
+            it.testSuite
+        }
 
     /**
      * @param contest

@@ -1,6 +1,9 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntity
+
+import com.fasterxml.jackson.annotation.JsonBackReference
+
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
@@ -13,6 +16,7 @@ import javax.persistence.ManyToOne
 class LnkContestTestSuite(
     @ManyToOne
     @JoinColumn(name = "contest_id")
+    @JsonBackReference
     var contest: Contest,
 
     @ManyToOne

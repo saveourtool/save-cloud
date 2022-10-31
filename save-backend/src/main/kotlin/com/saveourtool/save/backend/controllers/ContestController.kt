@@ -14,7 +14,6 @@ import com.saveourtool.save.entities.LnkContestTestSuite
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -34,7 +33,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -74,7 +72,7 @@ internal class ContestController(
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
     fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = getContestOrNotFound(contestName)
         .map { contest ->
-            contest.toDtoWithTestSuiteIds()
+            contest.toDto()
         }
 
     @GetMapping("/{contestName}/is-featured")
@@ -136,7 +134,7 @@ internal class ContestController(
             LocalDateTime.now() < it.endTime
         }
         .map {
-            it.toDtoWithTestSuiteIds()
+            it.toDto()
         }
 
     @GetMapping("/active")
@@ -154,7 +152,7 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findContestsInProgress(pageSize)
     ).map {
-        it.toDtoWithTestSuiteIds()
+        it.toDto()
     }
 
     @GetMapping("/finished")
@@ -172,7 +170,7 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findFinishedContests(pageSize)
     ).map {
-        it.toDtoWithTestSuiteIds()
+        it.toDto()
     }
 
     @GetMapping("/{contestName}/public-test")
@@ -245,7 +243,9 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findPageOfContestsByOrganizationName(organizationName, Pageable.ofSize(pageSize))
     )
-        .map { it.toDtoWithTestSuiteIds() }
+        .map {
+            it.toDto()
+        }
 
     @GetMapping("/newest")
     @Operation(
@@ -262,23 +262,8 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.getNewestContests(pageSize)
     )
-        .map { it.toDtoWithTestSuiteIds() }
-
-    @GetMapping("/{contestName}/test-suites")
-    @Operation(
-        method = "GET",
-        summary = "Get test suites connected to contest.",
-        description = "Get list of test suites dtos.",
-    )
-    @Parameters(
-        Parameter(name = "contestName", `in` = ParameterIn.QUERY, description = "name of a contest", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched test suites.")
-    fun getTestSuiteDtosByContestName(
-        @PathVariable contestName: String,
-    ): Flux<TestSuiteDto> = getContestOrNotFound(contestName)
-        .flatMapMany {
-            lnkContestTestSuiteService.getAllTestSuiteDtosByContest(it).toFlux()
+        .map {
+            it.toDto()
         }
 
     @PostMapping("/create")
@@ -311,8 +296,8 @@ internal class ContestController(
             organizationPermissionEvaluator.canCreateContests(it, authentication)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN)
-        .map {
-            contestDto.toContest(it)
+        .map { organization ->
+            contestDto.toContest(organization, emptyList())
         }
         .filter {
             it.validate()
@@ -327,7 +312,7 @@ internal class ContestController(
             "Contest with name [${contestDto.name}] already exists!"
         }
         .zipWith(
-            testSuitesService.findTestSuitesByIds(contestDto.testSuiteIds).toMono()
+            testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.requiredId() }).toMono()
         )
         .map { (contest, testSuites) ->
             testSuites.map { testSuite ->
@@ -375,7 +360,9 @@ internal class ContestController(
         }
         .map { (organization, contest) ->
             contestService.updateContest(
-                contestRequest.toContest(organization).apply { id = contest.id }
+                contestRequest.toContest(organization, contest.testSuiteLinks).apply {
+                    id = contest.id
+                }
             )
             ResponseEntity.ok("Contest successfully updated")
         }
@@ -416,21 +403,24 @@ internal class ContestController(
         }
         .map { (organization, contests) ->
             contestsRequest.map { contestRequest ->
-                contestService.updateContest(
-                    contestRequest.toContest(organization).apply { id = contests.single { name == it.get().name }.get().id }
-                )
+                contests.single {
+                    contestRequest.name == it.get().name && contestRequest.organizationName == it.get().organization.name
+                }
+                    .get()
+                    .let { contest ->
+                        contestService.updateContest(
+                            contestRequest.toContest(organization, contest.testSuiteLinks).apply {
+                                id = contest.id
+                            }
+                        )
+                    }
             }
             ResponseEntity.ok("Contest successfully updated")
         }
 
-    private fun Contest.toDtoWithTestSuiteIds() = toDto(
-        lnkContestTestSuiteService.getAllTestSuiteIdsByContest(this)
+    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.justOrEmpty(
+        contestService.findByName(contestName)
     )
-
-    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.just(contestName)
-        .flatMap {
-            Mono.justOrEmpty(contestService.findByName(it))
-        }
         .switchIfEmptyToNotFound {
             "Could not find contest with name $contestName."
         }
