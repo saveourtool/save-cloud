@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.*
-import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension

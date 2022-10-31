@@ -5,20 +5,10 @@
 package com.saveourtool.save.buildutils
 
 import de.undercouch.gradle.tasks.download.Download
-import org.codehaus.groovy.runtime.ResourceGroovyMethods
-import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import java.io.File
-import java.net.URL
-import java.time.Duration
 import java.util.*
-
-
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
@@ -28,8 +18,8 @@ plugins {
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn(":getSaveCliVersion")
 
-    src{ getSaveCliPath() }
-    dest{ "$buildDir/download/${File(getSaveCliPath()).name}" }
+    src { getSaveCliPath() }
+    dest { "$buildDir/download/${File(getSaveCliPath()).name}" }
 
     overwrite(false)
 }

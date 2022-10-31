@@ -1,7 +1,5 @@
 import com.saveourtool.save.buildutils.*
 
-import de.undercouch.gradle.tasks.download.Download
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {

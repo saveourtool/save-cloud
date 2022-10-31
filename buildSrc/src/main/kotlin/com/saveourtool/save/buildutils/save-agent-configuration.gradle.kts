@@ -5,15 +5,10 @@
 package com.saveourtool.save.buildutils
 
 import de.undercouch.gradle.tasks.download.Download
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import java.io.File
-
-
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
@@ -24,8 +19,8 @@ val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register
     enabled = findProperty("saveAgentDistroFilepath") != null
 
     val saveAgentDistroFilepath = findProperty("saveAgentDistroFilepath")?.toString() ?: "file:\\\\"
-    src{ saveAgentDistroFilepath }
-    dest{ "$buildDir/agentDistro/${File(saveAgentDistroFilepath).name}" }
+    src { saveAgentDistroFilepath }
+    dest { "$buildDir/agentDistro/${File(saveAgentDistroFilepath).name}" }
 
     overwrite(false)
 }
@@ -44,4 +39,3 @@ dependencies {
         add("runtimeOnly", project(":save-agent", "distribution"))
     }
 }
-
