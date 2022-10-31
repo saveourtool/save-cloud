@@ -18,7 +18,7 @@ liquibase {
                 else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
             }
         )
-        // Configuring luiquibase
+        // Configuring liquibase
         register("main") {
             arguments = mapOf("changeLogFile" to "db/db.changelog-master.xml") +
                     getBackendDatabaseCredentials(profile).toLiquibaseArguments() +
