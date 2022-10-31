@@ -106,7 +106,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getNotDeletedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<OrganizationDto> =
             (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
                 .let { organizationService.getFiltered(it) }

@@ -89,7 +89,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
     inputs.file(pathToSaveCliVersion)
 
     src(KotlinClosure0(function = { getSaveCliPath() }))
-    dest("$buildDir/download")
+    dest(KotlinClosure0(function = { "$buildDir/download/${getSaveCliPath().substringAfterLast("/")}" }))
     outputs.dir("$buildDir/download")
     overwrite(false)
 }
@@ -107,7 +107,7 @@ dependencies {
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
-        runtimeOnly(files("$buildDir/agentDistro").apply {
+        runtimeOnly(fileTree("$buildDir/agentDistro").apply {
             builtBy(downloadSaveAgentDistroTaskProvider)
         })
     } else {

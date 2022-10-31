@@ -55,7 +55,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
     inputs.file(pathToSaveCliVersion)
 
     src(KotlinClosure0(function = { getSaveCliPath() }))
-    dest("$buildDir/download")
+    dest(KotlinClosure0(function = { "$buildDir/download/${getSaveCliPath().substringAfterLast("/")}" }))
     outputs.dir("$buildDir/download")
     overwrite(false)
 }
