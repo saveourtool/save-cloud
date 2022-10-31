@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property kubernetes configuration for setup in Kubernetes
  * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
+ * @property containerNamePrefix a prefix for container name
  * @property agentsCount a number of agents to start for every [Execution]
  * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
@@ -30,6 +31,7 @@ data class ConfigProperties(
     val docker: DockerSettings?,
     val kubernetes: KubernetesSettings?,
     val dockerResourcesLifetime: String = "720h",
+    val containerNamePrefix: String = "save-execution-",
     val agentsCount: Int,
     val shutdown: ShutdownSettings,
     val aptExtraFlags: String = "",

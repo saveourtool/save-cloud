@@ -234,13 +234,13 @@ class DockerAgentRunner(
         }
     }
 
+    /**
+     * @param id
+     */
+    @Suppress("MAGIC_NUMBER", "MagicNumber")
+    private fun containerName(id: String) = "${configProperties.containerNamePrefix}$id-${Random.nextInt(100, 999)}"
+
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
     }
 }
-
-/**
- * @param id
- */
-@Suppress("MAGIC_NUMBER", "MagicNumber")
-private fun containerName(id: String) = "save-execution-$id-${Random.nextInt(100, 999)}"
