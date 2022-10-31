@@ -8,7 +8,7 @@ import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponen
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
+import com.saveourtool.save.frontend.components.views.responseDeleteProject
 import com.saveourtool.save.frontend.components.views.usersettings.actionButton
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -275,7 +275,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         actionButton {
-                            typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                             title = "WARNING: You want to delete a project"
                             errorTitle = "You cannot delete ${props.project.name}"
                             message = "Are you sure you want to delete a $projectPath?"
@@ -312,11 +311,3 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
 }
 
-private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
-    delete(
-        url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
-        headers = jsonHeaders,
-        loadingHandler = ::noopLoadingHandler,
-        errorHandler = ::noopResponseHandler,
-    )
-}

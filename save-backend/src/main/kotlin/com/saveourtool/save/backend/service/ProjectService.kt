@@ -103,7 +103,7 @@ class ProjectService(
      * @param project
      * @return [project] with status [ProjectStatus.CREATED]
      */
-    fun recoveryProject(project: Project) = changeProjectStatus(project, ProjectStatus.CREATED)
+    fun recoverProject(project: Project) = changeProjectStatus(project, ProjectStatus.CREATED)
 
     /**
      * @param project

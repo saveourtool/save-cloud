@@ -4,9 +4,10 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
 import com.saveourtool.save.frontend.components.views.usersettings.actionButton
+import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
@@ -147,7 +148,6 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {
-                        typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                         title = "WARNING: You want to delete an organization"
                         errorTitle = "You cannot delete ${props.organizationName}"
                         message = "Are you sure you want to delete a ${props.organizationName}?"
@@ -172,8 +172,8 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 }
                             }
                         }
-                        sendRequest = { typeOfAction ->
-                            responseDeleteOrganization(typeOfAction, props.organizationName)
+                        sendRequest = { isClickMode ->
+                            responseDeleteOrganization(isClickMode, props.organizationName)
                         }
                         conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                     }
@@ -181,13 +181,4 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
         }
     }
-}
-
-private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
-    delete(
-        url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
-        headers = jsonHeaders,
-        loadingHandler = ::noopLoadingHandler,
-        errorHandler = ::noopResponseHandler,
-    )
 }

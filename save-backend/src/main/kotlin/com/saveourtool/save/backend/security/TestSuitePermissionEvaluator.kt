@@ -30,7 +30,7 @@ class TestSuitePermissionEvaluator(
     ): Boolean = lnkOrganizationTestSuiteService.getDto(organization, testSuite).rights.let { currentRights ->
         when (permission) {
             Permission.READ -> testSuite.isPublic || canAccessTestSuite(currentRights)
-            Permission.WRITE, Permission.DELETE, Permission.RECOVERY -> canMaintainTestSuite(currentRights)
+            Permission.WRITE, Permission.DELETE -> canMaintainTestSuite(currentRights)
         }
     }
 

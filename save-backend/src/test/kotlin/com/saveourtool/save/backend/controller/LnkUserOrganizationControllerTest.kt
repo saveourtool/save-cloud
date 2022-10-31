@@ -212,7 +212,7 @@ class LnkUserOrganizationControllerTest {
                 null -> false
                 Permission.READ -> organizationRole.priority >= Role.VIEWER.priority
                 Permission.WRITE -> organizationRole.priority >= Role.ADMIN.priority
-                Permission.DELETE, Permission.RECOVERY -> organizationRole.priority >= Role.OWNER.priority
+                Permission.DELETE -> organizationRole.priority >= Role.OWNER.priority
             }
         }
         given(lnkUserOrganizationService.getUserByName(any())).willAnswer { invocationOnMock ->

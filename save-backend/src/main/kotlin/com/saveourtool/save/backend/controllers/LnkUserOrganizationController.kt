@@ -278,7 +278,8 @@ class LnkUserOrganizationController(
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
-    @GetMapping("/by-user/not-deleted")
+
+    @GetMapping("/by-user/{status}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -287,10 +288,11 @@ class LnkUserOrganizationController(
         description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
-    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+    @ApiResponse(responseCode = "404", description = "Could not find user with this id or .")
     @Suppress("UnsafeCallOnNullableType")
-    fun getOrganizationWithRoles(
+    fun getOrganizationWithRolesAndStatus(
         authentication: Authentication,
+        @PathVariable status: String,
     ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
@@ -299,65 +301,94 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && it.organization?.status == OrganizationStatus.CREATED
+            it.organization != null && it.organization?.status == OrganizationStatus.valueOf(status.uppercase())
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
-    @GetMapping("/by-user/deleted")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get deleted user's organizations.",
-        description = "Get deleted organizations where user is a member, and his roles in those organizations.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
-    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
-    @Suppress("UnsafeCallOnNullableType")
-    fun getDeletedOrganizationWithRoles(
-        authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
-        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
-    )
-        .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization != null && it.organization?.status == OrganizationStatus.DELETED
-        }
-        .map {
-            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
-        }
 
-    @GetMapping("/by-user/banned")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get banned user's organizations.",
-        description = "Get banned organizations where user is a member, and his roles in those organizations.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
-    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
-    @Suppress("UnsafeCallOnNullableType")
-    fun getBannedOrganizationWithRoles(
-        authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
-        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
-    )
-        .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization != null && it.organization?.status == OrganizationStatus.BANNED
-        }
-        .map {
-            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
-        }
+//    @GetMapping("/by-user/not-deleted")
+//    @RequiresAuthorizationSourceHeader
+//    @PreAuthorize("permitAll()")
+//    @Operation(
+//        method = "GET",
+//        summary = "Get user's organizations.",
+//        description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
+//    )
+//    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+//    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+//    @Suppress("UnsafeCallOnNullableType")
+//    fun getOrganizationWithRoles(
+//        authentication: Authentication,
+//    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+//        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+//    )
+//        .switchIfEmptyToNotFound()
+//        .flatMapMany {
+//            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+//        }
+//        .filter {
+//            it.organization != null && it.organization?.status == OrganizationStatus.CREATED
+//        }
+//        .map {
+//            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+//        }
+//
+//    @GetMapping("/by-user/deleted")
+//    @RequiresAuthorizationSourceHeader
+//    @PreAuthorize("permitAll()")
+//    @Operation(
+//        method = "GET",
+//        summary = "Get deleted user's organizations.",
+//        description = "Get deleted organizations where user is a member, and his roles in those organizations.",
+//    )
+//    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+//    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+//    @Suppress("UnsafeCallOnNullableType")
+//    fun getDeletedOrganizationWithRoles(
+//        authentication: Authentication,
+//    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+//        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+//    )
+//        .switchIfEmptyToNotFound()
+//        .flatMapMany {
+//            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+//        }
+//        .filter {
+//            it.organization != null && it.organization?.status == OrganizationStatus.DELETED
+//        }
+//        .map {
+//            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+//        }
+//
+//    @GetMapping("/by-user/banned")
+//    @RequiresAuthorizationSourceHeader
+//    @PreAuthorize("permitAll()")
+//    @Operation(
+//        method = "GET",
+//        summary = "Get banned user's organizations.",
+//        description = "Get banned organizations where user is a member, and his roles in those organizations.",
+//    )
+//    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+//    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+//    @Suppress("UnsafeCallOnNullableType")
+//    fun getBannedOrganizationWithRoles(
+//        authentication: Authentication,
+//    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+//        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+//    )
+//        .switchIfEmptyToNotFound()
+//        .flatMapMany {
+//            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+//        }
+//        .filter {
+//            it.organization != null && it.organization?.status == OrganizationStatus.BANNED
+//        }
+//        .map {
+//            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+//        }
+
 
     private fun getUserAndOrganizationWithPermissions(
         userName: String,

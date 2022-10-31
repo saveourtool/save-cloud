@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
@@ -11,7 +12,6 @@ import csstype.BorderRadius
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -66,7 +66,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
                                 if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
-                                        typeOfOperation = TypeOfAction.DELETE_ORGANIZATION
                                         title = "WARNING: You want to delete an organization"
                                         errorTitle = "You cannot delete ${organizationDto.name}"
                                         message = "Are you sure you want to delete a ${organizationDto.name}?"
@@ -99,8 +98,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         conditionClick = highestLocalRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
-                                        sendRequest = { typeOfAction ->
-                                            responseDeleteOrganization(typeOfAction, organizationDto.name)
+                                        sendRequest = { isClickMode ->
+                                            responseDeleteOrganization(isClickMode, organizationDto.name)
                                         }
                                     }
                                 }
@@ -129,7 +128,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 +organizationDto.name
-                                ReactHTML.span {
+                                span {
                                     className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
                                     style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
                                     +"deleted"
@@ -140,7 +139,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
-                                        typeOfOperation = TypeOfAction.RECOVERY_ORGANIZATION
                                         title = "WARNING: You want to recovery an organization"
                                         errorTitle = "You cannot recovery ${organizationDto.name}"
                                         message = "Are you sure you want to recovery an organization ${organizationDto.name}?"
@@ -168,8 +166,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { typeOfAction ->
-                                            responseRecoveryOrganization(typeOfAction, organizationDto.name)
+                                        sendRequest = { _ ->
+                                            responseRecoveryOrganization(organizationDto.name)
                                         }
                                     }
                                 }
@@ -217,23 +215,26 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
             }
         }
     }
+}
 
-    private fun responseDeleteOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
-        delete(
-            url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/delete"),
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-    }
+fun responseDeleteOrganization(isClickMode: Boolean, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
+    delete(
+        url = buildString {
+            append("$apiUrl/organizations/$organizationName/delete")
+            if (isClickMode) append("?status=${OrganizationStatus.BANNED}") else append("?status=${OrganizationStatus.DELETED}")
+        },
+        headers = jsonHeaders,
+        loadingHandler = ::noopLoadingHandler,
+        errorHandler = ::noopResponseHandler,
+    )
+}
 
-    private fun responseRecoveryOrganization(typeOfAction: TypeOfAction, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
-        post(
-            url = typeOfAction.createRequestUrl("$apiUrl/organizations/$organizationName/recovery"),
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-    }
+fun responseRecoveryOrganization(organizationName: String): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$organizationName/recovery",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }

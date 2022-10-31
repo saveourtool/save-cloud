@@ -89,15 +89,15 @@ internal class OrganizationController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted organizations.",
-        description = "Get non-deleted organizations.",
+        summary = "Get created organizations.",
+        description = "Get created organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getNotDeletedOrganizations(
+    fun getCreatedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication,
     ): Flux<OrganizationDto> =
-            organizationService.getNotDeletedOrganizations(organizationFilters)
+            organizationService.getCreatedOrganizations(organizationFilters)
                 .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
@@ -120,7 +120,6 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization by it's name.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization status is not Created.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -133,7 +132,7 @@ internal class OrganizationController(
         .filter {
             it?.status == OrganizationStatus.CREATED
         }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+        .switchIfEmptyToNotFound {
             "Organization $organizationName status is not ${OrganizationStatus.CREATED.name}"
         }
 
@@ -144,7 +143,6 @@ internal class OrganizationController(
         summary = "Get your organizations.",
         description = "Get list of all organizations where current user is a participant.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
@@ -158,6 +156,22 @@ internal class OrganizationController(
         .mapNotNull {
             it.organization as Organization
         }
+
+
+    @GetMapping("/get/by-prefix")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organization by prefix.",
+        description = "Get list of organizations matching prefix.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationNamesByPrefix(
+        @RequestParam prefix: String
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
+        .map { it.name }
+        .toMono()
+
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
@@ -303,8 +317,8 @@ internal class OrganizationController(
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "DELETE",
-        summary = "Delete or banned existing organization.",
-        description = "Delete or banned existing organization by its name.",
+        summary = "Delete or bann existing organization.",
+        description = "Delete or ban existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
@@ -312,7 +326,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully deleted/banned an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting/banning this organization.")
-    @ApiResponse(responseCode = "404", description = "Could not find an created organization with such name.")
+    @ApiResponse(responseCode = "404", description = "Could not find created organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
@@ -320,16 +334,10 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByName(it).toMono().let { mono -> mono.filter{organization -> organization.status == OrganizationStatus.CREATED} }
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
-        }
-        .filter {
-            it.status == OrganizationStatus.CREATED
-        }
-        .switchIfEmptyToNotFound {
-            "The organization has the status not ${OrganizationStatus.CREATED}"
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
@@ -345,7 +353,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.deleteOrganization(it.name, OrganizationStatus.valueOf(status.uppercase()))
-            ResponseEntity.ok("Successful deletion of an organization")
+            ResponseEntity.ok("Organization deleted")
         }
 
     @PostMapping("/{organizationName}/recovery")
@@ -353,13 +361,13 @@ internal class OrganizationController(
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
-        summary = "Recovery existing organization.",
-        description = "Recovery existing organization by its name.",
+        summary = "Recover existing organization.",
+        description = "Recover existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully recovery an organization.")
+    @ApiResponse(responseCode = "200", description = "Successfully recovered an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for recovering this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find deleted organization with such name.")
     fun recoveryOrganization(
@@ -367,25 +375,19 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByName(it).toMono().let { mono -> mono.filter{organization -> organization.status == OrganizationStatus.DELETED} }
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            it.status == OrganizationStatus.DELETED
-        }
-        .switchIfEmptyToNotFound {
-            "Could not find deleted organization with name $organizationName."
-        }
-        .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.RECOVERY)
+            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for recovery of organization $organizationName."
         }
         .map {
-            organizationService.recoveryOrganization(it.name)
+            organizationService.recoverOrganization(it.name)
             ResponseEntity.ok("Successful restoration of the organization")
         }
 

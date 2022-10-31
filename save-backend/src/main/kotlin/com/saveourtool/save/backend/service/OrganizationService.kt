@@ -59,16 +59,16 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as recovery
+     * Mark organization with [organizationName] as recover
      *
      * @param organizationName an [Organization]'s name to recovery
      * @return deleted organization
      */
-    fun recoveryOrganization(organizationName: String): Organization =
+    fun recoverOrganization(organizationName: String): Organization =
             changeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
 
     /**
-     * Mark organization with [organizationName] as recovery
+     * Mark organization with [organizationName] as recover
      *
      * @param organizationName an [Organization]'s name to recovery
      * @param changeStatus - the status to be assigned to the [Organization]
@@ -83,11 +83,27 @@ class OrganizationService(
             organizationRepository.save(it)
         }
 
+
+
+    /**
+     * @param organizationFilters
+     * @return list of organizations with that match [organizationFilters]
+     */
+    fun getFiltered(organizationFilters: OrganizationFilters) = if (organizationFilters.prefix.isBlank()) {
+        organizationRepository.findByStatus(organizationFilters.status)
+    } else {
+        organizationRepository.findByNameStartingWithAndStatus(
+            organizationFilters.prefix,
+            organizationFilters.status,
+        )
+    }
+
+
     /**
      * @param organizationFilters
      * @return not deleted Organizations
      */
-    fun getNotDeletedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
+    fun getCreatedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
         val name = organizationFilters?.prefix?.let { "%$it%" }
         val organizations = organizationRepository.findAll { root, _, cb ->
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()

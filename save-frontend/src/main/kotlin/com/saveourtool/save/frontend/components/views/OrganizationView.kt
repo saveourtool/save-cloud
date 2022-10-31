@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.views.usersettings.TypeOfAction
 import com.saveourtool.save.frontend.components.views.usersettings.actionButton
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
@@ -246,7 +245,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     actionButton {
                                         val projectName = project.name
 
-                                        typeOfOperation = TypeOfAction.DELETE_PROJECT
                                         title = "WARNING: You want to delete a project"
                                         errorTitle = "You cannot delete a $projectName"
                                         message = "Are you sure you want to delete a $projectName?"
@@ -282,8 +280,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                         conditionClick = state.selfRole.isHigherOrEqualThan(SUPER_ADMIN)
-                                        sendRequest = { typeOfAction ->
-                                            responseDeleteProject(typeOfAction, project)
+                                        sendRequest = { isClickMode ->
+                                            responseDeleteProject(isClickMode, project)
                                         }
                                     }
                                 }
@@ -292,7 +290,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     actionButton {
                                         val projectName = project.name
 
-                                        typeOfOperation = TypeOfAction.RECOVERY_PROJECT
                                         title = "WARNING: You want to recovery a project"
                                         errorTitle = "You cannot recovery $projectName"
                                         message = "Are you sure you want to recovery an $projectName?"
@@ -323,8 +320,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { typeOfAction ->
-                                            responseRecoveryProject(typeOfAction, project)
+                                        sendRequest = { _ ->
+                                            responseRecoveryProject(project)
                                         }
                                     }
                                 }
@@ -846,51 +843,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
         }
     }
-
-    private fun responseDeleteProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
-        delete(
-            url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/delete"),
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-    }
-
-    private fun responseRecoveryProject(typeOfAction: TypeOfAction, project: Project): suspend WithRequestStatusContext.() -> Response = {
-        post(
-            url = typeOfAction.createRequestUrl("$apiUrl/projects/${project.organization.name}/${project.name}/recovery"),
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-    }
-
-    // /**
-    // * Returns a lambda which, when invoked, deletes the specified project and
-    // * updates the state of this view, passing an error message, if any, to the
-    // * externally supplied [ErrorHandler].
-    // *
-    // * @param project the project to delete.
-    // * @return the lambda which deletes [project].
-    // * @see ErrorHandler
-    // */
-    // private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-    // val response = delete(
-    // url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
-    // headers = jsonHeaders,
-    // loadingHandler = ::noopLoadingHandler,
-    // errorHandler = ::noopResponseHandler,
-    // )
-    // if (response.ok) {
-    // setState {
-    // projects -= project
-    // }
-    // } else {
-    // errorHandler(response.unpackMessageOrHttpStatus())
-    // }
-    // }
-
     companion object :
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
@@ -900,4 +852,26 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             contextType = requestStatusContext
         }
     }
+}
+
+fun responseDeleteProject(isClickMode: Boolean, project: Project): suspend WithRequestStatusContext.() -> Response = {
+    delete(
+        url = buildString {
+            append("$apiUrl/projects/${project.organization.name}/${project.name}/delete")
+            if (isClickMode) append("?status=${OrganizationStatus.BANNED}") else append("?status=${OrganizationStatus.DELETED}")
+        },
+        headers = jsonHeaders,
+        loadingHandler = ::noopLoadingHandler,
+        errorHandler = ::noopResponseHandler,
+    )
+}
+
+fun responseRecoveryProject(project: Project): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/projects/${project.organization.name}/${project.name}/recovery",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }

@@ -1,7 +1,3 @@
-/**
- * Utilities for cli args parsing
- */
-
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.views.usersettings
@@ -20,11 +16,12 @@ val actionButton: FC<ActionProps> = FC {props ->
     val (displayTitle, setDisplayTitle) = useState(props.title)
     val (displayMessage, setDisplayMessage) = useState(props.message)
     val (isError, setError) = useState(false)
+    val (isClickMode, setClickMode) = useState(false)
 
     val action = useDeferredRequest {
-        val response = props.sendRequest(props.typeOfOperation)(this)
+        val response = props.sendRequest(isClickMode)(this)
         if (response.ok) {
-            props.onActionSuccess(props.typeOfOperation.isClickMode)
+            props.onActionSuccess(isClickMode)
         } else {
             setDisplayTitle(props.errorTitle)
             setDisplayMessage(response.unpackMessage())
@@ -64,7 +61,7 @@ val actionButton: FC<ActionProps> = FC {props ->
             }
         },
         changeClickMode = {
-            props.typeOfOperation.changeClickMode(it)
+            setClickMode(it)
         }
     )
 }
@@ -75,11 +72,6 @@ val actionButton: FC<ActionProps> = FC {props ->
  * @return noting
  */
 external interface ActionProps : Props {
-    /**
-     * Type of action
-     */
-    var typeOfOperation: TypeOfAction
-
     /**
      * Title of the modal
      */
@@ -129,50 +121,5 @@ external interface ActionProps : Props {
     /**
      * Request
      */
-    var sendRequest: (TypeOfAction) -> DeferredRequestAction<Response>
-}
-
-/**
- * Type of action
- */
-enum class TypeOfAction {
-    DELETE_ORGANIZATION,
-    DELETE_PROJECT,
-    RECOVERY_ORGANIZATION,
-    RECOVERY_PROJECT,
-    ;
-
-    /**
-     * Is click mode
-     */
-    var isClickMode: Boolean = false
-
-    /**
-     * Changed click mode
-     *
-     * @param elem
-     */
-    fun changeClickMode(elem: Boolean) {
-        isClickMode = elem
-    }
-
-    /**
-     * Generates a new url based on the old (basic) one
-     *
-     * @param url
-     * @return new_url
-     */
-    fun createRequestUrl(url: String): String {
-        val type = this
-        return buildString {
-            append(url)
-            when (type) {
-                DELETE_ORGANIZATION, DELETE_PROJECT -> {
-                    append("?status=")
-                    if (isClickMode) append("banned") else append("deleted")
-                }
-                else -> {}
-            }
-        }
-    }
+    var sendRequest: (Boolean) -> DeferredRequestAction<Response>
 }

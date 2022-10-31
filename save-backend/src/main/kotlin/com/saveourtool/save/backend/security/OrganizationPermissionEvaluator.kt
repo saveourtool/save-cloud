@@ -50,7 +50,6 @@ class OrganizationPermissionEvaluator(
             Permission.READ -> hasReadAccess(userId, organizationRole)
             Permission.WRITE -> hasWriteAccess(userId, organizationRole)
             Permission.DELETE -> hasDeleteAccess(userId, organizationRole)
-            Permission.RECOVERY -> hasRecoveryAccess(userId, organizationRole)
         }
     }
 
@@ -70,9 +69,6 @@ class OrganizationPermissionEvaluator(
             userId?.let { organizationRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
-
-    private fun hasRecoveryAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
     /**

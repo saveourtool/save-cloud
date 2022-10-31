@@ -113,7 +113,7 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched project by name and organization name.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project with such name and organization name.")
-    @ApiResponse(responseCode = "409", description = "The status of the project in organization is not created.")
+    @ApiResponse(responseCode = "409", description = "Could not find created project with such name.")
     fun getProjectByNameAndOrganizationName(
         @RequestParam name: String,
         @RequestParam organizationName: String,
@@ -282,7 +282,7 @@ class ProjectController(
                 }
                 .map {
                     projectService.deleteProject(it, ProjectStatus.valueOf(status.uppercase()))
-                    ResponseEntity.ok("Successful deletion of the project")
+                    ResponseEntity.ok("Successful deleted project")
                 }
 
     @PostMapping("/{organizationName}/{projectName}/recovery")
@@ -293,17 +293,17 @@ class ProjectController(
         summary = "Recovery a project.",
         description = "Recovery a project.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully recovery a project.")
+    @ApiResponse(responseCode = "200", description = "Successfully recovered a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for project recovery.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
     @ApiResponse(responseCode = "409", description = "Could not find deleted project with such name.")
-    fun recoveryProject(
+    fun recoverProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication
     ): Mono<StringResponse> =
             projectService.findWithPermissionByNameAndOrganization(
-                authentication, projectName, organizationName, Permission.RECOVERY
+                authentication, projectName, organizationName, Permission.DELETE
             )
                 .filter {
                     it.status == ProjectStatus.DELETED
@@ -312,7 +312,7 @@ class ProjectController(
                     "Could not find deleted project with name $projectName."
                 }
                 .map {
-                    projectService.recoveryProject(it)
+                    projectService.recoverProject(it)
                     ResponseEntity.ok("Successful restoration of the project")
                 }
 

@@ -250,7 +250,6 @@ class PermissionControllerTest {
                 Permission.READ -> permission != null
                 Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
                 Permission.DELETE -> permission == Permission.DELETE
-                Permission.RECOVERY -> permission == Permission.RECOVERY
             }
         }
         given(projectService.findUserByName(any())).willAnswer { invocationOnMock ->
