@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.reactor.extra)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
+    implementation(projects.authenticationService)
 }
 
 configureJacoco()

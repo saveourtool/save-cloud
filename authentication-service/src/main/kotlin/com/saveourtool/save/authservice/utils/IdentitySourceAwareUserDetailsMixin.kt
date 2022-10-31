@@ -1,4 +1,4 @@
-package com.saveourtool.save.utils
+package com.saveourtool.save.authservice.utils
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
