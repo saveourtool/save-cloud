@@ -25,6 +25,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -131,18 +132,28 @@ class AgentsController(
         }
 
     /**
-     * @param containerId name of container\agent
+     * @param executionId ID of execution
+     * @param filterByContainerId name of container\agent
      * @return logs
      */
     @GetMapping("/logs")
     fun logs(
-        @RequestParam containerId: String,
-    ): Mono<StringList> = agentRepository.getAgentsStatuses(listOf(containerId))
-        .map {
-            it.sortedBy(AgentStatusDto::time)
+        @RequestParam executionId: Long,
+        @RequestParam("containerId") filterByContainerId: String,
+    ): Mono<StringList> = agentRepository.getContainerIds(executionId)
+        .filter(filterByContainerId::equals)
+        .singleOrEmpty()
+        .zipWhen(agentRepository::getContainerName)
+        .flatMap { (containerId, containerName) ->
+            agentRepository.getAgentsStatuses(listOf(containerId))
+                .map {
+                    it.sortedBy(AgentStatusDto::time)
+                }
+                .map {
+                    it.first().time to it.last().time
+                }
+                .zipWith(containerName.toMono())
         }
-        .map { it.first().time to it.last().time }
-        .zipWith(agentRepository.getContainerName(containerId))
         .flatMap { (fromTo, containerName) ->
             val (from, to) = fromTo
             agentLogService.get(
