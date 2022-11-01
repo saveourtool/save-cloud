@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponen
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 

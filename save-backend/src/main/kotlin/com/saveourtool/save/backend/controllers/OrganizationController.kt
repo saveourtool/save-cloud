@@ -77,23 +77,19 @@ internal class OrganizationController(
         summary = "Get all organizations",
         description = "Get organizations",
     )
-    @Parameters(
-        Parameter(
-            name = "onlyActive",
-            `in` = ParameterIn.QUERY,
-            description = "Whether deleted organizations should be excluded from the response. The default is false.",
-            required = false
-        ),
-    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
-        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
+        @RequestParam status: String?,
     ): Mono<List<Organization>> = Mono.fromCallable {
-        when {
-            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
-
-            else -> organizationService.findAll()
+        if (status.isNullOrBlank())
+            organizationService.findAll()
+        else {
+            val organizationStatus = OrganizationStatus.valueOf(status)
+            organizationService.getFiltered(organizationFilters = OrganizationFilters(prefix = "", status = organizationStatus))
         }
+    }
+        .switchIfEmptyToNotFound {
+        "Organization havent $status"
     }
 
     @PostMapping("/not-deleted")
@@ -355,14 +351,16 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            !organizationService.hasProjects(organizationName) || OrganizationStatus.valueOf(status.uppercase()) == OrganizationStatus.BANNED
+            !organizationService.hasProjects(organizationName) || OrganizationStatus.valueOfWithoutException(status.uppercase()) == OrganizationStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            organizationService.deleteOrganization(it.name, OrganizationStatus.valueOf(status.uppercase()))
-            ResponseEntity.ok("Organization deleted")
+            OrganizationStatus.valueOfWithoutException(status.uppercase())?.let { organizationStatus->
+                organizationService.deleteOrganization(it.name, organizationStatus)
+                ResponseEntity.ok("Organization deleted")
+            }
         }
 
     @PostMapping("/{organizationName}/recover")

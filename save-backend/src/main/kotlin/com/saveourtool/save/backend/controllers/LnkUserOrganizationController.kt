@@ -261,7 +261,7 @@ class LnkUserOrganizationController(
     @Operation(
         method = "GET",
         summary = "Get user's organizations.",
-        description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
+        description = "Get organizations with status where user is a member, and his roles in those organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id or .")
@@ -277,7 +277,7 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && (status.isNullOrBlank() || it.organization?.status == OrganizationStatus.valueOf(status.uppercase()))
+            it.organization != null && (status.isNullOrBlank() || it.organization?.status == OrganizationStatus.valueOfWithoutException(status.uppercase()))
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))

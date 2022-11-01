@@ -13,6 +13,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -113,7 +114,6 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched project by name and organization name.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project with such name and organization name.")
-    @ApiResponse(responseCode = "409", description = "Could not find created project with such name.")
     fun getProjectByNameAndOrganizationName(
         @RequestParam name: String,
         @RequestParam organizationName: String,
@@ -123,8 +123,8 @@ class ProjectController(
             projectService.findByNameAndOrganizationName(name, organizationName)
         }.filter {
             it?.status == ProjectStatus.CREATED
-        }.switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "The status of the project $name in organization $organizationName is not created"
+        }.switchIfEmptyToNotFound {
+            "Could not find project with such name and organization name."
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
@@ -152,7 +152,7 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
         .filter{
-            status.isNullOrBlank() || it.status == ProjectStatus.valueOf(status.uppercase())
+            status.isNullOrBlank() || it.status == ProjectStatus.valueOfWithoutException(status.uppercase())
         }
 
 
@@ -270,8 +270,10 @@ class ProjectController(
                     "Could not find created project with name $projectName."
                 }
                 .map {
-                    projectService.deleteProject(it, ProjectStatus.valueOf(status.uppercase()))
-                    ResponseEntity.ok("Successful deleted project")
+                    ProjectStatus.valueOfWithoutException(status.uppercase())?.let { projectStatus ->
+                        projectService.deleteProject(it, projectStatus)
+                        ResponseEntity.ok("Successful deleted project")
+                    }
                 }
 
     @PostMapping("/{organizationName}/{projectName}/recover")

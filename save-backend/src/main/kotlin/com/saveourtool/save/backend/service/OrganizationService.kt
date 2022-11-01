@@ -113,13 +113,15 @@ class OrganizationService(
         return organizations
     }
 
+
+    /**
      * @param organizationName the unique name of the organization.
      * @return `true` if this organization has at least one non-deleted project,
      *   `false` otherwise.
      */
     fun hasProjects(organizationName: String): Boolean =
             projectService.getAllByOrganizationName(organizationName).any { project ->
-                project.status == CREATED
+                project.status == ProjectStatus.CREATED
             }
 
     /**

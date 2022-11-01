@@ -2,24 +2,24 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
+import com.saveourtool.save.frontend.components.views.usersettings.responseRecoverOrganization
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.ErrorHandler
-import com.saveourtool.save.frontend.utils.WithRequestStatusContext
-import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.delete
-import com.saveourtool.save.frontend.utils.deleteButton
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.jsonHeaders
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.frontend.utils.unpackMessageOrHttpStatus
+import csstype.BorderRadius
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -32,6 +32,9 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import react.table.columns
 import kotlinx.coroutines.launch
+import kotlinx.js.jso
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.span
 
 /**
  * The list of all organizations, visible to super-users.
@@ -46,13 +49,28 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     header = "Organization",
                     accessor = { name }
                 ) { cellProps ->
+                    val organization = cellProps.row.original
                     val organizationName = cellProps.value
 
                     Fragment.create {
                         td {
-                            Link {
-                                to = "/organization/$organizationName/tools"
-                                +organizationName
+                            when (organization.status) {
+                                OrganizationStatus.CREATED -> {
+                                    Link {
+                                        to = "/organization/$organizationName/tools"
+                                        +organizationName
+                                    }
+                                }
+                                OrganizationStatus.BANNED -> div {
+                                    className = ClassName("text-danger")
+                                    +cellProps.value
+                                    span {
+                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                        style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                        +"banned"
+                                    }
+                                }
+                                else -> {}
                             }
                         }
                     }
@@ -71,24 +89,75 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                 column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                     Fragment.create {
                         td {
-                            deleteButton {
-                                val organization = cellProps.value
-                                val organizationName = organization.name
+                            val organization = cellProps.value
+                            val organizationName = organization.name
 
-                                id = "delete-organization-$organizationName"
-                                classes = deleteButtonClasses
-                                tooltipText = "Delete the organization"
-                                elementChildren = { childrenBuilder ->
-                                    with(childrenBuilder) {
-                                        fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                            if (organization.status == OrganizationStatus.CREATED){
+                                actionButton{
+                                    title = "WARNING: Ban Organization"
+                                    errorTitle = "You cannot ban a $organizationName"
+                                    message = "Are you sure you want to ban the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, ban $organizationName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations -= organization
+                                            bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
+                                        }
+                                    }
+                                    conditionClick = false
+                                    sendRequest = { _ ->
+                                        responseDeleteOrganization(true, organizationName)
                                     }
                                 }
-
-                                confirmDialog = ModalDialogStrings(
-                                    title = "Delete Organization",
-                                    message = """Are you sure you want to delete the organization "$organizationName"?""",
-                                )
-                                action = deleteOrganization(organization)
+                            } else if (organization.status == OrganizationStatus.BANNED) {
+                                actionButton{
+                                    title = "WARNING: recover Organization"
+                                    errorTitle = "You cannot recover a $organizationName"
+                                    message = "Are you sure you want to recover the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, recover $organizationName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                            bannedOrganizations -= organization
+                                        }
+                                    }
+                                    conditionClick = false
+                                    sendRequest = { _ ->
+                                        responseRecoverOrganization(organizationName)
+                                    }
+                                }
                             }
                         }
                     }
@@ -105,12 +174,13 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps)
+            arrayOf(tableProps, state.organizations, state.bannedOrganizations)
         }
     )
 
     init {
         state.organizations = mutableListOf()
+        state.bannedOrganizations = mutableListOf()
     }
 
     override fun componentDidMount() {
@@ -122,7 +192,8 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
              */
             val organizations = getOrganizations()
             setState {
-                this.organizations = organizations
+                this.organizations = organizations.filter { it.status == OrganizationStatus.CREATED }.toMutableList()
+                this.bannedOrganizations = organizations.filter { it.status ==OrganizationStatus.BANNED }.toMutableList()
             }
         }
     }
@@ -140,7 +211,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                          * Only reload (re-render) the table if the state gets
                          * updated.
                          */
-                        state.organizations.toTypedArray()
+                        (state.organizations + state.bannedOrganizations).toTypedArray()
                     }
                 }
             }
@@ -152,7 +223,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      */
     private suspend fun getOrganizations(): MutableList<Organization> {
         val response = get(
-            url = "$apiUrl/organizations/all?onlyActive=${true}",
+            url = "$apiUrl/organizations/all",
             headers = jsonHeaders,
             loadingHandler = ::classLoadingHandler,
         )
@@ -161,35 +232,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             response.ok -> response.decodeFromJsonString()
 
             else -> mutableListOf()
-        }
-    }
-
-    /**
-     * Returns a lambda which, when invoked, deletes the specified organization
-     * and updates the state of this view, passing an error message, if any, to
-     * the externally supplied [ErrorHandler].
-     *
-     * @param organization the project to delete.
-     * @return the lambda which deletes [organization].
-     * @see ErrorHandler
-     */
-    private fun deleteOrganization(organization: Organization): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/organizations/${organization.name}/delete",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                /*
-                 * Force the component to get re-rendered once an organization
-                 * is deleted.
-                 */
-                organizations -= organization
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 
@@ -225,4 +267,6 @@ internal external interface OrganizationAdminState : State {
      * (re-rendering gets triggered by updating the state instead).
      */
     var organizations: MutableList<Organization>
+
+    var bannedOrganizations: MutableList<Organization>
 }
