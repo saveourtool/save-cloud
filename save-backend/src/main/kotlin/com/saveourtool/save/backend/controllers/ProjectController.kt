@@ -295,7 +295,7 @@ class ProjectController(
                 authentication, projectName, organizationName, Permission.DELETE
             )
                 .filter {
-                    it.status == ProjectStatus.DELETED
+                    it.status == ProjectStatus.DELETED || it.status == ProjectStatus.BANNED
                 }
                 .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     "Could not find deleted project with name $projectName."

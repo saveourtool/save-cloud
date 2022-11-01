@@ -384,7 +384,10 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {str ->
-            organizationService.findByName(str).toMono().let { mono -> mono.filter {organization -> organization.status == OrganizationStatus.DELETED } }
+            organizationService.findByName(str).toMono()
+        }
+        .filter {
+            it.status == OrganizationStatus.DELETED || it.status == OrganizationStatus.BANNED
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."

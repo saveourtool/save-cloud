@@ -325,7 +325,49 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         }
                                     }
                                 }
-                                ProjectStatus.BANNED -> { }
+                                ProjectStatus.BANNED -> if (state.selfRole.isHigherOrEqualThan(SUPER_ADMIN)) {
+                                    actionButton {
+                                        val projectName = project.name
+
+                                        title = "WARNING: You want to recover a banned project"
+                                        errorTitle = "You cannot recover a banned $projectName"
+                                        message = "Are you sure you want to recover an $projectName?"
+                                        buttonStyleBuilder = { childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                fontAwesomeIcon(
+                                                    icon = faRedo,
+                                                    classes = actionIconClasses.joinToString(" ")
+                                                )
+                                            }
+                                        }
+                                        classes = actionButtonClasses.joinToString(" ")
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder(
+                                                    label = "Yes, recover $projectName",
+                                                    style = "warning",
+                                                    classes = "mr-2"
+                                                ) {
+                                                    action()
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        onActionSuccess = { _ ->
+                                            setState {
+                                                bannedProjects = bannedProjects.minus(project)
+                                                projects = projects.plus(project.copy(status = ProjectStatus.CREATED))
+                                            }
+                                        }
+                                        conditionClick = false
+                                        sendRequest = { _ ->
+                                            responseRecoverProject(project)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
