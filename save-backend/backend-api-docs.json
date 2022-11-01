@@ -2281,13 +2281,11 @@
         "operationId": "getAllOrganizations",
         "parameters": [
           {
-            "description": "Whether deleted organizations should be excluded from the response. The default is false.",
             "in": "query",
-            "name": "onlyActive",
+            "name": "status",
             "required": false,
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "string"
             }
           }
         ],
@@ -2330,11 +2328,19 @@
         ]
       }
     },
-    "/api/v1/organizations/by-user/not-deleted": {
+    "/api/v1/organizations/by-user": {
       "get": {
-        "description": "Get not deleted organizations where user is a member, and his roles in those organizations.",
-        "operationId": "getOrganizationWithRoles",
+        "description": "Get organizations with status where user is a member, and his roles in those organizations.",
+        "operationId": "getOrganizationWithRolesAndStatus",
         "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "example": "basic",
             "in": "header",
@@ -2380,7 +2386,7 @@
                 }
               }
             },
-            "description": "Could not find user with this id."
+            "description": "Could not find user with this id or ."
           }
         },
         "security": [
@@ -2571,8 +2577,8 @@
     },
     "/api/v1/organizations/not-deleted": {
       "post": {
-        "description": "Get non-deleted organizations.",
-        "operationId": "getNotDeletedOrganizations",
+        "description": "Get created organizations.",
+        "operationId": "getCreatedOrganizations",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2615,7 +2621,7 @@
             "basic": []
           }
         ],
-        "summary": "Get non-deleted organizations.",
+        "summary": "Get created organizations.",
         "tags": [
           "organizations"
         ]
@@ -2888,13 +2894,22 @@
     },
     "/api/v1/organizations/{organizationName}/delete": {
       "delete": {
-        "description": "Delete existing organization by its name.",
+        "description": "Delete or ban existing organization by its name.",
         "operationId": "deleteOrganization",
         "parameters": [
           {
             "description": "name of an organization",
             "in": "path",
             "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "delete or ban organization",
+            "in": "query",
+            "name": "status",
             "required": true,
             "schema": {
               "type": "string"
@@ -2916,7 +2931,7 @@
                 }
               }
             },
-            "description": "Successfully deleted an organization."
+            "description": "Successfully deleted/banned an organization."
           },
           "401": {
             "content": {
@@ -2936,7 +2951,7 @@
                 }
               }
             },
-            "description": "Not enough permission for deleting this organization."
+            "description": "Not enough permission for deleting/banning this organization."
           },
           "404": {
             "content": {
@@ -2946,7 +2961,7 @@
                 }
               }
             },
-            "description": "Could not find an organization with such name."
+            "description": "Could not find created organization with such name."
           },
           "409": {
             "content": {
@@ -2964,7 +2979,7 @@
             "basic": []
           }
         ],
-        "summary": "Delete existing organization.",
+        "summary": "Delete or bann existing organization.",
         "tags": [
           "organizations"
         ]
@@ -3271,6 +3286,80 @@
           }
         ],
         "summary": "Make an organization to be able to create contests.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationName}/recover": {
+      "post": {
+        "description": "Recover existing organization by its name.",
+        "operationId": "recoverOrganization",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully recovered an organization."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for recovering this organization."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find deleted organization with such name."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Recover existing organization.",
         "tags": [
           "organizations"
         ]
@@ -4059,66 +4148,6 @@
         ]
       }
     },
-    "/api/v1/projects/get/not-deleted-projects-by-organization": {
-      "get": {
-        "description": "Get non-deleted projects by organization name.",
-        "operationId": "getNonDeletedProjectsByOrganizationName",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched projects by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get non-deleted projects by organization name.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
     "/api/v1/projects/get/organization-name": {
       "get": {
         "description": "Get project by name and organization name.",
@@ -4205,13 +4234,21 @@
     "/api/v1/projects/get/projects-by-organization": {
       "get": {
         "description": "Get all projects by organization name.",
-        "operationId": "getProjectsByOrganizationName",
+        "operationId": "getProjectsByOrganizationNameAndStatus",
         "parameters": [
           {
             "description": "name of an organization",
             "in": "path",
             "name": "organizationName",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -4480,6 +4517,14 @@
             }
           },
           {
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -4526,6 +4571,16 @@
               }
             },
             "description": "Either could not find such organization or such project in such organization."
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find created project with such name."
           }
         },
         "security": [
@@ -4534,6 +4589,97 @@
           }
         ],
         "summary": "Delete a project.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/recover": {
+      "post": {
+        "description": "Recover a project.",
+        "operationId": "recoverProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully recovered a project."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for project recover."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Either could not find such organization or such project in such organization."
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find deleted project with such name."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Recover a project.",
         "tags": [
           "projects"
         ]
@@ -8552,6 +8698,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8615,6 +8762,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8665,6 +8813,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
