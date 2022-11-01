@@ -36,12 +36,10 @@ import kotlin.io.path.pathString
  */
 @Service
 class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
-                           private val testRepository: TestRepository,
                            private val agentRepository: AgentRepository,
                            private val executionRepository: ExecutionRepository,
                            transactionManager: PlatformTransactionManager,
 ) {
-    private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
     private val transactionTemplate = TransactionTemplate(transactionManager).apply {
         propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
     }
@@ -224,34 +222,31 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
-        val lock = locks.computeIfAbsent(executionId) { Any() }
-        synchronized(lock) {
-            transactionTemplate.execute {
-                val execution = executionRepository.findById(executionId).get()
-                execution.apply {
-                    log.debug {
-                        "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
-                                "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
-                    }
-                    runningTests -= counters.total()
-                    passedTests += counters.passed
-                    failedTests += counters.failed
-                    skippedTests += counters.skipped
-
-                    unmatchedChecks += counters.unmatchedChecks
-                    matchedChecks += counters.matchedChecks
-                    expectedChecks += counters.expectedChecks
-                    unexpectedChecks += counters.unexpectedChecks
-
-                    val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
-
-                    if (!executionScore.isValidScore()) {
-                        log.error("Execution score for execution id $id is invalid: $executionScore")
-                    }
-                    score = executionScore
+        transactionTemplate.execute {
+            val execution = executionRepository.findWithLockingById(executionId).orElse(null).orNotFound()
+            execution.apply {
+                log.debug {
+                    "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                            "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
                 }
-                executionRepository.save(execution)
+                runningTests -= counters.total()
+                passedTests += counters.passed
+                failedTests += counters.failed
+                skippedTests += counters.skipped
+
+                unmatchedChecks += counters.unmatchedChecks
+                matchedChecks += counters.matchedChecks
+                expectedChecks += counters.expectedChecks
+                unexpectedChecks += counters.unexpectedChecks
+
+                val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
+
+                if (!executionScore.isValidScore()) {
+                    log.error("Execution score for execution id $id is invalid: $executionScore")
+                }
+                score = executionScore
             }
+            executionRepository.save(execution)
         }
         return lostTests
     }

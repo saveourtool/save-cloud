@@ -12,6 +12,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.apache.commons.io.FilenameUtils
 
@@ -149,8 +150,9 @@ class TestService(
      * @return a batch of [batchSize] tests with status `READY_FOR_TESTING`
      */
     @Suppress("UnsafeCallOnNullableType")
-    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
-        val executionId = execution.id!!
+    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(srcExecution: Execution): List<TestExecution> {
+        val executionId = srcExecution.id!!
+        val execution = executionRepository.findWithLockingById(executionId).orElse(null).orNotFound()
         val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
