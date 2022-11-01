@@ -263,11 +263,10 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for project deletion.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
-    @ApiResponse(responseCode = "409", description = "Could not find created project with such name.")
     fun deleteProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestParam status: String,
+        @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> =
             projectService.findWithPermissionByNameAndOrganization(
@@ -276,14 +275,12 @@ class ProjectController(
                 .filter {
                     it.status == ProjectStatus.CREATED
                 }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                .switchIfEmptyToNotFound {
                     "Could not find created project with name $projectName."
                 }
                 .map {
-                    ProjectStatus.valueOfWithoutException(status.uppercase())?.let { projectStatus ->
-                        projectService.deleteProject(it, projectStatus)
-                        ResponseEntity.ok("Successful deleted project")
-                    }
+                    projectService.deleteProject(it, status)
+                    ResponseEntity.ok("Project delete")
                 }
 
     @PostMapping("/{organizationName}/{projectName}/recover")
@@ -297,7 +294,6 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully recovered a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for project recover.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
-    @ApiResponse(responseCode = "409", description = "Could not find deleted project with such name.")
     fun recoverProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -309,12 +305,12 @@ class ProjectController(
                 .filter {
                     it.status == ProjectStatus.DELETED || it.status == ProjectStatus.BANNED
                 }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                .switchIfEmptyToNotFound {
                     "Could not find deleted project with name $projectName."
                 }
                 .map {
                     projectService.recoverProject(it)
-                    ResponseEntity.ok("Successful restoration of the project")
+                    ResponseEntity.ok("Project restore")
                 }
 
     companion object {

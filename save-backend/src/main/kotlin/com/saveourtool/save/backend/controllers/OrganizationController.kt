@@ -127,15 +127,13 @@ internal class OrganizationController(
     ) = Mono.fromCallable {
         organizationService.findByName(organizationName)
     }
-        .switchIfEmptyToNotFound {
-            "Organization not found by name $organizationName"
-        }
         .filter {
             it?.status == OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
-            "Organization $organizationName status is not ${OrganizationStatus.CREATED.name}"
+            "Organization not found by name $organizationName"
         }
+
 
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
@@ -333,7 +331,10 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {str ->
-            organizationService.findByName(str).toMono().let { mono -> mono.filter {organization -> organization.status == OrganizationStatus.CREATED } }
+            organizationService.findByName(str).toMono()
+        }
+        .filter {
+            it.status == OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -351,10 +352,8 @@ internal class OrganizationController(
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            status.let { organizationStatus->
-                organizationService.deleteOrganization(it.name, organizationStatus)
-                ResponseEntity.ok("Organization deleted")
-            }
+            organizationService.deleteOrganization(it.name, status)
+            ResponseEntity.ok("Organization deleted")
         }
 
     @PostMapping("/{organizationName}/recover")
@@ -392,7 +391,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.recoverOrganization(it.name)
-            ResponseEntity.ok("Successful restoration of the organization")
+            ResponseEntity.ok("Organization restore")
         }
 
     @GetMapping("/{organizationName}/list-git")

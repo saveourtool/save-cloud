@@ -48,6 +48,7 @@ class OrganizationService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization {
+        require(status != OrganizationStatus.CREATED)
         if (status == OrganizationStatus.BANNED) {
             val projects = projectService.getAllByOrganizationName(organizationName)
             projects.forEach {
@@ -59,7 +60,7 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as recover
+     * Mark organization with [organizationName] as recovered
      *
      * @param organizationName an [Organization]'s name to recovery
      * @return deleted organization
@@ -68,7 +69,7 @@ class OrganizationService(
             changeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
 
     /**
-     * Mark organization with [organizationName] as recover
+     * Mark organization with [organizationName] as recovered
      *
      * @param organizationName an [Organization]'s name to recovery
      * @param changeStatus - the status to be assigned to the [Organization]

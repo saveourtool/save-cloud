@@ -1,5 +1,5 @@
 /**
- * Utilities for cli args parsing
+ * Utilities for args parsing
  */
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")

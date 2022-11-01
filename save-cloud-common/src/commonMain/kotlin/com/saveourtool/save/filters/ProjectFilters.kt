@@ -1,6 +1,5 @@
 package com.saveourtool.save.filters
 
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus
 import kotlinx.serialization.Serializable
 
