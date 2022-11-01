@@ -2285,7 +2285,12 @@
             "name": "status",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           }
         ],
@@ -2338,7 +2343,12 @@
             "name": "status",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           },
           {
@@ -2912,7 +2922,12 @@
             "name": "status",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           },
           {
@@ -2979,7 +2994,7 @@
             "basic": []
           }
         ],
-        "summary": "Delete or bann existing organization.",
+        "summary": "Delete or ban existing organization.",
         "tags": [
           "organizations"
         ]
@@ -3998,8 +4013,21 @@
     "/api/v1/projects/": {
       "get": {
         "description": "Get all projects, available for current user.",
-        "operationId": "getProjects",
+        "operationId": "getProjectsWithStatus",
         "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
+            }
+          },
           {
             "example": "basic",
             "in": "header",
@@ -4049,8 +4077,21 @@
     "/api/v1/projects/all": {
       "get": {
         "description": "Get all projects, including deleted and private. Only accessible for super admins",
-        "operationId": "getProjects_1",
+        "operationId": "getProjectsWithStatus_1",
         "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
+            }
+          },
           {
             "example": "basic",
             "in": "header",
@@ -8874,10 +8915,21 @@
         }
       },
       "ProjectFilters": {
+        "required": [
+          "status"
+        ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "BANNED",
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },
