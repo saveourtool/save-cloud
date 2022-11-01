@@ -22,8 +22,4 @@ enum class ProjectStatus {
      */
     DELETED,
     ;
-
-    companion object{
-        fun valueOfWithoutException(elem: String) = ProjectStatus.values().firstOrNull{ it.name == elem.uppercase() }
-    }
 }

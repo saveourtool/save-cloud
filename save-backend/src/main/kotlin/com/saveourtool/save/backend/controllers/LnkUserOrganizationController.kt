@@ -254,7 +254,6 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-
     @GetMapping("/by-user")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -277,7 +276,7 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {lnkUserOrganization ->
-            lnkUserOrganization.organization != null && (status?.let{ lnkUserOrganization.organization!!.status == it} ?: true)
+            lnkUserOrganization.organization != null && (status?.let { lnkUserOrganization.organization!!.status == it } ?: true)
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))

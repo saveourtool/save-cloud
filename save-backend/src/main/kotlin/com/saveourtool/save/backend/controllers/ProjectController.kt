@@ -14,7 +14,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -55,7 +54,6 @@ class ProjectController(
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
-
     @GetMapping("/all")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
@@ -66,11 +64,10 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjectsWithStatus(@RequestParam status: ProjectStatus?): Flux<Project> =
-        projectService.getProjects()
-            .filter { project ->
-                status?.let { project.status == it } ?: true
-            }
-
+            projectService.getProjects()
+                .filter { project ->
+                    status?.let { project.status == it } ?: true
+                }
 
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
@@ -81,7 +78,7 @@ class ProjectController(
         description = "Get all projects, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjectsWithStatus (
+    fun getProjectsWithStatus(
         authentication: Authentication, @RequestParam status: ProjectStatus?,
     ): Flux<Project> = projectService.getProjects()
         .filter {
@@ -90,7 +87,6 @@ class ProjectController(
         .filter { project ->
             status?.let { project.status == it } ?: true
         }
-
 
     @PostMapping("/not-deleted")
     @PreAuthorize("permitAll()")
@@ -141,7 +137,6 @@ class ProjectController(
         }
     }
 
-
     @GetMapping("/get/projects-by-organization")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -156,15 +151,14 @@ class ProjectController(
     fun getProjectsByOrganizationNameAndStatus(
         @RequestParam organizationName: String,
         authentication: Authentication?,
-        @RequestParam status: String?,
+        @RequestParam status: ProjectStatus?,
     ): Flux<Project> = projectService.getAllAsFluxByOrganizationName(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
-        .filter{
-            status.isNullOrBlank() || it.status == ProjectStatus.valueOfWithoutException(status.uppercase())
+        .filter { project ->
+            status?.let { project.status == it } ?: true
         }
-
 
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader

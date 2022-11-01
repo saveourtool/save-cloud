@@ -22,9 +22,4 @@ enum class OrganizationStatus {
      */
     DELETED,
     ;
-
-    companion object{
-        fun valueOfWithoutException(elem: String) = OrganizationStatus.values().firstOrNull{ it.name == elem.uppercase() }
-    }
 }
-

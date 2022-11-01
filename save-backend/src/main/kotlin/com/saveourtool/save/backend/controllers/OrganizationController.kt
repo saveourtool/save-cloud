@@ -134,7 +134,6 @@ internal class OrganizationController(
             "Organization not found by name $organizationName"
         }
 
-
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
     @Operation(

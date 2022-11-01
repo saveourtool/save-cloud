@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name
+ * @property status
  */
 @Serializable
 data class ProjectFilters(

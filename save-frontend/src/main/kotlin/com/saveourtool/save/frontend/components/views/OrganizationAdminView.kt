@@ -2,11 +2,8 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
@@ -15,10 +12,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.ErrorHandler
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
+
 import csstype.BorderRadius
 import csstype.ClassName
 import react.ChildrenBuilder
@@ -28,13 +23,13 @@ import react.Props
 import react.State
 import react.create
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import react.table.columns
+
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.span
 
 /**
  * The list of all organizations, visible to super-users.
@@ -55,11 +50,9 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     Fragment.create {
                         td {
                             when (organization.status) {
-                                OrganizationStatus.CREATED -> {
-                                    Link {
-                                        to = "/organization/$organizationName/tools"
-                                        +organizationName
-                                    }
+                                OrganizationStatus.CREATED -> Link {
+                                    to = "/organization/$organizationName/tools"
+                                    +organizationName
                                 }
                                 OrganizationStatus.BANNED -> div {
                                     className = ClassName("text-danger")
@@ -92,8 +85,8 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                             val organization = cellProps.value
                             val organizationName = organization.name
 
-                            if (organization.status == OrganizationStatus.CREATED){
-                                actionButton{
+                            if (organization.status == OrganizationStatus.CREATED) {
+                                actionButton {
                                     title = "WARNING: Ban Organization"
                                     errorTitle = "You cannot ban a $organizationName"
                                     message = "Are you sure you want to ban the organization $organizationName?"
@@ -126,7 +119,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                 }
                             } else if (organization.status == OrganizationStatus.BANNED) {
-                                actionButton{
+                                actionButton {
                                     title = "WARNING: recover Organization"
                                     errorTitle = "You cannot recover a $organizationName"
                                     message = "Are you sure you want to recover the organization $organizationName?"
@@ -193,7 +186,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             val organizations = getOrganizations()
             setState {
                 this.organizations = organizations.filter { it.status == OrganizationStatus.CREATED }.toMutableList()
-                this.bannedOrganizations = organizations.filter { it.status ==OrganizationStatus.BANNED }.toMutableList()
+                this.bannedOrganizations = organizations.filter { it.status == OrganizationStatus.BANNED }.toMutableList()
             }
         }
     }
@@ -262,11 +255,14 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
  */
 internal external interface OrganizationAdminState : State {
     /**
-     * The cached list of all organizations.
-     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
-     * (re-rendering gets triggered by updating the state instead).
+     * The cached list of all active organizations.
+     * Allows avoiding to run an `HTTP GET` each time an organization is banned
      */
     var organizations: MutableList<Organization>
 
+    /**
+     * The cached list of all banned organizations.
+     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
+     */
     var bannedOrganizations: MutableList<Organization>
 }

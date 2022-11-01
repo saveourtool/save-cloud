@@ -114,7 +114,6 @@ class OrganizationService(
         return organizations
     }
 
-
     /**
      * @param organizationName the unique name of the organization.
      * @return `true` if this organization has at least one non-deleted project,
