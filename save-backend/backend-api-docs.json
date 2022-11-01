@@ -4291,7 +4291,12 @@
             "name": "status",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           }
         ],
@@ -4562,7 +4567,12 @@
             "name": "status",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           },
           {
@@ -4612,16 +4622,6 @@
               }
             },
             "description": "Either could not find such organization or such project in such organization."
-          },
-          "409": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Could not find created project with such name."
           }
         },
         "security": [
@@ -4703,16 +4703,6 @@
               }
             },
             "description": "Either could not find such organization or such project in such organization."
-          },
-          "409": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Could not find deleted project with such name."
           }
         },
         "security": [
