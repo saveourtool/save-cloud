@@ -241,7 +241,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     Fragment.create {
                         td {
                             when (project.status) {
-                                ProjectStatus.CREATED -> if (state.selfRole.isHigherOrEqualThan(ADMIN)) {
+                                ProjectStatus.CREATED -> if (state.selfRole.isHigherOrEqualThan(OWNER)) {
                                     actionButton {
                                         val projectName = project.name
 
@@ -286,7 +286,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     }
                                 }
 
-                                ProjectStatus.DELETED -> if (state.selfRole.isHigherOrEqualThan(ADMIN)) {
+                                ProjectStatus.DELETED -> if (state.selfRole.isHigherOrEqualThan(OWNER)) {
                                     actionButton {
                                         val projectName = project.name
 

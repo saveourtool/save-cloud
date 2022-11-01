@@ -136,8 +136,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
             }
             val currentUserRoleInProject: Role = get(
-                "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
-                jsonHeaders,
+                url ="$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
+                headers = jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
 
