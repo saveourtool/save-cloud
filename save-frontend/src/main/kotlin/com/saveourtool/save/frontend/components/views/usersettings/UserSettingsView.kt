@@ -370,7 +370,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getBannedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/${OrganizationStatus.DELETED}",
+        "$apiUrl/organizations/by-user/${OrganizationStatus.BANNED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )

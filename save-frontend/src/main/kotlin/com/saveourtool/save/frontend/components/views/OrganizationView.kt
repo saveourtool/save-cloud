@@ -290,9 +290,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     actionButton {
                                         val projectName = project.name
 
-                                        title = "WARNING: You want to recovery a project"
-                                        errorTitle = "You cannot recovery $projectName"
-                                        message = "Are you sure you want to recovery an $projectName?"
+                                        title = "WARNING: You want to recover a project"
+                                        errorTitle = "You cannot recover $projectName"
+                                        message = "Are you sure you want to recover an $projectName?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(
@@ -304,7 +304,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         classes = actionButtonClasses.joinToString(" ")
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, recovery $projectName", style = "warning", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, recover $projectName", style = "warning", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }
@@ -321,7 +321,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
-                                            responseRecoveryProject(project)
+                                            responseRecoverProject(project)
                                         }
                                     }
                                 }
@@ -866,9 +866,9 @@ fun responseDeleteProject(isClickMode: Boolean, project: Project): suspend WithR
     )
 }
 
-fun responseRecoveryProject(project: Project): suspend WithRequestStatusContext.() -> Response = {
+fun responseRecoverProject(project: Project): suspend WithRequestStatusContext.() -> Response = {
     post(
-        url = "$apiUrl/projects/${project.organization.name}/${project.name}/recovery",
+        url = "$apiUrl/projects/${project.organization.name}/${project.name}/recover",
         headers = jsonHeaders,
         body = undefined,
         loadingHandler = ::noopLoadingHandler,

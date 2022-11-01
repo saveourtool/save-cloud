@@ -285,16 +285,16 @@ class ProjectController(
                     ResponseEntity.ok("Successful deleted project")
                 }
 
-    @PostMapping("/{organizationName}/{projectName}/recovery")
+    @PostMapping("/{organizationName}/{projectName}/recover")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Recovery a project.",
-        description = "Recovery a project.",
+        summary = "Recover a project.",
+        description = "Recover a project.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully recovered a project.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for project recovery.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for project recover.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
     @ApiResponse(responseCode = "409", description = "Could not find deleted project with such name.")
     fun recoverProject(

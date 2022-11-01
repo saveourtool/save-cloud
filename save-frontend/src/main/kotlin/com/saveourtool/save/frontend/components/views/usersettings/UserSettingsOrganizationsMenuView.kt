@@ -139,9 +139,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
-                                        title = "WARNING: You want to recovery an organization"
-                                        errorTitle = "You cannot recovery ${organizationDto.name}"
-                                        message = "Are you sure you want to recovery an organization ${organizationDto.name}?"
+                                        title = "WARNING: You want to recover an organization"
+                                        errorTitle = "You cannot recover ${organizationDto.name}"
+                                        message = "Are you sure you want to recover an organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(icon = faRedo)
@@ -150,7 +150,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         classes = "btn mr-3"
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, recovery ${organizationDto.name}", style = "warning", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "warning", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }
@@ -167,7 +167,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
-                                            responseRecoveryOrganization(organizationDto.name)
+                                            responseRecoverOrganization(organizationDto.name)
                                         }
                                     }
                                 }
@@ -229,9 +229,9 @@ fun responseDeleteOrganization(isClickMode: Boolean, organizationName: String): 
     )
 }
 
-fun responseRecoveryOrganization(organizationName: String): suspend WithRequestStatusContext.() -> Response = {
+fun responseRecoverOrganization(organizationName: String): suspend WithRequestStatusContext.() -> Response = {
     post(
-        url = "$apiUrl/organizations/$organizationName/recovery",
+        url = "$apiUrl/organizations/$organizationName/recover",
         headers = jsonHeaders,
         body = undefined,
         loadingHandler = ::noopLoadingHandler,

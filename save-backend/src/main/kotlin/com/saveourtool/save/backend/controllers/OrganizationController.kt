@@ -356,7 +356,7 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization deleted")
         }
 
-    @PostMapping("/{organizationName}/recovery")
+    @PostMapping("/{organizationName}/recover")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
@@ -370,7 +370,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully recovered an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for recovering this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find deleted organization with such name.")
-    fun recoveryOrganization(
+    fun recoverOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
