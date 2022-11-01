@@ -138,7 +138,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     classes = actionButtonClasses.joinToString(" ")
                                     modalButtons = { action, window, childrenBuilder ->
                                         with(childrenBuilder) {
-                                            buttonBuilder(label = "Yes, recover $organizationName", style = "danger", classes = "mr-2") {
+                                            buttonBuilder(label = "Yes, recover $organizationName", style = "warning", classes = "mr-2") {
                                                 action()
                                                 window.closeWindow()
                                             }
