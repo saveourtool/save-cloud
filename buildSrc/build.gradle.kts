@@ -18,7 +18,8 @@ dependencies {
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
     implementation(libs.gradle.plugin.spotless)
-    implementation("io.github.gradle-nexus:publish-plugin:1.1.0")
+    implementation(libs.publish.gradle.plugin)
+    implementation(libs.download.plugin)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

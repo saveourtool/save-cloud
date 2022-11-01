@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
@@ -17,7 +18,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -78,11 +78,22 @@ internal class OrganizationController(
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(
+            name = "onlyActive",
+            `in` = ParameterIn.QUERY,
+            description = "Whether deleted organizations should be excluded from the response. The default is false.",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations() = Mono.fromCallable {
-        organizationService.findAll()
+    fun getAllOrganizations(
+        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
+    ): Mono<List<Organization>> = Mono.fromCallable {
+        when {
+            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
+
+            else -> organizationService.findAll()
+        }
     }
 
     @PostMapping("/not-deleted")
@@ -95,7 +106,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getCreatedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<OrganizationDto> =
             organizationService.getCreatedOrganizations(organizationFilters)
                 .toFlux()
@@ -344,7 +355,7 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            organizationService.organizationHasNoProjects(it.name) || OrganizationStatus.valueOf(status.uppercase()) == OrganizationStatus.BANNED
+            !organizationService.hasProjects(organizationName) || OrganizationStatus.valueOf(status.uppercase()) == OrganizationStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."

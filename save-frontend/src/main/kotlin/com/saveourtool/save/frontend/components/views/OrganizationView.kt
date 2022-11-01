@@ -434,21 +434,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderInfo() {
         // ================= Title for TOP projects ===============
         div {
-            className = ClassName("row")
-            div {
-                className = ClassName("col-3 ml-auto")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-                h4 {
-                    +"Top Tools"
-                }
-            }
-
-            div {
-                className = ClassName("col-3 mx-auto")
+            className = ClassName("row justify-content-center mb-2")
+            h4 {
+                +"Top Tools"
             }
         }
 
@@ -456,29 +444,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
 
         div {
-            className = ClassName("row")
-            style = jso {
-                justifyContent = JustifyContent.center
-            }
+            className = ClassName("row justify-content-center")
+
             renderTopProject(topProjects.getOrNull(0))
             renderTopProject(topProjects.getOrNull(1))
         }
 
         @Suppress("MAGIC_NUMBER")
         div {
-            className = ClassName("row")
-            style = jso {
-                justifyContent = JustifyContent.center
-            }
+            className = ClassName("row justify-content-center")
+
             renderTopProject(topProjects.getOrNull(2))
             renderTopProject(topProjects.getOrNull(3))
         }
 
         div {
-            className = ClassName("row")
-            style = jso {
-                justifyContent = JustifyContent.center
-            }
+            className = ClassName("row justify-content-center")
+
             div {
                 className = ClassName("col-3 mb-4")
                 div {
@@ -561,8 +543,17 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("col-6")
                 div {
-                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Projects"
+                    className = ClassName("d-flex justify-content-center mb-2")
+                    if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
+                        Link {
+                            to = "/${FrontendRoutes.CREATE_PROJECT.path}/${this@OrganizationView.state.organization?.name}"
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn btn-outline-info")
+                                +"Add new Tool"
+                            }
+                        }
+                    }
                 }
 
                 tableWithProjects {
@@ -742,11 +733,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
         div {
-            className = ClassName("row d-flex justify-content-between")
+            className = ClassName("row d-flex")
             div {
-                className = ClassName("col-3 ml-auto")
+                className = ClassName("col-3 ml-auto justify-content-center")
                 style = jso {
-                    justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
@@ -779,9 +769,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-auto mx-0")
+                className = ClassName("col-auto mx-0 justify-content-center")
                 style = jso {
-                    justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
@@ -798,6 +787,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .forEach { organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
+                                style = jso {
+                                    cursor = "pointer".unsafeCast<Cursor>()
+                                }
                                 val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold" else ""
                                 p {
                                     className = ClassName("nav-link $classVal text-gray-800")
@@ -814,23 +806,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-2 mr-auto")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                    Link {
-                        to = "/${FrontendRoutes.CREATE_PROJECT.path}/${this@OrganizationView.state.organization?.name}"
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-outline-info")
-                            +"Add Tool"
-                        }
-                    }
-                }
+                className = ClassName("col-3 mr-auto justify-content-center align-items-center")
             }
         }
     }

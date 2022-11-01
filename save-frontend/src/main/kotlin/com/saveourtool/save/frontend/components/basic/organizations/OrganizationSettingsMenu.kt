@@ -8,6 +8,8 @@ import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponen
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -77,7 +79,6 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -91,10 +92,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 selfUserInfo = props.currentUserInfo
                 groupPath = organizationPath
                 groupType = "organization"
-                this.wasConfirmationModalShown = wasConfirmationModalShown
-                updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.organizations }
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -107,9 +105,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             organizationGitCredentialsManageCard {
                 selfUserInfo = props.currentUserInfo
                 organizationName = props.organizationName
-                this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         div {
@@ -120,7 +116,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
             div {
                 className = ClassName("card card-body mt-0 p-0")
-                if (props.selfRole == Role.SUPER_ADMIN) {
+                if (props.selfRole.isSuperAdmin()) {
                     div {
                         className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
                         div {

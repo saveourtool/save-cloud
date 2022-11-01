@@ -18,7 +18,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import csstype.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -154,16 +153,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
                 div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        alignItems = AlignItems.center
-                        position = Position.absolute
-                        bottom = 7.em
-                        left = "50%".unsafeCast<Left>()
-                    }
+                    className = ClassName("row justify-content-center")
                     h1 {
                         className = ClassName("animate__animated animate__pulse animate__infinite")
                         style = jso {
@@ -298,6 +288,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
                 menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                if (props.userInfo.isSuperAdmin()) {
+                    hrNoMargin()
+                    menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }

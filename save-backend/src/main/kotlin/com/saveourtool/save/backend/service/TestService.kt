@@ -11,6 +11,8 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
@@ -84,20 +86,33 @@ class TestService(
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun getTestBatches(agentId: String): Mono<TestBatch> {
-        val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
-        log.debug("Agent found, id=${agent.id}")
-        val executionId = agent.execution.id!!
-        val lock = locks.computeIfAbsent(executionId) { Any() }
+    fun getTestBatches(agentId: String): Mono<TestBatch> = blockingToMono {
+        agentRepository.findByContainerId(agentId)
+    }
+        .switchIfEmptyToNotFound {
+            "The specified agent (id = $agentId) does not exist"
+        }
+        .flatMap { agent ->
+            log.debug("Agent found, id=${agent.id}")
+            getTestBatches(agent.execution)
+        }
+
+    /**
+     * @param execution
+     * @return Test batches
+     */
+    @Transactional
+    @Suppress("UnsafeCallOnNullableType")
+    fun getTestBatches(execution: Execution): Mono<TestBatch> {
+        val lock = locks.computeIfAbsent(execution.requiredId()) { Any() }
         return synchronized(lock) {
-            log.debug("Acquired lock for executionId=$executionId")
+            log.debug("Acquired lock for executionId=${execution.requiredId()}")
             val testExecutions = transactionTemplate.execute {
-                val execution = executionRepository.getReferenceById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
             Mono.fromCallable {
                 val testBatch = testExecutions.map { it.test.toDto() }
-                log.debug("Releasing lock for executionId=$executionId")
+                log.debug("Releasing lock for executionId=${execution.requiredId()}")
                 testBatch
             }
         }

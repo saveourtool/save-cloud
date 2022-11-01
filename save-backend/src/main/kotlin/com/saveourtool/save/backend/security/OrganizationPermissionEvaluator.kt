@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.security
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role

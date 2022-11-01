@@ -25,6 +25,14 @@ class SaveOrchestratorCommonPropertySourceConfigurationDev
 class SaveOrchestratorCommonPropertySourceConfigurationDockerTcp
 
 /**
+ * Configuration enabled when `docker-tcp` is disabled
+ */
+@Configuration
+@Profile("!docker-tcp")
+@PropertySource("classpath:META-INF/save-orchestrator-common/application-docker-socket.properties")
+class SaveOrchestratorCommonPropertySourceConfigurationDockerSocket
+
+/**
  * Configuration for profile 'kafka'
  */
 @Configuration

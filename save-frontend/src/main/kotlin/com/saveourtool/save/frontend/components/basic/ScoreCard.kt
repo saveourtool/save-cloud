@@ -64,9 +64,8 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                     div {
                         className = ClassName("col-1")
                         div {
-                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2")
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2 justify-content-center")
                             style = jso {
-                                justifyContent = JustifyContent.center
                                 display = Display.flex
                                 alignItems = AlignItems.center
                                 alignSelf = AlignSelf.start

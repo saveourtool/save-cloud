@@ -4,9 +4,12 @@
 
 package com.saveourtool.save.frontend.utils
 
+import browser.window
 import react.ChildrenBuilder
 
 import kotlinx.js.Object
+
+private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
 
 /**
  * Shortcut for
@@ -65,3 +68,10 @@ fun spread(jsObject: Any, handler: (key: String, value: Any) -> Unit) {
  */
 @Suppress("FUNCTION_NAME_INCORRECT_CASE")
 external fun encodeURIComponent(str: String): String
+
+/**
+ * Function invoked when super admin might change something because of global role
+ *
+ * @return [Unit]
+ */
+fun showGlobalRoleConfirmation() = window.alert(SUPER_ADMIN_MESSAGE)

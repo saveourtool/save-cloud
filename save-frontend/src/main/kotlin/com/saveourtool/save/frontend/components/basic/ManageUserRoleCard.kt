@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
@@ -15,7 +16,6 @@ import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
@@ -48,26 +48,9 @@ external interface ManageUserRoleCardProps : Props {
     var groupType: String
 
     /**
-     * Flag that shows if the confirm windows was shown or not
-     */
-    var wasConfirmationModalShown: Boolean
-
-    /**
-     * Lambda to show error after fail response
-     * todo: remove [updateErrorMessage] and use response handlers
-     */
-    @Suppress("TYPE_ALIAS")
-    var updateErrorMessage: (Response, String) -> Unit
-
-    /**
      * Lambda to get users from project/organization
      */
     var getUserGroups: (UserInfo) -> Map<String, Role>
-
-    /**
-     * Lambda to show warning if current user is super admin
-     */
-    var showGlobalRoleWarning: () -> Unit
 }
 
 /**
@@ -104,9 +87,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             Json.encodeToString(roleChange),
             loadingHandler = ::noopLoadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response, response.unpackMessage())
-        } else {
+        if (response.ok) {
             getUsersFromGroup()
         }
     }
@@ -118,13 +99,10 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             headers = jsonHeaders,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
             getUsersFromGroup()
-        } else {
-            props.updateErrorMessage(response, response.unpackMessage())
         }
     }
 
@@ -135,9 +113,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response, response.unpackMessage())
-        } else {
+        if (response.ok) {
             getUsersFromGroup()
         }
     }
@@ -153,8 +129,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
-            props.showGlobalRoleWarning()
+        if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
+            showGlobalRoleConfirmation()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
@@ -230,8 +206,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                         type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
-                        val canDelete = selfRole == Role.SUPER_ADMIN ||
-                                selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                        val canDelete = selfRole.isSuperAdmin() ||
+                                selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
                                 userRole.isLowerThan(selfRole)
                         id = "remove-user-$userIndex"
                         hidden = !canDelete
@@ -258,8 +234,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                                     +it.formattedName
                                 }
                             }
-                        disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) ||
-                                !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
+                        disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
+                                !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
                     }
                 }
             }
@@ -271,5 +247,5 @@ private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = othe
 
 private fun rolesAssignableBy(role: Role) = Role.values()
     .filter { it != Role.NONE }
-    .filter { it != Role.SUPER_ADMIN }
-    .filter { role == Role.OWNER || it.isLowerThan(role) || role == it }
+    .filterNot(Role::isSuperAdmin)
+    .filter { role == OWNER || it.isLowerThan(role) || role == it }

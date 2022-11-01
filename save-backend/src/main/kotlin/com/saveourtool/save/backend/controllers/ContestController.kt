@@ -12,6 +12,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
@@ -355,7 +356,11 @@ internal class ContestController(
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            if (contestRequest.status == ContestStatus.DELETED) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            }
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."
@@ -364,6 +369,49 @@ internal class ContestController(
             contestService.updateContest(
                 contestRequest.toContest(organization).apply { id = contest.id }
             )
+            ResponseEntity.ok("Contest successfully updated")
+        }
+
+    @PostMapping("/update-all")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "POST",
+        summary = "Update contest.",
+        description = "Change existing contest settings.",
+    )
+    @Parameters(
+        Parameter(name = "contestRequest", `in` = ParameterIn.DEFAULT, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission to edit current contest.")
+    @ApiResponse(responseCode = "404", description = "Either organization or contest with such name was not found.")
+    fun updateAllContest(
+        @RequestBody contestsRequest: List<ContestDto>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.zip(
+        organizationService.findByName(contestsRequest.first().organizationName).toMono(),
+        Mono.justOrEmpty(contestsRequest.map { contestRequest -> contestService.findByName(contestRequest.name) }),
+    )
+        .switchIfEmptyToNotFound {
+            "Either organization [${contestsRequest.first().organizationName}] or one or more contests in [${contestsRequest.map { it.name }}] was not found."
+        }
+        .filter { (organization, _) ->
+            if (contestsRequest.none { it.status == ContestStatus.DELETED }) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            }
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "You do not have enough permissions to edit this contest."
+        }
+        .map { (organization, contests) ->
+            contestsRequest.map { contestRequest ->
+                contestService.updateContest(
+                    contestRequest.toContest(organization).apply { id = contests.single { name == it.get().name }.get().id }
+                )
+            }
             ResponseEntity.ok("Contest successfully updated")
         }
 

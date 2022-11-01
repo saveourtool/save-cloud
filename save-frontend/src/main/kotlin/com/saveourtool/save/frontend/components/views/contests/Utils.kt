@@ -23,10 +23,7 @@ import kotlinx.js.jso
  */
 fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
     div {
-        className = ClassName("row")
-        style = jso {
-            justifyContent = JustifyContent.center
-        }
+        className = ClassName("row justify-content-center")
         h4 {
             style = jso {
                 color = "#5a5c69".unsafeCast<Color>()
@@ -46,11 +43,7 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
  */
 fun ChildrenBuilder.tab(selectedTab: String, tabsList: List<String>, setSelectedTab: (String) -> Unit) {
     div {
-        className = ClassName("row")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-        }
+        className = ClassName("row justify-content-center")
 
         nav {
             className = ClassName("nav nav-tabs mb-4")

@@ -11,7 +11,6 @@ import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
 
-import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -55,7 +54,7 @@ fun main() {
     }
         .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
-    logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+    logDebugCustom("Instantiating save-agent version ${config.version} with config $config")
 
     handleSigterm()
 

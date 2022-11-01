@@ -1,4 +1,4 @@
-package com.saveourtool.save.sandbox.repository
+package com.saveourtool.save.authservice.repository
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.orNotFound
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
  * Repository for [com.saveourtool.save.entities.User]
  */
 @Component
-class SandboxUserRepository(
+class AuthenticationUserRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**

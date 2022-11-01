@@ -21,7 +21,6 @@ services:
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
-      - "DOCKER_NETWORK_NAME=${DOCKER_NETWORK_NAME}"
     ports:
       - "5100:5100"
     volumes:
@@ -125,7 +124,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.2.1
+    image: grafana/grafana:9.2.2
     ports:
       - "9100:3000"
     volumes:
@@ -152,7 +151,6 @@ services:
 
 networks:
   default:
-    driver: overlay
     attachable: true
 
 volumes:

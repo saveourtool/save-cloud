@@ -84,6 +84,7 @@ class OrganizationService(
         }
 
     /**
+
      * @param organizationFilters
      * @return list of organizations with that match [organizationFilters]
      */
@@ -112,17 +113,14 @@ class OrganizationService(
         return organizations
     }
 
-    /**
-     * @param organizationName
-     * @return [true] if number of Organization projects is zero, else - [false]
+     * @param organizationName the unique name of the organization.
+     * @return `true` if this organization has at least one non-deleted project,
+     *   `false` otherwise.
      */
-    fun organizationHasNoProjects(organizationName: String) = numberOfProjectInOrganization(organizationName) == 0
-
-    /**
-     * @param organizationName
-     * @return number of Organization projects
-     */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).count { it.status == ProjectStatus.CREATED }
+    fun hasProjects(organizationName: String): Boolean =
+            projectService.getAllByOrganizationName(organizationName).any { project ->
+                project.status == CREATED
+            }
 
     /**
      * @param organizationId
@@ -178,7 +176,7 @@ class OrganizationService(
      * @param authentication
      * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
      */
-    fun getGlobalRating(organizationName: String, authentication: Authentication) =
+    fun getGlobalRating(organizationName: String, authentication: Authentication?) =
             projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
                 .collectList()
                 .map { projectsList ->

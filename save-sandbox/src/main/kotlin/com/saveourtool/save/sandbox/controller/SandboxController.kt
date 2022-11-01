@@ -1,5 +1,7 @@
 package com.saveourtool.save.sandbox.controller
 
+import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.SandboxFileInfo
 import com.saveourtool.save.execution.ExecutionStatus
@@ -8,12 +10,12 @@ import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
-import com.saveourtool.save.sandbox.utils.userId
-import com.saveourtool.save.sandbox.utils.userName
 import com.saveourtool.save.utils.*
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -32,6 +34,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import javax.transaction.Transactional
@@ -41,6 +44,7 @@ import javax.transaction.Transactional
  * @property storage
  * @property sandboxExecutionRepository
  * @property agentsController
+ * @property agentRepository
  */
 @ApiSwaggerSupport
 @Tags(
@@ -53,6 +57,7 @@ class SandboxController(
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
     val agentsController: AgentsController,
+    val agentRepository: SandboxAgentRepository,
 ) {
     @Operation(
         method = "GET",
@@ -142,7 +147,7 @@ class SandboxController(
             storage.download(it)
         }
         .switchIfEmptyToNotFound {
-            "There is no file $fileName for user ${authentication.userName()}"
+            "There is no file $fileName for user ${authentication.username()}"
         }
 
     @Operation(
@@ -279,7 +284,7 @@ class SandboxController(
             storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
         .switchIfEmptyToNotFound {
-            "There is no DebugInfo for ${authentication.userName()}"
+            "There is no DebugInfo for ${authentication.username()}"
         }
 
     @Operation(
@@ -316,7 +321,7 @@ class SandboxController(
                 )
             }
             .map { sandboxExecutionRepository.save(it) }
-            .map { it.toRunRequest() }
+            .map { agentRepository.getRunRequest(it) }
             .flatMap { request ->
                 agentsController.initialize(request)
             }

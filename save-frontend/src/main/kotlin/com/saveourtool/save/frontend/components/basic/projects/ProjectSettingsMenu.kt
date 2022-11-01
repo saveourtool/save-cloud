@@ -21,6 +21,7 @@ import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -69,11 +70,6 @@ external interface ProjectSettingsMenuProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
-
-    /**
-     * Callback to show notification message
-     */
-    var updateNotificationMessage: (String, String) -> Unit
 }
 
 @Suppress(
@@ -134,7 +130,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         }
     }
 
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -148,10 +143,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 selfUserInfo = props.currentUserInfo
                 groupPath = projectPath
                 groupType = "project"
-                this.wasConfirmationModalShown = wasConfirmationModalShown
-                updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.projects }
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -197,7 +189,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 className = ClassName("form-check-input")
                                 defaultChecked = draftProject.public
                                 name = "projectVisibility"
-                                type = react.dom.html.InputType.radio
+                                type = InputType.radio
                                 id = "isProjectPublicSwitch"
                                 value = "public"
                             }
@@ -213,7 +205,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 className = ClassName("form-check-input")
                                 defaultChecked = !draftProject.public
                                 name = "projectVisibility"
-                                type = react.dom.html.InputType.radio
+                                type = InputType.radio
                                 id = "isProjectPrivateSwitch"
                                 value = "private"
                             }
