@@ -79,17 +79,11 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
-        @RequestParam status: String?,
+        @RequestParam status: OrganizationStatus?,
     ): Mono<List<Organization>> = Mono.fromCallable {
-        if (status.isNullOrBlank())
-            organizationService.findAll()
-        else {
-            val organizationStatus = OrganizationStatus.valueOf(status)
-            organizationService.getFiltered(organizationFilters = OrganizationFilters(prefix = "", status = organizationStatus))
-        }
-    }
-        .switchIfEmptyToNotFound {
-        "Organization havent $status"
+        status?.let {
+            organizationService.getFiltered(organizationFilters = OrganizationFilters(prefix = "", status = status))
+        } ?: organizationService.findAll()
     }
 
     @PostMapping("/not-deleted")
@@ -104,7 +98,7 @@ internal class OrganizationController(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-            organizationService.getCreatedOrganizations(organizationFilters)
+            organizationService.getOrganizationsWithStatus(organizationFilters)
                 .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
@@ -322,7 +316,7 @@ internal class OrganizationController(
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "DELETE",
-        summary = "Delete or bann existing organization.",
+        summary = "Delete or ban existing organization.",
         description = "Delete or ban existing organization by its name.",
     )
     @Parameters(
@@ -335,7 +329,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
-        @RequestParam status: String,
+        @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {str ->
@@ -351,13 +345,13 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            !organizationService.hasProjects(organizationName) || OrganizationStatus.valueOfWithoutException(status.uppercase()) == OrganizationStatus.BANNED
+            !organizationService.hasProjects(organizationName) || status == OrganizationStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            OrganizationStatus.valueOfWithoutException(status.uppercase())?.let { organizationStatus->
+            status.let { organizationStatus->
                 organizationService.deleteOrganization(it.name, organizationStatus)
                 ResponseEntity.ok("Organization deleted")
             }

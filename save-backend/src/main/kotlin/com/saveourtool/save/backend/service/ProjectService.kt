@@ -156,13 +156,13 @@ class ProjectService(
      * @param projectFilters
      * @return project's with filter
      */
-    fun getNotDeletedProjectsWithFilter(projectFilters: ProjectFilters?): List<Project> {
+    fun getProjectWithStatus(projectFilters: ProjectFilters?): List<Project> {
         val name = projectFilters?.name?.let { "%$it%" }
         val projects = projectRepository.findAll { root, _, cb ->
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
-                cb.equal(root.get<String>("status"), ProjectStatus.CREATED)
+                cb.equal(root.get<String>("status"), projectFilters?.status)
             )
         }
         return projects

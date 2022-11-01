@@ -101,13 +101,13 @@ class OrganizationService(
      * @param organizationFilters
      * @return not deleted Organizations
      */
-    fun getCreatedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
+    fun getOrganizationsWithStatus(organizationFilters: OrganizationFilters?): List<Organization> {
         val name = organizationFilters?.prefix?.let { "%$it%" }
         val organizations = organizationRepository.findAll { root, _, cb ->
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
-                cb.equal(root.get<String>("status"), OrganizationStatus.CREATED)
+                cb.equal(root.get<String>("status"), organizationFilters?.status)
             )
         }
         return organizations

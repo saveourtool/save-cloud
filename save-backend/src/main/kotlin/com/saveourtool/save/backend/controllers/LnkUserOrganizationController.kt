@@ -268,7 +268,7 @@ class LnkUserOrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRolesAndStatus(
         authentication: Authentication,
-        @RequestParam status: String?,
+        @RequestParam status: OrganizationStatus?,
     ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
@@ -276,8 +276,8 @@ class LnkUserOrganizationController(
         .flatMapMany {
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
-        .filter {
-            it.organization != null && (status.isNullOrBlank() || it.organization?.status == OrganizationStatus.valueOfWithoutException(status.uppercase()))
+        .filter {lnkUserOrganization ->
+            lnkUserOrganization.organization != null && (status?.let{ lnkUserOrganization.organization!!.status == it} ?: true)
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))

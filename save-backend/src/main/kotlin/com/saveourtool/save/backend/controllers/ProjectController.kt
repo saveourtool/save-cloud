@@ -55,6 +55,7 @@ class ProjectController(
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
+
     @GetMapping("/all")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
@@ -64,7 +65,12 @@ class ProjectController(
         description = "Get all projects, including deleted and private. Only accessible for super admins",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjects(): Flux<Project> = projectService.getProjects()
+    fun getProjectsWithStatus(@RequestParam status: ProjectStatus?): Flux<Project> =
+        projectService.getProjects()
+            .filter { project ->
+                status?.let { project.status == it } ?: true
+            }
+
 
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
@@ -75,12 +81,16 @@ class ProjectController(
         description = "Get all projects, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjects(
-        authentication: Authentication,
+    fun getProjectsWithStatus (
+        authentication: Authentication, @RequestParam status: ProjectStatus?,
     ): Flux<Project> = projectService.getProjects()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
+        .filter { project ->
+            status?.let { project.status == it } ?: true
+        }
+
 
     @PostMapping("/not-deleted")
     @PreAuthorize("permitAll()")
@@ -93,7 +103,7 @@ class ProjectController(
     fun getNotDeletedProjectsWithFilters(
         @RequestBody(required = false) projectFilters: ProjectFilters?,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
+    ): Flux<Project> = projectService.getProjectWithStatus(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
