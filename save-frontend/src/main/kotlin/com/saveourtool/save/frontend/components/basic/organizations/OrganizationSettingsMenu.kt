@@ -4,9 +4,8 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.usersettings.actionButton
+import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo

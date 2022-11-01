@@ -157,7 +157,6 @@ internal class OrganizationController(
             it.organization as Organization
         }
 
-
     @GetMapping("/get/by-prefix")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -171,7 +170,6 @@ internal class OrganizationController(
     ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
         .map { it.name }
         .toMono()
-
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
@@ -333,8 +331,8 @@ internal class OrganizationController(
         @RequestParam status: String,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono().let { mono -> mono.filter{organization -> organization.status == OrganizationStatus.CREATED} }
+        .flatMap {str ->
+            organizationService.findByName(str).toMono().let { mono -> mono.filter {organization -> organization.status == OrganizationStatus.CREATED } }
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -374,8 +372,8 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono().let { mono -> mono.filter{organization -> organization.status == OrganizationStatus.DELETED} }
+        .flatMap {str ->
+            organizationService.findByName(str).toMono().let { mono -> mono.filter {organization -> organization.status == OrganizationStatus.DELETED } }
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."

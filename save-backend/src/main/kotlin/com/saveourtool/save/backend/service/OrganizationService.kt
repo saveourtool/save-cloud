@@ -83,8 +83,6 @@ class OrganizationService(
             organizationRepository.save(it)
         }
 
-
-
     /**
      * @param organizationFilters
      * @return list of organizations with that match [organizationFilters]
@@ -97,7 +95,6 @@ class OrganizationService(
             organizationFilters.status,
         )
     }
-
 
     /**
      * @param organizationFilters

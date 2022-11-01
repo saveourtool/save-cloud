@@ -217,6 +217,13 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     }
 }
 
+/**
+ * Makes a call to delete or ban the organization, depending on the [isClickMode] value
+ *
+ * @param isClickMode
+ * @param organizationName
+ * @return response
+ */
 fun responseDeleteOrganization(isClickMode: Boolean, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
     delete(
         url = buildString {
@@ -229,6 +236,12 @@ fun responseDeleteOrganization(isClickMode: Boolean, organizationName: String): 
     )
 }
 
+/**
+ * Makes a call to recover the organization
+ *
+ * @param organizationName
+ * @return response
+ */
 fun responseRecoverOrganization(organizationName: String): suspend WithRequestStatusContext.() -> Response = {
     post(
         url = "$apiUrl/organizations/$organizationName/recover",

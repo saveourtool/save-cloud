@@ -375,5 +375,4 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
-
 }

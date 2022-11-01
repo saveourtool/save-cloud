@@ -1,9 +1,8 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.views.usersettings
+package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.modal.displayModalWithClick
-import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
@@ -11,7 +10,7 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
-val actionButton: FC<ActionProps> = FC {props ->
+val actionButton: FC<ActionProps> = FC { props ->
     val windowOpenness = useWindowOpenness()
     val (displayTitle, setDisplayTitle) = useState(props.title)
     val (displayMessage, setDisplayMessage) = useState(props.message)

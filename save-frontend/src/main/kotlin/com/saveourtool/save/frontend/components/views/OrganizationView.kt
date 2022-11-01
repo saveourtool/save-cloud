@@ -18,7 +18,7 @@ import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.views.usersettings.actionButton
+import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
@@ -854,6 +854,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 }
 
+/**
+ * Makes a call to delete or ban the project, depending on the [isClickMode] value
+ *
+ * @param isClickMode to determine whether a click occurred or not
+ * @param project is project
+ * @return response
+ */
 fun responseDeleteProject(isClickMode: Boolean, project: Project): suspend WithRequestStatusContext.() -> Response = {
     delete(
         url = buildString {
@@ -866,6 +873,12 @@ fun responseDeleteProject(isClickMode: Boolean, project: Project): suspend WithR
     )
 }
 
+/**
+ * Makes a call to recover the project
+ *
+ * @param project
+ * @return response
+ */
 fun responseRecoverProject(project: Project): suspend WithRequestStatusContext.() -> Response = {
     post(
         url = "$apiUrl/projects/${project.organization.name}/${project.name}/recover",

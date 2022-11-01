@@ -86,7 +86,6 @@ class ProjectPermissionEvaluator(
 
     private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let { projectRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
-
     /**
      * @param authentication
      * @param execution

@@ -34,7 +34,6 @@ ValidateRepository {
      */
     fun findByOwnerId(ownerId: Long): List<Organization>
 
-
     /**
      * @param prefix prefix of organization name
      * @param status
