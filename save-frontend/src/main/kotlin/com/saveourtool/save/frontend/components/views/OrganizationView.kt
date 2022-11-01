@@ -654,15 +654,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
      */
     private fun getProjectsFromCache(): List<Project> = state.projects + state.deletedProjects + state.bannedProjects
 
-    // private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
-    // url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
-    // headers = jsonHeaders,
-    // loadingHandler = ::classLoadingHandler,
-    // )
-    // .unsafeMap {
-    // it.decodeFromJsonString()
-    // }
-
     private suspend fun getProjectsForOrganization(): List<Project> = get(
         url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",
         headers = jsonHeaders,

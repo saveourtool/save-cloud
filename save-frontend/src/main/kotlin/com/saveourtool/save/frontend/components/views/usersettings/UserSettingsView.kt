@@ -354,7 +354,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getNotDeletedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/${OrganizationStatus.CREATED}",
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
@@ -362,7 +362,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getDeletedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/${OrganizationStatus.DELETED}",
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.DELETED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
@@ -370,7 +370,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getBannedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/${OrganizationStatus.BANNED}",
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.BANNED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
