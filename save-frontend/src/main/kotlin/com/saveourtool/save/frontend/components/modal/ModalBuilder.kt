@@ -12,15 +12,11 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h5
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
-import react.useState
 
 /**
  * Universal function to create modals with bootstrap styles inside react modals.
@@ -83,31 +79,24 @@ fun ChildrenBuilder.displayModal(
  * @param modalStyle that will be applied to react modal
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
- * @param conditionClickIcon condition who can click on the check mark and change the state
  * @param title of the modal that will be shown in top-left corner
  * @param message main text that will be shown in the center of modal
- * @param clickMessage a message next to the checkmark notifying what it does
- * @param changeClickMode changes the normal events and the events after the click when the button is clicked
+ * @param clickBuilder lambda that generates several click in modal
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.displayModalWithClick(
     title: String,
     message: String,
-    clickMessage: String,
-    conditionClickIcon: Boolean,
     isOpen: Boolean,
     modalStyle: Styles = mediumTransparentModalStyle,
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    changeClickMode: (Boolean) -> Unit,
+    clickBuilder: ChildrenBuilder.() -> Unit
 ) {
     modal { props ->
         props.isOpen = isOpen
         props.style = modalStyle
-        modalBuilderWithClick(
-            title, message, clickMessage, conditionClickIcon,
-            onCloseButtonPressed, buttonBuilder, changeClickMode,
-        )
+        modalBuilderWithClick(title, message, onCloseButtonPressed, buttonBuilder, clickBuilder)
     }
 }
 
@@ -274,23 +263,19 @@ fun ChildrenBuilder.modalBuilder(
  *
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
- * @param conditionClickIcon condition who can click on the check mark and change the state
+ * @param clickBuilder lambda that generates several click in modal
  * @param title of the modal that will be shown in top-left corner
  * @param message main text that will be shown in the center of modal
- * @param clickMessage a message next to the checkmark notifying what it does
- * @param changeClickMode changes the normal events and the events after the click when the button is clicked
+ * @param clickBuilder
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.modalBuilderWithClick(
     title: String,
     message: String,
-    clickMessage: String,
-    conditionClickIcon: Boolean,
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    changeClickMode: (Boolean) -> Unit,
+    clickBuilder: ChildrenBuilder.() -> Unit
 ) {
-    val (click, setClick) = useState(false)
     modalBuilderWithClick(
         title = title,
         onCloseButtonPressed = onCloseButtonPressed,
@@ -300,36 +285,7 @@ fun ChildrenBuilder.modalBuilderWithClick(
                 +message
             }
         },
-        clickBuilder = {
-            if (conditionClickIcon) {
-                div {
-                    className = ClassName("d-sm-flex justify-content-center form-check")
-                    div {
-                        className = ClassName("d-sm-flex justify-content-center form-check")
-                        div {
-                            input {
-                                className = ClassName("click")
-                                type = InputType.checkbox
-                                value = click
-                                id = "click"
-                                checked = click
-                                onChange = {
-                                    setClick(!click)
-                                    changeClickMode(!click)
-                                }
-                            }
-                        }
-                        div {
-                            label {
-                                className = ClassName("click")
-                                htmlFor = "click"
-                                +clickMessage
-                            }
-                        }
-                    }
-                }
-            }
-        },
+        clickBuilder = clickBuilder,
         buttonBuilder = {
             div {
                 className = ClassName("h6 text-gray-800 mb-2")

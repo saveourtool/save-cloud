@@ -7,6 +7,8 @@ import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
@@ -45,9 +47,7 @@ val actionButton: FC<ActionProps> = FC { props ->
     displayModalWithClick(
         title = displayTitle,
         message = displayMessage,
-        clickMessage = props.clickMessage,
         isOpen = windowOpenness.isOpen(),
-        conditionClickIcon = props.conditionClick && !isError,
         onCloseButtonPressed = windowOpenness.closeWindowAction(),
         buttonBuilder = {
             if (isError) {
@@ -59,8 +59,34 @@ val actionButton: FC<ActionProps> = FC { props ->
                 props.modalButtons(action, windowOpenness, this)
             }
         },
-        changeClickMode = {
-            setClickMode(it)
+        clickBuilder = {
+            if (props.conditionClick && !isError) {
+                div {
+                    className = ClassName("d-sm-flex justify-content-center form-check")
+                    div {
+                        className = ClassName("d-sm-flex justify-content-center form-check")
+                        div {
+                            ReactHTML.input {
+                                className = ClassName("click")
+                                type = InputType.checkbox
+                                value = isClickMode
+                                id = "click"
+                                checked = isClickMode
+                                onChange = {
+                                    setClickMode(!isClickMode)
+                                }
+                            }
+                        }
+                        div {
+                            ReactHTML.label {
+                                className = ClassName("click")
+                                htmlFor = "click"
+                                +props.clickMessage
+                            }
+                        }
+                    }
+                }
+            }
         }
     )
 }
