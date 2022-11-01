@@ -354,15 +354,31 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
 
             div {
                 className = ClassName("col-2 mr-3")
+
                 div {
-                    className = ClassName("card shadow mb-4")
-                    calendar(
-                        onChange = { date, _ ->
+                    className = ClassName("card-body mt-0 pt-0 pr-0 pl-0")
+
+                    div {
+                        className = ClassName("card shadow mb-4")
+                        calendar(
+                            onChange = { date, _ ->
+                                setState {
+                                    filters = createFilter(date)
+                                }
+                            },
+                        )
+                    }
+
+                    div {
+                        className = ClassName("row justify-content-center")
+                        buttonBuilder(
+                            label = "Clear all",
+                        ) {
                             setState {
-                                filters = createFilter(date)
+                                filters = ExecutionFilters.empty
                             }
                         }
-                    )
+                    }
                 }
             }
 

@@ -2,12 +2,36 @@
  * Utility methods to work with authentication-related objects
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
+
 package com.saveourtool.save.gateway.utils
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import java.security.Principal
+
+/**
+ * @property identitySource
+ * @property id
+ */
+// TODO: Temp copy-paste solution to avoid dependency on authservice
+class IdentitySourceAwareUserDetails(
+    username: String,
+    password: String?,
+    authorities: String?,
+    val identitySource: String,
+    val id: Long,
+) : User(
+    username,
+    password,
+    authorities?.split(',')
+        ?.filter { it.isNotBlank() }
+        ?.map { SimpleGrantedAuthority(it) }
+        .orEmpty()
+)
 
 /**
  * @return username extracted from this [Principal]
