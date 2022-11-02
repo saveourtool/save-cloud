@@ -22,8 +22,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 
 import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 private val typeSelection = cardComponent()
 
@@ -121,24 +119,12 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
 
     val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (selectedContestTestSuites, setSelectedContestTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(arrayOf(selectedContest)) {
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/${props.organizationName}/get-by-ids",
-            headers = jsonHeaders,
-            body = Json.encodeToString(selectedContest.testSuiteIds),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setSelectedContestTestSuites(testSuitesFromBackend)
-    }
 
     val buildExecutionRequest: () -> CreateExecutionRequest = {
         val selectedTestSuites = when (testingType) {
             TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites
             TestingType.PUBLIC_TESTS -> selectedPublicTestSuites
-            TestingType.CONTEST_MODE -> selectedContestTestSuites
+            TestingType.CONTEST_MODE -> selectedContest.testSuites
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(

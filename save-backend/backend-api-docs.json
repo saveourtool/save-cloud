@@ -1212,16 +1212,6 @@
             },
             "description": "Unauthorized"
           },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestFilesContent"
-                }
-              }
-            },
-            "description": "Cannot fetch public test from test suite not connected to contest."
-          },
           "404": {
             "content": {
               "*/*": {
@@ -1230,7 +1220,7 @@
                 }
               }
             },
-            "description": "Either contest with such name was not found or tests are not provided."
+            "description": "Either contest with such name was not found or tests are not provided/not attached to given contest."
           }
         },
         "security": [
@@ -1293,60 +1283,6 @@
           }
         ],
         "summary": "Get scores of all projects in contest.",
-        "tags": [
-          "contests"
-        ]
-      }
-    },
-    "/api/v1/contests/{contestName}/test-suites": {
-      "get": {
-        "description": "Get list of test suites dtos.",
-        "operationId": "getTestSuiteDtosByContestName",
-        "parameters": [
-          {
-            "description": "name of a contest",
-            "in": "query",
-            "name": "contestName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched test suites."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get test suites connected to contest.",
         "tags": [
           "contests"
         ]
@@ -8013,7 +7949,7 @@
           "name",
           "organizationName",
           "status",
-          "testSuiteIds"
+          "testSuites"
         ],
         "type": "object",
         "properties": {
@@ -8045,11 +7981,10 @@
               "DELETED"
             ]
           },
-          "testSuiteIds": {
+          "testSuites": {
             "type": "array",
             "items": {
-              "type": "integer",
-              "format": "int64"
+              "$ref": "#/components/schemas/TestSuiteDto"
             }
           }
         },
