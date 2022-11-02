@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.util.Optional
 
 /**
  * The repository of contest entities
@@ -21,7 +20,7 @@ interface ContestRepository : BaseEntityRepository<Contest> {
      * @param name
      * @return contest by name
      */
-    fun findByName(name: String): Optional<Contest>
+    fun findByName(name: String): Contest?
 
     /**
      * @param contestIds
