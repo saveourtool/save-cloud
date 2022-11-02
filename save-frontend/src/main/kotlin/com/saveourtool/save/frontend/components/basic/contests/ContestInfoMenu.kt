@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 
@@ -40,9 +39,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
     useRequest {
         val contestDto = get(
             "$apiUrl/contests/${props.contestName}",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -77,6 +74,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
             +"Public tests"
         }
         publicTestComponent {
+            this.contestTestSuites = contest?.testSuites ?: emptyList()
             this.contestName = props.contestName ?: ""
         }
     }
