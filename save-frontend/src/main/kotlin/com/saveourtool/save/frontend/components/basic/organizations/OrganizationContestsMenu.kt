@@ -24,6 +24,7 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import react.router.useNavigate
 import react.table.columns
 
 import kotlinx.serialization.encodeToString
@@ -155,6 +156,16 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
     val (selectedContests, setSelectedContests) = useState<Set<ContestDto>>(setOf())
     val (contests, setContests) = useState<Set<ContestDto>>(setOf())
     val refreshTable = { setIsToUpdateTable { !it } }
+    val addSelectedContestsFun: (ContestDto) -> Unit = { contest ->
+        setSelectedContests {
+            it.plus(contest)
+        }
+    }
+    val removeSelectedContestsFun: (ContestDto) -> Unit = { contest ->
+        setSelectedContests {
+            it.minus(contest)
+        }
+    }
     val deleteContestsFun = useDeferredRequest {
         val deleteContests = mutableListOf<ContestDto>()
         selectedContests.map {
@@ -174,6 +185,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
     }
     val windowOpenness = useWindowOpenness()
     val windowErrorOpenness = useWindowOpenness()
+    val navigate = useNavigate()
 
     useRequest {
         val response = get(
@@ -216,7 +228,9 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         isContestCreationModalOpen,
         {
             setIsContestCreationModalOpen(false)
-            refreshTable()
+            navigate(
+                to = it,
+            )
         },
         {
             setIsContestCreationModalOpen(false)
@@ -250,12 +264,8 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
                 contests.toTypedArray()
             }
             isContestCreated = isToUpdateTable
-            addSelectedContests = { contest ->
-                setSelectedContests(selectedContests.plus(contest))
-            }
-            removeSelectedContests = { contest ->
-                setSelectedContests(selectedContests.minus(contest))
-            }
+            addSelectedContests = addSelectedContestsFun
+            removeSelectedContests = removeSelectedContestsFun
             selectedContestDtos = selectedContests
         }
     }

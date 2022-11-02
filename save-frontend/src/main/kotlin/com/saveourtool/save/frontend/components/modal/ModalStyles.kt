@@ -12,7 +12,7 @@ val defaultModalStyle = Styles(
         "top" to "25%",
         "left" to "35%",
         "right" to "35%",
-        "bottom" to "2%",
+        "bottom" to "auto",
         "overflow" to "hide"
     ).unsafeCast<CssProperties>()
 )

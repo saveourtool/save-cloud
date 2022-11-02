@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -66,9 +65,6 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
-            showGlobalRoleConfirmation()
-        }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
 

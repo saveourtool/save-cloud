@@ -13,7 +13,6 @@ dependencies {
     implementation(libs.spring.boot.starter.oauth2.client)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.spring.security.core)
-    implementation(projects.authenticationService)
 }
 
 configureJacoco()

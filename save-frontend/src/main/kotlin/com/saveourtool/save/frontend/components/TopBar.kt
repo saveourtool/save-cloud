@@ -79,6 +79,7 @@ private fun ChildrenBuilder.dropdownEntry(
 )
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
+    val (isAriaExpanded, setIsAriaExpanded) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
     useEffect {
@@ -225,12 +226,17 @@ fun topBar() = FC<TopBarProps> { props ->
             // Nav Item - User Information
             li {
                 className = ClassName("nav-item dropdown no-arrow")
+                onClickCapture = {
+                    setIsAriaExpanded {
+                        !it
+                    }
+                }
                 a {
                     href = "#"
                     className = ClassName("nav-link dropdown-toggle")
                     id = "userDropdown"
                     role = "button".unsafeCast<AriaRole>()
-                    ariaExpanded = false
+                    ariaExpanded = isAriaExpanded
                     ariaHasPopup = true.unsafeCast<AriaHasPopup>()
                     asDynamic()["data-toggle"] = "dropdown"
 
@@ -265,7 +271,7 @@ fun topBar() = FC<TopBarProps> { props ->
                 }
                 // Dropdown - User Information
                 div {
-                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in")
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else "" }")
                     ariaLabelledBy = "userDropdown"
                     props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") { attrs ->

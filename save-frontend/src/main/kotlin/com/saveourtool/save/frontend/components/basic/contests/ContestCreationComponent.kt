@@ -26,7 +26,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
-import kotlinx.browser.window
 import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -141,7 +140,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {
