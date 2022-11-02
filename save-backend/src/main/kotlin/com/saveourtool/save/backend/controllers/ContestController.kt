@@ -185,24 +185,16 @@ internal class ContestController(
         Parameter(name = "testSuiteId", `in` = ParameterIn.QUERY, description = "id of a testSuite", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
-    @ApiResponse(responseCode = "403", description = "Cannot fetch public test from test suite not connected to contest.")
-    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided.")
+    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided/not attached to given contest.")
     @Suppress("TOO_LONG_FUNCTION")
     fun getPublicTestForContest(
         @PathVariable contestName: String,
         @RequestParam testSuiteId: Long,
     ): Mono<TestFilesContent> = getContestOrNotFound(contestName)
-        .zipWith(Mono.just(testSuiteId))
-        .filter { (contest, testSuiteId) ->
-            testSuiteId in contest.testSuiteLinks.map { it.testSuite.requiredId() }
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Test suite with id $testSuiteId is not connected to contest $contestName."
-        }
-        .map { (contest, testSuiteId) ->
+        .map { contest ->
             contest.testSuites().find { it.id == testSuiteId }
                 .orNotFound {
-                    "No test suite with id $testSuiteId was found."
+                    "No test suite with id $testSuiteId was found in contest $contestName."
                 }
         }
         .zipWith(
