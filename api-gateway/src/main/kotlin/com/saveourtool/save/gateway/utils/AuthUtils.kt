@@ -6,8 +6,6 @@ package com.saveourtool.save.gateway.utils
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import java.security.Principal
 
