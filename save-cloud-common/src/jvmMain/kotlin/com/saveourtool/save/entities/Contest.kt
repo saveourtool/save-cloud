@@ -60,6 +60,13 @@ class Contest(
         creationTime,
     )
 
+    /**
+     * @return Test Suites that are attached to the contest
+     */
+    fun testSuites() = testSuiteLinks.map {
+        it.testSuite
+    }
+
     private fun validateDateRange() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 
     /**

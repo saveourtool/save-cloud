@@ -194,23 +194,20 @@ internal class ContestController(
     ): Mono<TestFilesContent> = getContestOrNotFound(contestName)
         .zipWith(Mono.just(testSuiteId))
         .filter { (contest, testSuiteId) ->
-            testSuiteId in lnkContestTestSuiteService.getAllTestSuiteIdsByContest(contest)
+            testSuiteId in contest.testSuiteLinks.map { it.testSuite.requiredId() }
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Test suite with id $testSuiteId is not connected to contest $contestName."
         }
-        .flatMap { (_, testSuiteId) ->
-            testSuitesService.findTestSuiteById(testSuiteId).toMono()
+        .map { (contest, testSuiteId) ->
+            contest.testSuites().find { it.id == testSuiteId }
+                .orNotFound {
+                    "No test suite with id $testSuiteId was found."
+                }
         }
-        .switchIfEmptyToNotFound {
-            "No test suite with id $testSuiteId was found."
-        }
-        .flatMap {
-            Mono.zip(
-                it.toMono(),
-                Mono.justOrEmpty(testService.findFirstTestByTestSuiteId(it.requiredId()))
-            )
-        }
+        .zipWith(
+            Mono.justOrEmpty(testService.findFirstTestByTestSuiteId(testSuiteId))
+        )
         .switchIfEmptyToNotFound {
             "No tests were found for test suite with id $testSuiteId."
         }
