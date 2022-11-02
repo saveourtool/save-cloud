@@ -97,7 +97,7 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
     fun getNotDeletedProjectsWithFilters(
-        @RequestBody(required = false) projectFilters: ProjectFilters?,
+        @RequestBody projectFilters: ProjectFilters?,
         authentication: Authentication?,
     ): Flux<Project> = projectService.getProjectWithStatus(projectFilters)
         .toFlux()

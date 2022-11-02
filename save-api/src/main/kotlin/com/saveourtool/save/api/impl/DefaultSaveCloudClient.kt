@@ -10,10 +10,6 @@ import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -25,6 +21,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import com.saveourtool.save.entities.*
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
@@ -95,7 +92,8 @@ internal class DefaultSaveCloudClient(
             getAndCheck(
                 "/projects/get/projects-by-organization",
                 requestBody = EmptyContent,
-                ORGANIZATION_NAME to organizationName
+                ORGANIZATION_NAME to organizationName,
+                STATUS to ProjectStatus.CREATED
             )
 
     override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>> =
@@ -307,6 +305,7 @@ internal class DefaultSaveCloudClient(
         private const val EXECUTION_ID = "executionId"
         private const val NAME = "name"
         private const val ORGANIZATION_NAME = "organizationName"
+        private const val STATUS = "status"
         private const val POLL_DELAY_MILLIS = 100L
         private const val UPLOADED_MILLIS = "uploadedMillis"
         private val fileWithVersion =

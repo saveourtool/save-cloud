@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -22,6 +23,8 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val userRating = userRating()
 
@@ -142,7 +145,7 @@ private fun userRating() = VFC {
         val projectsFromBackend: List<Project> = post(
             url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
-            body = undefined,
+            body = Json.encodeToString(ProjectFilters.empty),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()

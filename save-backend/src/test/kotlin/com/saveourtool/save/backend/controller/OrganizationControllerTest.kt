@@ -129,7 +129,18 @@ class OrganizationControllerTest {
     fun `delete organization with owner permission`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
         webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+            .uri("/api/$v1/organizations/${organization.name}/delete?status=${OrganizationStatus.DELETED}")
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @WithMockUser(value = "admin", roles = ["VIEWER"])
+    fun `ban organization with super_admin permission`() {
+        mutateMockedUserAndLink(organization, adminUser, Role.SUPER_ADMIN)
+        webClient.delete()
+            .uri("/api/$v1/organizations/${organization.name}/delete?status=${OrganizationStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -140,7 +151,7 @@ class OrganizationControllerTest {
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
         webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+            .uri("/api/$v1/organizations/${organization.name}/delete?status=${OrganizationStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden

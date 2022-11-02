@@ -162,7 +162,7 @@ class ProjectService(
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
-                cb.equal(root.get<String>("status"), projectFilters?.status)
+                cb.equal(root.get<String>("status"), projectFilters?.status ?: ProjectStatus.CREATED)
             )
         }
         return projects

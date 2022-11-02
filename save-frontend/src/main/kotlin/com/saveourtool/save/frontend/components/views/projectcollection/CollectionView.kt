@@ -3,20 +3,19 @@
 package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.privacySpan
-import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -105,10 +104,8 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                     getData = { _, _ ->
                         val response = post(
                             url = "$apiUrl/projects/not-deleted",
-                            headers = Headers().also {
-                                it.set("Accept", "application/json")
-                            },
-                            body = undefined,
+                            headers = jsonHeaders,
+                            body = Json.encodeToString(ProjectFilters.empty),
                             loadingHandler = ::classLoadingHandler,
                         )
                         if (response.ok) {
