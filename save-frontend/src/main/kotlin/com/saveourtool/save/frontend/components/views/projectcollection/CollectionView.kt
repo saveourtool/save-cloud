@@ -14,14 +14,14 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
