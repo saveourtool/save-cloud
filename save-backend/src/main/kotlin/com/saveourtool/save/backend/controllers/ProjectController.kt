@@ -265,7 +265,7 @@ class ProjectController(
                 authentication, projectName, organizationName, Permission.DELETE
             )
                 .filter {
-                    it.status == ProjectStatus.CREATED
+                    (it.status == ProjectStatus.CREATED && status == ProjectStatus.DELETED) || status == ProjectStatus.BANNED
                 }
                 .switchIfEmptyToNotFound {
                     "Could not find created project with name $projectName."
@@ -295,7 +295,7 @@ class ProjectController(
                 authentication, projectName, organizationName, Permission.DELETE
             )
                 .filter {
-                    it.status == ProjectStatus.DELETED || it.status == ProjectStatus.BANNED
+                    it.status != ProjectStatus.CREATED
                 }
                 .switchIfEmptyToNotFound {
                     "Could not find deleted project with name $projectName."

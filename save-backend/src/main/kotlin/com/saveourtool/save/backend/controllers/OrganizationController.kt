@@ -333,7 +333,7 @@ internal class OrganizationController(
             organizationService.findByName(str).toMono()
         }
         .filter {
-            it.status == OrganizationStatus.CREATED
+            (it.status == OrganizationStatus.CREATED && status == OrganizationStatus.DELETED) || status == OrganizationStatus.BANNED
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -377,7 +377,7 @@ internal class OrganizationController(
             organizationService.findByName(str).toMono()
         }
         .filter {
-            it.status == OrganizationStatus.DELETED || it.status == OrganizationStatus.BANNED
+            it.status != OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
