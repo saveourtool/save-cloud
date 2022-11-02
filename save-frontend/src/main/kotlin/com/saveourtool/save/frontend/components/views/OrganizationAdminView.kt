@@ -4,6 +4,10 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.filters.OrganizationAdminFilters
+import com.saveourtool.save.frontend.components.basic.OrganizationAdminFilterRowProps
+import com.saveourtool.save.frontend.components.basic.organizationAdminRow
+import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.usersettings.responseDeleteOrganization
@@ -16,6 +20,7 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 
 import csstype.BorderRadius
 import csstype.ClassName
+import kotlinx.browser.window
 import react.ChildrenBuilder
 import react.FC
 import react.Fragment
@@ -30,11 +35,13 @@ import react.table.columns
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+import react.dom.html.ReactHTML
+
 
 /**
  * The list of all organizations, visible to super-users.
  */
-internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
+internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowProps, OrganizationAdminState>(hasBg = false) {
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<Organization>> = tableComponent(
         columns = {
@@ -168,7 +175,23 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
              * The order and size of the array must remain constant.
              */
             arrayOf(tableProps, state.organizations, state.bannedOrganizations)
-        }
+        },
+        commonHeader = { tableInstance ->
+            ReactHTML.tr {
+                ReactHTML.th {
+                    colSpan = tableInstance.columns.size
+                    organizationAdminRow {
+                        filters = state.filters
+                        onChangeFilters = { filterValue ->
+                            if (filters.status != filterValue.status)
+                                setState { filters = filterValue.copy(organizationName = filters.organizationName) }
+                            if (filters.organizationName != filterValue.organizationName)
+                                setState { filters = filterValue.copy(status = filters.status) }
+                        }
+                    }
+                }
+            }
+        },
     )
 
     init {
@@ -264,5 +287,16 @@ internal external interface OrganizationAdminState : State {
      * The cached list of all banned organizations.
      * Allows avoiding to run an `HTTP GET` each time an organization is deleted
      */
+    var deletedOrganizations: MutableList<Organization>
+
+    /**
+     * The cached list of all banned organizations.
+     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
+     */
     var bannedOrganizations: MutableList<Organization>
+
+    /**
+     * All filters in one class property [name]
+     */
+    var filters: OrganizationAdminFilters
 }

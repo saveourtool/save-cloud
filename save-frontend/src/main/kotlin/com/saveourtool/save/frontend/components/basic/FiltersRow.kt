@@ -3,6 +3,9 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.filters.OrganizationAdminFilters
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
@@ -27,6 +30,8 @@ import react.useState
 val testExecutionFiltersRow = testExecutionFiltersRow()
 
 val nameFiltersRow = nameFiltersRow()
+
+val organizationAdminRow = organizationAdminFiltersRow()
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
 class SelectOption {
@@ -63,6 +68,22 @@ external interface NameFilterRowProps : Props {
      * lambda to change [name]
      */
     var onChangeFilters: (String?) -> Unit
+}
+
+
+/**
+ * [Props] for filters name
+ */
+external interface OrganizationAdminFilterRowProps : Props {
+    /**
+     * All filters in one class property [name]
+     */
+    var filters: OrganizationAdminFilters
+
+    /**
+     * lambda to change [name]
+     */
+    var onChangeFilters: (OrganizationAdminFilters) -> Unit
 }
 
 /**
@@ -248,6 +269,89 @@ private fun nameFiltersRow(
                 onClick = {
                     setFiltersName(null)
                     props.onChangeFilters(null)
+                }
+            }
+        }
+    }
+}
+
+
+private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> { props ->
+    // Store local copy of filters in order to perform searching only by the search button, and not by any change in the filter fields
+    val (filters, setFilters) = useState(props.filters)
+    useEffect(props.filters) {
+        if (filters !== props.filters) {
+            setFilters(props.filters)
+        }
+    }
+    div {
+        className = ClassName("container-fluid")
+        div {
+            className = ClassName("row d-flex justify-content-between")
+            div {
+                className = ClassName("col-0 pr-1 align-self-center")
+                fontAwesomeIcon(icon = faFilter)
+            }
+            div {
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Status: "
+                }
+                div {
+                    className = ClassName("col-auto")
+                    select {
+                        className = ClassName("form-control")
+                        val elements = OrganizationStatus.values().map { it.name }.toMutableList()
+                        value = "STATUS"
+                        elements.forEach { element ->
+                            option {
+                                +element
+                                if (props.filters.contains(OrganizationStatus.valueOf(element))) {
+                                    selected = true
+                                }
+                            }
+                        }
+                        onChange = {
+                            setFilters(filters.copy(status = props.filters.printChangeStatus(it.target.value)))
+                        }
+                    }
+                }
+            }
+            div {
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Organization name: "
+                }
+                div {
+                    className = ClassName("col-auto")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        value = filters.organizationName
+                        required = false
+                        onChange = {
+                            setFilters(filters.copy(organizationName = it.target.value))
+                        }
+                    }
+                }
+            }
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary")
+                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
+                onClick = {
+                    props.onChangeFilters(filters)
+                }
+            }
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary")
+                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                onClick = {
+                    setFilters(OrganizationAdminFilters.empty)
+                    props.onChangeFilters(OrganizationAdminFilters.empty)
                 }
             }
         }
