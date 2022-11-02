@@ -5,11 +5,11 @@
 package com.saveourtool.save.gateway.security
 
 import com.saveourtool.save.gateway.config.ConfigurationProperties
-import com.saveourtool.save.gateway.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
