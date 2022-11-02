@@ -1212,16 +1212,6 @@
             },
             "description": "Unauthorized"
           },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestFilesContent"
-                }
-              }
-            },
-            "description": "Cannot fetch public test from test suite not connected to contest."
-          },
           "404": {
             "content": {
               "*/*": {
@@ -1230,7 +1220,7 @@
                 }
               }
             },
-            "description": "Either contest with such name was not found or tests are not provided."
+            "description": "Either contest with such name was not found or tests are not provided/not attached to given contest."
           }
         },
         "security": [
