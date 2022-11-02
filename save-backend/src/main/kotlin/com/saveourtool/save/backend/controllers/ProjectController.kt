@@ -127,8 +127,6 @@ class ProjectController(
     ): Mono<Project> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
-        }.filter {
-            it?.status == ProjectStatus.CREATED
         }.switchIfEmptyToNotFound {
             "Could not find project with such name and organization name."
         }

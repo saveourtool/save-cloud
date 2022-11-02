@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.v1
@@ -15,6 +16,8 @@ import com.saveourtool.save.v1
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -31,9 +34,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
-@MockBeans(
-    MockBean(LnkUserProjectService::class),
-)
 @Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
     @Autowired
@@ -51,6 +51,9 @@ class ProjectControllerTest {
     @Autowired
     private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
+    @MockBean
+    private lateinit var lnkUserProjectService: LnkUserProjectService
+
     @Test
     @WithMockUser
     fun `should return all public projects`() {
@@ -58,11 +61,12 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.NONE)
         webClient
             .post()
             .uri("/api/$v1/projects/not-deleted")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters(null))
+            .bodyValue(ProjectFilters.empty)
             .exchange()
             .expectStatus()
             .isOk
@@ -111,13 +115,14 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.NONE)
         getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
         }
     }
 
     @Test
-    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    @WithMockUser(value = "admin", roles = ["OWNER"])
     fun `delete project with owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 3)
@@ -127,6 +132,7 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.OWNER)
         webClient.delete()
             .uri("/api/$v1/projects/${organization.name}/${project.name}/delete?status=${ProjectStatus.DELETED}")
             .exchange()
@@ -145,20 +151,21 @@ class ProjectControllerTest {
         mutateMockedUser {
             details = AuthenticationDetails(id = 4)
         }
-        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val organization: Organization = organizationRepository.getOrganizationById(2)
         val project = Project("ToDelete", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.SUPER_ADMIN)
         webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete?status=${ProjectStatus.DELETED}")
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete?status=${ProjectStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
 
         val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
         Assertions.assertTrue(
-            projectFromDb?.status == ProjectStatus.DELETED
+            projectFromDb?.status == ProjectStatus.BANNED
         )
     }
 
@@ -173,6 +180,7 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.ADMIN)
         webClient.delete()
             .uri("/api/$v1/projects/${organization.name}/${project.name}/delete?status=${ProjectStatus.DELETED}")
             .exchange()
@@ -221,6 +229,7 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 3)
         }
 
+        given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.VIEWER)
         webClient.post()
             .uri("/api/$v1/projects/update")
             .bodyValue(project.toDto())
