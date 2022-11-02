@@ -329,8 +329,8 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {str ->
-            organizationService.findByName(str).toMono()
+        .flatMap {
+            organizationService.findByName(it).toMono()
         }
         .filter {
             (it.status == OrganizationStatus.CREATED && status == OrganizationStatus.DELETED) || status == OrganizationStatus.BANNED
@@ -373,8 +373,8 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {str ->
-            organizationService.findByName(str).toMono()
+        .flatMap {
+            organizationService.findByName(it).toMono()
         }
         .filter {
             it.status != OrganizationStatus.CREATED

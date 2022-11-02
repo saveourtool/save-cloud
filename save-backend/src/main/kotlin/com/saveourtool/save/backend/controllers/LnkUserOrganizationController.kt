@@ -263,7 +263,7 @@ class LnkUserOrganizationController(
         description = "Get organizations with status where user is a member, and his roles in those organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
-    @ApiResponse(responseCode = "404", description = "Could not find user with this id or .")
+    @ApiResponse(responseCode = "404", description = "Could not find user with this id and status.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRolesAndStatus(
         authentication: Authentication,
@@ -276,7 +276,7 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {lnkUserOrganization ->
-            lnkUserOrganization.organization != null && (status?.let { lnkUserOrganization.organization!!.status == it } ?: true)
+            lnkUserOrganization.organization != null && (status?.let { lnkUserOrganization.organization?.status == it } ?: true)
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
