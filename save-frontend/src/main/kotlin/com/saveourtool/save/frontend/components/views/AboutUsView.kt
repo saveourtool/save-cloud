@@ -182,7 +182,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
     
         """.trimIndent()
         init {
-            ContestView.contextType = requestStatusContext
+            AboutUsView.contextType = requestStatusContext
         }
     }
 }
