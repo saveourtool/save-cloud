@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.QueryHints
@@ -49,11 +48,10 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
     fun findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name: String, organizationName: String): Optional<Execution>
 
     /**
-     * @param project to find execution with locking for update
+     * @param id if the execution
      * @return execution
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(QueryHint(name = "javax.persistence.lock.timeout", value = "10000"))
     fun findWithLockingById(id: Long): Optional<Execution>
-
 }

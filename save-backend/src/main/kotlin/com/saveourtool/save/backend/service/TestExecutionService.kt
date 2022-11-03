@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
@@ -27,7 +26,6 @@ import org.springframework.transaction.support.TransactionTemplate
 
 import java.nio.file.Paths
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.io.path.pathString
 

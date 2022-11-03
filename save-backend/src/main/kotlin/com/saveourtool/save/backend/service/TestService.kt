@@ -146,7 +146,7 @@ class TestService(
     /**
      * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`
      *
-     * @param execution execution for which a batch is requested
+     * @param srcExecution execution for which a batch is requested
      * @return a batch of [batchSize] tests with status `READY_FOR_TESTING`
      */
     @Suppress("UnsafeCallOnNullableType")
