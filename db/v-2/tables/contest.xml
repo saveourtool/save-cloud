@@ -80,4 +80,10 @@
       onDelete="CASCADE"/>
   </changeSet>
 
+  <changeSet id="drop-test-suite-ids" author="sanyavertolet">
+    <dropColumn tableName="contest">
+      <column name="test_suite_ids"/>
+    </dropColumn>
+  </changeSet>
+
 </databaseChangeLog>

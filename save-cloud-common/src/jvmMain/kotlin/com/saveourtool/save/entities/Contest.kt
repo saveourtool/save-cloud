@@ -1,11 +1,13 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isValidName
+
+import com.fasterxml.jackson.annotation.JsonIgnore
+
+import javax.persistence.*
 import javax.persistence.Entity
-import javax.persistence.EnumType
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
@@ -16,9 +18,9 @@ import javax.persistence.ManyToOne
  * @property startTime the time contest starts
  * @property endTime the time contest ends
  * @property organization organization that created this contest
- * @property testSuiteIds
  * @property description
  * @property creationTime
+ * @property testSuiteLinks
  */
 @Entity
 @Suppress("LongParameterList")
@@ -31,9 +33,15 @@ class Contest(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
-    var testSuiteIds: String = "",
     var description: String? = null,
     var creationTime: LocalDateTime?,
+    @OneToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "contest",
+        targetEntity = LnkContestTestSuite::class,
+    )
+    @JsonIgnore
+    var testSuiteLinks: List<LnkContestTestSuite>,
 ) : BaseEntity() {
     /**
      * Create Data Transfer Object in order to pass entity to frontend
@@ -48,20 +56,16 @@ class Contest(
         endTime!!,
         description,
         organization.name,
-        getTestSuiteIds().toList(),
+        testSuiteLinks.map { it.testSuite.toDto() },
         creationTime,
     )
 
     /**
-     * @return set of testSuiteIds
+     * @return Test Suites that are attached to the contest
      */
-    fun getTestSuiteIds() = testSuiteIds.split(DATABASE_DELIMITER)
-        .mapNotNull {
-            it.toLongOrNull()
-        }
-        .distinct()
-
-    private fun validateTestSuiteIds() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
+    fun testSuites() = testSuiteLinks.map {
+        it.testSuite
+    }
 
     private fun validateDateRange() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 
@@ -70,7 +74,7 @@ class Contest(
      *
      * @return true if contest data is valid, false otherwise
      */
-    override fun validate() = name.isValidName() && validateTestSuiteIds() && validateDateRange()
+    override fun validate() = name.isValidName() && validateDateRange()
 
     companion object {
         /**
@@ -90,21 +94,22 @@ class Contest(
             endTime = null,
             organization = Organization.stub(1),
             creationTime = LocalDateTime.now(),
+            testSuiteLinks = emptyList(),
         ).apply {
             this.id = id
         }
-
-        private fun joinTestSuiteIds(testSuiteIds: List<Long>) = testSuiteIds.joinToString(DATABASE_DELIMITER)
 
         /**
          * Create [Contest] from [ContestDto]
          *
          * @param organization that created contest
          * @param creationTime specified time when contest was created
+         * @param testSuiteLinks
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
+            testSuiteLinks: List<LnkContestTestSuite>,
             creationTime: LocalDateTime? = null,
         ) = Contest(
             name,
@@ -112,9 +117,9 @@ class Contest(
             startTime,
             endTime,
             organization,
-            joinTestSuiteIds(testSuiteIds),
             description,
             creationTime ?: this.creationTime,
+            testSuiteLinks,
         )
     }
 }
