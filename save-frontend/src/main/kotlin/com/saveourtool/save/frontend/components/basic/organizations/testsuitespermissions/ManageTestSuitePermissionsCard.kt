@@ -286,7 +286,10 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         modalBuilder(
             title = "Test Suite Permission Manager${currentMode.title?.let { " - $it" }.orEmpty()}",
             classes = "modal-lg modal-dialog-scrollable",
-            onCloseButtonPressed = { props.closeModal() },
+            onCloseButtonPressed = {
+                props.closeModal()
+                clearFields()
+            },
             bodyBuilder = {
                 when (currentMode) {
                     TRANSFER -> displayPermissionManager(

@@ -83,8 +83,8 @@ class LnkOrganizationTestSuiteController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getAvailableTestSuitesByOrganization(
         @PathVariable organizationName: String,
+        @RequestParam permission: Permission,
         @RequestParam(defaultValue = "false") isContest: Boolean,
-        @RequestParam(defaultValue = "false") onlyPrivate: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
         .map { organization ->
@@ -96,11 +96,7 @@ class LnkOrganizationTestSuiteController(
                 testSuitePermissionEvaluator.hasPermission(
                     organization,
                     testSuite,
-                    if (onlyPrivate) {
-                        Permission.WRITE
-                    } else {
-                        Permission.READ
-                    },
+                    permission,
                     authentication,
                 )
             }
