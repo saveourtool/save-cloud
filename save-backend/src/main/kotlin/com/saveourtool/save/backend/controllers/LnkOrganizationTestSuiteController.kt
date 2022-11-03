@@ -76,6 +76,7 @@ class LnkOrganizationTestSuiteController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "permission", `in` = ParameterIn.QUERY, description = "requested permission: READ, WRITE or DELETE", required = true),
         Parameter(name = "isContest", `in` = ParameterIn.QUERY, description = "is given request sent for browsing test suites for contest, default is false", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched test suites available for given organization.")
