@@ -6628,6 +6628,7 @@
             }
           },
           {
+            "description": "requested permission: READ, WRITE or DELETE",
             "in": "query",
             "name": "permission",
             "required": true,
