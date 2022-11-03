@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
+import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
@@ -35,6 +36,7 @@ class TestSuitesService(
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val executionService: ExecutionService,
     private val agentStatusService: AgentStatusService,
     private val agentService: AgentService,
@@ -84,6 +86,7 @@ class TestSuitesService(
             }
         testSuiteRepository.save(testSuite)
         testSuitesSourceService.update(testSuiteSource)
+        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuiteSource.organization, testSuite, Rights.MAINTAIN)
         return testSuite
     }
 
