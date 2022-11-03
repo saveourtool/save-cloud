@@ -213,7 +213,7 @@ fun topBar() = FC<TopBarProps> { props ->
                         width = 6.rem
                     }
                     href = "#/$hrefAnchor"
-                    +"About"
+                    +"About us"
                 }
             }
         }
