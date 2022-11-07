@@ -21,7 +21,6 @@ val diktatVersion: String = libs.versions.diktat.get()
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation(libs.zip4j)
     implementation(libs.save.common.jvm)
 
     implementation(libs.ktlint.core)
