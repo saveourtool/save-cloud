@@ -71,7 +71,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
             div {
                 className = ClassName("mt-3 d-flex justify-content-center align-items-center")
                 div {
-                    className = ClassName("col-6")
+                    className = ClassName("col-6 p-0")
                     devCard {
                         div {
                             className = ClassName("m-2 d-flex justify-content-around align-items-center")
@@ -106,12 +106,13 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
     private fun ChildrenBuilder.renderDevelopers() {
         div {
             h4 {
-                className = ClassName("text-center mb-2 mt-3")
+                className = ClassName("text-center mb-1 mt-4")
                 +"core team"
             }
             div {
                 className = ClassName("mt-3 d-flex justify-content-around align-items-center")
                 div {
+                    className = ClassName("col-6 p-1")
                     for (rowIndex in 0..2) {
                         div {
                             className = ClassName("row")
@@ -154,7 +155,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
                     a {
                         className = ClassName("d-flex justify-content-center")
                         href = "$GITHUB_LINK${developer.githubNickname}"
-                        +developer.githubNickname.take(MAX_NICKNAME_LENGTH)
+                        +developer.githubNickname
                     }
                 }
             }
@@ -163,7 +164,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
 
     companion object :
         RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
-        private const val DEFAULT_AVATAR_SIZE = "175"
+        private const val DEFAULT_AVATAR_SIZE = "200"
         private const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
         private const val GITHUB_LINK = "https://github.com/"
         private const val MAX_NICKNAME_LENGTH = 15
