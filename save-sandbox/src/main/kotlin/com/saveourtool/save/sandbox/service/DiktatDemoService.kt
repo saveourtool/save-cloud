@@ -1,5 +1,6 @@
 package com.saveourtool.save.sandbox.service
 
+import com.saveourtool.save.demo.diktat.DiktatDemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoMode
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
@@ -20,21 +21,21 @@ import kotlin.collections.ArrayList
  * Demo service implementation for ktlint-demo/diktat-demo
  */
 @Service
-class DiktatDemoService : AbstractDemoService<DiktatDemoResult> {
+class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, DiktatDemoResult> {
     private fun generateFileName() = UUID.randomUUID().toString()
     private fun generateDemoFile(generatedName: String): File = File("demo-input-$generatedName")
     private fun generateDemoConfig(generatedName: String): File = File("demo-config-$generatedName")
 
     /**
      * @param demoFileLines kotlin file to be checked
-     * @param demoAdditionalParams list of tool name (DIKTAT/KTLINT), demo mode (FIX/WARN) and config file (optional)
+     * @param demoAdditionalParams instance of [DiktatDemoAdditionalParams]
      */
-    override fun runDemo(demoFileLines: String, demoAdditionalParams: List<String>): DiktatDemoResult {
+    override fun runDemo(demoFileLines: String, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
         val fileName = generateFileName()
 
-        val tool = demoAdditionalParams.getOrNull(0)
-        val demoMode = demoAdditionalParams.getOrNull(1)
-        val demoConfigLines = demoAdditionalParams.getOrNull(2).orEmpty()
+        val tool = demoAdditionalParams?.tool ?: DiktatDemoTool.DIKTAT
+        val demoMode = demoAdditionalParams?.mode ?: DiktatDemoMode.FIX
+        val demoConfigLines = demoAdditionalParams?.config.orEmpty()
 
         val demoFile = prepareDemoFile(demoFileLines, fileName)
         val demoConfig = prepareDemoConfig(demoConfigLines, fileName)
@@ -47,20 +48,20 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoResult> {
     }
 
     private fun processDemo(
-        tool: String?,
-        demoMode: String?,
+        tool: DiktatDemoTool,
+        demoMode: DiktatDemoMode,
         demoConfig: File,
         demoFile: File
     ): DiktatDemoResult {
         val ruleSets = when (tool) {
-            DiktatDemoTool.DIKTAT.name -> listOf(DiktatRuleSetProvider(demoConfig.absolutePath).get())
-            DiktatDemoTool.KTLINT.name -> listOf(StandardRuleSetProvider().get())
+            DiktatDemoTool.DIKTAT -> listOf(DiktatRuleSetProvider(demoConfig.absolutePath).get())
+            DiktatDemoTool.KTLINT -> listOf(StandardRuleSetProvider().get())
             else -> throw IllegalStateException("Unknown ruleset was requested.")
         }
 
         return when (demoMode) {
-            DiktatDemoMode.FIX.name -> runFixDemo(demoFile, ruleSets)
-            DiktatDemoMode.WARN.name -> runCheckDemo(demoFile, ruleSets)
+            DiktatDemoMode.FIX -> runFixDemo(demoFile, ruleSets)
+            DiktatDemoMode.WARN -> runCheckDemo(demoFile, ruleSets)
             else -> throw IllegalStateException("Unknown demoMode was requested.")
         }
     }
