@@ -1,4 +1,4 @@
-package com.saveourtool.save.sandbox.service
+package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult

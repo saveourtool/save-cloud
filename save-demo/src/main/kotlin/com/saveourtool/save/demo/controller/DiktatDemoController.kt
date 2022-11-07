@@ -1,8 +1,8 @@
-package com.saveourtool.save.sandbox.controller
+package com.saveourtool.save.demo.controller
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.diktat.*
-import com.saveourtool.save.sandbox.service.DiktatDemoService
+import com.saveourtool.save.demo.service.DiktatDemoService
 import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -28,7 +28,7 @@ class DiktatDemoController(
      */
     @PostMapping("/run")
     fun runCheckDemo(
-        @RequestBody diktatDemoRunRequest: DiktatDemoRunRequest
+        @RequestBody diktatDemoRunRequest: DiktatDemoRunRequest,
     ): Mono<DiktatDemoResult> = blockingToMono {
         diktatDemoService.runDemo(diktatDemoRunRequest.codeLines, diktatDemoRunRequest.params)
     }

@@ -38,8 +38,6 @@ tasks.withType<Test> {
     }
 }
 
-val diktatVersion: String = libs.versions.diktat.get()
-
 dependencies {
     implementation(projects.saveOrchestratorCommon)
     implementation(libs.zip4j)
@@ -52,13 +50,4 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.save.common.jvm)
-
-    implementation(libs.ktlint.core)
-    implementation(libs.ktlint.rulesets.standard)
-    implementation("org.cqfn.diktat:diktat-common:$diktatVersion") {
-        exclude(group = "org.apache.logging.log4j")
-    }
-    implementation("org.cqfn.diktat:diktat-rules:$diktatVersion") {
-        exclude(group = "org.apache.logging.log4j")
-    }
 }
