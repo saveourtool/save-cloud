@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono
     Tag(name = "diktat-demo"),
 )
 @RestController
-@RequestMapping("/diktat-demo/api")
+@RequestMapping("/api/diktat-demo")
 class DiktatDemoController(
     private val diktatDemoService: DiktatDemoService,
 ) {
