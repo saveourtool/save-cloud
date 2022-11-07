@@ -76,6 +76,7 @@ jobs:
           if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
           if ${{ inputs.sandbox }} == 'true'; then GRADLE_TASKS+=":save-sandbox:bootBuildImage "; fi
           if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
+          if ${{ inputs.demo }} == 'true'; then GRADLE_TASKS+=":save-demo:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
       - name: checkout save-core
         uses: actions/checkout@v3
