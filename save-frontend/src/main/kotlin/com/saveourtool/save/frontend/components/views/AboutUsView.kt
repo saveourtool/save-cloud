@@ -40,7 +40,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
     private val developers = listOf(
         Developer("Vladislav Frolov", "Cheshiriks", "Fullstack"),
         Developer("Peter Trifanov", "petertrr", "Fullstack"),
-        Developer("Andrey Shcheglov", "0x6675636b796f75676974687562", "Devops"),
+        Developer("Andrey Shcheglov", "0x6675636b796f75676974687562", "Backend"),
         Developer("Alexander Frolov", "sanyavertolet", "Frontend"),
         Developer("Andrey Kuleshov", "akuleshov7", "Team leader"),
         Developer("Nariman Abdullin", "nulls", "Fullstack"),
