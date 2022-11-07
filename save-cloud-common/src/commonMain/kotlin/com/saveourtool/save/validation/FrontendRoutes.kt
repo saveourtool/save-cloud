@@ -11,6 +11,7 @@ import com.saveourtool.save.utils.URL_PATH_DELIMITER
  * @property path substring of url that defines given route
  */
 enum class FrontendRoutes(val path: String) {
+    ABOUT_US("about"),
     AWESOME_BENCHMARKS("awesome-benchmarks"),
     CONTESTS("contests"),
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
