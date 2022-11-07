@@ -84,7 +84,7 @@ class WebSecurityConfig(
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
-                "/demo/api/**"
+                "/demo/api/**",
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
