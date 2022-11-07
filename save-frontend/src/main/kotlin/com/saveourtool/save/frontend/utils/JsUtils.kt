@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.utils
 
-import browser.window
 import react.ChildrenBuilder
 
+import kotlinx.browser.window
 import kotlinx.js.Object
 
 private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
