@@ -6,17 +6,20 @@ okio = "3.2.0"
 serialization = "1.4.1"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
-kotlin-wrappers = "1.0.0-pre.419"
+# Starting with `-pre.424` `kotlin-react-table` is removed; need https://github.com/saveourtool/save-cloud/issues/1243.
+kotlin-wrappers = "1.0.0-pre.423"
 spring = "5.3.23"
+# There is a regression https://github.com/spring-projects/spring-data-jpa/issues/2683 in spring-data-jpa 2.7.5.
+# Staying on 2.7.4 until there is a fix available.
 spring-boot = "2.7.4"
 spring-cloud = "3.1.4"
-spring-cloud-kubernetes = "2.1.4"
+spring-cloud-kubernetes = "2.1.5"
 kafka-client = "3.3.1"
 junit = "5.9.1"
 assertj = "3.23.1"
 diktat = "1.2.3"
 detekt = "1.21.0"
-liquibase-core = "4.17.1"
+liquibase-core = "4.17.2"
 docker-java = "3.2.13"
 jgit = "6.3.0.202209071007-r"
 mockito-kotlin = "4.0.0"
@@ -24,13 +27,13 @@ slf4j = "1.7.36"
 log4j = "2.19.0"
 micrometer = "1.9.5"
 jpa = "1.0.2"
-hibernate = "5.6.12.Final"
+hibernate = "5.6.14.Final"
 mySql = "8.0.31"
 testcontainers = "1.17.5"
 okhttp3 = "4.10.0"
 reckon = "0.16.1"
-commons-compress = "1.21"
-picocli = "4.6.3"
+commons-compress = "1.22"
+picocli = "4.7.0"
 zip4j = "2.11.2"
 ktoml = "0.3.0"
 springdoc = "1.6.12"
@@ -114,7 +117,7 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.4" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.6" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
@@ -145,7 +148,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp3" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.3" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.4" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
