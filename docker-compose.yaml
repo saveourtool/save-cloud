@@ -106,6 +106,18 @@ services:
       labels:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
+  demo:
+    image: ghcr.io/saveourtool/save-demo:${DEMO_TAG}
+    environment:
+      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+    ports:
+      - "5401:5401"
+    volumes:
+      - /home/saveu/configs/demo:/home/cnb/config
+    deploy:
+      labels:
+        - "prometheus-job=save-demo"
+    logging: *loki-logging-jvm
   prometheus:
     image: prom/prometheus:v2.39.1
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
