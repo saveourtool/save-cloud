@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -44,20 +43,10 @@ external interface ManageGitCredentialsCardProps : Props {
     var organizationName: String
 
     /**
-     * Flag that shows if the confirm windows was shown or not
-     */
-    var wasConfirmationModalShown: Boolean
-
-    /**
      * Lambda to show error after fail response
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
-
-    /**
-     * Lambda to show warning if current user is super admin
-     */
-    var showGlobalRoleWarning: () -> Unit
 }
 
 /**
@@ -76,9 +65,6 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
-            props.showGlobalRoleWarning()
-        }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
 

@@ -71,11 +71,12 @@ class LnkOrganizationTestSuiteController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get list of test suites that are available for given organization.",
-        description = "Get list of test suites that are available for given organization.",
+        summary = "Get the list of test suites that are available for given organization.",
+        description = "Get the list of test suites that are available for given organization.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "permission", `in` = ParameterIn.QUERY, description = "requested permission: READ, WRITE or DELETE", required = true),
         Parameter(name = "isContest", `in` = ParameterIn.QUERY, description = "is given request sent for browsing test suites for contest, default is false", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched test suites available for given organization.")
@@ -83,8 +84,8 @@ class LnkOrganizationTestSuiteController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getAvailableTestSuitesByOrganization(
         @PathVariable organizationName: String,
+        @RequestParam permission: Permission,
         @RequestParam(defaultValue = "false") isContest: Boolean,
-        @RequestParam(defaultValue = "false") onlyPrivate: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
         .map { organization ->
@@ -96,11 +97,7 @@ class LnkOrganizationTestSuiteController(
                 testSuitePermissionEvaluator.hasPermission(
                     organization,
                     testSuite,
-                    if (onlyPrivate) {
-                        Permission.WRITE
-                    } else {
-                        Permission.READ
-                    },
+                    permission,
                     authentication,
                 )
             }

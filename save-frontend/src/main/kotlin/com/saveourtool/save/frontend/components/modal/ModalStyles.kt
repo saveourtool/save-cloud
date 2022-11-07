@@ -22,7 +22,7 @@ val smallTransparentModalStyle = Styles(
         "top" to "10%",
         "left" to "35%",
         "right" to "35%",
-        "bottom" to "auto",
+        "bottom" to "2%",
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
@@ -34,7 +34,7 @@ val mediumTransparentModalStyle = Styles(
         "top" to "5%",
         "left" to "20%",
         "right" to "20%",
-        "bottom" to "auto",
+        "bottom" to "2%",
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
@@ -46,7 +46,7 @@ val largeTransparentModalStyle = Styles(
         "top" to "5%",
         "left" to "5%",
         "right" to "5%",
-        "bottom" to "auto",
+        "bottom" to "2%",
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"

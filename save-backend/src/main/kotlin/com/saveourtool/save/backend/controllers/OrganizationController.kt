@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
@@ -17,7 +18,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -106,7 +106,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getNotDeletedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<OrganizationDto> =
             (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
                 .let { organizationService.getFiltered(it) }

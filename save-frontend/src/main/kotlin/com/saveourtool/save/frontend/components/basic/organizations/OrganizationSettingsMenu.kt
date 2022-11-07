@@ -7,7 +7,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
 import com.saveourtool.save.frontend.utils.isSuperAdmin
-import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -77,7 +76,6 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -91,10 +89,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 selfUserInfo = props.currentUserInfo
                 groupPath = organizationPath
                 groupType = "organization"
-                this.wasConfirmationModalShown = wasConfirmationModalShown
-                updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.organizations }
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -107,9 +102,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             organizationGitCredentialsManageCard {
                 selfUserInfo = props.currentUserInfo
                 organizationName = props.organizationName
-                this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         div {

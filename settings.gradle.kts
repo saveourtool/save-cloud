@@ -35,5 +35,6 @@ include("test-utils")
 include("save-api")
 include("save-api-cli")
 include("save-sandbox")
+include("authentication-service")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

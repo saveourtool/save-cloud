@@ -131,7 +131,7 @@ class OrganizationService(
      * @param authentication
      * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
      */
-    fun getGlobalRating(organizationName: String, authentication: Authentication) =
+    fun getGlobalRating(organizationName: String, authentication: Authentication?) =
             projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
                 .collectList()
                 .map { projectsList ->
