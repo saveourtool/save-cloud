@@ -320,9 +320,9 @@ internal class OrganizationController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "status", `in` = ParameterIn.QUERY, description = "delete or ban organization", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted/banned an organization.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting/banning this organization.")
-    @ApiResponse(responseCode = "404", description = "Could not find active organization with such name.")
+    @ApiResponse(responseCode = "200", description = "Successfully deleted or banned an organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting or banning this organization.")
+    @ApiResponse(responseCode = "404", description = "Could not find corresponding organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
@@ -336,7 +336,7 @@ internal class OrganizationController(
             (it.status == OrganizationStatus.CREATED && status == OrganizationStatus.DELETED) || status == OrganizationStatus.BANNED
         }
         .switchIfEmptyToNotFound {
-            "Could not find active organization with name $organizationName."
+            "Could not find corresponding organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
