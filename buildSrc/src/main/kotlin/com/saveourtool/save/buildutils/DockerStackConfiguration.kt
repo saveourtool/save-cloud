@@ -107,6 +107,7 @@ fun Project.createStackDeployTask(profile: String) {
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
                     SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
+                    DEMO_TAG=${defaultVersionOrProperty("demo.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()
             )
@@ -143,6 +144,7 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("orchestrator"))
             Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
+            Files.createDirectories(configsDir.resolve("demo"))
         }
         description =
                 "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
@@ -230,7 +232,8 @@ fun Project.createStackDeployTask(profile: String) {
             "sandbox",
             "backend",
             "frontend",
-            "preprocessor"
+            "preprocessor",
+            "demo"
         )
     }
 
