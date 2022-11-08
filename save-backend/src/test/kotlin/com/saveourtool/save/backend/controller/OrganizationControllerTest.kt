@@ -79,6 +79,7 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkUserProjectRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(LnkContestProjectService::class),
+    MockBean(LnkOrganizationTestSuiteService::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

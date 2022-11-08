@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
@@ -27,7 +26,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
-import kotlinx.browser.window
 import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -120,7 +118,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
+        !contestDto.name.isValidName() || contestDto.testSuites.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -142,27 +140,12 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {
             props.onSaveError(response)
         }
-    }
-
-    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
-    val (testSuites, setTestSuites) = useState(emptyList<TestSuiteDto>())
-    useRequest {
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/${contestDto.organizationName}/get-by-ids",
-            headers = jsonHeaders,
-            body = Json.encodeToString(contestDto.testSuiteIds),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-
-        setTestSuites(testSuitesFromBackend)
     }
 
     val testSuitesSelectorWindowOpenness = useWindowOpenness()
@@ -171,12 +154,11 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         contestCreationCard {
             showContestTestSuitesSelectorModal(
                 contestDto.organizationName,
-                testSuites,
+                contestDto.testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
             ) { testSuiteDtos ->
-                setContestDto(contestDto.copy(testSuiteIds = testSuiteDtos.map { it.requiredId() }))
-                setTestSuites(testSuiteDtos)
+                setContestDto(contestDto.copy(testSuites = testSuiteDtos))
             }
             div {
                 className = ClassName("")
@@ -234,7 +216,9 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_TEST_SUITE_IDS
                             conflictMessage = null
-                            textValue = testSuites.map { it.name }.sorted().joinToString(", ")
+                            textValue = contestDto.testSuites.map { it.name }
+                                .sorted()
+                                .joinToString(", ")
                             validInput = true
                             classes = "col-12 pl-2 pr-2 text-center"
                             name = "Test Suites:"

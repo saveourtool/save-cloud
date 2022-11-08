@@ -5,9 +5,9 @@
 package com.saveourtool.save.gateway.security
 
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
@@ -84,6 +84,7 @@ class WebSecurityConfig(
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
+                "/demo/api/**",
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have

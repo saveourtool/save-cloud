@@ -17,6 +17,7 @@ import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToFlux
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -34,10 +35,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -217,7 +216,9 @@ class LnkContestProjectController(
             it.execution.toDto()
         }
 
-    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = Mono.justOrEmpty(contestService.findByName(contestName))
+    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = blockingToMono {
+        contestService.findByName(contestName)
+    }
         .switchIfEmptyToNotFound {
             "Could not find contest with name $contestName."
         }
@@ -258,11 +259,9 @@ class LnkContestProjectController(
             "No such project found or not enough permission to see the project",
             HttpStatus.FORBIDDEN,
         ),
-        Mono.justOrEmpty(contestService.findByName(contestName)),
+        blockingToMono { contestService.findByName(contestName) },
     )
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+        .switchIfEmptyToNotFound()
         .filter { (project, _) ->
             project.public
         }
@@ -296,7 +295,9 @@ class LnkContestProjectController(
     fun getBestResultsInUserProjects(
         @PathVariable contestName: String,
         authentication: Authentication,
-    ): Flux<ContestResult> = Mono.justOrEmpty(contestService.findByName(contestName))
+    ): Flux<ContestResult> = blockingToMono {
+        contestService.findByName(contestName)
+    }
         .switchIfEmptyToNotFound {
             "Contest with name $contestName was not found."
         }

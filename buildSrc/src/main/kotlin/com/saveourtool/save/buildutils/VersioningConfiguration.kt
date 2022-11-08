@@ -11,10 +11,7 @@ import org.ajoberstar.reckon.gradle.ReckonPlugin
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import java.net.URL
 import java.time.Duration
 import java.util.Properties
