@@ -147,13 +147,20 @@ private fun ChildrenBuilder.showAvaliableOptions(
 ) {
     ul {
         className = ClassName("list-group")
-        options.forEach { option ->
+        if (options.isEmpty()) {
             li {
                 className = ClassName("list-group-item")
-                onClick = {
-                    onOptionClick(option)
+                +"There is no test suite that you can manage."
+            }
+        } else {
+            options.forEach { option ->
+                li {
+                    className = ClassName("list-group-item")
+                    onClick = {
+                        onOptionClick(option)
+                    }
+                    +option
                 }
-                +option
             }
         }
     }
@@ -174,9 +181,9 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest {
         val options = when (props.selectorPurpose) {
-            TestSuiteSelectorPurpose.PUBLIC -> ""
-            TestSuiteSelectorPurpose.PRIVATE -> "?onlyPrivate=true"
-            TestSuiteSelectorPurpose.CONTEST -> "?isContest=true"
+            TestSuiteSelectorPurpose.PUBLIC -> "?permission=READ"
+            TestSuiteSelectorPurpose.PRIVATE -> "?permission=WRITE"
+            TestSuiteSelectorPurpose.CONTEST -> "?permission=READ&isContest=true"
         }
         val response = get(
             url = "$apiUrl/test-suites/${props.currentOrganizationName}/available$options",
