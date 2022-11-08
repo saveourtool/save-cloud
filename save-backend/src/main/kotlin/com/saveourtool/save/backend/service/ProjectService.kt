@@ -64,7 +64,7 @@ class ProjectService(
      * @return list of all projects
      */
     fun getProjects(status: ProjectStatus? = null): Flux<Project> =
-        (status ?. let { projectRepository.findAllByStatus(it) } ?: projectRepository.findAll()).let { Flux.fromIterable(it) }
+            (status?.let { projectRepository.findAllByStatus(it) } ?: projectRepository.findAll()).let { Flux.fromIterable(it) }
 
     /**
      * @param name
