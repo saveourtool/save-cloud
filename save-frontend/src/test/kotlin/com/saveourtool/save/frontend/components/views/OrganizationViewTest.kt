@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
@@ -53,7 +54,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/projects/get/not-deleted-projects-by-organization") { _, res, _ ->
+        rest.get("$apiUrl/projects/get/projects-by-organization?organizationName=${testOrganization.name}&status=${ProjectStatus.CREATED}") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
@@ -94,19 +95,21 @@ class OrganizationViewTest {
                 )
             }
             .then {
+                assertNotNull(it, "Should show confirmation window 1 ")
                 userEvent.click(it)
             }
             .then { _: Unit ->
                 screen.findByText("Delete ${testOrganization.name}")
             }
             .then {
+                assertNotNull(it, "Should show confirmation window 2")
                 userEvent.click(it)
             }
             .then { _: Unit ->
                 screen.findByText("Yes, delete ${testOrganization.name}")
             }
             .then {
-                assertNotNull(it, "Should show confirmation window")
+                assertNotNull(it, "Should show confirmation window 3")
             }
             .then {
                 worker.stop()

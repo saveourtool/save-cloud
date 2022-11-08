@@ -92,7 +92,7 @@ val actionButton: FC<ActionProps> = FC { props ->
 }
 
 /**
- * Button with modal for something action
+ * Button with modal for some action
  *
  * @return noting
  */

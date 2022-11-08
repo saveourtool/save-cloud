@@ -2332,7 +2332,7 @@
                 }
               }
             },
-            "description": "Could not find user with this id or ."
+            "description": "Could not find user with this id and status."
           }
         },
         "security": [
@@ -2912,7 +2912,7 @@
                 }
               }
             },
-            "description": "Could not find created organization with such name."
+            "description": "Could not find active organization with such name."
           },
           "409": {
             "content": {
@@ -6805,18 +6805,23 @@
             }
           },
           {
-            "description": "is given request sent for browsing test suites for contest, default is false",
+            "description": "requested permission: READ, WRITE or DELETE",
             "in": "query",
-            "name": "isContest",
-            "required": false,
+            "name": "permission",
+            "required": true,
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "string",
+              "enum": [
+                "DELETE",
+                "READ",
+                "WRITE"
+              ]
             }
           },
           {
+            "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
-            "name": "onlyPrivate",
+            "name": "isContest",
             "required": false,
             "schema": {
               "type": "boolean",

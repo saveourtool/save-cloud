@@ -60,9 +60,11 @@ class ProjectService(
     }
 
     /**
+     * @param status
      * @return list of all projects
      */
-    fun getProjects(): Flux<Project> = projectRepository.findAll().let { Flux.fromIterable(it) }
+    fun getProjects(status: ProjectStatus? = null): Flux<Project> =
+        (status ?. let { projectRepository.findAllByStatus(it) } ?: projectRepository.findAll()).let { Flux.fromIterable(it) }
 
     /**
      * @param name
@@ -79,15 +81,20 @@ class ProjectService(
 
     /**
      * @param organizationName
+     * @param status
      * @return List of the Organization projects
      */
-    fun getAllByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName)
+    fun getAllByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) = status?.let {
+        projectRepository.findByOrganizationNameAndStatus(organizationName, status)
+    } ?: projectRepository.findByOrganizationName(organizationName)
 
     /**
      * @param organizationName
+     * @param status
      * @return Flux of the Organization projects
      */
-    fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
+    fun getAllAsFluxByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) =
+            getAllByOrganizationNameAndStatus(organizationName, status).let { Flux.fromIterable(it) }
 
     /**
      * @return project's without status
@@ -147,7 +154,7 @@ class ProjectService(
     fun getAllProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
+    ): Flux<Project> = getAllAsFluxByOrganizationNameAndStatus(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }

@@ -64,10 +64,7 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjectsWithStatus(@RequestParam status: ProjectStatus?): Flux<Project> =
-            projectService.getProjects()
-                .filter { project ->
-                    status?.let { project.status == it } ?: true
-                }
+            projectService.getProjects(status)
 
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
@@ -79,13 +76,11 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjectsWithStatus(
-        authentication: Authentication, @RequestParam status: ProjectStatus?,
-    ): Flux<Project> = projectService.getProjects()
+        authentication: Authentication,
+        @RequestParam status: ProjectStatus?,
+    ): Flux<Project> = projectService.getProjects(status)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-        .filter { project ->
-            status?.let { project.status == it } ?: true
         }
 
     @PostMapping("/not-deleted")
@@ -150,12 +145,9 @@ class ProjectController(
         @RequestParam organizationName: String,
         authentication: Authentication?,
         @RequestParam status: ProjectStatus?,
-    ): Flux<Project> = projectService.getAllAsFluxByOrganizationName(organizationName)
+    ): Flux<Project> = projectService.getAllAsFluxByOrganizationNameAndStatus(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-        .filter { project ->
-            status?.let { project.status == it } ?: true
         }
 
     @PostMapping("/save")

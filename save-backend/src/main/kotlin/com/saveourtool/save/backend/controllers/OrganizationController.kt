@@ -322,7 +322,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully deleted/banned an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting/banning this organization.")
-    @ApiResponse(responseCode = "404", description = "Could not find created organization with such name.")
+    @ApiResponse(responseCode = "404", description = "Could not find active organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
@@ -336,7 +336,7 @@ internal class OrganizationController(
             (it.status == OrganizationStatus.CREATED && status == OrganizationStatus.DELETED) || status == OrganizationStatus.BANNED
         }
         .switchIfEmptyToNotFound {
-            "Could not find an organization with name $organizationName."
+            "Could not find active organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
@@ -380,7 +380,7 @@ internal class OrganizationController(
             it.status != OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
-            "Could not find an organization with name $organizationName."
+            "Could not find deleted organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
@@ -390,7 +390,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.recoverOrganization(it.name)
-            ResponseEntity.ok("Organization restore")
+            ResponseEntity.ok("Successfully restored requested organization")
         }
 
     @GetMapping("/{organizationName}/list-git")
