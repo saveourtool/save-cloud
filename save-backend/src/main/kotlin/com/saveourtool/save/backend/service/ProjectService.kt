@@ -96,15 +96,6 @@ class ProjectService(
     fun getAllAsFluxByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) =
             getAllByOrganizationNameAndStatus(organizationName, status).let { Flux.fromIterable(it) }
 
-    /**
-     * @return project's without status
-     */
-    fun getNotDeletedProjects(): List<Project> {
-        val projects = projectRepository.findAll { root, _, cb ->
-            cb.notEqual(root.get<String>("status"), ProjectStatus.CREATED)
-        }
-        return projects
-    }
 
     /**
      * @param project

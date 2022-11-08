@@ -33,5 +33,6 @@ data class OrganizationAdminFilters(
 
     companion object{
         val empty = OrganizationAdminFilters(emptyList(), "")
+        val any = OrganizationAdminFilters(listOf(OrganizationStatus.CREATED, OrganizationStatus.DELETED, OrganizationStatus.BANNED), "")
     }
 }

@@ -213,7 +213,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps, state.organizations, state.bannedOrganizations)
+            arrayOf(tableProps, state.organizations, state.deletedOrganizations, state.bannedOrganizations)
         },
         commonHeader = { tableInstance ->
             ReactHTML.tr {
@@ -222,10 +222,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                     organizationAdminRow {
                         filters = state.filters
                         onChangeFilters = { filterValue ->
-                            if (filters.status != filterValue.status)
-                                setState { filters = filterValue.copy(organizationName = filters.organizationName) }
-                            if (filters.organizationName != filterValue.organizationName)
-                                setState { filters = filterValue.copy(status = filters.status) }
+                            setState { filters = filterValue.copy(organizationName = filterValue.organizationName, status = filterValue.status) }
                         }
                     }
                 }
@@ -235,7 +232,9 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
 
     init {
         state.organizations = mutableListOf()
+        state.deletedOrganizations = mutableListOf()
         state.bannedOrganizations = mutableListOf()
+        state.filters = OrganizationAdminFilters.any
     }
 
     override fun componentDidMount() {
@@ -248,6 +247,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
             val organizations = getOrganizations()
             setState {
                 this.organizations = organizations.filter { it.status == OrganizationStatus.CREATED }.toMutableList()
+                this.deletedOrganizations = organizations.filter { it.status == OrganizationStatus.DELETED }.toMutableList()
                 this.bannedOrganizations = organizations.filter { it.status == OrganizationStatus.BANNED }.toMutableList()
             }
         }
@@ -266,7 +266,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                          * Only reload (re-render) the table if the state gets
                          * updated.
                          */
-                        (state.organizations + state.bannedOrganizations).toTypedArray()
+                        (state.organizations + state.deletedOrganizations + state.bannedOrganizations).toTypedArray()
                     }
                 }
             }

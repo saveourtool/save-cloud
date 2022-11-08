@@ -302,9 +302,12 @@ private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> 
                     className = ClassName("col-auto")
                     select {
                         className = ClassName("form-control")
+                        option {
+                            disabled = true
+                            selected = false
+                            value = "ANY"
+                        }
                         val elements = OrganizationStatus.values().map { it.name }.toMutableList()
-                        elements.add(0, ANY)
-                        value = filters.status ?: ANY
                         elements.forEach { element ->
                             option {
                                 +element

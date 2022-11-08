@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.filters.OrganizationAdminFilters
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -94,6 +95,15 @@ class OrganizationService(
     } else {
         organizationRepository.findByNameStartingWithAndStatus(
             organizationFilters.prefix,
+            organizationFilters.status,
+        )
+    }
+
+    fun getFiltered(organizationFilters: OrganizationAdminFilters) = if (organizationFilters.organizationName.isBlank()) {
+        organizationRepository.findByStatusIn(organizationFilters.status)
+    } else {
+        organizationRepository.findByNameStartingWithAndStatusIn(
+            organizationFilters.organizationName,
             organizationFilters.status,
         )
     }

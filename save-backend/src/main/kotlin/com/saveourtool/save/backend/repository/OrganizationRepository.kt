@@ -42,8 +42,21 @@ ValidateRepository {
     fun findByNameStartingWithAndStatus(prefix: String, status: OrganizationStatus): List<Organization>
 
     /**
+     * @param prefix prefix of organization name
+     * @param status
+     * @return list of organizations with names that start with [prefix]
+     */
+    fun findByNameStartingWithAndStatusIn(prefix: String, listOfStatus: List<OrganizationStatus>?): List<Organization>
+
+    /**
      * @param status
      * @return list of organizations with required status
      */
     fun findByStatus(status: OrganizationStatus): List<Organization>
+
+    /**
+     * @param status
+     * @return list of organizations with required status
+     */
+    fun findByStatusIn(listOfStatus: List<OrganizationStatus>?): List<Organization>
 }
