@@ -43,6 +43,11 @@ on:
         default: true
         description: Build new image of save-preprocessor
         required: false
+      demo:
+        type: boolean
+        default: true
+        description: Build new image of save-demo
+        required: false
 
 jobs:
   deploy_images:
