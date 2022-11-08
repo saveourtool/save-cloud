@@ -67,7 +67,7 @@ jobs:
         name: Prepare to build
         working-directory: save-cloud
         run: |
-          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage :save-demo:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
