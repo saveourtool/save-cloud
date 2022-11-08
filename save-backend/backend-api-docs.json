@@ -2912,7 +2912,7 @@
                 }
               }
             },
-            "description": "Could not find created organization with such name."
+            "description": "Could not find active organization with such name."
           },
           "409": {
             "content": {
