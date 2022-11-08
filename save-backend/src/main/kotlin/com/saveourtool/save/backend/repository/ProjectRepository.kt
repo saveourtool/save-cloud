@@ -40,4 +40,10 @@ JpaSpecificationExecutor<Project> {
      * @return list of projects for organization
      */
     fun findByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus): List<Project>
+
+    /**
+     * @param status
+     * @return list of projects for organization
+     */
+    fun findAllByStatus(status: ProjectStatus): List<Project>
 }
