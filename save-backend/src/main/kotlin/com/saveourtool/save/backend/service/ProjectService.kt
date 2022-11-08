@@ -60,10 +60,11 @@ class ProjectService(
     }
 
     /**
+     * @param status
      * @return list of all projects
      */
-    fun getProjects(status: ProjectStatus? = null): Flux<Project> = projectRepository.findAll().filter { project-> status?.let { project.status == it } ?: true}
-        . let { Flux.fromIterable(it) }
+    fun getProjects(status: ProjectStatus? = null): Flux<Project> = projectRepository.findAll().filter { project -> status?.let { project.status == it } ?: true }
+        .let { Flux.fromIterable(it) }
 
     /**
      * @param name
@@ -80,16 +81,20 @@ class ProjectService(
 
     /**
      * @param organizationName
+     * @param status
      * @return List of the Organization projects
      */
-    fun getAllByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) = status?.let { projectRepository.findByOrganizationNameAndStatus(organizationName, status) }
-        ?: projectRepository.findByOrganizationName(organizationName)
+    fun getAllByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) = status?.let {
+        projectRepository.findByOrganizationNameAndStatus(organizationName, status)
+    } ?: projectRepository.findByOrganizationName(organizationName)
 
     /**
      * @param organizationName
+     * @param status
      * @return Flux of the Organization projects
      */
-    fun getAllAsFluxByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) = getAllByOrganizationNameAndStatus(organizationName, status).let { Flux.fromIterable(it) }
+    fun getAllAsFluxByOrganizationNameAndStatus(organizationName: String, status: ProjectStatus? = null) =
+            getAllByOrganizationNameAndStatus(organizationName, status).let { Flux.fromIterable(it) }
 
     /**
      * @return project's without status
