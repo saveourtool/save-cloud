@@ -2,9 +2,13 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationAdminFilters
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.basic.OrganizationAdminFilterRowProps
 import com.saveourtool.save.frontend.components.basic.organizationAdminRow
 import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
@@ -21,6 +25,7 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import csstype.BorderRadius
 import csstype.ClassName
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import react.ChildrenBuilder
 import react.FC
 import react.Fragment
@@ -35,15 +40,28 @@ import react.table.columns
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.w3c.fetch.Headers
 import react.dom.html.ReactHTML
 
+/**
+ * [Props] of a data table with status and testSuite
+ */
+external interface StatusOrganizationProps<D : Any> : TableProps<D> {
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: OrganizationFilters
+}
 
 /**
  * The list of all organizations, visible to super-users.
  */
 internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowProps, OrganizationAdminState>(hasBg = false) {
     @Suppress("TYPE_ALIAS")
-    private val organizationTable: FC<TableProps<Organization>> = tableComponent(
+    private val organizationTable: FC<StatusOrganizationProps<Organization>> = tableComponent(
         columns = {
             columns {
                 column(
@@ -61,16 +79,32 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                                     to = "/organization/$organizationName/tools"
                                     +organizationName
                                 }
+                                OrganizationStatus.DELETED -> div {
+                                    className = ClassName("text-muted")
+                                    Link {
+                                        className = ClassName("text-muted")
+                                        to = "/organization/$organizationName/tools"
+                                        +organizationName
+                                    }
+                                    span {
+                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs")
+                                        style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                        +"deleted"
+                                    }
+                                }
                                 OrganizationStatus.BANNED -> div {
                                     className = ClassName("text-danger")
-                                    +cellProps.value
+                                    Link {
+                                        className = ClassName("text-danger")
+                                        to = "/organization/$organizationName/tools"
+                                        +organizationName
+                                    }
                                     span {
-                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs")
                                         style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
                                         +"banned"
                                     }
                                 }
-                                else -> {}
                             }
                         }
                     }
@@ -118,10 +152,8 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                                     onActionSuccess = { clickMode: Boolean ->
                                         setState {
                                             organizations -= organization
-                                            if (clickMode)
-                                                bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
-                                            else
-                                                deletedOrganizations += organization.copy(status = OrganizationStatus.DELETED)
+                                            // if (clickMode) bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
+                                            // else deletedOrganizations += organization.copy(status = OrganizationStatus.DELETED)
                                         }
                                     }
                                     conditionClick = true
@@ -130,7 +162,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                                     }
                                 }
                             }
-                            else if (organization.status == OrganizationStatus.DELETED) {
+                            else if (organization.status != OrganizationStatus.CREATED) {
                                 actionButton {
                                     title = "WARNING: recover Organization"
                                     errorTitle = "You cannot recover a $organizationName"
@@ -154,42 +186,10 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                                     }
                                     onActionSuccess = { _ ->
                                         setState {
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
-                                            deletedOrganizations -= organization
-                                        }
-                                    }
-                                    conditionClick = false
-                                    sendRequest = { _ ->
-                                        responseRecoverOrganization(organizationName)
-                                    }
-                                }
-                            }
-                            else if (organization.status == OrganizationStatus.BANNED) {
-                                actionButton {
-                                    title = "WARNING: recover Organization"
-                                    errorTitle = "You cannot recover a $organizationName"
-                                    message = "Are you sure you want to recover the organization $organizationName?"
-                                    buttonStyleBuilder = { childrenBuilder ->
-                                        with(childrenBuilder) {
-                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
-                                        }
-                                    }
-                                    classes = actionButtonClasses.joinToString(" ")
-                                    modalButtons = { action, window, childrenBuilder ->
-                                        with(childrenBuilder) {
-                                            buttonBuilder(label = "Yes, recover $organizationName", style = "warning", classes = "mr-2") {
-                                                action()
-                                                window.closeWindow()
-                                            }
-                                            buttonBuilder("Cancel") {
-                                                window.closeWindow()
-                                            }
-                                        }
-                                    }
-                                    onActionSuccess = { _ ->
-                                        setState {
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
-                                            bannedOrganizations -= organization
+                                            organizations -= organization
+                                            // organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                            // if (organization.status == OrganizationStatus.DELETED) deletedOrganizations -= organization
+                                            // else if (organization.status == OrganizationStatus.BANNED) bannedOrganizations -= organization
                                         }
                                     }
                                     conditionClick = false
@@ -213,7 +213,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps, state.organizations, state.deletedOrganizations, state.bannedOrganizations)
+            arrayOf(tableProps, state.organizations)
         },
         commonHeader = { tableInstance ->
             ReactHTML.tr {
@@ -222,7 +222,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                     organizationAdminRow {
                         filters = state.filters
                         onChangeFilters = { filterValue ->
-                            setState { filters = filterValue.copy(organizationName = filterValue.organizationName, status = filterValue.status) }
+                            setState { filters = filterValue.copy(prefix = filterValue.prefix, status = filterValue.status) }
                         }
                     }
                 }
@@ -232,9 +232,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
 
     init {
         state.organizations = mutableListOf()
-        state.deletedOrganizations = mutableListOf()
-        state.bannedOrganizations = mutableListOf()
-        state.filters = OrganizationAdminFilters.any
+        state.filters = OrganizationFilters.any
     }
 
     override fun componentDidMount() {
@@ -246,9 +244,7 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
              */
             val organizations = getOrganizations()
             setState {
-                this.organizations = organizations.filter { it.status == OrganizationStatus.CREATED }.toMutableList()
-                this.deletedOrganizations = organizations.filter { it.status == OrganizationStatus.DELETED }.toMutableList()
-                this.bannedOrganizations = organizations.filter { it.status == OrganizationStatus.BANNED }.toMutableList()
+                this.organizations = organizations.toMutableList()
             }
         }
     }
@@ -261,13 +257,23 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                 className = ClassName("col-lg-10 mt-4 min-vh-100")
 
                 organizationTable {
-                    getData = { _, _ ->
-                        /*
-                         * Only reload (re-render) the table if the state gets
-                         * updated.
-                         */
-                        (state.organizations + state.deletedOrganizations + state.bannedOrganizations).toTypedArray()
+                    filters = state.filters
+                    getData = { page, size ->
+                        post(
+                            url = "$apiUrl/organizations/by-filters",
+                            headers = jsonHeaders,
+                            body = Json.encodeToString(filters),
+                            loadingHandler = ::classLoadingHandler,
+                        )
+                            .decodeFromJsonString()
                     }
+//                    getData = {
+//                        /*
+//                         * Only reload (re-render) the table if the state gets
+//                         * updated.
+//                         */
+//                        state.organizations.filter { organization-> filters.status?.let { it == organization.status } ?: true }.toTypedArray()
+//                    }
                 }
             }
         }
@@ -322,20 +328,9 @@ internal external interface OrganizationAdminState : State {
      */
     var organizations: MutableList<Organization>
 
-    /**
-     * The cached list of all banned organizations.
-     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
-     */
-    var deletedOrganizations: MutableList<Organization>
-
-    /**
-     * The cached list of all banned organizations.
-     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
-     */
-    var bannedOrganizations: MutableList<Organization>
 
     /**
      * All filters in one class property [name]
      */
-    var filters: OrganizationAdminFilters
+    var filters: OrganizationFilters
 }

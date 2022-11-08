@@ -64,7 +64,7 @@ class ProjectControllerTest {
         given(lnkUserProjectService.findRoleByUserIdAndProject(any(), any())).willReturn(Role.NONE)
         webClient
             .post()
-            .uri("/api/$v1/projects/not-deleted")
+            .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(ProjectFilters.empty)
             .exchange()

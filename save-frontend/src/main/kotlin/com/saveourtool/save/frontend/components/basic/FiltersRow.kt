@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
+import csstype.HtmlAttributes
 import react.FC
 import react.Props
 import react.dom.html.ButtonType
@@ -78,12 +79,12 @@ external interface OrganizationAdminFilterRowProps : Props {
     /**
      * All filters in one class property [name]
      */
-    var filters: OrganizationAdminFilters
+    var filters: OrganizationFilters
 
     /**
      * lambda to change [name]
      */
-    var onChangeFilters: (OrganizationAdminFilters) -> Unit
+    var onChangeFilters: (OrganizationFilters) -> Unit
 }
 
 /**
@@ -299,25 +300,26 @@ private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> 
                     +"Status: "
                 }
                 div {
-                    className = ClassName("col-auto")
+                    className = ClassName("dropdown")
                     select {
                         className = ClassName("form-control")
-                        option {
-                            disabled = true
-                            selected = false
-                            value = "ANY"
-                        }
                         val elements = OrganizationStatus.values().map { it.name }.toMutableList()
+                        elements.add(0, ANY)
+                        value = filters.status?.name ?: ANY
                         elements.forEach { element ->
                             option {
-                                +element
-                                if (props.filters.contains(OrganizationStatus.valueOf(element))) {
+                                if (element == props.filters.status?.name) {
                                     selected = true
                                 }
+                                +element
                             }
                         }
                         onChange = {
-                            setFilters(filters.copy(status = props.filters.printChangeStatus(it.target.value)))
+                            if (it.target.value == "ANY") {
+                                setFilters(filters.copy(status = null))
+                            } else {
+                                setFilters(filters.copy(status = OrganizationStatus.valueOf(it.target.value)))
+                            }
                         }
                     }
                 }
@@ -333,10 +335,10 @@ private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> 
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filters.organizationName
+                        value = filters.prefix
                         required = false
                         onChange = {
-                            setFilters(filters.copy(organizationName = it.target.value))
+                            setFilters(filters.copy(prefix = it.target.value))
                         }
                     }
                 }
@@ -354,8 +356,8 @@ private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> 
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setFilters(OrganizationAdminFilters.empty)
-                    props.onChangeFilters(OrganizationAdminFilters.empty)
+                    setFilters(OrganizationFilters.any)
+                    props.onChangeFilters(OrganizationFilters.any)
                 }
             }
         }

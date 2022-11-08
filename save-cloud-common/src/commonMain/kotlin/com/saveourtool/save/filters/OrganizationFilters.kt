@@ -10,9 +10,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class OrganizationFilters(
     val prefix: String,
-    val status: OrganizationStatus = OrganizationStatus.CREATED,
+    val status: OrganizationStatus? = OrganizationStatus.CREATED,
 ) {
     companion object {
         val empty = OrganizationFilters("", OrganizationStatus.CREATED)
+        val any = OrganizationFilters("", null)
     }
 }

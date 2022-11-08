@@ -128,7 +128,7 @@ internal class OrganizationController(
         organizationService.findByName(organizationName)
     }
         .filter {
-            it?.status == OrganizationStatus.CREATED
+            it?.status == OrganizationStatus.CREATED || organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, organizationName, Role.SUPER_ADMIN)
         }
         .switchIfEmptyToNotFound {
             "Organization not found by name $organizationName"

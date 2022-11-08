@@ -11,11 +11,11 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OrganizationAdminFilters(
-    var status: List<OrganizationStatus>?,
+    var status: List<OrganizationStatus>,
     val organizationName: String
 ) {
 
-    fun contains(elem: OrganizationStatus) = status?.contains(elem) ?: false
+    fun contains(elem: OrganizationStatus) = status.contains(elem)
 
     fun changeStatus(elem: OrganizationStatus) {
         status = printChangeStatus(elem)
@@ -26,9 +26,9 @@ data class OrganizationAdminFilters(
 
     private fun printChangeStatus(elem: OrganizationStatus) =
         if (this.contains(elem)) {
-            status?.plus(elem)
+            status.plus(elem)
         } else {
-            status?.minus(elem)
+            status.minus(elem)
         }
 
     companion object{

@@ -122,6 +122,8 @@ class ProjectController(
     ): Mono<Project> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
+        }.filter {
+            it?.let { it.status == ProjectStatus.CREATED || projectPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.SUPER_ADMIN) } ?: false
         }.switchIfEmptyToNotFound {
             "Could not find project with such name and organization name."
         }

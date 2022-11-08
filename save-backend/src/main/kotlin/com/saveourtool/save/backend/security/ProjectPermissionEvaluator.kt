@@ -48,6 +48,9 @@ class ProjectPermissionEvaluator(
         }
     }
 
+    fun hasGlobalRoleOrOrganizationRole(authentication: Authentication, project: Project, requiredRole: Role): Boolean =
+        lnkUserProjectService.getGlobalRoleOrProjectRole(authentication, project).priority >= requiredRole.priority
+
     /**
      * @param authentication
      * @param permission
