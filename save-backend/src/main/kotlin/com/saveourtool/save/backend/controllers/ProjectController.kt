@@ -263,8 +263,11 @@ class ProjectController(
                     "Could not find created project with name $projectName."
                 }
                 .map {
-                    if (status == ProjectStatus.DELETED) projectService.deleteProject(it)
-                    else if (status == ProjectStatus.BANNED) projectService.banProject(it)
+                    if (status == ProjectStatus.DELETED) {
+                        projectService.deleteProject(it)
+                    } else if (status == ProjectStatus.BANNED) {
+                        projectService.banProject(it)
+                    }
                     ResponseEntity.ok("Project deleted or banned")
                 }
 

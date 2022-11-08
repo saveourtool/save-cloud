@@ -351,8 +351,11 @@ internal class OrganizationController(
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            if (status == OrganizationStatus.DELETED) organizationService.deleteOrganization(it.name)
-            else if (status == OrganizationStatus.BANNED) organizationService.banOrganization(it.name)
+            if (status == OrganizationStatus.DELETED) {
+                organizationService.deleteOrganization(it.name)
+            } else if (status == OrganizationStatus.BANNED) {
+                organizationService.banOrganization(it.name)
+            }
             ResponseEntity.ok("Organization deleted oa banned")
         }
 

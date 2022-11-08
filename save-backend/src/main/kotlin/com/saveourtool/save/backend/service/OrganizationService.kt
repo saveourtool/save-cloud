@@ -46,10 +46,7 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization
-        = changeOrganizationStatus(organizationName, OrganizationStatus.DELETED)
-
-
+    fun deleteOrganization(organizationName: String): Organization = changeOrganizationStatus(organizationName, OrganizationStatus.DELETED)
 
     /**
      * Mark organization with [organizationName] as deleted or banned
