@@ -50,7 +50,7 @@ class OrganizationService(
     fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization {
         require(status != OrganizationStatus.CREATED)
         if (status == OrganizationStatus.BANNED) {
-            val projects = projectService.getAllByOrganizationName(organizationName)
+            val projects = projectService.getAllByOrganizationNameAndStatus(organizationName)
             projects.forEach {
                 it.status = ProjectStatus.BANNED
                 projectService.updateProject(it)
@@ -120,7 +120,7 @@ class OrganizationService(
      *   `false` otherwise.
      */
     fun hasProjects(organizationName: String): Boolean =
-            projectService.getAllByOrganizationName(organizationName).any { project ->
+            projectService.getAllByOrganizationNameAndStatus(organizationName).any { project ->
                 project.status == ProjectStatus.CREATED
             }
 
