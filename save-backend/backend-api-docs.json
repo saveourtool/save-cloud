@@ -2882,7 +2882,7 @@
                 }
               }
             },
-            "description": "Successfully deleted/banned an organization."
+            "description": "Successfully deleted or banned an organization."
           },
           "401": {
             "content": {
@@ -2902,7 +2902,7 @@
                 }
               }
             },
-            "description": "Not enough permission for deleting/banning this organization."
+            "description": "Not enough permission for deleting or banning this organization."
           },
           "404": {
             "content": {
@@ -2912,7 +2912,7 @@
                 }
               }
             },
-            "description": "Could not find active organization with such name."
+            "description": "Could not find corresponding organization with such name."
           },
           "409": {
             "content": {
