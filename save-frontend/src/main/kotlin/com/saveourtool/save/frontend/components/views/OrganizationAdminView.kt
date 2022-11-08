@@ -94,9 +94,10 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
 
                             if (organization.status == OrganizationStatus.CREATED) {
                                 actionButton {
-                                    title = "WARNING: Ban Organization"
-                                    errorTitle = "You cannot ban a $organizationName"
-                                    message = "Are you sure you want to ban the organization $organizationName?"
+                                    title = "WARNING: Delete Organization"
+                                    errorTitle = "You cannot delete a $organizationName"
+                                    message = "Are you sure you want to delete the organization $organizationName?"
+                                    clickMessage = "Change to ban mode"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
@@ -114,18 +115,56 @@ internal class OrganizationAdminView : AbstractView<OrganizationAdminFilterRowPr
                                             }
                                         }
                                     }
-                                    onActionSuccess = { _ ->
+                                    onActionSuccess = { clickMode: Boolean ->
                                         setState {
                                             organizations -= organization
-                                            bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
+                                            if (clickMode)
+                                                bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
+                                            else
+                                                deletedOrganizations += organization.copy(status = OrganizationStatus.DELETED)
+                                        }
+                                    }
+                                    conditionClick = true
+                                    sendRequest = { isClickMode ->
+                                        responseDeleteOrganization(isClickMode, organizationName)
+                                    }
+                                }
+                            }
+                            else if (organization.status == OrganizationStatus.DELETED) {
+                                actionButton {
+                                    title = "WARNING: recover Organization"
+                                    errorTitle = "You cannot recover a $organizationName"
+                                    message = "Are you sure you want to recover the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, recover $organizationName", style = "warning", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                            deletedOrganizations -= organization
                                         }
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
-                                        responseDeleteOrganization(true, organizationName)
+                                        responseRecoverOrganization(organizationName)
                                     }
                                 }
-                            } else if (organization.status == OrganizationStatus.BANNED) {
+                            }
+                            else if (organization.status == OrganizationStatus.BANNED) {
                                 actionButton {
                                     title = "WARNING: recover Organization"
                                     errorTitle = "You cannot recover a $organizationName"

@@ -303,7 +303,8 @@ private fun organizationAdminFiltersRow() = FC<OrganizationAdminFilterRowProps> 
                     select {
                         className = ClassName("form-control")
                         val elements = OrganizationStatus.values().map { it.name }.toMutableList()
-                        value = "STATUS"
+                        elements.add(0, ANY)
+                        value = filters.status ?: ANY
                         elements.forEach { element ->
                             option {
                                 +element

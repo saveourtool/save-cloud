@@ -24,7 +24,7 @@ data class OrganizationAdminFilters(
     fun printChangeStatus(elem: String) =
         OrganizationStatus.values().firstOrNull { it.name == elem.uppercase() } ?. let { printChangeStatus(it) } ?: status
 
-    fun printChangeStatus(elem: OrganizationStatus) =
+    private fun printChangeStatus(elem: OrganizationStatus) =
         if (this.contains(elem)) {
             status?.plus(elem)
         } else {
