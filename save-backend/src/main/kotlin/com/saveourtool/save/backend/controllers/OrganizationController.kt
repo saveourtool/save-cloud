@@ -86,7 +86,7 @@ internal class OrganizationController(
         } ?: organizationService.findAll()
     }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -351,8 +351,9 @@ internal class OrganizationController(
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            organizationService.deleteOrganization(it.name, status)
-            ResponseEntity.ok("Organization deleted")
+            if (status == OrganizationStatus.DELETED) organizationService.deleteOrganization(it.name)
+            else if (status == OrganizationStatus.BANNED) organizationService.banOrganization(it.name)
+            ResponseEntity.ok("Organization deleted oa banned")
         }
 
     @PostMapping("/{organizationName}/recover")

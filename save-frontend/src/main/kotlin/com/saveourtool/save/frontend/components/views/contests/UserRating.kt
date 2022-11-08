@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
@@ -131,9 +132,9 @@ private fun userRating() = VFC {
     val (organizations, setOrganizations) = useState<Set<OrganizationDto>>(emptySet())
     useRequest {
         val organizationsFromBackend: List<OrganizationDto> = post(
-            url = "$apiUrl/organizations/not-deleted",
+            url = "$apiUrl/organizations/by-filters",
             headers = jsonHeaders,
-            body = undefined,
+            body = Json.encodeToString(OrganizationFilters.empty),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -143,7 +144,7 @@ private fun userRating() = VFC {
     val (projects, setProjects) = useState(emptySet<Project>())
     useRequest {
         val projectsFromBackend: List<Project> = post(
-            url = "$apiUrl/projects/not-deleted",
+            url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
             body = Json.encodeToString(ProjectFilters.empty),
             loadingHandler = ::loadingHandler,

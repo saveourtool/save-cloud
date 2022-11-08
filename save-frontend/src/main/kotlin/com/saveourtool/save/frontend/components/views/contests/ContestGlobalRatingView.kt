@@ -248,7 +248,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
             val organizationsFromBackend: List<OrganizationDto> = post(
-                url = "$apiUrl/organizations/not-deleted",
+                url = "$apiUrl/organizations/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -264,7 +264,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
             val projectsFromBackend: List<Project> = post(
-                url = "$apiUrl/projects/not-deleted",
+                url = "$apiUrl/projects/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
