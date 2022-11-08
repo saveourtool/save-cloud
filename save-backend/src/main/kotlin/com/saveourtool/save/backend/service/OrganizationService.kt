@@ -41,23 +41,28 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as deleted or banned
+     * Mark organization with [organizationName] as deleted
      *
-     * @param organizationName an [Organization]'s name to delete or banned
-     * @param status on [deleted] or [banned]
+     * @param organizationName an [Organization]'s name to delete
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization {
-        require(status != OrganizationStatus.CREATED)
-        if (status == OrganizationStatus.BANNED) {
-            val projects = projectService.getAllByOrganizationNameAndStatus(organizationName)
-            projects.forEach {
-                it.status = ProjectStatus.BANNED
-                projectService.updateProject(it)
-            }
+    fun deleteOrganization(organizationName: String): Organization = changeOrganizationStatus(organizationName, OrganizationStatus.DELETED)
+
+    /**
+     * Mark organization with [organizationName] and all it`s projects as banned
+     *
+     * @param organizationName an [Organization]'s name to banned
+     * @return deleted organization
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun banOrganization(organizationName: String): Organization {
+        val projects = projectService.getAllByOrganizationNameAndStatus(organizationName)
+        projects.forEach {
+            it.status = ProjectStatus.BANNED
+            projectService.updateProject(it)
         }
-        return changeOrganizationStatus(organizationName, status)
+        return changeOrganizationStatus(organizationName, OrganizationStatus.BANNED)
     }
 
     /**

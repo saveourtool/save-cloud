@@ -83,7 +83,7 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -263,8 +263,12 @@ class ProjectController(
                     "Could not find created project with name $projectName."
                 }
                 .map {
-                    projectService.deleteProject(it, status)
-                    ResponseEntity.ok("Project delete")
+                    if (status == ProjectStatus.DELETED) {
+                        projectService.deleteProject(it)
+                    } else if (status == ProjectStatus.BANNED) {
+                        projectService.banProject(it)
+                    }
+                    ResponseEntity.ok("Project deleted or banned")
                 }
 
     @PostMapping("/{organizationName}/{projectName}/recover")
@@ -294,7 +298,7 @@ class ProjectController(
                 }
                 .map {
                     projectService.recoverProject(it)
-                    ResponseEntity.ok("Project restore")
+                    ResponseEntity.ok("Project restored")
                 }
 
     companion object {

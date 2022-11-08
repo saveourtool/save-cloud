@@ -105,10 +105,15 @@ class ProjectService(
 
     /**
      * @param project
-     * @param status
-     * @return [project] with status [ProjectStatus.DELETED] or [ProjectStatus.BANNED]
+     * @return [project] with status [ProjectStatus.DELETED]
      */
-    fun deleteProject(project: Project, status: ProjectStatus) = changeProjectStatus(project, status)
+    fun deleteProject(project: Project) = changeProjectStatus(project, ProjectStatus.DELETED)
+
+    /**
+     * @param project
+     * @return [project] with status [ProjectStatus.BANNED]
+     */
+    fun banProject(project: Project) = changeProjectStatus(project, ProjectStatus.BANNED)
 
     /**
      * @param project

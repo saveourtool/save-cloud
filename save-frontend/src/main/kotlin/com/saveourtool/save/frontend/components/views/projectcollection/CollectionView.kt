@@ -103,7 +103,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                 projectsTable {
                     getData = { _, _ ->
                         val response = post(
-                            url = "$apiUrl/projects/not-deleted",
+                            url = "$apiUrl/projects/by-filters",
                             headers = jsonHeaders,
                             body = Json.encodeToString(ProjectFilters.empty),
                             loadingHandler = ::classLoadingHandler,

@@ -2269,6 +2269,58 @@
         ]
       }
     },
+    "/api/v1/organizations/by-filters": {
+      "post": {
+        "description": "Get created organizations.",
+        "operationId": "getCreatedOrganizations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched non-deleted organizations."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get created organizations.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/by-user": {
       "get": {
         "description": "Get organizations with status where user is a member, and his roles in those organizations.",
@@ -2516,58 +2568,6 @@
           }
         ],
         "summary": "Get your organizations.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/not-deleted": {
-      "post": {
-        "description": "Get created organizations.",
-        "operationId": "getCreatedOrganizations",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched non-deleted organizations."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get created organizations.",
         "tags": [
           "organizations"
         ]
@@ -2882,7 +2882,7 @@
                 }
               }
             },
-            "description": "Successfully deleted/banned an organization."
+            "description": "Successfully deleted or banned an organization."
           },
           "401": {
             "content": {
@@ -2902,7 +2902,7 @@
                 }
               }
             },
-            "description": "Not enough permission for deleting/banning this organization."
+            "description": "Not enough permission for deleting or banning this organization."
           },
           "404": {
             "content": {
@@ -2912,7 +2912,7 @@
                 }
               }
             },
-            "description": "Could not find active organization with such name."
+            "description": "Could not find corresponding organization with such name."
           },
           "409": {
             "content": {
@@ -4074,6 +4074,58 @@
         ]
       }
     },
+    "/api/v1/projects/by-filters": {
+      "post": {
+        "description": "Get non-deleted projects, available for current user.",
+        "operationId": "getNotDeletedProjectsWithFilters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched non-deleted projects."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get non-deleted projects.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/api/v1/projects/get-for-current-user": {
       "get": {
         "description": "Get list of projects related to current user",
@@ -4270,58 +4322,6 @@
           }
         ],
         "summary": "Get all projects by organization name.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
-    "/api/v1/projects/not-deleted": {
-      "post": {
-        "description": "Get non-deleted projects, available for current user.",
-        "operationId": "getNotDeletedProjectsWithFilters",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProjectFilters"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched non-deleted projects."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get non-deleted projects.",
         "tags": [
           "projects"
         ]
