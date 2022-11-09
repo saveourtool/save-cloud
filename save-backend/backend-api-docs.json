@@ -2222,6 +2222,7 @@
             "required": false,
             "schema": {
               "type": "string",
+              "default": "null",
               "enum": [
                 "BANNED",
                 "CREATED",
@@ -4021,6 +4022,7 @@
             "required": false,
             "schema": {
               "type": "string",
+              "default": "null",
               "enum": [
                 "BANNED",
                 "CREATED",
