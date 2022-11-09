@@ -46,7 +46,12 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization = changeOrganizationStatus(organizationName, OrganizationStatus.DELETED)
+    fun deleteOrganization(organizationName: String): Organization =
+            if (!hasProjects(organizationName)) {
+                changeOrganizationStatus(organizationName, OrganizationStatus.DELETED)
+            } else {
+                getByName(organizationName)
+            }
 
     /**
      * Mark organization with [organizationName] and all it`s projects as banned
@@ -54,7 +59,6 @@ class OrganizationService(
      * @param organizationName an [Organization]'s name to banned
      * @return deleted organization
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun banOrganization(organizationName: String): Organization {
         val projects = projectService.getAllByOrganizationNameAndStatus(organizationName)
         projects.forEach {
@@ -80,8 +84,7 @@ class OrganizationService(
      * @param changeStatus - the status to be assigned to the [Organization]
      * @return deleted organization
      */
-    @Suppress("UnsafeCallOnNullableType")
-    fun changeOrganizationStatus(organizationName: String, changeStatus: OrganizationStatus): Organization = getByName(organizationName)
+    private fun changeOrganizationStatus(organizationName: String, changeStatus: OrganizationStatus): Organization = getByName(organizationName)
         .apply {
             status = changeStatus
         }
@@ -107,17 +110,16 @@ class OrganizationService(
      * @param organizationFilters
      * @return not deleted Organizations
      */
-    fun getOrganizationsWithStatus(organizationFilters: OrganizationFilters?): List<Organization> {
-        val name = organizationFilters?.prefix?.let { "%$it%" }
-        val organizations = organizationRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
+    @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
+    fun getOrganizationsWithStatus(organizationFilters: OrganizationFilters?): List<Organization> = organizationFilters?.let {
+        organizationRepository.findAll { root, _, cb ->
+            val namePredicate = cb.like(root.get("name"), "%${it.prefix}%")
             cb.and(
                 namePredicate,
-                cb.equal(root.get<String>("status"), organizationFilters?.status)
+                cb.equal(root.get<String>("status"), it.status)
             )
         }
-        return organizations
-    }
+    } ?: organizationRepository.findAll()
 
     /**
      * @param organizationName the unique name of the organization.

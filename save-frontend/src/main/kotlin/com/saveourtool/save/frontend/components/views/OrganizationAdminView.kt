@@ -107,15 +107,52 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             }
                                         }
                                     }
-                                    onActionSuccess = { _ ->
+                                    onActionSuccess = { clickMode ->
                                         setState {
                                             organizations -= organization
-                                            bannedOrganizations += organization.copy(status = OrganizationStatus.BANNED)
+                                            organizations += if (clickMode) {
+                                                organization.copy(status = OrganizationStatus.BANNED)
+                                            } else {
+                                                organization.copy(status = OrganizationStatus.DELETED)
+                                            }
                                         }
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
                                         responseDeleteOrganization(true, organizationName)
+                                    }
+                                }
+                            } else if (organization.status == OrganizationStatus.DELETED) {
+                                actionButton {
+                                    title = "WARNING: recover Organization"
+                                    errorTitle = "You cannot recover a $organizationName"
+                                    message = "Are you sure you want to recover the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, recover $organizationName", style = "warning", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations -= organization
+                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                        }
+                                    }
+                                    conditionClick = false
+                                    sendRequest = { _ ->
+                                        responseRecoverOrganization(organizationName)
                                     }
                                 }
                             } else if (organization.status == OrganizationStatus.BANNED) {
@@ -142,8 +179,8 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     onActionSuccess = { _ ->
                                         setState {
+                                            organizations -= organization
                                             organizations += organization.copy(status = OrganizationStatus.CREATED)
-                                            bannedOrganizations -= organization
                                         }
                                     }
                                     conditionClick = false
@@ -167,13 +204,12 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps, state.organizations, state.bannedOrganizations)
+            arrayOf(tableProps, state.organizations)
         }
     )
 
     init {
         state.organizations = mutableListOf()
-        state.bannedOrganizations = mutableListOf()
     }
 
     override fun componentDidMount() {
@@ -185,8 +221,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
              */
             val organizations = getOrganizations()
             setState {
-                this.organizations = organizations.filter { it.status == OrganizationStatus.CREATED }.toMutableList()
-                this.bannedOrganizations = organizations.filter { it.status == OrganizationStatus.BANNED }.toMutableList()
+                this.organizations = organizations.toMutableList()
             }
         }
     }
@@ -204,7 +239,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                          * Only reload (re-render) the table if the state gets
                          * updated.
                          */
-                        (state.organizations + state.bannedOrganizations).toTypedArray()
+                        state.organizations.toTypedArray()
                     }
                 }
             }
@@ -259,10 +294,4 @@ internal external interface OrganizationAdminState : State {
      * Allows avoiding to run an `HTTP GET` each time an organization is banned
      */
     var organizations: MutableList<Organization>
-
-    /**
-     * The cached list of all banned organizations.
-     * Allows avoiding to run an `HTTP GET` each time an organization is deleted
-     */
-    var bannedOrganizations: MutableList<Organization>
 }

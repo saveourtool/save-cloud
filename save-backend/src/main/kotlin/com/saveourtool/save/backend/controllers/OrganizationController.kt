@@ -79,7 +79,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
-        @RequestParam status: OrganizationStatus?,
+        @RequestParam(required = false, defaultValue = "null") status: OrganizationStatus?,
     ): Mono<List<Organization>> = Mono.fromCallable {
         status?.let {
             organizationService.getFiltered(organizationFilters = OrganizationFilters(prefix = "", status = status))
@@ -124,11 +124,11 @@ internal class OrganizationController(
     fun getOrganizationByName(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ) = Mono.fromCallable {
+    ) = blockingToMono {
         organizationService.findByName(organizationName)
     }
         .filter {
-            it?.status == OrganizationStatus.CREATED
+            it.status == OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
             "Organization not found by name $organizationName"
@@ -376,10 +376,10 @@ internal class OrganizationController(
     fun recoverOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono()
-        }
+    ): Mono<StringResponse> =  // Mono.just(organizationName)
+    blockingToMono {
+        organizationService.findByName(organizationName)
+    }
         .filter {
             it.status != OrganizationStatus.CREATED
         }

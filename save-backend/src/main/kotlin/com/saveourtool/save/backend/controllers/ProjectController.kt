@@ -63,7 +63,9 @@ class ProjectController(
         description = "Get all projects, including deleted and private. Only accessible for super admins",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjectsWithStatus(@RequestParam status: ProjectStatus?): Flux<Project> =
+    fun getProjectsWithStatus(
+        @RequestParam(required = false, defaultValue = "null") status: ProjectStatus?
+    ): Flux<Project> =
             projectService.getProjects(status)
 
     @GetMapping("/")

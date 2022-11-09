@@ -118,16 +118,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     var projects: List<Project>
 
     /**
-     * List of projects for `this` organization
-     */
-    var deletedProjects: List<Project>
-
-    /**
-     * List of projects for `this` organization
-     */
-    var bannedProjects: List<Project>
-
-    /**
      * Message of error
      */
     var errorMessage: String
@@ -272,10 +262,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         onActionSuccess = { clickMode: Boolean ->
                                             setState {
                                                 projects = projects.minus(project)
-                                                if (clickMode) {
-                                                    bannedProjects = bannedProjects.plus(project.copy(status = ProjectStatus.BANNED))
+                                                projects = if (clickMode) {
+                                                    projects.plus(project.copy(status = ProjectStatus.BANNED))
                                                 } else {
-                                                    deletedProjects = deletedProjects.plus(project.copy(status = ProjectStatus.DELETED))
+                                                    projects.plus(project.copy(status = ProjectStatus.DELETED))
                                                 }
                                             }
                                         }
@@ -315,7 +305,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         }
                                         onActionSuccess = { _ ->
                                             setState {
-                                                deletedProjects = deletedProjects.minus(project)
+                                                projects = projects.minus(project)
                                                 projects = projects.plus(project.copy(status = ProjectStatus.CREATED))
                                             }
                                         }
@@ -358,7 +348,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                         }
                                         onActionSuccess = { _ ->
                                             setState {
-                                                bannedProjects = bannedProjects.minus(project)
+                                                projects = projects.minus(project)
                                                 projects = projects.plus(project.copy(status = ProjectStatus.CREATED))
                                             }
                                         }
@@ -383,7 +373,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
              *
              * The order and size of the array must remain constant.
              */
-            arrayOf(tableProps, state.projects, state.deletedProjects, state.bannedProjects)
+            arrayOf(tableProps, state.projects)
         }
     )
 
@@ -392,8 +382,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = listOf()
-        state.deletedProjects = listOf()
-        state.bannedProjects = listOf()
         state.closeButtonLabel = null
         state.selfRole = NONE
         state.draftOrganizationDescription = ""
@@ -433,9 +421,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
-                projects = projectsLoaded.filter { it.status == ProjectStatus.CREATED }
-                deletedProjects = projectsLoaded.filter { it.status == ProjectStatus.DELETED }
-                bannedProjects = projectsLoaded.filter { it.status == ProjectStatus.BANNED }
+                projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
@@ -483,7 +469,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
         // ================= Rows for TOP projects ================
-        val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
+        val topProjects = state.projects.filter { it.status == ProjectStatus.CREATED }
+            .sortedByDescending { it.contestRating }
+            .take(TOP_PROJECTS_NUMBER)
 
         div {
             className = ClassName("row justify-content-center")
@@ -685,7 +673,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): List<Project> = state.projects + state.deletedProjects + state.bannedProjects
+    private fun getProjectsFromCache(): List<Project> = state.projects
 
     private suspend fun getProjectsForOrganization(): List<Project> = get(
         url = "$apiUrl/projects/get/projects-by-organization?organizationName=${props.organizationName}",

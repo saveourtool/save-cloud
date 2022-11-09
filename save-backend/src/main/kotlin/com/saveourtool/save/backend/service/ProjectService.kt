@@ -97,16 +97,6 @@ class ProjectService(
             getAllByOrganizationNameAndStatus(organizationName, status).let { Flux.fromIterable(it) }
 
     /**
-     * @return project's without status
-     */
-    fun getNotDeletedProjects(): List<Project> {
-        val projects = projectRepository.findAll { root, _, cb ->
-            cb.notEqual(root.get<String>("status"), ProjectStatus.CREATED)
-        }
-        return projects
-    }
-
-    /**
      * @param project
      * @return [project] with status [ProjectStatus.CREATED]
      */
@@ -129,8 +119,7 @@ class ProjectService(
      * @param changeStatus
      * @return [project] with status [changeStatus]
      */
-    @Suppress("UnsafeCallOnNullableType")
-    fun changeProjectStatus(project: Project, changeStatus: ProjectStatus) =
+    private fun changeProjectStatus(project: Project, changeStatus: ProjectStatus) =
             project.apply {
                 status = changeStatus
             }
@@ -168,17 +157,16 @@ class ProjectService(
      * @param projectFilters
      * @return project's with filter
      */
-    fun getProjectWithStatus(projectFilters: ProjectFilters?): List<Project> {
-        val name = projectFilters?.name?.let { "%$it%" }
-        val projects = projectRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
+    @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
+    fun getProjectWithStatus(projectFilters: ProjectFilters?): List<Project> = projectFilters?.let {
+        projectRepository.findAll { root, _, cb ->
+            val namePredicate = cb.like(root.get("name"), "%${it.name}%")
             cb.and(
                 namePredicate,
-                cb.equal(root.get<String>("status"), projectFilters?.status ?: ProjectStatus.CREATED)
+                cb.equal(root.get<String>("status"), it.status)
             )
         }
-        return projects
-    }
+    } ?: projectRepository.findAll()
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project
