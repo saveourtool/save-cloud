@@ -13,8 +13,11 @@ import io.fabric8.kubernetes.client.utils.Serialization
 import org.intellij.lang.annotations.Language
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform
 import org.springframework.boot.cloud.CloudPlatform
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -23,6 +26,7 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
@@ -40,7 +44,50 @@ const val SA_HEADER_NAME = "X-Service-Account-Token"
  */
 @Configuration
 @Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
-open class KubernetesAuthenticationUtils
+open class KubernetesAuthenticationUtils {
+    @Profile("kubernetes")
+    @Bean
+    @Order(2)
+    open fun internalSecuredSecurityChain(
+        http: ServerHttpSecurity,
+        serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
+        serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
+    ): SecurityWebFilterChain = http.run {
+        authorizeExchange().pathMatchers("/actuator/**")
+            // all requests to `/actuator` should be sent only from inside the cluster
+            // access to this port should be controlled by a NetworkPolicy
+            .permitAll()
+            .and()
+            .authorizeExchange()
+            .pathMatchers("/internal/**")
+            .authenticated()
+            .and()
+            .serviceAccountTokenAuthentication(serviceAccountTokenExtractorConverter, serviceAccountAuthenticatingManager)
+            .csrf()
+            .disable()
+            .logout()
+            .disable()
+            .formLogin()
+            .disable()
+            .build()
+    }
+
+    @Profile("!kubernetes")
+    @Bean
+    @Order(2)
+    open fun internalInsecureSecurityChain(
+        http: ServerHttpSecurity
+    ): SecurityWebFilterChain = http.run {
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
+        authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
+            .permitAll()
+            .and()
+            .csrf()
+            .disable()
+            .build()
+    }
+}
 
 /**
  * A [ServerAuthenticationConverter] that attempts to convert a [ServerWebExchange] to an [Authentication]
