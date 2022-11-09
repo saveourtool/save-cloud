@@ -43,7 +43,7 @@ private fun ChildrenBuilder.displayTopProjects(sortedResults: List<ContestResult
                 "${index + 1}. ",
                 contestResult.projectName,
                 contestResult.organizationName,
-                contestResult.score?.toString() ?: "-",
+                (contestResult.score?.toString().asDynamic().toFixed(2) as String? ?: "-"),
                 "#/${contestResult.organizationName}/${contestResult.projectName}"
             )
         }
@@ -115,7 +115,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
         setSortedResults(results)
     }
     div {
-        className = ClassName("mb-3 justify-content-center align-items-center")
+        className = ClassName("mb-3 row justify-content-center align-items-center")
         if (sortedResults.isEmpty()) {
             h6 {
                 className = ClassName("text-center")
