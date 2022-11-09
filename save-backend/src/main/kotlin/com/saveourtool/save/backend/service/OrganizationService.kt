@@ -119,7 +119,7 @@ class OrganizationService(
                 cb.equal(root.get<String>("status"), it.status)
             )
         }
-    } ?: organizationRepository.findAll()
+    } ?: organizationRepository.findByStatus(OrganizationStatus.CREATED)
 
     /**
      * @param organizationName the unique name of the organization.

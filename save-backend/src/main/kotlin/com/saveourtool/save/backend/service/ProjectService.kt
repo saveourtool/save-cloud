@@ -166,7 +166,7 @@ class ProjectService(
                 cb.equal(root.get<String>("status"), it.status)
             )
         }
-    } ?: projectRepository.findAll()
+    } ?: projectRepository.findAllByStatus(ProjectStatus.CREATED)
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project
