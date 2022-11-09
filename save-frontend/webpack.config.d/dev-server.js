@@ -22,6 +22,11 @@ config.devServer = Object.assign(
           }
         },
         {
+          context: ["/demo/api/**"],
+          target: 'http://localhost:5401',
+          logLevel: 'debug',
+        },
+        {
           bypass: (req, res) => {
             if (req.url.endsWith("/sec/user")) {
               return res.send(

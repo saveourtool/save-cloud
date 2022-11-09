@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class DiktatDemoAdditionalParams(
-    val mode: DiktatDemoMode,
-    val tool: DiktatDemoTool,
+    val mode: DiktatDemoMode = DiktatDemoMode.WARN,
+    val tool: DiktatDemoTool = DiktatDemoTool.DIKTAT,
     val config: String? = null,
 ) : DemoAdditionalParams

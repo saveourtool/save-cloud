@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.diktat
 
+import com.saveourtool.save.demo.DemoRequest
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,4 +11,4 @@ import kotlinx.serialization.Serializable
 data class DiktatDemoRunRequest(
     val codeLines: String,
     val params: DiktatDemoAdditionalParams,
-)
+) : DemoRequest
