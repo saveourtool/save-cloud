@@ -227,6 +227,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.ABOUT_US.path}"
+                                    element = AboutUsView::class.react.create()
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.SANDBOX.path}"
                                     element = SandboxView::class.react.create()
                                 }
