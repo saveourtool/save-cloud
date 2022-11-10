@@ -79,6 +79,7 @@
       select * from lnk_user_organization where user_id = owner_id and organization_id = id
       );
     </sql>
+    <dropForeignKeyConstraint baseTableName="organization" constraintName="fk_organization_user"/>
     <dropColumn tableName="organization">
       <column name="owner_id"/>
     </dropColumn>
