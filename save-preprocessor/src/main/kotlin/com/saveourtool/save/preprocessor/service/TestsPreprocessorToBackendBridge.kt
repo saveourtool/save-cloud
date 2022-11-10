@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.debug
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
@@ -24,11 +26,11 @@ import java.time.Instant
 @Service
 class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
-    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backend)
-        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .applyAll(customizers)
         .build()
 
     /**
@@ -50,6 +52,13 @@ class TestsPreprocessorToBackendBridge(
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(BodyInserters.fromMultipartData("content", resourceWithContent))
         .retrieve()
+        .onStatus({ !it.is2xxSuccessful }) {
+            Mono.error(
+                IllegalStateException("Failed to upload test suite source snapshot",
+                    ResponseStatusException(it.statusCode())
+                )
+            )
+        }
         .bodyToMono()
 
     /**

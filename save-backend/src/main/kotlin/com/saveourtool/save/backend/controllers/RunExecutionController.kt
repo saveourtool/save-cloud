@@ -21,9 +21,11 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.spring.utils.applyAll
 import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -54,12 +56,14 @@ class RunExecutionController(
     private val meterRegistry: MeterRegistry,
     private val configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientOrchestrator = WebClient.builder()
         .baseUrl(configProperties.orchestratorUrl)
         .codecs {
             it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
         }
+        .applyAll(customizers)
         .build()
     private val scheduler = Schedulers.boundedElastic()
 

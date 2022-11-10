@@ -7,6 +7,7 @@ import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.utils.*
 
 import com.akuleshov7.ktoml.file.TomlFileReader
+import com.saveourtool.save.spring.utils.applyAll
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -24,6 +25,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 
 /**
  * A Spring controller for git project downloading
@@ -35,8 +37,12 @@ import kotlinx.serialization.serializer
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
     private val gitPreprocessorService: GitPreprocessorService,
+    customizers: List<WebClientCustomizer>,
 ) {
-    private val webClientBackend = WebClient.create(configProperties.backend)
+    private val webClientBackend = WebClient.builder()
+        .baseUrl(configProperties.backend)
+        .applyAll(customizers)
+        .build()
 
     /**
      * Controller to download standard test suites
