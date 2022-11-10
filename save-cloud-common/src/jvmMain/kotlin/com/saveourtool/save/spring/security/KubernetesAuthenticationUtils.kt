@@ -16,7 +16,6 @@ import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.BadCredentialsException
@@ -45,7 +44,7 @@ const val SA_HEADER_NAME = "X-Service-Account-Token"
 @Configuration
 @Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
 open class KubernetesAuthenticationUtils {
-    @Profile("kubernetes")
+    @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Bean
     @Order(2)
     open fun internalSecuredSecurityChain(
@@ -72,7 +71,7 @@ open class KubernetesAuthenticationUtils {
             .build()
     }
 
-    @Profile("!kubernetes")
+    @ConditionalOnCloudPlatform(CloudPlatform.NONE)
     @Bean
     @Order(2)
     open fun internalInsecureSecurityChain(
