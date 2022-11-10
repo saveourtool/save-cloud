@@ -1,0 +1,533 @@
+#!/usr/bin/env bash
+#
+# vim:ai et sw=4 si sta ts=4:
+#
+# External variables used:
+#
+# - JAVA_HOME
+# - GITHUB_ACTIONS
+# - GITHUB_TOKEN
+
+# Bash strict mode,
+# see http://redsymbol.net/articles/unofficial-bash-strict-mode/.
+set -euo pipefail
+OLD_IFS="${IFS}"
+IFS=$'\n'
+
+function error() {
+    local message
+    message="$*"
+
+    if [[ "${GITHUB_ACTIONS:=false}" == 'true' ]]
+    then
+        # Echoing to GitHub.
+        echo "::error::${message}"
+    elif [[ -t 1 ]]
+    then
+        # Echoing to a terminal.
+        echo -e "\e[1m$(basename "$0"): \e[31merror:\e[0m ${message}" >&2
+    else
+        # Echoing to a pipe.
+        echo "$(basename "$0"): error: ${message}" >&2
+    fi
+}
+
+# Exit codes.
+# The code of 1 is returned by ktlint in the event of failure.
+declare -ir ERROR_JAVA_NOT_FOUND=2
+declare -ir ERROR_DOWNLOAD_FAILURE=3
+declare -ir ERROR_UNSUPPORTED_FLAG=4
+declare -ir ERROR_OPTION_REQUIRES_ARGUMENT=6
+declare -ir ERROR_NO_INPUT_FILES_FOUND=7
+declare -ir ERROR_INCOMPATIBLE_BASH_VERSION=8
+
+if (( BASH_VERSINFO[0] < 4 ))
+then
+    error "bash version ${BASH_VERSION} is too old, version 4+ is required"
+    exit ${ERROR_INCOMPATIBLE_BASH_VERSION}
+fi
+
+# Default flag values.
+declare -i COLOR=0
+declare -i DEBUG=0
+declare -i DOWNLOAD_PROGRESS=1
+declare -i FORMAT_MODE=0
+declare -i RELATIVE_PATHS=0
+declare -i VERBOSE=0
+declare -i VERSION_REQUESTED=0
+
+# Constants.
+declare -r BIN_DIR="$(dirname "$0")"
+declare -r LIB_DIR="${BIN_DIR}"
+declare -r LOG_DIR="${BIN_DIR}"
+declare -r CURL='curl'
+declare -r CURL_FLAGS=('-SL')
+declare -r KTLINT_EXECUTABLE='ktlint'
+declare -r KTLINT_VERSION_TAG='0.47.1'
+declare -r VERSION_LATEST='latest'
+
+# Global variables.
+INPUTS=()
+JAVA_ARGS=()
+KOTLIN_FILES=()
+KTLINT_ARGS=()
+OUTPUT=
+REPORTER=plain
+
+# Command-line switches.
+declare -r OPTION_REPORTER_SHORT='-r'
+declare -r OPTION_REPORTER_LONG='--reporter'
+declare -r OPTION_OUTPUT_SHORT='-o'
+declare -r OPTION_OUTPUT_LONG='--output'
+
+# Error messages.
+declare -r MESSAGE_UNSUPPORTED_FLAG='unsupported flag'
+declare -r MESSAGE_OPTION_REQUIRES_ARGUMENT='option requires an argument'
+
+function usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTION]... [FILE]...
+
+ -F, --format               Fix any deviations from the code style.
+ -r REPORTER, --reporter=REPORTER
+                            The reporter to use, one of:
+                             * "plain" (the default),
+                             * "plain?group_by_file",
+                             * "json",
+                             * "sarif",
+                             * "checkstyle",
+                             * "html".
+ -o OUTPUT, --output=OUTPUT Redirect the reporter output to a file. Use "-o -"
+                            to force using the standard output.
+ --color                    Colorize the output.
+ --relative                 Relativize file paths with respect to the working
+                            directory. By default, absolute file paths get
+                            reported.
+ --no-download-progress     Do not show the progress bar as the binaries get
+                            downloaded.
+ -d, --debug                Enable the debug output.
+ -h, --help                 Display this help and exit.
+ -l, --license              Display the license and exit.
+ -v, --verbose              Enable the verbose output.
+ -V, --version              Output version information and exit.
+EOF
+}
+
+function license() {
+    cat <<EOF
+The MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+EOF
+}
+
+# Locates Java, preferring JAVA_HOME.
+#
+# The 1st variable expansion prevents the "unbound variable" error if JAVA_HOME
+# is unset.
+function find_java() {
+    if [[ -n "${JAVA_HOME:=}" ]]
+    then
+        case "$(uname -s)" in
+            'MINGW32_NT-'* | 'MINGW64_NT-'*)
+                JAVA_HOME="$(cygpath "${JAVA_HOME}")"
+                ;;
+        esac
+
+        JAVA="${JAVA_HOME}/bin/java"
+        # Update the PATH, just in case
+        export PATH="${JAVA_HOME}/bin:${PATH}"
+    elif [[ -x "$(which java 2>/dev/null)" ]]
+    then
+        JAVA="$(which java 2>/dev/null)"
+    else
+        error 'Java is not found'
+        exit ${ERROR_JAVA_NOT_FOUND}
+    fi
+}
+
+# 1. Read the release descriptor
+# 2. Filter the download URLs
+# 3. Filter out any *.{asc,md5}
+# 4. Extract the HTTPS URL (cut)
+# 5. Remove the quotation marks (tr)
+# 6. Leave only the 1st line, just in case (head)
+# 7. Make curl read the URL from stdin (xargs)
+#
+# Parameters:
+#
+# $1 - the relative GitHub URL (`user/repository`).
+# $2 - the optional tag (if omitted, the latest version will be used).
+#
+function download_from_github() {
+    mkdir -p "${LIB_DIR}"
+    mkdir -p "${LOG_DIR}"
+
+    # Make sure the downloaded binaries are in the same directory as the script and
+    # do not pollute the directory of the project being checked.
+    cd "${LIB_DIR}"
+
+    local repository
+    repository="$1"
+
+    # The 2nd argument is optional, so prevent any "unbound variable" errors.
+    local version
+    case "${2:-}" in
+        "${VERSION_LATEST}")
+            version="$2"
+            ;;
+        *)
+            version="${2:+tags/$2}"
+            version="${version:-${VERSION_LATEST}}"
+            ;;
+    esac
+
+    local release_url
+    release_url=$(printf "https://api.github.com/repos/%s/releases/%s\n" "${repository}" "${version}")
+    local download_log
+    download_log="${LOG_DIR}/$(echo "${repository}" | tr '/' '-')-download.log"
+
+    local progress
+    if (( DOWNLOAD_PROGRESS == 1 ))
+    then
+        progress='#'
+    else
+        progress='s'
+    fi
+
+    local -a curl_flags
+    curl_flags=("${CURL_FLAGS[@]}")
+    # Such a variable expansion prevents the "unbound variable" error.
+    if [[ -n "${GITHUB_TOKEN:=}" ]]
+    then
+        curl_flags+=('--header' "Authorization: bearer ${GITHUB_TOKEN}")
+    fi
+
+    if "${CURL}" "${curl_flags[@]}" -s "${release_url}" | \
+        tee "${download_log}" | \
+        grep -F 'browser_download_url' | \
+        grep -vE '\.(asc|md5)\"' | \
+        cut -d':' -f2,3 | \
+        tr -d '"' | \
+        head -n1 | \
+        xargs -n1 -r "${CURL}" "${curl_flags[@]}" "-O${progress}"
+    then
+        rm -f "${download_log}"
+    else
+        error "failed to download from '${repository}', see ${download_log} for details"
+        exit ${ERROR_DOWNLOAD_FAILURE}
+    fi
+
+    # Return to the working directory
+    cd - >/dev/null
+}
+
+function print_ktlint_version() {
+    "${JAVA}" "${JAVA_ARGS[@]}" --version
+}
+
+function print_version() {
+    cat <<EOF
+ktlint: $(print_ktlint_version)
+java: ${JAVA_VERSION}
+EOF
+}
+
+function default_output() {
+    local reporter
+    reporter="$1"
+
+    case "${reporter}" in
+        'sarif')
+            echo 'report.sarif'
+            ;;
+        'json')
+            echo 'report.json'
+            ;;
+        'checkstyle')
+            echo 'checkstyle-report.xml'
+            ;;
+        'html')
+            echo 'report.html'
+            ;;
+    esac
+}
+
+# On Windows, converts a UNIX path to Windows. Should be invoked before a path
+# is passed to any of the Windows-native tools (e.g.: `java`).
+#
+# On UNIX, just returns the 1st argument.
+function native_path() {
+    case "$(uname -s)" in
+        'MINGW32_NT-'* | 'MINGW64_NT-'*)
+            cygpath --windows "$1"
+            ;;
+        *)
+            echo "$1"
+            ;;
+    esac
+}
+
+# Parameters:
+#
+# $1 - the command-line switch (constant).
+# $2 - the current command-line switch.
+# $3 - the next command-line switch (if any).
+function getopt_short() {
+    declare -Ag OPTARG
+
+    local option
+    option="$1"
+    shift
+
+    if [[ "$1" == "${option}" ]]
+    then
+        OPTARG['value']="${2:-}"
+        OPTARG['shift']=2
+        shift 2 || {
+            error "${MESSAGE_OPTION_REQUIRES_ARGUMENT}: ${option}"
+            usage >&2
+            exit ${ERROR_OPTION_REQUIRES_ARGUMENT}
+        }
+    else
+        OPTARG['value']="${1:${#option}}"
+        OPTARG['shift']=1
+    fi
+}
+
+# Parameters:
+#
+# $1 - the command-line switch (constant).
+# $2 - the current command-line switch.
+# $3 - the next command-line switch (if any).
+function getopt_long() {
+    declare -Ag OPTARG
+
+    local option
+    option="$1"
+    shift
+
+    if [[ "$1" == "${option}" ]]
+    then
+        OPTARG['value']="${2:-}"
+        OPTARG['shift']=2
+        shift 2 || {
+            error "${MESSAGE_OPTION_REQUIRES_ARGUMENT}: ${option}"
+            usage >&2
+            exit ${ERROR_OPTION_REQUIRES_ARGUMENT}
+        }
+    elif [[ "$1" =~ "${option}="(.*) ]]
+    then
+        OPTARG['value']="${BASH_REMATCH[1]}"
+        OPTARG['shift']=1
+        if [[ -z "${OPTARG['value']}" ]]
+        then
+            error "${MESSAGE_OPTION_REQUIRES_ARGUMENT}: ${option}"
+            usage >&2
+            exit ${ERROR_OPTION_REQUIRES_ARGUMENT}
+        fi
+    else
+        error "${MESSAGE_UNSUPPORTED_FLAG}: $1"
+        usage >&2
+        exit ${ERROR_UNSUPPORTED_FLAG}
+    fi
+}
+
+while (( $# > 0 ))
+do
+    case "$1" in
+        "${OPTION_REPORTER_SHORT}"*)
+            getopt_short "${OPTION_REPORTER_SHORT}" "$@"
+            REPORTER="${OPTARG['value']}"
+            shift ${OPTARG['shift']}
+            ;;
+        "${OPTION_REPORTER_LONG}"*)
+            getopt_long "${OPTION_REPORTER_LONG}" "$@"
+            REPORTER="${OPTARG['value']}"
+            shift ${OPTARG['shift']}
+            ;;
+        "${OPTION_OUTPUT_SHORT}"*)
+            getopt_short "${OPTION_OUTPUT_SHORT}" "$@"
+            OUTPUT="${OPTARG['value']}"
+            shift ${OPTARG['shift']}
+            ;;
+        "${OPTION_OUTPUT_LONG}"*)
+            getopt_long "${OPTION_OUTPUT_LONG}" "$@"
+            OUTPUT="${OPTARG['value']}"
+            shift ${OPTARG['shift']}
+            ;;
+        '--color')
+            COLOR=1
+            shift
+            ;;
+        '-d' | '--debug')
+            DEBUG=1
+            shift
+            ;;
+        '-F' | '--format')
+            FORMAT_MODE=1
+            shift
+            ;;
+        '-h' | '--help')
+            usage
+            exit
+            ;;
+        '-l' | '--license')
+            license
+            exit
+            ;;
+        '--no-download-progress')
+            DOWNLOAD_PROGRESS=0
+            shift
+            ;;
+        '--relative')
+            RELATIVE_PATHS=1
+            shift
+            ;;
+        '-v' | '--verbose')
+            VERBOSE=1
+            shift
+            ;;
+        '-V' | '--version')
+            VERSION_REQUESTED=1
+            shift
+            ;;
+        # Currently, accepted but ignored. Will need extra code to support
+        # positional arguments which start with a dash (`-`).
+        '--')
+            shift
+            ;;
+        '-'*)
+            error "${MESSAGE_UNSUPPORTED_FLAG}: $1"
+            usage >&2
+            exit ${ERROR_UNSUPPORTED_FLAG}
+            ;;
+        # Preserve positional arguments
+        *)
+            INPUTS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if (( DEBUG > 0 ))
+then
+    set -x
+fi
+
+find_java
+
+if [[ ! -x "${LIB_DIR}/${KTLINT_EXECUTABLE}" ]]
+then
+    download_from_github 'pinterest/ktlint' "${KTLINT_VERSION_TAG}"
+    chmod 755 "${LIB_DIR}/${KTLINT_EXECUTABLE}"
+fi
+
+# Additionally, set `user.home` to the project directory.
+# See <https://github.com/pinterest/ktlint/issues/1608>.
+JAVA_ARGS+=('-Xmx512m')
+JAVA_ARGS+=("-Duser.home=$(native_path "${PWD}")")
+
+JAVA_VERSION=$("${JAVA}" -version 2>&1 | head -n1 | cut -d'"' -f2)
+JAVA_MAJOR_VERSION=$(echo "${JAVA_VERSION}" | sed 's/^1\.//' | cut -d'.' -f1)
+if (( JAVA_MAJOR_VERSION >= 17 ))
+then
+    JAVA_ARGS+=('--add-opens' 'java.base/java.lang=ALL-UNNAMED')
+fi
+
+JAVA_ARGS+=('-jar' "$(native_path "${LIB_DIR}/${KTLINT_EXECUTABLE}")")
+
+if (( VERSION_REQUESTED == 1 ))
+then
+    print_version
+    exit
+fi
+
+if [[ -z "${OUTPUT}" ]]
+then
+    OUTPUT="$(default_output "${REPORTER}")"
+fi
+if [[ -z "${OUTPUT}" || "${OUTPUT}" == '-' ]]
+then
+    KTLINT_ARGS+=("--reporter=${REPORTER}")
+else
+    KTLINT_ARGS+=("--reporter=${REPORTER},output=$(native_path "${OUTPUT}")")
+fi
+
+if (( DEBUG > 0 ))
+then
+    KTLINT_ARGS+=('--debug')
+fi
+if (( COLOR == 1 ))
+then
+    KTLINT_ARGS+=('--color')
+fi
+if (( FORMAT_MODE == 1 ))
+then
+    KTLINT_ARGS+=('--format')
+fi
+# Enable relative paths if requested, except when in SARIF-reporting mode.
+# See <https://github.com/pinterest/ktlint/issues/1608>.
+if [[ ${RELATIVE_PATHS} -eq 1 && "${REPORTER}" != 'sarif' ]]
+then
+    KTLINT_ARGS+=('--relative')
+fi
+if (( VERBOSE == 1 ))
+then
+    KTLINT_ARGS+=('--verbose')
+fi
+
+# Transform the list of inputs (files, directories, and wildcards) into the list
+# of files `ktlint` will accept.
+for input in "${INPUTS[@]}"
+do
+    if [[ -f "${input}" ]]
+    then
+        # A regular file.
+        KOTLIN_FILES+=("$(native_path "${input}")")
+    elif [[ "${input}" =~ .*\*.* ]]
+    then
+        # A quoted Ant-like path wildcard, to be processed by `ktlint`.
+        KOTLIN_FILES+=("${input}")
+    elif [[ -d "${input}" ]]
+    then
+        # A directory: search for regular files with `*.kt` and `*.kts`
+        # extensions.
+        for kotlin_file in $(find "${input}" -type f '(' -name '*.kt' -o -name '*.kts' ')')
+        do
+            KOTLIN_FILES+=("$(native_path "${kotlin_file}")")
+        done
+    else
+        echo "Skipping nonexistent file: ${input}"
+    fi
+done
+
+# Sort the array and remove duplicates.
+KOTLIN_FILES=($(sort -u <<<"${KOTLIN_FILES[*]}"))
+
+# Don't run `ktlint` if the user has specified custom paths but no Kotlin source
+# files have been found.
+if (( ${#INPUTS[@]} > 0 && ${#KOTLIN_FILES[@]} == 0 ))
+then
+    IFS="${OLD_IFS}"
+    error "found no input files (arguments: ${INPUTS[@]})"
+    exit ${ERROR_NO_INPUT_FILES_FOUND}
+fi
+
+exec "${JAVA}" "${JAVA_ARGS[@]}" "${KTLINT_ARGS[@]}" "${KOTLIN_FILES[@]}"
