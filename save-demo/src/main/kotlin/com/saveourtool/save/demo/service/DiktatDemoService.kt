@@ -30,14 +30,14 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, Diktat
      * @param demoFileLines kotlin file to be checked
      * @param demoAdditionalParams instance of [DiktatDemoAdditionalParams]
      */
-    override fun runDemo(demoFileLines: String, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
+    override fun runDemo(demoFileLines: List<String>, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
         val fileName = generateFileName()
 
         val tool = demoAdditionalParams?.tool ?: DiktatDemoTool.DIKTAT
         val demoMode = demoAdditionalParams?.mode ?: DiktatDemoMode.WARN
         val demoConfigLines = demoAdditionalParams?.config
 
-        val demoFile = prepareDemoFile(demoFileLines, fileName)
+        val demoFile = prepareDemoFile(demoFileLines.joinToString("\n"), fileName)
         val demoConfig = prepareDemoConfig(demoConfigLines, fileName)
 
         return try {

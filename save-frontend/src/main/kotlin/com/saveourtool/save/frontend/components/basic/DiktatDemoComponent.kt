@@ -112,14 +112,15 @@ private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flu
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatDemoRunRequest(diktatDemoDefaultCode, DiktatDemoAdditionalParams()))
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatDemoRunRequest(emptyList(), DiktatDemoAdditionalParams()))
     val (diktatResult, setDiktatResult) = useState(DiktatDemoResult(emptyList(), ""))
+    val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
     val sendRunRequest = useDeferredRequest {
         val result: DiktatDemoResult = post(
             "$demoApiUrl/diktat/run",
             jsonHeaders,
-            Json.encodeToString(diktatRunRequest),
+            Json.encodeToString(diktatRunRequest.copy(codeLines = codeLines.split("\n"))),
             ::loadingHandler,
             ::noopResponseHandler,
         )
@@ -143,12 +144,10 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                     editorTitle = "Input code"
                     selectedTheme = props.selectedTheme
                     selectedMode = props.selectedMode
-                    savedText = diktatRunRequest.codeLines
-                    draftText = diktatRunRequest.codeLines
+                    savedText = codeLines
+                    draftText = codeLines
                     onDraftTextUpdate = { code ->
-                        setDiktatRunRequest { runRequest ->
-                            runRequest.copy(codeLines = code)
-                        }
+                        setCodeLines(code)
                     }
                     isDisabled = false
                 }
