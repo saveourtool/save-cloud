@@ -32,14 +32,18 @@ class WebClientCustomizers {
     @Bean
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun serviceAccountTokenHeaderWebClientCustomizer() = ServiceAccountTokenHeaderWebClientCustomizer()
+    fun serviceAccountTokenHeaderWebClientCustomizer(
+        @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") expirationTimeMinutes: Long
+    ) = ServiceAccountTokenHeaderWebClientCustomizer(expirationTimeMinutes)
 }
 
 /**
  * A [WebClientCustomizer] that appends Kubernetes' ServiceAccount token as a custom header.
+ *
+ * @param expirationTimeMinutes for how long token should be reused from memory before reading it from the file again.
  */
 class ServiceAccountTokenHeaderWebClientCustomizer(
-    @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") private val expirationTimeMinutes: Long,
+    expirationTimeMinutes: Long,
 ) : WebClientCustomizer {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountTokenHeaderWebClientCustomizer>()
