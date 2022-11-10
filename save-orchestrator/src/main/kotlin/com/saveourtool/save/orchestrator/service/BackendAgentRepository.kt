@@ -8,9 +8,7 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -29,12 +27,11 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
  */
 @Component
 class BackendAgentRepository(
-    configProperties: ConfigProperties,
     @Value("\${orchestrator.backend-url}") private val backendUrl: String,
     customizers: List<WebClientCustomizer>,
 ) : AgentRepository {
     private val webClientBackend = WebClient.builder()
-        .baseUrl(configProperties.backendUrl)
+        .baseUrl(backendUrl)
         .applyAll(customizers)
         .build()
         
