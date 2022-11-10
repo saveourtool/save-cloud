@@ -24,7 +24,7 @@ openApi {
     waitTimeInSeconds.set(120)
 
     customBootRun {
-        jvmArgs.add("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+        jvmArgs.add("-Dbackend.fileStorage.location=\${user.home}/cnb/files")
     }
 }
 

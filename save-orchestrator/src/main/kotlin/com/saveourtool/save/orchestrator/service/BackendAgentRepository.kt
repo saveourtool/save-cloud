@@ -34,7 +34,7 @@ class BackendAgentRepository(
         .baseUrl(backendUrl)
         .applyAll(customizers)
         .build()
-        
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")

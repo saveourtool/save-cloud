@@ -55,7 +55,8 @@ class TestsPreprocessorToBackendBridge(
         .onStatus({ !it.is2xxSuccessful }) {
             Mono.error(
                 IllegalStateException("Failed to upload test suite source snapshot",
-                    ResponseStatusException(it.statusCode()))
+                    ResponseStatusException(it.statusCode())
+                )
             )
         }
         .bodyToMono()
