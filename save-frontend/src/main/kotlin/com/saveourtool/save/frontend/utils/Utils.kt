@@ -148,5 +148,6 @@ internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)
 
 /**
  * @param digits number of digits to round to
+ * @return rounded value as String
  */
 internal fun Double.toFixedStr(digits: Int) = toFixed(digits).toString()
