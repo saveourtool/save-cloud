@@ -63,7 +63,7 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                     div {
                         className = ClassName("row justify-content-center align-items-center")
                         h4 {
-                            +(it.contestRating.toFixed(2).toString())
+                            +it.contestRating.toFixedStr(2)
                         }
                     }
                     div {
