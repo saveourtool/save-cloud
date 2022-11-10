@@ -13,9 +13,11 @@ import org.cqfn.diktat.ruleset.rules.DiktatRuleSetProvider
 import org.springframework.stereotype.Service
 
 import java.io.File
+import java.nio.file.Path
 import java.util.*
 
 import kotlin.collections.ArrayList
+import kotlin.io.path.*
 
 /**
  * Demo service implementation for ktlint-demo/diktat-demo
@@ -23,27 +25,29 @@ import kotlin.collections.ArrayList
 @Service
 class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, DiktatDemoResult> {
     private fun generateFileName() = UUID.randomUUID().toString()
-    private fun generateDemoFile(generatedName: String): File = File("demo-input-$generatedName")
-    private fun generateDemoConfig(generatedName: String): File = File("demo-config-$generatedName")
+    private fun generateDemoFile(tempDirPath: String): File = File("$tempDirPath${File.separator}test.kt")
+    private fun generateDemoConfig(tempDirPath: String): File = File("$tempDirPath${File.separator}config")
 
     /**
      * @param demoFileLines kotlin file to be checked
      * @param demoAdditionalParams instance of [DiktatDemoAdditionalParams]
      */
     override fun runDemo(demoFileLines: String, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
-        val fileName = generateFileName()
-
         val tool = demoAdditionalParams?.tool ?: DiktatDemoTool.DIKTAT
         val demoMode = demoAdditionalParams?.mode ?: DiktatDemoMode.FIX
         val demoConfigLines = demoAdditionalParams?.config.orEmpty()
 
-        val demoFile = prepareDemoFile(demoFileLines, fileName)
-        val demoConfig = prepareDemoConfig(demoConfigLines, fileName)
+        val tempDir = File(generateFileName()).apply {
+            mkdir()
+        }
+
+        val demoFile = prepareDemoFile(tempDir.absolutePath, demoFileLines)
+        val demoConfig = prepareDemoConfig(tempDir.absolutePath, demoConfigLines)
 
         return try {
             processDemo(tool, demoMode, demoConfig, demoFile)
         } finally {
-            deleteTempFiles(listOf(demoFile, demoConfig))
+            tempDir.deleteRecursively()
         }
     }
 
@@ -95,19 +99,15 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, Diktat
         return DiktatDemoResult(warnings.toListOfStrings(), inputText)
     }
 
-    private fun prepareDemoConfig(configLines: String, generatedName: String) = generateDemoConfig(generatedName)
+    private fun prepareDemoConfig(tempDirPath: String, configLines: String) = generateDemoConfig(tempDirPath)
         .apply {
             writeText(configLines)
         }
 
-    private fun prepareDemoFile(fileLines: String, generatedName: String) = generateDemoFile(generatedName)
+    private fun prepareDemoFile(tempDirPath: String, fileLines: String) = generateDemoFile(tempDirPath)
         .apply {
             writeText(fileLines)
         }
-
-    private fun deleteTempFiles(files: List<File>) = files.forEach {
-        it.delete()
-    }
 
     private fun ArrayList<LintError>.toListOfStrings() = map { "(${it.line}): ${it.detail}" }
 }
