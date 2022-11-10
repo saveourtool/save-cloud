@@ -5,10 +5,11 @@ import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.utils.*
+import com.saveourtool.save.spring.utils.applyAll
 
 import com.akuleshov7.ktoml.file.TomlFileReader
-import com.saveourtool.save.spring.utils.applyAll
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,7 +26,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 
 /**
  * A Spring controller for git project downloading

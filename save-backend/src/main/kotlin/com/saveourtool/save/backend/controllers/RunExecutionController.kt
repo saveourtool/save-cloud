@@ -13,6 +13,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.CreateExecutionRequest
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -21,7 +22,6 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.spring.utils.applyAll
 import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
