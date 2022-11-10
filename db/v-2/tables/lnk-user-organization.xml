@@ -58,22 +58,29 @@
       onDelete="CASCADE"/>
   </changeSet>
 
+  <changeSet id="lnk-user-organization-4" author="nulls">
+    <delete tableName="lnk_user_organization">
+      <where>role is NULL</where>
+    </delete>
+    <addNotNullConstraint tableName="lnk_user_organization" columnName="role" columnDataType="varchar(250)"/>
+  </changeSet>
+
   <changeSet id="remove-organization-owner-id" author="nulls">
     <sql>
-        update lnk_user_organization
-        set role = 'OWNER'
-        where exists(
-                select * from organization where owner_id = user_id and id = organization_id
-            );
-        insert into lnk_user_organization(user_id, organization_id, role)
-        select owner_id as user_id, id as organization_id, 'OWNER' as role
-        from organization
-        where not exists(
-                select * from lnk_user_organization where user_id = owner_id and organization_id = id
-            );
+      update lnk_user_organization
+      set role = 'OWNER'
+      where exists(
+      select * from organization where owner_id = user_id and id = organization_id
+      );
+      insert into lnk_user_organization(user_id, organization_id, role)
+      select owner_id as user_id, id as organization_id, 'OWNER' as role
+      from organization
+      where not exists(
+      select * from lnk_user_organization where user_id = owner_id and organization_id = id
+      );
     </sql>
     <dropColumn tableName="organization">
-        <column name="owner_id"/>
+      <column name="owner_id"/>
     </dropColumn>
   </changeSet>
 

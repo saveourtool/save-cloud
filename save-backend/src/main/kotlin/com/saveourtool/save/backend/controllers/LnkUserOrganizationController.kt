@@ -273,10 +273,10 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && it.organization?.status != OrganizationStatus.DELETED
+            it.organization.status != OrganizationStatus.DELETED
         }
         .map {
-            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            it.organization.toDto(mapOf(it.user.name!! to it.role))
         }
 
     private fun getUserAndOrganizationWithPermissions(

@@ -157,8 +157,8 @@ internal class OrganizationController(
         .flatMapMany {
             lnkUserOrganizationService.findAllByAuthentication(it)
         }
-        .mapNotNull {
-            it.organization as Organization
+        .map {
+            it.organization
         }
 
     @GetMapping("/get/by-prefix")
