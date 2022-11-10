@@ -7,6 +7,7 @@ package com.saveourtool.save.configs
 import com.saveourtool.save.spring.security.SA_HEADER_NAME
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import org.springframework.beans.factory.annotation.Value
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform
 import org.springframework.boot.cloud.CloudPlatform
@@ -37,10 +38,12 @@ class WebClientCustomizers {
 /**
  * A [WebClientCustomizer] that appends Kubernetes' ServiceAccount token as a custom header.
  */
-class ServiceAccountTokenHeaderWebClientCustomizer : WebClientCustomizer {
+class ServiceAccountTokenHeaderWebClientCustomizer(
+    @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") private val expirationTimeMinutes: Long,
+) : WebClientCustomizer {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountTokenHeaderWebClientCustomizer>()
-    private val wrapper = ExpiringValueWrapper(Duration.ofMinutes(5)) {
+    private val wrapper = ExpiringValueWrapper(Duration.ofMinutes(expirationTimeMinutes)) {
         val token = Path.of("/var/run/secrets/tokens/service-account-projected-token").readText()
         token
     }

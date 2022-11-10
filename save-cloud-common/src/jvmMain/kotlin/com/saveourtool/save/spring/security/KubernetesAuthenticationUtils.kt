@@ -42,11 +42,21 @@ const val SA_HEADER_NAME = "X-Service-Account-Token"
  * to work with Kubernetes ServiceAccount tokens.
  */
 @Configuration
-@Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
+@Import(
+    ServiceAccountTokenExtractorConverter::class,
+    ServiceAccountAuthenticatingManager::class,
+)
+@Suppress(
+    "AVOID_USING_UTILITY_CLASS",  // Spring beans need to be declared inside `@Configuration` class.
+)
 open class KubernetesAuthenticationUtils {
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Bean
     @Order(2)
+    @Suppress(
+        "MISSING_KDOC_CLASS_ELEMENTS",
+        "MISSING_KDOC_ON_FUNCTION",
+    )
     open fun internalSecuredSecurityChain(
         http: ServerHttpSecurity,
         serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
@@ -71,14 +81,22 @@ open class KubernetesAuthenticationUtils {
             .build()
     }
 
+    /**
+     * No-op security config when not running in Kubernetes.
+     * FixMe: can be removed in favor of common `WebSecurityConfig` from authService?
+     */
     @ConditionalOnCloudPlatform(CloudPlatform.NONE)
     @Bean
     @Order(2)
+    @Suppress(
+        "MISSING_KDOC_CLASS_ELEMENTS",
+        "MISSING_KDOC_ON_FUNCTION",
+        "KDOC_WITHOUT_PARAM_TAG",
+        "KDOC_WITHOUT_RETURN_TAG",
+    )
     open fun internalInsecureSecurityChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
-        // they are not proxied from gateway.
         authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
             .permitAll()
             .and()
