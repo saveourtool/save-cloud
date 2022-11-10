@@ -62,7 +62,7 @@
     <delete tableName="lnk_user_organization">
       <where>role is NULL</where>
     </delete>
-    <addNotNullConstraint tableName="lnk_user_organization" columnName="role"/>
+    <addNotNullConstraint tableName="lnk_user_organization" columnName="role" columnDataType="varchar(250)"/>
   </changeSet>
 
 </databaseChangeLog>
