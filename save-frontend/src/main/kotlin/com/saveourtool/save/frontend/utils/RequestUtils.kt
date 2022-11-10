@@ -28,6 +28,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 val apiUrl = "${window.location.origin}/api/$v1"
+val demoApiUrl = "${window.location.origin}/demo/api"
 
 val jsonHeaders = Headers().apply {
     set("Accept", "application/json")
