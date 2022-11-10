@@ -145,3 +145,8 @@ internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.co
  * @param digits number of digits to round to
  */
 internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)
+
+/**
+ * @param digits number of digits to round to
+ */
+internal fun Double.toFixedStr(digits: Int) = toFixed(digits).toString()
