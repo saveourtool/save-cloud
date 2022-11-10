@@ -10,9 +10,9 @@ interface AbstractDemoService<in P : DemoAdditionalParams, out R : DemoResult> {
     /**
      * Run demo on [demoFileLines] with [demoAdditionalParams] and return result as [DemoResult]
      *
-     * @param demoFileLines input file that will be used for demo
+     * @param demoFileLines list of lines of input file that will be used for demo
      * @param demoAdditionalParams additional params as [DemoAdditionalParams]
      * @return report as [DemoResult]
      */
-    fun runDemo(demoFileLines: String, demoAdditionalParams: P? = null): R
+    fun runDemo(demoFileLines: List<String>, demoAdditionalParams: P? = null): R
 }

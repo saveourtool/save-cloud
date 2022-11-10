@@ -43,7 +43,7 @@ private fun ChildrenBuilder.displayTopProjects(sortedResults: List<ContestResult
                 "${index + 1}. ",
                 contestResult.projectName,
                 contestResult.organizationName,
-                (contestResult.score?.asDynamic().toFixed(2) as String?) ?: "-",
+                contestResult.score?.toFixedStr(2) ?: "-",
                 "#/${contestResult.organizationName}/${contestResult.projectName}"
             )
         }

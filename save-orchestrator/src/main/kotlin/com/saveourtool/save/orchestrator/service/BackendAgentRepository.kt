@@ -8,9 +8,11 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.ResponseEntity
 
 import org.springframework.stereotype.Component
@@ -26,8 +28,13 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
 @Component
 class BackendAgentRepository(
     @Value("\${orchestrator.backend-url}") private val backendUrl: String,
+    customizers: List<WebClientCustomizer>,
 ) : AgentRepository {
-    private val webClientBackend = WebClient.create(backendUrl)
+    private val webClientBackend = WebClient.builder()
+        .baseUrl(backendUrl)
+        .applyAll(customizers)
+        .build()
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
