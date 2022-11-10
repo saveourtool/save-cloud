@@ -32,7 +32,7 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, Diktat
      * @param demoFileLines kotlin file to be checked
      * @param demoAdditionalParams instance of [DiktatDemoAdditionalParams]
      */
-    override fun runDemo(demoFileLines: String, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
+    override fun runDemo(demoFileLines: List<String>, demoAdditionalParams: DiktatDemoAdditionalParams?): DiktatDemoResult {
         val tool = demoAdditionalParams?.tool ?: DiktatDemoTool.DIKTAT
         val demoMode = demoAdditionalParams?.mode ?: DiktatDemoMode.FIX
         val demoConfigLines = demoAdditionalParams?.config.orEmpty()
@@ -54,7 +54,7 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, Diktat
     private fun processDemo(
         tool: DiktatDemoTool,
         demoMode: DiktatDemoMode,
-        demoConfig: File,
+        demoConfig: File?,
         demoFile: File
     ): DiktatDemoResult {
         val ruleSets = when (tool) {
@@ -69,6 +69,14 @@ class DiktatDemoService : AbstractDemoService<DiktatDemoAdditionalParams, Diktat
             else -> throw IllegalStateException("Unknown demoMode was requested.")
         }
     }
+
+    private fun getDiktatRuleSets(config: File?) = listOf(
+        config?.let {
+            DiktatRuleSetProvider(it.absolutePath).get()
+        } ?: DiktatRuleSetProvider().get()
+    )
+
+    private fun getKtLintRuleSets() = listOf(StandardRuleSetProvider().get())
 
     private fun runFixDemo(demoFile: File, ruleSets: Iterable<RuleSet>): DiktatDemoResult {
         val warnings: ArrayList<LintError> = ArrayList()

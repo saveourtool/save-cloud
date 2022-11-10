@@ -6,8 +6,9 @@ package com.saveourtool.save.demo.diktat
 enum class DiktatDemoMode {
     /**
      * Run demo in fix mode
+     * TODO: fix doesn't work for now as far as a special version of kotlin compiler embeddable is required
+     * FIX,
      */
-    FIX,
 
     /**
      * Run demo in warn-only mode

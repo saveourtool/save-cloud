@@ -132,7 +132,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "rating", header = "Rating") { cellProps ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.globalRating?.toFixed(2)}"
+                            +"${cellProps.value.globalRating?.toFixedStr(2)}"
                         }
                     }
                 }
@@ -198,7 +198,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "rating", header = "Rating") { cellProps ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.contestRating.toFixed(2)}"
+                            +cellProps.value.contestRating.toFixedStr(2)
                         }
                     }
                 }

@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
+import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -229,6 +230,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.ABOUT_US.path}"
                                     element = AboutUsView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.DEMO.path}/diktat"
+                                    element = diktatDemoView.create()
                                 }
 
                                 Route {
