@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.ClientRequest
 import org.springframework.web.reactive.function.client.WebClient
 
@@ -27,12 +27,12 @@ import kotlin.io.path.readText
 /**
  * A configuration class that can be used to import all related [WebClientCustomizer] beans.
  */
-@Component
-class WebClientCustomizers {
+@Configuration
+open class WebClientCustomizers {
     @Bean
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    fun serviceAccountTokenHeaderWebClientCustomizer(
+    open fun serviceAccountTokenHeaderWebClientCustomizer(
         @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") expirationTimeMinutes: Long
     ) = ServiceAccountTokenHeaderWebClientCustomizer(expirationTimeMinutes)
 }

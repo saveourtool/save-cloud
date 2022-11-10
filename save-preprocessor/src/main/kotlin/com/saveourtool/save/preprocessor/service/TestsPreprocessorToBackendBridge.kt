@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 
 /**
- * A bridge from preprocessor to backend (rest api wrapper)
+ * A bridge from preprocesor to backend (rest api wrapper)
  */
 @Service
 class TestsPreprocessorToBackendBridge(
