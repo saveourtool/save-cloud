@@ -75,7 +75,6 @@ class ProjectPermissionEvaluatorTest {
 
     @Test
     fun `permissions for project owners`() {
-        mockProject.userId = 99
         userShouldHavePermissions(
             "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )
