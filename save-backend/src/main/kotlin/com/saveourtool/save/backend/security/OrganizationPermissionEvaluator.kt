@@ -44,7 +44,7 @@ class OrganizationPermissionEvaluator(
         val oldStatus = organization.status
 
         return when {
-            oldStatus == newStatus -> false
+            oldStatus == newStatus -> throw IllegalStateException("invalid status")
             oldStatus.isBan() || newStatus.isBan() ->
                 hasPermission(authentication, organization, Permission.BAN)
             else -> hasPermission(authentication, organization, Permission.DELETE)

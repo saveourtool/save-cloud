@@ -328,6 +328,7 @@ internal class OrganizationController(
         Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully change status an organization.")
+    @ApiResponse(responseCode = "400", description = "Invalid new status of the organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
@@ -341,6 +342,10 @@ internal class OrganizationController(
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
+        }.filter {
+            it.status != status
+        }.switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid new status of the organization $organizationName"
         }
         .filter {
             organizationPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
