@@ -21,6 +21,7 @@ typealias StringList = List<String>
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
+@Import(WebClientCustomizers::class)
 class SaveApplication
 
 fun main(args: Array<String>) {
