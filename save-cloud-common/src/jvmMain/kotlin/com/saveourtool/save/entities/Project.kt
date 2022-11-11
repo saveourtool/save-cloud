@@ -70,9 +70,9 @@ data class Project(
         name,
         organization.name,
         public,
-        description ?: "",
-        url ?: "",
-        email ?: "",
+        description.orEmpty(),
+        url.orEmpty(),
+        email.orEmpty(),
     )
 
     /**

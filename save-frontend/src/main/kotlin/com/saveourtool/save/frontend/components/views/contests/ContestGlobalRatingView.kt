@@ -5,7 +5,6 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters

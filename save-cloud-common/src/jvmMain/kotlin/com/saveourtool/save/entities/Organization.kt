@@ -1,6 +1,5 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
@@ -46,7 +45,7 @@ data class Organization(
         name = name,
         dateCreated = dateCreated,
         avatar = avatar,
-        description = description ?: "",
+        description = description.orEmpty() ,
         canCreateContests = canCreateContests,
     )
     
