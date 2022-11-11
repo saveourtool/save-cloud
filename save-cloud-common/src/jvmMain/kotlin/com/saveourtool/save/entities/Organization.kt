@@ -80,14 +80,10 @@ data class Organization(
 }
 
 /**
- * @param dateCreated date when organization was created
- * @param canCreateContests flag that defines whether an organization can create contests or not
  * @param status
  * @return [Organization] from [OrganizationDto]
  */
 fun OrganizationDto.toOrganization(
-    dateCreated: LocalDateTime?,
-    canCreateContests: Boolean = false,
     status: OrganizationStatus = OrganizationStatus.CREATED,
 ) = Organization(
     name,
