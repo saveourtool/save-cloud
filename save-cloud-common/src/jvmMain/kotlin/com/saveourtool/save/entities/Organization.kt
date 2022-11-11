@@ -45,7 +45,7 @@ data class Organization(
         name = name,
         dateCreated = dateCreated,
         avatar = avatar,
-        description = description.orEmpty() ,
+        description = description.orEmpty(),
         canCreateContests = canCreateContests,
     )
     
