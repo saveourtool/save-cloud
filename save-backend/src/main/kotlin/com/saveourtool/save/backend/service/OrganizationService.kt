@@ -40,10 +40,10 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as deleted
+     * Mark organization with [organization] as deleted
      *
-     * @param organizationName an [Organization]'s name to delete
-     * @param newStatus is new status for [organizationName]
+     * @param newStatus is new status for [organization]
+     * @param organization is organization in which the status will be changed
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
