@@ -33,7 +33,6 @@ import react.router.useNavigate
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML.head
 
 /**
  * SETTINGS tab in ProjectView
@@ -106,7 +105,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val updateProject = useDeferredRequest {
         post(
-            url ="$apiUrl/projects/update",
+            url = "$apiUrl/projects/update",
             headers = jsonHeaders,
             body = Json.encodeToString(draftProject.toDto()),
             loadingHandler = ::loadingHandler,

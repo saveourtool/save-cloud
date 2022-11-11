@@ -71,7 +71,7 @@ class ProjectService(
      * @return deleted organization
      */
     fun deleteProject(project: Project): Project =
-        changeProjectStatus(project, ProjectStatus.DELETED)
+            changeProjectStatus(project, ProjectStatus.DELETED)
 
     /**
      * Mark organization with [project] as created.
@@ -82,7 +82,7 @@ class ProjectService(
      */
     @Transactional
     fun recoverProject(project: Project): Project =
-        changeProjectStatus(project, ProjectStatus.CREATED)
+            changeProjectStatus(project, ProjectStatus.CREATED)
 
     /**
      * Mark organization with [project] and all its projects as banned.
@@ -92,8 +92,7 @@ class ProjectService(
      */
     @Transactional
     fun banProject(project: Project): Project =
-        changeProjectStatus(project, ProjectStatus.BANNED)
-
+            changeProjectStatus(project, ProjectStatus.BANNED)
 
     /**
      * @param project [Project] to be updated
@@ -121,19 +120,24 @@ class ProjectService(
     /**
      * @param name
      * @param organizationName
+     * @return project
      */
     fun findByNameAndOrganizationNameWithoutStatus(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
     /**
      * @param name
      * @param organizationName
+     * @return project
      */
     fun findByNameAndOrganizationName(name: String, organizationName: String): Project? =
-        findByNameAndOrganizationNameWithoutStatus(name, organizationName)
-            ?.let {
-                if (it.organization.status == OrganizationStatus.CREATED) it
-                else null
-            }
+            findByNameAndOrganizationNameWithoutStatus(name, organizationName)
+                ?.let {
+                    if (it.organization.status == OrganizationStatus.CREATED) {
+                        it
+                    } else {
+                        null
+                    }
+                }
 
     /**
      * @param organizationName

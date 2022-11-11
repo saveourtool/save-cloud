@@ -26,7 +26,6 @@ class ProjectPermissionEvaluator(
     private var lnkUserProjectRepository: LnkUserProjectRepository,
     private var lnkUserOrganizationService: LnkUserOrganizationService
 ) {
-
     /**
      * @param authentication [Authentication] describing an authenticated request
      * @param project is organization in which we want to change the status
@@ -112,7 +111,7 @@ class ProjectPermissionEvaluator(
             hasBanAccess(userId, projectRole, organzationRole) ||
                     userId?.let { projectRole == Role.OWNER || organzationRole == Role.OWNER } ?: false
 
-    private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = userId?.let{
+    private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = userId?.let {
         projectRole == Role.SUPER_ADMIN || organzationRole == Role.SUPER_ADMIN
     } ?: false
 
@@ -172,4 +171,4 @@ class ProjectPermissionEvaluator(
 }
 
 private fun ProjectStatus.isBan(): Boolean =
-    this == ProjectStatus.BANNED
+        this == ProjectStatus.BANNED

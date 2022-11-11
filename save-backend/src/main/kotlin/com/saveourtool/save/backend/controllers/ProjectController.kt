@@ -272,40 +272,39 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-                projectService.findByNameAndOrganizationName(projectName, organizationName)
+        projectService.findByNameAndOrganizationName(projectName, organizationName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."
+        }
+        .filter {
+            it.status != status
+        }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid new status of the organization $organizationName"
+        }
+        .filter {
+            projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for this action with organization $organizationName."
+        }
+        .map { project ->
+            when (status) {
+                ProjectStatus.BANNED -> {
+                    projectService.banProject(project)
+                    ResponseEntity.ok("Successfully banned the project")
+                }
+                ProjectStatus.DELETED -> {
+                    projectService.deleteProject(project)
+                    ResponseEntity.ok("Successfully deleted the project")
+                }
+                ProjectStatus.CREATED -> {
+                    projectService.recoverProject(project)
+                    ResponseEntity.ok("Successfully recovered the project")
+                }
             }
-            .switchIfEmptyToNotFound {
-                "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."
-            }
-                .filter {
-                    it.status != status
-                }
-                .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
-                    "Invalid new status of the organization $organizationName"
-                }
-                .filter {
-                    projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
-                }
-                .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-                    "Not enough permission for this action with organization $organizationName."
-                }
-                .map { project ->
-                    when (status) {
-                        ProjectStatus.BANNED -> {
-                            projectService.banProject(project)
-                            ResponseEntity.ok("Successfully banned the project")
-                        }
-                        ProjectStatus.DELETED -> {
-                            projectService.deleteProject(project)
-                            ResponseEntity.ok("Successfully deleted the project")
-                        }
-                        ProjectStatus.CREATED -> {
-                            projectService.recoverProject(project)
-                            ResponseEntity.ok("Successfully recovered the project")
-                        }
-                    }
-                }
-
+        }
 
     companion object {
         @JvmStatic

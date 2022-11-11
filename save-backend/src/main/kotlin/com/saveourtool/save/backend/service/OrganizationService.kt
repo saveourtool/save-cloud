@@ -44,7 +44,7 @@ class OrganizationService(
      *
      * @param newStatus is new status for [organization]
      * @param organization is organization in which the status will be changed
-     * @return  organization
+     * @return organization
      */
     @Suppress("UnsafeCallOnNullableType")
     private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
