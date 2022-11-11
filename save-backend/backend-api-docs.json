@@ -8499,10 +8499,6 @@
           "name": {
             "type": "string"
           },
-          "ownerId": {
-            "type": "integer",
-            "format": "int64"
-          },
           "status": {
             "type": "string",
             "enum": [

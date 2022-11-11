@@ -119,7 +119,7 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
         given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, null, null))
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
@@ -142,7 +142,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, null, null))
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
@@ -164,7 +164,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99).apply { public = false },
             permission = null,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, null, null))
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")

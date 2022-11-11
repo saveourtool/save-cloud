@@ -88,7 +88,6 @@ class OrganizationControllerTest {
         "OrgForTests",
         OrganizationStatus.CREATED,
         dateCreated = LocalDateTime.now(),
-        ownerId = 1
     ).also { it.id = 1 }
     private val adminUser = User(
         "admin",

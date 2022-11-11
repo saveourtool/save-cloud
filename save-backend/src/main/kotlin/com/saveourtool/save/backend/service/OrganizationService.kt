@@ -161,12 +161,6 @@ class OrganizationService(
     }
 
     /**
-     * @param ownerId
-     * @return list of organization by owner id
-     */
-    fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
-
-    /**
      * @return all organizations that were registered in SAVE
      */
     fun findAll(): List<Organization> = organizationRepository.findAll()
