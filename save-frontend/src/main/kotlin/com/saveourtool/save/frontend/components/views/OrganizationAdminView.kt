@@ -3,23 +3,18 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.ErrorHandler
-import com.saveourtool.save.frontend.utils.WithRequestStatusContext
-import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.delete
 import com.saveourtool.save.frontend.utils.deleteButton
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.jsonHeaders
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.frontend.utils.unpackMessageOrHttpStatus
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -175,11 +170,12 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      * @see ErrorHandler
      */
     private fun deleteOrganization(organization: OrganizationDto): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/organizations/${organization.name}/delete",
+        val response = post(
+            "$apiUrl/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setState {
