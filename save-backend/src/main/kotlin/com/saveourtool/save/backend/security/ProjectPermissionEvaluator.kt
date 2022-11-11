@@ -114,9 +114,6 @@ class ProjectPermissionEvaluator(
         projectRole == Role.SUPER_ADMIN || organzationRole == Role.SUPER_ADMIN
     } ?: false
 
-
-
-
     /**
      * @param authentication
      * @param execution
