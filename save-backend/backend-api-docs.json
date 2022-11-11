@@ -2774,6 +2774,16 @@
             },
             "description": "Successfully change status an organization."
           },
+          "400": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Invalid new status of the organization."
+          },
           "401": {
             "content": {
               "*/*": {
