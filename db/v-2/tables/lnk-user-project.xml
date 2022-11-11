@@ -61,4 +61,25 @@
       onDelete="CASCADE"/>
   </changeSet>
 
+  <changeSet id="remove-project-user-id" author="nulls">
+    <sql>
+      update lnk_user_project
+      set role = 'OWNER'
+      where exists(
+      select * from project where project.user_id = user_id and project.id = project_id
+      );
+      insert into lnk_user_project(user_id, project_id, role)
+      select user_id, id, 'OWNER'
+      from project
+      where user_id is not NULL
+      and not exists(
+      select * from lnk_user_project where user_id = project.user_id and project_id = project.id
+      );
+    </sql>
+    <dropForeignKeyConstraint baseTableName="project" constraintName="fk_project_user"/>
+    <dropColumn tableName="project">
+      <column name="user_id"/>
+    </dropColumn>
+  </changeSet>
+
 </databaseChangeLog>

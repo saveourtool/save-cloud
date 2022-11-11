@@ -29,7 +29,6 @@ class ProjectViewTest {
         "Project Description",
         ProjectStatus.CREATED,
         true,
-        2,
         "email@test.org",
         organization = testOrganization,
     )

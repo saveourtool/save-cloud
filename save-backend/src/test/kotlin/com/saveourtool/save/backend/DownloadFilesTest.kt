@@ -90,7 +90,6 @@ class DownloadFilesTest {
         url = "example.com",
         description = "This is an example project",
         status = ProjectStatus.CREATED,
-        userId = 2,
     ).apply {
         id = 3
     }
@@ -100,7 +99,6 @@ class DownloadFilesTest {
         url = "huawei.com",
         description = "test description",
         status = ProjectStatus.CREATED,
-        userId = 1,
     ).apply {
         id = 1
     }

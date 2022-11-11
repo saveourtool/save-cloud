@@ -171,7 +171,7 @@ class ProjectControllerTest {
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
+        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, organization = organization)
         saveProjectAndAssert(
             project,
             { expectStatus().isOk }
@@ -190,7 +190,6 @@ class ProjectControllerTest {
     @WithMockUser
     fun `should forbid updating a project for a viewer`() {
         val project = Project.stub(99).apply {
-            userId = 1
             organization = organizationRepository.findById(1).get()
         }
         projectRepository.save(project)
