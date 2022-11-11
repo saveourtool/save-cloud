@@ -11,6 +11,8 @@ gateway:
     url: http://grafana:9100
   sandbox:
     url: http://sandbox:5400
+  demo:
+    url: http://demo:5401
 management:
   endpoints:
     web:
@@ -56,6 +58,14 @@ spring:
           uri: ${gateway.sandbox.url}
           predicates:
             - Path=/sandbox/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: demo-api_route
+          uri: ${gateway.demo.url}
+          predicates:
+            - Path=/demo/api/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
