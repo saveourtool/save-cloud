@@ -29,6 +29,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
@@ -62,7 +63,11 @@ open class KubernetesAuthenticationUtils {
         serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
         serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
     ): SecurityWebFilterChain = http.run {
-        authorizeExchange().pathMatchers("/actuator/**")
+        securityMatcher(
+            ServerWebExchangeMatchers.pathMatchers("/actuator/**", "/internal/**")
+        )
+            .authorizeExchange()
+            .pathMatchers("/actuator/**")
             // all requests to `/actuator` should be sent only from inside the cluster
             // access to this port should be controlled by a NetworkPolicy
             .permitAll()
@@ -97,7 +102,11 @@ open class KubernetesAuthenticationUtils {
     open fun internalInsecureSecurityChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
+        securityMatcher(
+            ServerWebExchangeMatchers.pathMatchers("/internal/**", "/actuator/**")
+        )
+            .authorizeExchange()
+            .pathMatchers("/internal/**", "/actuator/**")
             .permitAll()
             .and()
             .csrf()
