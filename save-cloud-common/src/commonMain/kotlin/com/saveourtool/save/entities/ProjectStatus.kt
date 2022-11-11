@@ -16,5 +16,10 @@ enum class ProjectStatus {
      * Project deleted
      */
     DELETED,
+
+    /**
+     * Project deleted
+     */
+    BANNED,
     ;
 }

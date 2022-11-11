@@ -16,5 +16,10 @@ enum class OrganizationStatus {
      * Organization deleted
      */
     DELETED,
+
+    /**
+     * Organization banned
+     */
+    BANNED,
     ;
 }

@@ -315,7 +315,7 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @DeleteMapping("/{organizationName}/delete")
+    @DeleteMapping("/{organizationName}/change-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
@@ -332,6 +332,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
+        @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
@@ -341,20 +342,32 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
+            organizationPermissionEvaluator.permissionChangeOrganizationStatus(authentication, it, status)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for deletion of organization $organizationName."
+            "Not enough permission for this action with organization of organization $organizationName."
         }
         .filter {
-            !organizationService.hasProjects(organizationName)
+            status == OrganizationStatus.DELETED && !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            organizationService.deleteOrganization(it.name)
-            ResponseEntity.ok("Organization deleted")
+            when(status) {
+                OrganizationStatus.BANNED -> {
+                    organizationService.banOrganization(it)
+                    ResponseEntity.ok("Organization banned")
+                }
+                OrganizationStatus.DELETED -> {
+                    organizationService.deleteOrganization(it)
+                    ResponseEntity.ok("Organization deleted")
+                }
+                OrganizationStatus.CREATED -> {
+                    organizationService.recoverOrganization(it)
+                    ResponseEntity.ok("Organization recovered")
+                }
+            }
         }
 
     @GetMapping("/{organizationName}/list-git")

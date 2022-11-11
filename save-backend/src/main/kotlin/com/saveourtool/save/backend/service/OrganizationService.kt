@@ -4,7 +4,8 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus.DELETED
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -46,13 +47,58 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
+    fun changeOrganizationStatus(organizationName: String, newStatus: OrganizationStatus): Organization = getByName(organizationName)
         .apply {
-            status = OrganizationStatus.DELETED
+            status = newStatus
         }
         .let {
             organizationRepository.save(it)
         }
+
+    /**
+     * Mark organization [organization] as deleted
+     *
+     * @param organization an [Organization] to delete
+     * @return deleted organization
+     */
+    fun deleteOrganization(organization: Organization): Organization {
+        return if (!hasProjects(organization.name))
+            changeOrganizationStatus(organization.name, OrganizationStatus.DELETED)
+        else organization
+    }
+
+    /**
+     * Mark organization with [organization] as created.
+     * If an organization was previously banned, then all its projects become deleted.
+     *
+     * @param organizationName an [Organization] to create
+     * @return deleted organization
+     */
+    fun recoverOrganization(organization: Organization): Organization {
+        if (organization.status == OrganizationStatus.BANNED) {
+            projectService.getAllByOrganizationName(organization.name).forEach {
+                it.status = DELETED
+                projectService.updateProject(it)
+            }
+        }
+        return changeOrganizationStatus(organization.name, OrganizationStatus.CREATED)
+    }
+
+    /**
+     * Mark organization with [organization] and all its projects as banned.
+     *
+     * @param organization an [Organization] to ban
+     * @return deleted organization
+     */
+    fun banOrganization(organization: Organization): Organization {
+        projectService.getAllByOrganizationName(organization.name).forEach {
+            it.status = BANNED
+            projectService.updateProject(it)
+        }
+        return changeOrganizationStatus(organization.name, OrganizationStatus.BANNED)
+    }
+
+
 
     /**
      * @param organizationName the unique name of the organization.
@@ -61,7 +107,7 @@ class OrganizationService(
      */
     fun hasProjects(organizationName: String): Boolean =
             projectService.getAllByOrganizationName(organizationName).any { project ->
-                project.status != DELETED
+                project.status == CREATED
             }
 
     /**
