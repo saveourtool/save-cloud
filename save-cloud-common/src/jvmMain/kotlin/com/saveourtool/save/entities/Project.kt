@@ -6,6 +6,13 @@ import com.saveourtool.save.validation.isValidEmail
 
 import kotlinx.serialization.Serializable
 
+import javax.persistence.Entity
+import javax.persistence.ManyToOne
+import javax.persistence.JoinColumn
+import javax.persistence.Id
+import javax.persistence.GeneratedValue
+import javax.persistence.Enumerated
+
 /**
  * @property name
  * @property url
@@ -30,17 +37,7 @@ data class Project(
     var numberOfContainers: Int = 3,
 
     @ManyToOne
-    @JoinColumn(
-        name = "organization_id",
-        table = "",
-        foreignKey = ForeignKey(),
-        referencedColumnName = "",
-        unique = false,
-        nullable = false,
-        insertable = true,
-        updatable = true,
-        columnDefinition = "",
-    )
+    @JoinColumn(name = "organization_id")
     var organization: Organization,
     var contestRating: Double = 0.0,
 ) {
@@ -123,11 +120,13 @@ fun ProjectDto.toProject(
     organization: Organization,
     status: ProjectStatus = ProjectStatus.CREATED,
 ) = Project(
-    name,
-    url,
-    description,
-    status,
-    isPublic,
-    email,
+    name = name,
+    url = url,
+    description = description,
+    status = status,
+    public = isPublic,
+    email = email,
+    numberOfContainers = numberOfContainers,
     organization = organization,
+    contestRating = contestRating,
 )

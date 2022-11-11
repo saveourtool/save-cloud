@@ -108,12 +108,12 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * Organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: MutableList<ProjectDto>
 
     /**
      * Message of error
@@ -170,14 +170,14 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+    private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                href = "#/${cellProps.row.original.organizationName}/${cellProps.value}"
                                 +cellProps.value
                             }
                             privacySpan(cellProps.row.original)
@@ -246,7 +246,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     init {
         state.isUploading = false
-        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
+        state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
         state.closeButtonLabel = null
@@ -467,24 +467,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun onOrganizationSave(newOrganization: Organization) {
-        newOrganization.apply {
+    private fun onOrganizationSave(newOrganization: OrganizationDto) {
+        newOrganization.copy(
             description = state.draftOrganizationDescription
-        }
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/update",
-                headers,
-                Json.encodeToString(newOrganization),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = newOrganization
+        ).let { organizationWithNewDescription ->
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
+            scope.launch {
+                val response = post(
+                    "$apiUrl/organizations/${props.organizationName}/update",
+                    headers,
+                    Json.encodeToString(organizationWithNewDescription),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    setState {
+                        organization = organizationWithNewDescription
+                    }
                 }
             }
         }
@@ -524,7 +525,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
-            organization = state.organization ?: Organization.stub(-1)
+            organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
@@ -538,9 +539,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): List<Project> = state.projects
+    private fun getProjectsFromCache(): List<ProjectDto> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
+    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = get(
         url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
         headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
@@ -612,7 +613,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
             topProject?.let {
@@ -715,9 +716,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
      * @return the lambda which deletes [project].
      * @see ErrorHandler
      */
-    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
+    private fun deleteProject(project: ProjectDto): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
         val response = delete(
-            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
+            url = "$apiUrl/projects/${project.organizationName}/${project.name}/delete",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             errorHandler = ::noopResponseHandler,

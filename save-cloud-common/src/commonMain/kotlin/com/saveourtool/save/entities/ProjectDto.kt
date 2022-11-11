@@ -24,6 +24,8 @@ data class ProjectDto(
     val description: String = "",
     val url: String = "",
     val email: String = "",
+    var numberOfContainers: Int = 3,
+    var contestRating: Double = 0.0,
 ) : Validatable {
     /**
      * Project name validation

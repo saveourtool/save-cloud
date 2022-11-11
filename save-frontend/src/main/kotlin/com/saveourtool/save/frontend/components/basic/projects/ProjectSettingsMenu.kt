@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
@@ -45,7 +45,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Current project settings
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Information about current user
@@ -60,7 +60,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Callback to update project state in ProjectView after update request's response is received.
      */
-    var onProjectUpdate: (Project) -> Unit
+    var onProjectUpdate: (ProjectDto) -> Unit
 
     /**
      * Callback to show error message
@@ -88,7 +88,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
     val navigate = useNavigate()
 
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val projectPath = props.project.let { "${it.organizationName}/${it.name}" }
     val deleteProject = useDeferredRequest {
         val responseFromDeleteProject = delete(
             "$apiUrl/projects/$projectPath/delete",
@@ -104,7 +104,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         post(
             "$apiUrl/projects/update",
             jsonHeaders,
-            Json.encodeToString(draftProject.toDto()),
+            Json.encodeToString(draftProject),
             loadingHandler = ::loadingHandler,
         ).let {
             if (it.ok) {
@@ -184,7 +184,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = draftProject.public
+                                defaultChecked = draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPublicSwitch"
@@ -200,7 +200,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = !draftProject.public
+                                defaultChecked = !draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPrivateSwitch"
@@ -213,7 +213,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             }
                         }
                         onChange = {
-                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
+                            setDraftProject(draftProject.copy(isPublic = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }

@@ -134,11 +134,13 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-    ) = Mono.fromCallable {
+    ) = blockingToMono {
         organizationService.findByName(organizationName)
-    }.switchIfEmptyToNotFound {
-        "Organization not found by name $organizationName"
     }
+        .map { it.toDto() }
+        .switchIfEmptyToNotFound {
+            "Organization not found by name $organizationName"
+        }
 
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
@@ -150,7 +152,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
-    ): Flux<Organization> = authentication.toMono()
+    ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
             (auth.details as AuthenticationDetails).id
         }
@@ -158,7 +160,7 @@ internal class OrganizationController(
             lnkUserOrganizationService.findAllByAuthentication(it)
         }
         .map {
-            it.organization
+            it.organization.toDto()
         }
 
     @GetMapping("/get/by-prefix")

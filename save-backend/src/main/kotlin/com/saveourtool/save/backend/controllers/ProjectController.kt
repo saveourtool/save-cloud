@@ -91,11 +91,12 @@ class ProjectController(
     fun getNotDeletedProjectsWithFilters(
         @RequestBody(required = false) projectFilters: ProjectFilters?,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
+    ): Flux<ProjectDto> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
+        .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
     @RequiresAuthorizationSourceHeader
@@ -116,13 +117,13 @@ class ProjectController(
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<Project> {
+    ): Mono<ProjectDto> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
-        }
+        }.map { it.toDto() }
     }
 
     @GetMapping("/get/projects-by-organization")

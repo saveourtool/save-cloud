@@ -7,6 +7,11 @@ import com.saveourtool.save.utils.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
+import javax.persistence.Entity
+import javax.persistence.Enumerated
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+
 /**
  * @property name organization
  * @property dateCreated date created organization

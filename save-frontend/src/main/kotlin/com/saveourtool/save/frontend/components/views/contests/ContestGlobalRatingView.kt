@@ -6,7 +6,7 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
@@ -69,7 +69,7 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All projects
      */
-    var projects: Array<Project>
+    var projects: Array<ProjectDto>
 
     /**
      * All filters for project
@@ -174,9 +174,9 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
     )
-    private val renderingProjectChampionsTable: FC<TableProps<Project>> = tableComponent(
+    private val renderingProjectChampionsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
-            columns<Project> {
+            columns<ProjectDto> {
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
@@ -189,7 +189,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                href = "#/${cellProps.row.original.organizationName}/${cellProps.value}"
                                 +" ${cellProps.value}"
                             }
                         }
@@ -263,7 +263,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
-            val projectsFromBackend: List<Project> = post(
+            val projectsFromBackend: List<ProjectDto> = post(
                 url = "$apiUrl/projects/not-deleted",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),

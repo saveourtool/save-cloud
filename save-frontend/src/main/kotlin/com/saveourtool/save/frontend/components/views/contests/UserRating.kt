@@ -7,7 +7,7 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -44,7 +44,7 @@ enum class UserRatingTab {
     }
 }
 
-private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
+private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<ProjectDto>) {
     projects.forEachIndexed { i, project ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
@@ -137,9 +137,9 @@ private fun userRating() = VFC {
         setOrganizations(organizationsFromBackend.toSet())
     }
 
-    val (projects, setProjects) = useState(emptySet<Project>())
+    val (projects, setProjects) = useState(emptySet<ProjectDto>())
     useRequest {
-        val projectsFromBackend: List<Project> = post(
+        val projectsFromBackend: List<ProjectDto> = post(
             url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
             body = undefined,

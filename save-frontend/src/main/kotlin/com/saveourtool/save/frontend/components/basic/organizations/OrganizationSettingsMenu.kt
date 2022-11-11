@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
 import com.saveourtool.save.frontend.utils.isSuperAdmin
@@ -59,7 +59,7 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Current organization
      */
-    var organization: Organization
+    var organization: OrganizationDto
 
     /**
      * Callback invoked in order to change canCreateContests flag

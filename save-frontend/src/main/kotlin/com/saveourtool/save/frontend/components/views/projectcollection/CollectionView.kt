@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views.projectcollection
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -39,14 +39,14 @@ external interface CreationViewProps : Props {
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<CreationViewProps, State>() {
     @Suppress("MAGIC_NUMBER")
-    private val projectsTable: FC<TableProps<Project>> = tableComponent(
+    private val projectsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
+                column(id = "organization", header = "Organization", { organizationName }) { cellProps ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}"
+                                href = "#/${cellProps.row.original.organizationName}"
                                 +cellProps.value
                             }
                         }
@@ -56,7 +56,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                href = "#/${cellProps.row.original.organizationName}/${cellProps.value}"
                                 +cellProps.value
                             }
                             privacySpan(cellProps.row.original)
@@ -113,7 +113,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                         )
                         if (response.ok) {
                             response.unsafeMap {
-                                it.decodeFromJsonString<Array<Project>>()
+                                it.decodeFromJsonString<Array<ProjectDto>>()
                             }
                         } else {
                             emptyArray()
