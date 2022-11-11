@@ -342,9 +342,11 @@ internal class OrganizationController(
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
-        }.filter {
+        }
+        .filter {
             it.status != status
-        }.switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+        }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
             "Invalid new status of the organization $organizationName"
         }
         .filter {

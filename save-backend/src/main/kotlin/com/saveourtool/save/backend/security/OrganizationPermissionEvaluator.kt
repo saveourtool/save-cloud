@@ -39,6 +39,7 @@ class OrganizationPermissionEvaluator(
      * @param organization is organization in which we want to change the status
      * @param newStatus is new status in [organization]
      * @return whether user described by [authentication] can have permission on change [organization] status on [newStatus]
+     * @throws IllegalStateException
      */
     fun hasPermissionToChangeStatus(authentication: Authentication?, organization: Organization, newStatus: OrganizationStatus): Boolean {
         val oldStatus = organization.status
