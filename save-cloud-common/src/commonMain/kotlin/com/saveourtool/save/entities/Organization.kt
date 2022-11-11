@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
- * @property ownerId organization
  * @property dateCreated date created organization
  * @property avatar
  * @property status
@@ -22,7 +21,6 @@ data class Organization(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: OrganizationStatus,
-    var ownerId: Long? = null,
     @Contextual
     var dateCreated: LocalDateTime?,
     var avatar: String? = null,
@@ -66,7 +64,6 @@ data class Organization(
         ) = Organization(
             name = "stub",
             status = OrganizationStatus.CREATED,
-            ownerId = -1,
             dateCreated = null,
             avatar = null,
             description = null,
@@ -90,7 +87,6 @@ fun OrganizationDto.toOrganization(
 ) = Organization(
     name,
     status,
-    ownerId = 1,
     dateCreated,
     avatar,
     description,

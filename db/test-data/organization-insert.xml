@@ -9,7 +9,6 @@
         <loadData tableName="organization" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/organization.csv">
             <column header="id" name="id" type="NUMERIC"/>
             <column header="name" name="name" type="STRING"/>
-            <column header="fk_user_organization" name="owner_id" type="NUMERIC"/>
             <column header="date_created" name="date_created" type="DATE"/>
             <column header="can_create_contests" name="can_create_contests" type="boolean"/>
         </loadData>
