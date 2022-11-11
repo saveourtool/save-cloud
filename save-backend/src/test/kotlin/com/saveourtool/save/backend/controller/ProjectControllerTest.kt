@@ -127,8 +127,8 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -136,6 +136,29 @@ class ProjectControllerTest {
         val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
         Assertions.assertTrue(
             projectFromDb?.status == ProjectStatus.DELETED
+        )
+    }
+
+    @Test
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    fun `ban project with super admin permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 2)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
+            .exchange()
+            .expectStatus()
+            .isForbidden
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.BANNED
         )
     }
 
@@ -150,8 +173,8 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden

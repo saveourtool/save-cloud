@@ -44,10 +44,10 @@ class OrganizationService(
      *
      * @param newStatus is new status for [organization]
      * @param organization is organization in which the status will be changed
-     * @return deleted organization
+     * @return  organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
+    private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
         .apply {
             status = newStatus
         }
@@ -73,7 +73,7 @@ class OrganizationService(
      *
      * @param organization an [Organization] to create
      * @param organization
-     * @return deleted organization
+     * @return recovered organization
      */
     @Transactional
     fun recoverOrganization(organization: Organization): Organization {
@@ -90,7 +90,7 @@ class OrganizationService(
      * Mark organization with [organization] and all its projects as banned.
      *
      * @param organization an [Organization] to ban
-     * @return deleted organization
+     * @return banned organization
      */
     @Transactional
     fun banOrganization(organization: Organization): Organization {

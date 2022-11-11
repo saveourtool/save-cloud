@@ -2,12 +2,11 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
+import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 
 import org.springframework.http.HttpStatus
@@ -25,7 +24,27 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class ProjectPermissionEvaluator(
     private var lnkUserProjectService: LnkUserProjectService,
     private var lnkUserProjectRepository: LnkUserProjectRepository,
+    private var lnkUserOrganizationService: LnkUserOrganizationService
 ) {
+
+    /**
+     * @param authentication [Authentication] describing an authenticated request
+     * @param project is organization in which we want to change the status
+     * @param newStatus is new status in [project]
+     * @return whether user described by [authentication] can have permission on change [project] status on [newStatus]
+     * @throws IllegalStateException
+     */
+    fun hasPermissionToChangeStatus(authentication: Authentication?, project: Project, newStatus: ProjectStatus): Boolean {
+        val oldStatus = project.status
+
+        return when {
+            oldStatus == newStatus -> throw IllegalStateException("invalid status")
+            oldStatus.isBan() || newStatus.isBan() ->
+                hasPermission(authentication, project, Permission.BAN)
+            else -> hasPermission(authentication, project, Permission.DELETE)
+        }
+    }
+
     /**
      * @param authentication [Authentication] describing an authenticated request
      * @param project
@@ -42,13 +61,14 @@ class ProjectPermissionEvaluator(
         }
 
         val userId = (authentication.details as AuthenticationDetails).id
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
         return when (permission) {
-            Permission.READ -> project.public || hasReadAccess(userId, projectRole)
-            Permission.WRITE -> hasWriteAccess(userId, projectRole)
-            Permission.DELETE -> hasDeleteAccess(userId, projectRole)
-            Permission.BAN -> hasBanAccess(userId, projectRole)
+            Permission.READ -> project.public || hasReadAccess(userId, projectRole, organizationRole)
+            Permission.WRITE -> hasWriteAccess(userId, projectRole, organizationRole)
+            Permission.DELETE -> hasDeleteAccess(userId, projectRole, organizationRole)
+            Permission.BAN -> hasBanAccess(userId, projectRole, organizationRole)
         }
     }
 
@@ -82,16 +102,19 @@ class ProjectPermissionEvaluator(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = hasWriteAccess(userId, projectRole) ||
+    private fun hasReadAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = hasWriteAccess(userId, projectRole, organzationRole) ||
             userId?.let { projectRole == Role.VIEWER } ?: false
 
-    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
+    private fun hasWriteAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = hasDeleteAccess(userId, projectRole, organzationRole) ||
             userId?.let { projectRole == Role.ADMIN } ?: false
 
-    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean =
-            hasBanAccess(userId, projectRole) || userId?.let { projectRole == Role.OWNER } ?: false
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean =
+            hasBanAccess(userId, projectRole, organzationRole) ||
+                    userId?.let { projectRole == Role.OWNER || organzationRole == Role.OWNER } ?: false
 
-    private fun hasBanAccess(userId: Long?, projectRole: Role): Boolean = userId?.let { projectRole == Role.SUPER_ADMIN } ?: false
+    private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = userId?.let{
+        projectRole == Role.SUPER_ADMIN || organzationRole == Role.SUPER_ADMIN
+    } ?: false
 
     /**
      * @param authentication
@@ -147,3 +170,6 @@ class ProjectPermissionEvaluator(
      */
     fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }
+
+private fun ProjectStatus.isBan(): Boolean =
+    this == ProjectStatus.BANNED
