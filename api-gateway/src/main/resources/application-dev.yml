@@ -6,6 +6,8 @@ gateway:
     url: http://localhost:8080
   sandbox:
     url: http://localhost:5400
+  demo:
+    url: http://localhost:5401
 spring:
   security:
     oauth2:
@@ -58,6 +60,6 @@ spring:
             client-secret: 2c05929edd949d670c3454258bbdbfefb7ba3eb7
 logging:
   level:
-    org.springframework.web: DEBUG
-    org.springframework.security: DEBUG
+    org.springframework.web: TRACE
+    org.springframework.security: TRACE
     com.nimbusds: TRACE
