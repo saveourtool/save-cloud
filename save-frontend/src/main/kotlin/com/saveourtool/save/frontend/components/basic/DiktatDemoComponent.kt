@@ -36,7 +36,11 @@ import kotlinx.serialization.json.Json
 val diktatDemoComponent = diktatDemoComponent()
 
 private val diktatDemoDefaultCode = """
-    |fun main() = println("Hello world")
+    |package com.test
+    |
+    |fun main() {
+    |    val SAVEOUR = "tools"
+    |}
 """.trimMargin()
 
 /**
