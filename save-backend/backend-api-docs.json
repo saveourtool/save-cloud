@@ -4420,7 +4420,7 @@
     },
     "/api/v1/projects/{organizationName}/{projectName}/change-status": {
       "post": {
-        "description": "Delete a project.",
+        "description": "Change status existing project by its name.",
         "operationId": "deleteProject",
         "parameters": [
           {
@@ -4509,7 +4509,7 @@
             "basic": []
           }
         ],
-        "summary": "Delete a project.",
+        "summary": "Change status existing project.",
         "tags": [
           "projects"
         ]
