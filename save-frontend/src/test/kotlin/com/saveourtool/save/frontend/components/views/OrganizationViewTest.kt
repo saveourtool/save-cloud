@@ -24,7 +24,6 @@ class OrganizationViewTest {
     private val testOrganization = Organization(
         "TestOrg",
         OrganizationStatus.CREATED,
-        2,
         LocalDateTime(2022, 6, 1, 12, 25),
     )
     private val testUserInfo = UserInfo(
