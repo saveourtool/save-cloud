@@ -60,6 +60,6 @@ spring:
             client-secret: 2c05929edd949d670c3454258bbdbfefb7ba3eb7
 logging:
   level:
-    org.springframework.web: TRACE
-    org.springframework.security: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
     com.nimbusds: TRACE
