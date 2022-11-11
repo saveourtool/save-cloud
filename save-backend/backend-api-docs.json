@@ -4418,12 +4418,13 @@
         ]
       }
     },
-    "/api/v1/projects/{organizationName}/{projectName}/delete": {
-      "delete": {
+    "/api/v1/projects/{organizationName}/{projectName}/change-status": {
+      "post": {
         "description": "Delete a project.",
         "operationId": "deleteProject",
         "parameters": [
           {
+            "description": "name of an organization",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -4432,11 +4433,26 @@
             }
           },
           {
+            "description": "name of a project",
             "in": "path",
             "name": "projectName",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "description": "type of status being set",
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
             }
           },
           {
@@ -4455,7 +4471,7 @@
                 }
               }
             },
-            "description": "Successfully deleted a project."
+            "description": "Successfully change status a project."
           },
           "401": {
             "content": {
@@ -4475,7 +4491,7 @@
                 }
               }
             },
-            "description": "Not enough permission for project deletion."
+            "description": "Not enough permission for this action on project."
           },
           "404": {
             "content": {
