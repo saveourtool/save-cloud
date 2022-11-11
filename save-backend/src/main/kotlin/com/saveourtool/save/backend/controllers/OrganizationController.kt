@@ -315,23 +315,26 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @DeleteMapping("/{organizationName}/delete")
+    @PostMapping("/{organizationName}/change-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE",
-        summary = "Delete existing organization.",
-        description = "Delete existing organization by its name.",
+        method = "POST",
+        summary = "Change status existing organization.",
+        description = "Change status existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
+    @ApiResponse(responseCode = "200", description = "Successfully change status an organization.")
+    @ApiResponse(responseCode = "400", description = "Invalid new status of the organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
-    fun deleteOrganization(
+    fun changeOrganizationStatus(
         @PathVariable organizationName: String,
+        @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
@@ -341,20 +344,38 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
+            it.status != status
         }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for deletion of organization $organizationName."
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid new status of the organization $organizationName"
         }
         .filter {
-            !organizationService.hasProjects(organizationName)
+            organizationPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for this action with organization $organizationName."
+        }
+        .filter {
+            status != OrganizationStatus.DELETED || !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
-        .map {
-            organizationService.deleteOrganization(it.name)
-            ResponseEntity.ok("Organization deleted")
+        .map {organization ->
+            when (status) {
+                OrganizationStatus.BANNED -> {
+                    organizationService.banOrganization(organization)
+                    ResponseEntity.ok("Successfully banned the organization")
+                }
+                OrganizationStatus.DELETED -> {
+                    organizationService.deleteOrganization(organization)
+                    ResponseEntity.ok("Successfully deleted the organization")
+                }
+                OrganizationStatus.CREATED -> {
+                    organizationService.recoverOrganization(organization)
+                    ResponseEntity.ok("Successfully recovered the organization")
+                }
+            }
         }
 
     @GetMapping("/{organizationName}/list-git")

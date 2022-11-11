@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -31,11 +32,12 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
 
     val deleteOrganization = useDeferredRequest {
         val responseFromDeleteOrganization =
-                delete(
-                    "$apiUrl/organizations/${props.organizationName}/delete",
+                post(
+                    "$apiUrl/organizations/${props.organizationName}/change-status?status=${OrganizationStatus.DELETED}",
                     headers = jsonHeaders,
+                    body = undefined,
                     loadingHandler = ::noopLoadingHandler,
-                    errorHandler = ::noopResponseHandler,
+                    responseHandler = ::noopResponseHandler,
                 )
         if (responseFromDeleteOrganization.ok) {
             props.onDeletionSuccess()
