@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
@@ -64,7 +65,7 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All organizations
      */
-    var organizations: Array<OrganizationDto>
+    var organizationWithRatingList: Array<OrganizationWithRating>
 
     /**
      * All projects
@@ -97,7 +98,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         "STRING_TEMPLATE_QUOTES",
         "TYPE_ALIAS",
     )
-    private val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
+    private val tableWithOrganizationRating: FC<TableProps<OrganizationWithRating>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") {
@@ -108,14 +109,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellProps ->
+                column(id = "name", header = "Name", { organization.name }) { cellProps ->
                     Fragment.create {
                         td {
                             a {
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellProps.row.original.avatar?.let {
+                                    src = cellProps.row.original.organization.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     style = jso {
@@ -132,7 +133,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "rating", header = "Rating") { cellProps ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.globalRating?.toFixedStr(2)}"
+                            +cellProps.value.globalRating.toFixedStr(2)
                         }
                     }
                 }
@@ -239,7 +240,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     )
 
     init {
-        state.organizations = emptyArray()
+        state.organizationWithRatingList = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters(null)
@@ -248,7 +249,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
-            val organizationsFromBackend: List<OrganizationDto> = post(
+            val organizationsFromBackend: List<OrganizationWithRating> = post(
                 url = "$apiUrl/organizations/not-deleted",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
@@ -257,7 +258,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 .decodeFromJsonString()
 
             setState {
-                organizations = organizationsFromBackend.toTypedArray()
+                organizationWithRatingList = organizationsFromBackend.toTypedArray()
             }
         }
     }
@@ -339,7 +340,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 className = ClassName("col-8")
                 tableWithOrganizationRating {
                     getData = { _, _ ->
-                        state.organizations
+                        state.organizationWithRatingList
                     }
                     getPageCount = null
                 }

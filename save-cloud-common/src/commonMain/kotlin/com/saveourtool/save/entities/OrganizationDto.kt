@@ -1,6 +1,5 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
@@ -14,8 +13,6 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property description
  * @property canCreateContests
- * @property userRoles map where keys are usernames and values are their [Role]s
- * @property globalRating
  */
 @Serializable
 data class OrganizationDto(
@@ -25,8 +22,6 @@ data class OrganizationDto(
     val avatar: String? = null,
     val description: String = "",
     val canCreateContests: Boolean = false,
-    val userRoles: Map<String, Role> = emptyMap(),
-    val globalRating: Double? = null,
 ) : Validatable {
     /**
      * Validation of organization name
@@ -54,8 +49,6 @@ data class OrganizationDto(
             avatar = null,
             description = "",
             canCreateContests = false,
-            userRoles = emptyMap(),
-            globalRating = null,
         )
     }
 }

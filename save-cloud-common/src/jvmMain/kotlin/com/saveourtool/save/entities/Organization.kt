@@ -40,13 +40,14 @@ data class Organization(
     var id: Long? = null
 
     /**
-     * @param userRoles map where keys are usernames and values are their roles
      * @return [OrganizationDto]
      */
-    fun toDto(userRoles: Map<String, Role> = emptyMap()) = OrganizationDto(
-        name,
-        userRoles = userRoles,
+    fun toDto() = OrganizationDto(
+        name = name,
+        dateCreated = dateCreated,
         avatar = avatar,
+        description = description ?: "",
+        canCreateContests = canCreateContests,
     )
     
     /**

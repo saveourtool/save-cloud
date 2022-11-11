@@ -107,7 +107,7 @@ internal class OrganizationController(
     fun getNotDeletedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication?,
-    ): Flux<OrganizationDto> =
+    ): Flux<OrganizationWithRating> =
             (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
                 .let { organizationService.getFiltered(it) }
                 .toFlux()
@@ -117,7 +117,10 @@ internal class OrganizationController(
                     }
                 }
                 .map { (organization, rating) ->
-                    organization.toDto().copy(globalRating = rating)
+                    OrganizationWithRating(
+                        organization = organization.toDto(),
+                        globalRating = rating,
+                    )
                 }
 
     @GetMapping("/{organizationName}")

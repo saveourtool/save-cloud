@@ -19,6 +19,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -265,7 +266,7 @@ class LnkUserOrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
         authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+    ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
@@ -276,7 +277,10 @@ class LnkUserOrganizationController(
             it.organization.status != OrganizationStatus.DELETED
         }
         .map {
-            it.organization.toDto(mapOf(it.user.name!! to it.role))
+            OrganizationWithUsers(
+                organization = it.organization.toDto(),
+                userRoles = mapOf(it.user.name!! to it.role),
+            )
         }
 
     private fun getUserAndOrganizationWithPermissions(
