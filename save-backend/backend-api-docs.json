@@ -2728,6 +2728,103 @@
         ]
       }
     },
+    "/api/v1/organizations/{organizationName}/change-status": {
+      "post": {
+        "description": "Change status existing organization by its name.",
+        "operationId": "deleteOrganization",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully change status an organization."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for this action on organization."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find an organization with such name."
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "There are projects connected to organization. Please delete all of them and try again."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Change status existing organization.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/create-git": {
       "post": {
         "description": "Create git in organization.",
@@ -2817,90 +2914,6 @@
           }
         ],
         "summary": "Create git in organization.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/{organizationName}/delete": {
-      "delete": {
-        "description": "Delete existing organization by its name.",
-        "operationId": "deleteOrganization",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully deleted an organization."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not enough permission for deleting this organization."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Could not find an organization with such name."
-          },
-          "409": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "There are projects connected to organization. Please delete all of them and try again."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Delete existing organization.",
         "tags": [
           "organizations"
         ]
@@ -6635,6 +6648,7 @@
             "schema": {
               "type": "string",
               "enum": [
+                "BAN",
                 "DELETE",
                 "READ",
                 "WRITE"
@@ -8492,6 +8506,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8555,6 +8570,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8605,6 +8621,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
