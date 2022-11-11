@@ -255,6 +255,7 @@ class PermissionControllerTest {
                 Permission.READ -> permission != null
                 Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
                 Permission.DELETE -> permission == Permission.DELETE
+                Permission.BAN -> permission == Permission.BAN
             }
         }
         given(projectService.findUserByName(any())).willAnswer { invocationOnMock ->

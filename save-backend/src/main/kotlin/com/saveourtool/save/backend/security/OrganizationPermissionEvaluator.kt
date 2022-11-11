@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
@@ -35,7 +34,13 @@ class OrganizationPermissionEvaluator(
         return lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization).isHigherOrEqualThan(role)
     }
 
-    fun permissionChangeOrganizationStatus(authentication: Authentication?, organization: Organization, newStatus: OrganizationStatus): Boolean {
+    /**
+     * @param authentication [Authentication] describing an authenticated request
+     * @param organization is organization in which we want to change the status
+     * @param newStatus is new status in [organization]
+     * @return whether user described by [authentication] can have permission on change [organization] status on [newStatus]
+     */
+    fun hasPermissionToChangeStatus(authentication: Authentication?, organization: Organization, newStatus: OrganizationStatus): Boolean {
         val oldStatus = organization.status
 
         return when {
@@ -84,10 +89,10 @@ class OrganizationPermissionEvaluator(
             userId?.let { organizationRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
-        hasBanAccess(userId, organizationRole) || userId?.let { organizationRole == Role.OWNER } ?: false
+            hasBanAccess(userId, organizationRole) || userId?.let { organizationRole == Role.OWNER } ?: false
 
     private fun hasBanAccess(userId: Long?, organizationRole: Role): Boolean =
-        userId?.let { organizationRole == Role.SUPER_ADMIN } ?: false
+            userId?.let { organizationRole == Role.SUPER_ADMIN } ?: false
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
@@ -142,5 +147,4 @@ class OrganizationPermissionEvaluator(
 }
 
 private fun OrganizationStatus.isBanned(): Boolean =
-    this == OrganizationStatus.BANNED
-
+        this == OrganizationStatus.BANNED

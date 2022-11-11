@@ -315,19 +315,19 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @DeleteMapping("/{organizationName}/change-status")
+    @PostMapping("/{organizationName}/change-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE",
-        summary = "Delete existing organization.",
-        description = "Delete existing organization by its name.",
+        method = "POST",
+        summary = "Change status existing organization.",
+        description = "Change status existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
+    @ApiResponse(responseCode = "200", description = "Successfully change status an organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
@@ -342,7 +342,7 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            organizationPermissionEvaluator.permissionChangeOrganizationStatus(authentication, it, status)
+            organizationPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for this action with organization of organization $organizationName."
@@ -353,18 +353,18 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
-        .map {
-            when(status) {
+        .map {organization ->
+            when (status) {
                 OrganizationStatus.BANNED -> {
-                    organizationService.banOrganization(it)
+                    organizationService.banOrganization(organization)
                     ResponseEntity.ok("Organization banned")
                 }
                 OrganizationStatus.DELETED -> {
-                    organizationService.deleteOrganization(it)
+                    organizationService.deleteOrganization(organization)
                     ResponseEntity.ok("Organization deleted")
                 }
                 OrganizationStatus.CREATED -> {
-                    organizationService.recoverOrganization(it)
+                    organizationService.recoverOrganization(organization)
                     ResponseEntity.ok("Organization recovered")
                 }
             }

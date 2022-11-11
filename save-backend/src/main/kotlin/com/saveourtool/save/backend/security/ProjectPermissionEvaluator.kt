@@ -89,7 +89,7 @@ class ProjectPermissionEvaluator(
             userId?.let { projectRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean =
-        hasBanAccess(userId, projectRole) || userId?.let { projectRole == Role.OWNER } ?: false
+            hasBanAccess(userId, projectRole) || userId?.let { projectRole == Role.OWNER } ?: false
 
     private fun hasBanAccess(userId: Long?, projectRole: Role): Boolean = userId?.let { projectRole == Role.SUPER_ADMIN } ?: false
 

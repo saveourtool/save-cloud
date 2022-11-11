@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
@@ -44,6 +43,7 @@ class OrganizationService(
      * Mark organization with [organizationName] as deleted
      *
      * @param organizationName an [Organization]'s name to delete
+     * @param newStatus is new status for [organizationName]
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
@@ -61,17 +61,18 @@ class OrganizationService(
      * @param organization an [Organization] to delete
      * @return deleted organization
      */
-    fun deleteOrganization(organization: Organization): Organization {
-        return if (!hasProjects(organization.name))
-            changeOrganizationStatus(organization.name, OrganizationStatus.DELETED)
-        else organization
+    fun deleteOrganization(organization: Organization): Organization = if (!hasProjects(organization.name)) {
+        changeOrganizationStatus(organization.name, OrganizationStatus.DELETED)
+    } else {
+        organization
     }
 
     /**
      * Mark organization with [organization] as created.
      * If an organization was previously banned, then all its projects become deleted.
      *
-     * @param organizationName an [Organization] to create
+     * @param organization an [Organization] to create
+     * @param organization
      * @return deleted organization
      */
     fun recoverOrganization(organization: Organization): Organization {
@@ -97,8 +98,6 @@ class OrganizationService(
         }
         return changeOrganizationStatus(organization.name, OrganizationStatus.BANNED)
     }
-
-
 
     /**
      * @param organizationName the unique name of the organization.
