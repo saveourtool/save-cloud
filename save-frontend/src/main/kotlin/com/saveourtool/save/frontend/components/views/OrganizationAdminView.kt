@@ -165,7 +165,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      * the externally supplied [ErrorHandler].
      *
      * @param organization the project to delete.
-     * @return the lambda which delentes [organization].
+     * @return the lambda which deletes [organization].
      * @see ErrorHandler
      */
     private fun deleteOrganization(organization: Organization): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->

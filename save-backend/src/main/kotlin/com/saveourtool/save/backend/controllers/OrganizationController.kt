@@ -345,10 +345,10 @@ internal class OrganizationController(
             organizationPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for this action with organization of organization $organizationName."
+            "Not enough permission for this action with organization $organizationName."
         }
         .filter {
-            status == OrganizationStatus.DELETED && !organizationService.hasProjects(organizationName)
+            status != OrganizationStatus.DELETED || !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
@@ -357,15 +357,15 @@ internal class OrganizationController(
             when (status) {
                 OrganizationStatus.BANNED -> {
                     organizationService.banOrganization(organization)
-                    ResponseEntity.ok("Organization banned")
+                    ResponseEntity.ok("Successfully banned the organization")
                 }
                 OrganizationStatus.DELETED -> {
                     organizationService.deleteOrganization(organization)
-                    ResponseEntity.ok("Organization deleted")
+                    ResponseEntity.ok("Successfully deleted the organization")
                 }
                 OrganizationStatus.CREATED -> {
                     organizationService.recoverOrganization(organization)
-                    ResponseEntity.ok("Organization recovered")
+                    ResponseEntity.ok("Successfully recovered the organization")
                 }
             }
         }

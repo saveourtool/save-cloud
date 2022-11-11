@@ -47,7 +47,7 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun changeOrganizationStatus(organizationName: String, newStatus: OrganizationStatus): Organization = getByName(organizationName)
+    fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
         .apply {
             status = newStatus
         }
@@ -62,7 +62,7 @@ class OrganizationService(
      * @return deleted organization
      */
     fun deleteOrganization(organization: Organization): Organization = if (!hasProjects(organization.name)) {
-        changeOrganizationStatus(organization.name, OrganizationStatus.DELETED)
+        changeOrganizationStatus(organization, OrganizationStatus.DELETED)
     } else {
         organization
     }
@@ -82,7 +82,7 @@ class OrganizationService(
                 projectService.updateProject(it)
             }
         }
-        return changeOrganizationStatus(organization.name, OrganizationStatus.CREATED)
+        return changeOrganizationStatus(organization, OrganizationStatus.CREATED)
     }
 
     /**
@@ -96,7 +96,7 @@ class OrganizationService(
             it.status = BANNED
             projectService.updateProject(it)
         }
-        return changeOrganizationStatus(organization.name, OrganizationStatus.BANNED)
+        return changeOrganizationStatus(organization, OrganizationStatus.BANNED)
     }
 
     /**

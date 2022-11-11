@@ -45,7 +45,7 @@ class OrganizationPermissionEvaluator(
 
         return when {
             oldStatus == newStatus -> false
-            oldStatus.isBanned() || newStatus.isBanned() ->
+            oldStatus.isBan() || newStatus.isBan() ->
                 hasPermission(authentication, organization, Permission.BAN)
             else -> hasPermission(authentication, organization, Permission.DELETE)
         }
@@ -146,5 +146,5 @@ class OrganizationPermissionEvaluator(
     }
 }
 
-private fun OrganizationStatus.isBanned(): Boolean =
+private fun OrganizationStatus.isBan(): Boolean =
         this == OrganizationStatus.BANNED
