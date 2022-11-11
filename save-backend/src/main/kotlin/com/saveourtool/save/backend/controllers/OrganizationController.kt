@@ -330,7 +330,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
-    fun deleteOrganization(
+    fun changeOrganizationStatus(
         @PathVariable organizationName: String,
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,

@@ -75,6 +75,7 @@ class OrganizationService(
      * @param organization
      * @return deleted organization
      */
+    @Transactional
     fun recoverOrganization(organization: Organization): Organization {
         if (organization.status == OrganizationStatus.BANNED) {
             projectService.getAllByOrganizationName(organization.name).forEach {
@@ -91,6 +92,7 @@ class OrganizationService(
      * @param organization an [Organization] to ban
      * @return deleted organization
      */
+    @Transactional
     fun banOrganization(organization: Organization): Organization {
         projectService.getAllByOrganizationName(organization.name).forEach {
             it.status = BANNED

@@ -253,8 +253,8 @@ class PermissionControllerTest {
             when (it.arguments[2] as Permission?) {
                 null -> false
                 Permission.READ -> permission != null
-                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
-                Permission.DELETE -> permission == Permission.DELETE
+                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE || permission == Permission.BAN
+                Permission.DELETE -> permission == Permission.DELETE || permission == Permission.BAN
                 Permission.BAN -> permission == Permission.BAN
             }
         }
