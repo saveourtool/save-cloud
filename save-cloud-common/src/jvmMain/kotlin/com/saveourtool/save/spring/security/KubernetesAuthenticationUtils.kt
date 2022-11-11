@@ -29,6 +29,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
@@ -64,7 +65,9 @@ open class KubernetesAuthenticationUtils {
         serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
     ): SecurityWebFilterChain = http.run {
         securityMatcher(
-            ServerWebExchangeMatchers.pathMatchers("/actuator/**", "/internal/**")
+            NegatedServerWebExchangeMatcher(
+                ServerWebExchangeMatchers.pathMatchers("/api/**", "/sandbox/api/**")
+            )
         )
             .authorizeExchange()
             .pathMatchers("/actuator/**")
@@ -73,7 +76,7 @@ open class KubernetesAuthenticationUtils {
             .permitAll()
             .and()
             .authorizeExchange()
-            .pathMatchers("/internal/**")
+            .pathMatchers("/**")
             .authenticated()
             .and()
             .serviceAccountTokenAuthentication(serviceAccountTokenExtractorConverter, serviceAccountAuthenticatingManager)
