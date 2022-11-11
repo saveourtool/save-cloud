@@ -38,8 +38,7 @@ class ProjectPermissionEvaluator(
 
         return when {
             oldStatus == newStatus -> throw IllegalStateException("invalid status")
-            oldStatus.isBan() || newStatus.isBan() ->
-                hasPermission(authentication, project, Permission.BAN)
+            oldStatus.isBan() || newStatus.isBan() -> hasPermission(authentication, project, Permission.BAN)
             else -> hasPermission(authentication, project, Permission.DELETE)
         }
     }
@@ -114,6 +113,9 @@ class ProjectPermissionEvaluator(
     private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = userId?.let {
         projectRole == Role.SUPER_ADMIN || organzationRole == Role.SUPER_ADMIN
     } ?: false
+
+
+
 
     /**
      * @param authentication

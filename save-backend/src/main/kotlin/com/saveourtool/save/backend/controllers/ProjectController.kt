@@ -255,8 +255,8 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Delete a project.",
-        description = "Delete a project.",
+        summary = "Change status existing project.",
+        description = "Change status existing project by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),

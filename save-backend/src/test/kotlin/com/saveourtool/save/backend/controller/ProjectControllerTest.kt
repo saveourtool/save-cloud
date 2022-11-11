@@ -154,7 +154,7 @@ class ProjectControllerTest {
             .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
             .exchange()
             .expectStatus()
-            .isForbidden
+            .isOk
 
         val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
         Assertions.assertTrue(
@@ -166,9 +166,9 @@ class ProjectControllerTest {
     @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
     fun `delete project without owner permission`() {
         mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
+            details = AuthenticationDetails(id = 3)
         }
-        val organization: Organization = organizationRepository.getOrganizationById(1)
+        val organization: Organization = organizationRepository.getOrganizationById(2)
         val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)

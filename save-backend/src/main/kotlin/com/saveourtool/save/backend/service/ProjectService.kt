@@ -80,7 +80,6 @@ class ProjectService(
      * @param project an [project] to create
      * @return recovered project
      */
-    @Transactional
     fun recoverProject(project: Project): Project =
             changeProjectStatus(project, ProjectStatus.CREATED)
 
@@ -90,7 +89,6 @@ class ProjectService(
      * @param project an [project] to ban
      * @return banned project
      */
-    @Transactional
     fun banProject(project: Project): Project =
             changeProjectStatus(project, ProjectStatus.BANNED)
 
@@ -122,22 +120,16 @@ class ProjectService(
      * @param organizationName
      * @return project
      */
-    fun findByNameAndOrganizationNameWithoutStatus(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
+    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
     /**
      * @param name
      * @param organizationName
      * @return project
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String): Project? =
-            findByNameAndOrganizationNameWithoutStatus(name, organizationName)
-                ?.let {
-                    if (it.organization.status == OrganizationStatus.CREATED) {
-                        it
-                    } else {
-                        null
-                    }
-                }
+    fun findByNameAndOrganizationNameS(name: String, organizationName: String): Project? =
+        findByNameAndOrganizationName(name, organizationName)
+                ?.takeIf { it.organization.status == OrganizationStatus.CREATED }
 
     /**
      * @param organizationName

@@ -46,8 +46,7 @@ class OrganizationPermissionEvaluator(
 
         return when {
             oldStatus == newStatus -> throw IllegalStateException("invalid status")
-            oldStatus.isBan() || newStatus.isBan() ->
-                hasPermission(authentication, organization, Permission.BAN)
+            oldStatus.isBan() || newStatus.isBan() -> hasPermission(authentication, organization, Permission.BAN)
             else -> hasPermission(authentication, organization, Permission.DELETE)
         }
     }
