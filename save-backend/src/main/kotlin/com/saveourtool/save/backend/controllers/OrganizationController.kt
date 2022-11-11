@@ -325,6 +325,7 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully change status an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
