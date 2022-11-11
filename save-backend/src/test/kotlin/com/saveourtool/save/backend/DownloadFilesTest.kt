@@ -82,8 +82,8 @@ import kotlin.io.path.*
     MockBean(ExecutionService::class),
 )
 class DownloadFilesTest {
-    private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
-    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
+    private val organization = Organization("Example.com", OrganizationStatus.CREATED, null).apply { id = 2 }
+    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, null).apply { id = 1 }
     private var testProject: Project = Project(
         organization = organization,
         name = "TheProject",

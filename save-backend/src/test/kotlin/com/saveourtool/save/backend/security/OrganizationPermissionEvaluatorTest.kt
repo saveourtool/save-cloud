@@ -40,7 +40,6 @@ class OrganizationPermissionEvaluatorTest {
 
     @Test
     fun `permissions for organization owners`() {
-        mockOrganization.ownerId = 99
         userShouldHavePermissions(
             "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )

@@ -17,12 +17,12 @@ import javax.persistence.ManyToOne
 class LnkUserOrganization(
     @ManyToOne
     @JoinColumn(name = "organization_id")
-    var organization: Organization?,
+    var organization: Organization,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User,
 
     @Enumerated(EnumType.STRING)
-    var role: Role?,
+    var role: Role,
 ) : BaseEntity()
