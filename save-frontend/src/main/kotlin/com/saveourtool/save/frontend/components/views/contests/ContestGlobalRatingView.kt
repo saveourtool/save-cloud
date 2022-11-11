@@ -249,7 +249,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
             val organizationsFromBackend: List<OrganizationWithRating> = post(
-                url = "$apiUrl/organizations/not-deleted",
+                url = "$apiUrl/organizations/not-deleted-with-rating",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,

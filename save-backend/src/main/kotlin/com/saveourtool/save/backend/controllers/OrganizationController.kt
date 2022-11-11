@@ -96,32 +96,32 @@ internal class OrganizationController(
         }
     }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/not-deleted-with-rating")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted organizations.",
-        description = "Get non-deleted organizations.",
+        summary = "Get available organizations with global rating.",
+        description = "Get non-deleted organizations with global rating.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getNotDeletedOrganizations(
+    fun getNotDeletedOrganizationsWithRating(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication?,
     ): Flux<OrganizationWithRating> =
-            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
-                .let { organizationService.getFiltered(it) }
-                .toFlux()
-                .flatMap { organization ->
-                    organizationService.getGlobalRating(organization.name, authentication).map {
-                        organization to it
-                    }
+        (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
+            .let { organizationService.getFiltered(it) }
+            .toFlux()
+            .flatMap { organization ->
+                organizationService.getGlobalRating(organization.name, authentication).map {
+                    organization to it
                 }
-                .map { (organization, rating) ->
-                    OrganizationWithRating(
-                        organization = organization.toDto(),
-                        globalRating = rating,
-                    )
-                }
+            }
+            .map { (organization, rating) ->
+                OrganizationWithRating(
+                    organization = organization.toDto(),
+                    globalRating = rating,
+                )
+            }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
