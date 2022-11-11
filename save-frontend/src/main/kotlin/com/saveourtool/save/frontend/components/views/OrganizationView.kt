@@ -472,14 +472,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         newOrganization.copy(
             description = state.draftOrganizationDescription
         ).let { organizationWithNewDescription ->
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
             scope.launch {
                 val response = post(
                     "$apiUrl/organizations/${props.organizationName}/update",
-                    headers,
+                    jsonHeaders,
                     Json.encodeToString(organizationWithNewDescription),
                     loadingHandler = ::noopLoadingHandler,
                 )

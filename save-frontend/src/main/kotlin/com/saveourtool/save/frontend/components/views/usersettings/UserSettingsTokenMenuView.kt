@@ -2,6 +2,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.jsonHeaders
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.post
 
@@ -72,14 +73,10 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 this.token = token
             }
         ) {
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
             scope.launch {
                 post(
                     "$apiUrl/users/${state.userInfo!!.name}/save/token",
-                    headers,
+                    jsonHeaders,
                     state.token,
                     loadingHandler = ::noopLoadingHandler,
                 )
