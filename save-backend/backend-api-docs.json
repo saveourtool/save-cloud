@@ -2731,7 +2731,7 @@
     "/api/v1/organizations/{organizationName}/change-status": {
       "post": {
         "description": "Change status existing organization by its name.",
-        "operationId": "deleteOrganization",
+        "operationId": "changeOrganizationStatus",
         "parameters": [
           {
             "description": "name of an organization",
