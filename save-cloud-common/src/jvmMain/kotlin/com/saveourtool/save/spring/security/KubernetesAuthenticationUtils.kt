@@ -116,9 +116,9 @@ class ServiceAccountTokenExtractorConverter : ServerAuthenticationConverter {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountTokenExtractorConverter>()
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> = Mono.justOrEmpty(
-        exchange.request.headers["X-Service-Account-Token"]?.firstOrNull()
+`        exchange.request.headers[SA_HEADER_NAME]?.firstOrNull()
     ).map { token ->
-        logger.debug { "Starting to process `X-Service-Account-Token` of an incoming request" }
+        logger.debug { "Starting to process `$SA_HEADER_NAME` of an incoming request" }
         PreAuthenticatedAuthenticationToken("TokenSupplier", token)
     }
 }
