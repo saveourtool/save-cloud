@@ -108,20 +108,20 @@ internal class OrganizationController(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication?,
     ): Flux<OrganizationWithRating> =
-        (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
-            .let { organizationService.getFiltered(it) }
-            .toFlux()
-            .flatMap { organization ->
-                organizationService.getGlobalRating(organization.name, authentication).map {
-                    organization to it
+            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
+                .let { organizationService.getFiltered(it) }
+                .toFlux()
+                .flatMap { organization ->
+                    organizationService.getGlobalRating(organization.name, authentication).map {
+                        organization to it
+                    }
                 }
-            }
-            .map { (organization, rating) ->
-                OrganizationWithRating(
-                    organization = organization.toDto(),
-                    globalRating = rating,
-                )
-            }
+                .map { (organization, rating) ->
+                    OrganizationWithRating(
+                        organization = organization.toDto(),
+                        globalRating = rating,
+                    )
+                }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")

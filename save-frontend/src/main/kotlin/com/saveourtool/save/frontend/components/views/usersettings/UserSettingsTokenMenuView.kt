@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.utils.post
 
 import csstype.ClassName
 import kotlinext.js.assign
-import org.w3c.fetch.Headers
 import react.FC
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
