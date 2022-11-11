@@ -8635,10 +8635,6 @@
           },
           "url": {
             "type": "string"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
