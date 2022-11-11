@@ -4,13 +4,13 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
-
 import javax.persistence.Entity
 import javax.persistence.Enumerated
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
+
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * @property name organization

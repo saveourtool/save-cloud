@@ -170,6 +170,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
+    @Suppress("TYPE_ALIAS")
     private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {

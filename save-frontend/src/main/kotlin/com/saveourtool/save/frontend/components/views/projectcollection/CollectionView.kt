@@ -38,7 +38,7 @@ external interface CreationViewProps : Props {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<CreationViewProps, State>() {
-    @Suppress("MAGIC_NUMBER")
+    @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
     private val projectsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {

@@ -173,6 +173,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
+        "TYPE_ALIAS",
     )
     private val renderingProjectChampionsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {

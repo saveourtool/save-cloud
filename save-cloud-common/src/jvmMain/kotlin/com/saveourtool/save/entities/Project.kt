@@ -4,14 +4,14 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.validation.isValidEmail
 
-import kotlinx.serialization.Serializable
-
 import javax.persistence.Entity
-import javax.persistence.ManyToOne
-import javax.persistence.JoinColumn
-import javax.persistence.Id
-import javax.persistence.GeneratedValue
 import javax.persistence.Enumerated
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
+
+import kotlinx.serialization.Serializable
 
 /**
  * @property name

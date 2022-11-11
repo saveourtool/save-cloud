@@ -15,6 +15,8 @@ import kotlinx.serialization.Serializable
  * @property isPublic flag is project public or not
  * @property url url of a project
  * @property email email of a project
+ * @property numberOfContainers
+ * @property contestRating
  */
 @Serializable
 data class ProjectDto(
