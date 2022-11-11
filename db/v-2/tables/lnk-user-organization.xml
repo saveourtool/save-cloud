@@ -75,7 +75,8 @@
       insert into lnk_user_organization(user_id, organization_id, role)
       select owner_id, id, 'OWNER'
       from organization
-      where not exists(
+      where owner_id is not NULL
+      and not exists(
       select * from lnk_user_organization where user_id = organization.owner_id and organization_id = organization.id
       );
     </sql>
