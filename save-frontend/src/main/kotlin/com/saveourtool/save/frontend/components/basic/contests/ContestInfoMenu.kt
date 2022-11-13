@@ -35,7 +35,7 @@ external interface ContestInfoMenuProps : Props {
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
-    val (contest, setContest) = useState<ContestDto?>(null)
+    var contest by useState<ContestDto?>(null)
     useRequest {
         val contestDto = get(
             "$apiUrl/contests/${props.contestName}",
@@ -45,7 +45,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
             .unsafeMap {
                 it.decodeFromJsonString<ContestDto>()
             }
-        setContest(contestDto)
+        contest = contestDto
     }
 
     div {
