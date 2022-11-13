@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.modal.displayInfoModal
-import react.ChildrenBuilder
 import react.useEffect
 import react.useState
 
