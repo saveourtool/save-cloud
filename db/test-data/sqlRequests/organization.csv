@@ -1,4 +1,4 @@
-id;name;owner_id;date_created;can_create_contests
-1;"Huawei";1;"2021-01-01 00:00:00";true
-2;"Example.com";1;"2021-01-01 00:00:00";false
-3;"CQFN.org";1;"2022-01-01 00:00:00";false
+id;name;date_created;can_create_contests
+1;"Huawei";"2021-01-01 00:00:00";true
+2;"Example.com";"2021-01-01 00:00:00";false
+3;"CQFN.org";"2022-01-01 00:00:00";false

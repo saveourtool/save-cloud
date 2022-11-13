@@ -21,7 +21,6 @@ class ProjectViewTest {
     private val testOrganization = Organization(
         "TestOrg",
         OrganizationStatus.CREATED,
-        2,
         LocalDateTime(2022, 6, 1, 12, 25),
     )
     private val testProject = Project(
@@ -30,7 +29,6 @@ class ProjectViewTest {
         "Project Description",
         ProjectStatus.CREATED,
         true,
-        2,
         "email@test.org",
         organization = testOrganization,
     )

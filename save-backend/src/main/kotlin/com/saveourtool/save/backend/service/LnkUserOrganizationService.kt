@@ -29,7 +29,7 @@ class LnkUserOrganizationService(
      */
     fun getAllUsersAndRolesByOrganization(organization: Organization) =
             lnkUserOrganizationRepository.findByOrganization(organization)
-                .associate { it.user to (it.role ?: Role.NONE) }
+                .associate { it.user to it.role }
 
     /**
      * @param userId
@@ -193,7 +193,7 @@ class LnkUserOrganizationService(
         .let {
             lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
         }
-        .mapNotNull { it.organization }
+        .map { it.organization }
 
     /**
      * @param user

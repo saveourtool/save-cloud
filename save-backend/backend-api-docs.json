@@ -2728,6 +2728,114 @@
         ]
       }
     },
+    "/api/v1/organizations/{organizationName}/change-status": {
+      "post": {
+        "description": "Change status existing organization by its name.",
+        "operationId": "changeOrganizationStatus",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "type of status being set",
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully change status an organization."
+          },
+          "400": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Invalid new status of the organization."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for this action on organization."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find an organization with such name."
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "There are projects connected to organization. Please delete all of them and try again."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Change status existing organization.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/create-git": {
       "post": {
         "description": "Create git in organization.",
@@ -2817,90 +2925,6 @@
           }
         ],
         "summary": "Create git in organization.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/{organizationName}/delete": {
-      "delete": {
-        "description": "Delete existing organization by its name.",
-        "operationId": "deleteOrganization",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully deleted an organization."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not enough permission for deleting this organization."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Could not find an organization with such name."
-          },
-          "409": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "There are projects connected to organization. Please delete all of them and try again."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Delete existing organization.",
         "tags": [
           "organizations"
         ]
@@ -6628,18 +6652,24 @@
             }
           },
           {
-            "description": "is given request sent for browsing test suites for contest, default is false",
+            "description": "requested permission: READ, WRITE or DELETE",
             "in": "query",
-            "name": "isContest",
-            "required": false,
+            "name": "permission",
+            "required": true,
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "string",
+              "enum": [
+                "BAN",
+                "DELETE",
+                "READ",
+                "WRITE"
+              ]
             }
           },
           {
+            "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
-            "name": "onlyPrivate",
+            "name": "isContest",
             "required": false,
             "schema": {
               "type": "boolean",
@@ -8480,13 +8510,10 @@
           "name": {
             "type": "string"
           },
-          "ownerId": {
-            "type": "integer",
-            "format": "int64"
-          },
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8550,6 +8577,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
@@ -8600,16 +8628,13 @@
           "status": {
             "type": "string",
             "enum": [
+              "BANNED",
               "CREATED",
               "DELETED"
             ]
           },
           "url": {
             "type": "string"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },

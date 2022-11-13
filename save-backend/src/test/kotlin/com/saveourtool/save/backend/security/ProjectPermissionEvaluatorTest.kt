@@ -35,6 +35,8 @@ class ProjectPermissionEvaluatorTest {
     @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockProject: Project
 
+    private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()
+
     @BeforeEach
     fun setUp() {
         mockProject = Project.stub(99)
@@ -75,18 +77,17 @@ class ProjectPermissionEvaluatorTest {
 
     @Test
     fun `permissions for project owners`() {
-        mockProject.userId = 99
         userShouldHavePermissions(
             "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, Role.OWNER, *Permission.values(), userId = 99
+            "admin", Role.ADMIN, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, Role.OWNER, *Permission.values(), userId = 99
+            "owner", Role.OWNER, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, Role.OWNER, *Permission.values(), userId = 99
+            "viewer", Role.VIEWER, Role.OWNER, *ownerPermissions, userId = 99
         )
     }
 

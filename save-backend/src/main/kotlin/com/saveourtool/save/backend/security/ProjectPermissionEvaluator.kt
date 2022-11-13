@@ -35,8 +35,7 @@ class ProjectPermissionEvaluator(
     fun hasPermission(authentication: Authentication?, project: Project, permission: Permission): Boolean {
         authentication ?: return when (permission) {
             Permission.READ -> project.public
-            Permission.WRITE -> false
-            Permission.DELETE -> false
+            Permission.BAN, Permission.DELETE, Permission.WRITE -> false
         }
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
@@ -49,6 +48,7 @@ class ProjectPermissionEvaluator(
             Permission.READ -> project.public || hasReadAccess(userId, projectRole)
             Permission.WRITE -> hasWriteAccess(userId, projectRole)
             Permission.DELETE -> hasDeleteAccess(userId, projectRole)
+            Permission.BAN -> hasBanAccess(userId, projectRole)
         }
     }
 
@@ -88,9 +88,10 @@ class ProjectPermissionEvaluator(
     private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
             userId?.let { projectRole == Role.ADMIN } ?: false
 
-    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
-        projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
-    } ?: false
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean =
+            hasBanAccess(userId, projectRole) || userId?.let { projectRole == Role.OWNER } ?: false
+
+    private fun hasBanAccess(userId: Long?, projectRole: Role): Boolean = userId?.let { projectRole == Role.SUPER_ADMIN } ?: false
 
     /**
      * @param authentication
