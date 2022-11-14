@@ -30,7 +30,7 @@ data class Project(
     var email: String? = null,
     var numberOfContainers: Int = 3,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id")
     var organization: Organization,
     var contestRating: Double = 0.0,
