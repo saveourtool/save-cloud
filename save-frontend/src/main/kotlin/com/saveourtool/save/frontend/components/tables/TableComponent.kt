@@ -26,15 +26,15 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.table.Column
 import react.table.PluginHook
-import react.table.Row
-import react.table.TableInstance
-import react.table.TableOptions
 import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
-import react.table.useTable
+import tanstack.react.table.useReactTable
+import tanstack.table.core.Column
+import tanstack.table.core.Table
+import tanstack.table.core.Row
+import tanstack.table.core.TableOptions
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -44,6 +44,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+import tanstack.table.core.ColumnDef
 
 /**
  * [Props] of a data table
@@ -95,7 +96,7 @@ external interface TableProps<D : Any> : Props {
     "LAMBDA_IS_NOT_LAST_PARAMETER"
 )
 fun <D : Any, P : TableProps<D>> tableComponent(
-    columns: (P) -> Array<out Column<D, *>>,
+    columns: (P) -> Array<out ColumnDef<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
@@ -103,8 +104,8 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
-    renderExpandedRow: (ChildrenBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: ChildrenBuilder.(table: TableInstance<D>) -> Unit = {},
+    renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: ChildrenBuilder.(table: Table<D>) -> Unit = {},
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
 ): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
@@ -117,7 +118,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
     val scope = CoroutineScope(Dispatchers.Default)
 
-    val tableInstance: TableInstance<D> = useTable(options = jso {
+    val tableInstance: Table<D> = useReactTable(options = jso {
         this.columns = useMemo { columns(props) }
         this.data = data
         this.manualPagination = useServerPaging
@@ -125,15 +126,17 @@ fun <D : Any, P : TableProps<D>> tableComponent(
             this.pageCount = pageCount
         }
         this.initialState = jso {
-            this.pageSize = initialPageSize
-            this.pageIndex = pageIndex
+            this.pagination = jso {
+                this.pageSize = initialPageSize
+                this.pageIndex = pageIndex
+            }
         }
         additionalOptions()
     }, plugins = plugins)
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
-        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
+        arrayOf(tableInstance.getState().pagination.pageIndex, tableInstance.getState().pagination.pageSize, pageCount)
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
@@ -142,7 +145,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     useEffect(*dependencies) {
         if (useServerPaging) {
             scope.launch {
-                val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
+                val newPageCount = props.getPageCount!!.invoke(tableInstance.getState().pagination.pageSize)
                 if (newPageCount != pageCount) {
                     setPageCount(newPageCount)
                 }
@@ -162,7 +165,9 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     useEffect(*dependencies) {
         scope.launch {
             try {
-                setData(context.(props.getData)(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.(props.getData)(
+                    tableInstance.getState().pagination.pageIndex, tableInstance.getState().pagination.pageSize
+                ))
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case
@@ -197,14 +202,15 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                 className = ClassName("table-responsive")
                 table {
                     className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
-                    spread(tableInstance.getTableProps())
+//                    spread(tableInstance.getTableProps())
                     width = 100.0
                     cellSpacing = "0"
                     thead {
                         commonHeader(tableInstance)
-                        tableInstance.headerGroups.map { headerGroup ->
+                        tableInstance.getHeaderGroups().map { headerGroup ->
                             tr {
-                                spread(headerGroup.getHeaderGroupProps())
+                                id = headerGroup.id
+//                                spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
                                     val className = if (column.canSort) columnProps.className else ClassName("")
