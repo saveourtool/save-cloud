@@ -11,9 +11,9 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
+ * @property status
  * @property dateCreated date created organization
  * @property avatar
- * @property status
  * @property description
  * @property canCreateContests
  */
@@ -34,6 +34,7 @@ data class Organization(
      */
     override fun toDto() = OrganizationDto(
         name = name,
+        status = status,
         dateCreated = dateCreated.toKotlinLocalDateTime(),
         avatar = avatar,
         description = description.orEmpty(),
@@ -49,30 +50,25 @@ data class Organization(
          */
         fun stub(
             id: Long?,
-        ) = Organization(
-            name = "stub",
-            status = OrganizationStatus.CREATED,
-            dateCreated = LocalDateTime.now(),
-            avatar = null,
-            description = null,
-            canCreateContests = false,
-        ).apply {
-            this.id = id
-        }
+        ) = OrganizationDto.empty
+            .copy(
+                name = "stub"
+            )
+            .toOrganization()
+            .apply {
+                this.id = id
+            }
     }
 }
 
 /**
- * @param status
  * @return [Organization] from [OrganizationDto]
  */
-fun OrganizationDto.toOrganization(
-    status: OrganizationStatus = OrganizationStatus.CREATED,
-) = Organization(
-    name,
-    status,
-    dateCreated.toJavaLocalDateTime(),
-    avatar,
-    description,
-    canCreateContests,
+fun OrganizationDto.toOrganization() = Organization(
+    name = name,
+    status = status,
+    dateCreated = dateCreated.toJavaLocalDateTime(),
+    avatar = avatar,
+    description = description,
+    canCreateContests = canCreateContests,
 )

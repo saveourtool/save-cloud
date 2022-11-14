@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
+ * @property status
  * @property dateCreated date created organization
  * @property avatar
  * @property description
@@ -18,6 +19,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class OrganizationDto(
     val name: String,
+    var status: OrganizationStatus = OrganizationStatus.CREATED,
     @Contextual
     val dateCreated: LocalDateTime = getCurrentLocalDateTime(),
     val avatar: String? = null,

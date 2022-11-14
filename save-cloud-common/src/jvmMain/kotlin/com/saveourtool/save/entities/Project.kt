@@ -13,9 +13,9 @@ import kotlinx.serialization.Serializable
  * @property description description of the project, may be absent
  * @property status status of project
  * @property public
- * @property organization
  * @property email
  * @property numberOfContainers
+ * @property organization
  * @property contestRating global rating based on all contest results associated with this project
  */
 @Entity
@@ -39,12 +39,15 @@ data class Project(
      * @return [ProjectDto] from [Project]
      */
     override fun toDto() = ProjectDto(
-        name,
-        organization.name,
-        public,
-        description.orEmpty(),
-        url.orEmpty(),
-        email.orEmpty(),
+        name = name,
+        url = url.orEmpty(),
+        description = description.orEmpty(),
+        status = status,
+        isPublic = public,
+        email = email.orEmpty(),
+        numberOfContainers = numberOfContainers,
+        organizationName = organization.name,
+        contestRating = contestRating,
     )
 
     /**
@@ -71,26 +74,23 @@ data class Project(
         fun stub(
             id: Long?,
             organization: Organization = Organization.stub(null)
-        ) = Project(
-            name = "stub",
-            url = null,
-            description = null,
-            status = ProjectStatus.CREATED,
-            organization = organization,
-        ).apply {
-            this.id = id
-        }
+        ) = ProjectDto.empty
+            .copy(
+                name = "stub"
+            )
+            .toProject(organization)
+            .apply {
+                this.id = id
+            }
     }
 }
 
 /**
  * @param organization organization that is an owner of a given project
- * @param status
  * @return [Project] from [ProjectDto]
  */
 fun ProjectDto.toProject(
     organization: Organization,
-    status: ProjectStatus = ProjectStatus.CREATED,
 ) = Project(
     name = name,
     url = url,

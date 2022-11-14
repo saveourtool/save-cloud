@@ -34,7 +34,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -60,7 +59,6 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.LocalDateTime
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -196,7 +194,6 @@ class DownloadFilesTest {
         }
             .build()
 
-        val projectCoordinates = ProjectCoordinates("Huawei", "huaweiName")
         webTestClient.post()
             .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -239,7 +236,6 @@ class DownloadFilesTest {
     }
 
     companion object {
-        @JvmStatic private val logger = LoggerFactory.getLogger(DownloadFilesTest::class.java)
         @TempDir internal lateinit var tmpDir: Path
 
         @DynamicPropertySource
