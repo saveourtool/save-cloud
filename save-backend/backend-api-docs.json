@@ -8522,7 +8522,8 @@
           "canCreateContests",
           "dateCreated",
           "description",
-          "name"
+          "name",
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -8540,6 +8541,14 @@
           },
           "name": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "BANNED",
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },
@@ -8682,6 +8691,7 @@
           "name",
           "numberOfContainers",
           "organizationName",
+          "status",
           "url"
         ],
         "type": "object",
@@ -8708,6 +8718,14 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "BANNED",
+              "CREATED",
+              "DELETED"
+            ]
           },
           "url": {
             "type": "string"
