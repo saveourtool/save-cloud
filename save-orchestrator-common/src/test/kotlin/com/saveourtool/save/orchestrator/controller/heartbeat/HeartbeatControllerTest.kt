@@ -13,6 +13,7 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
 import com.saveourtool.save.orchestrator.service.AgentRepository
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -32,11 +33,11 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.time.Duration
-import java.time.LocalDateTime
 
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import org.mockito.kotlin.*
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
@@ -115,8 +116,8 @@ class HeartbeatControllerTest {
     fun `should not shutdown any agents when not all of them are IDLE`() {
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+                AgentStatusDto(AgentState.IDLE, "test-1"),
+                AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
@@ -133,8 +134,8 @@ class HeartbeatControllerTest {
     fun `should not shutdown any agents when all agents are IDLE but there are more tests left`() {
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+                AgentStatusDto(AgentState.IDLE, "test-1"),
+                AgentStatusDto(AgentState.IDLE, "test-2"),
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
@@ -154,8 +155,8 @@ class HeartbeatControllerTest {
     fun `should send Terminate signal to idle agents when there are no tests left`() {
         whenever(dockerService.isAgentStopped(any())).thenReturn(true)
         val agentStatusDtos = listOf(
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+            AgentStatusDto(AgentState.IDLE, "test-1"),
+            AgentStatusDto(AgentState.IDLE, "test-2"),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -179,8 +180,8 @@ class HeartbeatControllerTest {
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
+                AgentStatusDto(AgentState.STARTING, "test-1"),
+                AgentStatusDto(AgentState.STARTING, "test-2"),
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime + 1.seconds),
@@ -207,8 +208,8 @@ class HeartbeatControllerTest {
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+                AgentStatusDto(AgentState.STARTING, "test-1"),
+                AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
@@ -238,7 +239,7 @@ class HeartbeatControllerTest {
     @Test
     fun `should shutdown all agents, since all of them don't sent heartbeats for some time`() {
         val agentStatusDtos = listOf(
-            AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+            AgentStatusDto(AgentState.STARTING, "test-1"),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -264,10 +265,10 @@ class HeartbeatControllerTest {
     @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
         val agentStatusDtos = listOf(
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
-            AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-1"),
-            AgentStatusDto(LocalDateTime.parse("2021-01-01T00:00:00"), AgentState.FINISHED, "test-2"),
+            AgentStatusDto(AgentState.IDLE, "test-1"),
+            AgentStatusDto(AgentState.IDLE, "test-2"),
+            AgentStatusDto(AgentState.FINISHED, "test-1", LocalDateTime(2021, 1, 1, 0, 0, 0)),
+            AgentStatusDto(AgentState.FINISHED, "test-2", LocalDateTime(2021, 1, 1, 0, 0, 0)),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -290,8 +291,8 @@ class HeartbeatControllerTest {
     @Test
     fun `should mark test executions as failed if agent returned only part of results`() {
         val agentStatusDtos = listOf(
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
+            AgentStatusDto(AgentState.IDLE, "test-1"),
+            AgentStatusDto(AgentState.IDLE, "test-2"),
         )
 
         // if some test execution still have state `READY_FOR_TESTING`, but Agent.state == `FINISHED`

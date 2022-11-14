@@ -1,15 +1,9 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.validation.isValidEmail
 
-import javax.persistence.Entity
-import javax.persistence.Enumerated
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 import kotlinx.serialization.Serializable
 
@@ -98,7 +92,7 @@ data class Project(
          */
         fun stub(
             id: Long?,
-            organization: Organization = Organization("stub", OrganizationStatus.CREATED, null, null, null)
+            organization: Organization = Organization.stub(null)
         ) = Project(
             name = "stub",
             url = null,

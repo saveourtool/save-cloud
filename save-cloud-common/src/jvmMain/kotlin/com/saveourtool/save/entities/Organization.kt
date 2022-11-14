@@ -1,13 +1,10 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.utils.EnumType
-import com.saveourtool.save.utils.LocalDateTime
+import java.time.LocalDateTime
+import javax.persistence.*
 
-import javax.persistence.Entity
-import javax.persistence.Enumerated
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
@@ -26,7 +23,7 @@ data class Organization(
     @Enumerated(EnumType.STRING)
     var status: OrganizationStatus,
     @Contextual
-    var dateCreated: LocalDateTime?,
+    var dateCreated: LocalDateTime,
     var avatar: String? = null,
     var description: String? = null,
     var canCreateContests: Boolean = false,
@@ -43,7 +40,7 @@ data class Organization(
      */
     fun toDto() = OrganizationDto(
         name = name,
-        dateCreated = dateCreated,
+        dateCreated = dateCreated.toKotlinLocalDateTime(),
         avatar = avatar,
         description = description.orEmpty(),
         canCreateContests = canCreateContests,
@@ -69,7 +66,7 @@ data class Organization(
         ) = Organization(
             name = "stub",
             status = OrganizationStatus.CREATED,
-            dateCreated = null,
+            dateCreated = LocalDateTime.now(),
             avatar = null,
             description = null,
             canCreateContests = false,
@@ -88,7 +85,7 @@ fun OrganizationDto.toOrganization(
 ) = Organization(
     name,
     status,
-    dateCreated,
+    dateCreated.toJavaLocalDateTime(),
     avatar,
     description,
     canCreateContests,

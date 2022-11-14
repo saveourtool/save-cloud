@@ -1,8 +1,9 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
+import kotlinx.datetime.LocalDateTime
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -18,7 +19,7 @@ import kotlinx.serialization.Serializable
 data class OrganizationDto(
     val name: String,
     @Contextual
-    val dateCreated: LocalDateTime? = null,
+    val dateCreated: LocalDateTime = getCurrentLocalDateTime(),
     val avatar: String? = null,
     val description: String = "",
     val canCreateContests: Boolean = false,
@@ -45,10 +46,6 @@ data class OrganizationDto(
          */
         val empty = OrganizationDto(
             name = "",
-            dateCreated = null,
-            avatar = null,
-            description = "",
-            canCreateContests = false,
         )
     }
 }

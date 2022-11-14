@@ -12,7 +12,6 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.postJsonAndAssert
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.v1
@@ -66,7 +65,7 @@ class DeleteEntitiesTest {
             Project.stub(99).apply { id = 1 }
         )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", OrganizationStatus.CREATED, null, null, null)
+            Organization.stub(null)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()

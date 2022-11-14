@@ -21,9 +21,7 @@ import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
@@ -62,6 +60,7 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDateTime
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -82,25 +81,21 @@ import kotlin.io.path.*
     MockBean(ExecutionService::class),
 )
 class DownloadFilesTest {
-    private val organization = Organization("Example.com", OrganizationStatus.CREATED, null).apply { id = 2 }
-    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, null).apply { id = 1 }
-    private var testProject: Project = Project(
-        organization = organization,
-        name = "TheProject",
-        url = "example.com",
-        description = "This is an example project",
-        status = ProjectStatus.CREATED,
-    ).apply {
-        id = 3
+    private val organization = Organization.stub(2).apply {
+        name = "Example.com"
     }
-    private var testProject2: Project = Project(
-        organization = organization2,
-        name = "huaweiName",
-        url = "huawei.com",
-        description = "test description",
-        status = ProjectStatus.CREATED,
-    ).apply {
-        id = 1
+    private val organization2 = Organization.stub(1).apply {
+        name = "Huawei"
+    }
+    private var testProject: Project = Project.stub(3, organization).apply {
+        name = "TheProject"
+        url = "example.com"
+        description = "This is an example project"
+    }
+    private var testProject2: Project = Project.stub(1, organization2).apply {
+        name = "huaweiName"
+        url = "huawei.com"
+        description = "test description"
     }
 
     @Autowired
