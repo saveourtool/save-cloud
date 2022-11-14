@@ -7807,15 +7807,13 @@
         "type": "object",
         "properties": {
           "creationTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "description": {
             "type": "string"
           },
           "endTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "name": {
             "type": "string"
@@ -7824,8 +7822,7 @@
             "type": "string"
           },
           "startTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "status": {
             "type": "string",
@@ -7884,8 +7881,7 @@
             ]
           },
           "submissionTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           }
         }
       },
@@ -8485,6 +8481,7 @@
       "Organization": {
         "required": [
           "canCreateContests",
+          "dateCreated",
           "name",
           "status"
         ],
@@ -8523,6 +8520,7 @@
       "OrganizationDto": {
         "required": [
           "canCreateContests",
+          "dateCreated",
           "description",
           "name"
         ],
@@ -8535,8 +8533,7 @@
             "type": "boolean"
           },
           "dateCreated": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "description": {
             "type": "string"
