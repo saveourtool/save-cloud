@@ -254,7 +254,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(newOrganization)
         .map {
-            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
+            organizationService.saveOrganization(it.toOrganization())
         }
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
