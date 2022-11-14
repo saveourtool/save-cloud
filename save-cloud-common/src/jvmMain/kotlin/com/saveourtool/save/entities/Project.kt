@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.validation.isValidEmail
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import javax.persistence.*
 
@@ -34,33 +34,11 @@ data class Project(
     @JoinColumn(name = "organization_id")
     var organization: Organization,
     var contestRating: Double = 0.0,
-) {
-    /**
-     * id of project
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
-    /**
-     * @return [id] as not null with validating
-     * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
-     */
-    fun requiredId(): Long = requireNotNull(id) {
-        "Entity is not saved yet: $this"
-    }
-
-    /**
-     * Email validation
-     *
-     * @return true if email is valid, false otherwise
-     */
-    fun validateEmail() = email.isNullOrEmpty() || email?.isValidEmail() ?: true
-
+) : BaseEntityWithDto<ProjectDto>() {
     /**
      * @return [ProjectDto] from [Project]
      */
-    fun toDto() = ProjectDto(
+    override fun toDto() = ProjectDto(
         name,
         organization.name,
         public,
