@@ -22,13 +22,4 @@ val diktatVersion: String = libs.versions.diktat.get()
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
-
-    implementation(libs.ktlint.core)
-    implementation(libs.ktlint.rulesets.standard)
-    implementation("org.cqfn.diktat:diktat-common:$diktatVersion") {
-        exclude(group = "org.apache.logging.log4j")
-    }
-    implementation("org.cqfn.diktat:diktat-rules:$diktatVersion") {
-        exclude(group = "org.apache.logging.log4j")
-    }
 }
