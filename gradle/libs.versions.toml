@@ -178,6 +178,3 @@ fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.r
 fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock", version.ref = "fabric8" }
 
 arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}
-
-diktat-common = { module = "org.cqfn.diktat:diktat-common", version.ref = "diktat" }
-diktat-rules = { module = "org.cqfn.diktat:diktat-rules", version.ref = "diktat" }
