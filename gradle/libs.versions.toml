@@ -179,7 +179,5 @@ fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock",
 
 arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}
 
-ktlint-core = { module = "com.pinterest.ktlint:ktlint-core", version.ref = "ktlint" }
-ktlint-rulesets-standard = { module = "com.pinterest.ktlint:ktlint-ruleset-standard", version.ref = "ktlint" }
 diktat-common = { module = "org.cqfn.diktat:diktat-common", version.ref = "diktat" }
 diktat-rules = { module = "org.cqfn.diktat:diktat-rules", version.ref = "diktat" }
