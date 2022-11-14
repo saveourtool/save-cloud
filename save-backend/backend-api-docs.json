@@ -2285,7 +2285,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2298,7 +2298,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2311,7 +2311,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2473,7 +2473,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2486,7 +2486,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2505,10 +2505,10 @@
         ]
       }
     },
-    "/api/v1/organizations/not-deleted": {
+    "/api/v1/organizations/not-deleted-with-rating": {
       "post": {
-        "description": "Get non-deleted organizations.",
-        "operationId": "getNotDeletedOrganizations",
+        "description": "Get non-deleted organizations with global rating.",
+        "operationId": "getNotDeletedOrganizationsWithRating",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2525,7 +2525,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithRating"
                   }
                 }
               }
@@ -2538,7 +2538,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithRating"
                   }
                 }
               }
@@ -2551,7 +2551,7 @@
             "basic": []
           }
         ],
-        "summary": "Get non-deleted organizations.",
+        "summary": "Get available organizations with global rating.",
         "tags": [
           "organizations"
         ]
@@ -2642,7 +2642,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -2652,7 +2652,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -2662,7 +2662,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -4114,7 +4114,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4124,7 +4124,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4134,7 +4134,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4144,7 +4144,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4236,7 +4236,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -4249,7 +4249,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -8524,8 +8524,7 @@
         "required": [
           "canCreateContests",
           "description",
-          "name",
-          "userRoles"
+          "name"
         ],
         "type": "object",
         "properties": {
@@ -8542,25 +8541,8 @@
           "description": {
             "type": "string"
           },
-          "globalRating": {
-            "type": "number",
-            "format": "double"
-          },
           "name": {
             "type": "string"
-          },
-          "userRoles": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "NONE",
-                "OWNER",
-                "SUPER_ADMIN",
-                "VIEWER"
-              ]
-            }
           }
         }
       },
@@ -8581,6 +8563,47 @@
               "CREATED",
               "DELETED"
             ]
+          }
+        }
+      },
+      "OrganizationWithRating": {
+        "required": [
+          "globalRating",
+          "organization"
+        ],
+        "type": "object",
+        "properties": {
+          "globalRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          }
+        }
+      },
+      "OrganizationWithUsers": {
+        "required": [
+          "organization",
+          "userRoles"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "userRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
           }
         }
       },
@@ -8655,15 +8678,21 @@
       },
       "ProjectDto": {
         "required": [
+          "contestRating",
           "description",
           "email",
           "isPublic",
           "name",
+          "numberOfContainers",
           "organizationName",
           "url"
         ],
         "type": "object",
         "properties": {
+          "contestRating": {
+            "type": "number",
+            "format": "double"
+          },
           "description": {
             "type": "string"
           },
@@ -8675,6 +8704,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
           },
           "organizationName": {
             "type": "string"
