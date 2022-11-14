@@ -54,8 +54,8 @@ class Contest(
     fun toDto() = ContestDto(
         name,
         status,
-        startTime?.toKotlinLocalDateTime(),
-        endTime?.toKotlinLocalDateTime(),
+        startTime?.toKotlinLocalDateTime()!!,
+        endTime?.toKotlinLocalDateTime()!!,
         description,
         organization.name,
         testSuiteLinks.map { it.testSuite.toDto() },

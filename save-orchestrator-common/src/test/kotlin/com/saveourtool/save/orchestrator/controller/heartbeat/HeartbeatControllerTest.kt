@@ -42,6 +42,7 @@ import org.mockito.kotlin.*
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.time.Month
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 @WebFluxTest(controllers = [HeartbeatController::class])
@@ -267,8 +268,8 @@ class HeartbeatControllerTest {
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),
-            AgentStatusDto(AgentState.FINISHED, "test-1", LocalDateTime(2021, 1, 1, 0, 0, 0)),
-            AgentStatusDto(AgentState.FINISHED, "test-2", LocalDateTime(2021, 1, 1, 0, 0, 0)),
+            AgentStatusDto(AgentState.FINISHED, "test-1", LocalDateTime(2021, Month.JANUARY, 1, 0, 0, 0)),
+            AgentStatusDto(AgentState.FINISHED, "test-2", LocalDateTime(2021, Month.JANUARY, 1, 0, 0, 0)),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,

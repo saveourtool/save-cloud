@@ -21,9 +21,9 @@ import kotlinx.js.jso
 class OrganizationViewTest {
     private val testOrganization = OrganizationDto.empty
         .copy(
-        name = "TestOrg",
-        dateCreated = LocalDateTime(2022, 6, 1, 12, 25),
-    )
+            name = "TestOrg",
+            dateCreated = LocalDateTime(2022, 6, 1, 12, 25),
+        )
     private val testUserInfo = UserInfo(
         "TestUser",
         source = "basic",
