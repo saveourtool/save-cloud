@@ -52,7 +52,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/projects/get/not-deleted-projects-by-organization") { _, res, _ ->
+        rest.get("$apiUrl/projects/get/projects-by-organization-and-status") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,

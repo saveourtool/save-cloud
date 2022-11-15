@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -17,6 +18,8 @@ import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -104,11 +107,11 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                 projectsTable {
                     getData = { _, _ ->
                         val response = post(
-                            url = "$apiUrl/projects/not-deleted",
+                            url = "$apiUrl/projects/by-filters",
                             headers = Headers().also {
                                 it.set("Accept", "application/json")
                             },
-                            body = undefined,
+                            body = Json.encodeToString(ProjectFilters.empty),
                             loadingHandler = ::classLoadingHandler,
                         )
                         if (response.ok) {

@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -337,7 +338,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/not-deleted",
+        "$apiUrl/organizations/by-user/by-status?status=${OrganizationStatus.CREATED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
