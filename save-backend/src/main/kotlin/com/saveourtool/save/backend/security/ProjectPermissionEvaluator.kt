@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.getHighestRole
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -107,12 +108,15 @@ class ProjectPermissionEvaluator(
             userId?.let { projectRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean =
-            hasBanAccess(userId, projectRole, organzationRole) ||
-                    userId?.let { projectRole == Role.OWNER || organzationRole == Role.OWNER } ?: false
+            hasBanAccess(userId, projectRole, organzationRole) || userId?.let {
+                getHighestRole(organzationRole, projectRole) == Role.OWNER
+            } ?: false
 
-    private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = userId?.let {
-        projectRole == Role.SUPER_ADMIN || organzationRole == Role.SUPER_ADMIN
-    } ?: false
+    /**
+     * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
+     * Since we have all the rights issued depending on the following, you need to set [false] here
+     */
+     private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = false
 
     /**
      * @param authentication

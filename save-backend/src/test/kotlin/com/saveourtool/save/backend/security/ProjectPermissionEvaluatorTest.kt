@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
@@ -27,11 +28,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class, MockitoExtension::class)
-@Import(ProjectPermissionEvaluator::class, LnkUserProjectService::class)
+@Import(ProjectPermissionEvaluator::class, LnkUserProjectService::class, LnkUserOrganizationService::class)
 class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockProject: Project
 
@@ -122,6 +124,7 @@ class ProjectPermissionEvaluatorTest {
             "viewer", Role.VIEWER, Role.VIEWER, Permission.READ, userId = 99
         )
     }
+
 
     private fun userShouldHavePermissions(
         username: String,

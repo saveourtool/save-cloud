@@ -120,16 +120,7 @@ class ProjectService(
      * @param organizationName
      * @return project
      */
-    fun findAllByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
-
-    /**
-     * @param name
-     * @param organizationName
-     * @return project
-     */
-    fun findByNameAndOrganizationName(name: String, organizationName: String): Project? =
-            findByNameAndOrganizationName(name, organizationName)
-                ?.takeIf { it.organization.status == OrganizationStatus.CREATED }
+    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
     /**
      * @param organizationName

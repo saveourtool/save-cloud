@@ -91,8 +91,11 @@ class OrganizationPermissionEvaluator(
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             hasBanAccess(userId, organizationRole) || userId?.let { organizationRole == Role.OWNER } ?: false
 
-    private fun hasBanAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole == Role.SUPER_ADMIN } ?: false
+    /**
+     * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
+     * Since we have all the rights issued depending on the following, you need to set [false] here
+     */
+    private fun hasBanAccess(userId: Long?, organzationRole: Role): Boolean = false
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.

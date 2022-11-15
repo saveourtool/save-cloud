@@ -266,7 +266,7 @@ class ProjectController(
     @ApiResponse(responseCode = "200", description = "Successfully change status a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for this action on project.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
-    fun deleteProject(
+    fun changeProjectStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam status: ProjectStatus,
