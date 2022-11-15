@@ -4420,8 +4420,8 @@
     },
     "/api/v1/projects/{organizationName}/{projectName}/change-status": {
       "post": {
-        "description": "Change status existing project by its name.",
-        "operationId": "deleteProject",
+        "description": "Change status of existing project by its name.",
+        "operationId": "changeProjectStatus",
         "parameters": [
           {
             "description": "name of an organization",
@@ -4471,7 +4471,7 @@
                 }
               }
             },
-            "description": "Successfully change status a project."
+            "description": "Successfully change status of a project."
           },
           "401": {
             "content": {
@@ -4509,7 +4509,7 @@
             "basic": []
           }
         ],
-        "summary": "Change status existing project.",
+        "summary": "Change status of existing project.",
         "tags": [
           "projects"
         ]
