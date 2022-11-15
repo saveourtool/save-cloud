@@ -125,7 +125,6 @@ class ProjectPermissionEvaluatorTest {
         )
     }
 
-
     private fun userShouldHavePermissions(
         username: String,
         role: Role,
