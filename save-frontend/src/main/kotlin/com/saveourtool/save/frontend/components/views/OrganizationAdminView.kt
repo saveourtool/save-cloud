@@ -175,36 +175,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
         }
     }
 
-    /**
-     * Returns a lambda which, when invoked, deletes the specified organization
-     * and updates the state of this view, passing an error message, if any, to
-     * the externally supplied [ErrorHandler].
-     *
-     * @param organization the project to delete.
-     * @return the lambda which deletes [organization].
-     * @see ErrorHandler
-     */
-    private fun deleteOrganization(organization: Organization): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = post(
-            "$apiUrl/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}",
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                /*
-                 * Force the component to get re-rendered once an organization
-                 * is deleted.
-                 */
-                organizations -= organization
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
-        }
-    }
-
     private companion object {
         /**
          * The mandatory column id.
