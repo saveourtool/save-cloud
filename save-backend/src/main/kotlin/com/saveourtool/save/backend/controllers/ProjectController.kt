@@ -90,11 +90,12 @@ class ProjectController(
         summary = "Get projects by projects filters",
         description = "Get projects by filters, available for current user.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
         @RequestBody(required = false) projectFilters: ProjectFilters,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getFiltered(projectFilters)
+    ): Flux<Project> =
+        projectService.getFiltered(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)

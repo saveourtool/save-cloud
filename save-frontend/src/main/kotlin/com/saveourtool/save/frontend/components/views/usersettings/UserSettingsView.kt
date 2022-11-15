@@ -338,7 +338,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/by-status?status=${OrganizationStatus.CREATED}",
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )

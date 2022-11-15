@@ -253,7 +253,7 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @GetMapping("/by-user/by-status")
+    @GetMapping("/by-user")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -265,21 +265,19 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
-        @RequestBody(required = false) status: OrganizationStatus,
+        @RequestParam(required = false) status: OrganizationStatus,
         authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
-        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+    ):  Flux<OrganizationDto> = Mono.justOrEmpty(
+    lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
-        .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization.status == status
-        }
-        .map {
-            it.organization.toDto(mapOf(it.user.name!! to it.role))
-        }
+    .switchIfEmptyToNotFound()
+    .flatMapMany {
+        Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+    }.filter {
+        it.organization.status == status
+    }.map {
+        it.organization.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+    }
 
     private fun getUserAndOrganizationWithPermissions(
         userName: String,

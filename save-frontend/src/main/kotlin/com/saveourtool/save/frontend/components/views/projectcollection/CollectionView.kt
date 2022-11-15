@@ -9,12 +9,8 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.privacySpan
-import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -108,11 +104,10 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                     getData = { _, _ ->
                         val response = post(
                             url = "$apiUrl/projects/by-filters",
-                            headers = Headers().also {
-                                it.set("Accept", "application/json")
-                            },
+                            headers = jsonHeaders,
                             body = Json.encodeToString(ProjectFilters.empty),
                             loadingHandler = ::classLoadingHandler,
+                            responseHandler = ::noopResponseHandler
                         )
                         if (response.ok) {
                             response.unsafeMap {

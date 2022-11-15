@@ -138,6 +138,7 @@ class ProjectService(
     /**
      * @param organizationName
      * @param authentication
+     * @param status
      * @return list of not deleted projects
      */
     fun getProjectsByOrganizationNameAndStatus(
