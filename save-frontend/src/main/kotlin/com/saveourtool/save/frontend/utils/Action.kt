@@ -19,11 +19,10 @@ val actionButton: FC<ActionProps> = FC { props ->
     val (isError, setError) = useState(false)
     val (isClickMode, setClickMode) = useState(false)
 
-    val action = { elem: Int ->
-        useDeferredRequest {
-            val response = props.sendRequest(isClickMode, elem)(this)
+    val action = useDeferredRequest {
+            val response = props.sendRequest(isClickMode)(this)
             if (response.ok) {
-                props.onActionSuccess(isClickMode, elem)
+                props.onActionSuccess(isClickMode)
             } else {
                 setDisplayTitle(props.errorTitle)
                 setDisplayMessage(response.unpackMessage())
@@ -31,7 +30,7 @@ val actionButton: FC<ActionProps> = FC { props ->
                 windowOpenness.openWindow()
             }
         }
-    }
+
 
     div {
         button {
@@ -122,7 +121,7 @@ external interface ActionProps : Props {
     /**
      * If the action (request) is successful, this is done
      */
-    var onActionSuccess: (Boolean, Int) -> Unit
+    var onActionSuccess: (Boolean) -> Unit
 
     /**
      * Button View
@@ -138,7 +137,7 @@ external interface ActionProps : Props {
      * Modal buttons
      */
     @Suppress("TYPE_ALIAS")
-    var modalButtons: (action: (Int) -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
+    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
 
     /**
      * Condition for click
@@ -149,5 +148,5 @@ external interface ActionProps : Props {
      * Request
      */
     @Suppress("TYPE_ALIAS")
-    var sendRequest: (Boolean, Int) -> DeferredRequestAction<Response>
+    var sendRequest: (Boolean) -> DeferredRequestAction<Response>
 }

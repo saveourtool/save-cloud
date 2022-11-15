@@ -223,7 +223,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     modalButtons = { action, window, childrenBuilder ->
                                         with(childrenBuilder) {
                                             buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
-                                                action(1)
+                                                action()
                                                 window.closeWindow()
                                             }
                                             buttonBuilder("Cancel") {
@@ -231,14 +231,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                     }
-                                    onActionSuccess = { _, _ ->
+                                    onActionSuccess = { _ ->
                                         setState {
                                             projects -= project
                                         }
                                     }
                                     conditionClick = state.selfRole.isSuperAdmin()
-                                    sendRequest = { isBanned, _ ->
-                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                    sendRequest = { isBanned ->
+                                        val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                         responseChangeProjectStatus(newStatus, "${project.organization.name}/${project.name}")
                                     }
                                 }

@@ -82,7 +82,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 modalButtons = { action, window, childrenBuilder ->
                                     with(childrenBuilder) {
                                         buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
-                                            action(1)
+                                            action()
                                             window.closeWindow()
                                         }
                                         buttonBuilder("Cancel") {
@@ -90,13 +90,13 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                 }
-                                onActionSuccess = { _, _ ->
+                                onActionSuccess = { _ ->
                                     setState {
                                         organizations -= organization
                                     }
                                 }
                                 conditionClick = true
-                                sendRequest = { isBanned, _ ->
+                                sendRequest = { isBanned ->
                                     val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                     responseChangeOrganizationStatus(newStatus, organizationName)
                                 }

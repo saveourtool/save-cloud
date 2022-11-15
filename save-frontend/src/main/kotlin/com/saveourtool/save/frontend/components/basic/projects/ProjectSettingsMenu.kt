@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
@@ -76,9 +77,9 @@ external interface ProjectSettingsMenuProps : Props {
  * @param projectPath - the path [organizationName/projectName] for response
  * @return response
  */
-fun responseChangeProjectStatus(status: OrganizationStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
+fun responseChangeProjectStatus(status: ProjectStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
     post(
-        url = "$apiUrl/organizations/$projectPath/change-status?status=$status",
+        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
         headers = jsonHeaders,
         body = undefined,
         loadingHandler = ::noopLoadingHandler,
@@ -262,7 +263,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             errorTitle = "You cannot delete ${props.project.name}"
                             message = "Are you sure you want to delete a $projectPath?"
                             clickMessage = "Change to ban mode"
-                            onActionSuccess = { _, _ ->
+                            onActionSuccess = { _ ->
                                 window.location.href = "${window.location.origin}/"
                             }
                             buttonStyleBuilder = { childrenBuilder ->
@@ -274,7 +275,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             modalButtons = { action, window, childrenBuilder ->
                                 with(childrenBuilder) {
                                     buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
-                                        action(1)
+                                        action()
                                         window.closeWindow()
                                     }
                                     buttonBuilder("Cancel") {
@@ -283,8 +284,8 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             conditionClick = props.selfRole.isSuperAdmin()
-                            sendRequest = { isBanned, _ ->
-                                val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                            sendRequest = { isBanned ->
+                                val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                 responseChangeProjectStatus(newStatus, projectPath)
                             }
                             conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)

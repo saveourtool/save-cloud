@@ -173,7 +173,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         modalButtons = { action, window, childrenBuilder ->
                             with(childrenBuilder) {
                                 buttonBuilder(label = "Yes, Delete ${props.organizationName}", style = "danger", classes = "mr-2") {
-                                    action(1)
+                                    action()
                                     window.closeWindow()
                                 }
                                 buttonBuilder("Cancel") {
@@ -181,11 +181,11 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 }
                             }
                         }
-                        onActionSuccess = { _, _ ->
+                        onActionSuccess = { _ ->
                             window.location.href = "${window.location.origin}/"
                         }
                         conditionClick = props.selfRole.isSuperAdmin()
-                        sendRequest = { isBanned, _ ->
+                        sendRequest = { isBanned ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(newStatus, props.organizationName)
                         }

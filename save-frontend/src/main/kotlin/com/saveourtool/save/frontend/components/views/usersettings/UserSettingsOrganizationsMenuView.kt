@@ -77,7 +77,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
-                                                    action(1)
+                                                    action()
                                                     window.closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
@@ -85,11 +85,11 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _, _ ->
+                                        onActionSuccess = { _ ->
                                             setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
                                         }
                                         conditionClick = false
-                                        sendRequest = { _, _ ->
+                                        sendRequest = { _ ->
                                             responseChangeOrganizationStatus(OrganizationStatus.DELETED, organizationDto.name)
                                         }
                                     }
