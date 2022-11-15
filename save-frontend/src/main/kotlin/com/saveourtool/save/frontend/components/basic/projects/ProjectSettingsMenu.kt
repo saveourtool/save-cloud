@@ -17,6 +17,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import dom.html.HTMLInputElement
+import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
@@ -268,14 +269,36 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-danger")
-                            disabled = !props.selfRole.hasDeletePermission()
-                            onClick = {
-                                deletionModalOpener.openWindow()
+                        actionButton {
+                            title = "WARNING: You want to delete a project"
+                            errorTitle = "You cannot delete ${props.project.name}"
+                            message = "Are you sure you want to delete a $projectPath?"
+                            clickMessage = "Change to ban mode"
+                            onActionSuccess = { _, _ ->
+                                window.location.href = "${window.location.origin}/"
                             }
-                            +"Delete project"
+                            buttonStyleBuilder = { childrenBuilder ->
+                                with(childrenBuilder) {
+                                    +"Delete ${props.project.name}"
+                                }
+                            }
+                            classes = "btn btn-sm btn-danger"
+                            modalButtons = { action, window, childrenBuilder ->
+                                with(childrenBuilder) {
+                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
+                                        action(1)
+                                        window.closeWindow()
+                                    }
+                                    buttonBuilder("Cancel") {
+                                        window.closeWindow()
+                                    }
+                                }
+                            }
+                            sendRequest = { isBanned, _ ->
+                                val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                responseChangeProjectStatus(newStatus, "${props.project.organization.name}/${props.project.name}")
+                            }
+                            conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                         }
                     }
                 }
@@ -293,11 +316,12 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
  * @return response
  */
 fun responseChangeProjectStatus(status: OrganizationStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
-    delete(
-        url = "$apiUrl/organizations/$projectPath/delete?status=${status}",
+    post(
+        url = "$apiUrl/organizations/$projectPath/change-status?status=${status}",
         headers = jsonHeaders,
+        body = undefined,
         loadingHandler = ::noopLoadingHandler,
-        errorHandler = ::noopResponseHandler,
+        responseHandler = ::noopResponseHandler,
     )
 }
 

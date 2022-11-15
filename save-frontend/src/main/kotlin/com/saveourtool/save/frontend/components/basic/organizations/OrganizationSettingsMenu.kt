@@ -173,7 +173,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         }
                         conditionClick = false
                         sendRequest = { isBanned, _ ->
-                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.CREATED
+                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(newStatus, props.organizationName)
                         }
                     }
@@ -191,10 +191,11 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
  * @return response
  */
 fun responseChangeOrganizationStatus(status: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
-    delete(
+    post(
         url = "$apiUrl/organizations/$organizationName/change-status?status=${status}",
         headers = jsonHeaders,
+        body = undefined,
         loadingHandler = ::noopLoadingHandler,
-        errorHandler = ::noopResponseHandler,
+        responseHandler = ::noopResponseHandler,
     )
 }
