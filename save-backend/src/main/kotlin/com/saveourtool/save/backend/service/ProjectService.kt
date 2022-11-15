@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -28,6 +29,7 @@ import java.util.Optional
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val organizationRepository: OrganizationRepository,
     private val userRepository: UserRepository
 ) {
     /**
@@ -120,7 +122,10 @@ class ProjectService(
      * @param organizationName
      * @return project
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
+    fun findByNameAndOrganizationName(name: String, organizationName: String, status: ProjectStatus = ProjectStatus.CREATED) =
+        projectRepository.findByNameAndOrganizationName(name, organizationName)?.takeIf {
+            it.organization.status == OrganizationStatus.CREATED && it.status == status
+        }
 
     /**
      * @param organizationName

@@ -38,7 +38,6 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import java.time.LocalDateTime
-import java.util.*
 
 /**
  * Controller for working with contests.

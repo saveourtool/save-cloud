@@ -121,7 +121,7 @@ class OrganizationService(
      * @param name
      * @return organization by name
      */
-    fun findByName(name: String) = organizationRepository.findByName(name)
+    fun findByName(name: String, status: OrganizationStatus = OrganizationStatus.CREATED) = organizationRepository.findByName(name)?.takeIf { it.status == status }
 
     /**
      * @param name
