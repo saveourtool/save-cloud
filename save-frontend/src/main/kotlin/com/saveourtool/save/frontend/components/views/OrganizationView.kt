@@ -723,32 +723,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    /**
-     * Returns a lambda which, when invoked, deletes the specified project and
-     * updates the state of this view, passing an error message, if any, to the
-     * externally supplied [ErrorHandler].
-     *
-     * @param project the project to delete.
-     * @return the lambda which deletes [project].
-     * @see ErrorHandler
-     */
-    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = post(
-            url = "$apiUrl/projects/${project.organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}",
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                projects -= project
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
-        }
-    }
-
     companion object :
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
