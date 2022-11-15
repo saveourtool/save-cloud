@@ -126,8 +126,8 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -139,8 +139,8 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
-    fun `delete project without owner permission`() {
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    fun `ban project with super admin permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
@@ -149,8 +149,31 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.BANNED
+        )
+    }
+
+    @Test
+    @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
+    fun `delete project without owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(2)
+        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden

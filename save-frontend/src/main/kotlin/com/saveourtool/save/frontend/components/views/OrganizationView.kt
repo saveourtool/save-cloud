@@ -714,11 +714,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
      * @see ErrorHandler
      */
     private fun deleteProject(project: ProjectDto): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/projects/${project.organizationName}/${project.name}/delete",
+        val response = post(
+            url = "$apiUrl/projects/${project.organizationName}/${project.name}/change-status?status=${ProjectStatus.DELETED}",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setState {
