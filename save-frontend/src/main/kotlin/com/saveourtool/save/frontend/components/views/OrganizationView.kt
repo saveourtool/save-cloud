@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -206,24 +206,40 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                         Fragment.create {
                             td {
-                                deleteButton {
-                                    val project = cellProps.row.original
-                                    val projectName = project.name
+                                val project = cellProps.row.original
+                                val projectName = project.name
 
-                                    id = "delete-project-$projectName"
-                                    classes = deleteButtonClasses
-                                    tooltipText = "Delete the project"
-                                    elementChildren = { childrenBuilder ->
+                                actionButton {
+                                    title = "WARNING: Delete Project"
+                                    errorTitle = "You cannot delete a $projectName"
+                                    message = """Are you sure you want to delete the project "$projectName"?"""
+                                    buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
-                                            fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                         }
                                     }
-
-                                    confirmDialog = ModalDialogStrings(
-                                        title = "Delete Project",
-                                        message = """Are you sure you want to delete the project "$projectName"?""",
-                                    )
-                                    action = deleteProject(project)
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
+                                                action(1)
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _, _ ->
+                                        setState {
+                                            projects -= project
+                                        }
+                                    }
+                                    conditionClick = false
+                                    sendRequest = { isBanned, _ ->
+                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                        responseChangeProjectStatus(newStatus, "${project.organization.name}/${project.name}")
+                                    }
                                 }
                             }
                         }

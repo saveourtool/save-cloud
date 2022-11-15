@@ -1,12 +1,17 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.actionButton
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.v1
 
 import csstype.ClassName
+import kotlinx.browser.window
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -68,6 +73,40 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         classes = "btn mr-3"
                                     }
+
+
+                                    actionButton {
+                                        title = "WARNING: Ban Organization"
+                                        errorTitle = "You cannot ban a ${organizationDto.name}"
+                                        message = "Are you sure you want to ban the organization ${organizationDto.name}?"
+                                        buttonStyleBuilder = { childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                fontAwesomeIcon(icon = faTrashAlt)
+                                            }
+                                        }
+                                        classes = "btn btn-sm btn-danger"
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder(label = "Yes, ban ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                    action(1)
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        onActionSuccess = { _, _ ->
+                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                        }
+                                        conditionClick = false
+                                        sendRequest = { isBanned, _ ->
+                                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                            responseChangeOrganizationStatus(newStatus, organizationDto.name)
+                                        }
+                                    }
+
+
                                 }
                                 div {
                                     className = ClassName("mr-3")

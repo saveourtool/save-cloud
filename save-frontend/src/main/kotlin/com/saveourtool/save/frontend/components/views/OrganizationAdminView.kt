@@ -4,8 +4,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.frontend.components.basic.organizations.responseDeleteOrganization
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -13,7 +12,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.ErrorHandler
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.deleteButton
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import csstype.ClassName
@@ -83,7 +81,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 modalButtons = { action, window, childrenBuilder ->
                                     with(childrenBuilder) {
                                         buttonBuilder(label = "Yes, ban $organizationName", style = "danger", classes = "mr-2") {
-                                            action()
+                                            action(1)
                                             window.closeWindow()
                                         }
                                         buttonBuilder("Cancel") {
@@ -91,20 +89,15 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                 }
-                                onActionSuccess = { clickMode ->
+                                onActionSuccess = { _, _ ->
                                     setState {
                                         organizations -= organization
-                                        organizations += if (clickMode) {
-                                            organization.copy(status = OrganizationStatus.BANNED)
-                                        } else {
-                                            organization.copy(status = OrganizationStatus.DELETED)
-                                        }
                                     }
                                 }
                                 conditionClick = false
-                                sendRequest = { isBanned ->
-                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.CREATED
-                                    responseDeleteOrganization(newStatus, organizationName)
+                                sendRequest = { isBanned, _ ->
+                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                    responseChangeOrganizationStatus(newStatus, organizationName)
                                 }
                             }
                         }

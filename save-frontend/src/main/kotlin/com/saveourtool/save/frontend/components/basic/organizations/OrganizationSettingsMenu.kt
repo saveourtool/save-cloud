@@ -5,9 +5,12 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
+import com.saveourtool.save.frontend.components.views.actionButtonClasses
+import com.saveourtool.save.frontend.components.views.actionIconClasses
 import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -144,17 +147,35 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    deleteOrganizationButton {
-                        organizationName = props.organizationName
-                        onDeletionSuccess = {
-                            window.location.href = "${window.location.origin}/"
-                        }
+                    actionButton {
+                        title = "WARNING: Ban Organization"
+                        errorTitle = "You cannot ban a ${props.organizationName}"
+                        message = "Are you sure you want to ban the organization ${props.organizationName}?"
                         buttonStyleBuilder = { childrenBuilder ->
                             with(childrenBuilder) {
                                 +"Delete ${props.organizationName}"
                             }
                         }
                         classes = "btn btn-sm btn-danger"
+                        modalButtons = { action, window, childrenBuilder ->
+                            with(childrenBuilder) {
+                                buttonBuilder(label = "Yes, ban ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                    action(1)
+                                    window.closeWindow()
+                                }
+                                buttonBuilder("Cancel") {
+                                    window.closeWindow()
+                                }
+                            }
+                        }
+                        onActionSuccess = { _, _ ->
+                            window.location.href = "${window.location.origin}/"
+                        }
+                        conditionClick = false
+                        sendRequest = { isBanned, _ ->
+                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.CREATED
+                            responseChangeOrganizationStatus(newStatus, props.organizationName)
+                        }
                     }
                 }
             }
@@ -162,11 +183,18 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
     }
 }
 
-fun responseDeleteOrganization(newStatus: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext -> Unit = { errorHandler ->
-    val response = post(
-        url = "$apiUrl/projects/${project.organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}",
+/**
+ * Makes a call to delete or ban the organization, depending on the [isClickMode] value
+ *
+ * @param isClickMode
+ * @param organizationName
+ * @return response
+ */
+fun responseChangeOrganizationStatus(status: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
+    delete(
+        url = "$apiUrl/organizations/$organizationName/change-status?status=${status}",
         headers = jsonHeaders,
-        body = undefined,
         loadingHandler = ::noopLoadingHandler,
-        responseHandler = ::noopResponseHandler,
+        errorHandler = ::noopResponseHandler,
     )
+}

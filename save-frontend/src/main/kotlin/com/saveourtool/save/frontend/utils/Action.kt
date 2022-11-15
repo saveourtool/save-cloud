@@ -19,15 +19,16 @@ val actionButton: FC<ActionProps> = FC { props ->
     val (isError, setError) = useState(false)
     val (isClickMode, setClickMode) = useState(false)
 
-    val action = useDeferredRequest {
-        val response = props.sendRequest(isClickMode)(this)
-        if (response.ok) {
-            props.onActionSuccess(isClickMode)
-        } else {
-            setDisplayTitle(props.errorTitle)
-            setDisplayMessage(response.unpackMessage())
-            setError(true)
-            windowOpenness.openWindow()
+    val action = { elem: Int -> useDeferredRequest {
+            val response = props.sendRequest(isClickMode, elem)(this)
+            if (response.ok) {
+                props.onActionSuccess(isClickMode, elem)
+            } else {
+                setDisplayTitle(props.errorTitle)
+                setDisplayMessage(response.unpackMessage())
+                setError(true)
+                windowOpenness.openWindow()
+            }
         }
     }
 
@@ -120,7 +121,7 @@ external interface ActionProps : Props {
     /**
      * If the action (request) is successful, this is done
      */
-    var onActionSuccess: (Boolean) -> Unit
+    var onActionSuccess: (Boolean, Int) -> Unit
 
     /**
      * Button View
@@ -136,7 +137,7 @@ external interface ActionProps : Props {
      * Modal buttons
      */
     @Suppress("TYPE_ALIAS")
-    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
+    var modalButtons: (action: (Int) -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
 
     /**
      * Condition for click
@@ -146,6 +147,6 @@ external interface ActionProps : Props {
     /**
      * Request
      */
-    var sendRequest: (Boolean) -> DeferredRequestAction<Response>
+    var sendRequest: (Boolean, Int) -> DeferredRequestAction<Response>
 }
 
