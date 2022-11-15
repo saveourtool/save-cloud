@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.frontend.components.basic.organizations.responseDeleteOrganization
 import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -66,24 +67,45 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                 column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                     Fragment.create {
                         td {
-                            deleteButton {
-                                val organization = cellProps.value
-                                val organizationName = organization.name
+                            val organization = cellProps.value
+                            val organizationName = organization.name
 
-                                id = "delete-organization-$organizationName"
-                                classes = deleteButtonClasses
-                                tooltipText = "Delete the organization"
-                                elementChildren = { childrenBuilder ->
+                            actionButton {
+                                title = "WARNING: Ban Organization"
+                                errorTitle = "You cannot ban a $organizationName"
+                                message = "Are you sure you want to ban the organization $organizationName?"
+                                buttonStyleBuilder = { childrenBuilder ->
                                     with(childrenBuilder) {
-                                        fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                        fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                     }
                                 }
-
-                                confirmDialog = ModalDialogStrings(
-                                    title = "Delete Organization",
-                                    message = """Are you sure you want to delete the organization "$organizationName"?""",
-                                )
-                                action = deleteOrganization(organization)
+                                classes = actionButtonClasses.joinToString(" ")
+                                modalButtons = { action, window, childrenBuilder ->
+                                    with(childrenBuilder) {
+                                        buttonBuilder(label = "Yes, ban $organizationName", style = "danger", classes = "mr-2") {
+                                            action()
+                                            window.closeWindow()
+                                        }
+                                        buttonBuilder("Cancel") {
+                                            window.closeWindow()
+                                        }
+                                    }
+                                }
+                                onActionSuccess = { clickMode ->
+                                    setState {
+                                        organizations -= organization
+                                        organizations += if (clickMode) {
+                                            organization.copy(status = OrganizationStatus.BANNED)
+                                        } else {
+                                            organization.copy(status = OrganizationStatus.DELETED)
+                                        }
+                                    }
+                                }
+                                conditionClick = false
+                                sendRequest = { isBanned ->
+                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.CREATED
+                                    responseDeleteOrganization(newStatus, organizationName)
+                                }
                             }
                         }
                     }

@@ -4,9 +4,14 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -156,3 +161,12 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
         }
     }
 }
+
+fun responseDeleteOrganization(newStatus: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext -> Unit = { errorHandler ->
+    val response = post(
+        url = "$apiUrl/projects/${project.organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )

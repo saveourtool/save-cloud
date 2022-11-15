@@ -74,12 +74,12 @@ const val EMPTY_COLUMN_HEADER = ""
 /**
  * CSS classes of the "delete project" button.
  */
-val deleteButtonClasses: List<String> = listOf("btn", "btn-small")
+val actionButtonClasses: List<String> = listOf("btn", "btn-small")
 
 /**
  * CSS classes of the "delete project" icon.
  */
-val deleteIconClasses: List<String> = listOf("trash-alt")
+val actionIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
