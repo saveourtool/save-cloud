@@ -23,7 +23,6 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -66,11 +65,11 @@ class ProjectControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<Project>>()
+            .expectBody<List<ProjectDto>>()
             .consumeWith { exchangeResult ->
                 val projects = exchangeResult.responseBody!!
                 Assertions.assertTrue(projects.isNotEmpty())
-                projects.forEach { Assertions.assertTrue(it.public) }
+                projects.forEach { Assertions.assertTrue(it.isPublic) }
             }
     }
 
@@ -84,7 +83,7 @@ class ProjectControllerTest {
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus()
                 .isOk
-                .expectBody<Project>()
+                .expectBody<ProjectDto>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
                     Assertions.assertEquals(it.responseBody!!.url, "https://huawei.com")
@@ -178,7 +177,7 @@ class ProjectControllerTest {
         ) {
             expectStatus()
                 .isOk
-                .expectBody<Project>()
+                .expectBody<ProjectDto>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
                     Assertions.assertEquals(it.responseBody!!.url, project.url)
