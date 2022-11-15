@@ -22,6 +22,30 @@ class UserSettingsProfileMenuView : UserSettingsView() {
                 className = ClassName("row mt-2 ml-2 mr-2")
                 div {
                     className = ClassName("col-5 mt-2 text-left align-self-center")
+                    +"User name:"
+                }
+                div {
+                    className = ClassName("col-7 mt-2 input-group pl-0")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        state.userInfo?.name?.let {
+                            defaultValue = it
+                        }
+                        onChange = {
+                            changeFields(InputTypes.USER_NAME, it)
+                        }
+                    }
+                }
+                state.conflictErrorMessage?.let {
+                    div {
+                        className = ClassName("invalid-feedback d-block")
+                        +it
+                    }
+                }
+
+                div {
+                    className = ClassName("col-5 mt-2 text-left align-self-center")
                     +"Company:"
                 }
                 div {
