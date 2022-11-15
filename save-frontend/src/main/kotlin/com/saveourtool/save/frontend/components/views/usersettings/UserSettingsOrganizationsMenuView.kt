@@ -4,6 +4,8 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
+import com.saveourtool.save.frontend.components.views.actionButtonClasses
+import com.saveourtool.save.frontend.components.views.actionIconClasses
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.actionButton
@@ -64,17 +66,17 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
                                         title = "WARNING: Delete Organization"
-                                        errorTitle = "You cannot ban a ${organizationDto.name}"
+                                        errorTitle = "You cannot delete a ${organizationDto.name}"
                                         message = "Are you sure you want to ban the organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faTrashAlt)
+                                                fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                             }
                                         }
-                                        classes = "btn btn-sm btn-danger"
+                                        classes = actionButtonClasses.joinToString(" ")
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, ban ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                     action(1)
                                                     window.closeWindow()
                                                 }

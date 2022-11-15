@@ -20,6 +20,7 @@ val actionButton: FC<ActionProps> = FC { props ->
     val (isClickMode, setClickMode) = useState(false)
 
     val action = { elem: Int ->
+        console.log("action")
         useDeferredRequest {
             val response = props.sendRequest(isClickMode, elem)(this)
             if (response.ok) {
