@@ -96,20 +96,22 @@ internal class OrganizationController(
         }
     }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted organizations.",
-        description = "Get non-deleted organizations.",
+        summary = "Get organizations by organization filters",
+        description = "Get organizations by filters",
+    )
+    @Parameters(
+        Parameter(name = "organizationFilters", `in` = ParameterIn.QUERY, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getNotDeletedOrganizations(
-        @RequestBody(required = false) organizationFilters: OrganizationFilters?,
+    fun getFilteredOrganizations(
+        @RequestBody(required = false) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
-                .let { organizationService.getFiltered(it) }
+            organizationFilters.let { organizationService.getFiltered(it) }
                 .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
@@ -171,7 +173,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix))
         .map { it.name }
         .toMono()
 

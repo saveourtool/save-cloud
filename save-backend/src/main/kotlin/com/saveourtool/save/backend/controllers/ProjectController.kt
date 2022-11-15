@@ -83,18 +83,18 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted projects.",
-        description = "Get non-deleted projects, available for current user.",
+        summary = "Get projects by projects filters",
+        description = "Get projects by filters, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedProjectsWithFilters(
-        @RequestBody(required = false) projectFilters: ProjectFilters?,
+    fun getFilteredProjects(
+        @RequestBody(required = false) projectFilters: ProjectFilters,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
+    ): Flux<Project> = projectService.getFiltered(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
@@ -147,22 +147,24 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @GetMapping("/get/not-deleted-projects-by-organization")
+    @GetMapping("/get/projects-by-organization-and-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get non-deleted projects by organization name.",
-        description = "Get non-deleted projects by organization name.",
+        summary = "Get projects by organization name.",
+        description = "Get projects by organization name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
     fun getNonDeletedProjectsByOrganizationName(
         @RequestParam organizationName: String,
+        @RequestParam status: ProjectStatus,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
+    ): Flux<Project> = projectService.getProjectsByOrganizationNameAndStatus(organizationName, authentication, status)
 
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader

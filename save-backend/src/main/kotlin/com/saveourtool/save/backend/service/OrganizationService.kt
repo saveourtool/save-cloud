@@ -136,9 +136,9 @@ class OrganizationService(
      * @return list of organizations with that match [organizationFilters]
      */
     fun getFiltered(organizationFilters: OrganizationFilters) = if (organizationFilters.prefix.isBlank()) {
-        organizationRepository.findByStatus(organizationFilters.status)
+        organizationRepository.findByStatusIn(organizationFilters.status)
     } else {
-        organizationRepository.findByNameStartingWithAndStatus(
+        organizationRepository.findByNameStartingWithAndStatusIn(
             organizationFilters.prefix,
             organizationFilters.status,
         )
@@ -173,7 +173,7 @@ class OrganizationService(
      * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
      */
     fun getGlobalRating(organizationName: String, authentication: Authentication?) =
-            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
+            projectService.getProjectsByOrganizationNameAndStatus(organizationName, authentication)
                 .collectList()
                 .map { projectsList ->
                     projectsList.sumOf { it.contestRating }

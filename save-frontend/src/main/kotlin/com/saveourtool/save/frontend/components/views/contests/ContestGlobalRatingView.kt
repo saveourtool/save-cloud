@@ -218,7 +218,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         name = state.projectFilters.name
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilters(null)
+                                ProjectFilters("")
                             } else {
                                 ProjectFilters(filterValue)
                             }
@@ -241,7 +241,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.organizations = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
-        state.projectFilters = ProjectFilters(null)
+        state.projectFilters = ProjectFilters("")
         state.organizationFilters = OrganizationFilters.empty
     }
 
@@ -290,7 +290,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?projectName=$it" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name.let { "$href?projectName=$it" }
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -299,7 +299,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val projectFilters = ProjectFilters(props.projectName)
+        val projectFilters = ProjectFilters(props.projectName ?: "")
         val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
         setState {
             paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")

@@ -1,7 +1,9 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.query.QueryByExampleExecutor
@@ -32,4 +34,19 @@ JpaSpecificationExecutor<Project> {
      * @return list of projects for organization
      */
     fun findByOrganizationName(organizationName: String): List<Project>
+
+
+    /**
+     * @param prefix prefix of organization name
+     * @param status
+     * @return list of organizations with names that start with [prefix]
+     */
+    fun findByNameStartingWithAndStatusIn(prefix: String, status: List<ProjectStatus>): List<Project>
+
+
+    /**
+     * @param status
+     * @return list of organizations with required status
+     */
+    fun findByStatusIn(status: List<ProjectStatus>): List<Project>
 }

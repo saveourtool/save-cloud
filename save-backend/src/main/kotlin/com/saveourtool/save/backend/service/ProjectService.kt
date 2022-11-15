@@ -134,47 +134,38 @@ class ProjectService(
      */
     fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
-    /**
-     * @return project's without status
-     */
-    fun getNotDeletedProjects(): List<Project> {
-        val projects = projectRepository.findAll { root, _, cb ->
-            cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
-        }
-        return projects
-    }
 
     /**
      * @param organizationName
      * @param authentication
      * @return list of not deleted projects
      */
-    fun getNotDeletedProjectsByOrganizationName(
+    fun getProjectsByOrganizationNameAndStatus(
         organizationName: String,
         authentication: Authentication?,
+        status: ProjectStatus = ProjectStatus.CREATED
     ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
-            it.status != ProjectStatus.DELETED
+            it.status == status
         }
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
+
     /**
      * @param projectFilters
      * @return project's with filter
      */
-    fun getNotDeletedProjectsWithFilter(projectFilters: ProjectFilters?): List<Project> {
-        val name = projectFilters?.name?.let { "%$it%" }
-        val projects = projectRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
-            cb.and(
-                namePredicate,
-                cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
-            )
-        }
-        return projects
+    fun getFiltered(projectFilters: ProjectFilters) = if (projectFilters.name.isBlank()) {
+        projectRepository.findByStatusIn(projectFilters.status)
+    } else {
+        projectRepository.findByNameStartingWithAndStatusIn(
+            projectFilters.name,
+            projectFilters.status,
+        )
     }
+
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project
