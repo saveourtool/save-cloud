@@ -336,10 +336,9 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono()
-        }
+    ): Mono<StringResponse> = blockingToMono {
+        organizationService.findByName(organizationName)
+    }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
         }
