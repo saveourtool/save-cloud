@@ -17,7 +17,7 @@ spring-cloud-kubernetes = "2.1.5"
 kafka-client = "3.3.1"
 junit = "5.9.1"
 assertj = "3.23.1"
-diktat = "1.2.3"
+diktat = "1.2.4.1"
 detekt = "1.21.0"
 liquibase-core = "4.17.2"
 docker-java = "3.2.13"
@@ -25,7 +25,6 @@ jgit = "6.3.0.202209071007-r"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 log4j = "2.19.0"
-micrometer = "1.9.5"
 jpa = "1.0.2"
 hibernate = "5.6.14.Final"
 mySql = "8.0.31"
@@ -162,7 +161,7 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
-micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 diktat-gradle-plugin = { module = "org.cqfn.diktat:diktat-gradle-plugin", version.ref = "diktat" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version.ref = "reckon" }
