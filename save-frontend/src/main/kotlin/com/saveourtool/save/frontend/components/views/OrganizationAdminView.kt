@@ -69,9 +69,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                             val organizationName = organization.name
 
                             actionButton {
-                                title = "WARNING: Ban Organization"
-                                errorTitle = "You cannot ban a $organizationName"
-                                message = "Are you sure you want to ban the organization $organizationName?"
+                                title = "WARNING: Delete Organization"
+                                errorTitle = "You cannot delete a $organizationName"
+                                message = "Are you sure you want to delete the organization $organizationName?"
+                                clickMessage = "Change to ban mode"
                                 buttonStyleBuilder = { childrenBuilder ->
                                     with(childrenBuilder) {
                                         fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
@@ -80,7 +81,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 classes = actionButtonClasses.joinToString(" ")
                                 modalButtons = { action, window, childrenBuilder ->
                                     with(childrenBuilder) {
-                                        buttonBuilder(label = "Yes, ban $organizationName", style = "danger", classes = "mr-2") {
+                                        buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
                                             action(1)
                                             window.closeWindow()
                                         }
@@ -94,7 +95,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         organizations -= organization
                                     }
                                 }
-                                conditionClick = false
+                                conditionClick = true
                                 sendRequest = { isBanned, _ ->
                                     val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                     responseChangeOrganizationStatus(newStatus, organizationName)

@@ -92,18 +92,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     val navigate = useNavigate()
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
-    val deleteProject = useDeferredRequest {
-        val responseFromDeleteProject = post(
-            url = "$apiUrl/projects/$projectPath/change-status?status=${ProjectStatus.DELETED}",
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (responseFromDeleteProject.ok) {
-            navigate("/${FrontendRoutes.PROJECTS}")
-        }
-    }
 
     val updateProject = useDeferredRequest {
         post(
@@ -116,20 +104,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
             if (it.ok) {
                 props.onProjectUpdate(draftProject)
             }
-        }
-    }
-
-    val deletionModalOpener = useWindowOpenness()
-    displayModal(
-        deletionModalOpener,
-        "Warning: deletion of project",
-        "You are about to delete project $projectPath. Are you sure?",
-    ) {
-        buttonBuilder("Yes, delete $projectPath", "danger") {
-            deleteProject()
-        }
-        buttonBuilder("Cancel") {
-            deletionModalOpener.closeWindow()
         }
     }
 
@@ -294,9 +268,10 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                     }
                                 }
                             }
+                            conditionClick = props.selfRole.isSuperAdmin()
                             sendRequest = { isBanned, _ ->
                                 val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                responseChangeProjectStatus(newStatus, "${props.project.organization.name}/${props.project.name}")
+                                responseChangeProjectStatus(newStatus, projectPath)
                             }
                             conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                         }

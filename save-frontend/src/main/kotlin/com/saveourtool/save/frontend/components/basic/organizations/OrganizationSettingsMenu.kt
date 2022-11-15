@@ -148,9 +148,10 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {
-                        title = "WARNING: Ban Organization"
-                        errorTitle = "You cannot ban a ${props.organizationName}"
-                        message = "Are you sure you want to ban the organization ${props.organizationName}?"
+                        title = "WARNING: Delete Organization"
+                        errorTitle = "You cannot delete a ${props.organizationName}"
+                        message = "Are you sure you want to delete the organization ${props.organizationName}?"
+                        clickMessage = "Change to ban mode"
                         buttonStyleBuilder = { childrenBuilder ->
                             with(childrenBuilder) {
                                 +"Delete ${props.organizationName}"
@@ -159,7 +160,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         classes = "btn btn-sm btn-danger"
                         modalButtons = { action, window, childrenBuilder ->
                             with(childrenBuilder) {
-                                buttonBuilder(label = "Yes, ban ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                buttonBuilder(label = "Yes, Delete ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action(1)
                                     window.closeWindow()
                                 }
@@ -171,7 +172,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         onActionSuccess = { _, _ ->
                             window.location.href = "${window.location.origin}/"
                         }
-                        conditionClick = false
+                        conditionClick = props.selfRole.isSuperAdmin()
                         sendRequest = { isBanned, _ ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(newStatus, props.organizationName)

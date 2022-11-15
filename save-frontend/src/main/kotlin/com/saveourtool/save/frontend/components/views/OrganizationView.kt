@@ -213,6 +213,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     title = "WARNING: Delete Project"
                                     errorTitle = "You cannot delete a $projectName"
                                     message = """Are you sure you want to delete the project "$projectName"?"""
+                                    clickMessage = "Change to ban mode"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
@@ -235,7 +236,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             projects -= project
                                         }
                                     }
-                                    conditionClick = false
+                                    conditionClick = state.selfRole.isSuperAdmin()
                                     sendRequest = { isBanned, _ ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                         responseChangeProjectStatus(newStatus, "${project.organization.name}/${project.name}")

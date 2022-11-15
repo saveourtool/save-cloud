@@ -61,22 +61,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    deleteOrganizationButton {
-                                        organizationName = organizationDto.name
-                                        onDeletionSuccess = {
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
-                                        }
-                                        buttonStyleBuilder = { childrenBuilder ->
-                                            with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faTrashAlt)
-                                            }
-                                        }
-                                        classes = "btn mr-3"
-                                    }
-
-
                                     actionButton {
-                                        title = "WARNING: Ban Organization"
+                                        title = "WARNING: Delete Organization"
                                         errorTitle = "You cannot ban a ${organizationDto.name}"
                                         message = "Are you sure you want to ban the organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->
@@ -100,13 +86,10 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
                                         }
                                         conditionClick = false
-                                        sendRequest = { isBanned, _ ->
-                                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                            responseChangeOrganizationStatus(newStatus, organizationDto.name)
+                                        sendRequest = { _, _ ->
+                                            responseChangeOrganizationStatus(OrganizationStatus.DELETED, organizationDto.name)
                                         }
                                     }
-
-
                                 }
                                 div {
                                     className = ClassName("mr-3")
