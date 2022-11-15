@@ -5,19 +5,15 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import dom.html.HTMLInputElement
-import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
@@ -33,6 +29,7 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -70,6 +67,23 @@ external interface ProjectSettingsMenuProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
+}
+
+/**
+ * Makes a call to change project status
+ *
+ * @param status - the status that will be assigned to the project [project]
+ * @param projectPath - the path [organizationName/projectName] for response
+ * @return response
+ */
+fun responseChangeProjectStatus(status: OrganizationStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$projectPath/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }
 
 @Suppress(
@@ -281,22 +295,3 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         }
     }
 }
-
-
-/**
- * Makes a call to delete or ban the organization, depending on the [isClickMode] value
- *
- * @param isClickMode
- * @param organizationName
- * @return response
- */
-fun responseChangeProjectStatus(status: OrganizationStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
-    post(
-        url = "$apiUrl/organizations/$projectPath/change-status?status=${status}",
-        headers = jsonHeaders,
-        body = undefined,
-        loadingHandler = ::noopLoadingHandler,
-        responseHandler = ::noopResponseHandler,
-    )
-}
-

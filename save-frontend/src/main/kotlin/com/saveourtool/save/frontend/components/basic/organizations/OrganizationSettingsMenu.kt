@@ -6,11 +6,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.actionButtonClasses
-import com.saveourtool.save.frontend.components.views.actionIconClasses
-import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -184,16 +179,17 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
     }
 }
 
+
 /**
- * Makes a call to delete or ban the organization, depending on the [isClickMode] value
+ * Makes a call to change project status
  *
- * @param isClickMode
- * @param organizationName
+ * @param organizationName name of the organization whose status will be changed
+ * @param status is new status
  * @return response
  */
 fun responseChangeOrganizationStatus(status: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
     post(
-        url = "$apiUrl/organizations/$organizationName/change-status?status=${status}",
+        url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
         headers = jsonHeaders,
         body = undefined,
         loadingHandler = ::noopLoadingHandler,

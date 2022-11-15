@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.v1
 
 import csstype.ClassName
-import kotlinx.browser.window
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -19,6 +18,8 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+
+import kotlinx.browser.window
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {

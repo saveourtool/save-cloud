@@ -19,7 +19,8 @@ val actionButton: FC<ActionProps> = FC { props ->
     val (isError, setError) = useState(false)
     val (isClickMode, setClickMode) = useState(false)
 
-    val action = { elem: Int -> useDeferredRequest {
+    val action = { elem: Int ->
+        useDeferredRequest {
             val response = props.sendRequest(isClickMode, elem)(this)
             if (response.ok) {
                 props.onActionSuccess(isClickMode, elem)
@@ -147,6 +148,6 @@ external interface ActionProps : Props {
     /**
      * Request
      */
+    @Suppress("TYPE_ALIAS")
     var sendRequest: (Boolean, Int) -> DeferredRequestAction<Response>
 }
-
