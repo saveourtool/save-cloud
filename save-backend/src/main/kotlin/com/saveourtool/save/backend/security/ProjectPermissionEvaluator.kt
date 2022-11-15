@@ -101,22 +101,23 @@ class ProjectPermissionEvaluator(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    private fun hasReadAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = hasWriteAccess(userId, projectRole, organzationRole) ||
+    private fun hasReadAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = hasWriteAccess(userId, projectRole, organizationRole) ||
             userId?.let { projectRole == Role.VIEWER } ?: false
 
-    private fun hasWriteAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = hasDeleteAccess(userId, projectRole, organzationRole) ||
+    private fun hasWriteAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = hasDeleteAccess(userId, projectRole, organizationRole) ||
             userId?.let { projectRole == Role.ADMIN } ?: false
 
-    private fun hasDeleteAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean =
-            hasBanAccess(userId, projectRole, organzationRole) || userId?.let {
-                getHighestRole(organzationRole, projectRole) == Role.OWNER
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean =
+            hasBanAccess(userId, projectRole, organizationRole) || userId?.let {
+                getHighestRole(organizationRole, projectRole) == Role.OWNER
             } ?: false
 
     /**
      * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
      * Since we have all the rights issued depending on the following, you need to set [false] here
      */
-     private fun hasBanAccess(userId: Long?, projectRole: Role, organzationRole: Role): Boolean = false
+    @Suppress("FunctionOnlyReturningConstant")
+    private fun hasBanAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = false
 
     /**
      * @param authentication
