@@ -255,15 +255,15 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Change status existing project.",
-        description = "Change status existing project by its name.",
+        summary = "Change status of existing project.",
+        description = "Change status of existing project by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
         Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully change status a project.")
+    @ApiResponse(responseCode = "200", description = "Successfully change status of a project.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for this action on project.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
     fun changeProjectStatus(
