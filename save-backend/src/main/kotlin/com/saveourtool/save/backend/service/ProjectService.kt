@@ -4,10 +4,7 @@ import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 
@@ -52,6 +49,50 @@ class ProjectService(
     }
 
     /**
+     * Mark organization with [project] as deleted
+     *
+     * @param newStatus is new status for [project]
+     * @param project is organization in which the status will be changed
+     * @return project
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    private fun changeProjectStatus(project: Project, newStatus: ProjectStatus): Project = project
+        .apply {
+            status = newStatus
+        }
+        .let {
+            projectRepository.save(it)
+        }
+
+    /**
+     * Mark organization [project] as deleted
+     *
+     * @param project an [project] to delete
+     * @return deleted organization
+     */
+    fun deleteProject(project: Project): Project =
+            changeProjectStatus(project, ProjectStatus.DELETED)
+
+    /**
+     * Mark organization with [project] as created.
+     * If an organization was previously banned, then all its projects become deleted.
+     *
+     * @param project an [project] to create
+     * @return recovered project
+     */
+    fun recoverProject(project: Project): Project =
+            changeProjectStatus(project, ProjectStatus.CREATED)
+
+    /**
+     * Mark organization with [project] and all its projects as banned.
+     *
+     * @param project an [project] to ban
+     * @return banned project
+     */
+    fun banProject(project: Project): Project =
+            changeProjectStatus(project, ProjectStatus.BANNED)
+
+    /**
      * @param project [Project] to be updated
      * @return updated [project]
      */
@@ -77,6 +118,7 @@ class ProjectService(
     /**
      * @param name
      * @param organizationName
+     * @return project
      */
     fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
