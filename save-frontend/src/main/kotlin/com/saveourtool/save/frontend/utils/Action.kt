@@ -20,17 +20,16 @@ val actionButton: FC<ActionProps> = FC { props ->
     val (isClickMode, setClickMode) = useState(false)
 
     val action = useDeferredRequest {
-            val response = props.sendRequest(isClickMode)(this)
-            if (response.ok) {
-                props.onActionSuccess(isClickMode)
-            } else {
-                setDisplayTitle(props.errorTitle)
-                setDisplayMessage(response.unpackMessage())
-                setError(true)
-                windowOpenness.openWindow()
-            }
+        val response = props.sendRequest(isClickMode)(this)
+        if (response.ok) {
+            props.onActionSuccess(isClickMode)
+        } else {
+            setDisplayTitle(props.errorTitle)
+            setDisplayMessage(response.unpackMessage())
+            setError(true)
+            windowOpenness.openWindow()
         }
-
+    }
 
     div {
         button {

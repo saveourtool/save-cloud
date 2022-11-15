@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
@@ -288,7 +287,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                 responseChangeProjectStatus(newStatus, projectPath)
                             }
-                            conditionClick = props.selfRole.isHigherOrEqualThan(Role.SUPER_ADMIN)
                         }
                     }
                 }
