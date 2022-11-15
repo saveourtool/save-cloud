@@ -95,11 +95,11 @@ class ProjectController(
         @RequestBody(required = false) projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<Project> =
-        projectService.getFiltered(projectFilters)
-        .toFlux()
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
+            projectService.getFiltered(projectFilters)
+                .toFlux()
+                .filter {
+                    projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
+                }
 
     @GetMapping("/get/organization-name")
     @RequiresAuthorizationSourceHeader

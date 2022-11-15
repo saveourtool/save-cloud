@@ -134,7 +134,6 @@ class ProjectService(
      */
     fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
-
     /**
      * @param organizationName
      * @param authentication
@@ -153,7 +152,6 @@ class ProjectService(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-
     /**
      * @param projectFilters
      * @return project's with filter
@@ -166,7 +164,6 @@ class ProjectService(
             projectFilters.status,
         )
     }
-
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project

@@ -5,13 +5,14 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name
+ * @property status
  */
 @Serializable
-class ProjectFilters(
+data class ProjectFilters(
     val name: String,
     val status: List<ProjectStatus> = listOf(ProjectStatus.CREATED),
 ) {
-    companion object{
+    companion object {
         val empty = ProjectFilters("")
         val any = ProjectFilters("", ProjectStatus.values().toList())
     }

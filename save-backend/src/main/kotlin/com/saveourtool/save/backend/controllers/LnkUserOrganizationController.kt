@@ -19,7 +19,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -267,17 +266,19 @@ class LnkUserOrganizationController(
     fun getOrganizationWithRoles(
         @RequestParam(required = false) status: OrganizationStatus,
         authentication: Authentication,
-    ):  Flux<OrganizationDto> = Mono.justOrEmpty(
-    lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
-    .switchIfEmptyToNotFound()
-    .flatMapMany {
-        Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-    }.filter {
-        it.organization.status == status
-    }.map {
-        it.organization.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
-    }
+        .switchIfEmptyToNotFound()
+        .flatMapMany {
+            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+        }
+        .filter {
+            it.organization.status == status
+        }
+        .map {
+            it.organization.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+        }
 
     private fun getUserAndOrganizationWithPermissions(
         userName: String,
