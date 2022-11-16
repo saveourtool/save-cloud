@@ -12,6 +12,8 @@ import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -103,7 +105,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
@@ -180,7 +182,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
