@@ -84,10 +84,6 @@ class DiktatCliRunner(
         params: DiktatDemoAdditionalParams
     ): String = buildString {
         val executable = getExecutable(workingDir, params)
-
-        if (!isWindows()) {
-            append("chmod 777 $executable; ")
-        }
         append(executable)
         append(" -o $outputPath ")
         configPath?.let {
