@@ -236,7 +236,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             projects -= project
                                         }
                                     }
-                                    conditionClick = state.selfRole.isSuperAdmin()
+                                    conditionClick = props.currentUserInfo.isSuperAdmin()
                                     sendRequest = { isBanned ->
                                         val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                         responseChangeProjectStatus(newStatus, "${project.organization.name}/${project.name}")

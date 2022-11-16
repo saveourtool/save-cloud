@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -97,6 +98,8 @@ fun responseChangeOrganizationStatus(status: OrganizationStatus, organizationNam
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
+
+    val navigate = useNavigate()
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -183,13 +186,9 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         onActionSuccess = { _ ->
-                            withNavigate { navigateContext ->
-                                buttonBuilder("Latest Execution", "link", classes = "text-left") {
-                                    navigateContext.navigate(to = "/")
-                                }
-                            }
+                            navigate(to = "/${FrontendRoutes.PROJECTS}")
                         }
-                        conditionClick = props.selfRole.isSuperAdmin()
+                        conditionClick = props.currentUserInfo.isSuperAdmin()
                         sendRequest = { isBanned ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(newStatus, props.organizationName)

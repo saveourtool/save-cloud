@@ -264,11 +264,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
                             onActionSuccess = { _ ->
-                                withNavigate { navigateContext ->
-                                    buttonBuilder("Latest Execution", "link", classes = "text-left") {
-                                        navigateContext.navigate(to = "/")
-                                    }
-                                }
+                                navigate(to = "/organization/${props.project.organization.name}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {
@@ -287,7 +283,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                     }
                                 }
                             }
-                            conditionClick = props.selfRole.isSuperAdmin()
+                            conditionClick = props.currentUserInfo.isSuperAdmin()
                             sendRequest = { isBanned ->
                                 val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                 responseChangeProjectStatus(newStatus, projectPath)
