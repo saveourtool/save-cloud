@@ -84,7 +84,7 @@ fun ChildrenBuilder.displayModal(
  * @param clickBuilder lambda that generates several click in modal
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
-fun ChildrenBuilder.displayModalWithClick(
+fun ChildrenBuilder.displayModalWithCheckBox(
     title: String,
     message: String,
     isOpen: Boolean,
@@ -96,7 +96,17 @@ fun ChildrenBuilder.displayModalWithClick(
     modal { props ->
         props.isOpen = isOpen
         props.style = modalStyle
-        modalBuilderWithClick(title, message, onCloseButtonPressed, buttonBuilder, clickBuilder)
+        modalBuilderWithCheckBox(
+            title = title,
+            onCloseButtonPressed = onCloseButtonPressed,
+            bodyBuilder = {
+                h2 {
+                    className = ClassName("h6 text-gray-800 mb-2")
+                    +message
+                }
+            },
+            buttonBuilder = buttonBuilder,
+            clickBuilder = clickBuilder)
     }
 }
 
@@ -259,43 +269,6 @@ fun ChildrenBuilder.modalBuilder(
 }
 
 /**
- * Universal function to create modals with click condition styles inside react modals
- *
- * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
- * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
- * @param clickBuilder lambda that generates several click in modal
- * @param title of the modal that will be shown in top-left corner
- * @param message main text that will be shown in the center of modal
- * @param clickBuilder
- */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
-fun ChildrenBuilder.modalBuilderWithClick(
-    title: String,
-    message: String,
-    onCloseButtonPressed: (() -> Unit)?,
-    buttonBuilder: ChildrenBuilder.() -> Unit,
-    clickBuilder: ChildrenBuilder.() -> Unit
-) {
-    modalBuilderWithClick(
-        title = title,
-        onCloseButtonPressed = onCloseButtonPressed,
-        bodyBuilder = {
-            h2 {
-                className = ClassName("h6 text-gray-800 mb-2")
-                +message
-            }
-        },
-        clickBuilder = clickBuilder,
-        buttonBuilder = {
-            div {
-                className = ClassName("h6 text-gray-800 mb-2")
-                buttonBuilder()
-            }
-        },
-    )
-}
-
-/**
  * Universal function to create modals with bootstrap styles.
  *
  * @param title title of the modal that will be shown in top-left corner
@@ -304,7 +277,7 @@ fun ChildrenBuilder.modalBuilderWithClick(
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
  * @param clickBuilder lambda that generates body of click
  */
-fun ChildrenBuilder.modalBuilderWithClick(
+fun ChildrenBuilder.modalBuilderWithCheckBox(
     title: String,
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,

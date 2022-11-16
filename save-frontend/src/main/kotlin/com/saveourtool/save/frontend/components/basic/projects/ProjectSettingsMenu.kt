@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import dom.html.HTMLInputElement
@@ -258,12 +259,16 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         actionButton {
-                            title = "WARNING: You want to delete a project"
-                            errorTitle = "You cannot delete ${props.project.name}"
-                            message = "Are you sure you want to delete a $projectPath?"
-                            clickMessage = "Change to ban mode"
+                            title = "WARNING: About delete this project..."
+                            errorTitle = "You cannot delete the project ${props.project.name}"
+                            message = "Are you sure you want to delete the project $projectPath?"
+                            clickMessage = "Also ban this project"
                             onActionSuccess = { _ ->
-                                window.location.href = "${window.location.origin}/"
+                                withNavigate { navigateContext ->
+                                    buttonBuilder("Latest Execution", "link", classes = "text-left") {
+                                        navigateContext.navigate(to = "/")
+                                    }
+                                }
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {

@@ -21,6 +21,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 
 import kotlinx.browser.window
+import react.router.useNavigate
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -160,10 +161,10 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {
-                        title = "WARNING: Delete Organization"
-                        errorTitle = "You cannot delete a ${props.organizationName}"
+                        title = "WARNING: About delete this organization..."
+                        errorTitle = "You cannot delete the organization ${props.organizationName}"
                         message = "Are you sure you want to delete the organization ${props.organizationName}?"
-                        clickMessage = "Change to ban mode"
+                        clickMessage = "Also ban this organization"
                         buttonStyleBuilder = { childrenBuilder ->
                             with(childrenBuilder) {
                                 +"Delete ${props.organizationName}"
@@ -182,7 +183,11 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         onActionSuccess = { _ ->
-                            window.location.href = "${window.location.origin}/"
+                            withNavigate { navigateContext ->
+                                buttonBuilder("Latest Execution", "link", classes = "text-left") {
+                                    navigateContext.navigate(to = "/")
+                                }
+                            }
                         }
                         conditionClick = props.selfRole.isSuperAdmin()
                         sendRequest = { isBanned ->

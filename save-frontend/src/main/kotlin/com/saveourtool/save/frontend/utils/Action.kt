@@ -2,17 +2,18 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.modal.displayModalWithClick
+import com.saveourtool.save.frontend.components.modal.displayModalWithCheckBox
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 
-val actionButton: FC<ActionProps> = FC { props ->
+val actionButton: FC<ButtonWithActionProps> = FC { props ->
     val windowOpenness = useWindowOpenness()
     val (displayTitle, setDisplayTitle) = useState(props.title)
     val (displayMessage, setDisplayMessage) = useState(props.message)
@@ -44,7 +45,7 @@ val actionButton: FC<ActionProps> = FC { props ->
         }
     }
 
-    displayModalWithClick(
+    displayModalWithCheckBox(
         title = displayTitle,
         message = displayMessage,
         isOpen = windowOpenness.isOpen(),
@@ -66,8 +67,8 @@ val actionButton: FC<ActionProps> = FC { props ->
                     div {
                         className = ClassName("d-sm-flex justify-content-center form-check")
                         div {
-                            ReactHTML.input {
-                                className = ClassName("click")
+                            input {
+                                className = ClassName("form-check-input")
                                 type = InputType.checkbox
                                 value = isClickMode
                                 id = "click"
@@ -78,7 +79,7 @@ val actionButton: FC<ActionProps> = FC { props ->
                             }
                         }
                         div {
-                            ReactHTML.label {
+                            label {
                                 className = ClassName("click")
                                 htmlFor = "click"
                                 +props.clickMessage
@@ -96,7 +97,7 @@ val actionButton: FC<ActionProps> = FC { props ->
  *
  * @return noting
  */
-external interface ActionProps : Props {
+external interface ButtonWithActionProps : Props {
     /**
      * Title of the modal
      */

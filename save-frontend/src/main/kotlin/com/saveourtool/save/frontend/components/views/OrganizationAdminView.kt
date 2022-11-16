@@ -66,10 +66,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                             val organizationName = organization.name
 
                             actionButton {
-                                title = "WARNING: Delete Organization"
-                                errorTitle = "You cannot delete a $organizationName"
+                                title = "WARNING: About delete this organization..."
+                                errorTitle = "You cannot delete the organization $organizationName"
                                 message = "Are you sure you want to delete the organization $organizationName?"
-                                clickMessage = "Change to ban mode"
+                                clickMessage = "Also ban this organization"
                                 buttonStyleBuilder = { childrenBuilder ->
                                     with(childrenBuilder) {
                                         fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))

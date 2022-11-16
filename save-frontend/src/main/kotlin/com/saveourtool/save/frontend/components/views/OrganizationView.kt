@@ -202,7 +202,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 /*
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
-                if (state.selfRole.isSuperAdmin()) {
+                if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
                     column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                         Fragment.create {
                             td {
@@ -210,10 +210,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 val projectName = project.name
 
                                 actionButton {
-                                    title = "WARNING: Delete Project"
-                                    errorTitle = "You cannot delete a $projectName"
+                                    title = "WARNING: About delete this project..."
+                                    errorTitle = "You cannot delete the project $projectName"
                                     message = """Are you sure you want to delete the project "$projectName"?"""
-                                    clickMessage = "Change to ban mode"
+                                    clickMessage = "Also ban this project"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
