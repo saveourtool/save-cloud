@@ -16,6 +16,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.util.stream.Collectors
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
@@ -62,11 +63,11 @@ fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
  * @param target path to file to where a content from receiver will be written
  * @return [Mono] with [target]
  */
-fun Flux<ByteBuffer>.writeToFile(target: Path): Flux<Int> = map { byteBuffer ->
+fun Flux<ByteBuffer>.collectToFile(target: Path): Mono<Int> = map { byteBuffer ->
     target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
         Channels.newChannel(os).use { it.write(byteBuffer) }
     }
-}
+}.collect(Collectors.summingInt { it })
 
 /**
  * @param stop

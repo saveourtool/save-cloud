@@ -9,7 +9,7 @@ import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.utils.isWindows
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.writeToFile
+import com.saveourtool.save.utils.collectToFile
 
 import io.ktor.util.*
 import org.springframework.stereotype.Component
@@ -64,11 +64,8 @@ class DiktatCliRunner(
             .flatMapMany { (key, _) ->
                 toolStorage.download(key)
             }
-            .writeToFile(workingDir / key.executableName)
-            .collectList()
-            .map {
-                workingDir / key.executableName
-            }
+            .collectToFile(workingDir / key.executableName)
+            .thenReturn(workingDir / key.executableName)
             .block()
             .let { requireNotNull(it) }
             .apply {
@@ -122,9 +119,7 @@ class DiktatCliRunner(
         val warnings = try {
             outputPath.readLines()
         } catch (e: Exception) {
-            logs.forEach { log ->
-                logger.error(log)
-            }
+            logs.forEach(logger::error)
             throw e
         }
 

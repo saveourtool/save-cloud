@@ -69,8 +69,14 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
         testLines: String,
         params: P,
         tempRootDir: Path,
-    ) = createTempDirectory(tempRootDir)
-        .apply { createDirectories() }
+    ) = run {
+        if (!tempRootDir.exists()) {
+            tempRootDir.createDirectory()
+        }
+    }
+        .let {
+            createTempDirectory(tempRootDir)
+        }
         .let { tmpDir ->
             try {
                 val testPath = requireNotNull(prepareFile(tmpDir / "Test.kt", testLines))
