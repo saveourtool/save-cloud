@@ -8,8 +8,8 @@ import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.utils.isWindows
 import com.saveourtool.save.demo.utils.prependPath
-import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.collectToFile
+import com.saveourtool.save.utils.getLogger
 
 import io.ktor.util.*
 import org.springframework.stereotype.Component
