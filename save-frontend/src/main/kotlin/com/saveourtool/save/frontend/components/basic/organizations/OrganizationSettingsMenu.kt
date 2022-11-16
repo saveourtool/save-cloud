@@ -20,9 +20,9 @@ import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.router.useNavigate
 
 import kotlinx.browser.window
-import react.router.useNavigate
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
