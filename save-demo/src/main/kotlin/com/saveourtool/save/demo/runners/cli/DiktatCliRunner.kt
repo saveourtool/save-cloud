@@ -129,9 +129,7 @@ class DiktatCliRunner(
             throw e
         }
 
-        logs.forEach { log ->
-            logger.trace(log)
-        }
+        logs.forEach(logger::trace)
 
         logger.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
