@@ -2,14 +2,13 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.writeToFile
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import java.nio.ByteBuffer
-import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
 import java.util.stream.Collectors
 import kotlin.io.path.*
 
@@ -59,11 +58,7 @@ abstract class AbstractFileBasedStorage<K>(
             contentPath.parent.createDirectoriesIfRequired()
             contentPath.createFile()
         }.flatMap { _ ->
-            content.map { byteBuffer ->
-                contentPath.outputStream(StandardOpenOption.APPEND).use { os ->
-                    Channels.newChannel(os).use { it.write(byteBuffer) }
-                }
-            }.collect(Collectors.summingInt { it })
+            content.writeToFile(contentPath).collect(Collectors.summingInt { it })
         }.map { it.toLong() }
     }
 

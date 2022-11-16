@@ -9,11 +9,18 @@ import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.writeToFile
+
 import io.ktor.util.*
 import org.springframework.stereotype.Component
-import java.io.File
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
 import java.io.FileNotFoundException
 import java.nio.file.Path
+
 import kotlin.io.path.*
 
 /**
@@ -25,7 +32,8 @@ import kotlin.io.path.*
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
 ) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
-    override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): File {
+    override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
+        val osName = System.getProperty("os.name")
         val toolName = params.tool.name.lowercase()
         val version = if (params.tool == DiktatDemoTool.DIKTAT) {
             DIKTAT_VERSION
@@ -37,23 +45,32 @@ class DiktatCliRunner(
             if (params.tool == DiktatDemoTool.KTLINT) {
                 append("-cli")
             }
-            if (!osName().startsWith("Linux", ignoreCase = true) && !osName().startsWith("Mac OS", ignoreCase = true)) {
+            if (osName.startsWith("Windows", ignoreCase = true)) {
                 append(".cmd")
             }
         }
         val key = ToolKey(toolName, version, fileName)
-        if (toolStorage.doesExist(key).block() != true) {
-            throw FileNotFoundException("Could not find file with key $key")
-        }
 
-        val executableFile = toolStorage.download(key)
+        return Mono.zip(
+            key.toMono(),
+            toolStorage.doesExist(key)
+        )
+            .filter { (_, doesExist) ->
+                doesExist
+            }
+            .switchIfEmpty {
+                throw FileNotFoundException("Could not find file with key $key")
+            }
+            .flatMapMany { (key, _) ->
+                toolStorage.download(key)
+            }
             .writeToFile(workingDir / key.executableName)
+            .collectList()
+            .map {
+                workingDir / key.executableName
+            }
             .block()
-            ?.toFile()
-
-        requireNotNull(executableFile)
-
-        return executableFile
+            .let { requireNotNull(it) }
     }
 
     override fun getRunCommand(
@@ -63,8 +80,9 @@ class DiktatCliRunner(
         configPath: Path?,
         params: DiktatDemoAdditionalParams
     ): String = buildString {
+        val osName = System.getProperty("os.name")
         val executable = getExecutable(workingDir, params)
-        if (osName().startsWith("Linux", ignoreCase = true) || osName().startsWith("Mac OS", ignoreCase = true)) {
+        if (osName.startsWith("Linux", ignoreCase = true) || osName.startsWith("Mac OS", ignoreCase = true)) {
             append("chmod 777 $executable; ")
         }
         append(executable)
@@ -77,17 +95,11 @@ class DiktatCliRunner(
         }
         append(testPath)
     }
-        .also {
-            logger.debug("Running command [$it].")
-        }
 
-    override fun run(
-        testPath: Path,
-        outputPath: Path,
-        configPath: Path?,
-        params: DiktatDemoAdditionalParams,
-    ): DiktatDemoResult {
+    override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent
+        val outputPath = workingDir / "report"
+        val configPath = prepareFile(workingDir / "config", params.config)
         val launchLogPath = workingDir / "log"
         val command = getRunCommand(workingDir, testPath, outputPath, configPath, params)
         val processBuilder = createProcessBuilder(command).apply {
@@ -102,6 +114,7 @@ class DiktatCliRunner(
             prependPath(Path(javaHome) / "bin")
         }
 
+        logger.debug("Running command [$command].")
         processBuilder.start().waitFor()
 
         val logs = launchLogPath.readLines()
@@ -117,17 +130,17 @@ class DiktatCliRunner(
         }
 
         logs.forEach { log ->
-            logger.debug(log)
+            logger.trace(log)
         }
 
-        logger.debug("Found ${warnings.size} warning(s).")
-        logger.trace("[${warnings.joinToString(", ")}]")
+        logger.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
         return DiktatDemoResult(
             outputPath.readLines(),
             testPath.readText(),
         )
     }
+
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DiktatCliRunner>()

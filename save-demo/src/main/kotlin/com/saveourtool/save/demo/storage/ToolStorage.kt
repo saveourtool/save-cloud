@@ -7,6 +7,7 @@ import com.saveourtool.save.utils.upload
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
 import java.nio.file.Path
+import javax.annotation.PostConstruct
 import kotlin.io.path.div
 import kotlin.io.path.name
 
@@ -22,7 +23,8 @@ class ToolStorage(
     /**
      * Todo: Implement DownloadToolService
      */
-    init {
+    @PostConstruct
+    fun downloadTools() {
         val supportedTools = listOf(
             ToolKey("diktat", "1.2.3", "diktat"),
             ToolKey("diktat", "1.2.3", "diktat.cmd"),

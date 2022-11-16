@@ -62,12 +62,11 @@ fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
  * @param target path to file to where a content from receiver will be written
  * @return [Mono] with [target]
  */
-fun Flux<ByteBuffer>.writeToFile(target: Path): Mono<Path> = map { byteBuffer ->
+fun Flux<ByteBuffer>.writeToFile(target: Path): Flux<Int> = map { byteBuffer ->
     target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
         Channels.newChannel(os).use { it.write(byteBuffer) }
     }
 }
-    .then(Mono.just(target))
 
 /**
  * @param stop

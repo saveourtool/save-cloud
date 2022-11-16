@@ -28,8 +28,6 @@ class DiktatDemoService(
         demoAdditionalParams: DiktatDemoAdditionalParams?,
     ): DiktatDemoResult = diktatCliRunner.runInTempDir(
         demoFileLines.joinToString("\n"),
-        demoAdditionalParams?.config,
-        "test.kt",
         demoAdditionalParams ?: DiktatDemoAdditionalParams(),
         tmpDir,
     )
