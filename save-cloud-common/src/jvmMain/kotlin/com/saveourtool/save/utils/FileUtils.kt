@@ -60,8 +60,10 @@ fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
             .then(Mono.just(target))
 
 /**
+ * Creates (if it does not exist) and appends [Flux] of [ByteBuffer] to file by path [target]
+ *
  * @param target path to file to where a content from receiver will be written
- * @return [Mono] with [target]
+ * @return [Mono] with number of bytes received
  */
 fun Flux<ByteBuffer>.collectToFile(target: Path): Mono<Int> = map { byteBuffer ->
     target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
