@@ -11,9 +11,11 @@ import reactor.core.publisher.Mono
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
+import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
@@ -55,6 +57,17 @@ fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
         DataBufferUtils.write(this, target.outputStream())
             .map { DataBufferUtils.release(it) }
             .then(Mono.just(target))
+
+/**
+ * @param target path to file to where a content from receiver will be written
+ * @return [Mono] with [target]
+ */
+fun Flux<ByteBuffer>.writeToFile(target: Path): Mono<Path> = map { byteBuffer ->
+    target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
+        Channels.newChannel(os).use { it.write(byteBuffer) }
+    }
+}
+    .then(Mono.just(target))
 
 /**
  * @param stop
