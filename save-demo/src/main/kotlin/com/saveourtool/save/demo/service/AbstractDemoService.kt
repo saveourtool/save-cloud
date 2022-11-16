@@ -2,11 +2,14 @@ package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.runners.cli.CliRunner
 
 /**
  * Abstract service interface for different demonstration services
  */
-interface AbstractDemoService<in P : DemoAdditionalParams, out R : DemoResult> {
+abstract class AbstractDemoService<in P : DemoAdditionalParams, out R : DemoResult>(
+    private val runner: CliRunner<P, R>,
+) {
     /**
      * Run demo on [demoFileLines] with [demoAdditionalParams] and return result as [DemoResult]
      *
@@ -14,5 +17,5 @@ interface AbstractDemoService<in P : DemoAdditionalParams, out R : DemoResult> {
      * @param demoAdditionalParams additional params as [DemoAdditionalParams]
      * @return report as [DemoResult]
      */
-    fun runDemo(demoFileLines: List<String>, demoAdditionalParams: P? = null): R
+    abstract fun launch(demoFileLines: List<String>, demoAdditionalParams: P? = null): R
 }

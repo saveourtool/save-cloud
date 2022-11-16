@@ -79,6 +79,11 @@ external interface UserSettingsViewState : State {
      * Organizations connected to user
      */
     var selfOrganizationDtos: List<OrganizationDto>
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -120,6 +125,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
+        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
         userInfo.email?.let { fieldsMap[InputTypes.USER_EMAIL] = it }
         userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
         userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
@@ -283,8 +289,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
     fun updateUser() {
+        val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
+        val nameInDb = state.userInfo!!.name
+        val oldName = if (newName != nameInDb) nameInDb else null
         val newUserInfo = UserInfo(
-            name = state.userInfo!!.name,
+            name = newName ?: nameInDb,
+            oldName = oldName,
             originalLogins = state.userInfo!!.originalLogins,
             source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
@@ -303,12 +313,22 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post(
+            val response = post(
                 "$apiUrl/users/save",
                 headers,
                 Json.encodeToString(newUserInfo),
                 loadingHandler = ::classLoadingHandler,
             )
+            if (response.isConflict()) {
+                val responseText = response.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
+            } else {
+                setState {
+                    conflictErrorMessage = null
+                }
+            }
         }
     }
 
