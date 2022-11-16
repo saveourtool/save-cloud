@@ -3,6 +3,7 @@ package com.saveourtool.save.demo.runners.cli
 import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.runners.Runner
+import com.saveourtool.save.demo.utils.isWindows
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -53,14 +54,9 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
      * @return [ProcessBuilder] that is almost ready to be run
      * @throws NotImplementedError when run on system that is not supported
      */
-    fun createProcessBuilder(runCommand: String): ProcessBuilder {
-        val osName = System.getProperty("os.name")
-        return when {
-            osName.startsWith("Linux", ignoreCase = true) || osName.startsWith("Mac", ignoreCase = true) ->
-                ProcessBuilder("sh", "-c", runCommand)
-            osName.startsWith("Windows", ignoreCase = true) -> ProcessBuilder(runCommand)
-            else -> throw NotImplementedError("CliRunner can work only on Linux, Windows or Mac OS")
-        }
+    fun createProcessBuilder(runCommand: String): ProcessBuilder = when {
+        isWindows() -> ProcessBuilder("cmd.exe", "/C", "\"$runCommand\"")
+        else -> ProcessBuilder("sh", "-c", runCommand)
     }
 
     /**

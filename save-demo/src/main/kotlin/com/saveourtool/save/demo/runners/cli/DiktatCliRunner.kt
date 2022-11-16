@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.utils.isWindows
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.writeToFile
@@ -33,7 +34,6 @@ class DiktatCliRunner(
     private val toolStorage: ToolStorage,
 ) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
     override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
-        val osName = System.getProperty("os.name")
         val toolName = params.tool.name.lowercase()
         val version = if (params.tool == DiktatDemoTool.DIKTAT) {
             DIKTAT_VERSION
@@ -45,7 +45,7 @@ class DiktatCliRunner(
             if (params.tool == DiktatDemoTool.KTLINT) {
                 append("-cli")
             }
-            if (osName.startsWith("Windows", ignoreCase = true)) {
+            if (isWindows()) {
                 append(".cmd")
             }
         }
@@ -71,6 +71,9 @@ class DiktatCliRunner(
             }
             .block()
             .let { requireNotNull(it) }
+            .apply {
+                toFile().setExecutable(true, false)
+            }
     }
 
     override fun getRunCommand(
@@ -80,9 +83,9 @@ class DiktatCliRunner(
         configPath: Path?,
         params: DiktatDemoAdditionalParams
     ): String = buildString {
-        val osName = System.getProperty("os.name")
         val executable = getExecutable(workingDir, params)
-        if (osName.startsWith("Linux", ignoreCase = true) || osName.startsWith("Mac OS", ignoreCase = true)) {
+
+        if (!isWindows()) {
             append("chmod 777 $executable; ")
         }
         append(executable)
