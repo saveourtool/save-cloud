@@ -7,7 +7,6 @@ plugins {
 
 dependencies {
     implementation(libs.spring.data.neo4j)
-    implementation(libs.reactor.extra)
 }
 
 configureJacoco()

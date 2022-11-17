@@ -14,7 +14,7 @@ gateway:
   demo:
     url: http://demo:5401
   demo-cpg:
-    url: http://demo-cpg:5402
+    url: http://demo-cpg:5500
 management:
   endpoints:
     web:
