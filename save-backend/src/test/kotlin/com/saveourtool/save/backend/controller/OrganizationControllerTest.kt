@@ -136,7 +136,7 @@ class OrganizationControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "JohDoe", roles = ["VIEWER"])
+    @WithMockUser(value = "JohDoe", roles = ["SUPER_ADMIN"])
     fun `ban organization with super-admin permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.SUPER_ADMIN)
         webClient.post()
