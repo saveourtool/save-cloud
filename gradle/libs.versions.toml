@@ -102,6 +102,7 @@ spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-context-indexer = { module = "org.springframework:spring-context-indexer", version.ref = "spring" }
 spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
+spring-data-neo4j = { module = "org.springframework.data:spring-data-neo4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }

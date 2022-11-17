@@ -62,6 +62,8 @@ fun Project.createStackDeployTask(profile: String) {
                            |    ports:
                            |        - "7474:7474"
                            |        - "7687:7687"
+                           |    environment:
+                           |        - "NEO4J_AUTH=neo4j/123"
                            |
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
