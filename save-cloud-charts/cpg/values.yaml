@@ -1,0 +1,21 @@
+storage: {}
+neo4j:
+  neo4j:
+    edition: community
+    name: simple-neo4j
+    resources:
+      cpu: "500m"
+      memory: "2Gi"
+  volumes:
+    data:
+      mode: selector
+      selector:
+  dbPasswordFile: /home/cnb/secrets/neo4j_secrets
+
+demo_cpg:
+  name: demo-cpg
+  profile: dev
+  imageName: save-demo-cpg
+  containerPort: 5500
+  managementPort: 5501
+  clusterIP: null
