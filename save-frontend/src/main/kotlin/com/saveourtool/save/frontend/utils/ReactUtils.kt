@@ -4,25 +4,8 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.modal.displayInfoModal
-import react.ChildrenBuilder
 import react.useEffect
 import react.useState
-
-/**
- * Custom react hook that once shows global role warning.
- *
- * Can only be called from functional components
- */
-fun ChildrenBuilder.useGlobalRoleWarningOnce() {
-    useOnce {
-        displayInfoModal(
-            useWindowOpenness(),
-            "Warning: global role",
-            "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-        )
-    }
-}
 
 /**
  * Runs the provided [action] only once of first render
@@ -47,24 +30,6 @@ fun useOnceAction(): (() -> Unit) -> Unit {
             setFirstRender(false)
         }
     }
-}
-
-/**
- * Can only be called from functional components
- *
- * @param updateNotificationMessage callback to show notification message
- * @return current value and callback for showGlobalRoleWarning
- */
-fun useGlobalRoleWarningCallback(updateNotificationMessage: (String, String) -> Unit): Pair<Boolean, () -> Unit> {
-    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    val showGlobalRoleWarning = {
-        updateNotificationMessage(
-            "Super admin message",
-            "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-        )
-        setWasConfirmationModalShown(true)
-    }
-    return wasConfirmationModalShown to showGlobalRoleWarning
 }
 
 /**

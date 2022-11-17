@@ -13,6 +13,9 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -247,34 +250,61 @@ class ProjectController(
             ResponseEntity.ok("Project was successfully updated")
         }
 
-    @DeleteMapping("/{organizationName}/{projectName}/delete")
+    @PostMapping("/{organizationName}/{projectName}/change-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "DELETE",
-        summary = "Delete a project.",
-        description = "Delete a project.",
+        method = "POST",
+        summary = "Change status of existing project.",
+        description = "Change status of existing project by its name.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted a project.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for project deletion.")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully change status of a project.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for this action on project.")
     @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
-    fun deleteProject(
+    fun changeProjectStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
+        @RequestParam status: ProjectStatus,
         authentication: Authentication
-    ): Mono<StringResponse> =
-            projectService.findWithPermissionByNameAndOrganization(
-                authentication, projectName, organizationName, Permission.DELETE
-            )
-                .map { projectFromDb ->
-                    projectFromDb.apply {
-                        status = ProjectStatus.DELETED
-                    }
+    ): Mono<StringResponse> = blockingToMono {
+        projectService.findByNameAndOrganizationName(projectName, organizationName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."
+        }
+        .filter {
+            it.status != status
+        }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid new status of the organization $organizationName"
+        }
+        .filter {
+            projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for this action with organization $organizationName."
+        }
+        .map { project ->
+            when (status) {
+                ProjectStatus.BANNED -> {
+                    projectService.banProject(project)
+                    ResponseEntity.ok("Successfully banned the project")
                 }
-                .map { updatedProject ->
-                    projectService.updateProject(updatedProject)
-                    ResponseEntity.ok("Successfully deleted project")
+                ProjectStatus.DELETED -> {
+                    projectService.deleteProject(project)
+                    ResponseEntity.ok("Successfully deleted the project")
                 }
+                ProjectStatus.CREATED -> {
+                    projectService.recoverProject(project)
+                    ResponseEntity.ok("Successfully recovered the project")
+                }
+            }
+        }
 
     companion object {
         @JvmStatic

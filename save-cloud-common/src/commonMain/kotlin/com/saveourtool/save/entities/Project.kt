@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
  * @property description description of the project, may be absent
  * @property status status of project
  * @property public
- * @property userId the user that has created this project. No automatic mapping, because Hibernate is not available in common code.
  * @property organization
  * @property email
  * @property numberOfContainers
@@ -27,7 +26,6 @@ data class Project(
     @Enumerated(EnumType.STRING)
     var status: ProjectStatus,
     var public: Boolean = true,
-    var userId: Long? = null,
     var email: String? = null,
     var numberOfContainers: Int = 3,
 
@@ -109,7 +107,6 @@ data class Project(
             url = null,
             description = null,
             status = ProjectStatus.CREATED,
-            userId = -1,
             organization = organization,
         ).apply {
             this.id = id
@@ -131,7 +128,6 @@ fun ProjectDto.toProject(
     description,
     status,
     isPublic,
-    userId = null,
     email,
     organization = organization,
 )

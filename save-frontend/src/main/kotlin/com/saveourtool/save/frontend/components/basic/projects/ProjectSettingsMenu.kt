@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
@@ -90,10 +91,12 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
     val deleteProject = useDeferredRequest {
-        val responseFromDeleteProject = delete(
-            "$apiUrl/projects/$projectPath/delete",
-            jsonHeaders,
+        val responseFromDeleteProject = post(
+            url = "$apiUrl/projects/$projectPath/change-status?status=${ProjectStatus.DELETED}",
+            headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (responseFromDeleteProject.ok) {
             navigate("/${FrontendRoutes.PROJECTS}")
@@ -102,10 +105,11 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val updateProject = useDeferredRequest {
         post(
-            "$apiUrl/projects/update",
-            jsonHeaders,
-            Json.encodeToString(draftProject.toDto()),
+            url = "$apiUrl/projects/update",
+            headers = jsonHeaders,
+            body = Json.encodeToString(draftProject.toDto()),
             loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
         ).let {
             if (it.ok) {
                 props.onProjectUpdate(draftProject)
