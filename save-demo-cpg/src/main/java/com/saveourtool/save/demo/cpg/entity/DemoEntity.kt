@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.cpg.entity
 
-import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.springframework.data.neo4j.core.schema.GeneratedValue
 import org.springframework.data.neo4j.core.schema.Id
@@ -9,8 +8,6 @@ import org.springframework.data.neo4j.core.schema.Relationship
 
 /**
  * @property value
- * @property next
- * @property prev
  */
 @Node
 open class DemoEntity(
@@ -23,11 +20,17 @@ open class DemoEntity(
     @GeneratedValue
     open var id: Long? = null
 
+    /**
+     * next entities
+     */
     @Relationship("NEXT")
     @JsonSerialize(contentUsing = DemoEntitySerializer::class)
-    var next: MutableSet<DemoEntity> = mutableSetOf()
+    var next: Set<DemoEntity> = emptySet()
 
+    /**
+     * prev entities
+     */
     @Relationship("PREV")
     @JsonSerialize(contentUsing = DemoEntitySerializer::class)
-    var prev: MutableSet<DemoEntity> = mutableSetOf()
+    var prev: Set<DemoEntity> = emptySet()
 }

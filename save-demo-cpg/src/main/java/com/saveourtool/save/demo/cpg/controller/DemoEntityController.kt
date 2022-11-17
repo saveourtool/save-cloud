@@ -5,6 +5,9 @@ import com.saveourtool.save.demo.cpg.repository.DemoEntityRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+/**
+ * A controller for [DemoEntity]
+ */
 @RestController
 @RequestMapping("/demo-entity")
 class DemoEntityController(
@@ -13,9 +16,10 @@ class DemoEntityController(
     /**
      * @param fromValue
      * @param toValue
+     * @return result of operation
      */
-    @PostMapping("/upload")
-    fun upload(
+    @PostMapping("/map")
+    fun map(
         @RequestParam("from") fromValue: String,
         @RequestParam("to") toValue: String,
     ): ResponseEntity<Unit> {
@@ -26,8 +30,8 @@ class DemoEntityController(
             ?: DemoEntity(fromValue)
         val toDemoEntity = demoEntityRepository.findByValue(toValue)
             ?: DemoEntity(toValue)
-        fromDemoEntity.next.add(toDemoEntity)
-        toDemoEntity.prev.add(fromDemoEntity)
+        fromDemoEntity.next = fromDemoEntity.next + toDemoEntity
+        toDemoEntity.prev = toDemoEntity.prev + fromDemoEntity
         demoEntityRepository.saveAll(setOf(fromDemoEntity, toDemoEntity))
         return ResponseEntity.ok(Unit)
     }
@@ -39,9 +43,7 @@ class DemoEntityController(
     @GetMapping("/get")
     fun get(
         @RequestParam value: String,
-    ): ResponseEntity<DemoEntity> {
-        return demoEntityRepository.findByValue(value)?.let {
-            ResponseEntity.ok(it)
-        } ?: ResponseEntity.notFound().build()
-    }
+    ): ResponseEntity<DemoEntity> = demoEntityRepository.findByValue(value)?.let {
+        ResponseEntity.ok(it)
+    } ?: ResponseEntity.notFound().build()
 }

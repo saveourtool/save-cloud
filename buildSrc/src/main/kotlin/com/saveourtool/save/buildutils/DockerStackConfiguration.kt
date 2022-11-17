@@ -17,6 +17,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+@Suppress("CONSTANT_UPPERCASE")
 const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
