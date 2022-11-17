@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.isWindows
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.collectToFile
@@ -33,23 +34,47 @@ import kotlin.io.path.*
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
 ) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
+
+    private fun getRunCommandForDiktat(
+        workingDir: Path,
+       testPath: Path,
+       outputPath: Path,
+       configPath: Path?,
+       params: DiktatDemoAdditionalParams,
+    ): String = buildString {
+        val executable = getExecutable(workingDir, params)
+        append(executable)
+        append(" -o $outputPath ")
+        configPath?.let {
+            append(" --config=$it ")
+        }
+        if (params.mode == DiktatDemoMode.FIX) {
+            append(" --format ")
+        }
+        append(testPath)
+    }
+
+    private fun getRunCommandForKtlint(
+        workingDir: Path,
+        testPath: Path,
+        outputPath: Path,
+        configPath: Path?,
+        params: DiktatDemoAdditionalParams,
+    ): String = buildString {
+        val executable = getExecutable(workingDir, params)
+        append(executable)
+        append(" -o $outputPath ")
+        configPath?.let {
+            append(" --config=$it ")
+        }
+        if (params.mode == DiktatDemoMode.FIX) {
+            append(" --format ")
+        }
+        append(testPath)
+    }
+
     override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
-        val toolName = params.tool.name.lowercase()
-        val version = if (params.tool == DiktatDemoTool.DIKTAT) {
-            DIKTAT_VERSION
-        } else {
-            KTLINT_VERSION
-        }
-        val fileName = buildString {
-            append(toolName)
-            if (params.tool == DiktatDemoTool.KTLINT) {
-                append("-cli")
-            }
-            if (isWindows()) {
-                append(".cmd")
-            }
-        }
-        val key = ToolKey(toolName, version, fileName)
+        val key = params.tool.toToolKey()
 
         return Mono.zip(
             key.toMono(),
@@ -78,18 +103,10 @@ class DiktatCliRunner(
         testPath: Path,
         outputPath: Path,
         configPath: Path?,
-        params: DiktatDemoAdditionalParams
-    ): String = buildString {
-        val executable = getExecutable(workingDir, params)
-        append(executable)
-        append(" -o $outputPath ")
-        configPath?.let {
-            append(" --config=$it ")
-        }
-        if (params.mode == DiktatDemoMode.FIX) {
-            append(" --format ")
-        }
-        append(testPath)
+        params: DiktatDemoAdditionalParams,
+    ): String = when(params.tool) {
+        DiktatDemoTool.DIKTAT -> getRunCommandForDiktat(workingDir, testPath, outputPath, configPath, params)
+        DiktatDemoTool.KTLINT -> getRunCommandForKtlint(workingDir, testPath, outputPath, configPath, params)
     }
 
     override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
@@ -136,7 +153,5 @@ class DiktatCliRunner(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DiktatCliRunner>()
-        private const val DIKTAT_VERSION = "1.2.3"
-        private const val KTLINT_VERSION = "0.47.1"
     }
 }

@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
 }
 
@@ -22,6 +23,7 @@ val diktatVersion: String = libs.versions.diktat.get()
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
+
 
     implementation(libs.ktor.client.apache)
     api(libs.ktor.client.auth)

@@ -20,34 +20,12 @@ private const val TOOLS_PATH = "tools"
 class ToolStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<ToolKey>(Path.of(configProperties.fileStorage.location) / TOOLS_PATH) {
-    /**
-     * Todo: Implement DownloadToolService
-     */
-    @PostConstruct
-    fun downloadTools() {
-        val supportedTools = listOf(
-            ToolKey("diktat", "1.2.3", "diktat"),
-            ToolKey("diktat", "1.2.3", "diktat.cmd"),
-            ToolKey("ktlint", "0.47.1", "ktlint-cli"),
-            ToolKey("ktlint", "0.47.1", "ktlint-cli.cmd"),
-        )
-        list().collectList()
-            .flatMapIterable { availableFiles ->
-                supportedTools.filter {
-                    it !in availableFiles
-                }
-            }
-            .flatMap { key ->
-                upload(key, ClassPathResource(key.executableName).toByteBufferFlux()).thenReturn(key)
-            }
-            .subscribe()
-    }
-
     override fun buildKey(rootDir: Path, pathToContent: Path): ToolKey = ToolKey(
+        pathToContent.parent.parent.parent.name,
         pathToContent.parent.parent.name,
         pathToContent.parent.name,
-        pathToContent.name
+        pathToContent.name,
     )
 
-    override fun buildPathToContent(rootDir: Path, key: ToolKey): Path = rootDir / key.toolName / key.version / key.executableName
+    override fun buildPathToContent(rootDir: Path, key: ToolKey): Path = rootDir / key.ownerName / key.toolName / key.version / key.executableName
 }
