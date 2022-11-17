@@ -17,6 +17,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 /**
@@ -54,6 +55,14 @@ fun Project.createStackDeployTask(profile: String) {
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |    command: ["--log_bin_trust_function_creators=1"]
+                           |
+                           |  neo4j:
+                           |    image: neo4j:5.1.0-community
+                           |    container_name: neo4j
+                           |    ports:
+                           |        - "7474:7474"
+                           |        - "7687:7687"
+                           |
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -61,7 +70,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      ZOOKEEPER_TICK_TIME: 2000
                            |    ports:
                            |      - 22181:2181
-                           |  
+                           |
                            |  kafka:
                            |    image: confluentinc/cp-kafka:latest
                            |    depends_on:
@@ -191,6 +200,22 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("startMysqlDb") {
         dependsOn("liquibaseUpdate")
         dependsOn("startMysqlDbService")
+    }
+
+    tasks.register<Exec>("startNeo4jService") {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d neo4j]")
+        }
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "neo4j")
+        errorOutput = ByteArrayOutputStream()
+        doLast {
+            logger.lifecycle("Waiting $NEO4J_STARTUP_DELAY_MILLIS millis for neo4j to start")
+            Thread.sleep(NEO4J_STARTUP_DELAY_MILLIS)
+        }
+    }
+    tasks.register("startNeo4jDb") {
+        dependsOn("startNeo4jService")
     }
 
     tasks.register<Exec>("startKafka") {

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j
+  labels:
+    {{- include "common.labels" (merge (dict "service" .Values.neo4j) .) | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: neo4j
+  strategy:
+    # Because of shared volume with multi-attach problem
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "pod.common.labels" (merge (dict "service" .Values.neo4j ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.neo4j ) | nindent 8 }}
+    spec:
+      restartPolicy: Always
+      {{- include "cnb.securityContext" . | nindent 6 }}
+      containers:
+        - name: neo4j
+          {{- include "spring-boot.common" (merge (dict "service" .Values.neo4j) .) | nindent 10 }}
+          env:
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.neo4j) .) | nindent 12 }}
+            - name: DATABASE_SECRETS_PATH
+              value: {{ .Values.neo4j.db.password_file }}
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
+          volumeMounts:
+            - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
+            - name: fs-storage
+              mountPath: /home/cnb/files
+            - name: database-secret
+              mountPath: {{ .Values.neo4j.db.password_file }}
+          {{- include "spring-boot.management" .Values.neo4j | nindent 10 }}
+          resources:
+            limits:
+              memory: 500M
+            requests:
+              memory: 300M
+      volumes:
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.neo4j) | indent 10 | trim }}
+        - name: fs-storage
+          persistentVolumeClaim:
+            claimName: save-fs-storage
+        - name: database-secret
+          secret:
+            secretName: db-secrets
+        - name: migrations-data
+          emptyDir: {}

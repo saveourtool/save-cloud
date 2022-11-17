@@ -54,6 +54,18 @@ gateway:
     annotations: {}
     # Any additional options for Service `spec` block
     spec: {}
+demo-cpg:
+  name: demo-cpg
+  profile: dev
+  imageName: save-demo-cpg
+  containerPort: 5500
+  managementPort: 5501
+  clusterIP: null
+  db:
+    schema: save_cloud
+    root_password: '123'
+    password_file: /home/cnb/secrets/db_secrets
+    enabled: false
 storage:
   size: 10Gi
 reposStorage:

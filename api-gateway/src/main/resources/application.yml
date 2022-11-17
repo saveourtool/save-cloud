@@ -13,6 +13,8 @@ gateway:
     url: http://sandbox:5400
   demo:
     url: http://demo:5401
+  neo4j:
+    url: http://neo4j:5402
 management:
   endpoints:
     web:
@@ -70,6 +72,13 @@ spring:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
+        - id: neo4j-api_route
+          uri: ${gateway.neo4j.url}
+          predicates:
+            - Path=/neo4j/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
 
 ---
 spring:
