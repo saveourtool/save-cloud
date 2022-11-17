@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(libs.spring.data.neo4j)
+    implementation(libs.cpg)
 }
 
 configureJacoco()
