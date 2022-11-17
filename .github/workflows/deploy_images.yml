@@ -48,7 +48,7 @@ on:
         default: true
         description: Build new image of save-demo
         required: false
-      neo4j:
+      demo-cpg:
         type: boolean
         default: true
         description: Build new image of save-demo-cpg

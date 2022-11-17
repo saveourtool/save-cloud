@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*
  * A simple controller
  */
 @RestController
-@RequestMapping("/neo4j/api")
+@RequestMapping("/cpg/api")
 class CpgController {
     /**
      * @param language
