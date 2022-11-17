@@ -45,6 +45,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import tanstack.table.core.ExpandedState
 import tanstack.table.core.RowData
 
 /**
@@ -216,12 +217,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         },
         useServerPaging = true,
         usePageSelection = true,
-        plugins = arrayOf(
-            useFilters,
-            useSortBy,
-            useExpanded,
-            usePagination,
-        ),
+        tableOptionsCustomizer = {
+            val (expanded, setExpanded) = useState<ExpandedState>(jso {})
+            it.initialState!!.expanded = expanded
+            it.onExpandedChange = setExpanded.asDynamic()
+
+            it.enableFilters = true
+        },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
             when {

@@ -103,10 +103,11 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
-    tableOptionsCustomizer: FC<P>.(TableOptions<D>) -> Unit = {
+    tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {} /*= {
+        // for example:
         val (sorting, setSorting) = useState<SortingState>(emptyArray())
         it.initialState!!.sorting = sorting
-    },
+    }*/,
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
@@ -124,7 +125,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     val scope = CoroutineScope(Dispatchers.Default)
 
     val (sorting, setSorting) = useState<SortingState>(emptyArray())
-    val tableInstance: Table<D> = useReactTable(options = jso {
+    val tableInstance: Table<D> = useReactTable(options = jso<TableOptions<D>> {
         this.columns = useMemo { columns(props) }
         this.data = data
         this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
@@ -143,7 +144,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             setSorting.asDynamic().invoke(updater.asDynamic())
         }
         additionalOptions()
-    })
+    }.also { tableOptionsCustomizer(it) })
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {

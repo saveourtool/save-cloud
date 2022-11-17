@@ -200,11 +200,11 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                 }
             }
         },
-        plugins = arrayOf(
-            useSortBy,
-            useExpanded,
-            usePagination
-        )
+        tableOptionsCustomizer = {
+            val (expanded, setExpanded) = useState<ExpandedState>(jso {})
+            it.initialState!!.expanded = expanded
+            it.onExpandedChange = setExpanded.asDynamic()
+        }
     )
 
     private fun getPieChartData(execution: ExecutionDto) = execution
