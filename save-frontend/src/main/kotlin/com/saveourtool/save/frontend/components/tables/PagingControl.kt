@@ -17,14 +17,16 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.table.TableInstance
+import tanstack.table.core.RowData
+import tanstack.table.core.Table
+import tanstack.table.core.Updater
 
 /**
  * @param tableInstance
  * @param setPageIndex
  * @return set entries block
  */
-fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div {
+fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageIndex: StateSetter<Int>) = div {
     className = ClassName("row mt-3")
     div {
         className = ClassName("col-0 pt-1 pr-0")
@@ -47,7 +49,9 @@ fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPag
                 onChange = {
                     val entries = it.target.value
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
-                    tableInstance.setPageSize(entries.toInt())
+                    tableInstance.setPageSize(
+                        Updater(entries.toInt())
+                    )
                 }
             }
         }
@@ -66,8 +70,8 @@ fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPag
  * @return paging control block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <D : Any> ChildrenBuilder.pagingControl(
-    tableInstance: TableInstance<D>,
+fun <D : RowData> ChildrenBuilder.pagingControl(
+    tableInstance: Table<D>,
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
     pageCount: Int,
@@ -81,7 +85,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
                 }
-                disabled = !tableInstance.canPreviousPage
+                disabled = !tableInstance.getCanPreviousPage()
                 +js("String.fromCharCode(171)").unsafeCast<String>()
             }
             // Previous page icon <
@@ -91,7 +95,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                disabled = !tableInstance.canPreviousPage
+                disabled = !tableInstance.getCanPreviousPage()
                 +js("String.fromCharCode(8249)").unsafeCast<String>()
             }
             // Previous before previous page
@@ -114,7 +118,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                hidden = !tableInstance.canPreviousPage
+                hidden = !tableInstance.getCanPreviousPage()
                 em {
                     +pageIndex.toString()
                 }
@@ -135,7 +139,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                hidden = !tableInstance.canNextPage
+                hidden = !tableInstance.getCanNextPage()
                 em {
                     +"${pageIndex + 2}"
                 }
@@ -160,7 +164,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                disabled = !tableInstance.canNextPage
+                disabled = !tableInstance.getCanNextPage()
                 +js("String.fromCharCode(8250)").unsafeCast<String>()
             }
             // Last page
@@ -170,7 +174,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageCount - 1)
                 }
-                disabled = !tableInstance.canNextPage
+                disabled = !tableInstance.getCanNextPage()
                 +js("String.fromCharCode(187)").unsafeCast<String>()
             }
             // Jump to the concrete page
@@ -186,7 +190,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
  * @return jump to page block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
+fun <D : RowData> ChildrenBuilder.jumpToPage(tableInstance: Table<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
         form {
             var number = 0
             div {
@@ -234,11 +238,11 @@ fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPag
             }
         }
 
-private fun <D : Any> setPageIndexAndGoToPage(
-    tableInstance: TableInstance<D>,
+private fun <D : RowData> setPageIndexAndGoToPage(
+    tableInstance: Table<D>,
     setPageIndex: StateSetter<Int>,
     index: Int
 ) {
     setPageIndex(index)
-    tableInstance.gotoPage(index)
+    tableInstance.setPageIndex(Updater(index))
 }

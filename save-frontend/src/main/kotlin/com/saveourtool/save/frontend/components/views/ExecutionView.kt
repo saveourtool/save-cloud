@@ -17,7 +17,6 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
@@ -30,8 +29,12 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.table.*
-import react.table.columns
+
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -42,6 +45,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import tanstack.table.core.RowData
 
 /**
  * [Props] for execution results view
@@ -91,32 +95,32 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
-    private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
-    private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
+    private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
+    private val testExecutionsTable: FC<StatusProps<TestExecutionDto>> = tableComponent(
         columns = {
-            columns {
+            columns<TestExecutionDto> {
                 column(id = "index", header = "#") {
                     Fragment.create {
                         td {
-                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
+                            +"${it.row.index + 1 + it.pageIndex * it.pageSize}"
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
+                column<Long?>(id = "startTime", header = "Start time", { startTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
-                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
+                column<Long?>(id = "endTime", header = "End time", { endTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
-                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
@@ -129,32 +133,32 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "missing", header = "Missing", { unmatched }) {
+                column<Long?>(id = "missing", header = "Missing", { unmatched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
                         }
                     }
                 }
-                column(id = "matched", header = "Matched", { matched }) {
+                column<Long?>(id = "matched", header = "Matched", { matched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
                         }
                     }
                 }
-                column(id = "path", header = "Test Name") { cellProps ->
+                column(id = "path", header = "Test Name") { cellContext ->
                     Fragment.create {
                         td {
-                            val testName = cellProps.value.filePath
+                            val testName = cellContext.value.filePath
                             val shortTestName =
                                     if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                             +shortTestName
 
                             // debug info is provided by agent after the execution
                             // possibly there can be cases when this info is not available
-                            if (cellProps.value.hasDebugInfo == true) {
-                                spread(cellProps.row.getToggleRowExpandedProps())
+                            if (cellContext.value.hasDebugInfo == true) {
+//                                spread(cellContext.row.getToggleRowExpandedProps())
                                 style = jso {
                                     textDecoration = "underline".unsafeCast<TextDecoration>()
                                     color = "blue".unsafeCast<Color>()
@@ -163,10 +167,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                                 onClick = {
                                     this@ExecutionView.scope.launch {
-                                        if (!cellProps.row.isExpanded) {
-                                            getAdditionalInfoFor(cellProps.value, cellProps.row.id)
+                                        if (!cellContext.row.getIsExpanded()) {
+                                            getAdditionalInfoFor(cellContext.value, cellContext.row.id)
                                         }
-                                        cellProps.row.toggleRowExpanded()
+                                        cellContext.row.toggleExpanded(null)
                                     }
                                 }
                             }
@@ -223,7 +227,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             when {
                 errorDescription != null -> tr {
                     td {
-                        colSpan = tableInstance.columns.size
+                        colSpan = tableInstance.visibleColumnsCount()
                         +"Error retrieving additional information: $errorDescription"
                     }
                 }
@@ -233,7 +237,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
                 else -> tr {
                     td {
-                        colSpan = tableInstance.columns.size
+                        colSpan = tableInstance.visibleColumnsCount()
                         +"No info available yet for this test execution"
                     }
                 }
@@ -245,7 +249,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     testExecutionFiltersRow {
                         filters = state.filters
                         onChangeFilters = { filterValue ->
@@ -323,7 +327,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     } ?: ""
 
-    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
+    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution)
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
         // there may be errors during deserialization, which will otherwise be silently ignored

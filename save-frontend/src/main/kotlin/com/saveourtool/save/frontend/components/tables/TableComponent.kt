@@ -26,17 +26,19 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.table.PluginHook
-import react.table.TableRowProps
-import react.table.usePagination
-import react.table.useSortBy
 import tanstack.react.table.useReactTable
 import tanstack.table.core.Column
 import tanstack.table.core.Table
 import tanstack.table.core.Row
 import tanstack.table.core.TableOptions
+import tanstack.table.core.ColumnDef
+import tanstack.table.core.Header
+import tanstack.table.core.RowData
+import tanstack.table.core.SortDirection
+import tanstack.table.core.SortingState
+import tanstack.react.table.renderCell
+import tanstack.react.table.renderHeader
 
-import kotlin.js.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +46,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import tanstack.table.core.ColumnDef
+import tanstack.table.core.getCoreRowModel
 
 /**
  * [Props] of a data table
@@ -95,15 +97,18 @@ external interface TableProps<D : Any> : Props {
     "MAGIC_NUMBER",
     "LAMBDA_IS_NOT_LAST_PARAMETER"
 )
-fun <D : Any, P : TableProps<D>> tableComponent(
+fun <D : RowData, P : TableProps<D>> tableComponent(
     columns: (P) -> Array<out ColumnDef<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
-    plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
+    tableOptionsCustomizer: FC<P>.(TableOptions<D>) -> Unit = {
+        val (sorting, setSorting) = useState<SortingState>(emptyArray())
+        it.initialState!!.sorting = sorting
+    },
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
+    getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: ChildrenBuilder.(table: Table<D>) -> Unit = {},
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
@@ -118,9 +123,11 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
     val scope = CoroutineScope(Dispatchers.Default)
 
+    val (sorting, setSorting) = useState<SortingState>(emptyArray())
     val tableInstance: Table<D> = useReactTable(options = jso {
         this.columns = useMemo { columns(props) }
         this.data = data
+        this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
@@ -130,9 +137,13 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                 this.pageSize = initialPageSize
                 this.pageIndex = pageIndex
             }
+            this.sorting = sorting
+        }
+        this.onSortingChange = { updater ->
+            setSorting.asDynamic().invoke(updater.asDynamic())
         }
         additionalOptions()
-    }, plugins = plugins)
+    })
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
@@ -202,7 +213,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                 className = ClassName("table-responsive")
                 table {
                     className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
-//                    spread(tableInstance.getTableProps())
                     width = 100.0
                     cellSpacing = "0"
                     thead {
@@ -210,20 +220,22 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         tableInstance.getHeaderGroups().map { headerGroup ->
                             tr {
                                 id = headerGroup.id
-//                                spread(headerGroup.getHeaderGroupProps())
-                                headerGroup.headers.map { column ->
-                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.canSort) columnProps.className else ClassName("")
+                                headerGroup.headers.map { header: Header<D, out Any?> ->
+                                    val column = header.column
+//                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
+                                    val className = /*if (column.getCanSort()) columnProps.className else*/ ClassName("")
                                     th {
                                         this.className = className
-                                        +column.render("Header")
+                                        child(
+                                            renderHeader(header)
+                                        )
                                         // fixme: find a way to set `canSort`; now it's always true
-                                        if (column.canSort) {
-                                            spread(columnProps)
+                                        if (column.getCanSort()) {
+//                                            spread(columnProps)
                                             span {
-                                                +when {
-                                                    column.isSorted -> " 🔽"
-                                                    column.isSortedDesc -> " 🔼"
+                                                +when (column.getIsSorted()) {
+                                                    SortDirection.asc -> " 🔽"
+                                                    SortDirection.desc -> " 🔼"
                                                     else -> ""
                                                 }
                                             }
@@ -234,21 +246,15 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         }
                     }
                     tbody {
-                        spread(tableInstance.getTableBodyProps())
-                        tableInstance.page.map { row ->
-                            tableInstance.prepareRow(row)
+                        tableInstance.getRowModel().rows.map { row ->
+//                            tableInstance.prepareRow(row)
                             tr {
-                                spread(row.getRowProps(getRowProps(row)))
-                                row.cells.map { cell ->
-                                    // fixme: userProps are not present in actual html, but .render("Cell") produces td, so can't wrap
-                                    child(cell.render("Cell", userProps = json().apply {
-                                        spread(cell.getCellProps()) { key, value ->
-                                            this[key] = value
-                                        }
-                                    }))
+                                spread(getRowProps(row))
+                                row.getVisibleCells().map { cell ->
+                                    child(renderCell(cell))
                                 }
                             }
-                            if (row.isExpanded) {
+                            if (row.getIsExpanded()) {
                                 requireNotNull(renderExpandedRow) {
                                     "`useExpanded` is used, but no method for expanded row is provided"
                                 }
@@ -276,7 +282,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         className = ClassName("row ml-1")
                         +"Page "
                         em {
-                            +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
+                            +"${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
                         }
                     }
                 }
@@ -296,3 +302,5 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         }
     }
 }
+
+internal fun <D : RowData> Table<D>.pageIndexAndSize() = getState().pagination.pageIndex to getState().pagination.pageSize
