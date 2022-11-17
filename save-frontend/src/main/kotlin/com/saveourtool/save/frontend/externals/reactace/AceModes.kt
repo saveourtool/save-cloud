@@ -4,52 +4,59 @@ package com.saveourtool.save.frontend.externals.reactace
  * Highlight modes for AceEditor
  *
  * @property modeName substring of file with required highlight mode
+ * @property prettyName
  */
-enum class AceModes(val modeName: String) {
+@Suppress("IDENTIFIER_LENGTH")
+enum class AceModes(val modeName: String, val prettyName: String) {
     /**
-     * C/C++ highlight mode
+     * C highlight mode
      */
-    CPP("c_cpp"),
+    C("c_cpp", "C++"),
+
+    /**
+     * C++ highlight mode
+     */
+    CPP("c_cpp", "C"),
 
     /**
      * Golang highlight mode
      */
-    GO("golang"),
+    GO("golang", "GO"),
 
     /**
      * Java highlight mode
      */
-    JAVA("java"),
+    JAVA("java", "JAVA"),
 
     /**
      * Javascript highlight mode
      */
-    JAVASCRIPT("jsx"),
+    JAVASCRIPT("jsx", "JS"),
 
     /**
      * Kotlin highlight mode
      */
-    KOTLIN("kotlin"),
+    KOTLIN("kotlin", "KOTLIN"),
 
     /**
      * Python highlight mode
      */
-    PYTHON("python"),
+    PYTHON("python", "PYTHON"),
 
     /**
      * Shell highlight mode
      */
-    SHELL("sh"),
+    SHELL("sh", "SHELL"),
 
     /**
      * Toml highlight mode
      */
-    TOML("toml"),
+    TOML("toml", "TOML"),
 
     /**
      * Typescript highlight mode
      */
-    TYPESCRIPT("typescript"),
+    TYPESCRIPT("typescript", "TYPESCRIPT"),
     ;
 
     /**
