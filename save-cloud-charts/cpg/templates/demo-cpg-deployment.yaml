@@ -29,8 +29,6 @@ spec:
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: database-secret
-              mountPath: {{ .Values.neo4j.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.demo_cpg | nindent 10 }}
           resources:
             limits:
