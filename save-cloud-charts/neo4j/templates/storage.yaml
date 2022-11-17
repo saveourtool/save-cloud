@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: "{{ .Values.neo4j.neo4j.name }}"
+    helm.neo4j.com/volume-role: "data"
+  {{- with .Values.storage.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  name: data-neo4j-0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.storage.size }}
+  {{- if .Values.storage.storageClassName }}
+  storageClassName: {{ .Values.storage.storageClassName }}
+  {{- end -}}

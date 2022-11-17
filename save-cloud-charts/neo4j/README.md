@@ -1,0 +1,1 @@
+`helm install neo4j neo4j-1.0.0.tgz --namespace neo4j -f values-<env>.yaml`

@@ -1,0 +1,12 @@
+storage: {}
+neo4j:
+  neo4j:
+    edition: community
+    name: simple-neo4j
+    resources:
+      cpu: "500m"
+      memory: "2Gi"
+  volumes:
+    data:
+      mode: selector
+      selector:
