@@ -13,6 +13,8 @@ gateway:
     url: http://sandbox:5400
   demo:
     url: http://demo:5401
+  demo-cpg:
+    url: http://demo-cpg:5500
 management:
   endpoints:
     web:
@@ -70,6 +72,13 @@ spring:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
+        - id: demo-cpg-api_route
+          uri: ${gateway.demo-cpg.url}
+          predicates:
+            - Path=/cpg/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
 
 ---
 spring:
