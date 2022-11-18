@@ -4088,80 +4088,6 @@
         ]
       }
     },
-    "/api/v1/projects/get/by-organization-and-status": {
-      "get": {
-        "description": "Get projects by organization name and status.",
-        "operationId": "getProjectsByOrganizationNameAndStatus",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "this type of organizations",
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BANNED",
-                "CREATED",
-                "DELETED"
-              ]
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched projects by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get projects by organization name and status.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
     "/api/v1/projects/get/organization-name": {
       "get": {
         "description": "Get project by name and organization name.",
@@ -4240,60 +4166,6 @@
           }
         ],
         "summary": "Get project by name and organization name.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
-    "/api/v1/projects/get/projects-by-organization": {
-      "get": {
-        "description": "Get all projects by organization name.",
-        "operationId": "getProjectsByOrganizationName",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched projects by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get all projects by organization name.",
         "tags": [
           "projects"
         ]
@@ -8738,11 +8610,15 @@
       "ProjectFilters": {
         "required": [
           "name",
+          "organizationName",
           "statuses"
         ],
         "type": "object",
         "properties": {
           "name": {
+            "type": "string"
+          },
+          "organizationName": {
             "type": "string"
           },
           "statuses": {
