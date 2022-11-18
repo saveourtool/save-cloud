@@ -241,13 +241,11 @@ class PermissionControllerTest {
         project: Project,
         permission: Permission?,
     ) {
-        val organizations = organizationService.findByNameAndStatuses(name = any(), statuses = setOf(OrganizationStatus.CREATED))
-        val projects = projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
-        given(organizations).willReturn(project.organization)
-        given(projects).willReturn(project)
+        given(organizationService.findByNameAndStatuses(name = any(), statuses = setOf(OrganizationStatus.CREATED))).willReturn(project.organization)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false
