@@ -119,17 +119,18 @@ class OrganizationService(
 
     /**
      * @param name
-     * @param status
+     * @param statuses
      * @return organization by name
      */
-    fun findByName(name: String, status: OrganizationStatus = OrganizationStatus.CREATED) = organizationRepository.findByName(name)?.takeIf { it.status == status }
+    fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) =
+        organizationRepository.findByName(name)?.takeIf { it.status in statuses }
 
     /**
      * @param name
      * @return organization by name
      * @throws NoSuchElementException
      */
-    fun getByName(name: String) = findByName(name)
+    fun getByName(name: String) = findByNameAndStatuses(name)
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
@@ -137,11 +138,11 @@ class OrganizationService(
      * @return list of organizations with that match [organizationFilters]
      */
     fun getFiltered(organizationFilters: OrganizationFilters) = if (organizationFilters.prefix.isBlank()) {
-        organizationRepository.findByStatusIn(organizationFilters.status)
+        organizationRepository.findByStatusIn(organizationFilters.statuses)
     } else {
         organizationRepository.findByNameStartingWithAndStatusIn(
             organizationFilters.prefix,
-            organizationFilters.status,
+            organizationFilters.statuses,
         )
     }
 

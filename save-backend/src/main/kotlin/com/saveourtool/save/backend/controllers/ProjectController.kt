@@ -87,8 +87,8 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get projects by projects filters",
-        description = "Get projects by filters, available for current user.",
+        summary = "Get projects matching filters",
+        description = "Get filtered projects available for the current user.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
@@ -122,7 +122,7 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationName(name, organizationName)
+            projectService.findByNameAndOrganizationNameAndStatusIn(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
@@ -148,22 +148,22 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @GetMapping("/get/projects-by-organization-and-status")
+    @GetMapping("/get/by-organization-and-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get projects by organization name.",
-        description = "Get projects by organization name.",
+        summary = "Get projects by organization name and status.",
+        description = "Get projects by organization name and status.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "organization filters", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getNonDeletedProjectsByOrganizationName(
-        @RequestParam organizationName: String,
-        @RequestParam status: ProjectStatus,
+    fun getProjectsByOrganizationNameAndStatus(
+        @RequestParam(required = true) organizationName: String,
+        @RequestParam(required = true) status: ProjectStatus,
         authentication: Authentication?,
     ): Flux<Project> = projectService.getProjectsByOrganizationNameAndStatus(organizationName, authentication, status)
 
@@ -186,7 +186,7 @@ class ProjectController(
         .flatMap {
             Mono.zip(
                 projectCreationRequest.toMono(),
-                organizationService.findByName(it.organizationName).toMono(),
+                organizationService.findByNameAndStatuses(it.organizationName).toMono(),
             )
         }
         .switchIfEmpty {
@@ -275,7 +275,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationName(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."

@@ -213,7 +213,7 @@ class LnkUserOrganizationControllerTest {
         organization: Organization,
         organizationRole: Role,
     ) {
-        given(organizationService.findByName(any())).willReturn(organization)
+        given(organizationService.findByNameAndStatuses(any())).willReturn(organization)
         given(organizationPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false

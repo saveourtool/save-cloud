@@ -204,7 +204,7 @@ class ExecutionService(
         contestName: String?,
     ): Mono<Execution> {
         val project = with(projectCoordinates) {
-            projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
+            projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
             }
         }

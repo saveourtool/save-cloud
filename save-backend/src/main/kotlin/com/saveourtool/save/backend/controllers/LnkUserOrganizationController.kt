@@ -75,7 +75,7 @@ class LnkUserOrganizationController(
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = organizationService.findByName(organizationName)
+    ): Mono<List<UserInfo>> = organizationService.findByNameAndStatuses(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE
@@ -208,7 +208,7 @@ class LnkUserOrganizationController(
             prefix.isNotEmpty()
         }
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndStatuses(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -257,8 +257,8 @@ class LnkUserOrganizationController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get user's organizations.",
-        description = "Get organizations by filters where user is a member, and his roles in those organizations.",
+        summary = "Get user's organizations by status",
+        description = "Get organizations by status available for the current user.",
     )
     @Parameters(
         Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = false),
@@ -296,7 +296,7 @@ class LnkUserOrganizationController(
             USER_NOT_FOUND_ERROR_MESSAGE
         }
         .zipWith(
-            organizationService.findByName(organizationName).toMono()
+            organizationService.findByNameAndStatuses(organizationName).toMono()
         )
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE

@@ -105,7 +105,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                         val response = post(
                             url = "$apiUrl/projects/by-filters",
                             headers = jsonHeaders,
-                            body = Json.encodeToString(ProjectFilters.empty),
+                            body = Json.encodeToString(ProjectFilters.created),
                             loadingHandler = ::classLoadingHandler,
                             responseHandler = ::noopResponseHandler
                         )

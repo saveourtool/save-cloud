@@ -120,13 +120,11 @@ class ProjectService(
     /**
      * @param name
      * @param organizationName
-     * @param status
+     * @param statuses
      * @return project
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String, status: ProjectStatus = ProjectStatus.CREATED) =
-            projectRepository.findByNameAndOrganizationName(name, organizationName)?.takeIf {
-                it.organization.status == OrganizationStatus.CREATED && it.status == status
-            }
+    fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)) =
+            projectRepository.findByNameAndOrganizationName(name, organizationName)?.takeIf { it.status in statuses }
 
     /**
      * @param organizationName
@@ -163,11 +161,11 @@ class ProjectService(
      * @return project's with filter
      */
     fun getFiltered(projectFilters: ProjectFilters) = if (projectFilters.name.isBlank()) {
-        projectRepository.findByStatusIn(projectFilters.status)
+        projectRepository.findByStatusIn(projectFilters.statuses)
     } else {
         projectRepository.findByNameStartingWithAndStatusIn(
             projectFilters.name,
-            projectFilters.status,
+            projectFilters.statuses,
         )
     }
 
@@ -190,7 +188,7 @@ class ProjectService(
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOrganizationName(projectName, organizationName) }
+        Mono.fromCallable { findByNameAndOrganizationNameAndStatusIn(projectName, organizationName) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }

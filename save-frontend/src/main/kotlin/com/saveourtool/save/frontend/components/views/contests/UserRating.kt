@@ -134,7 +134,7 @@ private fun userRating() = VFC {
         val organizationsFromBackend: List<OrganizationDto> = post(
             url = "$apiUrl/organizations/by-filters",
             headers = jsonHeaders,
-            body = Json.encodeToString(OrganizationFilters.empty),
+            body = Json.encodeToString(OrganizationFilters.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -146,7 +146,7 @@ private fun userRating() = VFC {
         val projectsFromBackend: List<Project> = post(
             url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
-            body = Json.encodeToString(ProjectFilters.empty),
+            body = Json.encodeToString(ProjectFilters.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()

@@ -151,11 +151,11 @@ class LnkUserOrganizationService(
 
     /**
      * @param userId
-     * @param status
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return Flux of [Organization]s in which user is in
      */
-    fun findAllByAuthentication(userId: Long, status: OrganizationStatus = OrganizationStatus.CREATED) = blockingToFlux {
-        lnkUserOrganizationRepository.findByUserId(userId).filter { it.organization.status == status }
+    fun findAllByAuthenticationAndStatuses(userId: Long, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserId(userId).filter { it.organization.status in statuses }
     }
 
     /**

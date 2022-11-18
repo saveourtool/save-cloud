@@ -116,7 +116,7 @@ class ExecutionController(private val executionService: ExecutionService,
         @RequestParam organizationName: String,
         @RequestBody(required = false) filters: ExecutionFilters?,
         authentication: Authentication,
-    ): Mono<List<ExecutionDto>> = organizationService.findByName(organizationName)
+    ): Mono<List<ExecutionDto>> = organizationService.findByNameAndStatuses(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "Organization with name [$organizationName] was not found."
@@ -181,7 +181,7 @@ class ExecutionController(private val executionService: ExecutionService,
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<*>> {
-        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("No such organization was found")
+        val organization = organizationService.findByNameAndStatuses(organizationName) ?: throw NoSuchElementException("No such organization was found")
         return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,

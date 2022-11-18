@@ -62,7 +62,7 @@ class ProjectControllerTest {
             .post()
             .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters.empty)
+            .bodyValue(ProjectFilters.created)
             .exchange()
             .expectStatus()
             .isOk

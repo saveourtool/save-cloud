@@ -152,7 +152,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters.empty
+                                OrganizationFilters.created
                             } else {
                                 OrganizationFilters(filterValue)
                             }
@@ -218,7 +218,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         name = state.projectFilters.name
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilters("")
+                                ProjectFilters.created
                             } else {
                                 ProjectFilters(filterValue)
                             }
@@ -241,8 +241,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.organizations = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
-        state.projectFilters = ProjectFilters("")
-        state.organizationFilters = OrganizationFilters.empty
+        state.projectFilters = ProjectFilters.created
+        state.organizationFilters = OrganizationFilters.created
     }
 
     private fun getOrganization(filterValue: OrganizationFilters) {
