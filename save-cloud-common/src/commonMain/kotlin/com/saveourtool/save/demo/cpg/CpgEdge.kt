@@ -1,6 +1,7 @@
 /**
  * File that contains CpgEdge definition
  */
+
 package com.saveourtool.save.demo.cpg
 
 import kotlinx.serialization.EncodeDefault

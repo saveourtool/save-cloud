@@ -1,6 +1,7 @@
 /**
  * File that contains CpgNode definition
  */
+
 package com.saveourtool.save.demo.cpg
 
 import kotlinx.serialization.EncodeDefault
