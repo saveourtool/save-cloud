@@ -46,6 +46,8 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+typealias OrganizationDtoList = List<OrganizationDto>
+
 /**
  * Controller for working with organizations.
  */
@@ -86,7 +88,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
         @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
-    ): Mono<List<OrganizationDto>> = Mono.fromCallable {
+    ): Mono<OrganizationDtoList> = Mono.fromCallable {
         when {
             onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
 
