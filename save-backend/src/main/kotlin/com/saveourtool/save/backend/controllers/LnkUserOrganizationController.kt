@@ -260,11 +260,14 @@ class LnkUserOrganizationController(
         summary = "Get user's organizations.",
         description = "Get organizations by filters where user is a member, and his roles in those organizations.",
     )
+    @Parameters(
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = false),
+    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
-        @RequestParam(required = false) status: OrganizationStatus,
+        @RequestParam(required = false, defaultValue = "CREATED") status: OrganizationStatus,
         authentication: Authentication,
     ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
@@ -277,7 +280,7 @@ class LnkUserOrganizationController(
             it.organization.status == status
         }
         .map {
-            it.organization.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            it.organization.toDto(mapOf(it.user.name!! to it.role))
         }
 
     private fun getUserAndOrganizationWithPermissions(
