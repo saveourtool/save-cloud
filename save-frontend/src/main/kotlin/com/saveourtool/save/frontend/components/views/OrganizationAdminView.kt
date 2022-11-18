@@ -166,7 +166,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
         )
 
         return when {
-            // FIXME
             response.ok -> response.decodeFromJsonString()
 
             else -> mutableListOf()

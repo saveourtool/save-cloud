@@ -86,12 +86,12 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
         @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
-    ): Mono<List<Organization>> = Mono.fromCallable {
+    ): Mono<List<OrganizationDto>> = Mono.fromCallable {
         when {
             onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
 
             else -> organizationService.findAll()
-        }
+        }.map { it.toDto() }
     }
 
     @PostMapping("/not-deleted-with-rating")

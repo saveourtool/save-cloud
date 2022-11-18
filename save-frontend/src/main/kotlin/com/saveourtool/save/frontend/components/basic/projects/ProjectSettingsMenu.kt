@@ -29,7 +29,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -263,7 +262,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
                             onActionSuccess = { _ ->
-                                navigate(to = "/organization/${props.project.organization.name}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
+                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {
