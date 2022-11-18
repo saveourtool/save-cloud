@@ -2268,7 +2268,7 @@
     },
     "/api/v1/organizations/by-filters": {
       "post": {
-        "description": "Get organizations by filters",
+        "description": "Get organizations matching filters",
         "operationId": "getFilteredOrganizations",
         "parameters": [
           {
@@ -2314,7 +2314,7 @@
             "basic": []
           }
         ],
-        "summary": "Get organizations by organization filters",
+        "summary": "Get organizations matching filters",
         "tags": [
           "organizations"
         ]
@@ -2322,15 +2322,17 @@
     },
     "/api/v1/organizations/by-user": {
       "get": {
-        "description": "Get organizations by filters where user is a member, and his roles in those organizations.",
+        "description": "Get organizations by status available for the current user.",
         "operationId": "getOrganizationWithRoles",
         "parameters": [
           {
+            "description": "this type of organizations",
             "in": "query",
             "name": "status",
             "required": false,
             "schema": {
               "type": "string",
+              "default": "CREATED",
               "enum": [
                 "BANNED",
                 "CREATED",
@@ -2391,7 +2393,7 @@
             "basic": []
           }
         ],
-        "summary": "Get user\u0027s organizations.",
+        "summary": "Get user\u0027s organizations by status",
         "tags": [
           "roles",
           "organizations"
@@ -3985,7 +3987,7 @@
     },
     "/api/v1/projects/by-filters": {
       "post": {
-        "description": "Get projects by filters, available for current user.",
+        "description": "Get filtered projects available for the current user.",
         "operationId": "getFilteredProjects",
         "requestBody": {
           "content": {
@@ -4029,7 +4031,7 @@
             "basic": []
           }
         ],
-        "summary": "Get projects by projects filters",
+        "summary": "Get projects matching filters",
         "tags": [
           "projects"
         ]
@@ -4081,6 +4083,80 @@
           }
         ],
         "summary": "Get projects of current authenticated user",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/get/by-organization-and-status": {
+      "get": {
+        "description": "Get projects by organization name and status.",
+        "operationId": "getProjectsByOrganizationNameAndStatus",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "this type of organizations",
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BANNED",
+                "CREATED",
+                "DELETED"
+              ]
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched projects by organization name."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get projects by organization name and status.",
         "tags": [
           "projects"
         ]
@@ -4218,80 +4294,6 @@
           }
         ],
         "summary": "Get all projects by organization name.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
-    "/api/v1/projects/get/projects-by-organization-and-status": {
-      "get": {
-        "description": "Get projects by organization name.",
-        "operationId": "getNonDeletedProjectsByOrganizationName",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "organization filters",
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BANNED",
-                "CREATED",
-                "DELETED"
-              ]
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched projects by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get projects by organization name.",
         "tags": [
           "projects"
         ]
@@ -8612,14 +8614,15 @@
       "OrganizationFilters": {
         "required": [
           "prefix",
-          "status"
+          "statuses"
         ],
         "type": "object",
         "properties": {
           "prefix": {
             "type": "string"
           },
-          "status": {
+          "statuses": {
+            "uniqueItems": true,
             "type": "array",
             "items": {
               "type": "string",
@@ -8735,14 +8738,15 @@
       "ProjectFilters": {
         "required": [
           "name",
-          "status"
+          "statuses"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
-          "status": {
+          "statuses": {
+            "uniqueItems": true,
             "type": "array",
             "items": {
               "type": "string",
