@@ -66,19 +66,21 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                 }
 
                 div {
-                    className = ClassName("row d-flex justify-content-center")
+                    className = ClassName("card-body row d-flex justify-content-center")
                     div {
+                        className = ClassName("mr-1")
                         selectorBuilder(
                             selectedTheme.themeName,
                             AceThemes.values().map { it.themeName },
                             "custom-select",
                         ) { event ->
-                            setSelectedTheme{
+                            setSelectedTheme {
                                 AceThemes.values().find { it.themeName == event.target.value }!!
                             }
                         }
                     }
                     div {
+                        className = ClassName("mr-1")
                         selectorBuilder(
                             selectedLanguage.prettyName,
                             AceModes.values().map { it.prettyName },
