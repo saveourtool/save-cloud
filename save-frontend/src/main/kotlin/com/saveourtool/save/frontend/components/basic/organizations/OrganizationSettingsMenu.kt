@@ -164,7 +164,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {
-                        title = "WARNING: About delete this organization..."
+                        title = "WARNING: About to delete this organization..."
                         errorTitle = "You cannot delete the organization ${props.organizationName}"
                         message = "Are you sure you want to delete the organization ${props.organizationName}?"
                         clickMessage = "Also ban this organization"

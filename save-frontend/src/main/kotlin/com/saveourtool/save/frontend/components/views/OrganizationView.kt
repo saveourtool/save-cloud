@@ -210,7 +210,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 val projectName = project.name
 
                                 actionButton {
-                                    title = "WARNING: About delete this project..."
+                                    title = "WARNING: About to delete this project..."
                                     errorTitle = "You cannot delete the project $projectName"
                                     message = """Are you sure you want to delete the project "$projectName"?"""
                                     clickMessage = "Also ban this project"

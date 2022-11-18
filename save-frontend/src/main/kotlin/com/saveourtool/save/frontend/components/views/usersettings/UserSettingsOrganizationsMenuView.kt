@@ -65,7 +65,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
-                                        title = "WARNING: About delete this organization..."
+                                        title = "WARNING: About to delete this organization..."
                                         errorTitle = "You cannot delete the organization ${organizationDto.name}"
                                         message = "Are you sure you want to ban the organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->

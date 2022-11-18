@@ -96,7 +96,7 @@ fun ChildrenBuilder.displayModalWithCheckBox(
     modal { props ->
         props.isOpen = isOpen
         props.style = modalStyle
-        modalBuilderWithCheckBox(
+        modalBuilder(
             title = title,
             onCloseButtonPressed = onCloseButtonPressed,
             bodyBuilder = {
@@ -104,9 +104,13 @@ fun ChildrenBuilder.displayModalWithCheckBox(
                     className = ClassName("h6 text-gray-800 mb-2")
                     +message
                 }
+                div {
+                    className = ClassName("d-sm-flex justify-content-center form-check")
+                    clickBuilder()
+                }
             },
-            buttonBuilder = buttonBuilder,
-            clickBuilder = clickBuilder)
+            buttonBuilder = buttonBuilder
+        )
     }
 }
 
@@ -262,64 +266,6 @@ fun ChildrenBuilder.modalBuilder(
             }
             div {
                 className = ClassName("modal-footer")
-                buttonBuilder()
-            }
-        }
-    }
-}
-
-/**
- * Universal function to create modals with bootstrap styles.
- *
- * @param title title of the modal that will be shown in top-left corner
- * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
- * @param bodyBuilder lambda that generates body of modal
- * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
- * @param clickBuilder lambda that generates body of click
- */
-fun ChildrenBuilder.modalBuilderWithCheckBox(
-    title: String,
-    onCloseButtonPressed: (() -> Unit)?,
-    bodyBuilder: ChildrenBuilder.() -> Unit,
-    buttonBuilder: ChildrenBuilder.() -> Unit,
-    clickBuilder: ChildrenBuilder.() -> Unit,
-) {
-    div {
-        className = ClassName("modal-dialog")
-        div {
-            className = ClassName("modal-content")
-            div {
-                className = ClassName("modal-header")
-                h5 {
-                    className = ClassName("modal-title")
-                    +title
-                }
-                onCloseButtonPressed?.let {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("close")
-                        asDynamic()["data-dismiss"] = "modal"
-                        ariaLabel = "Close"
-                        span {
-                            fontAwesomeIcon(icon = faTimesCircle)
-                            onClick = {
-                                onCloseButtonPressed()
-                            }
-                        }
-                    }
-                }
-            }
-            className = ClassName("card card-body mt-0 p-0")
-            div {
-                className = ClassName("modal-body")
-                bodyBuilder()
-            }
-            div {
-                className = ClassName("d-sm-flex justify-content-center form-check")
-                clickBuilder()
-            }
-            div {
-                className = ClassName("d-sm-flex justify-content-center form-check")
                 buttonBuilder()
             }
         }

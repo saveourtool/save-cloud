@@ -258,7 +258,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         actionButton {
-                            title = "WARNING: About delete this project..."
+                            title = "WARNING: About to delete this project..."
                             errorTitle = "You cannot delete the project ${props.project.name}"
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"

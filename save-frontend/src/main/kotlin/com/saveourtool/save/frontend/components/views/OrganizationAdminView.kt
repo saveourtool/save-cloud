@@ -66,7 +66,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                             val organizationName = organization.name
 
                             actionButton {
-                                title = "WARNING: About delete this organization..."
+                                title = "WARNING: About to delete this organization..."
                                 errorTitle = "You cannot delete the organization $organizationName"
                                 message = "Are you sure you want to delete the organization $organizationName?"
                                 clickMessage = "Also ban this organization"
