@@ -30,23 +30,10 @@ ValidateRepository {
 
     /**
      * @param prefix prefix of organization name
-     * @param status is status to be found
-     * @return list of organizations with names that start with [prefix]
-     */
-    fun findByNameStartingWithAndStatus(prefix: String, status: OrganizationStatus): List<Organization>
-
-    /**
-     * @param prefix prefix of organization name
      * @param statuses is set of statuses, one of which an organization can have
      * @return list of organizations with names that start with [prefix]
      */
     fun findByNameStartingWithAndStatusIn(prefix: String, statuses: Set<OrganizationStatus>): List<Organization>
-
-    /**
-     * @param status
-     * @return list of organizations with required status
-     */
-    fun findByStatus(status: OrganizationStatus): List<Organization>
 
     /**
      * @param statuses is set of statuses, one of which an organization can have

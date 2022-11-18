@@ -24,6 +24,14 @@ JpaSpecificationExecutor<Project> {
     /**
      * @param name
      * @param organizationName
+     * @param statuses
+     * @return project by name and owner
+     */
+    fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus>): Project?
+
+    /**
+     * @param name
+     * @param organizationName
      * @return project by name and owner
      */
     fun findByNameAndOrganizationName(name: String, organizationName: String): Project?
@@ -53,4 +61,11 @@ JpaSpecificationExecutor<Project> {
      * @return list of organizations with required [statuses]
      */
     fun findByStatusIn(statuses: Set<ProjectStatus>): List<Project>
+
+    /**
+     * @param name
+     * @param statuses is set of [statuses], one of which a projects can have
+     * @return list of organizations with required [statuses]
+     */
+    fun findByNameLikeAndStatusIn(name: String, statuses: Set<ProjectStatus>): List<Project>
 }

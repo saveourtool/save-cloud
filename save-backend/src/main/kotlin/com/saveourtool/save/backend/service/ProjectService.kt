@@ -160,13 +160,37 @@ class ProjectService(
      * @param projectFilters
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters) = if (projectFilters.name.isBlank()) {
+    fun getProjectsByFiltered(projectFilters: ProjectFilters) = if (projectFilters.name.isBlank()) {
         projectRepository.findByStatusIn(projectFilters.statuses)
     } else {
         projectRepository.findByNameStartingWithAndStatusIn(
             projectFilters.name,
             projectFilters.statuses,
         )
+    }
+
+    /**
+     * @param projectFilters
+     * @return project's with filter
+     */
+    fun getFiltered(projectFilters: ProjectFilters) =
+            if (projectFilters.organizationName.isBlank()) {
+                if (projectFilters.name.isBlank()) {
+                    projectRepository.findByStatusIn(projectFilters.statuses)
+                } else {
+                    projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
+                }
+            } else {
+                if (projectFilters.name.isBlank()) {
+                    projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
+                } else {
+                    findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
+                        ?.let { listOf(it) }.orEmpty()
+                }
+            }
+
+    private fun wrapValue(value: String) = value.let {
+        "%$value%"
     }
 
     /**

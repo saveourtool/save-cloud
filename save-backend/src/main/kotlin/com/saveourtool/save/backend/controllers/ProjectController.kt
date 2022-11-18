@@ -129,44 +129,6 @@ class ProjectController(
         }
     }
 
-    @GetMapping("/get/projects-by-organization")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get all projects by organization name.",
-        description = "Get all projects by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getProjectsByOrganizationName(
-        @RequestParam organizationName: String,
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getAllAsFluxByOrganizationName(organizationName)
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-
-    @GetMapping("/get/by-organization-and-status")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get projects by organization name and status.",
-        description = "Get projects by organization name and status.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getProjectsByOrganizationNameAndStatus(
-        @RequestParam(required = true) organizationName: String,
-        @RequestParam(required = true) status: ProjectStatus,
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getProjectsByOrganizationNameAndStatus(organizationName, authentication, status)
-
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

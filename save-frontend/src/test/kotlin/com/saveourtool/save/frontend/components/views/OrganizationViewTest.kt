@@ -52,7 +52,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/projects/get/by-organization-and-status") { _, res, _ ->
+        rest.post("$apiUrl/projects/get/by-filters") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
