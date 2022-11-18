@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
+
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
@@ -68,6 +69,48 @@ fun ChildrenBuilder.displayModal(
         props.isOpen = isOpen
         props.style = modalStyle
         modalBuilder(title, message, onCloseButtonPressed, buttonBuilder)
+    }
+}
+
+/**
+ * Universal function to create modals with click condition styles inside react modals
+ *
+ * @param isOpen modal openness indicator - should be in state
+ * @param modalStyle that will be applied to react modal
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param clickBuilder lambda that generates several click in modal
+ */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+fun ChildrenBuilder.displayModalWithCheckBox(
+    title: String,
+    message: String,
+    isOpen: Boolean,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+    clickBuilder: ChildrenBuilder.() -> Unit
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilder(
+            title = title,
+            onCloseButtonPressed = onCloseButtonPressed,
+            bodyBuilder = {
+                h2 {
+                    className = ClassName("h6 text-gray-800 mb-2")
+                    +message
+                }
+                div {
+                    className = ClassName("d-sm-flex justify-content-center form-check")
+                    clickBuilder()
+                }
+            },
+            buttonBuilder = buttonBuilder
+        )
     }
 }
 

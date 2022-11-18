@@ -4,17 +4,13 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.ErrorHandler
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.deleteButton
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -66,24 +62,41 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                 column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                     Fragment.create {
                         td {
-                            deleteButton {
-                                val organization = cellProps.value
-                                val organizationName = organization.name
+                            val organization = cellProps.value
+                            val organizationName = organization.name
 
-                                id = "delete-organization-$organizationName"
-                                classes = deleteButtonClasses
-                                tooltipText = "Delete the organization"
-                                elementChildren = { childrenBuilder ->
+                            actionButton {
+                                title = "WARNING: About to delete this organization..."
+                                errorTitle = "You cannot delete the organization $organizationName"
+                                message = "Are you sure you want to delete the organization $organizationName?"
+                                clickMessage = "Also ban this organization"
+                                buttonStyleBuilder = { childrenBuilder ->
                                     with(childrenBuilder) {
-                                        fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                        fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                     }
                                 }
-
-                                confirmDialog = ModalDialogStrings(
-                                    title = "Delete Organization",
-                                    message = """Are you sure you want to delete the organization "$organizationName"?""",
-                                )
-                                action = deleteOrganization(organization)
+                                classes = actionButtonClasses.joinToString(" ")
+                                modalButtons = { action, window, childrenBuilder ->
+                                    with(childrenBuilder) {
+                                        buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
+                                            action()
+                                            window.closeWindow()
+                                        }
+                                        buttonBuilder("Cancel") {
+                                            window.closeWindow()
+                                        }
+                                    }
+                                }
+                                onActionSuccess = { _ ->
+                                    setState {
+                                        organizations -= organization
+                                    }
+                                }
+                                conditionClick = true
+                                sendRequest = { isBanned ->
+                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                    responseChangeOrganizationStatus(organizationName, newStatus)
+                                }
                             }
                         }
                     }
@@ -157,36 +170,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             response.ok -> response.decodeFromJsonString()
 
             else -> mutableListOf()
-        }
-    }
-
-    /**
-     * Returns a lambda which, when invoked, deletes the specified organization
-     * and updates the state of this view, passing an error message, if any, to
-     * the externally supplied [ErrorHandler].
-     *
-     * @param organization the project to delete.
-     * @return the lambda which deletes [organization].
-     * @see ErrorHandler
-     */
-    private fun deleteOrganization(organization: OrganizationDto): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = post(
-            "$apiUrl/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}",
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                /*
-                 * Force the component to get re-rendered once an organization
-                 * is deleted.
-                 */
-                organizations -= organization
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 
