@@ -6,6 +6,7 @@ package com.saveourtool.save.demo.cpg
 
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
+import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
@@ -21,18 +22,18 @@ data class CpgEdge(
     val key: String,
     val source: String,
     val target: String,
-    val attributes: CpgEdgeAttributes,
+    @EncodeDefault(ALWAYS) val attributes: CpgEdgeAttributes = CpgEdgeAttributes(),
 )
 
 /**
  * @property label label for edge
- * @property color edge and label color in format '#FFFFFF'
- * @property size size of edge
+ * @property color edge and label color in format '#FFFFFF', if null, the default color is set
+ * @property size size of edge, 10 by default
  */
 @Serializable
 @ExperimentalSerializationApi
 data class CpgEdgeAttributes(
-    val label: String,
-    val color: String,
+    @EncodeDefault(NEVER) val label: String? = null,
+    @EncodeDefault(NEVER) val color: String? = null,
     @EncodeDefault(ALWAYS) val size: Int = 10,
 )
