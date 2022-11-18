@@ -74,9 +74,9 @@ external interface ProjectSettingsMenuProps : Props {
  *
  * @param status - the status that will be assigned to the project [project]
  * @param projectPath - the path [organizationName/projectName] for response
- * @return response
+ * @return lazy response
  */
-fun responseChangeProjectStatus(status: ProjectStatus, projectPath: String): suspend WithRequestStatusContext.() -> Response = {
+fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
     post(
         url = "$apiUrl/projects/$projectPath/change-status?status=$status",
         headers = jsonHeaders,
@@ -285,7 +285,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             conditionClick = props.currentUserInfo.isSuperAdmin()
                             sendRequest = { isBanned ->
                                 val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                responseChangeProjectStatus(newStatus, projectPath)
+                                responseChangeProjectStatus(projectPath, newStatus)
                             }
                         }
                     }

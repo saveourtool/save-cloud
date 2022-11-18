@@ -239,7 +239,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     conditionClick = props.currentUserInfo.isSuperAdmin()
                                     sendRequest = { isBanned ->
                                         val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                        responseChangeProjectStatus(newStatus, "${project.organization.name}/${project.name}")
+                                        responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
                                     }
                                 }
                             }

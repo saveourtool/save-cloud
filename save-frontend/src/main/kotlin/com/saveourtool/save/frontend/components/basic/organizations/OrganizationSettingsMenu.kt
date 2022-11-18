@@ -77,9 +77,9 @@ external interface OrganizationSettingsMenuProps : Props {
  *
  * @param organizationName name of the organization whose status will be changed
  * @param status is new status
- * @return response
+ * @return lazy response
  */
-fun responseChangeOrganizationStatus(status: OrganizationStatus, organizationName: String): suspend WithRequestStatusContext.() -> Response = {
+fun responseChangeOrganizationStatus(organizationName: String, status: OrganizationStatus): suspend WithRequestStatusContext.() -> Response = {
     post(
         url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
         headers = jsonHeaders,
@@ -191,7 +191,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         conditionClick = props.currentUserInfo.isSuperAdmin()
                         sendRequest = { isBanned ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                            responseChangeOrganizationStatus(newStatus, props.organizationName)
+                            responseChangeOrganizationStatus(props.organizationName, newStatus)
                         }
                     }
                 }

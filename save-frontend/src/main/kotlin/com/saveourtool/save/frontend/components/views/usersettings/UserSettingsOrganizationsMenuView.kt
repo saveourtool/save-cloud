@@ -90,7 +90,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
-                                            responseChangeOrganizationStatus(OrganizationStatus.DELETED, organizationDto.name)
+                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
                                         }
                                     }
                                 }

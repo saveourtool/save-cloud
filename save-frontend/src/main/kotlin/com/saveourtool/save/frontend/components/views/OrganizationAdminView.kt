@@ -95,7 +95,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 conditionClick = true
                                 sendRequest = { isBanned ->
                                     val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                    responseChangeOrganizationStatus(newStatus, organizationName)
+                                    responseChangeOrganizationStatus(organizationName, newStatus)
                                 }
                             }
                         }
