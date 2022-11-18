@@ -6,6 +6,7 @@ package com.saveourtool.save.demo.cpg
 
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
+import kotlinx.serialization.EncodeDefault.Mode.NEVER
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
@@ -17,7 +18,7 @@ import kotlinx.serialization.Serializable
 @ExperimentalSerializationApi
 data class CpgNode(
     val key: String,
-    val attributes: CpgNodeAttributes,
+    @EncodeDefault(ALWAYS) val attributes: CpgNodeAttributes = CpgNodeAttributes(),
 )
 
 /**
@@ -30,8 +31,8 @@ data class CpgNode(
 @Serializable
 @ExperimentalSerializationApi
 data class CpgNodeAttributes(
-    val label: String,
-    val color: String,
+    @EncodeDefault(NEVER) val label: String? = null,
+    @EncodeDefault(NEVER) val color: String? = null,
     @EncodeDefault(ALWAYS) val size: Long = 20,
     @EncodeDefault(ALWAYS) val x: Long = 0,
     @EncodeDefault(ALWAYS) val y: Long = 0,

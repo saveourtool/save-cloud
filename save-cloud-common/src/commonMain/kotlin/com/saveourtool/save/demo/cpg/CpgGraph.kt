@@ -29,24 +29,15 @@ data class CpgGraph(
             listOf(
                 CpgNode(
                     "1",
-                    CpgNodeAttributes(
-                        "Alisson",
-                        "#FF0000",
-                    ),
+                    CpgNodeAttributes("Alisson", "#FF0000"),
                 ),
                 CpgNode(
                     "2",
-                    CpgNodeAttributes(
-                        "John",
-                        "#00FF00",
-                    ),
+                    CpgNodeAttributes("John", "#00FF00"),
                 ),
                 CpgNode(
                     "3",
-                    CpgNodeAttributes(
-                        "Sam",
-                        "#0000FF",
-                    ),
+                    CpgNodeAttributes("Sam", "#0000FF"),
                 ),
             ),
             listOf(
@@ -54,31 +45,21 @@ data class CpgGraph(
                     "1->2",
                     "1",
                     "2",
-                    CpgEdgeAttributes(
-                        "KNOWS",
-                        "#F0F0F0",
-                    ),
+                    CpgEdgeAttributes("KNOWS"),
                 ),
                 CpgEdge(
                     "2->3",
                     "2",
                     "3",
-                    CpgEdgeAttributes(
-                        "LIKES",
-                        "#0FF0F0",
-                    ),
+                    CpgEdgeAttributes("LIKES"),
                 ),
                 CpgEdge(
                     "3->1",
                     "3",
                     "1",
-                    CpgEdgeAttributes(
-                        "HATES",
-                        "#FFF000",
-                    ),
+                    CpgEdgeAttributes("HATES"),
                 ),
             ),
-            CpgGraphAttributes("My graph"),
         )
     }
 }
