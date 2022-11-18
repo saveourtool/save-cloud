@@ -37,7 +37,7 @@ class PermissionServiceTest {
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
         }
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willAnswer {
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willAnswer {
             Project.stub(id = 99)
         }
         given(lnkUserProjectService.findRoleByUserIdAndProject(eq(99), any())).willReturn(Role.ADMIN)
@@ -51,7 +51,7 @@ class PermissionServiceTest {
     @Test
     fun `should return empty for non-existent projects or users`() {
         given(userRepository.findByName(any())).willReturn(null)
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willReturn(null)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willReturn(null)
 
         val role = permissionService.getRole(userName = "admin", projectName = "Example", organizationName = "Example Org")
             .blockOptional()
@@ -66,7 +66,7 @@ class PermissionServiceTest {
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
         }
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willAnswer {
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willAnswer {
             Project.stub(id = 99)
         }
 

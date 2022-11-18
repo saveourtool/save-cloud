@@ -244,8 +244,8 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
-        given(organizationService.findByNameAndStatuses(name = any(), statuses = setOf(OrganizationStatus.CREATED))).willReturn(project.organization)
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willReturn(project)
+        given(organizationService.findByNameAndStatuses(any(), any())).willReturn(project.organization)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false
