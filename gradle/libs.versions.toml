@@ -181,3 +181,4 @@ fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock",
 arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}
 
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg" }
+cpg-language-python = { module = "de.fraunhofer.aisec:cpg-language-python", version.ref = "cpg" }

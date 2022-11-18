@@ -23,6 +23,9 @@ dependencies {
     implementation(libs.cpg.core) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
     }
+    implementation(libs.cpg.language.python) {
+        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+    }
 }
 
 configureJacoco()
