@@ -11,12 +11,12 @@ enum class AceModes(val modeName: String, val prettyName: String) {
     /**
      * C highlight mode
      */
-    C("c_cpp", "C++"),
+    C("c_cpp", "C"),
 
     /**
      * C++ highlight mode
      */
-    CPP("c_cpp", "C"),
+    CPP("c_cpp", "C++"),
 
     /**
      * Golang highlight mode

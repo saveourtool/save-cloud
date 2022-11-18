@@ -11,9 +11,11 @@ import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
+import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h6
 import react.useState
 
 val builderComponent = builderComponent()
@@ -24,14 +26,14 @@ val builderComponent = builderComponent()
 @Suppress("TYPE_ALIAS")
 external interface BuilderComponentProps : Props {
     /**
-     * Theme for Ace Editor
-     */
-    var selectedTheme: AceThemes
-
-    /**
      * Lambda for run request
      */
     var sendRunRequest: (String, AceModes) -> Unit
+
+    /**
+     * modal for builder window
+     */
+    var builderModal: (ChildrenBuilder) -> Unit
 }
 
 @Suppress(
@@ -43,6 +45,7 @@ external interface BuilderComponentProps : Props {
 private fun builderComponent() = FC<BuilderComponentProps> { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(AceModes.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
+    val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
 
     div {
         className = ClassName("")
@@ -52,7 +55,7 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                 className = ClassName("col-4")
                 codeEditorComponent {
                     editorTitle = "Input code"
-                    selectedTheme = props.selectedTheme
+                    this.selectedTheme = selectedTheme
                     selectedMode = selectedLanguage
                     savedText = codeLines
                     draftText = codeLines
@@ -61,33 +64,45 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                     }
                     isDisabled = false
                 }
-            }
 
-            div {
-                className = ClassName("col-8 card mt-4")
-                // TODO: need to added window for graph
-            }
-        }
-        div {
-            className = ClassName("row mt-2 mb-1 d-flex justify-content-center")
-            div {
-                className = ClassName("col-2 mr-1")
-                selectorBuilder(
-                    selectedLanguage.prettyName,
-                    AceModes.values().map { it.prettyName },
-                    "custom-select"
-                ) { event ->
-                    setSelectedLanguage {
-                        AceModes.values().find { it.prettyName == event.target.value }!!
+                div {
+                    className = ClassName("row d-flex justify-content-center")
+                    div {
+                        selectorBuilder(
+                            selectedTheme.name,
+                            AceThemes.values().map { it.name },
+                            "custom-select",
+                        ) { setSelectedTheme(AceThemes.valueOf(it.target.value)) }
+                    }
+                    div {
+                        selectorBuilder(
+                            selectedLanguage.prettyName,
+                            AceModes.values().map { it.prettyName },
+                            "custom-select"
+                        ) { event ->
+                            setSelectedLanguage {
+                                AceModes.values().find { it.prettyName == event.target.value }!!
+                            }
+                        }
+                    }
+                    div {
+                        buttonBuilder("Send run request") {
+                            props.sendRunRequest(codeLines, selectedLanguage)
+                        }
                     }
                 }
             }
-        }
 
-        div {
-            className = ClassName("mb-1 d-flex justify-content-center")
-            buttonBuilder("Send run request") {
-                props.sendRunRequest(codeLines, selectedLanguage)
+            div {
+                className = ClassName("col-8")
+                h6 {
+                    className = ClassName("text-center text-primary")
+                    +"Graph"
+                }
+                div {
+                    className = ClassName("card card-body")
+                }
+                props.builderModal(this)
             }
         }
     }
