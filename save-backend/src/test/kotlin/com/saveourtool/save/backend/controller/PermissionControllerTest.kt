@@ -14,10 +14,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.v1
@@ -244,11 +241,13 @@ class PermissionControllerTest {
         project: Project,
         permission: Permission?,
     ) {
+        val organizations = organizationService.findByNameAndStatuses(name = any(), statuses = setOf(OrganizationStatus.CREATED))
+        val projects = projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
-        given(organizationService.findByNameAndStatuses(any())).willReturn(project.organization)
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any())).willReturn(project)
+        given(organizations).willReturn(project.organization)
+        given(projects).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false

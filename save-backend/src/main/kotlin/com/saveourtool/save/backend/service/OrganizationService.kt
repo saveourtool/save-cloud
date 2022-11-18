@@ -123,7 +123,7 @@ class OrganizationService(
      * @return organization by name
      */
     fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) =
-        organizationRepository.findByName(name)?.takeIf { it.status in statuses }
+            organizationRepository.findByName(name)?.takeIf { it.status in statuses }
 
     /**
      * @param name

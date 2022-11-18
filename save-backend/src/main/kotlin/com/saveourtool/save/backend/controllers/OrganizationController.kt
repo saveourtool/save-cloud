@@ -111,7 +111,7 @@ internal class OrganizationController(
         @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-        organizationService.getFiltered(organizationFilters)
+            organizationService.getFiltered(organizationFilters)
                 .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {

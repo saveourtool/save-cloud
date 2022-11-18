@@ -36,6 +36,7 @@ JpaSpecificationExecutor<Project> {
 
     /**
      * @param organizationName
+     * @param statuses
      * @return list of projects for organization
      */
     fun findByOrganizationNameAndStatusIn(organizationName: String, statuses: Set<ProjectStatus>): List<Project>

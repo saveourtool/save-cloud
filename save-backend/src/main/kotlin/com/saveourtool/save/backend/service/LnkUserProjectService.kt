@@ -117,10 +117,11 @@ class LnkUserProjectService(
 
     /**
      * @param userId
+     * @param statuses
      * @return list of [Project]s that are connected to user with [userId]
      */
     fun getProjectsByUserIdAndStatuses(userId: Long, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)): List<Project> =
-        lnkUserProjectRepository.findByUserIdAndProjectStatusIn(userId, statuses).mapNotNull { it.project }
+            lnkUserProjectRepository.findByUserIdAndProjectStatusIn(userId, statuses).mapNotNull { it.project }
 
     /**
      * @param authentication

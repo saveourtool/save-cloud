@@ -2,7 +2,9 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.SetRoleRequest
 import org.junit.jupiter.api.Assertions
@@ -35,7 +37,7 @@ class PermissionServiceTest {
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
         }
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any())).willAnswer {
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willAnswer {
             Project.stub(id = 99)
         }
         given(lnkUserProjectService.findRoleByUserIdAndProject(eq(99), any())).willReturn(Role.ADMIN)
@@ -49,7 +51,7 @@ class PermissionServiceTest {
     @Test
     fun `should return empty for non-existent projects or users`() {
         given(userRepository.findByName(any())).willReturn(null)
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any())).willReturn(null)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willReturn(null)
 
         val role = permissionService.getRole(userName = "admin", projectName = "Example", organizationName = "Example Org")
             .blockOptional()
@@ -64,7 +66,7 @@ class PermissionServiceTest {
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
         }
-        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any())).willAnswer {
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(name = any(), organizationName = any(), statuses = setOf(ProjectStatus.CREATED))).willAnswer {
             Project.stub(id = 99)
         }
 
