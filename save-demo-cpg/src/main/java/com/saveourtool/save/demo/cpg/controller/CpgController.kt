@@ -1,5 +1,9 @@
 package com.saveourtool.save.demo.cpg.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.demo.cpg.service.CpgService
+import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.graph.Node
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -8,7 +12,9 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("/cpg/api")
-class CpgController {
+class CpgController(
+    private val cpgService: CpgService,
+) {
     /**
      * @param language
      * @param sourceCode
@@ -18,7 +24,9 @@ class CpgController {
     fun uploadCode(
         @RequestParam language: String,
         @RequestBody sourceCode: List<String>,
-    ): ResponseEntity<String> = ResponseEntity.ok("N/A")
+    ): ResponseEntity<Collection<Node>> {
+        return ResponseEntity.ok(cpgService.translate(sourceCode).additionalNodes)
+    }
 
     /**
      * @param uploadId

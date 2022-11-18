@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SaveDemoCpgKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="dev" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.demo.cpg.SaveDemoCpgKt" />
+    <module name="save-cloud.save-demo-cpg.main" />
+    <option name="PROGRAM_PARAMETERS" value="--debug" />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
