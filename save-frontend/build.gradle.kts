@@ -100,6 +100,10 @@ kotlin {
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
             implementation(npm("react-ace", "^10.1.0"))
+            // react-sigma
+            implementation(npm("@react-sigma/core", "^3.1.0"))
+            implementation(npm("sigma", "^2.4.0"))
+            implementation(npm("graphology", "^0.25.1"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
