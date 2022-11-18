@@ -1,6 +1,7 @@
 /**
  * Utils for CpgGraph and Sigma in general
  */
+
 package com.saveourtool.save.frontend.externals.sigma
 
 import com.saveourtool.save.demo.cpg.CpgGraph
