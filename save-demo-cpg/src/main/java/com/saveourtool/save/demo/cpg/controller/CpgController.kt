@@ -1,14 +1,17 @@
 package com.saveourtool.save.demo.cpg.controller
 
 import com.saveourtool.save.demo.cpg.service.CpgService
+import de.fraunhofer.aisec.cpg.graph.Component
 import de.fraunhofer.aisec.cpg.graph.Node
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-typealias Nodes = Collection<Node>
+typealias CpgResult = Pair<List<Component>, Set<Node>>
 
 /**
  * A simple controller
+ *
+ * @property cpgService
  */
 @RestController
 @RequestMapping("/cpg/api")
@@ -24,9 +27,9 @@ class CpgController(
     fun uploadCode(
         @RequestParam language: String,
         @RequestBody sourceCode: List<String>,
-    ): ResponseEntity<Nodes> {
+    ): ResponseEntity<CpgResult> {
         val result = cpgService.translate(language, sourceCode)
-        return ResponseEntity.ok(result.additionalNodes)
+        return ResponseEntity.ok(result.components to result.additionalNodes)
     }
 
     /**
