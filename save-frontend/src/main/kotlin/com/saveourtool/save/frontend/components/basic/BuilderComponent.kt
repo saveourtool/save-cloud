@@ -69,10 +69,14 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                     className = ClassName("row d-flex justify-content-center")
                     div {
                         selectorBuilder(
-                            selectedTheme.name,
-                            AceThemes.values().map { it.name },
+                            selectedTheme.themeName,
+                            AceThemes.values().map { it.themeName },
                             "custom-select",
-                        ) { setSelectedTheme(AceThemes.valueOf(it.target.value)) }
+                        ) { event ->
+                            setSelectedTheme{
+                                AceThemes.values().find { it.themeName == event.target.value }!!
+                            }
+                        }
                     }
                     div {
                         selectorBuilder(
