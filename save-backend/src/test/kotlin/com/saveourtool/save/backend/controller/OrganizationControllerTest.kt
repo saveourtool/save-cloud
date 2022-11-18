@@ -79,6 +79,7 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkUserProjectRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(LnkContestProjectService::class),
+    MockBean(LnkOrganizationTestSuiteService::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -87,7 +88,6 @@ class OrganizationControllerTest {
         "OrgForTests",
         OrganizationStatus.CREATED,
         dateCreated = LocalDateTime.now(),
-        ownerId = 1
     ).also { it.id = 1 }
     private val adminUser = User(
         "admin",
@@ -128,8 +128,19 @@ class OrganizationControllerTest {
     @WithMockUser(value = "admin", roles = ["VIEWER"])
     fun `delete organization with owner permission`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
-        webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @WithMockUser(value = "JohDoe", roles = ["SUPER_ADMIN"])
+    fun `ban organization with super-admin permission`() {
+        mutateMockedUserAndLink(organization, johnDoeUser, Role.SUPER_ADMIN)
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -139,8 +150,8 @@ class OrganizationControllerTest {
     @WithMockUser(value = "JohDoe", roles = ["VIEWER"])
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
-        webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden

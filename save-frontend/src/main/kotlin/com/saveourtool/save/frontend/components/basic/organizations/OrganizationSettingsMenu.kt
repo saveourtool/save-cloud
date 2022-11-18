@@ -4,10 +4,14 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -16,6 +20,7 @@ import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.router.useNavigate
 
 import kotlinx.browser.window
 
@@ -67,6 +72,23 @@ external interface OrganizationSettingsMenuProps : Props {
     var onCanCreateContestsChange: (Boolean) -> Unit
 }
 
+/**
+ * Makes a call to change project status
+ *
+ * @param organizationName name of the organization whose status will be changed
+ * @param status is new status
+ * @return lazy response
+ */
+fun responseChangeOrganizationStatus(organizationName: String, status: OrganizationStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
+}
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
@@ -76,6 +98,8 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
+
+    val navigate = useNavigate()
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -139,17 +163,36 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    deleteOrganizationButton {
-                        organizationName = props.organizationName
-                        onDeletionSuccess = {
-                            window.location.href = "${window.location.origin}/"
-                        }
+                    actionButton {
+                        title = "WARNING: About to delete this organization..."
+                        errorTitle = "You cannot delete the organization ${props.organizationName}"
+                        message = "Are you sure you want to delete the organization ${props.organizationName}?"
+                        clickMessage = "Also ban this organization"
                         buttonStyleBuilder = { childrenBuilder ->
                             with(childrenBuilder) {
                                 +"Delete ${props.organizationName}"
                             }
                         }
                         classes = "btn btn-sm btn-danger"
+                        modalButtons = { action, window, childrenBuilder ->
+                            with(childrenBuilder) {
+                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                    action()
+                                    window.closeWindow()
+                                }
+                                buttonBuilder("Cancel") {
+                                    window.closeWindow()
+                                }
+                            }
+                        }
+                        onActionSuccess = { _ ->
+                            navigate(to = "/${FrontendRoutes.PROJECTS}")
+                        }
+                        conditionClick = props.currentUserInfo.isSuperAdmin()
+                        sendRequest = { isBanned ->
+                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                            responseChangeOrganizationStatus(props.organizationName, newStatus)
+                        }
                     }
                 }
             }

@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus.DELETED
+import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -40,19 +40,66 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as deleted
+     * Mark organization with [organization] as deleted
      *
-     * @param organizationName an [Organization]'s name to delete
-     * @return deleted organization
+     * @param newStatus is new status for [organization]
+     * @param organization is organization in which the status will be changed
+     * @return organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
+    private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
         .apply {
-            status = OrganizationStatus.DELETED
+            status = newStatus
         }
         .let {
             organizationRepository.save(it)
         }
+
+    /**
+     * Mark organization [organization] as deleted
+     *
+     * @param organization an [Organization] to delete
+     * @return deleted organization
+     */
+    fun deleteOrganization(organization: Organization): Organization = if (!hasProjects(organization.name)) {
+        changeOrganizationStatus(organization, OrganizationStatus.DELETED)
+    } else {
+        organization
+    }
+
+    /**
+     * Mark organization with [organization] as created.
+     * If an organization was previously banned, then all its projects become deleted.
+     *
+     * @param organization an [Organization] to create
+     * @param organization
+     * @return recovered organization
+     */
+    @Transactional
+    fun recoverOrganization(organization: Organization): Organization {
+        if (organization.status == OrganizationStatus.BANNED) {
+            projectService.getAllByOrganizationName(organization.name).forEach {
+                it.status = DELETED
+                projectService.updateProject(it)
+            }
+        }
+        return changeOrganizationStatus(organization, OrganizationStatus.CREATED)
+    }
+
+    /**
+     * Mark organization with [organization] and all its projects as banned.
+     *
+     * @param organization an [Organization] to ban
+     * @return banned organization
+     */
+    @Transactional
+    fun banOrganization(organization: Organization): Organization {
+        projectService.getAllByOrganizationName(organization.name).forEach {
+            it.status = BANNED
+            projectService.updateProject(it)
+        }
+        return changeOrganizationStatus(organization, OrganizationStatus.BANNED)
+    }
 
     /**
      * @param organizationName the unique name of the organization.
@@ -61,7 +108,7 @@ class OrganizationService(
      */
     fun hasProjects(organizationName: String): Boolean =
             projectService.getAllByOrganizationName(organizationName).any { project ->
-                project.status != DELETED
+                project.status == CREATED
             }
 
     /**
@@ -114,12 +161,6 @@ class OrganizationService(
         } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
         organization.let { organizationRepository.save(it) }
     }
-
-    /**
-     * @param ownerId
-     * @return list of organization by owner id
-     */
-    fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
 
     /**
      * @return all organizations that were registered in SAVE

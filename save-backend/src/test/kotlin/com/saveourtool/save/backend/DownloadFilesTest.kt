@@ -82,15 +82,14 @@ import kotlin.io.path.*
     MockBean(ExecutionService::class),
 )
 class DownloadFilesTest {
-    private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
-    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
+    private val organization = Organization("Example.com", OrganizationStatus.CREATED, null).apply { id = 2 }
+    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, null).apply { id = 1 }
     private var testProject: Project = Project(
         organization = organization,
         name = "TheProject",
         url = "example.com",
         description = "This is an example project",
         status = ProjectStatus.CREATED,
-        userId = 2,
     ).apply {
         id = 3
     }
@@ -100,7 +99,6 @@ class DownloadFilesTest {
         url = "huawei.com",
         description = "test description",
         status = ProjectStatus.CREATED,
-        userId = 1,
     ).apply {
         id = 1
     }

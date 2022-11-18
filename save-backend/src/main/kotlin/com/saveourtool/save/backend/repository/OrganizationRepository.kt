@@ -29,12 +29,6 @@ ValidateRepository {
     fun getOrganizationById(id: Long): Organization
 
     /**
-     * @param ownerId
-     * @return list of organization by owner id
-     */
-    fun findByOwnerId(ownerId: Long): List<Organization>
-
-    /**
      * @param prefix prefix of organization name
      * @param status
      * @return list of organizations with names that start with [prefix]

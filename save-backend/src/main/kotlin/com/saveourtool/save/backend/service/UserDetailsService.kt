@@ -79,11 +79,12 @@ class UserDetailsService(
     @Transactional
     fun saveUser(user: User, oldName: String?): UserSaveStatus {
         val userName = user.name
-        return if (userName != null && userRepository.validateName(userName) != 0L) {
-            oldName?.let {
-                userRepository.deleteHighLevelName(it)
-                userRepository.saveHighLevelName(userName)
-            }
+        return if (oldName == null) {
+            userRepository.save(user)
+            UserSaveStatus.UPDATE
+        } else if (userName != null && userRepository.validateName(userName) != 0L) {
+            userRepository.deleteHighLevelName(oldName)
+            userRepository.saveHighLevelName(userName)
             userRepository.save(user)
             UserSaveStatus.UPDATE
         } else {

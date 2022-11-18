@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -74,12 +74,12 @@ const val EMPTY_COLUMN_HEADER = ""
 /**
  * CSS classes of the "delete project" button.
  */
-val deleteButtonClasses: List<String> = listOf("btn", "btn-small")
+val actionButtonClasses: List<String> = listOf("btn", "btn-small")
 
 /**
  * CSS classes of the "delete project" icon.
  */
-val deleteIconClasses: List<String> = listOf("trash-alt")
+val actionIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
@@ -202,28 +202,45 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 /*
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
-                if (state.selfRole.isSuperAdmin()) {
+                if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
                     column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                         Fragment.create {
                             td {
-                                deleteButton {
-                                    val project = cellProps.row.original
-                                    val projectName = project.name
+                                val project = cellProps.row.original
+                                val projectName = project.name
 
-                                    id = "delete-project-$projectName"
-                                    classes = deleteButtonClasses
-                                    tooltipText = "Delete the project"
-                                    elementChildren = { childrenBuilder ->
+                                actionButton {
+                                    title = "WARNING: About to delete this project..."
+                                    errorTitle = "You cannot delete the project $projectName"
+                                    message = """Are you sure you want to delete the project "$projectName"?"""
+                                    clickMessage = "Also ban this project"
+                                    buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
-                                            fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                         }
                                     }
-
-                                    confirmDialog = ModalDialogStrings(
-                                        title = "Delete Project",
-                                        message = """Are you sure you want to delete the project "$projectName"?""",
-                                    )
-                                    action = deleteProject(project)
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            projects -= project
+                                        }
+                                    }
+                                    conditionClick = props.currentUserInfo.isSuperAdmin()
+                                    sendRequest = { isBanned ->
+                                        val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                        responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
+                                    }
                                 }
                             }
                         }
@@ -703,31 +720,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("col-3 mr-auto justify-content-center align-items-center")
             }
-        }
-    }
-
-    /**
-     * Returns a lambda which, when invoked, deletes the specified project and
-     * updates the state of this view, passing an error message, if any, to the
-     * externally supplied [ErrorHandler].
-     *
-     * @param project the project to delete.
-     * @return the lambda which deletes [project].
-     * @see ErrorHandler
-     */
-    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                projects -= project
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 

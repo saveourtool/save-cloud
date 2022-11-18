@@ -6,6 +6,8 @@ gateway:
     url: http://localhost:8080
   sandbox:
     url: http://localhost:5400
+  demo:
+    url: http://localhost:5401
 spring:
   security:
     oauth2:
