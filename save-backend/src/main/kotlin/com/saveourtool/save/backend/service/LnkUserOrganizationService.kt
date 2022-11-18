@@ -150,7 +150,7 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
 
     /**
-     * @param userId
+     * @param userId ID of User
      * @param statuses is set of [statuses], one of which a projects can have
      * @return Flux of [Organization]s in which user is in
      */

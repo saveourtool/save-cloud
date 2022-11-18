@@ -139,38 +139,25 @@ class ProjectService(
     fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
     /**
-     * @param organizationName
+     * @param organizationName is [organization] name
      * @param authentication
-     * @param status
+     * @param statuses is status`s
      * @return list of not deleted projects
      */
-    fun getProjectsByOrganizationNameAndStatus(
+    fun getProjectsByOrganizationNameAndStatusIn(
         organizationName: String,
         authentication: Authentication?,
-        status: ProjectStatus = ProjectStatus.CREATED
+        statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)
     ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
-            it.status == status
+            it.status in statuses
         }
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
     /**
-     * @param projectFilters
-     * @return project's with filter
-     */
-    fun getProjectsByFiltered(projectFilters: ProjectFilters) = if (projectFilters.name.isBlank()) {
-        projectRepository.findByStatusIn(projectFilters.statuses)
-    } else {
-        projectRepository.findByNameStartingWithAndStatusIn(
-            projectFilters.name,
-            projectFilters.statuses,
-        )
-    }
-
-    /**
-     * @param projectFilters
+     * @param projectFilters is filter for [projects]
      * @return project's with filter
      */
     fun getFiltered(projectFilters: ProjectFilters) =
@@ -189,6 +176,10 @@ class ProjectService(
                 }
             }
 
+    /**
+     * @param value is a string for a wrapper to search by match on a string in the database
+     * @return string by match on a string in the database
+     */
     private fun wrapValue(value: String) = value.let {
         "%$value%"
     }

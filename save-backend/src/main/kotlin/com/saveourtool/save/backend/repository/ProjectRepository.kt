@@ -43,14 +43,14 @@ JpaSpecificationExecutor<Project> {
     fun findByOrganizationName(organizationName: String): List<Project>
 
     /**
-     * @param organizationName
-     * @param statuses
+     * @param organizationName is name of organization
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return list of projects for organization
      */
     fun findByOrganizationNameAndStatusIn(organizationName: String, statuses: Set<ProjectStatus>): List<Project>
 
     /**
-     * @param prefix prefix of organization name
+     * @param prefix prefix of project name
      * @param statuses is set of [statuses], one of which a projects can have
      * @return list of organizations with names that start with [prefix] and having the status in [statuses]
      */
@@ -63,7 +63,7 @@ JpaSpecificationExecutor<Project> {
     fun findByStatusIn(statuses: Set<ProjectStatus>): List<Project>
 
     /**
-     * @param name
+     * @param name of part of or project name
      * @param statuses is set of [statuses], one of which a projects can have
      * @return list of organizations with required [statuses]
      */
