@@ -87,7 +87,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                            setState { selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers) }
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
