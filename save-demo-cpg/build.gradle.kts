@@ -19,7 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.spring.data.neo4j)
+//    implementation(libs.spring.data.neo4j)
+    implementation(libs.spring.boot.strater.neo4j)
     implementation(libs.cpg.core) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
     }

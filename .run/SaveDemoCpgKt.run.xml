@@ -1,12 +1,15 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SaveDemoCpgKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="temurin-17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.demo.cpg.SaveDemoCpgKt" />
     <module name="save-cloud.save-demo-cpg.main" />
     <option name="PROGRAM_PARAMETERS" value="--debug" />
-    <shortenClasspath name="ARGS_FILE" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="--add-opens=java.base/java.util=ALL-UNNAMED" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
