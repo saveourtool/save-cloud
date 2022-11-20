@@ -6,11 +6,15 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.demo.diktat.DemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
-import com.saveourtool.save.frontend.externals.reactace.AceModes
+import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -18,18 +22,11 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
 
-val builderComponent = builderComponent()
-
 /**
  * DemoComponent [Props]
  */
 @Suppress("TYPE_ALIAS")
 external interface BuilderComponentProps : Props {
-    /**
-     * Lambda for run request
-     */
-    var sendRunRequest: (String, AceModes) -> Unit
-
     /**
      * modal for builder window
      */
@@ -42,10 +39,23 @@ external interface BuilderComponentProps : Props {
     "LongMethod",
     "TYPE_ALIAS"
 )
-private fun builderComponent() = FC<BuilderComponentProps> { props ->
-    val (selectedLanguage, setSelectedLanguage) = useState(AceModes.KOTLIN)
+val cpgDemoComponent = FC<BuilderComponentProps> { props ->
+    val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
+    val sendRunRequest = useDeferredRequest {
+        val data = Json.encodeToString(DemoRunRequest(
+            codeLines.split("\n"),
+            DemoAdditionalParams(language = selectedLanguage)
+        ))
+            post(
+                "$cpgDemoApiUrl/upload-code",
+                headers = jsonHeaders,
+                body = data,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+        }
 
     div {
         className = ClassName("")
@@ -83,17 +93,17 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                         className = ClassName("mr-1")
                         selectorBuilder(
                             selectedLanguage.prettyName,
-                            AceModes.values().map { it.prettyName },
+                            Languages.values().map { it.prettyName },
                             "custom-select"
                         ) { event ->
                             setSelectedLanguage {
-                                AceModes.values().find { it.prettyName == event.target.value }!!
+                                Languages.values().find { it.prettyName == event.target.value }!!
                             }
                         }
                     }
                     div {
                         buttonBuilder("Send run request") {
-                            props.sendRunRequest(codeLines, selectedLanguage)
+                            sendRunRequest()
                         }
                     }
                 }

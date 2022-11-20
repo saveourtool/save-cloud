@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.codeeditor
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.reactace.AceModes
+import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
@@ -34,7 +34,7 @@ private val toolbarCard = cardComponent(isBordered = true)
     "LongMethod",
 )
 fun ChildrenBuilder.displayCodeEditorToolbar(
-    selectedMode: AceModes,
+    selectedMode: Languages,
     selectedTheme: AceThemes,
     selectedFileType: FileType?,
     hasUncommittedChanges: Map<FileType, Boolean>,
@@ -75,7 +75,7 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
             }
             selectorBuilder(
                 selectedFileType?.editorMode?.modeName ?: selectedMode.modeName,
-                AceModes.values().map { it.modeName },
+                Languages.values().map { it.modeName },
                 "custom-select",
                 selectedFileType?.editorMode != null,
             ) { event ->
