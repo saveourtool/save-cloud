@@ -12,6 +12,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.apache.commons.io.FilenameUtils
 
@@ -145,12 +146,13 @@ class TestService(
     /**
      * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`
      *
-     * @param execution execution for which a batch is requested
+     * @param srcExecution execution for which a batch is requested
      * @return a batch of [batchSize] tests with status `READY_FOR_TESTING`
      */
     @Suppress("UnsafeCallOnNullableType")
-    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution: Execution): List<TestExecution> {
-        val executionId = execution.id!!
+    internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(srcExecution: Execution): List<TestExecution> {
+        val executionId = srcExecution.requiredId()
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
@@ -158,7 +160,7 @@ class TestService(
             executionId,
             pageRequest
         )
-        log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.id!! }}")
+        log.debug("Retrieved ${testExecutions.size} tests for page request $pageRequest, test IDs: ${testExecutions.map { it.requiredId() }}")
         val newRunningTestExecutions = testExecutions.onEach { testExecution ->
             testExecutionRepository.save(testExecution.apply {
                 status = TestResultStatus.RUNNING
