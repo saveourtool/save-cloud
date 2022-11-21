@@ -6,6 +6,7 @@ import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.utils.DEBOUNCE_PERIOD_FOR_EDITORS
 
 import csstype.ClassName
+import csstype.px
 import io.github.petertrr.diffutils.diff
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
@@ -35,6 +36,7 @@ fun ChildrenBuilder.aceBuilder(
     div {
         className = ClassName("d-flex justify-content-center flex-fill")
         reactAce {
+            fontSize = "16px"
             className = "flex-fill"
             mode = selectedMode.modeName
             theme = selectedTheme.themeName

@@ -1,6 +1,8 @@
 package com.saveourtool.save.demo.cpg.controller
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.demo.cpg.StringResponse
+import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import de.fraunhofer.aisec.cpg.*
@@ -16,30 +18,16 @@ import org.neo4j.ogm.session.SessionFactory
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.io.File
+import reactor.core.publisher.Mono
 import java.nio.file.Files.createTempDirectory
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.*
-import kotlin.system.exitProcess
 
 const val FILE_NAME_SEPARATOR = "==="
 
-
-private const val S_TO_MS_FACTOR = 1000
-private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 2000
-private const val MAX_COUNT_OF_FAILS = 10
-private const val EXIT_SUCCESS = 0
-private const val EXIT_FAILURE = 1
-private const val VERIFY_CONNECTION = true
-private const val DEBUG_PARSER = true
-private const val AUTO_INDEX = "none"
-private const val PROTOCOL = "bolt://"
-
-private const val DEFAULT_HOST = "localhost"
-private const val DEFAULT_PORT = 7687
-private const val DEFAULT_USER_NAME = "neo4j"
-private const val DEFAULT_PASSWORD = "123"
+private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
+private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
 
 /**
@@ -51,7 +39,9 @@ private const val DEFAULT_SAVE_DEPTH = -1
 )
 @RestController
 @RequestMapping("/cpg/api")
-class CpgController {
+class CpgController(
+    val configProperties: ConfigProperties,
+) {
     private val logger = LoggerFactory.getLogger(CpgController::class.java)
 
     /**
@@ -63,17 +53,21 @@ class CpgController {
     @OptIn(ExperimentalPython::class)
     fun uploadCode(
         @RequestBody request: DemoRunRequest,
-    ) = blockingToMono {
+    ): Mono<StringResponse> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         try {
             createFiles(request, tmpFolder)
 
+            // creating the CPG configuration instance, it will be used to configure the graph
             val translationConfiguration =
                 TranslationConfiguration.builder()
                     .topLevel(null)
+                    // c++/java
                     .defaultLanguages()
+                    // you can register non-default languages
                     .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
                     .debugParser(true)
+                    // the directory with sources
                     .sourceLocations(tmpFolder.toFile())
                     .defaultPasses()
                     .inferenceConfiguration(
@@ -83,16 +77,19 @@ class CpgController {
                     )
                     .build()
 
+            // result - is the parsed Code Property Graph
             val result = TranslationManager.builder()
                 .config(translationConfiguration)
                 .build()
                 .analyze()
                 .get()
-
+            // commit the result to CPG
             saveTranslationResult(result)
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
+
+        ResponseEntity.ok(tmpFolder.fileName.name)
     }
 
     /**
@@ -112,58 +109,66 @@ class CpgController {
 
     private fun saveTranslationResult(result: TranslationResult) {
         val (session, factory) = connect()
-        session?.purgeDatabase()
+        if (session == null) {
+            logger.error("Cannot connect to a neo4j database")
+            return
+        }
+        // FixMe: for each user we should keep the data
+        session.purgeDatabase()
 
-        session?.beginTransaction().use {
-            session?.save(result.components, DEFAULT_SAVE_DEPTH)
-            session?.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
+        session.beginTransaction().use {
+            session.save(result.components, DEFAULT_SAVE_DEPTH)
+            session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
             it?.commit()
         }
-        session?.clear()
+        session.clear()
         factory?.close()
     }
+
     private fun connect(): Pair<Session?, SessionFactory?> {
         var fails = 0
         var sessionFactory: SessionFactory? = null
         var session: Session? = null
-        while (session == null && fails < MAX_COUNT_OF_FAILS) {
+        while (session == null && fails < MAX_RETRIES) {
             try {
-                // FixMe: change this code, no default passwords should be here
                 val configuration =
                     Configuration.Builder()
-                        .uri("$PROTOCOL$DEFAULT_HOST:$DEFAULT_PORT")
-                        .autoIndex(AUTO_INDEX)
-                        .credentials(DEFAULT_USER_NAME, DEFAULT_PASSWORD)
-                        .verifyConnection(VERIFY_CONNECTION)
+                        .uri(configProperties.uri)
+                        .autoIndex("none")
+                        .credentials(configProperties.authentication.username, configProperties.authentication.password)
+                        .verifyConnection(true)
                         .build()
-                sessionFactory = SessionFactory(configuration, "de.fraunhofer.aisec.cpg.graph")
+                sessionFactory = SessionFactory(configuration, "de.frauhonfer.ais.cecpg.graph")
                 session = sessionFactory.openSession()
             } catch (ex: ConnectionException) {
                 sessionFactory = null
                 fails++
                 logger.error(
-                    "Unable to connect to localhost:7687, " +
-                            "ensure the database is running and that " +
+                    "Unable to connect to ${configProperties.uri}, " +
+                            "ensure that the database is running and that " +
                             "there is a working network connection to it."
                 )
                 Thread.sleep(TIME_BETWEEN_CONNECTION_TRIES)
             } catch (ex: AuthenticationException) {
-                logger.error("Unable to connect to localhost:7687, wrong username/password!")
+                logger.error("Unable to connect to ${configProperties.uri}, wrong username/password of the database")
             }
         }
         if (session == null) {
-            logger.error("Unable to connect to localhost:7687")
+            logger.error("Unable to connect to ${configProperties.uri}")
         }
         return Pair(session, sessionFactory)
     }
 
     private fun createFiles(request: DemoRunRequest, tmpFolder: Path) {
         val files: MutableList<SourceCodeFile> = mutableListOf()
-        request.codeLines.forEach {
-            if (it.startsWith(FILE_NAME_SEPARATOR) && it.endsWith(FILE_NAME_SEPARATOR)) {
-                files.add(SourceCodeFile(it.getFileName(), mutableListOf()))
+        request.codeLines.filterNot { it.isBlank() }.forEachIndexed { index, line ->
+            if (line.startsWith(FILE_NAME_SEPARATOR) && line.endsWith(FILE_NAME_SEPARATOR)) {
+                files.add(SourceCodeFile(line.getFileName(), mutableListOf()))
             } else {
-                files.last().lines.add(it)
+                if (index == 0) {
+                    files.add(SourceCodeFile("demo${request.params.language.extension}", mutableListOf()))
+                }
+                files.last().lines.add(line)
             }
         }
         files.forEach {

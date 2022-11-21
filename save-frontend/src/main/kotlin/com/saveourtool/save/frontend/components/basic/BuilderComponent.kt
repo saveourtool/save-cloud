@@ -13,6 +13,7 @@ import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
+import kotlinx.coroutines.await
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import react.ChildrenBuilder
@@ -43,19 +44,29 @@ val cpgDemoComponent = FC<BuilderComponentProps> { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
+
+    val windowOpenness = useWindowOpenness()
+
     val sendRunRequest = useDeferredRequest {
         val data = Json.encodeToString(DemoRunRequest(
             codeLines.split("\n"),
             DemoAdditionalParams(language = selectedLanguage)
         ))
-            post(
-                "$cpgDemoApiUrl/upload-code",
-                headers = jsonHeaders,
-                body = data,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler
-            )
+        val response = post(
+            "$cpgDemoApiUrl/upload-code",
+            headers = jsonHeaders,
+            body = data,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation
+        )
+
+        windowOpenness.closeWindow()
+        if (!response.ok) {
+            // FixMe: open error window and populate proper response
+        } else {
+            // FixMe: propagate response.text().await()
         }
+    }
 
     div {
         className = ClassName("")
