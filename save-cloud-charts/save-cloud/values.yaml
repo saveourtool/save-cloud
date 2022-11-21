@@ -103,7 +103,7 @@ prometheus:
       enabled: false
     alertmanager:
       enabled: false
-  nodeExporter:
+  prometheus-node-exporter:
     enabled: false
   server:
     image:
