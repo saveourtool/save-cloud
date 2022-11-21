@@ -20,8 +20,35 @@
       ],
       "excludePackagePatterns": [
         "^org\\.jetbrains\\.kotlin[.:]",
-        "^org\\.springframework\\.boot(:[a-z0-9-]+)+\\:2.7.5"
+        "^org\\.springframework\\.boot\\:",
+        "^org\\.cqfn\\.diktat\\:diktat-gradle-plugin"
       ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies (except core Kotlin)",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "managers": ["gradle"],
+      "matchPackagePatterns": [
+        "^org\\.springframework\\.boot\\:"
+      ],
+      "allowedVersions": "!/2\\.7\\.5/",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies (except core Kotlin)",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "managers": ["gradle"],
+      "matchPackagePatterns": [
+        "^org\\.cqfn\\.diktat\\:diktat-gradle-plugin"
+      ],
+      "allowedVersions": "!/1\\.2\\.4\\.2/",
       "matchUpdateTypes": [
         "minor",
         "patch"
