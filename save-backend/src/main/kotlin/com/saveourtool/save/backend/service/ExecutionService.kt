@@ -68,7 +68,7 @@ class ExecutionService(
     @Transactional
     fun updateExecutionStatus(srcExecution: Execution, newStatus: ExecutionStatus) {
         log.debug("Updating status to $newStatus on execution id = ${srcExecution.requiredId()}")
-        val execution = executionRepository.findWithLockingById(srcExecution.requiredId()).orElse(null).orNotFound()
+        val execution = executionRepository.findWithLockingById(srcExecution.requiredId()).orNotFound()
         val updatedExecution = execution.apply {
             status = newStatus
         }

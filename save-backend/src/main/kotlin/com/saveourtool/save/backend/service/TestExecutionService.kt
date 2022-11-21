@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 
@@ -38,10 +39,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                            private val executionRepository: ExecutionRepository,
                            transactionManager: PlatformTransactionManager,
 ) {
-    private val transactionTemplate = TransactionTemplate(transactionManager).apply {
-        propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
-    }
-
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
@@ -162,7 +159,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         "MagicNumber",
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
         log.debug { "Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
@@ -220,32 +217,30 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                         log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                     })
         }
-        transactionTemplate.execute {
-            val execution = executionRepository.findWithLockingById(executionId).orElse(null).orNotFound()
-            execution.apply {
-                log.debug {
-                    "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
-                            "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
-                }
-                runningTests -= counters.total()
-                passedTests += counters.passed
-                failedTests += counters.failed
-                skippedTests += counters.skipped
-
-                unmatchedChecks += counters.unmatchedChecks
-                matchedChecks += counters.matchedChecks
-                expectedChecks += counters.expectedChecks
-                unexpectedChecks += counters.unexpectedChecks
-
-                val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
-
-                if (!executionScore.isValidScore()) {
-                    log.error("Execution score for execution id $id is invalid: $executionScore")
-                }
-                score = executionScore
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
+        execution.apply {
+            log.debug {
+                "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                        "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
             }
-            executionRepository.save(execution)
+            runningTests -= counters.total()
+            passedTests += counters.passed
+            failedTests += counters.failed
+            skippedTests += counters.skipped
+
+            unmatchedChecks += counters.unmatchedChecks
+            matchedChecks += counters.matchedChecks
+            expectedChecks += counters.expectedChecks
+            unexpectedChecks += counters.unexpectedChecks
+
+            val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
+
+            if (!executionScore.isValidScore()) {
+                log.error("Execution score for execution id $id is invalid: $executionScore")
+            }
+            score = executionScore
         }
+        executionRepository.save(execution)
         return lostTests
     }
 

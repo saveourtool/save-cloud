@@ -53,5 +53,5 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(QueryHint(name = "javax.persistence.lock.timeout", value = "10000"))
-    fun findWithLockingById(id: Long): Optional<Execution>
+    fun findWithLockingById(id: Long): Execution?
 }

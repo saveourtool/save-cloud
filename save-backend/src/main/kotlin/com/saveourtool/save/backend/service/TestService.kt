@@ -152,7 +152,7 @@ class TestService(
     @Suppress("UnsafeCallOnNullableType")
     internal fun getTestExecutionsBatchByExecutionIdAndUpdateStatus(srcExecution: Execution): List<TestExecution> {
         val executionId = srcExecution.id!!
-        val execution = executionRepository.findWithLockingById(executionId).orElse(null).orNotFound()
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         val batchSize = execution.batchSize!!
         val pageRequest = PageRequest.of(0, batchSize)
         val testExecutions = testExecutionRepository.findByStatusAndExecutionId(
