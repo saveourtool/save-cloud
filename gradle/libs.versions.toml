@@ -8,7 +8,7 @@ kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
 # Starting with `-pre.424` `kotlin-react-table` is removed; need https://github.com/saveourtool/save-cloud/issues/1243.
 kotlin-wrappers = "1.0.0-pre.423"
-spring = "5.3.23"
+spring = "6.0.0"
 # There is a regression https://github.com/spring-projects/spring-data-jpa/issues/2683 in spring-data-jpa 2.7.5.
 # Staying on 2.7.4 until there is a fix available.
 spring-boot = "2.7.4"
