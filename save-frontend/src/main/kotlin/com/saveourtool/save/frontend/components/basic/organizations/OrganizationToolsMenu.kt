@@ -1,3 +1,5 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
@@ -27,6 +29,9 @@ import react.table.columns
 
 val organizationToolsMenu = organizationToolsMenu()
 
+/**
+ * OrganizationToolsMenu component props
+ */
 external interface OrganizationToolsMenuProps : Props {
     /**
      * Information about current user
@@ -54,7 +59,7 @@ external interface OrganizationToolsMenuProps : Props {
     var updateProjects: (MutableList<Project>) -> Unit
 }
 
-
+@Suppress("TOO_LONG_FUNCTION")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
 
