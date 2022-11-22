@@ -4,11 +4,19 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
+
+import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -21,17 +29,13 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import mui.icons.material.Class
-import mui.material.TableProps
 
 /**
  * The list of all organizations, visible to super-users.
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
     @Suppress("TYPE_ALIAS")
-    private val organizationTable: FC<TableProps<Organization>> = tableComponent(
+    private val organizationTable: FC<com.saveourtool.save.frontend.components.tables.TableProps<Organization>> = tableComponent(
         columns = {
             columns {
                 column(
