@@ -129,6 +129,12 @@ class OrganizationService(
     /**
      * @param name
      * @return organization by name
+     */
+    fun findByName(name: String) = organizationRepository.findByName(name)
+
+    /**
+     * @param name
+     * @return organization by name
      * @throws NoSuchElementException
      */
     fun getByName(name: String) = findByNameAndStatuses(name)
