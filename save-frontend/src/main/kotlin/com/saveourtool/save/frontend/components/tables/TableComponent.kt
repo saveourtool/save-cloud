@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
 import csstype.ClassName
+import csstype.Cursor
 
 import org.w3c.fetch.Response
 import react.*
@@ -148,11 +149,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             this.sorting = sorting
         }
         this.onSortingChange = { updater ->
-            if (jsTypeOf(updater) == "function") {
-                setSorting(updater.unsafeCast<(SortingState) -> SortingState>())
-            } else {
-                setSorting(updater.unsafeCast<SortingState>())
-            }
+                setSorting.invoke(updater)
         }
         this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
         additionalOptions()
@@ -235,14 +232,14 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                 id = headerGroup.id
                                 headerGroup.headers.map { header: Header<D, out Any?> ->
                                     val column = header.column
-//                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.getCanSort()) ClassName("cursor-pointer select-none") else ClassName("")
                                     th {
                                         this.className = className
                                         child(
                                             renderHeader(header)
                                         )
                                         if (column.getCanSort()) {
+                                            style = style ?: jso {}
+                                            style?.cursor = "pointer".unsafeCast<Cursor>()
                                             span {
                                                 +when (column.getIsSorted()) {
                                                     SortDirection.asc -> " 🔽"
@@ -259,7 +256,6 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     }
                     tbody {
                         tableInstance.getRowModel().rows.map { row ->
-//                            tableInstance.prepareRow(row)
                             tr {
                                 spread(getRowProps(row))
                                 row.getVisibleCells().map { cell ->
@@ -314,5 +310,3 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
         }
     }
 }
-
-internal fun <D : RowData> Table<D>.pageIndexAndSize() = getState().pagination.pageIndex to getState().pagination.pageSize
