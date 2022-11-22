@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -71,30 +72,21 @@ internal class OrganizationController(
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
-    @GetMapping("/all")
+    @PostMapping("/all-by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
+        method = "POST",
         summary = "Get all organizations",
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(
-            name = "onlyActive",
-            `in` = ParameterIn.QUERY,
-            description = "Whether deleted organizations should be excluded from the response. The default is false.",
-            required = false
-        ),
+        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
-        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
+        @RequestBody(required = true) organizationFilters: OrganizationFilters
     ): Mono<List<Organization>> = Mono.fromCallable {
-        when {
-            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.created)
-
-            else -> organizationService.findAll()
-        }
+        organizationService.getFiltered(organizationFilters)
     }
 
     @PostMapping("/by-filters")
@@ -136,8 +128,11 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
+        authentication: Authentication?
     ) = Mono.fromCallable {
-        organizationService.findByNameAndCreatedStatus(organizationName)
+        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
+    }.filter {
+        it?.status == OrganizationStatus.CREATED || authentication?.hasRole(Role.SUPER_ADMIN) ?: false
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }

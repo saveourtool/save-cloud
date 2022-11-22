@@ -199,7 +199,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 className = ClassName("h3 mb-0 text-gray-800")
                 +" Project ${state.project.name}"
             }
-            privacyAndStatusSpan(state.project)
+            statusSpan(state.project)
         }
 
         renderProjectMenuBar()

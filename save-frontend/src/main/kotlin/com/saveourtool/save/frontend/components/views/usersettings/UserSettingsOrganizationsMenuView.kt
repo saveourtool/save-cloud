@@ -11,22 +11,19 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.privacyAndStatusSpan
 import com.saveourtool.save.v1
 import csstype.BorderRadius
 
 import csstype.ClassName
+import kotlinx.js.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
-
-import kotlinx.browser.window
-import kotlinx.js.jso
-import react.dom.html.ReactHTML
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -119,7 +116,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3 text-secondary")
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
@@ -127,8 +124,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 +organizationDto.name
-                                ReactHTML.span {
-                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                span {
+                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-secondary ")
                                     style = jso {
                                         borderRadius = "2em".unsafeCast<BorderRadius>()
                                     }
@@ -182,20 +179,36 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                 }
 
 
-                state.selfBannedOrganizationDtos.forEach {organizationDto ->
+                state.selfBannedOrganizationDtos.forEach { organizationDto ->
                     li {
                         className = ClassName("list-group-item")
                         div {
                             className = ClassName("row justify-content-between align-items-center")
                             div {
-                                className = ClassName("align-items-center ml-3 text-danger")
+                                className = ClassName("align-items-center ml-3")
+                                img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                    src = organizationDto.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    height = 60.0
+                                    width = 60.0
+                                }
                                 +organizationDto.name
-                                ReactHTML.span {
+                                span {
                                     className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
                                     style = jso {
                                         borderRadius = "2em".unsafeCast<BorderRadius>()
                                     }
                                     +"banned"
+                                }
+                            }
+
+                            div {
+                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                div {
+                                    className = ClassName("mr-3")
+                                    + (state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.VIEWER).formattedName
                                 }
                             }
                         }

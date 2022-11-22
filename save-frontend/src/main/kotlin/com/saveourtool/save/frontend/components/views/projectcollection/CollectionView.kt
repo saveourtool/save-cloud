@@ -59,7 +59,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                                 href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
                                 +cellContext.value
                             }
-                            privacyAndStatusSpan(cellContext.row.original)
+                            statusSpan(cellContext.row.original)
                         }
                     }
                 }

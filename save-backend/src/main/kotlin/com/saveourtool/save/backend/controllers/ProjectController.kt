@@ -6,11 +6,13 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToFlux
@@ -57,16 +59,21 @@ class ProjectController(
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
-    @GetMapping("/all")
+    @PostMapping("/all-by-filters")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
-        method = "GET",
+        method = "POST",
         summary = "Get all projects.",
         description = "Get all projects, including deleted and private. Only accessible for super admins",
     )
+    @Parameters(
+        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+    )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjects(): Flux<Project> = projectService.getProjects()
+    fun getProjects(
+        @RequestBody(required = true) projectFilters: ProjectFilters
+    ): Flux<Project> = blockingToFlux { projectService.getFiltered(projectFilters) }
 
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
@@ -125,7 +132,9 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
+            projectService.findByNameAndOrganizationNameAndStatusIn(name, organizationName, EnumSet.allOf(ProjectStatus::class.java))
+        }.filter {
+            it?.status == ProjectStatus.CREATED || authentication.hasRole(Role.SUPER_ADMIN)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)

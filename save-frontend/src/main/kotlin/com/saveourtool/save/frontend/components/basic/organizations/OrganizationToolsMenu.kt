@@ -73,38 +73,38 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                         val project = cellContext.row.original
                         td {
                             when (project.status) {
-                                ProjectStatus.CREATED -> {
+                                ProjectStatus.CREATED -> div {
                                     a {
                                         href = "#/${project.organization.name}/${cellContext.value}"
                                         +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellContext.row.original)
+                                    statusSpan(cellContext.row.original)
                                 }
-                                ProjectStatus.DELETED -> {
+                                ProjectStatus.DELETED -> div {
                                     className = ClassName("text-secondary")
                                     if (props.currentUserInfo.isSuperAdmin()) {
                                         a {
-                                            className = ClassName("link-secondary")
+                                            className = ClassName("text-secondary")
                                             href = "#/${project.organization.name}/${cellContext.value}"
                                             +cellContext.value
                                         }
                                     } else {
                                         +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellContext.row.original)
+                                    statusSpan(cellContext.row.original)
                                 }
                                 ProjectStatus.BANNED -> div {
                                     className = ClassName("text-danger")
                                     if (props.currentUserInfo.isSuperAdmin()) {
                                         a {
-                                            className = ClassName("link-danger")
+                                            className = ClassName("text-danger")
                                             href = "#/${project.organization.name}/${cellContext.value}"
                                             +cellContext.value
                                         }
                                     } else {
                                         +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellContext.row.original)
+                                    statusSpan(cellContext.row.original)
                                 }
                             }
                         }

@@ -24,7 +24,7 @@ import kotlinx.js.jso
 /**
  * @param project
  */
-fun ChildrenBuilder.privacyAndStatusSpan(project: Project) {
+fun ChildrenBuilder.statusSpan(project: Project) {
     when (project.status) {
         ProjectStatus.CREATED -> span {
             className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
@@ -53,7 +53,7 @@ fun ChildrenBuilder.privacyAndStatusSpan(project: Project) {
 /**
  * @param project
  */
-fun ChildrenBuilder.privacyAndStatusSpan(organization: Organization) {
+fun ChildrenBuilder.statusSpan(organization: Organization) {
     when (organization.status) {
         OrganizationStatus.CREATED -> span {
             className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")

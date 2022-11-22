@@ -13,10 +13,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 
-import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -29,6 +25,8 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * The list of all organizations, visible to super-users.
@@ -47,9 +45,9 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     val organizationName = organization.name
 
                     val stringClassName = when(organization.status) {
-                        OrganizationStatus.CREATED -> "link-primary"
-                        OrganizationStatus.DELETED -> "link-mute"
-                        OrganizationStatus.BANNED -> "link-danger"
+                        OrganizationStatus.CREATED -> "text-primary"
+                        OrganizationStatus.DELETED -> "text-secondary"
+                        OrganizationStatus.BANNED -> "text-danger"
                     }
                     Fragment.create {
                         td {
@@ -58,7 +56,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 to = "/organization/$organizationName/tools"
                                 +organizationName
                             }
-                            privacyAndStatusSpan(organization)
+                            statusSpan(organization)
                         }
                     }
                 }
@@ -142,7 +140,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             organizations += organization.copy(status = OrganizationStatus.CREATED)
                                         }
                                     }
-                                    conditionClick = true
+                                    conditionClick = false
                                     sendRequest = { _ ->
                                         responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
                                     }
@@ -174,7 +172,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             organizations += organization.copy(status = OrganizationStatus.CREATED)
                                         }
                                     }
-                                    conditionClick = true
+                                    conditionClick = false
                                     sendRequest = { _ ->
                                         responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
                                     }
@@ -233,7 +231,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                         state.organizations.toTypedArray()
                     }
                 }
-                console.log(state.organizations.size)
             }
         }
     }
@@ -243,10 +240,11 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      */
     private suspend fun getOrganizations(): MutableList<Organization> {
         val response = post(
-            url = "$apiUrl/organizations/by-filters",
+            url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
             body = Json.encodeToString(OrganizationFilters.all),
             loadingHandler = ::classLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
 
         return when {
