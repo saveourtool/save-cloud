@@ -47,6 +47,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Controller for working with organizations.
@@ -338,7 +339,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByNameAndStatuses(organizationName, OrganizationStatus.values().toSet())
+        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."

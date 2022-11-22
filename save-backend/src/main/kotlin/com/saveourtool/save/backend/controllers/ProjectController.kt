@@ -39,6 +39,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.EnumSet
 
 /**
  * Controller for working with projects.
@@ -239,7 +240,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, ProjectStatus.values().toSet())
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, EnumSet.allOf(ProjectStatus::class.java))
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."

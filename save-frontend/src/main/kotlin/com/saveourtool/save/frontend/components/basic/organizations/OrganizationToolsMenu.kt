@@ -79,12 +79,29 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                     privacyAndStatusSpan(cellProps.row.original)
                                 }
                                 ProjectStatus.DELETED -> {
-                                    +project.name
+                                    className = ClassName("text-secondary")
+                                    if (props.currentUserInfo.isSuperAdmin()) {
+                                        a {
+                                            className = ClassName("link-secondary")
+                                            href = "#/${project.organization.name}/${cellProps.value}"
+                                            +cellProps.value
+                                        }
+                                    } else {
+                                        +cellProps.value
+                                    }
                                     privacyAndStatusSpan(cellProps.row.original)
                                 }
                                 ProjectStatus.BANNED -> div {
-                                    className = ClassName("text-danger mr-2")
-                                    +project.name
+                                    className = ClassName("text-danger")
+                                    if (props.currentUserInfo.isSuperAdmin()) {
+                                        a {
+                                            className = ClassName("link-danger")
+                                            href = "#/${project.organization.name}/${cellProps.value}"
+                                            +cellProps.value
+                                        }
+                                    } else {
+                                        +cellProps.value
+                                    }
                                     privacyAndStatusSpan(cellProps.row.original)
                                 }
                             }
@@ -193,7 +210,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         classes = actionButtonClasses.joinToString(" ")
                                         modalButtons = { action, window, childrenBuilder ->
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, recover $projectName", style = "danger", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
                                                     action()
                                                     window.closeWindow()
                                                 }

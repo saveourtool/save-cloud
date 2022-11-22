@@ -4,9 +4,13 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -23,6 +27,9 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import react.table.columns
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import mui.icons.material.Class
 
 /**
  * The list of all organizations, visible to super-users.
@@ -37,14 +44,22 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     header = "Organization",
                     accessor = { name }
                 ) { cellProps ->
-                    val organizationName = cellProps.value
+                    val organization = cellProps.row.original
+                    val organizationName = organization.name
 
+                    val stringClassName = when(organization.status) {
+                        OrganizationStatus.CREATED -> "link-primary"
+                        OrganizationStatus.DELETED -> "link-mute"
+                        OrganizationStatus.BANNED -> "link-danger"
+                    }
                     Fragment.create {
                         td {
                             Link {
+                                className = ClassName(stringClassName)
                                 to = "/organization/$organizationName/tools"
                                 +organizationName
                             }
+                            privacyAndStatusSpan(organization)
                         }
                     }
                 }
@@ -65,37 +80,105 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                             val organization = cellProps.value
                             val organizationName = organization.name
 
-                            actionButton {
-                                title = "WARNING: About to delete this organization..."
-                                errorTitle = "You cannot delete the organization $organizationName"
-                                message = "Are you sure you want to delete the organization $organizationName?"
-                                clickMessage = "Also ban this organization"
-                                buttonStyleBuilder = { childrenBuilder ->
-                                    with(childrenBuilder) {
-                                        fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
-                                    }
-                                }
-                                classes = actionButtonClasses.joinToString(" ")
-                                modalButtons = { action, window, childrenBuilder ->
-                                    with(childrenBuilder) {
-                                        buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
-                                            action()
-                                            window.closeWindow()
-                                        }
-                                        buttonBuilder("Cancel") {
-                                            window.closeWindow()
+                            when(organization.status) {
+                                OrganizationStatus.CREATED -> actionButton {
+                                    title = "WARNING: About to delete this organization..."
+                                    errorTitle = "You cannot delete the organization $organizationName"
+                                    message = "Are you sure you want to delete the organization $organizationName?"
+                                    clickMessage = "Also ban this organization"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                         }
                                     }
-                                }
-                                onActionSuccess = { _ ->
-                                    setState {
-                                        organizations -= organization
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { isBanned ->
+                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                        setState {
+                                            organizations -= organization
+                                            organizations += organization.copy(status = newStatus)
+                                        }
+                                    }
+                                    conditionClick = true
+                                    sendRequest = { isBanned ->
+                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                        responseChangeOrganizationStatus(organizationName, newStatus)
                                     }
                                 }
-                                conditionClick = true
-                                sendRequest = { isBanned ->
-                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                    responseChangeOrganizationStatus(organizationName, newStatus)
+                                OrganizationStatus.DELETED -> actionButton {
+                                    title = "WARNING: About to recover this organization..."
+                                    errorTitle = "You cannot recover the organization $organizationName"
+                                    message = "Are you sure you want to recover the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, recover $organizationName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations -= organization
+                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                        }
+                                    }
+                                    conditionClick = true
+                                    sendRequest = { _ ->
+                                        responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
+                                    }
+                                }
+                                OrganizationStatus.BANNED -> actionButton {
+                                    title = "WARNING: About to unban this organization..."
+                                    errorTitle = "You cannot unban the organization $organizationName"
+                                    message = "Are you sure you want to unban the organization $organizationName?"
+                                    buttonStyleBuilder = { childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                        }
+                                    }
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, unban $organizationName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            organizations -= organization
+                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                        }
+                                    }
+                                    conditionClick = true
+                                    sendRequest = { _ ->
+                                        responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
+                                    }
                                 }
                             }
                         }
@@ -159,9 +242,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      * @return the list of all organizations, excluding the deleted ones.
      */
     private suspend fun getOrganizations(): MutableList<Organization> {
-        val response = get(
-            url = "$apiUrl/organizations/all?onlyActive=${true}",
+        val response = post(
+            url = "$apiUrl/organizations/by-filters",
             headers = jsonHeaders,
+            body = Json.encodeToString(OrganizationFilters.all),
             loadingHandler = ::classLoadingHandler,
         )
 

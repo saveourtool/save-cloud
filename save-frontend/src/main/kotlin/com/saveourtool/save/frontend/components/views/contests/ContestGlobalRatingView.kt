@@ -290,7 +290,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                UserRatingTab.TOOLS -> state.projectFilters.name.let { "$href?projectName=$it" }
+                UserRatingTab.TOOLS -> state.projectFilters.name.let {
+                    buildString {
+                        append(href)
+                        if (it.isNotBlank()) {
+                            append("?projectName=$it")
+                        }
+                    }
+                }
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)

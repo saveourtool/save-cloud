@@ -438,11 +438,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    /**
-     * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
-     */
-    private fun getProjectsFromCache(): List<Project> = state.projects
-
     private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,

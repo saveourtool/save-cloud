@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
@@ -32,7 +34,7 @@ fun ChildrenBuilder.privacyAndStatusSpan(project: Project) {
             +if (project.public) "public" else "private"
         }
         ProjectStatus.DELETED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-warning ")
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
             style = jso {
                 borderRadius = "2em".unsafeCast<BorderRadius>()
             }
@@ -47,6 +49,36 @@ fun ChildrenBuilder.privacyAndStatusSpan(project: Project) {
         }
     }
 }
+
+/**
+ * @param project
+ */
+fun ChildrenBuilder.privacyAndStatusSpan(organization: Organization) {
+    when (organization.status) {
+        OrganizationStatus.CREATED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +"active"
+        }
+        OrganizationStatus.DELETED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +"deleted"
+        }
+        OrganizationStatus.BANNED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +"banned"
+        }
+    }
+}
+
 
 /**
  * @param icon

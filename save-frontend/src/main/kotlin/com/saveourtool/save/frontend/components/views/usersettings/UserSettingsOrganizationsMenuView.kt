@@ -6,11 +6,14 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
 import com.saveourtool.save.frontend.components.views.actionIconClasses
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.utils.privacyAndStatusSpan
 import com.saveourtool.save.v1
+import csstype.BorderRadius
 
 import csstype.ClassName
 import react.*
@@ -22,6 +25,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
 import kotlinx.browser.window
+import kotlinx.js.jso
+import react.dom.html.ReactHTML
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -67,7 +72,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     actionButton {
                                         title = "WARNING: About to delete this organization..."
                                         errorTitle = "You cannot delete the organization ${organizationDto.name}"
-                                        message = "Are you sure you want to ban the organization ${organizationDto.name}?"
+                                        message = "Are you sure you want to delete the organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
                                                 fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
@@ -86,7 +91,10 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                            setState {
+                                                selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationDto)
+                                            }
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
@@ -97,6 +105,97 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 div {
                                     className = ClassName("mr-3")
                                     +role.formattedName
+                                }
+                            }
+                        }
+                    }
+                }
+
+                state.selfDeletedOrganizationDtos.forEach { organizationDto ->
+                    li {
+                        className = ClassName("list-group-item")
+                        div {
+                            className = ClassName("row justify-content-between align-items-center")
+                            div {
+                                className = ClassName("align-items-center ml-3 text-secondary")
+                                img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = organizationDto.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    height = 60.0
+                                    width = 60.0
+                                }
+                                +organizationDto.name
+                                ReactHTML.span {
+                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                    style = jso {
+                                        borderRadius = "2em".unsafeCast<BorderRadius>()
+                                    }
+                                    +"deleted"
+                                }
+                            }
+                            div {
+                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
+                                if (role.isHigherOrEqualThan(Role.OWNER)) {
+                                    actionButton {
+                                        title = "WARNING: About to recover this organization..."
+                                        errorTitle = "You cannot recover the organization ${organizationDto.name}"
+                                        message = "Are you sure you want to recover the organization ${organizationDto.name}?"
+                                        buttonStyleBuilder = { childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                            }
+                                        }
+                                        classes = actionButtonClasses.joinToString(" ")
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                    action()
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        onActionSuccess = { _ ->
+                                            setState {
+                                                selfDeletedOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
+                                                selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
+                                            }
+                                        }
+                                        conditionClick = false
+                                        sendRequest = { _ ->
+                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
+                                        }
+                                    }
+                                }
+                                div {
+                                    className = ClassName("mr-3")
+                                    +role.formattedName
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                state.selfBannedOrganizationDtos.forEach {organizationDto ->
+                    li {
+                        className = ClassName("list-group-item")
+                        div {
+                            className = ClassName("row justify-content-between align-items-center")
+                            div {
+                                className = ClassName("align-items-center ml-3 text-danger")
+                                +organizationDto.name
+                                ReactHTML.span {
+                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
+                                    style = jso {
+                                        borderRadius = "2em".unsafeCast<BorderRadius>()
+                                    }
+                                    +"banned"
                                 }
                             }
                         }
