@@ -47,10 +47,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import tanstack.table.core.ExpandedState
-import tanstack.table.core.RowData
-import tanstack.table.core.TableState
-import tanstack.table.core.getExpandedRowModel
+import react.router.useNavigate
 
 /**
  * [Props] for execution results view
@@ -222,9 +219,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         usePageSelection = true,
         tableOptionsCustomizer = { tableOptions ->
             enableExpanding(tableOptions)
-
-            // TODO!
-            tableOptions.enableFilters = true
         },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
@@ -246,9 +240,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-        },
-        additionalOptions = {
-            this.asDynamic().manualFilters = true
         },
         commonHeader = { tableInstance ->
             tr {
@@ -293,8 +284,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     filters = filters.copy(tag = filterValue.tag)
                                 }
                             }
-                            window.location.href = getUrlWithFiltersParams(filterValue)
-                            window.location.reload()
+                            val navigate = useNavigate()
+                            navigate(getUrlWithFiltersParams(filterValue))
                         }
                     }
                 }
@@ -444,7 +435,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         displayTestNotFound(state.executionDto)
     }
 
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.pathname.substringBefore("?")}${filterValue.toQueryParams()}"
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
