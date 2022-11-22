@@ -15,13 +15,18 @@ on:
         default: master
         description: Branch to package chart from
         required: false
+      chart_dir:
+        type: string
+        default: save-cloud
+        description: Directory to build from, relative to `save-cloud-charts`
+        required: false
 
 jobs:
   deploy_chart:
     name: Package and push Helm chart
     runs-on: ubuntu-20.04
     env:
-      CHARTS_DIR: save-cloud-charts/save-cloud
+      CHARTS_DIR: save-cloud-charts/${{ inputs.chart_dir }}
 
     steps:
       - name: checkout save-cloud
@@ -64,5 +69,5 @@ jobs:
           helm dependency build
           cd -
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
-          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+          find . -name "*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
           echo "Packaged and uploaded chart with version ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
