@@ -222,7 +222,7 @@ class LnkContestProjectController(
         .switchIfEmptyToNotFound {
             "Could not find contest with name $contestName."
         }
-        .zipWith(projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName).toMono())
+        .zipWith(projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono())
         .switchIfEmptyToNotFound {
             "Could not find project with name $organizationName/$projectName."
         }

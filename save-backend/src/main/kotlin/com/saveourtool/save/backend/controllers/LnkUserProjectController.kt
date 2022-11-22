@@ -85,7 +85,7 @@ class LnkUserProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName)
+    ): Mono<List<UserInfo>> = projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "No project with name $projectName was found."
@@ -134,7 +134,7 @@ class LnkUserProjectController(
             prefix.isNotEmpty()
         }
         .flatMap { (organizationName, projectName) ->
-            projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName).toMono()
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono()
         }
         .switchIfEmptyToNotFound {
             "No project with name $projectName was found in organization $organizationName."

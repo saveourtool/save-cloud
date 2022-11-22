@@ -37,6 +37,9 @@ class PermissionServiceTest {
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
         }
+        given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willAnswer {
+            Project.stub(id = 99)
+        }
         given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willAnswer {
             Project.stub(id = 99)
         }
@@ -65,6 +68,9 @@ class PermissionServiceTest {
         given(userRepository.findByName(any())).willAnswer { invocationOnMock ->
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
+        }
+        given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willAnswer {
+            Project.stub(id = 99)
         }
         given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willAnswer {
             Project.stub(id = 99)

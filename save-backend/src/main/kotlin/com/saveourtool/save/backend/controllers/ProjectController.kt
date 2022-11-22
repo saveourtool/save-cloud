@@ -124,7 +124,7 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationNameAndStatusIn(name, organizationName)
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
@@ -150,7 +150,7 @@ class ProjectController(
         .flatMap {
             Mono.zip(
                 projectCreationRequest.toMono(),
-                organizationService.findByNameAndStatuses(it.organizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(it.organizationName).toMono(),
             )
         }
         .switchIfEmpty {
@@ -239,7 +239,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."

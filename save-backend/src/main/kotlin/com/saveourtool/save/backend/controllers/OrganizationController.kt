@@ -136,7 +136,7 @@ internal class OrganizationController(
     fun getOrganizationByName(
         @PathVariable organizationName: String,
     ) = Mono.fromCallable {
-        organizationService.findByNameAndStatuses(organizationName)
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }
@@ -190,7 +190,7 @@ internal class OrganizationController(
     fun avatar(
         @PathVariable organizationName: String
     ): Mono<ImageInfo> = Mono.fromCallable {
-        organizationService.findByNameAndStatuses(organizationName)?.avatar.let { ImageInfo(it) }
+        organizationService.findByNameAndCreatedStatus(organizationName)?.avatar.let { ImageInfo(it) }
     }
 
     @PostMapping("/{organizationName}/manage-contest-permission")
@@ -217,7 +217,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByNameAndStatuses(organizationName).toMono()
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -292,7 +292,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByNameAndStatuses(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -304,7 +304,7 @@ internal class OrganizationController(
             "Not enough permission for managing organization $organizationName."
         }
         .filter {
-            organizationService.findByNameAndStatuses(organization.name) != null
+            organizationService.findByNameAndCreatedStatus(organization.name) != null
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There already is an organization with name ${organization.name}"
@@ -338,7 +338,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByNameAndStatuses(organizationName)
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -396,7 +396,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByNameAndStatuses(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -473,7 +473,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByNameAndStatuses(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -531,7 +531,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<Double> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByNameAndStatuses(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -553,7 +553,7 @@ internal class OrganizationController(
         gitDto: GitDto,
         authentication: Authentication,
         isUpdate: Boolean
-    ): Mono<StringResponse> = blockingToMono { organizationService.findByNameAndStatuses(organizationName) }
+    ): Mono<StringResponse> = blockingToMono { organizationService.findByNameAndCreatedStatus(organizationName) }
         .switchIfEmptyToNotFound {
             "Could not find organization with name $organizationName"
         }
