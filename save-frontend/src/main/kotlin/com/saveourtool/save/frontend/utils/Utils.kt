@@ -42,7 +42,14 @@ internal typealias ErrorHandler = (ErrorMessage) -> Unit
  *
  * @param T the return type of this action.
  */
-internal typealias DeferredRequestAction<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
+internal typealias DeferredRequestActionWithMessage<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
+
+/**
+ * The body of a [useDeferredRequest] invocation.
+ *
+ * @param T the return type of this action.
+ */
+internal typealias DeferredRequestAction<T> = suspend (WithRequestStatusContext) -> T
 
 /**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization

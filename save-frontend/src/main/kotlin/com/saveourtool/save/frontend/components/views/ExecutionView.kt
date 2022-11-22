@@ -292,6 +292,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 }
                             }
                             window.location.href = getUrlWithFiltersParams(filterValue)
+                            window.location.reload()
                         }
                     }
                 }
