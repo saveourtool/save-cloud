@@ -28,4 +28,3 @@ dependencies:
     version: ^5.0.0
     repository: https://helm.neo4j.com/neo4j
     condition: neo4j.enabled
-
