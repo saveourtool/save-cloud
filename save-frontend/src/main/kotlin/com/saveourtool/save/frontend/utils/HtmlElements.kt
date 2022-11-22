@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -21,13 +22,29 @@ import kotlinx.js.jso
 /**
  * @param project
  */
-fun ChildrenBuilder.privacySpan(project: Project) {
-    span {
-        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-        style = jso {
-            borderRadius = "2em".unsafeCast<BorderRadius>()
+fun ChildrenBuilder.privacyAndStatusSpan(project: Project) {
+    when (project.status) {
+        ProjectStatus.CREATED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +if (project.public) "public" else "private"
         }
-        +if (project.public) "public" else "private"
+        ProjectStatus.DELETED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-warning ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +"deleted"
+        }
+        ProjectStatus.BANNED -> span {
+            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
+            style = jso {
+                borderRadius = "2em".unsafeCast<BorderRadius>()
+            }
+            +"banned"
+        }
     }
 }
 

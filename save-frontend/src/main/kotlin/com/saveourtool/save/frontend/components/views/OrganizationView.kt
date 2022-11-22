@@ -13,12 +13,10 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
+import com.saveourtool.save.frontend.components.basic.organizations.organizationToolsMenu
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
@@ -26,7 +24,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
@@ -38,7 +35,6 @@ import react.*
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -50,10 +46,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
-import react.router.dom.Link
-import react.table.columns
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
@@ -171,97 +164,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
-        columns = {
-            columns {
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                    Fragment.create {
-                        td {
-                            a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +cellProps.value
-                            }
-                            privacySpan(cellProps.row.original)
-                        }
-                    }
-                }
-                column(id = "description", header = "Description") {
-                    Fragment.create {
-                        td {
-                            +(it.value.description ?: "Description not provided")
-                        }
-                    }
-                }
-                column(id = "rating", header = "Contest Rating") {
-                    Fragment.create {
-                        td {
-                            +"0"
-                        }
-                    }
-                }
-
-                /*
-                 * A "secret" possibility to delete projects (intended for super-admins).
-                 */
-                if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
-                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
-                        Fragment.create {
-                            td {
-                                val project = cellProps.row.original
-                                val projectName = project.name
-
-                                actionButton {
-                                    title = "WARNING: About to delete this project..."
-                                    errorTitle = "You cannot delete the project $projectName"
-                                    message = """Are you sure you want to delete the project "$projectName"?"""
-                                    clickMessage = "Also ban this project"
-                                    buttonStyleBuilder = { childrenBuilder ->
-                                        with(childrenBuilder) {
-                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
-                                        }
-                                    }
-                                    classes = actionButtonClasses.joinToString(" ")
-                                    modalButtons = { action, window, childrenBuilder ->
-                                        with(childrenBuilder) {
-                                            buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
-                                                action()
-                                                window.closeWindow()
-                                            }
-                                            buttonBuilder("Cancel") {
-                                                window.closeWindow()
-                                            }
-                                        }
-                                    }
-                                    onActionSuccess = { _ ->
-                                        setState {
-                                            projects -= project
-                                        }
-                                    }
-                                    conditionClick = props.currentUserInfo.isSuperAdmin()
-                                    sendRequest = { isBanned ->
-                                        val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                        responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = { tableProps ->
-            /*-
-             * Necessary for the table to get re-rendered once a project gets
-             * deleted.
-             *
-             * The order and size of the array must remain constant.
-             */
-            arrayOf(tableProps)
-        }
-    )
-
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
@@ -451,30 +353,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun ChildrenBuilder.renderTools() {
-        div {
-            className = ClassName("row justify-content-center")
-            div {
-                className = ClassName("col-6")
-                div {
-                    className = ClassName("d-flex justify-content-center mb-2")
-                    if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                        Link {
-                            to = "/${FrontendRoutes.CREATE_PROJECT.path}/${this@OrganizationView.state.organization?.name}"
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn btn-outline-info")
-                                +"Add new Tool"
-                            }
-                        }
-                    }
-                }
-
-                tableWithProjects {
-                    getData = { _, _ ->
-                        getProjectsFromCache().toTypedArray()
-                    }
-                    getPageCount = null
-                }
+        organizationToolsMenu {
+            currentUserInfo = props.currentUserInfo
+            selfRole = state.selfRole
+            organization = state.organization
+            projects = state.projects
+            updateProjects = { projectsList ->
+                setState { projects = projectsList }
             }
         }
     }
@@ -561,7 +446,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilters("", props.organizationName)),
+        body = Json.encodeToString(ProjectFilters("", props.organizationName, ProjectStatus.values().toSet())),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

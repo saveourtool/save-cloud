@@ -339,7 +339,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByNameAndStatuses(organizationName)
+        organizationService.findByNameAndStatuses(organizationName, OrganizationStatus.values().toSet())
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."

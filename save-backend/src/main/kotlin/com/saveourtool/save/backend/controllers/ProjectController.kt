@@ -240,7 +240,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, ProjectStatus.values().toSet())
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."
