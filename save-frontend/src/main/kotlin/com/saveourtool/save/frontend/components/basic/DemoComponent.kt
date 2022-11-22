@@ -6,11 +6,16 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.demo.diktat.DemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
-import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
+
 import csstype.ClassName
+import csstype.Display
+import csstype.Height
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -18,23 +23,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
 
-val builderComponent = builderComponent()
-
-/**
- * DemoComponent [Props]
- */
-@Suppress("TYPE_ALIAS")
-external interface BuilderComponentProps : Props {
-    /**
-     * Lambda for run request
-     */
-    var sendRunRequest: (String, AceModes) -> Unit
-
-    /**
-     * modal for builder window
-     */
-    var builderModal: (ChildrenBuilder) -> Unit
-}
+import kotlinx.js.jso
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -42,10 +31,20 @@ external interface BuilderComponentProps : Props {
     "LongMethod",
     "TYPE_ALIAS"
 )
-private fun builderComponent() = FC<BuilderComponentProps> { props ->
-    val (selectedLanguage, setSelectedLanguage) = useState(AceModes.KOTLIN)
+val demoComponent: FC<DemoComponentProps> = FC { props ->
+    val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
+
+    val sendRunRequest = useDeferredRequest {
+        props.resultRequest(
+            this,
+            DemoRunRequest(
+                codeLines.split("\n"),
+                DemoAdditionalParams(language = selectedLanguage),
+            )
+        )
+    }
 
     div {
         className = ClassName("")
@@ -83,33 +82,56 @@ private fun builderComponent() = FC<BuilderComponentProps> { props ->
                         className = ClassName("mr-1")
                         selectorBuilder(
                             selectedLanguage.prettyName,
-                            AceModes.values().map { it.prettyName },
+                            Languages.values().map { it.prettyName },
                             "custom-select"
                         ) { event ->
                             setSelectedLanguage {
-                                AceModes.values().find { it.prettyName == event.target.value }!!
+                                Languages.values().find { it.prettyName == event.target.value }!!
                             }
                         }
                     }
                     div {
                         buttonBuilder("Send run request") {
-                            props.sendRunRequest(codeLines, selectedLanguage)
+                            sendRunRequest()
                         }
                     }
                 }
             }
 
             div {
-                className = ClassName("col-8")
-                h6 {
-                    className = ClassName("text-center text-primary")
-                    +"Graph"
-                }
+                className = ClassName("col-8 d-flex flex-wrap")
                 div {
-                    className = ClassName("card card-body")
+                    className = ClassName("col")
+                    h6 {
+                        className = ClassName("text-center flex-wrap text-primary")
+                        +"Graph"
+                    }
+                    div {
+                        className = ClassName("card card-body")
+                        style = jso {
+                            height = "90%".unsafeCast<Height>()
+                            display = Display.block
+                        }
+                        props.resultBuilder(this)
+                    }
                 }
-                props.builderModal(this)
             }
         }
     }
+}
+
+/**
+ * DemoComponent [Props]
+ */
+@Suppress("TYPE_ALIAS")
+external interface DemoComponentProps : Props {
+    /**
+     * Callback to display the result
+     */
+    var resultBuilder: (ChildrenBuilder) -> Unit
+
+    /**
+     * Request to receive the result
+     */
+    var resultRequest: suspend WithRequestStatusContext.(DemoRunRequest) -> Unit
 }
