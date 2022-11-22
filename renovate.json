@@ -19,12 +19,42 @@
         "*"
       ],
       "excludePackagePatterns": [
-        "^org\\.jetbrains\\.kotlin[.:]"
+        "^org\\.jetbrains\\.kotlin[.:]",
+        "^org\\.springframework\\.boot\\:",
+        "^org\\.cqfn\\.diktat\\:diktat-gradle-plugin",
+        "^org\\.jetbrains\\.kotlin-wrappers:kotlin-wrappers-bom"
       ],
       "matchUpdateTypes": [
         "minor",
         "patch"
       ],
+      "groupName": "all non-major dependencies (except core Kotlin)",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "managers": ["gradle"],
+      "matchPackagePatterns": [
+        "^org\\.springframework\\.boot\\:"
+      ],
+      "allowedVersions": "!/2\\.7\\.5/",
+      "groupName": "all non-major dependencies (except core Kotlin)",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "managers": ["gradle"],
+      "matchPackagePatterns": [
+        "^org\\.cqfn\\.diktat\\:diktat-gradle-plugin"
+      ],
+      "allowedVersions": "!/1\\.2\\.4\\.2/",
+      "groupName": "all non-major dependencies (except core Kotlin)",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "managers": ["gradle"],
+      "matchPackagePatterns": [
+        "^org\\.jetbrains\\.kotlin-wrappers:kotlin-wrappers-bom"
+      ],
+      "allowedVersions": "<=1.0.0-pre.423",
       "groupName": "all non-major dependencies (except core Kotlin)",
       "groupSlug": "all-minor-patch"
     },
