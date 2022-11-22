@@ -42,6 +42,7 @@ fabric8 = "6.2.0"
 arrow-kt = "1.1.3"
 publish = "1.1.0"
 download = "5.3.0"
+cpg = "5.1.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -139,6 +140,10 @@ hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hiber
 hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer", version.ref = "hibernate" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mySql" }
+
+# graph utilities
+cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg" }
+cpg-python = { module = "de.fraunhofer.aisec:cpg-language-python", version.ref = "cpg" }
 
 # testing
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }

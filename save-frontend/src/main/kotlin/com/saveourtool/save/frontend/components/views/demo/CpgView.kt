@@ -4,8 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
-import com.saveourtool.save.frontend.components.basic.builderComponent
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpgDemoComponent
+
 import csstype.ClassName
 import react.VFC
 import react.dom.html.ReactHTML.div
@@ -20,10 +21,7 @@ private fun cpgView(): VFC = VFC {
         div {
             className = ClassName("col-12")
             backgroundCard {
-                builderComponent {
-                    this.sendRunRequest = { codeLines, language ->
-                        // TODO: method for run
-                    }
+                cpgDemoComponent {
                     this.builderModal = { builder ->
                         // TODO: need to added window for graph
                     }

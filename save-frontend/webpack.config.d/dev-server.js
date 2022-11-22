@@ -27,6 +27,11 @@ config.devServer = Object.assign(
           logLevel: 'debug',
         },
         {
+          context: ["/cpg/api/**"],
+          target: 'http://localhost:5500',
+          logLevel: 'debug',
+        },
+        {
           bypass: (req, res) => {
             if (req.url.endsWith("/sec/user")) {
               return res.send(

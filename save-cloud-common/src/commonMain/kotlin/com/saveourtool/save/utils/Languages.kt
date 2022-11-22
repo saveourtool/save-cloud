@@ -1,66 +1,62 @@
-package com.saveourtool.save.frontend.externals.reactace
+package com.saveourtool.save.utils
 
 /**
  * Highlight modes for AceEditor
  *
  * @property modeName substring of file with required highlight mode
  * @property prettyName
+ * @property extension
  */
 @Suppress("IDENTIFIER_LENGTH")
-enum class AceModes(val modeName: String, val prettyName: String) {
+enum class Languages(val modeName: String, val prettyName: String, val extension: String) {
     /**
      * C highlight mode
      */
-    C("c_cpp", "C"),
+    C("c_cpp", "C", ".c"),
 
     /**
      * C++ highlight mode
      */
-    CPP("c_cpp", "C++"),
+    CPP("c_cpp", "C++", ".cpp"),
 
     /**
      * Golang highlight mode
      */
-    GO("golang", "GO"),
+    GO("golang", "GO", ".go"),
 
     /**
      * Java highlight mode
      */
-    JAVA("java", "JAVA"),
+    JAVA("java", "JAVA", ".java"),
 
     /**
      * Javascript highlight mode
      */
-    JAVASCRIPT("jsx", "JS"),
+    JAVASCRIPT("jsx", "JS", ".js"),
 
     /**
      * Kotlin highlight mode
      */
-    KOTLIN("kotlin", "KOTLIN"),
+    KOTLIN("kotlin", "KOTLIN", ".kt"),
 
     /**
      * Python highlight mode
      */
-    PYTHON("python", "PYTHON"),
+    PYTHON("python", "PYTHON", ".py"),
 
     /**
      * Shell highlight mode
      */
-    SHELL("sh", "SHELL"),
+    SHELL("sh", "SHELL", ".sh"),
 
     /**
      * Toml highlight mode
      */
-    TOML("toml", "TOML"),
+    TOML("toml", "TOML", ".toml"),
 
     /**
      * Typescript highlight mode
      */
-    TYPESCRIPT("typescript", "TYPESCRIPT"),
+    TYPESCRIPT("typescript", "TYPESCRIPT", ".ts"),
     ;
-
-    /**
-     * Method that includes required highlight mode
-     */
-    fun require() = kotlinext.js.require("ace-builds/src-min-noconflict/mode-$modeName")
 }

@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.diktat.DiktatDemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoMode
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
@@ -32,8 +32,8 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
-) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
-    override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
+) : CliRunner<DemoAdditionalParams, DiktatDemoResult> {
+    override fun getExecutable(workingDir: Path, params: DemoAdditionalParams): Path {
         val toolName = params.tool.name.lowercase()
         val version = if (params.tool == DiktatDemoTool.DIKTAT) {
             DIKTAT_VERSION
@@ -78,7 +78,7 @@ class DiktatCliRunner(
         testPath: Path,
         outputPath: Path,
         configPath: Path?,
-        params: DiktatDemoAdditionalParams
+        params: DemoAdditionalParams
     ): String = buildString {
         val executable = getExecutable(workingDir, params)
         append(executable)
@@ -92,7 +92,7 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
+    override fun run(testPath: Path, params: DemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent
         val outputPath = workingDir / "report"
         val configPath = prepareFile(workingDir / "config", params.config)

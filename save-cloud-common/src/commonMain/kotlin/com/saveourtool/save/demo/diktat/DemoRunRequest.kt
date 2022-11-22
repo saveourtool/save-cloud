@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * @property params all the params required for run
  */
 @Serializable
-data class DiktatDemoRunRequest(
+data class DemoRunRequest(
     val codeLines: List<String>,
-    val params: DiktatDemoAdditionalParams,
+    val params: DemoAdditionalParams,
 ) : DemoRequest
