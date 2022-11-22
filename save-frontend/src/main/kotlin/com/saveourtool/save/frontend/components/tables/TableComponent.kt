@@ -13,9 +13,9 @@ import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
+
 import csstype.ClassName
 import csstype.Cursor
-
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
@@ -27,18 +27,21 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import tanstack.react.table.renderCell
+import tanstack.react.table.renderHeader
 import tanstack.react.table.useReactTable
 import tanstack.table.core.Column
-import tanstack.table.core.Table
-import tanstack.table.core.Row
-import tanstack.table.core.TableOptions
 import tanstack.table.core.ColumnDef
 import tanstack.table.core.Header
+import tanstack.table.core.Row
 import tanstack.table.core.RowData
 import tanstack.table.core.SortDirection
 import tanstack.table.core.SortingState
-import tanstack.react.table.renderCell
-import tanstack.react.table.renderHeader
+import tanstack.table.core.Table
+import tanstack.table.core.TableOptions
+import tanstack.table.core.TableState
+import tanstack.table.core.getCoreRowModel
+import tanstack.table.core.getSortedRowModel
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -47,9 +50,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import tanstack.table.core.TableState
-import tanstack.table.core.getCoreRowModel
-import tanstack.table.core.getSortedRowModel
 
 /**
  * [Props] of a data table
@@ -86,6 +86,7 @@ external interface TableProps<D : Any> : Props {
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @param isTransparentGrid
+ * @param tableOptionsCustomizer
  * @return a functional react component
  */
 @Suppress(
@@ -106,7 +107,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
-    tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {} /*= {
+    tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {} /* = {
         // for example:
         val (sorting, setSorting) = useState<SortingState>(emptyArray())
         it.initialState!!.sorting = sorting
@@ -149,7 +150,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             this.sorting = sorting
         }
         this.onSortingChange = { updater ->
-                setSorting.invoke(updater)
+            setSorting.invoke(updater)
         }
         this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
         additionalOptions()

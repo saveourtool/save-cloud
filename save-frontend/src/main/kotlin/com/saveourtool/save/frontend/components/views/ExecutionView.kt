@@ -16,7 +16,14 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
+import com.saveourtool.save.frontend.components.tables.invoke
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
@@ -29,14 +36,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.enableExpanding
-import com.saveourtool.save.frontend.components.tables.invoke
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.components.tables.pageIndex
-import com.saveourtool.save.frontend.components.tables.pageSize
-import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
+import react.router.useNavigate
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -47,7 +47,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.router.useNavigate
 
 /**
  * [Props] for execution results view

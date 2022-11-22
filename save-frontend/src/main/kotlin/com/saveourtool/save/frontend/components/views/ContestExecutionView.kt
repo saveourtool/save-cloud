@@ -10,7 +10,11 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.PieChartColors
 import com.saveourtool.save.frontend.externals.chart.pieChart
@@ -29,14 +33,8 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.enableExpanding
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
-
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
-import tanstack.table.core.ExpandedState
 
 /**
  * [Props] for [ContestExecutionView]
