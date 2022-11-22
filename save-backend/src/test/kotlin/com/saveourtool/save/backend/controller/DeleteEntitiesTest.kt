@@ -65,7 +65,13 @@ class DeleteEntitiesTest {
         whenever(projectRepository.findByNameAndOrganizationName(any(), any())).thenReturn(
             Project.stub(99).apply { id = 1 }
         )
+        whenever(projectRepository.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).thenReturn(
+            Project.stub(99).apply { id = 1 }
+        )
         whenever(organizationRepository.findByName(any())).thenReturn(
+            Organization("stub", OrganizationStatus.CREATED, null, null, null)
+        )
+        whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
             Organization("stub", OrganizationStatus.CREATED, null, null, null)
         )
         with(projectPermissionEvaluator) {

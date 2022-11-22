@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -558,9 +559,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
      */
     private fun getProjectsFromCache(): List<Project> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
-        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
+    private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
+        url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
+        body = Json.encodeToString(ProjectFilters("", props.organizationName)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

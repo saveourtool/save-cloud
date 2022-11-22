@@ -156,7 +156,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters.empty
+                                OrganizationFilters.created
                             } else {
                                 OrganizationFilters(filterValue)
                             }
@@ -222,7 +222,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         name = state.projectFilters.name
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilters(null)
+                                ProjectFilters.created
                             } else {
                                 ProjectFilters(filterValue)
                             }
@@ -245,14 +245,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.organizations = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
-        state.projectFilters = ProjectFilters(null)
-        state.organizationFilters = OrganizationFilters.empty
+        state.projectFilters = ProjectFilters.created
+        state.organizationFilters = OrganizationFilters.created
     }
 
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
             val organizationsFromBackend: List<OrganizationDto> = post(
-                url = "$apiUrl/organizations/not-deleted",
+                url = "$apiUrl/organizations/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -268,7 +268,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
             val projectsFromBackend: List<Project> = post(
-                url = "$apiUrl/projects/not-deleted",
+                url = "$apiUrl/projects/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -294,7 +294,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?projectName=$it" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name.let {
+                    buildString {
+                        append(href)
+                        if (it.isNotBlank()) {
+                            append("?projectName=$it")
+                        }
+                    }
+                }
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -303,7 +310,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val projectFilters = ProjectFilters(props.projectName)
+        val projectFilters = ProjectFilters(props.projectName ?: "")
         val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
         setState {
             paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
