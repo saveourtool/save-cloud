@@ -13,6 +13,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -98,8 +99,7 @@ class ProjectController(
         @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<Project> =
-            projectService.getFiltered(projectFilters)
-                .toFlux()
+        blockingToFlux { projectService.getFiltered(projectFilters) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
