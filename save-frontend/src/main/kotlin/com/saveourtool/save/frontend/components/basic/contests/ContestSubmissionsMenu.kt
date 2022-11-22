@@ -29,11 +29,11 @@ val contestSubmissionsMenu = contestSubmissionsMenu()
 private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
     columns = {
         columns {
-            column(id = "project_name", header = "Project Name", { this }) { cellCtx ->
+            column(id = "project_name", header = "Project Name", { this }) { cellContext ->
                 Fragment.create {
                     td {
                         a {
-                            cellCtx.value.let {
+                            cellContext.value.let {
                                 href = "#/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
                                 +"${it.organizationName}/${it.projectName}"
                             }

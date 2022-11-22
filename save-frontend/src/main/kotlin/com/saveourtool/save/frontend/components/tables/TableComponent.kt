@@ -46,7 +46,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+import tanstack.table.core.TableState
 import tanstack.table.core.getCoreRowModel
+import tanstack.table.core.getSortedRowModel
 
 /**
  * [Props] of a data table
@@ -140,9 +142,19 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             }
             this.sorting = sorting
         }
-        this.onSortingChange = { updater ->
-            setSorting.asDynamic().invoke(updater.asDynamic())
+        this.asDynamic().state = jso<TableState> {
+            // Apparently, setting `initialState` is not enough and examples from tanstack-react-table use `state` in `TableOptions`.
+            // It's not present in kotlin-wrappers v.423 though.
+            this.sorting = sorting
         }
+        this.onSortingChange = { updater ->
+            if (jsTypeOf(updater) == "function") {
+                setSorting(updater.unsafeCast<(SortingState) -> SortingState>())
+            } else {
+                setSorting(updater.unsafeCast<SortingState>())
+            }
+        }
+        this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
         additionalOptions()
     }.also { tableOptionsCustomizer(it) })
 
@@ -224,15 +236,13 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                 headerGroup.headers.map { header: Header<D, out Any?> ->
                                     val column = header.column
 //                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = /*if (column.getCanSort()) columnProps.className else*/ ClassName("")
+                                    val className = if (column.getCanSort()) ClassName("cursor-pointer select-none") else ClassName("")
                                     th {
                                         this.className = className
                                         child(
                                             renderHeader(header)
                                         )
-                                        // fixme: find a way to set `canSort`; now it's always true
                                         if (column.getCanSort()) {
-//                                            spread(columnProps)
                                             span {
                                                 +when (column.getIsSorted()) {
                                                     SortDirection.asc -> " 🔽"
@@ -240,6 +250,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                                     else -> ""
                                                 }
                                             }
+                                            onClick = column.getToggleSortingHandler()
                                         }
                                     }
                                 }

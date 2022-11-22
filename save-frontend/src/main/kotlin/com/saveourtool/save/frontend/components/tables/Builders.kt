@@ -15,6 +15,10 @@ fun <TData : RowData> columns(
     ColumnBuilder<TData>().apply(block).build()
 
 
+/**
+ * Inspired by (meaning copy-pasted) `ColumnBuilder` from `kotlin-react-table`,
+ * which doesn't exist in `kotlin-tanstack-react-table`.
+ */
 class ColumnBuilder<TData : RowData> {
     private val columns = mutableListOf<ColumnDef<TData, *>>()
 
