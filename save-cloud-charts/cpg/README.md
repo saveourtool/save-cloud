@@ -1,1 +1,0 @@
-`helm install cpg cpg-1.0.0.tgz --namespace cpg -f values-<env>.yaml`
