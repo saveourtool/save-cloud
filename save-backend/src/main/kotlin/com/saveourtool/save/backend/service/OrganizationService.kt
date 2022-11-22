@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -158,10 +159,10 @@ class OrganizationService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByNameAndStatusIn(name, setOf(OrganizationStatus.CREATED, OrganizationStatus.DELETED))
+        val organization = organizationRepository.findByName(name)
             ?.apply {
                 avatar = relativePath
-            } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+            }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
 

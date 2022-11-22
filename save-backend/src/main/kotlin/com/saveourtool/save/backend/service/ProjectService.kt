@@ -161,13 +161,14 @@ class ProjectService(
      * @return project's with filter
      */
     fun getFiltered(projectFilters: ProjectFilters): List<Project> =
-        when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
-            true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
-            true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
-            false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
-            false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)?.let { listOf(it) }.orEmpty()
-            else -> throw IllegalStateException("Impossible state")
-        }
+            when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
+                true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
+                true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
+                false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
+                false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
+                    ?.let { listOf(it) }.orEmpty()
+                else -> throw IllegalStateException("Impossible state")
+            }
 
     /**
      * @param value is a string for a wrapper to search by match on a string in the database
