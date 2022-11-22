@@ -94,7 +94,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-@Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
+@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()

@@ -80,13 +80,18 @@ external interface TableProps<D : Any> : Props {
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param usePageSelection whether to display entries settings
- * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @param isTransparentGrid
- * @param tableOptionsCustomizer
+ * @param tableOptionsCustomizer can customize [TableOptions] in scope of [FC]; for example:
+ * ```kotlin
+ *  {
+ *      val (sorting, setSorting) = useState<SortingState>(emptyArray())
+ *      it.initialState!!.sorting = sorting
+ *  }
+ * ```
  * @return a functional react component
  */
 @Suppress(
@@ -99,7 +104,7 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught",
     "MAGIC_NUMBER",
-    "LAMBDA_IS_NOT_LAST_PARAMETER"
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 fun <D : RowData, P : TableProps<D>> tableComponent(
     columns: (P) -> Array<out ColumnDef<D, *>>,
@@ -107,11 +112,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
-    tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {} /* = {
-        // for example:
-        val (sorting, setSorting) = useState<SortingState>(emptyArray())
-        it.initialState!!.sorting = sorting
-    }*/,
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR") tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {},
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
@@ -239,7 +240,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                             renderHeader(header)
                                         )
                                         if (column.getCanSort()) {
-                                            style = style ?: jso {}
+                                            style = style ?: jso()
                                             style?.cursor = "pointer".unsafeCast<Cursor>()
                                             span {
                                                 +when (column.getIsSorted()) {

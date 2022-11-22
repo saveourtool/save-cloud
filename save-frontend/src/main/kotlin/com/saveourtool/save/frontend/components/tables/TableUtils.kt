@@ -1,3 +1,10 @@
+@file:Suppress(
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+    "CUSTOM_GETTERS_SETTERS",
+    "MISSING_KDOC_ON_FUNCTION",
+    "MISSING_KDOC_TOP_LEVEL",
+)
+
 package com.saveourtool.save.frontend.components.tables
 
 import react.ChildrenBuilder
@@ -25,9 +32,12 @@ val <TData : RowData, TValue> CellContext<TData, TValue>.pageSize get() = this.t
     .pagination
     .pageSize
 
-/**
- * @return
- */
+val <D : RowData> Row<D>.isExpanded get() = getIsExpanded()
+
+val <D : RowData> Table<D>.canPreviousPage get() = getCanPreviousPage()
+
+val <D : RowData> Table<D>.canNextPage get() = getCanNextPage()
+
 fun <TData : RowData> Table<TData>.visibleColumnsCount() = this.getVisibleFlatColumns().size
 
 fun <T> StateSetter<T>.invoke(updaterOrValue: Updater<T>) =
@@ -38,7 +48,7 @@ fun <T> StateSetter<T>.invoke(updaterOrValue: Updater<T>) =
         }
 
 fun <D : RowData> ChildrenBuilder.enableExpanding(tableOptions: TableOptions<D>) {
-    val (expanded, setExpanded) = useState<ExpandedState>(jso {})
+    val (expanded, setExpanded) = useState<ExpandedState>(jso())
     tableOptions.initialState!!.expanded = expanded
     tableOptions.asDynamic()
         .state
@@ -47,10 +57,3 @@ fun <D : RowData> ChildrenBuilder.enableExpanding(tableOptions: TableOptions<D>)
     tableOptions.onExpandedChange = { setExpanded.invoke(it) }
     tableOptions.getExpandedRowModel = getExpandedRowModel()
 }
-
-val <D : RowData> Row<D>.isExpanded get() = getIsExpanded()
-
-val <D : RowData> Table<D>.canPreviousPage get() = getCanPreviousPage()
-
-
-val <D : RowData> Table<D>.canNextPage get() = getCanNextPage()
