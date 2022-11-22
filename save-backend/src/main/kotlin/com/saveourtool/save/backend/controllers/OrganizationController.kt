@@ -130,10 +130,8 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
         authentication: Authentication?
     ) = Mono.fromCallable {
-        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
-    }.filter {
-        it?.status == OrganizationStatus.CREATED || authentication?.hasRole(Role.SUPER_ADMIN) ?: false
-    }.switchIfEmptyToNotFound {
+        organizationService.findByNameAndCreatedStatus(organizationName)
+    } .switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }
 

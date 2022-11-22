@@ -82,28 +82,12 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                 }
                                 ProjectStatus.DELETED -> div {
                                     className = ClassName("text-secondary")
-                                    if (props.currentUserInfo.isSuperAdmin()) {
-                                        a {
-                                            className = ClassName("text-secondary")
-                                            href = "#/${project.organization.name}/${cellContext.value}"
-                                            +cellContext.value
-                                        }
-                                    } else {
-                                        +cellContext.value
-                                    }
+                                    +cellContext.value
                                     statusSpan(cellContext.row.original)
                                 }
                                 ProjectStatus.BANNED -> div {
                                     className = ClassName("text-danger")
-                                    if (props.currentUserInfo.isSuperAdmin()) {
-                                        a {
-                                            className = ClassName("text-danger")
-                                            href = "#/${project.organization.name}/${cellContext.value}"
-                                            +cellContext.value
-                                        }
-                                    } else {
-                                        +cellContext.value
-                                    }
+                                    +cellContext.value
                                     statusSpan(cellContext.row.original)
                                 }
                             }

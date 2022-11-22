@@ -51,12 +51,19 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     }
                     Fragment.create {
                         td {
-                            Link {
+                            div {
                                 className = ClassName(stringClassName)
-                                to = "/organization/$organizationName/tools"
-                                +organizationName
+                                when(organization.status) {
+                                    OrganizationStatus.CREATED -> Link {
+                                        to = "/organization/$organizationName/tools"
+                                        +organizationName
+                                    }
+                                    else -> {
+                                        +organizationName
+                                    }
+                                }
+                                statusSpan(organization)
                             }
-                            statusSpan(organization)
                         }
                     }
                 }

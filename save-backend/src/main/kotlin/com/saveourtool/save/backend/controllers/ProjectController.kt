@@ -132,10 +132,9 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationNameAndStatusIn(name, organizationName, EnumSet.allOf(ProjectStatus::class.java))
-        }.filter {
-            it?.status == ProjectStatus.CREATED || authentication.hasRole(Role.SUPER_ADMIN)
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
+
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
         }
