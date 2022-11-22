@@ -30,6 +30,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 
 import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 
@@ -201,9 +202,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
             }
         },
         tableOptionsCustomizer = {
-            val (expanded, setExpanded) = useState<ExpandedState>(jso {})
-            it.initialState!!.expanded = expanded
-            it.onExpandedChange = setExpanded.asDynamic()
+            enableExpanding(it)
         }
     )
 

@@ -31,6 +31,8 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
 
 import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
+import com.saveourtool.save.frontend.components.tables.invoke
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.tables.pageIndex
 import com.saveourtool.save.frontend.components.tables.pageSize
@@ -47,6 +49,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import tanstack.table.core.ExpandedState
 import tanstack.table.core.RowData
+import tanstack.table.core.TableState
+import tanstack.table.core.getExpandedRowModel
 
 /**
  * [Props] for execution results view
@@ -99,7 +103,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable: FC<StatusProps<TestExecutionDto>> = tableComponent(
         columns = {
-            columns<TestExecutionDto> {
+            columns {
                 column(id = "index", header = "#") {
                     Fragment.create {
                         td {
@@ -107,7 +111,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column<Long?>(id = "startTime", header = "Start time", { startTimeSeconds }) { cellContext ->
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
@@ -117,7 +121,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column<Long?>(id = "endTime", header = "End time", { endTimeSeconds }) { cellContext ->
+                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
@@ -134,14 +138,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column<Long?>(id = "missing", header = "Missing", { unmatched }) {
+                column(id = "missing", header = "Missing", { unmatched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
                         }
                     }
                 }
-                column<Long?>(id = "matched", header = "Matched", { matched }) {
+                column(id = "matched", header = "Matched", { matched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
@@ -159,7 +163,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             // debug info is provided by agent after the execution
                             // possibly there can be cases when this info is not available
                             if (cellContext.value.hasDebugInfo == true) {
-//                                spread(cellContext.row.getToggleRowExpandedProps())
                                 style = jso {
                                     textDecoration = "underline".unsafeCast<TextDecoration>()
                                     color = "blue".unsafeCast<Color>()
@@ -217,12 +220,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         },
         useServerPaging = true,
         usePageSelection = true,
-        tableOptionsCustomizer = {
-            val (expanded, setExpanded) = useState<ExpandedState>(jso {})
-            it.initialState!!.expanded = expanded
-            it.onExpandedChange = setExpanded.asDynamic()
+        tableOptionsCustomizer = { tableOptions ->
+            enableExpanding(tableOptions)
 
-            it.enableFilters = true
+            // TODO!
+            tableOptions.enableFilters = true
         },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
