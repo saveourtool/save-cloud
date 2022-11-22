@@ -52,7 +52,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.post("$apiUrl/projects/get/by-filters") { _, res, _ ->
+        rest.post("$apiUrl/projects/by-filters") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,

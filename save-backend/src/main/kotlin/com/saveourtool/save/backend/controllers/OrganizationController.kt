@@ -18,6 +18,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -41,7 +42,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -111,8 +111,7 @@ internal class OrganizationController(
         @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-            organizationService.getFiltered(organizationFilters)
-                .toFlux()
+            blockingToFlux { organizationService.getFiltered(organizationFilters) }
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it

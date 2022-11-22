@@ -2268,19 +2268,26 @@
     },
     "/api/v1/organizations/by-filters": {
       "post": {
-        "description": "Get organizations matching filters",
+        "description": "Get filtered organization available for the current user.",
         "operationId": "getFilteredOrganizations",
         "parameters": [
           {
             "description": "organization filters",
             "in": "query",
             "name": "organizationFilters",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/OrganizationFilters"
-            }
+            "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -2314,7 +2321,7 @@
             "basic": []
           }
         ],
-        "summary": "Get organizations matching filters",
+        "summary": "Get organizations matching filters.",
         "tags": [
           "organizations"
         ]
@@ -3989,6 +3996,14 @@
       "post": {
         "description": "Get filtered projects available for the current user.",
         "operationId": "getFilteredProjects",
+        "parameters": [
+          {
+            "description": "project filters",
+            "in": "query",
+            "name": "projectFilters",
+            "required": true
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3996,7 +4011,8 @@
                 "$ref": "#/components/schemas/ProjectFilters"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -4719,10 +4735,7 @@
             "description": "setRoleRequest passed through body",
             "in": "path",
             "name": "setRoleRequest",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/SetRoleRequest"
-            }
+            "required": true
           },
           {
             "example": "basic",
@@ -4731,6 +4744,16 @@
             "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -8505,7 +8528,8 @@
               ]
             }
           }
-        }
+        },
+        "description": "organization filters"
       },
       "Part": {
         "type": "object"
@@ -8633,7 +8657,8 @@
               ]
             }
           }
-        }
+        },
+        "description": "project filters"
       },
       "Sdk": {
         "required": [
