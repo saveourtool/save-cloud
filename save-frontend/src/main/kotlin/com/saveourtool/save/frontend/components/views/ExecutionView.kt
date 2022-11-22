@@ -19,6 +19,7 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.enableExpanding
 import com.saveourtool.save.frontend.components.tables.invoke
+import com.saveourtool.save.frontend.components.tables.isExpanded
 import com.saveourtool.save.frontend.components.tables.pageIndex
 import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -167,7 +168,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                                 onClick = {
                                     this@ExecutionView.scope.launch {
-                                        if (!cellContext.row.getIsExpanded()) {
+                                        if (!cellContext.row.isExpanded) {
                                             getAdditionalInfoFor(cellContext.value, cellContext.row.id)
                                         }
                                         cellContext.row.toggleExpanded(null)

@@ -263,7 +263,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                     child(renderCell(cell))
                                 }
                             }
-                            if (row.getIsExpanded()) {
+                            if (row.isExpanded) {
                                 requireNotNull(renderExpandedRow) {
                                     "`useExpanded` is used, but no method for expanded row is provided"
                                 }

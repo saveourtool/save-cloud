@@ -85,7 +85,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
                 }
-                disabled = !tableInstance.getCanPreviousPage()
+                disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(171)").unsafeCast<String>()
             }
             // Previous page icon <
@@ -95,7 +95,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                disabled = !tableInstance.getCanPreviousPage()
+                disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(8249)").unsafeCast<String>()
             }
             // Previous before previous page
@@ -118,7 +118,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                hidden = !tableInstance.getCanPreviousPage()
+                hidden = !tableInstance.canPreviousPage
                 em {
                     +pageIndex.toString()
                 }
@@ -139,7 +139,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                hidden = !tableInstance.getCanNextPage()
+                hidden = !tableInstance.canNextPage
                 em {
                     +"${pageIndex + 2}"
                 }
@@ -164,7 +164,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                disabled = !tableInstance.getCanNextPage()
+                disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(8250)").unsafeCast<String>()
             }
             // Last page
@@ -174,7 +174,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
                 onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageCount - 1)
                 }
-                disabled = !tableInstance.getCanNextPage()
+                disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(187)").unsafeCast<String>()
             }
             // Jump to the concrete page

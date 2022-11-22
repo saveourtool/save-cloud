@@ -5,6 +5,7 @@ import react.StateSetter
 import react.useState
 import tanstack.table.core.CellContext
 import tanstack.table.core.ExpandedState
+import tanstack.table.core.Row
 import tanstack.table.core.RowData
 import tanstack.table.core.Table
 import tanstack.table.core.TableOptions
@@ -46,3 +47,10 @@ fun <D : RowData> ChildrenBuilder.enableExpanding(tableOptions: TableOptions<D>)
     tableOptions.onExpandedChange = { setExpanded.invoke(it) }
     tableOptions.getExpandedRowModel = getExpandedRowModel()
 }
+
+val <D : RowData> Row<D>.isExpanded get() = getIsExpanded()
+
+val <D : RowData> Table<D>.canPreviousPage get() = getCanPreviousPage()
+
+
+val <D : RowData> Table<D>.canNextPage get() = getCanNextPage()
