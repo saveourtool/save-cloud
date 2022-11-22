@@ -41,3 +41,8 @@ class ColumnBuilder<TData : RowData> {
     fun build(): ReadonlyArray<ColumnDef<TData, *>> =
             columns.toTypedArray()
 }
+
+fun <TData : RowData> columns(
+    block: ColumnBuilder<TData>.() -> Unit,
+): ReadonlyArray<ColumnDef<TData, *>> =
+        ColumnBuilder<TData>().apply(block).build()
