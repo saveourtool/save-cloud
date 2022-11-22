@@ -7,7 +7,9 @@ import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -41,23 +43,24 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
     private val projectsTable: FC<TableProps<Project>> = tableComponent(
         columns = {
             columns {
-                column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
+                column(id = "organization", header = "Organization", { organization.name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organization.name}"
+                                +cellContext.value
                             }
                         }
                     }
                 }
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                +cellContext.value
                             }
+                            privacySpan(cellContext.row.original)
                             privacyAndStatusSpan(cellProps.row.original)
                         }
                     }

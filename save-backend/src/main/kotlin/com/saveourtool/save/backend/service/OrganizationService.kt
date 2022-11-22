@@ -6,9 +6,12 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
+import kotlin.NoSuchElementException
 
 /**
  * Service for organization
@@ -120,17 +123,29 @@ class OrganizationService(
     /**
      * @param name
      * @param statuses
+     * @return organization by name and statuses
+     */
+    fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus>) =
+            organizationRepository.findByNameAndStatusIn(name, statuses)
+
+    /**
+     * @param name
+     * @return organization by name with [CREATED] status
+     */
+    fun findByNameAndCreatedStatus(name: String) = findByNameAndStatuses(name, EnumSet.of(OrganizationStatus.CREATED))
+
+    /**
+     * @param name
      * @return organization by name
      */
-    fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) =
-            organizationRepository.findByName(name)?.takeIf { it.status in statuses }
+    fun findByName(name: String) = organizationRepository.findByName(name)
 
     /**
      * @param name
      * @return organization by name
      * @throws NoSuchElementException
      */
-    fun getByName(name: String) = findByNameAndStatuses(name)
+    fun getByName(name: String) = findByNameAndCreatedStatus(name)
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
@@ -158,9 +173,10 @@ class OrganizationService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)?.apply {
-            avatar = relativePath
-        } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+        val organization = organizationRepository.findByName(name)
+            ?.apply {
+                avatar = relativePath
+            }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
 
@@ -175,7 +191,7 @@ class OrganizationService(
      * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
      */
     fun getGlobalRating(organizationName: String, authentication: Authentication?) =
-            projectService.getProjectsByOrganizationNameAndStatusIn(organizationName, authentication)
+            projectService.getProjectsByOrganizationNameAndCreatedStatus(organizationName, authentication)
                 .collectList()
                 .map { projectsList ->
                     projectsList.sumOf { it.contestRating }

@@ -248,7 +248,7 @@ class LnkOrganizationTestSuiteController(
         }
         .flatMap { (_, testSuite) ->
             Mono.zip(
-                organizationService.findByNameAndStatuses(setRightsRequest.organizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(setRightsRequest.organizationName).toMono(),
                 testSuite.toMono(),
             )
         }
@@ -298,7 +298,7 @@ class LnkOrganizationTestSuiteController(
         }
         .flatMap { testSuites ->
             Mono.zip(
-                organizationService.findByNameAndStatuses(setRightsRequest.organizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(setRightsRequest.organizationName).toMono(),
                 testSuites.toMono(),
             )
         }
@@ -362,7 +362,7 @@ class LnkOrganizationTestSuiteController(
         }
         .flatMap { (_, testSuite) ->
             Mono.zip(
-                organizationService.findByNameAndStatuses(requestedOrganizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(requestedOrganizationName).toMono(),
                 testSuite.toMono(),
             )
         }
@@ -423,7 +423,7 @@ class LnkOrganizationTestSuiteController(
     private fun getOrganizationIfParticipant(
         organizationName: String,
         authentication: Authentication?,
-    ) = organizationService.findByNameAndStatuses(organizationName)
+    ) = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "Organization with name $organizationName was not found"
@@ -439,7 +439,7 @@ class LnkOrganizationTestSuiteController(
         organizationName: String,
         permission: Permission,
         authentication: Authentication?,
-    ) = organizationService.findByNameAndStatuses(organizationName)
+    ) = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "Organization with name $organizationName was not found"

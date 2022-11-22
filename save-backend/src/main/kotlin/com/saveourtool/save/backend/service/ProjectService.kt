@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -17,7 +16,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import java.util.Optional
+import java.util.*
 
 /**
  * Service for project
@@ -29,7 +28,7 @@ import java.util.Optional
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-    private val organizationRepository: OrganizationRepository,
+
     private val userRepository: UserRepository
 ) {
     /**
@@ -91,8 +90,7 @@ class ProjectService(
      * @param project an [project] to ban
      * @return banned project
      */
-    fun banProject(project: Project): Project =
-            changeProjectStatus(project, ProjectStatus.BANNED)
+    fun banProject(project: Project): Project = changeProjectStatus(project, ProjectStatus.BANNED)
 
     /**
      * @param project [Project] to be updated
@@ -121,10 +119,18 @@ class ProjectService(
      * @param name
      * @param organizationName
      * @param statuses
-     * @return project
+     * @return project by [name], [organizationName] and [statuses]
      */
-    fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)) =
-            projectRepository.findByNameAndOrganizationName(name, organizationName)?.takeIf { it.status in statuses }
+    fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus>) =
+            projectRepository.findByNameAndOrganizationNameAndStatusIn(name, organizationName, statuses)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @return project by [name], [organizationName] and [CREATED] status
+     */
+    fun findByNameAndOrganizationNameAndCreatedStatus(name: String, organizationName: String) =
+            findByNameAndOrganizationNameAndStatusIn(name, organizationName, EnumSet.of(ProjectStatus.CREATED))
 
     /**
      * @param organizationName
@@ -147,7 +153,7 @@ class ProjectService(
     fun getProjectsByOrganizationNameAndStatusIn(
         organizationName: String,
         authentication: Authentication?,
-        statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)
+        statuses: Set<ProjectStatus>
     ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
             it.status in statuses
@@ -157,23 +163,25 @@ class ProjectService(
         }
 
     /**
+     * @param organizationName
+     * @param authentication
+     * @return projects by organizationName and [CREATED] status
+     */
+    fun getProjectsByOrganizationNameAndCreatedStatus(organizationName: String, authentication: Authentication?) =
+            getProjectsByOrganizationNameAndStatusIn(organizationName, authentication, EnumSet.of(ProjectStatus.CREATED))
+
+    /**
      * @param projectFilters is filter for [projects]
      * @return project's with filter
      */
     fun getFiltered(projectFilters: ProjectFilters): List<Project> =
-            if (projectFilters.organizationName.isBlank()) {
-                if (projectFilters.name.isBlank()) {
-                    projectRepository.findByStatusIn(projectFilters.statuses)
-                } else {
-                    projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
-                }
-            } else {
-                if (projectFilters.name.isBlank()) {
-                    projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
-                } else {
-                    findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
-                        ?.let { listOf(it) }.orEmpty()
-                }
+            when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
+                true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
+                true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
+                false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
+                false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
+                    ?.let { listOf(it) }.orEmpty()
+                else -> throw IllegalStateException("Impossible state")
             }
 
     /**
@@ -203,7 +211,7 @@ class ProjectService(
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOrganizationNameAndStatusIn(projectName, organizationName) }
+        Mono.fromCallable { findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }

@@ -4,13 +4,9 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -25,7 +21,7 @@ import react.create
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
-import react.table.columns
+
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -67,17 +63,17 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     id = "description",
                     header = "Description",
                     accessor = { description }
-                ) { cellProps ->
+                ) { cellContext ->
                     Fragment.create {
                         td {
-                            +(cellProps.value.orEmpty())
+                            +(cellContext.value.orEmpty())
                         }
                     }
                 }
-                column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellContext ->
                     Fragment.create {
                         td {
-                            val organization = cellProps.value
+                            val organization = cellContext.value
                             val organizationName = organization.name
 
                             when(organization.status) {

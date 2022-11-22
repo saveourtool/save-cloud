@@ -125,7 +125,7 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationNameAndStatusIn(name, organizationName)
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
@@ -151,7 +151,7 @@ class ProjectController(
         .flatMap {
             Mono.zip(
                 projectCreationRequest.toMono(),
-                organizationService.findByNameAndStatuses(it.organizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(it.organizationName).toMono(),
             )
         }
         .switchIfEmpty {

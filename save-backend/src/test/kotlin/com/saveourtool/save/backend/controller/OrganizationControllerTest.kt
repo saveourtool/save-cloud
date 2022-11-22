@@ -317,6 +317,7 @@ class OrganizationControllerTest {
             LnkUserOrganization(organization, user, userRole)
         )
         given(organizationRepository.findByName(any())).willReturn(organization)
+        given(organizationRepository.findByNameAndStatusIn(any(), any())).willReturn(organization)
         whenever(organizationRepository.save(any())).thenReturn(organization)
         given(userRepository.findByName(any())).willReturn(user)
         given(userRepository.findByNameAndSource(any(), any())).willReturn(user)

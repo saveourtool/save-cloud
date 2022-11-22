@@ -22,7 +22,7 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
-    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
     implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")

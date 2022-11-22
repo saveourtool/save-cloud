@@ -477,7 +477,7 @@ class TestSuitesSourceController(
         }
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
-        organizationService.findByNameAndStatuses(organizationName)
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }

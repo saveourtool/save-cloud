@@ -278,7 +278,7 @@ internal class ContestController(
         contestDto.organizationName
     )
         .flatMap {
-            organizationService.findByNameAndStatuses(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound()
         .filter {
@@ -333,7 +333,7 @@ internal class ContestController(
         @RequestBody contestRequest: ContestDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
-        organizationService.findByNameAndStatuses(contestRequest.organizationName).toMono(),
+        organizationService.findByNameAndCreatedStatus(contestRequest.organizationName).toMono(),
         contestService.findByName(contestRequest.name).toMono(),
     )
         .switchIfEmptyToNotFound {
@@ -376,7 +376,7 @@ internal class ContestController(
         @RequestBody contestsRequest: List<ContestDto>,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
-        organizationService.findByNameAndStatuses(contestsRequest.first().organizationName).toMono(),
+        organizationService.findByNameAndCreatedStatus(contestsRequest.first().organizationName).toMono(),
         contestsRequest.map { contestRequest -> contestService.findByName(contestRequest.name) }.toMono(),
     )
         .switchIfEmptyToNotFound {
