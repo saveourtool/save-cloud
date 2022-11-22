@@ -233,6 +233,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                         state.organizations.toTypedArray()
                     }
                 }
+                console.log(state.organizations.size)
             }
         }
     }

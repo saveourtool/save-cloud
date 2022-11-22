@@ -20,7 +20,6 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
-import react.table.columns
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -60,8 +59,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                                 href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
                                 +cellContext.value
                             }
-                            privacySpan(cellContext.row.original)
-                            privacyAndStatusSpan(cellProps.row.original)
+                            privacyAndStatusSpan(cellContext.row.original)
                         }
                     }
                 }

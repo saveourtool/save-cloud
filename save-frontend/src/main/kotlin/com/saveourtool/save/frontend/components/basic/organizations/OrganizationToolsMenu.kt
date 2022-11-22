@@ -8,7 +8,9 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -25,7 +27,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
-import react.table.columns
 
 val organizationToolsMenu = organizationToolsMenu()
 
@@ -63,46 +64,47 @@ external interface OrganizationToolsMenuProps : Props {
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
 
+
     val tableWithProjects: FC<TableProps<Project>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
-                        val project = cellProps.row.original
+                        val project = cellContext.row.original
                         td {
                             when (project.status) {
                                 ProjectStatus.CREATED -> {
                                     a {
-                                        href = "#/${project.organization.name}/${cellProps.value}"
-                                        +cellProps.value
+                                        href = "#/${project.organization.name}/${cellContext.value}"
+                                        +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellProps.row.original)
+                                    privacyAndStatusSpan(cellContext.row.original)
                                 }
                                 ProjectStatus.DELETED -> {
                                     className = ClassName("text-secondary")
                                     if (props.currentUserInfo.isSuperAdmin()) {
                                         a {
                                             className = ClassName("link-secondary")
-                                            href = "#/${project.organization.name}/${cellProps.value}"
-                                            +cellProps.value
+                                            href = "#/${project.organization.name}/${cellContext.value}"
+                                            +cellContext.value
                                         }
                                     } else {
-                                        +cellProps.value
+                                        +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellProps.row.original)
+                                    privacyAndStatusSpan(cellContext.row.original)
                                 }
                                 ProjectStatus.BANNED -> div {
                                     className = ClassName("text-danger")
                                     if (props.currentUserInfo.isSuperAdmin()) {
                                         a {
                                             className = ClassName("link-danger")
-                                            href = "#/${project.organization.name}/${cellProps.value}"
-                                            +cellProps.value
+                                            href = "#/${project.organization.name}/${cellContext.value}"
+                                            +cellContext.value
                                         }
                                     } else {
-                                        +cellProps.value
+                                        +cellContext.value
                                     }
-                                    privacyAndStatusSpan(cellProps.row.original)
+                                    privacyAndStatusSpan(cellContext.row.original)
                                 }
                             }
                         }
@@ -248,6 +250,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
             arrayOf(tableProps)
         }
     )
+
     div {
         className = ClassName("row justify-content-center")
         div {
