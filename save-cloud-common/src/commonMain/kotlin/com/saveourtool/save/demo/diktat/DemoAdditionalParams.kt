@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
  * @property mode
  * @property tool
  * @property config
+ * @property language
  */
 @Serializable
 data class DemoAdditionalParams(

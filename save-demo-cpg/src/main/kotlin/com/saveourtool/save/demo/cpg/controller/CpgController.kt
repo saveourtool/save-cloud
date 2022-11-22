@@ -32,6 +32,7 @@ private const val DEFAULT_SAVE_DEPTH = -1
 
 /**
  * A simple controller
+ * @property configProperties
  */
 @ApiSwaggerSupport
 @Tags(
@@ -45,8 +46,7 @@ class CpgController(
     private val logger = LoggerFactory.getLogger(CpgController::class.java)
 
     /**
-     * @param language
-     * @param sourceCode
+     * @param request
      * @return result of uploading, it contains ID to request the result further
      */
     @PostMapping("/upload-code")
@@ -60,22 +60,22 @@ class CpgController(
 
             // creating the CPG configuration instance, it will be used to configure the graph
             val translationConfiguration =
-                TranslationConfiguration.builder()
-                    .topLevel(null)
-                    // c++/java
-                    .defaultLanguages()
-                    // you can register non-default languages
-                    .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
-                    .debugParser(true)
-                    // the directory with sources
-                    .sourceLocations(tmpFolder.toFile())
-                    .defaultPasses()
-                    .inferenceConfiguration(
-                        InferenceConfiguration.builder()
-                            .inferRecords(true)
-                            .build()
-                    )
-                    .build()
+                    TranslationConfiguration.builder()
+                        .topLevel(null)
+                        // c++/java
+                        .defaultLanguages()
+                        // you can register non-default languages
+                        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
+                        .debugParser(true)
+                        // the directory with sources
+                        .sourceLocations(tmpFolder.toFile())
+                        .defaultPasses()
+                        .inferenceConfiguration(
+                            InferenceConfiguration.builder()
+                                .inferRecords(true)
+                                .build()
+                        )
+                        .build()
 
             // result - is the parsed Code Property Graph
             val result = TranslationManager.builder()
@@ -109,7 +109,7 @@ class CpgController(
 
     private fun saveTranslationResult(result: TranslationResult) {
         val (session, factory) = connect()
-        if (session == null) {
+        session ?: run {
             logger.error("Cannot connect to a neo4j database")
             return
         }
@@ -132,12 +132,12 @@ class CpgController(
         while (session == null && fails < MAX_RETRIES) {
             try {
                 val configuration =
-                    Configuration.Builder()
-                        .uri(configProperties.uri)
-                        .autoIndex("none")
-                        .credentials(configProperties.authentication.username, configProperties.authentication.password)
-                        .verifyConnection(true)
-                        .build()
+                        Configuration.Builder()
+                            .uri(configProperties.uri)
+                            .autoIndex("none")
+                            .credentials(configProperties.authentication.username, configProperties.authentication.password)
+                            .verifyConnection(true)
+                            .build()
                 sessionFactory = SessionFactory(configuration, "de.frauhonfer.ais.cecpg.graph")
                 session = sessionFactory.openSession()
             } catch (ex: ConnectionException) {
@@ -153,9 +153,7 @@ class CpgController(
                 logger.error("Unable to connect to ${configProperties.uri}, wrong username/password of the database")
             }
         }
-        if (session == null) {
-            logger.error("Unable to connect to ${configProperties.uri}")
-        }
+        session ?: logger.error("Unable to connect to ${configProperties.uri}")
         return Pair(session, sessionFactory)
     }
 
@@ -177,16 +175,24 @@ class CpgController(
     }
 
     private fun String.getFileName() =
-        this.trim()
-            .drop(FILE_NAME_SEPARATOR.length)
-            .dropLast(FILE_NAME_SEPARATOR.length)
-            .trim()
+            this.trim()
+                .drop(FILE_NAME_SEPARATOR.length)
+                .dropLast(FILE_NAME_SEPARATOR.length)
+                .trim()
 
+    /**
+     * @property name
+     * @property lines
+     */
     private data class SourceCodeFile(
         val name: String,
         val lines: MutableList<String>
     ) {
         private val logger = LoggerFactory.getLogger(SourceCodeFile::class.java)
+
+        /**
+         * @param tmpFolder
+         */
         fun createSourceFile(tmpFolder: Path) {
             val file = (tmpFolder / name)
             file.writeLines(lines)

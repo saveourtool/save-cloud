@@ -9,13 +9,11 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.demo.diktat.DemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
-import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
+
 import csstype.ClassName
-import kotlinx.coroutines.await
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -23,16 +21,8 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
 
-/**
- * DemoComponent [Props]
- */
-@Suppress("TYPE_ALIAS")
-external interface BuilderComponentProps : Props {
-    /**
-     * modal for builder window
-     */
-    var builderModal: (ChildrenBuilder) -> Unit
-}
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -40,7 +30,7 @@ external interface BuilderComponentProps : Props {
     "LongMethod",
     "TYPE_ALIAS"
 )
-val cpgDemoComponent = FC<BuilderComponentProps> { props ->
+val cpgDemoComponent: FC<BuilderComponentProps> = FC { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
@@ -133,4 +123,15 @@ val cpgDemoComponent = FC<BuilderComponentProps> { props ->
             }
         }
     }
+}
+
+/**
+ * DemoComponent [Props]
+ */
+@Suppress("TYPE_ALIAS")
+external interface BuilderComponentProps : Props {
+    /**
+     * modal for builder window
+     */
+    var builderModal: (ChildrenBuilder) -> Unit
 }

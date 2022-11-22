@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
-
-import com.saveourtool.save.frontend.components.basic.cpgDemoComponent
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpgDemoComponent
+
 import csstype.ClassName
 import react.VFC
 import react.dom.html.ReactHTML.div

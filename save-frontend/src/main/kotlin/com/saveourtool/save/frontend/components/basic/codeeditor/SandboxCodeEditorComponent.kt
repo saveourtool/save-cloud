@@ -7,9 +7,9 @@ import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SAVE_T
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SETUP_SH
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.TEST
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
-import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import react.FC

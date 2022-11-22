@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.*
-import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
@@ -39,8 +38,10 @@ configureSpotless()
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 val os = System.getProperty("os.name")
-if (os.contains("mac", ignoreCase = true)) {
-    tasks.withType<BootRun> {
-        environment("CPG_JEP_LIBRARY", "/opt/homebrew/lib/python3.10/site-packages/jep/libjep.jnilib")
+run {
+    if (os.contains("mac", ignoreCase = true)) {
+        tasks.withType<BootRun> {
+            environment("CPG_JEP_LIBRARY", "/opt/homebrew/lib/python3.10/site-packages/jep/libjep.jnilib")
+        }
     }
 }

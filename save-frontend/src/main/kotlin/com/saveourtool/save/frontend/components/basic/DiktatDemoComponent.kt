@@ -9,9 +9,9 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import org.w3c.dom.asList

@@ -4,10 +4,11 @@ package com.saveourtool.save.frontend.components.basic.codeeditor
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.utils.Languages
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.utils.Languages
+
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div

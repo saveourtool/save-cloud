@@ -5,6 +5,7 @@ package com.saveourtool.save.utils
  *
  * @property modeName substring of file with required highlight mode
  * @property prettyName
+ * @property extension
  */
 @Suppress("IDENTIFIER_LENGTH")
 enum class Languages(val modeName: String, val prettyName: String, val extension: String) {
