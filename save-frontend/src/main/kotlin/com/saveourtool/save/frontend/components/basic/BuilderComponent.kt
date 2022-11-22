@@ -14,6 +14,8 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
+import csstype.Display
+import csstype.Height
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -21,6 +23,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
 
+import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -111,15 +114,22 @@ val cpgDemoComponent: FC<BuilderComponentProps> = FC { props ->
             }
 
             div {
-                className = ClassName("col-8")
-                h6 {
-                    className = ClassName("text-center text-primary")
-                    +"Graph"
-                }
+                className = ClassName("col-8 d-flex flex-wrap")
                 div {
-                    className = ClassName("card card-body")
+                    className = ClassName("col")
+                    h6 {
+                        className = ClassName("text-center flex-wrap text-primary")
+                        +"Graph"
+                    }
+                    div {
+                        className = ClassName("card card-body")
+                        style = jso {
+                            height = "90%".unsafeCast<Height>()
+                            display = Display.block
+                        }
+                        props.builderModal(this)
+                    }
                 }
-                props.builderModal(this)
             }
         }
     }
