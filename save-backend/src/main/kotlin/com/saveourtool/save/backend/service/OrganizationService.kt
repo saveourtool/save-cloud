@@ -123,7 +123,7 @@ class OrganizationService(
      * @return organization by name
      */
     fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) =
-            organizationRepository.findByName(name)?.takeIf { it.status in statuses }
+            organizationRepository.findByNameAndStatusIn(name, statuses)
 
     /**
      * @param name
@@ -158,9 +158,10 @@ class OrganizationService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)?.apply {
-            avatar = relativePath
-        } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+        val organization = organizationRepository.findByNameAndStatusIn(name, setOf(OrganizationStatus.CREATED, OrganizationStatus.DELETED))
+            ?.apply {
+                avatar = relativePath
+            } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
         organization.let { organizationRepository.save(it) }
     }
 

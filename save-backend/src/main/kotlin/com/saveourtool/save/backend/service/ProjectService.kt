@@ -124,7 +124,7 @@ class ProjectService(
      * @return project
      */
     fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)) =
-            projectRepository.findByNameAndOrganizationName(name, organizationName)?.takeIf { it.status in statuses }
+            projectRepository.findByNameAndOrganizationNameAndStatusIn(name, organizationName, statuses)
 
     /**
      * @param organizationName

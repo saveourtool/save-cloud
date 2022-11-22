@@ -17,9 +17,16 @@ JpaSpecificationExecutor<Organization>,
 ValidateRepository {
     /**
      * @param name
-     * @return organization by name
+     * @return organization by [name]
      */
     fun findByName(name: String): Organization?
+
+    /**
+     * @param name
+     * @param statuses
+     * @return organization by [name] and [statuses]
+     */
+    fun findByNameAndStatusIn(name: String, statuses: Set<OrganizationStatus>): Organization?
 
     /**
      * @param id
