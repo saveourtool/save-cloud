@@ -100,11 +100,11 @@ internal class OrganizationController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get organizations matching filters",
-        description = "Get organizations matching filters",
+        summary = "Get organizations matching filters.",
+        description = "Get filtered organization available for the current user.",
     )
     @Parameters(
-        Parameter(name = "organizationFilters", `in` = ParameterIn.QUERY, description = "organization filters", required = true),
+        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizations(

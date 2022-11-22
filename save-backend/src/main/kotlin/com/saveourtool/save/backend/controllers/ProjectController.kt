@@ -90,9 +90,12 @@ class ProjectController(
         summary = "Get projects matching filters",
         description = "Get filtered projects available for the current user.",
     )
+    @Parameters(
+        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody(required = false) projectFilters: ProjectFilters,
+        @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<Project> =
             projectService.getFiltered(projectFilters)

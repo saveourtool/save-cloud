@@ -559,7 +559,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun getProjectsFromCache(): List<Project> = state.projects
 
     private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
-        url = "$apiUrl/projects/get/by-filters",
+        url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
         body = Json.encodeToString(ProjectFilters("", props.organizationName)),
         loadingHandler = ::classLoadingHandler,

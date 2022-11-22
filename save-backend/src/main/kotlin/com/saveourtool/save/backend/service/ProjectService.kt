@@ -160,7 +160,7 @@ class ProjectService(
      * @param projectFilters is filter for [projects]
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters) =
+    fun getFiltered(projectFilters: ProjectFilters): List<Project> =
             if (projectFilters.organizationName.isBlank()) {
                 if (projectFilters.name.isBlank()) {
                     projectRepository.findByStatusIn(projectFilters.statuses)
