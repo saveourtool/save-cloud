@@ -42,7 +42,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -112,7 +111,7 @@ internal class OrganizationController(
         @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-        blockingToFlux { organizationService.getFiltered(organizationFilters) }
+            blockingToFlux { organizationService.getFiltered(organizationFilters) }
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it

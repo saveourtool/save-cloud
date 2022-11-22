@@ -36,7 +36,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -99,7 +98,7 @@ class ProjectController(
         @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<Project> =
-        blockingToFlux { projectService.getFiltered(projectFilters) }
+            blockingToFlux { projectService.getFiltered(projectFilters) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
