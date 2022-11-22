@@ -11,7 +11,12 @@ import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -29,7 +34,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -103,19 +107,19 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellProps ->
+                column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellProps.row.original.avatar?.let {
+                                    src = cellContext.row.original.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     style = jso {
@@ -123,16 +127,16 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                         width = 2.rem
                                     }
                                 }
-                                href = "#/${cellProps.value}"
-                                +" ${cellProps.value}"
+                                href = "#/${cellContext.value}"
+                                +" ${cellContext.value}"
                             }
                         }
                     }
                 }
-                column(id = "rating", header = "Rating") { cellProps ->
+                column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.globalRating?.toFixedStr(2)}"
+                            +"${cellContext.value.globalRating?.toFixedStr(2)}"
                         }
                     }
                 }
@@ -147,7 +151,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
                         name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
@@ -180,25 +184,25 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellProps ->
+                column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +" ${cellProps.value}"
+                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                +" ${cellContext.value}"
                             }
                         }
                     }
                 }
-                column(id = "rating", header = "Rating") { cellProps ->
+                column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
-                            +cellProps.value.contestRating.toFixedStr(2)
+                            +cellContext.value.contestRating.toFixedStr(2)
                         }
                     }
                 }
@@ -213,7 +217,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
                         name = state.projectFilters.name
                         onChangeFilters = { filterValue ->

@@ -13,7 +13,9 @@ import com.saveourtool.save.frontend.components.basic.contests.showContestCreati
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displayInfoModal
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -25,7 +27,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.router.useNavigate
-import react.table.columns
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -39,49 +40,49 @@ val organizationContestsMenu = organizationContestsMenu()
 private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tableComponent(
     columns = { props ->
         columns {
-            column(id = "name", header = "Contest Name", { name }) { cellProps ->
+            column(id = "name", header = "Contest Name", { name }) { cellContext ->
                 Fragment.create {
                     td {
                         a {
-                            href = "#/contests/${cellProps.row.original.name}"
-                            +cellProps.value
+                            href = "#/contests/${cellContext.row.original.name}"
+                            +cellContext.value
                         }
                     }
                 }
             }
-            column(id = "description", header = "Description", { description }) { cellProps ->
+            column(id = "description", header = "Description", { description }) { cellContext ->
                 Fragment.create {
                     td {
-                        +(cellProps.value ?: "Description is not provided")
+                        +(cellContext.value ?: "Description is not provided")
                     }
                 }
             }
-            column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
+            column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellContext ->
                 Fragment.create {
                     td {
-                        +cellProps.value.replace("T", " ")
+                        +cellContext.value.replace("T", " ")
                     }
                 }
             }
-            column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
+            column(id = "end_time", header = "End Time", { endTime.toString() }) { cellContext ->
                 Fragment.create {
                     td {
-                        +cellProps.value.replace("T", " ")
+                        +cellContext.value.replace("T", " ")
                     }
                 }
             }
-            column("checkBox", "") { cellProps ->
+            column("checkBox", "") { cellContext ->
                 Fragment.create {
                     td {
                         input {
                             type = InputType.checkbox
                             id = "checkbox"
-                            defaultChecked = props.selectedContestDtos.contains(cellProps.row.original)
+                            defaultChecked = props.selectedContestDtos.contains(cellContext.row.original)
                             onChange = { event ->
                                 if (event.target.checked) {
-                                    props.addSelectedContests(cellProps.row.original)
+                                    props.addSelectedContests(cellContext.row.original)
                                 } else {
-                                    props.removeSelectedContests(cellProps.row.original)
+                                    props.removeSelectedContests(cellContext.row.original)
                                 }
                             }
                         }
