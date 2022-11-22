@@ -24,8 +24,6 @@ import react.dom.html.ReactHTML.h6
 import react.useState
 
 import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -33,32 +31,19 @@ import kotlinx.serialization.json.Json
     "LongMethod",
     "TYPE_ALIAS"
 )
-val cpgDemoComponent: FC<BuilderComponentProps> = FC { props ->
+val demoComponent: FC<DemoComponentProps> = FC { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
     val (codeLines, setCodeLines) = useState("")
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
 
-    val windowOpenness = useWindowOpenness()
-
     val sendRunRequest = useDeferredRequest {
-        val data = Json.encodeToString(DemoRunRequest(
-            codeLines.split("\n"),
-            DemoAdditionalParams(language = selectedLanguage)
-        ))
-        val response = post(
-            "$cpgDemoApiUrl/upload-code",
-            headers = jsonHeaders,
-            body = data,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::responseHandlerWithValidation
+        props.resultRequest(
+            this,
+            DemoRunRequest(
+                codeLines.split("\n"),
+                DemoAdditionalParams(language = selectedLanguage),
+            )
         )
-
-        windowOpenness.closeWindow()
-        if (!response.ok) {
-            // FixMe: open error window and populate proper response
-        } else {
-            // FixMe: propagate response.text().await()
-        }
     }
 
     div {
@@ -127,7 +112,7 @@ val cpgDemoComponent: FC<BuilderComponentProps> = FC { props ->
                             height = "90%".unsafeCast<Height>()
                             display = Display.block
                         }
-                        props.builderModal(this)
+                        props.resultBuilder(this)
                     }
                 }
             }
@@ -139,9 +124,14 @@ val cpgDemoComponent: FC<BuilderComponentProps> = FC { props ->
  * DemoComponent [Props]
  */
 @Suppress("TYPE_ALIAS")
-external interface BuilderComponentProps : Props {
+external interface DemoComponentProps : Props {
     /**
-     * modal for builder window
+     * Callback to display the result
      */
-    var builderModal: (ChildrenBuilder) -> Unit
+    var resultBuilder: (ChildrenBuilder) -> Unit
+
+    /**
+     * Request to receive the result
+     */
+    var resultRequest: suspend WithRequestStatusContext.(DemoRunRequest) -> Unit
 }
