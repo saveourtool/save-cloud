@@ -46,6 +46,11 @@ tasks.named<BootBuildImage>("bootBuildImage") {
                         "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
     )
     isVerboseLogging = true
+    docker {
+        host = findProperty("boot.build.docker.host") as? String?
+        setTlsVerify((findProperty("boot.build.docker.tls-verify") as? String?)?.toBoolean() ?: false)
+        certPath = findProperty("boot.build.docker.cert-path") as? String?
+    }
     System.getenv("GHCR_PWD")?.let { registryPassword ->
         isPublish = true
         docker {
