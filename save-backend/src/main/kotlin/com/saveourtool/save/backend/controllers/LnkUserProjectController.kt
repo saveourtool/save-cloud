@@ -13,7 +13,6 @@ import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
@@ -97,9 +96,6 @@ class LnkUserProjectController(
         }
         .map { project ->
             lnkUserProjectService.getAllUsersAndRolesByProject(project)
-                .filter { (_, role) ->
-                    role != Role.NONE
-                }
         }
         .map { users ->
             users.map { (user, role) ->
