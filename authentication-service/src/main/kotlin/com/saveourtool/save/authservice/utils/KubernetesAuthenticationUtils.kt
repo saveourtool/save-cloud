@@ -2,7 +2,7 @@
  * Utilities to configure Kubernetes ServiceAccount token-based authentication in Spring Security.
  */
 
-package com.saveourtool.save.spring.security
+package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -51,7 +51,7 @@ const val SA_HEADER_NAME = "X-Service-Account-Token"
 @Suppress(
     "AVOID_USING_UTILITY_CLASS",  // Spring beans need to be declared inside `@Configuration` class.
 )
-open class KubernetesAuthenticationUtils {
+class KubernetesAuthenticationUtils {
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Bean
     @Order(2)
@@ -59,7 +59,7 @@ open class KubernetesAuthenticationUtils {
         "MISSING_KDOC_CLASS_ELEMENTS",
         "MISSING_KDOC_ON_FUNCTION",
     )
-    open fun internalSecuredSecurityChain(
+    fun internalSecuredSecurityChain(
         http: ServerHttpSecurity,
         serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
         serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
@@ -102,7 +102,7 @@ open class KubernetesAuthenticationUtils {
         "KDOC_WITHOUT_PARAM_TAG",
         "KDOC_WITHOUT_RETURN_TAG",
     )
-    open fun internalInsecureSecurityChain(
+    fun internalInsecureSecurityChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
         securityMatcher(

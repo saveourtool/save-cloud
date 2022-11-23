@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.authservice.config.SecurityWebClientCustomizers
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -21,7 +22,7 @@ typealias StringList = List<String>
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
-@Import(WebClientCustomizers::class)
+@Import(SecurityWebClientCustomizers::class)
 class SaveApplication
 
 fun main(args: Array<String>) {

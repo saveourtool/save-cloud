@@ -10,7 +10,7 @@ import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
-import com.saveourtool.save.spring.security.KubernetesAuthenticationUtils
+import com.saveourtool.save.authservice.utils.KubernetesAuthenticationUtils
 
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile

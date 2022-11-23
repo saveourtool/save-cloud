@@ -29,6 +29,7 @@ tasks.withType<Test> {
 
 dependencies {
     api(projects.saveCloudCommon)
+    api(projects.authenticationService)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)

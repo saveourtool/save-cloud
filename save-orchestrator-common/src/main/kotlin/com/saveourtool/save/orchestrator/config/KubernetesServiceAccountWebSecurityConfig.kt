@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.config
 
-import com.saveourtool.save.spring.security.KubernetesAuthenticationUtils
+import com.saveourtool.save.authservice.utils.KubernetesAuthenticationUtils
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform
 import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.context.annotation.Import

@@ -1,6 +1,6 @@
 package com.saveourtool.save.preprocessor
 
-import com.saveourtool.save.configs.WebClientCustomizers
+import com.saveourtool.save.authservice.config.SecurityWebClientCustomizers
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration
@@ -28,7 +28,7 @@ typealias StatusResponse = ResponseEntity<HttpStatus>
 ])
 @EnableWebFlux
 @EnableConfigurationProperties(ConfigProperties::class)
-@Import(WebClientCustomizers::class)
+@Import(SecurityWebClientCustomizers::class)
 class SavePreprocessor
 
 fun main(args: Array<String>) {

@@ -2,9 +2,9 @@
  * Customization for spring `WebClient`
  */
 
-package com.saveourtool.save.configs
+package com.saveourtool.save.authservice.config
 
-import com.saveourtool.save.spring.security.SA_HEADER_NAME
+import com.saveourtool.save.authservice.utils.SA_HEADER_NAME
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -28,7 +28,7 @@ import kotlin.io.path.readText
  * A configuration class that can be used to import all related [WebClientCustomizer] beans.
  */
 @Configuration
-open class WebClientCustomizers {
+open class SecurityWebClientCustomizers {
     @Bean
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
