@@ -18,6 +18,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -41,7 +42,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -90,27 +90,28 @@ internal class OrganizationController(
         @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
     ): Mono<List<Organization>> = Mono.fromCallable {
         when {
-            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
+            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.created)
 
             else -> organizationService.findAll()
         }
     }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted organizations.",
-        description = "Get non-deleted organizations.",
+        summary = "Get organizations matching filters.",
+        description = "Get filtered organization available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getNotDeletedOrganizations(
-        @RequestBody(required = false) organizationFilters: OrganizationFilters?,
+    fun getFilteredOrganizations(
+        @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationDto> =
-            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
-                .let { organizationService.getFiltered(it) }
-                .toFlux()
+            blockingToFlux { organizationService.getFiltered(organizationFilters) }
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it
@@ -135,7 +136,7 @@ internal class OrganizationController(
     fun getOrganizationByName(
         @PathVariable organizationName: String,
     ) = Mono.fromCallable {
-        organizationService.findByName(organizationName)
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }
@@ -155,7 +156,7 @@ internal class OrganizationController(
             (auth.details as AuthenticationDetails).id
         }
         .flatMapMany {
-            lnkUserOrganizationService.findAllByAuthentication(it)
+            lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)
         }
         .map {
             it.organization
@@ -171,7 +172,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix))
         .map { it.name }
         .toMono()
 
@@ -189,7 +190,7 @@ internal class OrganizationController(
     fun avatar(
         @PathVariable organizationName: String
     ): Mono<ImageInfo> = Mono.fromCallable {
-        organizationService.findByName(organizationName)?.avatar.let { ImageInfo(it) }
+        organizationService.findByNameAndCreatedStatus(organizationName)?.avatar.let { ImageInfo(it) }
     }
 
     @PostMapping("/{organizationName}/manage-contest-permission")
@@ -216,7 +217,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByName(organizationName).toMono()
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -291,7 +292,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -303,7 +304,7 @@ internal class OrganizationController(
             "Not enough permission for managing organization $organizationName."
         }
         .filter {
-            organizationService.findByName(organization.name) != null
+            organizationService.findByNameAndCreatedStatus(organization.name) != null
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There already is an organization with name ${organization.name}"
@@ -337,7 +338,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByName(organizationName)
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -395,7 +396,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -472,7 +473,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -530,7 +531,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<Double> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -552,7 +553,7 @@ internal class OrganizationController(
         gitDto: GitDto,
         authentication: Authentication,
         isUpdate: Boolean
-    ): Mono<StringResponse> = blockingToMono { organizationService.findByName(organizationName) }
+    ): Mono<StringResponse> = blockingToMono { organizationService.findByNameAndCreatedStatus(organizationName) }
         .switchIfEmptyToNotFound {
             "Could not find organization with name $organizationName"
         }

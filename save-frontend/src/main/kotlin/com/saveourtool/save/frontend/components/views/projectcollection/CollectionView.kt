@@ -3,26 +3,26 @@
 package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.privacySpan
-import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
-import react.table.columns
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
@@ -42,24 +42,24 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
     private val projectsTable: FC<TableProps<Project>> = tableComponent(
         columns = {
             columns {
-                column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
+                column(id = "organization", header = "Organization", { organization.name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organization.name}"
+                                +cellContext.value
                             }
                         }
                     }
                 }
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                +cellContext.value
                             }
-                            privacySpan(cellProps.row.original)
+                            privacySpan(cellContext.row.original)
                         }
                     }
                 }
@@ -104,12 +104,11 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                 projectsTable {
                     getData = { _, _ ->
                         val response = post(
-                            url = "$apiUrl/projects/not-deleted",
-                            headers = Headers().also {
-                                it.set("Accept", "application/json")
-                            },
-                            body = undefined,
+                            url = "$apiUrl/projects/by-filters",
+                            headers = jsonHeaders,
+                            body = Json.encodeToString(ProjectFilters.created),
                             loadingHandler = ::classLoadingHandler,
+                            responseHandler = ::noopResponseHandler
                         )
                         if (response.ok) {
                             response.unsafeMap {
