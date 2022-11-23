@@ -11,10 +11,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import com.saveourtool.save.utils.asyncEffectIf
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.newAgentStatus
-import com.saveourtool.save.utils.warn
+import com.saveourtool.save.utils.*
 
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -25,8 +22,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-
-import java.time.LocalDateTime
 
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -69,7 +64,7 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatusesWithDto(
-                    AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
+                    AgentStatusDto(heartbeat.state, heartbeat.agentId)
                 )
             }
             .flatMap {
@@ -104,7 +99,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(agentId)
                 .asyncEffectIf({ this is NewJobResponse }) {
-                    agentService.updateAgentStatusesWithDto(BUSY.newAgentStatus(agentId))
+                    agentService.updateAgentStatusesWithDto(AgentStatusDto(BUSY, agentId))
                 }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
@@ -118,7 +113,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
                 .flatMap { (response, shouldStop) ->
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(TERMINATED.newAgentStatus(agentId))
+                        agentService.updateAgentStatusesWithDto(AgentStatusDto(TERMINATED, agentId))
                             .thenReturn<HeartbeatResponse>(TerminateResponse)
                             .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {

@@ -196,7 +196,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                                     loadingHandler = ::loadingHandler,
                                                 )
                                                     .unsafeMap {
-                                                        it.decodeFromJsonString<List<Organization>>()
+                                                        it.decodeFromJsonString<List<OrganizationDto>>()
                                                     }
                                                     .map {
                                                         it.name

@@ -6,7 +6,7 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
@@ -80,9 +80,9 @@ private fun ChildrenBuilder.testingTypeButton(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
-    val (project, setProject) = useState(Project.stub(-1))
+    val (project, setProject) = useState(ProjectDto.empty)
     useRequest {
-        val projectFromBackend: Project = get(
+        val projectFromBackend: ProjectDto = get(
             url = "$apiUrl/projects/get/organization-name?name=${props.projectName}&organizationName=${props.organizationName}",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
@@ -128,7 +128,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
-                organizationName = project.organization.name,
+                organizationName = project.organizationName,
                 projectName = project.name
             ),
             testSuiteIds = selectedTestSuites.map { it.requiredId() },
@@ -176,7 +176,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                         "Evaluate your tool with public test suites",
                         "mt-3 mr-2",
                     )
-                    if (project.public) {
+                    if (project.isPublic) {
                         displayTestingTypeButton(
                             TestingType.CONTEST_MODE,
                             "Participate in SAVE contests with your tool",

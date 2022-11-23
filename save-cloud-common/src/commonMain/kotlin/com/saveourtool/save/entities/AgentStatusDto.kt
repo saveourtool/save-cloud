@@ -5,7 +5,8 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.utils.getCurrentLocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 /**
  * @property state current state of the agent
@@ -13,9 +14,9 @@ import com.saveourtool.save.utils.LocalDateTime
  * @property time
  */
 data class AgentStatusDto(
-    val time: LocalDateTime,
     val state: AgentState,
     val containerId: String,
+    val time: LocalDateTime = getCurrentLocalDateTime(),
 )
 
 /**

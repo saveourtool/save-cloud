@@ -13,7 +13,7 @@ import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -57,13 +57,15 @@ class LnkUserProjectController(
         description = "Get list of projects related to current user",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
-    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<Project> {
+    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
         return Flux.fromIterable(
             lnkUserProjectService.getProjectsByUserIdAndStatuses(userIdFromAuth)
-        ).filter {
-            it.public
-        }
+        )
+            .filter {
+                it.public
+            }
+            .map { it.toDto() }
     }
 
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
