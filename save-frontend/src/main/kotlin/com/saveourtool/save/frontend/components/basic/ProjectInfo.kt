@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
@@ -45,12 +45,12 @@ external interface ProjectInfoProps : Props {
     /**
      * Project passed from parent component that should be used for initial values
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Callback to update project state in ProjectView after update request's response is received.
      */
-    var onProjectUpdate: ((Project) -> Unit)?
+    var onProjectUpdate: ((ProjectDto) -> Unit)?
 }
 
 @Suppress(
@@ -74,7 +74,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
             post(
                 "$apiUrl/projects/update",
                 jsonHeaders,
-                Json.encodeToString(draftProject.toDto()),
+                Json.encodeToString(draftProject),
                 loadingHandler = ::loadingHandler,
             ).let {
                 if (it.ok) {
@@ -89,7 +89,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
         "url" to draftProject.url,
         "description" to draftProject.description,
     )
-    val idToValueSetter: Map<String, (String) -> Project> = mapOf(
+    val idToValueSetter: Map<String, (String) -> ProjectDto> = mapOf(
         "name" to { draftProject.copy(name = it) },
         "url" to { draftProject.copy(url = it) },
         "description" to { draftProject.copy(description = it) },

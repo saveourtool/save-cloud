@@ -6,8 +6,8 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.OrganizationWithRating
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.TabMenuBar
@@ -48,7 +48,7 @@ enum class UserRatingTab {
     }
 }
 
-private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
+private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<ProjectDto>) {
     projects.forEachIndexed { i, project ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
@@ -85,8 +85,8 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
     }
 }
 
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationDto>) {
-    organizations.forEachIndexed { i, organization ->
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationWithRating>) {
+    organizations.forEachIndexed { i, organizationWithRating ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
             div {
@@ -101,21 +101,23 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                 className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    strong {
-                        className = ClassName("d-block text-gray-dark")
-                        a {
-                            href = "#/${organization.name}"
-                            +organization.name
+                    with(organizationWithRating.organization) {
+                        strong {
+                            className = ClassName("d-block text-gray-dark")
+                            a {
+                                href = "#/$name"
+                                +name
+                            }
                         }
+                        +"$description "
                     }
-                    +("${organization.description} ")
                 }
             }
 
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"${organization.globalRating?.toFixedStr(2)}"
+                    +organizationWithRating.globalRating.toFixedStr(2)
                 }
             }
         }
@@ -129,21 +131,21 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
 private fun userRating() = VFC {
     val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
-    val (organizations, setOrganizations) = useState<Set<OrganizationDto>>(emptySet())
+    val (organizationsWithRating, setOrganizationsWithRating) = useState<Set<OrganizationWithRating>>(emptySet())
     useRequest {
-        val organizationsFromBackend: List<OrganizationDto> = post(
-            url = "$apiUrl/organizations/by-filters",
+        val organizationsFromBackend: List<OrganizationWithRating> = post(
+            url = "$apiUrl/organizations/by-filters-with-rating",
             headers = jsonHeaders,
             body = Json.encodeToString(OrganizationFilters.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
-        setOrganizations(organizationsFromBackend.toSet())
+        setOrganizationsWithRating(organizationsFromBackend.toSet())
     }
 
-    val (projects, setProjects) = useState(emptySet<Project>())
+    val (projects, setProjects) = useState(emptySet<ProjectDto>())
     useRequest {
-        val projectsFromBackend: List<Project> = post(
+        val projectsFromBackend: List<ProjectDto> = post(
             url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
             body = Json.encodeToString(ProjectFilters.created),
@@ -169,7 +171,7 @@ private fun userRating() = VFC {
                     setSelectedTab(UserRatingTab.valueOf(it))
                 }
                 when (selectedTab) {
-                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizations)
+                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizationsWithRating)
                     UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
                 }
 

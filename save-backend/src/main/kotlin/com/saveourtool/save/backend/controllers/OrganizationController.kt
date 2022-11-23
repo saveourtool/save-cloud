@@ -46,7 +46,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-import java.time.LocalDateTime
+typealias OrganizationDtoList = List<OrganizationDto>
 
 /**
  * Controller for working with organizations.
@@ -88,38 +88,35 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
         @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
-    ): Mono<List<Organization>> = Mono.fromCallable {
-        when {
-            onlyActive -> organizationService.getFiltered(organizationFilters = OrganizationFilters.created)
-
-            else -> organizationService.findAll()
-        }
+    ): Mono<OrganizationDtoList> = when {
+        onlyActive -> getFilteredOrganizationDtoList(OrganizationFilters.created).collectList()
+        else -> blockingToMono { organizationService.findAll().map(Organization::toDto) }
     }
 
-    @PostMapping("/by-filters")
+    @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get organizations matching filters.",
-        description = "Get filtered organization available for the current user.",
+        summary = "Get organizations with rating matching filters.",
+        description = "Get filtered organizations with rating available for the current user.",
     )
     @Parameters(
         Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getFilteredOrganizations(
+    fun getFilteredOrganizationsWithRating(
         @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication?,
-    ): Flux<OrganizationDto> =
-            blockingToFlux { organizationService.getFiltered(organizationFilters) }
-                .flatMap { organization ->
-                    organizationService.getGlobalRating(organization.name, authentication).map {
-                        organization to it
-                    }
+    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilters)
+        .flatMap { organizationDto ->
+            organizationService.getGlobalRating(organizationDto.name, authentication)
+                .map { rating ->
+                    OrganizationWithRating(
+                        organization = organizationDto,
+                        globalRating = rating,
+                    )
                 }
-                .map { (organization, rating) ->
-                    organization.toDto().copy(globalRating = rating)
-                }
+        }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -135,11 +132,13 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-    ) = Mono.fromCallable {
+    ) = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
-    }.switchIfEmptyToNotFound {
-        "Organization not found by name $organizationName"
     }
+        .map { it.toDto() }
+        .switchIfEmptyToNotFound {
+            "Organization not found by name $organizationName"
+        }
 
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
@@ -151,7 +150,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
-    ): Flux<Organization> = authentication.toMono()
+    ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
             (auth.details as AuthenticationDetails).id
         }
@@ -159,7 +158,7 @@ internal class OrganizationController(
             lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)
         }
         .map {
-            it.organization
+            it.organization.toDto()
         }
 
     @GetMapping("/get/by-prefix")
@@ -172,9 +171,9 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix))
+    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilters(prefix))
         .map { it.name }
-        .toMono()
+        .collectList()
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
@@ -250,7 +249,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(newOrganization)
         .map {
-            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
+            organizationService.saveOrganization(it.toOrganization())
         }
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
@@ -547,6 +546,10 @@ internal class OrganizationController(
     ).flatMap { key ->
         testSuitesSourceSnapshotStorage.delete(key)
     }
+
+    private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
+        organizationService.getFiltered(filters)
+    }.map { it.toDto() }
 
     private fun upsertGitCredential(
         organizationName: String,

@@ -5,9 +5,7 @@
 package com.saveourtool.save.frontend.http
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
@@ -49,7 +47,7 @@ suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: 
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
     .runCatching {
-        decodeFromJsonString<Project>()
+        decodeFromJsonString<ProjectDto>()
     }
 
 /**
@@ -64,7 +62,7 @@ suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
     loadingHandler = ::classLoadingHandler,
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
-    .decodeFromJsonString<Organization>()
+    .decodeFromJsonString<OrganizationDto>()
 
 /**
  * @param name contest name

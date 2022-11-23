@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -21,13 +21,13 @@ import kotlinx.js.jso
 /**
  * @param project
  */
-fun ChildrenBuilder.privacySpan(project: Project) {
+fun ChildrenBuilder.privacySpan(project: ProjectDto) {
     span {
         className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
         style = jso {
             borderRadius = "2em".unsafeCast<BorderRadius>()
         }
-        +if (project.public) "public" else "private"
+        +if (project.isPublic) "public" else "private"
     }
 }
 
