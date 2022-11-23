@@ -93,21 +93,6 @@ internal class OrganizationController(
         else -> blockingToMono { organizationService.findAll().map(Organization::toDto) }
     }
 
-    @PostMapping("/by-filters")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "POST",
-        summary = "Get organizations matching filters.",
-        description = "Get filtered organizations available for the current user.",
-    )
-    @Parameters(
-        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getFilteredOrganizations(
-        @RequestBody(required = true) organizationFilters: OrganizationFilters,
-    ): Flux<OrganizationDto> = getFilteredOrganizationDtoList(organizationFilters)
-
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -186,7 +171,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = getFilteredOrganizations(OrganizationFilters(prefix))
+    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilters(prefix))
         .map { it.name }
         .collectList()
 
