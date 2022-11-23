@@ -2266,67 +2266,6 @@
         ]
       }
     },
-    "/api/v1/organizations/by-filters": {
-      "post": {
-        "description": "Get filtered organizations available for the current user.",
-        "operationId": "getFilteredOrganizations",
-        "parameters": [
-          {
-            "description": "organization filters",
-            "in": "query",
-            "name": "organizationFilters",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched non-deleted organizations."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get organizations matching filters.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
     "/api/v1/organizations/by-filters-with-rating": {
       "post": {
         "description": "Get filtered organizations with rating available for the current user.",
