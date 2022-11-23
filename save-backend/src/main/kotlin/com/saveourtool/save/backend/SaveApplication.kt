@@ -2,6 +2,7 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.SecurityWebClientCustomizers
+
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties

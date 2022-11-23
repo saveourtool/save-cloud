@@ -27,8 +27,9 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.spring.security.config)
     implementation(libs.spring.security.web)
-    // This dependency contains `ConditionalOnCloudPlatform`
-    implementation(libs.spring.boot.autoconfigure)
+    implementation(libs.spring.boot.autoconfigure) {
+        because("This dependency contains `ConditionalOnCloudPlatform`")
+    }
     implementation(libs.fabric8.kubernetes.client)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.junit.jupiter.api)
