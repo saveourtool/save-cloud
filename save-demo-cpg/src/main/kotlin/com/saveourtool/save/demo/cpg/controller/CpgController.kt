@@ -5,6 +5,8 @@ import com.saveourtool.save.demo.cpg.StringResponse
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -15,6 +17,7 @@ import org.neo4j.ogm.config.Configuration
 import org.neo4j.ogm.exception.ConnectionException
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -113,10 +116,16 @@ class CpgController(
             logger.error("Cannot connect to a neo4j database")
             return
         }
-        // FixMe: for each user we should keep the data
-        session.purgeDatabase()
+
+        log.info { "Using import depth: $DEFAULT_SAVE_DEPTH" }
+        log.info {
+            "Count base nodes to save [components: ${result.components.size}, additionalNode: ${result.additionalNodes.size}]"
+        }
 
         session.beginTransaction().use {
+            // FixMe: for each user we should keep the data
+            session.purgeDatabase()
+
             session.save(result.components, DEFAULT_SAVE_DEPTH)
             session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
             it?.commit()
@@ -138,7 +147,7 @@ class CpgController(
                             .credentials(configProperties.authentication.username, configProperties.authentication.password)
                             .verifyConnection(true)
                             .build()
-                sessionFactory = SessionFactory(configuration, "de.frauhonfer.ais.cecpg.graph")
+                sessionFactory = SessionFactory(configuration, "de.fraunhofer.aisec.cpg.graph")
                 session = sessionFactory.openSession()
             } catch (ex: ConnectionException) {
                 sessionFactory = null
@@ -198,5 +207,9 @@ class CpgController(
             file.writeLines(lines)
             logger.info("Created a file with sources: ${file.fileName}")
         }
+    }
+
+    companion object {
+        private val log: Logger = getLogger<CpgController>()
     }
 }
