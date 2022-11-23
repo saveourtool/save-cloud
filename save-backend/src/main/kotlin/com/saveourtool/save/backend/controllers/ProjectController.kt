@@ -102,7 +102,7 @@ class ProjectController(
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
-        .map { it.toDto() }
+                .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
     @RequiresAuthorizationSourceHeader
