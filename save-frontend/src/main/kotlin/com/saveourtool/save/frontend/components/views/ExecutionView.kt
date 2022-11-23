@@ -37,7 +37,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.router.useNavigate
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -241,50 +240,22 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, navigate ->
             tr {
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
                     testExecutionFiltersRow {
                         filters = state.filters
                         onChangeFilters = { filterValue ->
-                            if (filterValue.status == null || filterValue.status?.name == "ANY") {
-                                setState {
-                                    filters = filters.copy(status = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(status = filterValue.status)
-                                }
+                            setState {
+                                filters = filters.copy(
+                                    status = filterValue.status?.takeIf { it.name != "ANY" },
+                                    fileName = filterValue.fileName?.ifEmpty { null },
+                                    testSuite = filterValue.testSuite?.ifEmpty { null },
+                                    tag = filterValue.tag?.ifEmpty { null },
+                                )
                             }
-                            if (filterValue.fileName?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(fileName = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(fileName = filterValue.fileName)
-                                }
-                            }
-                            if (filterValue.testSuite?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(testSuite = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(testSuite = filterValue.testSuite)
-                                }
-                            }
-                            if (filterValue.tag?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(tag = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(tag = filterValue.tag)
-                                }
-                            }
-                            val navigate = useNavigate()
+                            tableInstance.resetPageIndex(true)
                             navigate(getUrlWithFiltersParams(filterValue))
                         }
                     }
@@ -435,7 +406,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         displayTestNotFound(state.executionDto)
     }
 
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.pathname.substringBefore("?")}${filterValue.toQueryParams()}"
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) =
+            // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
+            "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {

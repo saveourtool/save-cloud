@@ -148,7 +148,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
@@ -214,7 +214,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
