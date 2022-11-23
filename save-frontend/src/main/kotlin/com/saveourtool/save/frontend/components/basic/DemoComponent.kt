@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
-import csstype.Display
 import csstype.Height
 import react.ChildrenBuilder
 import react.FC
@@ -107,10 +106,9 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                         +"Graph"
                     }
                     div {
-                        className = ClassName("card card-body")
+                        className = ClassName("")
                         style = jso {
-                            height = "90%".unsafeCast<Height>()
-                            display = Display.block
+                            height = "100%".unsafeCast<Height>()
                         }
                         props.resultBuilder(this)
                     }
