@@ -10,15 +10,17 @@ import com.saveourtool.save.frontend.components.basic.demoComponent
 import com.saveourtool.save.frontend.externals.sigma.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
-import com.saveourtool.save.frontend.utils.responseHandlerWithValidation
 
 import csstype.ClassName
+import csstype.Display
+import csstype.Height
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.useEffect
 import react.useState
 
-import kotlinx.browser.window
+import kotlinx.coroutines.await
+import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -35,6 +37,7 @@ val cpgView: VFC = VFC {
             assign()
         }
     }
+    val (queryId, setQueryId) = useState("")
     div {
         className = ClassName("d-flex justify-content-center mb-2")
         div {
@@ -47,21 +50,38 @@ val cpgView: VFC = VFC {
                             headers = jsonHeaders,
                             body = Json.encodeToString(demoRequest),
                             loadingHandler = ::loadingHandler,
-                            responseHandler = ::responseHandlerWithValidation
                         )
 
                         if (response.ok) {
-                            val newGraph: CpgGraph = response.decodeFromJsonString()
+                            val newQueryId = response.text().await()
+                            setQueryId(newQueryId)
+                            val newGraph: CpgGraph = get(
+                                "$cpgDemoApiUrl/get-result",
+                                headers = jsonHeaders,
+                                loadingHandler = ::loadingHandler,
+                                responseHandler = ::noopResponseHandler,
+                            )
+                                .decodeFromJsonString()
                             setGraph(newGraph)
-                        } else {
-                            window.alert(response.unpackMessage())
                         }
                     }
                     this.resultBuilder = { builder ->
                         with(builder) {
-                            sigmaContainer {
-                                settings = getSigmaContainerSettings()
-                                graphLoader()
+                            div {
+                                className = ClassName("card card-body")
+                                style = jso {
+                                    height = "83%".unsafeCast<Height>()
+                                    display = Display.block
+                                }
+                                sigmaContainer {
+                                    settings = getSigmaContainerSettings()
+                                    graphLoader()
+                                }
+                            }
+                            div {
+                                val alertStyle = if (queryId.isNotBlank()) "alert-primary" else ""
+                                className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
+                                +queryId
                             }
                         }
                     }
