@@ -110,12 +110,12 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * Organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: MutableList<ProjectDto>
 
     /**
      * Message of error
@@ -172,14 +172,15 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+    @Suppress("TYPE_ALIAS")
+    private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
                                 +cellContext.value
                             }
                             privacySpan(cellContext.row.original)
@@ -241,7 +242,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     conditionClick = props.currentUserInfo.isSuperAdmin()
                                     sendRequest = { isBanned ->
                                         val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                        responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
+                                        responseChangeProjectStatus("${project.organizationName}/${project.name}", newStatus)
                                     }
                                 }
                             }
@@ -265,7 +266,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     init {
         state.isUploading = false
-        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
+        state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
         state.closeButtonLabel = null
@@ -486,24 +487,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun onOrganizationSave(newOrganization: Organization) {
-        newOrganization.apply {
+    private fun onOrganizationSave(newOrganization: OrganizationDto) {
+        newOrganization.copy(
             description = state.draftOrganizationDescription
-        }
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/update",
-                headers,
-                Json.encodeToString(newOrganization),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = newOrganization
+        ).let { organizationWithNewDescription ->
+            scope.launch {
+                val response = post(
+                    "$apiUrl/organizations/${props.organizationName}/update",
+                    jsonHeaders,
+                    Json.encodeToString(organizationWithNewDescription),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    setState {
+                        organization = organizationWithNewDescription
+                    }
                 }
             }
         }
@@ -543,7 +541,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
-            organization = state.organization ?: Organization.stub(-1)
+            organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
@@ -557,9 +555,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): List<Project> = state.projects
+    private fun getProjectsFromCache(): List<ProjectDto> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
+    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
         body = Json.encodeToString(ProjectFilters("", props.organizationName)),
@@ -632,7 +630,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
             topProject?.let {

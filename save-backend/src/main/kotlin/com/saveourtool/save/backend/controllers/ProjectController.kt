@@ -97,11 +97,12 @@ class ProjectController(
     fun getFilteredProjects(
         @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
-    ): Flux<Project> =
+    ): Flux<ProjectDto> =
             blockingToFlux { projectService.getFiltered(projectFilters) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
+                .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
     @RequiresAuthorizationSourceHeader
@@ -122,13 +123,13 @@ class ProjectController(
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<Project> {
+    ): Mono<ProjectDto> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
-        }
+        }.map { it.toDto() }
     }
 
     @PostMapping("/save")

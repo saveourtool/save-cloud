@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -29,7 +29,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -45,7 +44,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Current project settings
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Information about current user
@@ -60,7 +59,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Callback to update project state in ProjectView after update request's response is received.
      */
-    var onProjectUpdate: (Project) -> Unit
+    var onProjectUpdate: (ProjectDto) -> Unit
 
     /**
      * Callback to show error message
@@ -105,13 +104,13 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
     val navigate = useNavigate()
 
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val projectPath = props.project.let { "${it.organizationName}/${it.name}" }
 
     val updateProject = useDeferredRequest {
         post(
             url = "$apiUrl/projects/update",
             headers = jsonHeaders,
-            body = Json.encodeToString(draftProject.toDto()),
+            body = Json.encodeToString(draftProject),
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         ).let {
@@ -178,7 +177,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = draftProject.public
+                                defaultChecked = draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPublicSwitch"
@@ -194,7 +193,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = !draftProject.public
+                                defaultChecked = !draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPrivateSwitch"
@@ -207,7 +206,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             }
                         }
                         onChange = {
-                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
+                            setDraftProject(draftProject.copy(isPublic = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }
@@ -263,7 +262,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
                             onActionSuccess = { _ ->
-                                navigate(to = "/organization/${props.project.organization.name}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
+                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {

@@ -1,16 +1,18 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isValidName
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.persistence.Entity
 import javax.persistence.Enumerated
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
+import kotlinx.datetime.*
 
 /**
  * @property name organization
@@ -52,12 +54,12 @@ class Contest(
     fun toDto() = ContestDto(
         name,
         status,
-        startTime!!,
-        endTime!!,
+        startTime?.toKotlinLocalDateTime()!!,
+        endTime?.toKotlinLocalDateTime()!!,
         description,
         organization.name,
         testSuiteLinks.map { it.testSuite.toDto() },
-        creationTime,
+        creationTime?.toKotlinLocalDateTime(),
     )
 
     /**
@@ -114,11 +116,11 @@ class Contest(
         ) = Contest(
             name,
             status,
-            startTime,
-            endTime,
+            startTime?.toJavaLocalDateTime(),
+            endTime?.toJavaLocalDateTime(),
             organization,
             description,
-            creationTime ?: this.creationTime,
+            creationTime ?: this.creationTime?.toJavaLocalDateTime(),
             testSuiteLinks,
         )
     }
