@@ -13,6 +13,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -35,7 +36,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -83,22 +83,25 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted projects.",
-        description = "Get non-deleted projects, available for current user.",
+        summary = "Get projects matching filters",
+        description = "Get filtered projects available for the current user.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedProjectsWithFilters(
-        @RequestBody(required = false) projectFilters: ProjectFilters?,
+    @Parameters(
+        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
+    fun getFilteredProjects(
+        @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
-    ): Flux<ProjectDto> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
-        .toFlux()
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
+    ): Flux<ProjectDto> =
+            blockingToFlux { projectService.getFiltered(projectFilters) }
+                .filter {
+                    projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
+                }
         .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
@@ -122,48 +125,12 @@ class ProjectController(
         authentication: Authentication,
     ): Mono<ProjectDto> {
         val project = Mono.fromCallable {
-            projectService.findByNameAndOrganizationName(name, organizationName)
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
         }.map { it.toDto() }
     }
-
-    @GetMapping("/get/projects-by-organization")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get all projects by organization name.",
-        description = "Get all projects by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getProjectsByOrganizationName(
-        @RequestParam organizationName: String,
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getAllAsFluxByOrganizationName(organizationName)
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-
-    @GetMapping("/get/not-deleted-projects-by-organization")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get non-deleted projects by organization name.",
-        description = "Get non-deleted projects by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects by organization name.")
-    fun getNonDeletedProjectsByOrganizationName(
-        @RequestParam organizationName: String,
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
 
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
@@ -184,7 +151,7 @@ class ProjectController(
         .flatMap {
             Mono.zip(
                 projectCreationRequest.toMono(),
-                organizationService.findByName(it.organizationName).toMono(),
+                organizationService.findByNameAndCreatedStatus(it.organizationName).toMono(),
             )
         }
         .switchIfEmpty {
@@ -273,7 +240,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationName(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."

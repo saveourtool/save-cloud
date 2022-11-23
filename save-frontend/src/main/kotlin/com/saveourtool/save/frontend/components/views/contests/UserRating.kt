@@ -8,6 +8,8 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -22,6 +24,8 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val userRating = userRating()
 
@@ -130,9 +134,9 @@ private fun userRating() = VFC {
     val (organizationsWithRating, setOrganizationsWithRating) = useState<Set<OrganizationWithRating>>(emptySet())
     useRequest {
         val organizationsFromBackend: List<OrganizationWithRating> = post(
-            url = "$apiUrl/organizations/not-deleted-with-rating",
+            url = "$apiUrl/organizations/by-filters-with-rating",
             headers = jsonHeaders,
-            body = undefined,
+            body = Json.encodeToString(OrganizationFilters.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -142,9 +146,9 @@ private fun userRating() = VFC {
     val (projects, setProjects) = useState(emptySet<ProjectDto>())
     useRequest {
         val projectsFromBackend: List<ProjectDto> = post(
-            url = "$apiUrl/projects/not-deleted",
+            url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
-            body = undefined,
+            body = Json.encodeToString(ProjectFilters.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()

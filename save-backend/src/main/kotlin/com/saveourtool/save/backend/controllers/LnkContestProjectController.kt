@@ -115,7 +115,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
@@ -222,7 +222,7 @@ class LnkContestProjectController(
         .switchIfEmptyToNotFound {
             "Could not find contest with name $contestName."
         }
-        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
+        .zipWith(projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono())
         .switchIfEmptyToNotFound {
             "Could not find project with name $organizationName/$projectName."
         }
@@ -302,7 +302,7 @@ class LnkContestProjectController(
             "Contest with name $contestName was not found."
         }
         .map { contest ->
-            contest to lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
+            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
         }
         .flatMapMany { (contest, projectIds) ->
             blockingToFlux {

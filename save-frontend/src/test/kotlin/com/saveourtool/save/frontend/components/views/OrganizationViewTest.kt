@@ -50,7 +50,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/projects/get/not-deleted-projects-by-organization") { _, res, _ ->
+        rest.post("$apiUrl/projects/by-filters") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,

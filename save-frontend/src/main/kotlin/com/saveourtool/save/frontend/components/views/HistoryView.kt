@@ -13,7 +13,9 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.calendar.calendar
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
@@ -31,7 +33,6 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
-import react.table.columns
 
 import kotlin.js.Date
 import kotlinx.browser.window
@@ -147,102 +148,102 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                         }
                     }
                 }
-                column("status", "Status", { status }) { cellProps ->
+                column("status", "Status", { status }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +"${cellProps.value}"
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("startDate", "Start time", { startTime }) { cellProps ->
+                column("startDate", "Start time", { startTime }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +(formattingDate(cellProps.value) ?: "Starting")
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("endDate", "End time", { endTime }) { cellProps ->
+                column("endDate", "End time", { endTime }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +(formattingDate(cellProps.value) ?: "Starting")
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
+                column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +"${cellProps.value}"
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("running", "Running", { runningTests }) { cellProps ->
+                column("running", "Running", { runningTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.RUNNING
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("passed", "Passed", { passedTests }) { cellProps ->
+                column("passed", "Passed", { passedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.PASSED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("failed", "Failed", { failedTests }) { cellProps ->
+                column("failed", "Failed", { failedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.FAILED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("skipped", "Skipped", { skippedTests }) { cellProps ->
+                column("skipped", "Skipped", { skippedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.IGNORED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }

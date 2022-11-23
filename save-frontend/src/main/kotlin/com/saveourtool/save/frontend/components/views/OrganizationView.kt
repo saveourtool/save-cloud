@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -17,7 +18,9 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
@@ -52,7 +55,6 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
-import react.table.columns
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
@@ -174,14 +176,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organizationName}/${cellProps.value}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +cellContext.value
                             }
-                            privacySpan(cellProps.row.original)
+                            privacySpan(cellContext.row.original)
                         }
                     }
                 }
@@ -204,10 +206,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
                 if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
-                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellContext ->
                         Fragment.create {
                             td {
-                                val project = cellProps.row.original
+                                val project = cellContext.row.original
                                 val projectName = project.name
 
                                 actionButton {
@@ -555,9 +557,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
      */
     private fun getProjectsFromCache(): List<ProjectDto> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = get(
-        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
+    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = post(
+        url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
+        body = Json.encodeToString(ProjectFilters("", props.organizationName)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

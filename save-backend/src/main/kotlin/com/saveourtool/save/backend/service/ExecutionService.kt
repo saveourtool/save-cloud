@@ -61,13 +61,14 @@ class ExecutionService(
     }
 
     /**
-     * @param execution [Execution]
+     * @param srcExecution [Execution]
      * @param newStatus [Execution.status]
      * @throws ResponseStatusException
      */
     @Transactional
-    fun updateExecutionStatus(execution: Execution, newStatus: ExecutionStatus) {
-        log.debug("Updating status to $newStatus on execution id = ${execution.requiredId()}")
+    fun updateExecutionStatus(srcExecution: Execution, newStatus: ExecutionStatus) {
+        log.debug("Updating status to $newStatus on execution id = ${srcExecution.requiredId()}")
+        val execution = executionRepository.findWithLockingById(srcExecution.requiredId()).orNotFound()
         val updatedExecution = execution.apply {
             status = newStatus
         }
@@ -204,7 +205,7 @@ class ExecutionService(
         contestName: String?,
     ): Mono<Execution> {
         val project = with(projectCoordinates) {
-            projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
             }
         }

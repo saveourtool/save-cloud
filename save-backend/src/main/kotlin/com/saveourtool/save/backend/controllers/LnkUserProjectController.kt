@@ -61,7 +61,7 @@ class LnkUserProjectController(
     fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
         return Flux.fromIterable(
-            lnkUserProjectService.getNonDeletedProjectsByUserId(userIdFromAuth)
+            lnkUserProjectService.getProjectsByUserIdAndStatuses(userIdFromAuth)
         )
             .filter {
                 it.public
@@ -87,7 +87,7 @@ class LnkUserProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = projectService.findByNameAndOrganizationName(projectName, organizationName)
+    ): Mono<List<UserInfo>> = projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "No project with name $projectName was found."
@@ -136,7 +136,7 @@ class LnkUserProjectController(
             prefix.isNotEmpty()
         }
         .flatMap { (organizationName, projectName) ->
-            projectService.findByNameAndOrganizationName(projectName, organizationName).toMono()
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono()
         }
         .switchIfEmptyToNotFound {
             "No project with name $projectName was found in organization $organizationName."

@@ -59,9 +59,9 @@ class ProjectControllerTest {
 
         webClient
             .post()
-            .uri("/api/$v1/projects/not-deleted")
+            .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters(null))
+            .bodyValue(ProjectFilters.created)
             .exchange()
             .expectStatus()
             .isOk
