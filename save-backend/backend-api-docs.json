@@ -2234,7 +2234,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2247,7 +2247,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2268,7 +2268,7 @@
     },
     "/api/v1/organizations/by-filters": {
       "post": {
-        "description": "Get filtered organization available for the current user.",
+        "description": "Get filtered organizations available for the current user.",
         "operationId": "getFilteredOrganizations",
         "parameters": [
           {
@@ -2327,6 +2327,67 @@
         ]
       }
     },
+    "/api/v1/organizations/by-filters-with-rating": {
+      "post": {
+        "description": "Get filtered organizations with rating available for the current user.",
+        "operationId": "getFilteredOrganizationsWithRating",
+        "parameters": [
+          {
+            "description": "organization filters",
+            "in": "query",
+            "name": "organizationFilters",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithRating"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched non-deleted organizations."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithRating"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get organizations with rating matching filters.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/by-user": {
       "get": {
         "description": "Get organizations by status available for the current user.",
@@ -2361,7 +2422,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2374,7 +2435,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2387,7 +2448,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationDto"
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
                   }
                 }
               }
@@ -2549,7 +2610,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2562,7 +2623,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2666,7 +2727,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -2676,7 +2737,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -2686,7 +2747,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "$ref": "#/components/schemas/OrganizationDto"
                 }
               }
             },
@@ -4021,7 +4082,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -4034,7 +4095,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -4072,7 +4133,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -4085,7 +4146,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Project"
+                    "$ref": "#/components/schemas/ProjectDto"
                   }
                 }
               }
@@ -4139,7 +4200,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4149,7 +4210,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4159,7 +4220,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -4169,7 +4230,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectDto"
                 }
               }
             },
@@ -7749,15 +7810,13 @@
         "type": "object",
         "properties": {
           "creationTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "description": {
             "type": "string"
           },
           "endTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "name": {
             "type": "string"
@@ -7766,8 +7825,7 @@
             "type": "string"
           },
           "startTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "status": {
             "type": "string",
@@ -7826,8 +7884,7 @@
             ]
           },
           "submissionTime": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           }
         }
       },
@@ -8427,6 +8484,7 @@
       "Organization": {
         "required": [
           "canCreateContests",
+          "dateCreated",
           "name",
           "status"
         ],
@@ -8465,9 +8523,10 @@
       "OrganizationDto": {
         "required": [
           "canCreateContests",
+          "dateCreated",
           "description",
           "name",
-          "userRoles"
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -8478,31 +8537,21 @@
             "type": "boolean"
           },
           "dateCreated": {
-            "type": "string",
-            "format": "date-time"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "description": {
             "type": "string"
           },
-          "globalRating": {
-            "type": "number",
-            "format": "double"
-          },
           "name": {
             "type": "string"
           },
-          "userRoles": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "NONE",
-                "OWNER",
-                "SUPER_ADMIN",
-                "VIEWER"
-              ]
-            }
+          "status": {
+            "type": "string",
+            "enum": [
+              "BANNED",
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },
@@ -8530,6 +8579,47 @@
           }
         },
         "description": "organization filters"
+      },
+      "OrganizationWithRating": {
+        "required": [
+          "globalRating",
+          "organization"
+        ],
+        "type": "object",
+        "properties": {
+          "globalRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          }
+        }
+      },
+      "OrganizationWithUsers": {
+        "required": [
+          "organization",
+          "userRoles"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "userRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          }
+        }
       },
       "Part": {
         "type": "object"
@@ -8602,15 +8692,22 @@
       },
       "ProjectDto": {
         "required": [
+          "contestRating",
           "description",
           "email",
           "isPublic",
           "name",
+          "numberOfContainers",
           "organizationName",
+          "status",
           "url"
         ],
         "type": "object",
         "properties": {
+          "contestRating": {
+            "type": "number",
+            "format": "double"
+          },
           "description": {
             "type": "string"
           },
@@ -8623,8 +8720,20 @@
           "name": {
             "type": "string"
           },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
+          },
           "organizationName": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "BANNED",
+              "CREATED",
+              "DELETED"
+            ]
           },
           "url": {
             "type": "string"
