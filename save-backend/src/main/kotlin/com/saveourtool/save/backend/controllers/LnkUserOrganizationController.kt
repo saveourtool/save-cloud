@@ -84,7 +84,7 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getAllUsersAndRolesByOrganization(it)
         }
         .map { mapOfPermissions ->
-            mapOfPermissions.filter { it.value != Role.NONE }.map { (user, role) ->
+            mapOfPermissions.map { (user, role) ->
                 user.toUserInfo(organizations = mapOf(organizationName to role))
             }
         }
