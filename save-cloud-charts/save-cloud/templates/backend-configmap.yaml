@@ -6,6 +6,7 @@ data:
   application.properties: |
     backend.preprocessor-url=http://preprocessor
     backend.orchestrator-url=http://orchestrator
+    backend.agent-settings.backend-url=http://{{ .Values.backend.name }}
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.backend.managementPort }}
