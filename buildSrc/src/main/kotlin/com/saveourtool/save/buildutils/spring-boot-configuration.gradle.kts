@@ -18,11 +18,6 @@ extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
 }
 
-kapt {
-    correctErrorTypes = true
-    useBuildCache = false
-}
-
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val libs = the<LibrariesForLibs>()
 dependencies {

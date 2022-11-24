@@ -3,7 +3,6 @@ import com.saveourtool.save.buildutils.*
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
-    id("com.saveourtool.save.buildutils.spring-data-configuration")
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
 }
@@ -24,6 +23,7 @@ kotlin {
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.spring.boot.starter.security)
+    implementation("org.springframework:spring-jdbc")
     implementation(libs.spring.security.core)
     implementation(libs.spring.security.config)
     implementation(libs.spring.security.web)
