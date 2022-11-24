@@ -179,9 +179,9 @@ loki:
 
 neo4j:
   svc:
-    annotations: { }
+    annotations: {}
     # Any additional options for Service `spec` block
-    spec: { }
+    spec: {}
   neo4j:
     edition: community
     name: simple-neo4j
