@@ -58,8 +58,6 @@ jobs:
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
-          # TODO: remove
-          cache-disabled: true
           arguments: |
             build
             -x detekt
