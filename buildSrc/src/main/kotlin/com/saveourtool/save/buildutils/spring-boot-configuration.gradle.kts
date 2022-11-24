@@ -19,7 +19,7 @@ extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
 }
 
 kapt {
-//    correctErrorTypes = true
+    correctErrorTypes = true
     useBuildCache = false
 }
 
