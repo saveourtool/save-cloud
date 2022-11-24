@@ -10,7 +10,7 @@ metadata:
   {{- end }}
 spec:
   ports:
-    - name: bolt
+    - name: tcp-bolt
       port: 7687
       targetPort: 7687
       protocol: TCP
