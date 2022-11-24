@@ -84,8 +84,8 @@ spring:
             - RemoveRequestHeader=Cookie
         - id: neo4j_route
           uri: ${gateway.neo4j-browser.url}
-           predicates:
-             - Path=/neo4j/browser/**
+            predicates:
+              - Path=/neo4j/browser/**
 
 ---
 spring:
