@@ -178,6 +178,10 @@ loki:
   singleBinary:
 
 neo4j:
+  svc:
+    annotations: {}
+    # Any additional options for Service `spec` block
+    spec: {}
   neo4j:
     edition: community
     name: simple-neo4j
