@@ -46,10 +46,15 @@ private object KLocalDateTimeJsonSerializer : JsonSerializer<KLocalDateTime>() {
 }
 
 private object KLocalDateTimeJsonDeserializer : JsonDeserializer<KLocalDateTime>() {
-    override fun deserialize(parser: JsonParser?, ctxt: DeserializationContext?): KLocalDateTime =
-            requireNotNull(parser?.codec?.readValue(parser, JLocalDateTime::class.java)?.toKotlinLocalDateTime()) {
+    override fun deserialize(parser: JsonParser?, ctxt: DeserializationContext?): KLocalDateTime = parser
+        ?.codec
+        ?.readValue(parser, JLocalDateTime::class.java)
+        ?.toKotlinLocalDateTime()
+        .let { result ->
+            requireNotNull(result) {
                 "Jackson guarantees that it cannot be null"
             }
+        }
 }
 
 /**
@@ -65,12 +70,6 @@ fun SerializersModuleBuilder.supportJLocalDateTime() {
  *
  * @return original builder
  */
-fun Jackson2ObjectMapperBuilder.supportKLocalDateTime(): Jackson2ObjectMapperBuilder =
-        serializerByType(
-            KLocalDateTime::class.java,
-            KLocalDateTimeJsonSerializer,
-        )
-            .deserializerByType(
-                KLocalDateTime::class.java,
-                KLocalDateTimeJsonDeserializer,
-            )
+fun Jackson2ObjectMapperBuilder.supportKLocalDateTime(): Jackson2ObjectMapperBuilder = this
+    .serializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonSerializer)
+    .deserializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonDeserializer)
