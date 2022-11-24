@@ -15,8 +15,8 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
 import arrow.core.Either
@@ -49,7 +49,6 @@ import io.ktor.serialization.kotlinx.json.json
 import java.lang.System.nanoTime
 import java.net.URL
 import java.nio.file.Path
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
@@ -327,7 +326,7 @@ internal class DefaultSaveCloudClient(
                     install(ContentNegotiation) {
                         val json = Json {
                             serializersModule = SerializersModule {
-                                contextual(LocalDateTime::class, LocalDateTimeSerializer)
+                                supportJLocalDateTime()
                             }
                         }
 

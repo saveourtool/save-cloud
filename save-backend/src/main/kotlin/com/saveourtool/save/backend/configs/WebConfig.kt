@@ -8,11 +8,9 @@
 package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.domain.supportTestStatus
+import com.saveourtool.save.utils.supportKLocalDateTime
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializerProvider
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
@@ -23,23 +21,13 @@ import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toJavaLocalDateTime
-
 @Configuration
 class WebConfig {
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
-        builder.supportTestStatus()
-        // we can't use kotlinx.serialization yet https://github.com/saveourtool/save-cloud/issues/908
-        builder.serializerByType(
-            LocalDateTime::class.java,
-            object : JsonSerializer<LocalDateTime>() {
-                override fun serialize(value: LocalDateTime?, gen: JsonGenerator?, serializers: SerializerProvider?) {
-                    gen?.codec?.writeValue(gen, value?.toJavaLocalDateTime())
-                }
-            }
-        )
+        builder
+            .supportTestStatus()
+            .supportKLocalDateTime()
     }
 
     @Bean
