@@ -188,7 +188,6 @@ neo4j:
     data:
       mode: selector
       selector:
-  dbPasswordFile: /home/cnb/secrets/neo4j_secrets
 
 demo_cpg:
   name: demo-cpg
