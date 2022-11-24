@@ -11,8 +11,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * An entrypoint for spring boot for save-demo
  */
 @EnableConfigurationProperties(ConfigProperties::class)
-@SpringBootApplication(exclude = [DataSourceAutoConfiguration::class, XADataSourceAutoConfiguration::class])
-open class SaveDemo
+@SpringBootApplication
+class SaveDemo
 
 fun main(args: Array<String>) {
     SpringApplication.run(SaveDemo::class.java, *args)

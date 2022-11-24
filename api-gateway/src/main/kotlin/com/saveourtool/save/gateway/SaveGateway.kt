@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * Entrypoint for api-gateway spring boot application
  */
 @EnableConfigurationProperties(ConfigurationProperties::class)
-@SpringBootApplication(exclude = [DataSourceAutoConfiguration::class, XADataSourceAutoConfiguration::class])
+@SpringBootApplication
 class SaveGateway
 
 fun main(args: Array<String>) {
