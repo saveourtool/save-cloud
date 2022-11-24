@@ -86,6 +86,8 @@ spring:
           uri: ${gateway.neo4j-browser.url}
           predicates:
             - Path=/neo4j/browser/**
+          filters:
+            - StripPrefix=1
 
 ---
 spring:
