@@ -178,6 +178,7 @@ loki:
   singleBinary:
 
 neo4j:
+  name: neo4j
   neo4j:
     edition: community
     name: simple-neo4j
