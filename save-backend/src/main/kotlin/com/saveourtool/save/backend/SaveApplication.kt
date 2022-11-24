@@ -23,7 +23,7 @@ typealias StringList = List<String>
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
-@Import(SecurityWebClientCustomizers::class)
+@org.springframework.context.annotation.Import(com.saveourtool.save.authservice.config.SecurityWebClientCustomizers::class)
 class SaveApplication
 
 fun main(args: Array<String>) {
