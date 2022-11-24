@@ -4,6 +4,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 repositories {

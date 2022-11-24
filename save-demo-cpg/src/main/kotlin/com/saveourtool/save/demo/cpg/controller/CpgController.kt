@@ -1,16 +1,26 @@
 package com.saveourtool.save.demo.cpg.controller
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.demo.cpg.StringResponse
+import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
+import com.saveourtool.save.demo.cpg.entity.Neo4jGraph
+import com.saveourtool.save.demo.cpg.entity.Neo4jNode
+import com.saveourtool.save.demo.cpg.entity.Neo4jRelationship
+import com.saveourtool.save.demo.cpg.utils.getId
+import com.saveourtool.save.demo.cpg.utils.toCpgEdge
+import com.saveourtool.save.demo.cpg.utils.toCpgNode
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
+import de.fraunhofer.aisec.cpg.graph.Component
+import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.commons.io.FileUtils
 import org.neo4j.driver.exceptions.AuthenticationException
 import org.neo4j.ogm.config.Configuration
@@ -43,6 +53,7 @@ private const val DEFAULT_SAVE_DEPTH = -1
 )
 @RestController
 @RequestMapping("/cpg/api")
+@ExperimentalSerializationApi
 class CpgController(
     val configProperties: ConfigProperties,
 ) {
@@ -101,14 +112,27 @@ class CpgController(
      */
     @GetMapping("/get-result")
     fun getResult(
-        @RequestParam uploadId: String,
-    ): ResponseEntity<String> = ResponseEntity.ok(
-        """
-            {
-                "node": "value"
-            }
-        """.trimIndent()
+        @RequestParam(required = false, defaultValue = "") uploadId: String,
+    ): ResponseEntity<CpgGraph> = ResponseEntity.ok(
+        getGraph()
     )
+
+    private fun getGraph(): CpgGraph {
+        val (session, factory) = connect()
+        session ?: run {
+            throw IllegalStateException("Cannot connect to a neo4j database")
+        }
+        val nodes = session.getNodes()
+        val edges = session.getEdges()
+        session.clear()
+        factory?.close()
+        return CpgGraph(nodes.map { it.toCpgNode() }, edges.map { it.toCpgEdge() })
+    }
+
+    private fun Session.getNodes() = query(Node::class.java, "MATCH (n: Node) return n", mapOf("" to "")).toList()
+
+    private fun Session.getEdges() = query(PropertyEdge::class.java, "MATCH () -[r]-> () return r", mapOf("" to "")).toList()
+
 
     private fun saveTranslationResult(result: TranslationResult) {
         val (session, factory) = connect()
