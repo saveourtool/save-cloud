@@ -59,11 +59,11 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
         title = displayTitle,
         message = displayMessage,
         isOpen = windowOpenness.isOpen(),
-        onCloseButtonPressed = windowOpenness.closeWindowAction(),
+        onCloseButtonPressed = closeCheckBoxWindow,
         buttonBuilder = {
             if (isError) {
                 buttonBuilder("Ok") {
-                    windowOpenness.closeWindow()
+                    closeCheckBoxWindow()
                     setError(false)
                 }
             } else {
