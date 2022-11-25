@@ -64,18 +64,19 @@ class OrganizationService(
      * Mark organization [organization] as deleted
      *
      * @param organization an [Organization] to delete
+     * @param authentication
      * @return deleted organization
      */
     fun deleteOrganization(organization: Organization, authentication: Authentication): Organization =
-        if (!hasProjects(organization.name) || authentication.hasRole(Role.SUPER_ADMIN)) {
-            projectService.getAllByOrganizationName(organization.name).forEach {
-                it.status = DELETED
-                projectService.updateProject(it)
+            if (!hasProjects(organization.name) || authentication.hasRole(Role.SUPER_ADMIN)) {
+                projectService.getAllByOrganizationName(organization.name).forEach {
+                    it.status = DELETED
+                    projectService.updateProject(it)
+                }
+                changeOrganizationStatus(organization, OrganizationStatus.DELETED)
+            } else {
+                organization
             }
-            changeOrganizationStatus(organization, OrganizationStatus.DELETED)
-        } else {
-            organization
-        }
 
     /**
      * Mark organization with [organization] as created.
@@ -100,19 +101,20 @@ class OrganizationService(
      * Mark organization with [organization] and all its projects as banned.
      *
      * @param organization an [Organization] to ban
+     * @param authentication
      * @return banned organization
      */
     @Transactional
     fun banOrganization(organization: Organization, authentication: Authentication): Organization =
-        if (authentication.hasRole(Role.SUPER_ADMIN)) {
-            projectService.getAllByOrganizationName(organization.name).forEach {
-                it.status = BANNED
-                projectService.updateProject(it)
+            if (authentication.hasRole(Role.SUPER_ADMIN)) {
+                projectService.getAllByOrganizationName(organization.name).forEach {
+                    it.status = BANNED
+                    projectService.updateProject(it)
+                }
+                changeOrganizationStatus(organization, OrganizationStatus.BANNED)
+            } else {
+                organization
             }
-            changeOrganizationStatus(organization, OrganizationStatus.BANNED)
-        } else {
-            organization
-        }
 
     /**
      * @param organizationName the unique name of the organization.
@@ -124,9 +126,14 @@ class OrganizationService(
                 project.status == CREATED
             }
 
+    /**
+     * @param organizationName
+     * @param status
+     * @param authentication
+     * @return whether user described by [authentication] can have permission on change [organization] status on [newStatus] depending on the number of projects in the organization
+     */
     fun canChangeStatus(organizationName: String, status: OrganizationStatus, authentication: Authentication) =
-        status != OrganizationStatus.DELETED || hasProjects(organizationName) || authentication.hasRole(Role.SUPER_ADMIN)
-
+            status != OrganizationStatus.DELETED || !hasProjects(organizationName) || authentication.hasRole(Role.SUPER_ADMIN)
 
     /**
      * @param organizationId

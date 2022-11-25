@@ -74,9 +74,6 @@ class DeleteEntitiesTest {
         whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
             Organization.stub(null).copy(status = OrganizationStatus.CREATED)
         )
-        whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
-            Organization("stub", OrganizationStatus.CREATED, null, null, null)
-        )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()
         }

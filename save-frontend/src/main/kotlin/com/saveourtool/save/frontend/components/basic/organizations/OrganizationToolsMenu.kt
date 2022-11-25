@@ -63,6 +63,7 @@ external interface OrganizationToolsMenuProps : Props {
 @Suppress("TOO_LONG_FUNCTION")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
+    @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
@@ -261,7 +262,6 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
         }
     }
 }
-
 
 /**
  * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view

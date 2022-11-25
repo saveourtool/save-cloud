@@ -24,7 +24,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
@@ -200,7 +199,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
-            val projectsLoaded = getProjectsForOrganizationAndStatus( ProjectStatus.values().toSet())
+            val projectsLoaded = getProjectsForOrganizationAndStatus(ProjectStatus.values().toSet())
             val role = getRoleInOrganization()
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)

@@ -7,7 +7,6 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.Classes
 
 import csstype.BorderRadius
 import csstype.ClassName
@@ -32,7 +31,11 @@ fun ChildrenBuilder.privacySpan(project: ProjectDto) {
     }
 }
 
-fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String){
+/**
+ * @param classes
+ * @param text
+ */
+fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String) {
     span {
         className = ClassName("border ml-2 pr-1 pl-1 text-xs $classes")
         style = jso {
@@ -41,7 +44,6 @@ fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String){
         +text
     }
 }
-
 
 /**
  * @param icon

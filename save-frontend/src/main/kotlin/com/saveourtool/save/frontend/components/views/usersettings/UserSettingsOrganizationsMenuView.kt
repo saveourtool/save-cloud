@@ -23,8 +23,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.js.jso
-
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
@@ -161,7 +159,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         conditionClick = false
                                         sendRequest = { _, _ ->
-                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
+                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.CREATED)
                                         }
                                     }
                                 }

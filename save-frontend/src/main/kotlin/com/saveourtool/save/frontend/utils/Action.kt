@@ -76,7 +76,6 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
                                 id = "click"
                                 checked = isClickMode
                                 onChange = {
-                                    console.log("set click mode")
                                     setClickMode(!isClickMode)
                                 }
                             }
