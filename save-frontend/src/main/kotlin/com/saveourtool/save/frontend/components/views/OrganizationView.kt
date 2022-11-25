@@ -200,7 +200,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
-            val projectsLoaded = getProjectsForOrganization()
+            val projectsLoaded = getProjectsForOrganizationAndStatus( ProjectStatus.values().toSet())
             val role = getRoleInOrganization()
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
@@ -436,9 +436,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
+    private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): MutableList<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
+        body = Json.encodeToString(ProjectFilters("", state.organization?.name ?: "", statuses)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

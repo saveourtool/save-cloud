@@ -83,12 +83,12 @@ external interface UserSettingsViewState : State {
     /**
      * Organizations connected to user
      */
-    var selfDeletedOrganizationDtos: List<OrganizationDto>
+    var selfDeletedOrganizationDtos: List<OrganizationWithUsers>
 
     /**
      * Organizations connected to user
      */
-    var selfBannedOrganizationDtos: List<OrganizationDto>
+    var selfBannedOrganizationDtos: List<OrganizationWithUsers>
 
     /**
      * Conflict error message
@@ -378,7 +378,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getDeletedOrganizationDtos() = get(
@@ -386,7 +386,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getBannedOrganizationDtos() = get(

@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
@@ -60,7 +61,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     else -> +organizationName
                                 }
-                                statusSpan(organization)
+                                spanWithClassesAndText(stringClassName, organization.status.name.lowercase())
                             }
                         }
                     }

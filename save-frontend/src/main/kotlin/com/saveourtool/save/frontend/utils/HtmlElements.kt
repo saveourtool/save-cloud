@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.modal.Classes
 
 import csstype.BorderRadius
 import csstype.ClassName
@@ -31,35 +32,16 @@ fun ChildrenBuilder.privacySpan(project: ProjectDto) {
     }
 }
 
-/**
- * @param organization
- */
-fun ChildrenBuilder.statusSpan(organization: Organization) {
-    when (organization.status) {
-        OrganizationStatus.CREATED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +"active"
+fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String){
+    span {
+        className = ClassName("border ml-2 pr-1 pl-1 text-xs $classes")
+        style = jso {
+            borderRadius = "2em".unsafeCast<BorderRadius>()
         }
-
-        OrganizationStatus.DELETED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +"deleted"
-        }
-
-        OrganizationStatus.BANNED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +"banned"
-        }
+        +text
     }
+}
+
 
 /**
  * @param icon

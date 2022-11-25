@@ -6,10 +6,12 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
 import com.saveourtool.save.frontend.components.views.actionIconClasses
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.utils.spanWithClassesAndText
 import com.saveourtool.save.v1
 
 import csstype.ClassName
@@ -88,8 +90,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         onActionSuccess = { _, _ ->
                                             setState {
-                                                selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationDto)
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationDto)
+                                                selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationWithUsers)
                                             }
                                         }
                                         conditionClick = false
@@ -107,7 +109,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     }
                 }
 
-                state.selfDeletedOrganizationDtos.forEach { organizationDto ->
+                state.selfDeletedOrganizationDtos.forEach { organizationWithUsers ->
+                    val organizationDto = organizationWithUsers.organization
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -123,17 +126,11 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 +organizationDto.name
-                                span {
-                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-secondary ")
-                                    style = jso {
-                                        borderRadius = "2em".unsafeCast<BorderRadius>()
-                                    }
-                                    +"deleted"
-                                }
+                                spanWithClassesAndText("text-secondary", "deleted")
                             }
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
+                                val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
                                         title = "WARNING: About to recover this organization..."
@@ -158,8 +155,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         onActionSuccess = { _, _ ->
                                             setState {
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
-                                                selfOrganizationWithUserList = selfOrganizationWithUserList.plusElement(organizationDto)
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationWithUsers)
+                                                selfOrganizationWithUserList = selfOrganizationWithUserList.plusElement(organizationWithUsers)
                                             }
                                         }
                                         conditionClick = false
@@ -176,7 +173,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
-                state.selfBannedOrganizationDtos.forEach { organizationDto ->
+                state.selfBannedOrganizationDtos.forEach { organizationWithUsers ->
+                    val organizationDto = organizationWithUsers.organization
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -192,20 +190,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 +organizationDto.name
-                                span {
-                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
-                                    style = jso {
-                                        borderRadius = "2em".unsafeCast<BorderRadius>()
-                                    }
-                                    +"banned"
-                                }
+                                spanWithClassesAndText("text-danger", "banned")
                             }
 
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 div {
                                     className = ClassName("mr-3")
-                                    +(state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.VIEWER).formattedName
+                                    +(state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.VIEWER).formattedName
                                 }
                             }
                         }

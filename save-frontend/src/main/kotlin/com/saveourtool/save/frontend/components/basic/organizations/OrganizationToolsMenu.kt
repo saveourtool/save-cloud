@@ -3,8 +3,8 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -47,46 +47,46 @@ external interface OrganizationToolsMenuProps : Props {
     /**
      * Current organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * Organization projects
      */
-    var projects: List<Project>
+    var projects: List<ProjectDto>
 
     /**
      * lambda for update projects
      */
-    var updateProjects: (MutableList<Project>) -> Unit
+    var updateProjects: (MutableList<ProjectDto>) -> Unit
 }
 
 @Suppress("TOO_LONG_FUNCTION")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
-    val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+    val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
-                        val project = cellContext.row.original
+                        val projectDto = cellContext.row.original
                         td {
-                            when (project.status) {
+                            when (projectDto.status) {
                                 ProjectStatus.CREATED -> div {
                                     a {
-                                        href = "#/${project.organization.name}/${cellContext.value}"
+                                        href = "#/${projectDto.organizationName}/${cellContext.value}"
                                         +cellContext.value
                                     }
-                                    statusSpan(cellContext.row.original)
+                                    spanWithClassesAndText("text-primary", "active")
                                 }
                                 ProjectStatus.DELETED -> div {
                                     className = ClassName("text-secondary")
                                     +cellContext.value
-                                    statusSpan(cellContext.row.original)
+                                    spanWithClassesAndText("text-secondary", "deleted")
                                 }
                                 ProjectStatus.BANNED -> div {
                                     className = ClassName("text-danger")
                                     +cellContext.value
-                                    statusSpan(cellContext.row.original)
+                                    spanWithClassesAndText("text-danger", "banned")
                                 }
                             }
                         }
@@ -149,7 +149,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
                                         sendRequest = { isBanned, _ ->
                                             val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                            responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
+                                            responseChangeProjectStatus("${project.organizationName}/${project.name}", newStatus)
                                         }
                                     }
                                     ProjectStatus.DELETED -> actionButton {
@@ -180,7 +180,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                         conditionClick = false
                                         sendRequest = { _, _ ->
-                                            responseChangeProjectStatus("${project.organization.name}/${project.name}", ProjectStatus.CREATED)
+                                            responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
                                     ProjectStatus.BANNED -> actionButton {
@@ -211,7 +211,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                         conditionClick = false
                                         sendRequest = { _, _ ->
-                                            responseChangeProjectStatus("${project.organization.name}/${project.name}", ProjectStatus.CREATED)
+                                            responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
                                 }
@@ -262,8 +262,9 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     }
 }
 
+
 /**
  * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
  */
-private fun getProjectsFromCache(projects: List<Project>): List<Project> =
+private fun getProjectsFromCache(projects: List<ProjectDto>): List<ProjectDto> =
         projects.filter { it.status == ProjectStatus.CREATED } + projects.filter { it.status == ProjectStatus.DELETED } + projects.filter { it.status == ProjectStatus.BANNED }
