@@ -12,7 +12,6 @@ import com.saveourtool.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import java.util.EnumSet
 
 import kotlin.NoSuchElementException
 
@@ -204,13 +203,14 @@ class LnkUserOrganizationService(
      * @return [Organization]s that are connected to the [user] anf matching filters
      */
     fun getOrganizationsAndRolesByUserAndFilters(user: User, filters: OrganizationFilters): List<LnkUserOrganization> =
-            lnkUserOrganizationRepository.findByUserId(user.requiredId())
-                .filter { it.organization.let { it.name.contains(filters.prefix) && it.status in filters.statuses}  }
+            lnkUserOrganizationRepository.findByUserId(user.requiredId()).filter { lnkUserOrganization ->
+                lnkUserOrganization.organization.let { it.name.contains(filters.prefix) && it.status in filters.statuses }
+            }
 
     /**
      * @param user
      * @return [Organization]s that are connected to the [user]
      */
-    fun getCreatedOrganizationAndRoles(user: User) : List<LnkUserOrganization> =
-        getOrganizationsAndRolesByUserAndFilters(user, OrganizationFilters.created)
+    fun getCreatedOrganizationAndRoles(user: User): List<LnkUserOrganization> =
+            getOrganizationsAndRolesByUserAndFilters(user, OrganizationFilters.created)
 }

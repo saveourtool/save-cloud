@@ -8,7 +8,6 @@ import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -83,6 +82,16 @@ external interface UserSettingsViewState : State {
     var selfOrganizationWithUserList: List<OrganizationWithUsers>
 
     /**
+     * A list of organization with users connected to user
+     */
+    var selfDeletedOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * A list of organization with users connected to user
+     */
+    var selfBannedOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
      * Conflict error message
      */
     var conflictErrorMessage: String?
@@ -96,6 +105,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     init {
         state.isUploading = false
         state.selfOrganizationWithUserList = emptyList()
+        state.selfDeletedOrganizationWithUserList = emptyList()
+        state.selfBannedOrganizationWithUserList = emptyList()
     }
 
     /**
@@ -121,7 +132,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationWithUserList = organizationDtos
+                selfOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.CREATED }
+                selfDeletedOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.DELETED }
+                selfBannedOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.BANNED }
             }
         }
     }

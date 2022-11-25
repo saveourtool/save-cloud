@@ -17,7 +17,6 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.info.UserInfo
@@ -272,7 +271,8 @@ class LnkUserOrganizationController(
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
-    ).switchIfEmptyToNotFound()
+    )
+        .switchIfEmptyToNotFound()
         .flatMapMany {
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters))
         }

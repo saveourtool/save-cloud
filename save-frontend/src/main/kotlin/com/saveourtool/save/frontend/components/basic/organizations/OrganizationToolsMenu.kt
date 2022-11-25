@@ -60,7 +60,7 @@ external interface OrganizationToolsMenuProps : Props {
     var updateProjects: (MutableList<ProjectDto>) -> Unit
 }
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "CyclomaticComplexMethod")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
     @Suppress("TYPE_ALIAS")

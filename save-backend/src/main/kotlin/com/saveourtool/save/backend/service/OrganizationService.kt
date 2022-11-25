@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
