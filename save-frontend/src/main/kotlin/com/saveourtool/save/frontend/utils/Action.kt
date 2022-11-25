@@ -21,15 +21,6 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
     val (isClickMode, setClickMode) = useState(false)
     val (numberOfButton, setNumberOfButton) = useState(0)
 
-    val closeCheckBoxWindow = {
-        setClickMode(false)
-        windowOpenness.closeWindow()
-    }
-
-    val setButtonNumber = { number: Int ->
-        setNumberOfButton(number)
-    }
-
     val action = useDeferredRequest {
         val response = props.sendRequest(isClickMode, numberOfButton)(this)
         if (response.ok) {
@@ -50,6 +41,7 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
             onClick = {
                 setDisplayTitle(props.title)
                 setDisplayMessage(props.message)
+                setClickMode(false)
                 windowOpenness.openWindow()
             }
         }
@@ -59,15 +51,15 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
         title = displayTitle,
         message = displayMessage,
         isOpen = windowOpenness.isOpen(),
-        onCloseButtonPressed = closeCheckBoxWindow,
+        onCloseButtonPressed = windowOpenness.closeWindowAction(),
         buttonBuilder = {
             if (isError) {
                 buttonBuilder("Ok") {
-                    closeCheckBoxWindow()
+                    windowOpenness.closeWindow()
                     setError(false)
                 }
             } else {
-                props.modalButtons(action, closeCheckBoxWindow, this, isClickMode, setButtonNumber)
+                props.modalButtons(action, windowOpenness.closeWindowAction(), this, isClickMode, setNumberOfButton)
             }
         },
         clickBuilder = {
@@ -84,6 +76,7 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
                                 id = "click"
                                 checked = isClickMode
                                 onChange = {
+                                    console.log("set click mode")
                                     setClickMode(!isClickMode)
                                 }
                             }
@@ -163,7 +156,7 @@ external interface ButtonWithActionProps : Props {
         closeWindow: () -> Unit,
         ChildrenBuilder,
         isClickMode: Boolean,
-        setButtonNumber: (Int) -> Unit,
+        setButtonNumber: StateSetter<Int>,
     ) -> Unit
 
     /**

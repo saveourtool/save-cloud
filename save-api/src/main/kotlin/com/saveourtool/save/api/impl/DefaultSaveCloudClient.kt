@@ -95,7 +95,7 @@ internal class DefaultSaveCloudClient(
     override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<Project>> =
             postAndCheck(
                 "/projects/by-filters",
-                requestBody = Json.encodeToString(ProjectFilters("", ORGANIZATION_NAME, ProjectStatus.values().toSet())),
+                requestBody = Json.encodeToString(ProjectFilters("", organizationName, ProjectStatus.values().toSet())),
             )
 
     override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>> =
