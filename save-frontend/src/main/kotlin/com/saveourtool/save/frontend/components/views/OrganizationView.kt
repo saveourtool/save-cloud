@@ -439,7 +439,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): MutableList<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilters("", state.organization?.name ?: "", statuses)),
+        body = Json.encodeToString(ProjectFilters("", props.organizationName, statuses)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

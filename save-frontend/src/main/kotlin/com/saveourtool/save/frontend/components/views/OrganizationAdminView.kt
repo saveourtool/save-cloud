@@ -46,14 +46,14 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     val organizationName = organization.name
 
                     val stringClassName = when (organization.status) {
-                        OrganizationStatus.CREATED -> "text-primary"
+                        OrganizationStatus.CREATED -> "text-secondary"
                         OrganizationStatus.DELETED -> "text-secondary"
                         OrganizationStatus.BANNED -> "text-danger"
                     }
                     Fragment.create {
                         td {
                             div {
-                                className = ClassName(stringClassName)
+                                className = ClassName("text-secondary")
                                 when (organization.status) {
                                     OrganizationStatus.CREATED -> Link {
                                         to = "/organization/$organizationName/tools"

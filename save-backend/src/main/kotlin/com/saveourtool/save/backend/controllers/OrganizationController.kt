@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -45,6 +46,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.EnumSet
 
 typealias OrganizationDtoList = List<OrganizationDto>
 
@@ -127,6 +129,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
+        authentication: Authentication?
     ) = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
     }
@@ -332,7 +335,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByNameAndCreatedStatus(organizationName)
+        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -350,7 +353,7 @@ internal class OrganizationController(
             "Not enough permission for this action with organization $organizationName."
         }
         .filter {
-            status != OrganizationStatus.DELETED || !organizationService.hasProjects(organizationName)
+            organizationService.canChangeStatus(organizationName, status, authentication)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
@@ -358,11 +361,11 @@ internal class OrganizationController(
         .map {organization ->
             when (status) {
                 OrganizationStatus.BANNED -> {
-                    organizationService.banOrganization(organization)
+                    organizationService.banOrganization(organization, authentication)
                     ResponseEntity.ok("Successfully banned the organization")
                 }
                 OrganizationStatus.DELETED -> {
-                    organizationService.deleteOrganization(organization)
+                    organizationService.deleteOrganization(organization, authentication)
                     ResponseEntity.ok("Successfully deleted the organization")
                 }
                 OrganizationStatus.CREATED -> {
