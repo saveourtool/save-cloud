@@ -82,12 +82,9 @@ internal class OrganizationController(
         Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations(
-        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
-    ): Mono<OrganizationDtoList> = when {
-        onlyActive -> getFilteredOrganizationDtoList(OrganizationFilters.created).collectList()
-        else -> blockingToMono { organizationService.findAll().map(Organization::toDto) }
-    }
+    fun getAllOrganizationsByFilters(
+        @RequestBody(required = true) organizationFilters: OrganizationFilters
+    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilters).map(Organization::toDto) }
 
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
@@ -128,7 +125,6 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-        authentication: Authentication?
     ) = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
     }

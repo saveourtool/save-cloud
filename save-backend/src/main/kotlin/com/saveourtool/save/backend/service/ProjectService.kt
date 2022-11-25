@@ -71,8 +71,11 @@ class ProjectService(
      * @param project an [project] to delete
      * @return deleted organization
      */
-    fun deleteProject(project: Project): Project =
+    fun deleteProject(project: Project, authentication: Authentication?): Project =
+        if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.DELETED))
             changeProjectStatus(project, ProjectStatus.DELETED)
+        else
+            project
 
     /**
      * Mark organization with [project] as created.
@@ -81,8 +84,12 @@ class ProjectService(
      * @param project an [project] to create
      * @return recovered project
      */
-    fun recoverProject(project: Project): Project =
+    fun recoverProject(project: Project, authentication: Authentication?): Project =
+        if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.CREATED))
             changeProjectStatus(project, ProjectStatus.CREATED)
+        else
+            project
+
 
     /**
      * Mark organization with [project] and all its projects as banned.
@@ -90,7 +97,11 @@ class ProjectService(
      * @param project an [project] to ban
      * @return banned project
      */
-    fun banProject(project: Project): Project = changeProjectStatus(project, ProjectStatus.BANNED)
+    fun banProject(project: Project, authentication: Authentication?): Project =
+        if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.BANNED))
+            changeProjectStatus(project, ProjectStatus.BANNED)
+        else
+            project
 
     /**
      * @param project [Project] to be updated

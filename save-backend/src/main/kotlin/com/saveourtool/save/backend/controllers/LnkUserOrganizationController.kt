@@ -19,6 +19,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -252,32 +253,28 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @GetMapping("/by-user")
+    @PostMapping("/by-user-and-filters")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
-        summary = "Get user's organizations by status",
-        description = "Get organizations by status available for the current user.",
+        method = "POST",
+        summary = "Get user's organizations by filters",
+        description = "Get organizations by filters available for the current user.",
     )
     @Parameters(
-        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = false),
+        Parameter(name = "filters", `in` = ParameterIn.DEFAULT, description = "this type of organizations", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
-    fun getOrganizationWithRoles(
-        @RequestParam(required = false, defaultValue = "CREATED") status: OrganizationStatus,
+    fun getOrganizationWithRolesAndFilters(
+        @RequestBody(required = true) organizationFilters: OrganizationFilters,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
-    )
-        .switchIfEmptyToNotFound()
+    ).switchIfEmptyToNotFound()
         .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization.status == status
+            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters))
         }
         .map {
             OrganizationWithUsers(

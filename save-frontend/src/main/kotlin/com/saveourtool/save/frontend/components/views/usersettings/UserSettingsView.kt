@@ -7,6 +7,8 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -81,16 +83,6 @@ external interface UserSettingsViewState : State {
     var selfOrganizationWithUserList: List<OrganizationWithUsers>
 
     /**
-     * Organizations connected to user
-     */
-    var selfDeletedOrganizationDtos: List<OrganizationWithUsers>
-
-    /**
-     * Organizations connected to user
-     */
-    var selfBannedOrganizationDtos: List<OrganizationWithUsers>
-
-    /**
      * Conflict error message
      */
     var conflictErrorMessage: String?
@@ -103,8 +95,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
-        state.selfDeletedOrganizationDtos = emptyList()
-        state.selfBannedOrganizationDtos = emptyList()
         state.selfOrganizationWithUserList = emptyList()
     }
 
@@ -126,15 +116,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val deletedOrganizationDtos = getDeletedOrganizationDtos()
-            val bannedOrganizationDtos = getBannedOrganizationDtos()
             val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfDeletedOrganizationDtos = deletedOrganizationDtos
-                selfBannedOrganizationDtos = bannedOrganizationDtos
                 selfOrganizationWithUserList = organizationDtos
             }
         }
@@ -373,25 +359,10 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
 
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationWithUsersList() = get(
-        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
-        Headers(),
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
-
-    @Suppress("TYPE_ALIAS")
-    private suspend fun getDeletedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user?status=${OrganizationStatus.DELETED}",
-        Headers(),
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
-
-    @Suppress("TYPE_ALIAS")
-    private suspend fun getBannedOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user?status=${OrganizationStatus.BANNED}",
-        Headers(),
+    private suspend fun getOrganizationWithUsersList() = post(
+        url = "$apiUrl/organizations/by-user-and-filters",
+        headers = jsonHeaders,
+        body = Json.encodeToString(OrganizationFilters.all),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }

@@ -41,8 +41,8 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     id = "organization",
                     header = "Organization",
                     accessor = { name }
-                ) { cellProps ->
-                    val organization = cellProps.row.original
+                ) { cellContext ->
+                    val organization = cellContext.row.original
                     val organizationName = organization.name
 
                     Fragment.create {

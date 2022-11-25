@@ -46,75 +46,12 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         div {
                             className = ClassName("row justify-content-between align-items-center")
                             div {
-                                className = ClassName("align-items-center ml-3")
-                                img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = organizationDto.avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
-                                    height = 60.0
-                                    width = 60.0
+                                val stringClassName = when (organizationDto.status) {
+                                    OrganizationStatus.CREATED -> "text-primary"
+                                    OrganizationStatus.DELETED -> "text-secondary"
+                                    OrganizationStatus.BANNED -> "text-danger"
                                 }
-                                a {
-                                    className = ClassName("ml-2")
-                                    href = "#/${organizationDto.name}"
-                                    +organizationDto.name
-                                }
-                            }
-                            div {
-                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                                val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
-                                if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    actionButton {
-                                        title = "WARNING: About to delete this organization..."
-                                        errorTitle = "You cannot delete the organization ${organizationDto.name}"
-                                        message = "Are you sure you want to ban the organization ${organizationDto.name}?"
-                                        buttonStyleBuilder = { childrenBuilder ->
-                                            with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
-                                            }
-                                        }
-                                        classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
-                                            with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
-                                                    action()
-                                                    closeWindow()
-                                                }
-                                                buttonBuilder("Cancel") {
-                                                    closeWindow()
-                                                }
-                                            }
-                                        }
-                                        onActionSuccess = { _, _ ->
-                                            setState {
-                                                selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationWithUsers)
-                                            }
-                                        }
-                                        conditionClick = false
-                                        sendRequest = { _, _ ->
-                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
-                                        }
-                                    }
-                                }
-                                div {
-                                    className = ClassName("mr-3")
-                                    +role.formattedName
-                                }
-                            }
-                        }
-                    }
-                }
-
-                state.selfDeletedOrganizationDtos.forEach { organizationWithUsers ->
-                    val organizationDto = organizationWithUsers.organization
-                    li {
-                        className = ClassName("list-group-item")
-                        div {
-                            className = ClassName("row justify-content-between align-items-center")
-                            div {
-                                className = ClassName("align-items-center ml-3 text-secondary")
+                                className = ClassName("align-items-center ml-3 $stringClassName")
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                                     src = organizationDto.avatar?.let {
@@ -123,79 +60,94 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     height = 60.0
                                     width = 60.0
                                 }
-                                +organizationDto.name
-                                spanWithClassesAndText("text-secondary", "deleted")
+                                when (organizationDto.status) {
+                                    OrganizationStatus.CREATED -> a {
+                                        href = "#/${organizationDto.name}"
+                                        +organizationDto.name
+                                    }
+                                    else -> {
+                                        +organizationDto.name
+                                        spanWithClassesAndText(stringClassName, organizationDto.status.name.lowercase())
+                                    }
+                                }
                             }
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    actionButton {
-                                        title = "WARNING: About to recover this organization..."
-                                        errorTitle = "You cannot recover the organization ${organizationDto.name}"
-                                        message = "Are you sure you want to recover the organization ${organizationDto.name}?"
-                                        buttonStyleBuilder = { childrenBuilder ->
-                                            with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
-                                            }
-                                        }
-                                        classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
-                                            with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "danger", classes = "mr-2") {
-                                                    action()
-                                                    closeWindow()
-                                                }
-                                                buttonBuilder("Cancel") {
-                                                    closeWindow()
+                                    when (organizationDto.status) {
+                                        OrganizationStatus.CREATED -> actionButton {
+                                            title = "WARNING: About to delete this organization..."
+                                            errorTitle = "You cannot delete the organization ${organizationDto.name}"
+                                            message = "Are you sure you want to ban the organization ${organizationDto.name}?"
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                                 }
                                             }
-                                        }
-                                        onActionSuccess = { _, _ ->
-                                            setState {
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationWithUsers)
-                                                selfOrganizationWithUserList = selfOrganizationWithUserList.plusElement(organizationWithUsers)
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                        action()
+                                                        closeWindow()
+                                                    }
+                                                    buttonBuilder("Cancel") {
+                                                        closeWindow()
+                                                    }
+                                                }
+                                            }
+                                            onActionSuccess = { _, _ ->
+                                                setState {
+                                                    selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
+                                                    selfOrganizationWithUserList =
+                                                        selfOrganizationWithUserList.plusElement(organizationWithUsers.copy(organizationDto.copy(status = OrganizationStatus.DELETED)))
+                                                }
+                                            }
+                                            conditionClick = false
+                                            sendRequest = { _, _ ->
+                                                responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
                                             }
                                         }
-                                        conditionClick = false
-                                        sendRequest = { _, _ ->
-                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.CREATED)
+                                        OrganizationStatus.DELETED -> actionButton {
+                                            title = "WARNING: About to recover this organization..."
+                                            errorTitle = "You cannot recover the organization ${organizationDto.name}"
+                                            message = "Are you sure you want to recover the organization ${organizationDto.name}?"
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                                }
+                                            }
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                        action()
+                                                        closeWindow()
+                                                    }
+                                                    buttonBuilder("Cancel") {
+                                                        closeWindow()
+                                                    }
+                                                }
+                                            }
+                                            onActionSuccess = { _, _ ->
+                                                setState {
+                                                    selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
+                                                    selfOrganizationWithUserList =
+                                                        selfOrganizationWithUserList.plusElement(organizationWithUsers.copy(organizationDto.copy(status = OrganizationStatus.CREATED)))
+                                                }
+                                            }
+                                            conditionClick = false
+                                            sendRequest = { _, _ ->
+                                                responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.CREATED)
+                                            }
                                         }
+                                        OrganizationStatus.BANNED -> {}
                                     }
                                 }
                                 div {
                                     className = ClassName("mr-3")
                                     +role.formattedName
-                                }
-                            }
-                        }
-                    }
-                }
-                state.selfBannedOrganizationDtos.forEach { organizationWithUsers ->
-                    val organizationDto = organizationWithUsers.organization
-                    li {
-                        className = ClassName("list-group-item")
-                        div {
-                            className = ClassName("row justify-content-between align-items-center")
-                            div {
-                                className = ClassName("align-items-center ml-3 text-danger")
-                                img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
-                                    src = organizationDto.avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
-                                    height = 60.0
-                                    width = 60.0
-                                }
-                                +organizationDto.name
-                                spanWithClassesAndText("text-danger", "banned")
-                            }
-
-                            div {
-                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                                div {
-                                    className = ClassName("mr-3")
-                                    +(state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.VIEWER).formattedName
                                 }
                             }
                         }

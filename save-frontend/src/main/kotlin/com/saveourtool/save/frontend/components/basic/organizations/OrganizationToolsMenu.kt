@@ -77,7 +77,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         href = "#/${projectDto.organizationName}/${cellContext.value}"
                                         +cellContext.value
                                     }
-                                    spanWithClassesAndText("text-primary", "active")
+                                    spanWithClassesAndText("text-muted", "active")
                                 }
                                 ProjectStatus.DELETED -> div {
                                     className = ClassName("text-secondary")

@@ -1,6 +1,8 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.OrganizationRepository
+import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
@@ -8,6 +10,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -23,6 +26,7 @@ import kotlin.NoSuchElementException
 @Service
 class OrganizationService(
     private val projectService: ProjectService,
+    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationRepository: OrganizationRepository,
 ) {
     /**
@@ -68,7 +72,7 @@ class OrganizationService(
      * @return deleted organization
      */
     fun deleteOrganization(organization: Organization, authentication: Authentication): Organization =
-            if (!hasProjects(organization.name) || authentication.hasRole(Role.SUPER_ADMIN)) {
+            if (!hasProjects(organization.name) || organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.BAN)) {
                 projectService.getAllByOrganizationName(organization.name).forEach {
                     it.status = DELETED
                     projectService.updateProject(it)
@@ -106,7 +110,7 @@ class OrganizationService(
      */
     @Transactional
     fun banOrganization(organization: Organization, authentication: Authentication): Organization =
-            if (authentication.hasRole(Role.SUPER_ADMIN)) {
+            if (organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.BAN)) {
                 projectService.getAllByOrganizationName(organization.name).forEach {
                     it.status = BANNED
                     projectService.updateProject(it)

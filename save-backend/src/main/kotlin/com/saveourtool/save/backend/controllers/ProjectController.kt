@@ -266,15 +266,15 @@ class ProjectController(
         .map { project ->
             when (status) {
                 ProjectStatus.BANNED -> {
-                    projectService.banProject(project)
+                    projectService.banProject(project, authentication)
                     ResponseEntity.ok("Successfully banned the project")
                 }
                 ProjectStatus.DELETED -> {
-                    projectService.deleteProject(project)
+                    projectService.deleteProject(project, authentication)
                     ResponseEntity.ok("Successfully deleted the project")
                 }
                 ProjectStatus.CREATED -> {
-                    projectService.recoverProject(project)
+                    projectService.recoverProject(project, authentication)
                     ResponseEntity.ok("Successfully recovered the project")
                 }
             }
