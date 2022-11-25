@@ -7,7 +7,8 @@
 package com.saveourtool.save.orchestrator.config
 
 import com.saveourtool.save.domain.supportTestStatus
-import com.saveourtool.save.utils.LocalDateTimeSerializer
+import com.saveourtool.save.utils.supportJLocalDateTime
+import com.saveourtool.save.utils.supportKLocalDateTime
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
@@ -19,14 +20,12 @@ import org.springframework.http.codec.json.KotlinSerializationJsonEncoder
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
-import java.time.LocalDateTime
-
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
 internal val json = Json {
     serializersModule = SerializersModule {
-        contextual(LocalDateTime::class, LocalDateTimeSerializer)
+        supportJLocalDateTime()
     }
 }
 
@@ -37,6 +36,7 @@ class JsonConfig {
         jacksonObjectMapperBuilder
             .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .supportTestStatus()
+            .supportKLocalDateTime()
     }
 
     @Bean

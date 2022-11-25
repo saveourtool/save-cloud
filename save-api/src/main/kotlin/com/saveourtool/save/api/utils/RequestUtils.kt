@@ -9,8 +9,8 @@ import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
+import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
 import io.ktor.client.HttpClient
@@ -40,14 +40,13 @@ import io.ktor.util.InternalAPI
 import okio.Path.Companion.toPath
 
 import java.io.File
-import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
 private val json = Json {
     serializersModule = SerializersModule {
-        contextual(LocalDateTime::class, LocalDateTimeSerializer)
+        supportJLocalDateTime()
     }
 }
 
