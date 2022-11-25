@@ -2211,13 +2211,12 @@
         ]
       }
     },
-    "/api/v1/organizations/all": {
-      "get": {
+    "/api/v1/organizations/all-by-filters": {
+      "post": {
         "description": "Get organizations",
         "operationId": "getAllOrganizations",
         "parameters": [
           {
-            "description": "Whether deleted organizations should be excluded from the response. The default is false.",
             "in": "query",
             "name": "onlyActive",
             "required": false,
@@ -2225,6 +2224,12 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "description": "organization filters",
+            "in": "query",
+            "name": "organizationFilters",
+            "required": true
           }
         ],
         "responses": {
@@ -3893,7 +3898,7 @@
     "/api/v1/projects/": {
       "get": {
         "description": "Get all projects, available for current user.",
-        "operationId": "getProjects",
+        "operationId": "getProjects_1",
         "parameters": [
           {
             "example": "basic",
@@ -3941,11 +3946,17 @@
         ]
       }
     },
-    "/api/v1/projects/all": {
-      "get": {
+    "/api/v1/projects/all-by-filters": {
+      "post": {
         "description": "Get all projects, including deleted and private. Only accessible for super admins",
-        "operationId": "getProjects_1",
+        "operationId": "getProjects",
         "parameters": [
+          {
+            "description": "organization filters",
+            "in": "query",
+            "name": "projectFilters",
+            "required": true
+          },
           {
             "example": "basic",
             "in": "header",
@@ -3953,6 +3964,16 @@
             "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectFilters"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -4058,15 +4079,6 @@
         "description": "Get list of projects related to current user",
         "operationId": "getProjectsOfCurrentUser",
         "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "example": "basic",
             "in": "header",
@@ -8715,7 +8727,7 @@
             }
           }
         },
-        "description": "project filters"
+        "description": "organization filters"
       },
       "Sdk": {
         "required": [
