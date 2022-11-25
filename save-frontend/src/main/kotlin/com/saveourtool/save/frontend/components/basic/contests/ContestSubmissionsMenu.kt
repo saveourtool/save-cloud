@@ -26,7 +26,7 @@ val contestSubmissionsMenu = contestSubmissionsMenu()
     "MAGIC_NUMBER",
     "TYPE_ALIAS",
 )
-private val myProjectsTable: FC< TableProps<ContestResult>> = tableComponent(
+private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
     columns = {
         columns {
             column(id = "project_name", header = "Project Name", { this }) { cellContext ->
