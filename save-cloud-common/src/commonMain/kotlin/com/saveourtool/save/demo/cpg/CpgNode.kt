@@ -33,7 +33,7 @@ data class CpgNode(
 data class CpgNodeAttributes(
     @EncodeDefault(NEVER) val label: String? = null,
     @EncodeDefault(NEVER) val color: String? = null,
-    @EncodeDefault(ALWAYS) val size: Long = 20,
+    @EncodeDefault(ALWAYS) val size: Long = 5,
     @EncodeDefault(ALWAYS) val x: Long = 0,
     @EncodeDefault(ALWAYS) val y: Long = 0,
 )
