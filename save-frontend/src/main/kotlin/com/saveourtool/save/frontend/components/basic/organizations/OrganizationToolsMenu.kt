@@ -63,8 +63,6 @@ external interface OrganizationToolsMenuProps : Props {
 @Suppress("TOO_LONG_FUNCTION")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
-
-
     val tableWithProjects: FC<TableProps<Project>> = tableComponent(
         columns = {
             columns {
@@ -131,24 +129,25 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, window, childrenBuilder ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
+                                            val word = if (isClickMode) "ban" else "delete"
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, $word $projectName", style = "danger", classes = "mr-2") {
                                                     action()
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { isBanMode ->
+                                        onActionSuccess = { isBanMode, _ ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
-                                        sendRequest = { isBanned ->
+                                        sendRequest = { isBanned, _ ->
                                             val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                             responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
                                         }
@@ -163,24 +162,24 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, window, childrenBuilder ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, recover $projectName", style = "warning", classes = "mr-2") {
                                                     action()
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _ ->
+                                        onActionSuccess = { _, _ ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
-                                        conditionClick = props.currentUserInfo.isSuperAdmin()
-                                        sendRequest = { _ ->
+                                        conditionClick = false
+                                        sendRequest = { _, _ ->
                                             responseChangeProjectStatus("${project.organization.name}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
@@ -194,24 +193,24 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, window, childrenBuilder ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
                                                     action()
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _ ->
+                                        onActionSuccess = { _, _ ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
-                                        conditionClick = props.currentUserInfo.isSuperAdmin()
-                                        sendRequest = { _ ->
+                                        conditionClick = false
+                                        sendRequest = { _, _ ->
                                             responseChangeProjectStatus("${project.organization.name}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }

@@ -22,8 +22,6 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.router.useNavigate
 
-import kotlinx.browser.window
-
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
 /**
@@ -174,22 +172,23 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
-                        modalButtons = { action, window, childrenBuilder ->
+                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
+                            val word = if (isClickMode) "ban" else "delete"
                             with(childrenBuilder) {
-                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                buttonBuilder(label = "Yes, $word ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action()
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                                 buttonBuilder("Cancel") {
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                             }
                         }
-                        onActionSuccess = { _ ->
+                        onActionSuccess = { _, _ ->
                             navigate(to = "/${FrontendRoutes.PROJECTS}")
                         }
                         conditionClick = props.currentUserInfo.isSuperAdmin()
-                        sendRequest = { isBanned ->
+                        sendRequest = { isBanned, _ ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(props.organizationName, newStatus)
                         }

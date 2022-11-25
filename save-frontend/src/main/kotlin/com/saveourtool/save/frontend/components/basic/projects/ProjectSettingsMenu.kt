@@ -29,7 +29,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -262,7 +261,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             errorTitle = "You cannot delete the project ${props.project.name}"
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
-                            onActionSuccess = { _ ->
+                            onActionSuccess = { _, _ ->
                                 navigate(to = "/organization/${props.project.organization.name}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
@@ -271,19 +270,20 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             classes = "btn btn-sm btn-danger"
-                            modalButtons = { action, window, childrenBuilder ->
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
+                                val word = if (isClickMode) "ban" else "delete"
                                 with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
+                                    buttonBuilder(label = "Yes, $word ${props.project.name}", style = "danger", classes = "mr-2") {
                                         action()
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                     buttonBuilder("Cancel") {
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                 }
                             }
                             conditionClick = props.currentUserInfo.isSuperAdmin()
-                            sendRequest = { isBanned ->
+                            sendRequest = { isBanned, _ ->
                                 val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                 responseChangeProjectStatus(projectPath, newStatus)
                             }

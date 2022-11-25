@@ -51,7 +51,7 @@ fun ChildrenBuilder.statusSpan(project: Project) {
 }
 
 /**
- * @param project
+ * @param organization
  */
 fun ChildrenBuilder.statusSpan(organization: Organization) {
     when (organization.status) {
@@ -78,7 +78,6 @@ fun ChildrenBuilder.statusSpan(organization: Organization) {
         }
     }
 }
-
 
 /**
  * @param icon

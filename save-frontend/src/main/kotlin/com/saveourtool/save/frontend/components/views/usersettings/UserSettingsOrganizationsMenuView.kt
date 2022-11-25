@@ -12,10 +12,9 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.v1
-import csstype.BorderRadius
 
+import csstype.BorderRadius
 import csstype.ClassName
-import kotlinx.js.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -24,6 +23,8 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
+
+import kotlinx.js.jso
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -76,25 +77,25 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, window, childrenBuilder ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                     action()
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _ ->
+                                        onActionSuccess = { _, _ ->
                                             setState {
                                                 selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
                                                 selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationDto)
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { _ ->
+                                        sendRequest = { _, _ ->
                                             responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
                                         }
                                     }
@@ -146,25 +147,25 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, window, childrenBuilder ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                     action()
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                                 buttonBuilder("Cancel") {
-                                                    window.closeWindow()
+                                                    closeWindow()
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _ ->
+                                        onActionSuccess = { _, _ ->
                                             setState {
                                                 selfDeletedOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
                                                 selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { _ ->
+                                        sendRequest = { _, _ ->
                                             responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
                                         }
                                     }
@@ -177,8 +178,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
-
-
                 state.selfBannedOrganizationDtos.forEach { organizationDto ->
                     li {
                         className = ClassName("list-group-item")
@@ -208,7 +207,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 div {
                                     className = ClassName("mr-3")
-                                    + (state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.VIEWER).formattedName
+                                    +(state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.VIEWER).formattedName
                                 }
                             }
                         }

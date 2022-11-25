@@ -10,7 +10,6 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -131,7 +130,7 @@ internal class OrganizationController(
         authentication: Authentication?
     ) = Mono.fromCallable {
         organizationService.findByNameAndCreatedStatus(organizationName)
-    } .switchIfEmptyToNotFound {
+    }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }
 
