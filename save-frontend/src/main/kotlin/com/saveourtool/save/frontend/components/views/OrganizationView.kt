@@ -7,17 +7,20 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
@@ -52,7 +55,6 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
-import react.table.columns
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
@@ -74,12 +76,12 @@ const val EMPTY_COLUMN_HEADER = ""
 /**
  * CSS classes of the "delete project" button.
  */
-val deleteButtonClasses: List<String> = listOf("btn", "btn-small")
+val actionButtonClasses: List<String> = listOf("btn", "btn-small")
 
 /**
  * CSS classes of the "delete project" icon.
  */
-val deleteIconClasses: List<String> = listOf("trash-alt")
+val actionIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
@@ -108,12 +110,12 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * Organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: MutableList<ProjectDto>
 
     /**
      * Message of error
@@ -170,17 +172,18 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+    @Suppress("TYPE_ALIAS")
+    private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +cellContext.value
                             }
-                            privacySpan(cellProps.row.original)
+                            privacySpan(cellContext.row.original)
                         }
                     }
                 }
@@ -202,28 +205,45 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 /*
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
-                if (state.selfRole.isSuperAdmin()) {
-                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
+                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellContext ->
                         Fragment.create {
                             td {
-                                deleteButton {
-                                    val project = cellProps.row.original
-                                    val projectName = project.name
+                                val project = cellContext.row.original
+                                val projectName = project.name
 
-                                    id = "delete-project-$projectName"
-                                    classes = deleteButtonClasses
-                                    tooltipText = "Delete the project"
-                                    elementChildren = { childrenBuilder ->
+                                actionButton {
+                                    title = "WARNING: About to delete this project..."
+                                    errorTitle = "You cannot delete the project $projectName"
+                                    message = """Are you sure you want to delete the project "$projectName"?"""
+                                    clickMessage = "Also ban this project"
+                                    buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
-                                            fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                            fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                         }
                                     }
-
-                                    confirmDialog = ModalDialogStrings(
-                                        title = "Delete Project",
-                                        message = """Are you sure you want to delete the project "$projectName"?""",
-                                    )
-                                    action = deleteProject(project)
+                                    classes = actionButtonClasses.joinToString(" ")
+                                    modalButtons = { action, window, childrenBuilder ->
+                                        with(childrenBuilder) {
+                                            buttonBuilder(label = "Yes, delete $projectName", style = "danger", classes = "mr-2") {
+                                                action()
+                                                window.closeWindow()
+                                            }
+                                            buttonBuilder("Cancel") {
+                                                window.closeWindow()
+                                            }
+                                        }
+                                    }
+                                    onActionSuccess = { _ ->
+                                        setState {
+                                            projects -= project
+                                        }
+                                    }
+                                    conditionClick = props.currentUserInfo.isSuperAdmin()
+                                    sendRequest = { isBanned ->
+                                        val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                        responseChangeProjectStatus("${project.organizationName}/${project.name}", newStatus)
+                                    }
                                 }
                             }
                         }
@@ -246,7 +266,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     init {
         state.isUploading = false
-        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
+        state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
         state.closeButtonLabel = null
@@ -467,24 +487,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun onOrganizationSave(newOrganization: Organization) {
-        newOrganization.apply {
+    private fun onOrganizationSave(newOrganization: OrganizationDto) {
+        newOrganization.copy(
             description = state.draftOrganizationDescription
-        }
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/update",
-                headers,
-                Json.encodeToString(newOrganization),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = newOrganization
+        ).let { organizationWithNewDescription ->
+            scope.launch {
+                val response = post(
+                    "$apiUrl/organizations/${props.organizationName}/update",
+                    jsonHeaders,
+                    Json.encodeToString(organizationWithNewDescription),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    setState {
+                        organization = organizationWithNewDescription
+                    }
                 }
             }
         }
@@ -524,7 +541,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
-            organization = state.organization ?: Organization.stub(-1)
+            organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
@@ -538,11 +555,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): List<Project> = state.projects
+    private fun getProjectsFromCache(): List<ProjectDto> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
-        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
+    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = post(
+        url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
+        body = Json.encodeToString(ProjectFilters("", props.organizationName)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -612,7 +630,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
             topProject?.let {
@@ -703,31 +721,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("col-3 mr-auto justify-content-center align-items-center")
             }
-        }
-    }
-
-    /**
-     * Returns a lambda which, when invoked, deletes the specified project and
-     * updates the state of this view, passing an error message, if any, to the
-     * externally supplied [ErrorHandler].
-     *
-     * @param project the project to delete.
-     * @return the lambda which deletes [project].
-     * @see ErrorHandler
-     */
-    private fun deleteProject(project: Project): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/projects/${project.organization.name}/${project.name}/delete",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                projects -= project
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 

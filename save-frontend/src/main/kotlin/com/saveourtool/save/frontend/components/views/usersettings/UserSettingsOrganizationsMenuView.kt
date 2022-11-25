@@ -1,9 +1,15 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
+import com.saveourtool.save.frontend.components.views.actionButtonClasses
+import com.saveourtool.save.frontend.components.views.actionIconClasses
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.actionButton
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.v1
 
 import csstype.ClassName
@@ -14,6 +20,8 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+
+import kotlinx.browser.window
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -31,7 +39,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
 
             ul {
                 className = ClassName("list-group list-group-flush")
-                state.selfOrganizationDtos.forEach { organizationDto ->
+                state.selfOrganizationWithUserList.forEach { organizationWithUsers ->
+                    val organizationDto = organizationWithUsers.organization
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -54,19 +63,36 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             }
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
+                                val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    deleteOrganizationButton {
-                                        organizationName = organizationDto.name
-                                        onDeletionSuccess = {
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
-                                        }
+                                    actionButton {
+                                        title = "WARNING: About to delete this organization..."
+                                        errorTitle = "You cannot delete the organization ${organizationDto.name}"
+                                        message = "Are you sure you want to ban the organization ${organizationDto.name}?"
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faTrashAlt)
+                                                fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                             }
                                         }
-                                        classes = "btn mr-3"
+                                        classes = actionButtonClasses.joinToString(" ")
+                                        modalButtons = { action, window, childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                    action()
+                                                    window.closeWindow()
+                                                }
+                                                buttonBuilder("Cancel") {
+                                                    window.closeWindow()
+                                                }
+                                            }
+                                        }
+                                        onActionSuccess = { _ ->
+                                            setState { selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers) }
+                                        }
+                                        conditionClick = false
+                                        sendRequest = { _ ->
+                                            responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.DELETED)
+                                        }
                                     }
                                 }
                                 div {

@@ -29,7 +29,7 @@ class LnkUserOrganizationService(
      */
     fun getAllUsersAndRolesByOrganization(organization: Organization) =
             lnkUserOrganizationRepository.findByOrganization(organization)
-                .associate { it.user to (it.role ?: Role.NONE) }
+                .associate { it.user to it.role }
 
     /**
      * @param userId
@@ -150,11 +150,12 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
 
     /**
-     * @param userId
+     * @param userId ID of User
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return Flux of [Organization]s in which user is in
      */
-    fun findAllByAuthentication(userId: Long) = blockingToFlux {
-        lnkUserOrganizationRepository.findByUserId(userId)
+    fun findAllByAuthenticationAndStatuses(userId: Long, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserId(userId).filter { it.organization.status in statuses }
     }
 
     /**
@@ -193,7 +194,7 @@ class LnkUserOrganizationService(
         .let {
             lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
         }
-        .mapNotNull { it.organization }
+        .map { it.organization }
 
     /**
      * @param user

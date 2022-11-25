@@ -3,15 +3,14 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import dom.html.HTMLInputElement
@@ -45,7 +44,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Current project settings
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Information about current user
@@ -60,13 +59,30 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Callback to update project state in ProjectView after update request's response is received.
      */
-    var onProjectUpdate: (Project) -> Unit
+    var onProjectUpdate: (ProjectDto) -> Unit
 
     /**
      * Callback to show error message
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
+}
+
+/**
+ * Makes a call to change project status
+ *
+ * @param status - the status that will be assigned to the project [project]
+ * @param projectPath - the path [organizationName/projectName] for response
+ * @return lazy response
+ */
+fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }
 
 @Suppress(
@@ -88,42 +104,19 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
     val navigate = useNavigate()
 
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
-    val deleteProject = useDeferredRequest {
-        val responseFromDeleteProject = delete(
-            "$apiUrl/projects/$projectPath/delete",
-            jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-        if (responseFromDeleteProject.ok) {
-            navigate("/${FrontendRoutes.PROJECTS}")
-        }
-    }
+    val projectPath = props.project.let { "${it.organizationName}/${it.name}" }
 
     val updateProject = useDeferredRequest {
         post(
-            "$apiUrl/projects/update",
-            jsonHeaders,
-            Json.encodeToString(draftProject.toDto()),
+            url = "$apiUrl/projects/update",
+            headers = jsonHeaders,
+            body = Json.encodeToString(draftProject),
             loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
         ).let {
             if (it.ok) {
                 props.onProjectUpdate(draftProject)
             }
-        }
-    }
-
-    val deletionModalOpener = useWindowOpenness()
-    displayModal(
-        deletionModalOpener,
-        "Warning: deletion of project",
-        "You are about to delete project $projectPath. Are you sure?",
-    ) {
-        buttonBuilder("Yes, delete $projectPath", "danger") {
-            deleteProject()
-        }
-        buttonBuilder("Cancel") {
-            deletionModalOpener.closeWindow()
         }
     }
 
@@ -184,7 +177,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = draftProject.public
+                                defaultChecked = draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPublicSwitch"
@@ -200,7 +193,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = !draftProject.public
+                                defaultChecked = !draftProject.isPublic
                                 name = "projectVisibility"
                                 type = InputType.radio
                                 id = "isProjectPrivateSwitch"
@@ -213,7 +206,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             }
                         }
                         onChange = {
-                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
+                            setDraftProject(draftProject.copy(isPublic = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }
@@ -263,14 +256,36 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-danger")
-                            disabled = !props.selfRole.hasDeletePermission()
-                            onClick = {
-                                deletionModalOpener.openWindow()
+                        actionButton {
+                            title = "WARNING: About to delete this project..."
+                            errorTitle = "You cannot delete the project ${props.project.name}"
+                            message = "Are you sure you want to delete the project $projectPath?"
+                            clickMessage = "Also ban this project"
+                            onActionSuccess = { _ ->
+                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
-                            +"Delete project"
+                            buttonStyleBuilder = { childrenBuilder ->
+                                with(childrenBuilder) {
+                                    +"Delete ${props.project.name}"
+                                }
+                            }
+                            classes = "btn btn-sm btn-danger"
+                            modalButtons = { action, window, childrenBuilder ->
+                                with(childrenBuilder) {
+                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
+                                        action()
+                                        window.closeWindow()
+                                    }
+                                    buttonBuilder("Cancel") {
+                                        window.closeWindow()
+                                    }
+                                }
+                            }
+                            conditionClick = props.currentUserInfo.isSuperAdmin()
+                            sendRequest = { isBanned ->
+                                val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                responseChangeProjectStatus(projectPath, newStatus)
+                            }
                         }
                     }
                 }

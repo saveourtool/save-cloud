@@ -17,8 +17,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -75,7 +75,7 @@ class LnkUserOrganizationController(
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = organizationService.findByName(organizationName)
+    ): Mono<List<UserInfo>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE
@@ -84,7 +84,7 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getAllUsersAndRolesByOrganization(it)
         }
         .map { mapOfPermissions ->
-            mapOfPermissions.filter { it.value != Role.NONE }.map { (user, role) ->
+            mapOfPermissions.map { (user, role) ->
                 user.toUserInfo(organizations = mapOf(organizationName to role))
             }
         }
@@ -208,7 +208,7 @@ class LnkUserOrganizationController(
             prefix.isNotEmpty()
         }
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -252,20 +252,24 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @GetMapping("/by-user/not-deleted")
+    @GetMapping("/by-user")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get user's organizations.",
-        description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
+        summary = "Get user's organizations by status",
+        description = "Get organizations by status available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
+        @RequestParam(required = false, defaultValue = "CREATED") status: OrganizationStatus,
         authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+    ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
@@ -273,10 +277,13 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && it.organization?.status != OrganizationStatus.DELETED
+            it.organization.status == status
         }
         .map {
-            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            OrganizationWithUsers(
+                organization = it.organization.toDto(),
+                userRoles = mapOf(it.user.name!! to it.role),
+            )
         }
 
     private fun getUserAndOrganizationWithPermissions(
@@ -292,7 +299,7 @@ class LnkUserOrganizationController(
             USER_NOT_FOUND_ERROR_MESSAGE
         }
         .zipWith(
-            organizationService.findByName(organizationName).toMono()
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
         )
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE

@@ -5,13 +5,18 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.OrganizationWithRating
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -29,7 +34,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -64,12 +68,12 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All organizations
      */
-    var organizations: Array<OrganizationDto>
+    var organizationWithRatingList: Array<OrganizationWithRating>
 
     /**
      * All projects
      */
-    var projects: Array<Project>
+    var projects: Array<ProjectDto>
 
     /**
      * All filters for project
@@ -97,25 +101,25 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         "STRING_TEMPLATE_QUOTES",
         "TYPE_ALIAS",
     )
-    private val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
+    private val tableWithOrganizationRating: FC<TableProps<OrganizationWithRating>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellProps ->
+                column(id = "name", header = "Name", { organization.name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellProps.row.original.avatar?.let {
+                                    src = cellContext.row.original.organization.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     style = jso {
@@ -123,16 +127,16 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                         width = 2.rem
                                     }
                                 }
-                                href = "#/${cellProps.value}"
-                                +" ${cellProps.value}"
+                                href = "#/${cellContext.value}"
+                                +" ${cellContext.value}"
                             }
                         }
                     }
                 }
-                column(id = "rating", header = "Rating") { cellProps ->
+                column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.globalRating?.toFixed(2)}"
+                            +cellContext.value.globalRating.toFixedStr(2)
                         }
                     }
                 }
@@ -144,15 +148,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
                         name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters.empty
+                                OrganizationFilters.created
                             } else {
                                 OrganizationFilters(filterValue)
                             }
@@ -173,32 +177,33 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
+        "TYPE_ALIAS",
     )
-    private val renderingProjectChampionsTable: FC<TableProps<Project>> = tableComponent(
+    private val renderingProjectChampionsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
-            columns<Project> {
+            columns<ProjectDto> {
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
-                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            val index = it.row.index + 1 + it.pageIndex * it.pageSize
                             +"$index"
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellProps ->
+                column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +" ${cellProps.value}"
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +" ${cellContext.value}"
                             }
                         }
                     }
                 }
-                column(id = "rating", header = "Rating") { cellProps ->
+                column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
-                            +"${cellProps.value.contestRating.toFixed(2)}"
+                            +cellContext.value.contestRating.toFixedStr(2)
                         }
                     }
                 }
@@ -210,15 +215,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
                         name = state.projectFilters.name
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilters(null)
+                                ProjectFilters.created
                             } else {
                                 ProjectFilters(filterValue)
                             }
@@ -238,17 +243,17 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     )
 
     init {
-        state.organizations = emptyArray()
+        state.organizationWithRatingList = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
-        state.projectFilters = ProjectFilters(null)
-        state.organizationFilters = OrganizationFilters.empty
+        state.projectFilters = ProjectFilters.created
+        state.organizationFilters = OrganizationFilters.created
     }
 
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
-            val organizationsFromBackend: List<OrganizationDto> = post(
-                url = "$apiUrl/organizations/not-deleted",
+            val organizationsFromBackend: List<OrganizationWithRating> = post(
+                url = "$apiUrl/organizations/by-filters-with-rating",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -256,15 +261,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 .decodeFromJsonString()
 
             setState {
-                organizations = organizationsFromBackend.toTypedArray()
+                organizationWithRatingList = organizationsFromBackend.toTypedArray()
             }
         }
     }
 
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
-            val projectsFromBackend: List<Project> = post(
-                url = "$apiUrl/projects/not-deleted",
+            val projectsFromBackend: List<ProjectDto> = post(
+                url = "$apiUrl/projects/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -290,7 +295,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?projectName=$it" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name.let {
+                    buildString {
+                        append(href)
+                        if (it.isNotBlank()) {
+                            append("?projectName=$it")
+                        }
+                    }
+                }
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -299,7 +311,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val projectFilters = ProjectFilters(props.projectName)
+        val projectFilters = ProjectFilters(props.projectName ?: "")
         val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
         setState {
             paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
@@ -338,7 +350,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 className = ClassName("col-8")
                 tableWithOrganizationRating {
                     getData = { _, _ ->
-                        state.organizations
+                        state.organizationWithRatingList
                     }
                     getPageCount = null
                 }

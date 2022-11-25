@@ -14,7 +14,7 @@ plugins {
     id("com.saveourtool.save.buildutils.save-agent-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
-    id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
 }
 
 openApi {
@@ -24,7 +24,7 @@ openApi {
     waitTimeInSeconds.set(120)
 
     customBootRun {
-        jvmArgs.add("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+        jvmArgs.add("-Dbackend.fileStorage.location=\${user.home}/cnb/files")
     }
 }
 

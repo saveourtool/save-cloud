@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 
@@ -35,6 +36,23 @@ class OrganizationPermissionEvaluator(
 
     /**
      * @param authentication [Authentication] describing an authenticated request
+     * @param organization is organization in which we want to change the status
+     * @param newStatus is new status in [organization]
+     * @return whether user described by [authentication] can have permission on change [organization] status on [newStatus]
+     * @throws IllegalStateException
+     */
+    fun hasPermissionToChangeStatus(authentication: Authentication?, organization: Organization, newStatus: OrganizationStatus): Boolean {
+        val oldStatus = organization.status
+
+        return when {
+            oldStatus == newStatus -> throw IllegalStateException("invalid status")
+            oldStatus.isBan() || newStatus.isBan() -> hasPermission(authentication, organization, Permission.BAN)
+            else -> hasPermission(authentication, organization, Permission.DELETE)
+        }
+    }
+
+    /**
+     * @param authentication [Authentication] describing an authenticated request
      * @param organization
      * @param permission
      * @return whether user described by [authentication] can have [permission] on [organization]
@@ -51,6 +69,7 @@ class OrganizationPermissionEvaluator(
             Permission.READ -> hasReadAccess(userId, organizationRole)
             Permission.WRITE -> hasWriteAccess(userId, organizationRole)
             Permission.DELETE -> hasDeleteAccess(userId, organizationRole)
+            Permission.BAN -> hasBanAccess(userId, organizationRole)
         }
     }
 
@@ -70,7 +89,14 @@ class OrganizationPermissionEvaluator(
             userId?.let { organizationRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
+            hasBanAccess(userId, organizationRole) || userId?.let { organizationRole == Role.OWNER } ?: false
+
+    /**
+     * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
+     * Since we have all the rights issued depending on the following, you need to set [false] here
+     */
+    @Suppress("FunctionOnlyReturningConstant")
+    private fun hasBanAccess(userId: Long?, organizationRole: Role): Boolean = false
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
@@ -123,3 +149,6 @@ class OrganizationPermissionEvaluator(
         val contestCreatorMinimalRole = Role.ADMIN
     }
 }
+
+private fun OrganizationStatus.isBan(): Boolean =
+        this == OrganizationStatus.BANNED

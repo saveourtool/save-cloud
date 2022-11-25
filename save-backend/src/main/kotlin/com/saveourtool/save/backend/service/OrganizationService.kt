@@ -4,11 +4,14 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.ProjectStatus.DELETED
+import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
+import kotlin.NoSuchElementException
 
 /**
  * Service for organization
@@ -40,19 +43,66 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as deleted
+     * Mark organization with [organization] as deleted
      *
-     * @param organizationName an [Organization]'s name to delete
-     * @return deleted organization
+     * @param newStatus is new status for [organization]
+     * @param organization is organization in which the status will be changed
+     * @return organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
+    private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
         .apply {
-            status = OrganizationStatus.DELETED
+            status = newStatus
         }
         .let {
             organizationRepository.save(it)
         }
+
+    /**
+     * Mark organization [organization] as deleted
+     *
+     * @param organization an [Organization] to delete
+     * @return deleted organization
+     */
+    fun deleteOrganization(organization: Organization): Organization = if (!hasProjects(organization.name)) {
+        changeOrganizationStatus(organization, OrganizationStatus.DELETED)
+    } else {
+        organization
+    }
+
+    /**
+     * Mark organization with [organization] as created.
+     * If an organization was previously banned, then all its projects become deleted.
+     *
+     * @param organization an [Organization] to create
+     * @param organization
+     * @return recovered organization
+     */
+    @Transactional
+    fun recoverOrganization(organization: Organization): Organization {
+        if (organization.status == OrganizationStatus.BANNED) {
+            projectService.getAllByOrganizationName(organization.name).forEach {
+                it.status = DELETED
+                projectService.updateProject(it)
+            }
+        }
+        return changeOrganizationStatus(organization, OrganizationStatus.CREATED)
+    }
+
+    /**
+     * Mark organization with [organization] and all its projects as banned.
+     *
+     * @param organization an [Organization] to ban
+     * @return banned organization
+     */
+    @Transactional
+    fun banOrganization(organization: Organization): Organization {
+        projectService.getAllByOrganizationName(organization.name).forEach {
+            it.status = BANNED
+            projectService.updateProject(it)
+        }
+        return changeOrganizationStatus(organization, OrganizationStatus.BANNED)
+    }
 
     /**
      * @param organizationName the unique name of the organization.
@@ -61,7 +111,7 @@ class OrganizationService(
      */
     fun hasProjects(organizationName: String): Boolean =
             projectService.getAllByOrganizationName(organizationName).any { project ->
-                project.status != DELETED
+                project.status == CREATED
             }
 
     /**
@@ -69,6 +119,20 @@ class OrganizationService(
      * @return organization by id
      */
     fun getOrganizationById(organizationId: Long) = organizationRepository.getOrganizationById(organizationId)
+
+    /**
+     * @param name
+     * @param statuses
+     * @return organization by name and statuses
+     */
+    fun findByNameAndStatuses(name: String, statuses: Set<OrganizationStatus>) =
+            organizationRepository.findByNameAndStatusIn(name, statuses)
+
+    /**
+     * @param name
+     * @return organization by name with [CREATED] status
+     */
+    fun findByNameAndCreatedStatus(name: String) = findByNameAndStatuses(name, EnumSet.of(OrganizationStatus.CREATED))
 
     /**
      * @param name
@@ -81,19 +145,19 @@ class OrganizationService(
      * @return organization by name
      * @throws NoSuchElementException
      */
-    fun getByName(name: String) = findByName(name)
+    fun getByName(name: String) = findByNameAndCreatedStatus(name)
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
      * @param organizationFilters
      * @return list of organizations with that match [organizationFilters]
      */
-    fun getFiltered(organizationFilters: OrganizationFilters) = if (organizationFilters.prefix.isBlank()) {
-        organizationRepository.findByStatus(organizationFilters.status)
+    fun getFiltered(organizationFilters: OrganizationFilters): List<Organization> = if (organizationFilters.prefix.isBlank()) {
+        organizationRepository.findByStatusIn(organizationFilters.statuses)
     } else {
-        organizationRepository.findByNameStartingWithAndStatus(
+        organizationRepository.findByNameStartingWithAndStatusIn(
             organizationFilters.prefix,
-            organizationFilters.status,
+            organizationFilters.statuses,
         )
     }
 
@@ -109,17 +173,12 @@ class OrganizationService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)?.apply {
-            avatar = relativePath
-        } ?: throw NoSuchElementException("Organization with name [$name] was not found.")
+        val organization = organizationRepository.findByName(name)
+            ?.apply {
+                avatar = relativePath
+            }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
-
-    /**
-     * @param ownerId
-     * @return list of organization by owner id
-     */
-    fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
 
     /**
      * @return all organizations that were registered in SAVE
@@ -132,7 +191,7 @@ class OrganizationService(
      * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
      */
     fun getGlobalRating(organizationName: String, authentication: Authentication?) =
-            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
+            projectService.getProjectsByOrganizationNameAndCreatedStatus(organizationName, authentication)
                 .collectList()
                 .map { projectsList ->
                     projectsList.sumOf { it.contestRating }

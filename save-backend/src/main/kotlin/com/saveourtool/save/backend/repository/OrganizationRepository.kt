@@ -17,9 +17,16 @@ JpaSpecificationExecutor<Organization>,
 ValidateRepository {
     /**
      * @param name
-     * @return organization by name
+     * @return organization by [name]
      */
     fun findByName(name: String): Organization?
+
+    /**
+     * @param name
+     * @param statuses
+     * @return organization by [name] and [statuses]
+     */
+    fun findByNameAndStatusIn(name: String, statuses: Set<OrganizationStatus>): Organization?
 
     /**
      * @param id
@@ -29,21 +36,15 @@ ValidateRepository {
     fun getOrganizationById(id: Long): Organization
 
     /**
-     * @param ownerId
-     * @return list of organization by owner id
-     */
-    fun findByOwnerId(ownerId: Long): List<Organization>
-
-    /**
      * @param prefix prefix of organization name
-     * @param status
+     * @param statuses is set of statuses, one of which an organization can have
      * @return list of organizations with names that start with [prefix]
      */
-    fun findByNameStartingWithAndStatus(prefix: String, status: OrganizationStatus): List<Organization>
+    fun findByNameStartingWithAndStatusIn(prefix: String, statuses: Set<OrganizationStatus>): List<Organization>
 
     /**
-     * @param status
+     * @param statuses is set of statuses, one of which an organization can have
      * @return list of organizations with required status
      */
-    fun findByStatus(status: OrganizationStatus): List<Organization>
+    fun findByStatusIn(statuses: Set<OrganizationStatus>): List<Organization>
 }

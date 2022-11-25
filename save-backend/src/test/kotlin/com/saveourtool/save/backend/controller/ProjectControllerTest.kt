@@ -23,7 +23,6 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.security.test.context.support.WithUserDetails
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -60,17 +59,17 @@ class ProjectControllerTest {
 
         webClient
             .post()
-            .uri("/api/$v1/projects/not-deleted")
+            .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters(null))
+            .bodyValue(ProjectFilters.created)
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<List<Project>>()
+            .expectBody<List<ProjectDto>>()
             .consumeWith { exchangeResult ->
                 val projects = exchangeResult.responseBody!!
                 Assertions.assertTrue(projects.isNotEmpty())
-                projects.forEach { Assertions.assertTrue(it.public) }
+                projects.forEach { Assertions.assertTrue(it.isPublic) }
             }
     }
 
@@ -84,7 +83,7 @@ class ProjectControllerTest {
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus()
                 .isOk
-                .expectBody<Project>()
+                .expectBody<ProjectDto>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
                     Assertions.assertEquals(it.responseBody!!.url, "https://huawei.com")
@@ -127,8 +126,8 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -140,8 +139,8 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
-    fun `delete project without owner permission`() {
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    fun `ban project with super admin permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
@@ -150,8 +149,31 @@ class ProjectControllerTest {
 
         projectRepository.save(project)
 
-        webClient.delete()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
+            .exchange()
+            .expectStatus()
+            .isOk
+
+        val projectFromDb = projectRepository.findByNameAndOrganization(project.name, organization)
+        Assertions.assertTrue(
+            projectFromDb?.status == ProjectStatus.BANNED
+        )
+    }
+
+    @Test
+    @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
+    fun `delete project without owner permission`() {
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 3)
+        }
+        val organization: Organization = organizationRepository.getOrganizationById(2)
+        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+
+        projectRepository.save(project)
+
+        webClient.post()
+            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -171,14 +193,14 @@ class ProjectControllerTest {
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
+        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, organization = organization)
         saveProjectAndAssert(
             project,
             { expectStatus().isOk }
         ) {
             expectStatus()
                 .isOk
-                .expectBody<Project>()
+                .expectBody<ProjectDto>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
                     Assertions.assertEquals(it.responseBody!!.url, project.url)
@@ -190,7 +212,6 @@ class ProjectControllerTest {
     @WithMockUser
     fun `should forbid updating a project for a viewer`() {
         val project = Project.stub(99).apply {
-            userId = 1
             organization = organizationRepository.findById(1).get()
         }
         projectRepository.save(project)

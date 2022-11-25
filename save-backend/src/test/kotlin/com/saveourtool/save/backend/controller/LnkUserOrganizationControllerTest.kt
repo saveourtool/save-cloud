@@ -213,13 +213,14 @@ class LnkUserOrganizationControllerTest {
         organization: Organization,
         organizationRole: Role,
     ) {
-        given(organizationService.findByName(any())).willReturn(organization)
+        given(organizationService.findByNameAndCreatedStatus(any())).willReturn(organization)
         given(organizationPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false
                 Permission.READ -> organizationRole.priority >= Role.VIEWER.priority
                 Permission.WRITE -> organizationRole.priority >= Role.ADMIN.priority
                 Permission.DELETE -> organizationRole.priority >= Role.OWNER.priority
+                Permission.BAN -> organizationRole.priority== Role.SUPER_ADMIN.priority
             }
         }
         given(lnkUserOrganizationService.getUserByName(any())).willAnswer { invocationOnMock ->

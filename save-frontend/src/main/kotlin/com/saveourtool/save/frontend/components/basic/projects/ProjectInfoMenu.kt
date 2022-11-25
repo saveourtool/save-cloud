@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -83,9 +83,9 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         setBestResults(results)
     }
 
-    val (project, setProject) = useState(Project.stub(-1))
+    val (project, setProject) = useState(ProjectDto.empty)
     useRequest {
-        val projectFromBackend: Project = get(
+        val projectFromBackend: ProjectDto = get(
             url = "$apiUrl/projects/get/organization-name?name=${props.projectName}&organizationName=${props.organizationName}",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,

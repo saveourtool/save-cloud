@@ -10,16 +10,15 @@ import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
+
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrHandle
@@ -46,12 +45,13 @@ import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.escapeIfNeeded
 import io.ktor.serialization.kotlinx.json.json
+
 import java.lang.System.nanoTime
 import java.net.URL
 import java.nio.file.Path
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
+
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
@@ -59,6 +59,7 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 import kotlin.system.measureNanoTime
 import kotlinx.coroutines.delay
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
@@ -92,10 +93,9 @@ internal class DefaultSaveCloudClient(
             getAndCheck("/organizations/get/list")
 
     override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<Project>> =
-            getAndCheck(
-                "/projects/get/projects-by-organization",
-                requestBody = EmptyContent,
-                ORGANIZATION_NAME to organizationName
+            postAndCheck(
+                "/projects/by-filters",
+                requestBody = Json.encodeToString(ProjectFilters("", ORGANIZATION_NAME, ProjectStatus.values().toSet())),
             )
 
     override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>> =
@@ -326,7 +326,7 @@ internal class DefaultSaveCloudClient(
                     install(ContentNegotiation) {
                         val json = Json {
                             serializersModule = SerializersModule {
-                                contextual(LocalDateTime::class, LocalDateTimeSerializer)
+                                supportJLocalDateTime()
                             }
                         }
 

@@ -14,10 +14,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.v1
@@ -119,7 +116,7 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
         given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name  = "Example Org" })
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
@@ -142,7 +139,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
@@ -164,7 +161,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99).apply { public = false },
             permission = null,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
@@ -247,14 +244,17 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
-        given(organizationService.findByName(any())).willReturn(project.organization)
-        given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
+        given(organizationService.findByNameAndCreatedStatus(any())).willReturn(project.organization)
+        given(organizationService.findByNameAndStatuses(any(), any())).willReturn(project.organization)
+        given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willReturn(project)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false
                 Permission.READ -> permission != null
-                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
-                Permission.DELETE -> permission == Permission.DELETE
+                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE || permission == Permission.BAN
+                Permission.DELETE -> permission == Permission.DELETE || permission == Permission.BAN
+                Permission.BAN -> permission == Permission.BAN
             }
         }
         given(projectService.findUserByName(any())).willAnswer { invocationOnMock ->

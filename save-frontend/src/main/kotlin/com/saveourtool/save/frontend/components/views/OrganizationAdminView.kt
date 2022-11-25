@@ -2,24 +2,18 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.ErrorHandler
-import com.saveourtool.save.frontend.utils.WithRequestStatusContext
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.delete
-import com.saveourtool.save.frontend.utils.deleteButton
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.jsonHeaders
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.frontend.utils.unpackMessageOrHttpStatus
+
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
@@ -30,7 +24,7 @@ import react.create
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
-import react.table.columns
+
 import kotlinx.coroutines.launch
 
 /**
@@ -38,15 +32,15 @@ import kotlinx.coroutines.launch
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
     @Suppress("TYPE_ALIAS")
-    private val organizationTable: FC<TableProps<Organization>> = tableComponent(
+    private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
             columns {
                 column(
                     id = "organization",
                     header = "Organization",
                     accessor = { name }
-                ) { cellProps ->
-                    val organizationName = cellProps.value
+                ) { cellContext ->
+                    val organizationName = cellContext.value
 
                     Fragment.create {
                         td {
@@ -61,34 +55,51 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                     id = "description",
                     header = "Description",
                     accessor = { description }
-                ) { cellProps ->
+                ) { cellContext ->
                     Fragment.create {
                         td {
-                            +(cellProps.value.orEmpty())
+                            +(cellContext.value.orEmpty())
                         }
                     }
                 }
-                column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellContext ->
                     Fragment.create {
                         td {
-                            deleteButton {
-                                val organization = cellProps.value
-                                val organizationName = organization.name
+                            val organization = cellContext.value
+                            val organizationName = organization.name
 
-                                id = "delete-organization-$organizationName"
-                                classes = deleteButtonClasses
-                                tooltipText = "Delete the organization"
-                                elementChildren = { childrenBuilder ->
+                            actionButton {
+                                title = "WARNING: About to delete this organization..."
+                                errorTitle = "You cannot delete the organization $organizationName"
+                                message = "Are you sure you want to delete the organization $organizationName?"
+                                clickMessage = "Also ban this organization"
+                                buttonStyleBuilder = { childrenBuilder ->
                                     with(childrenBuilder) {
-                                        fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
+                                        fontAwesomeIcon(icon = faTrashAlt, classes = actionIconClasses.joinToString(" "))
                                     }
                                 }
-
-                                confirmDialog = ModalDialogStrings(
-                                    title = "Delete Organization",
-                                    message = """Are you sure you want to delete the organization "$organizationName"?""",
-                                )
-                                action = deleteOrganization(organization)
+                                classes = actionButtonClasses.joinToString(" ")
+                                modalButtons = { action, window, childrenBuilder ->
+                                    with(childrenBuilder) {
+                                        buttonBuilder(label = "Yes, delete $organizationName", style = "danger", classes = "mr-2") {
+                                            action()
+                                            window.closeWindow()
+                                        }
+                                        buttonBuilder("Cancel") {
+                                            window.closeWindow()
+                                        }
+                                    }
+                                }
+                                onActionSuccess = { _ ->
+                                    setState {
+                                        organizations -= organization
+                                    }
+                                }
+                                conditionClick = true
+                                sendRequest = { isBanned ->
+                                    val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                                    responseChangeOrganizationStatus(organizationName, newStatus)
+                                }
                             }
                         }
                     }
@@ -150,7 +161,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     /**
      * @return the list of all organizations, excluding the deleted ones.
      */
-    private suspend fun getOrganizations(): MutableList<Organization> {
+    private suspend fun getOrganizations(): MutableList<OrganizationDto> {
         val response = get(
             url = "$apiUrl/organizations/all?onlyActive=${true}",
             headers = jsonHeaders,
@@ -161,35 +172,6 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             response.ok -> response.decodeFromJsonString()
 
             else -> mutableListOf()
-        }
-    }
-
-    /**
-     * Returns a lambda which, when invoked, deletes the specified organization
-     * and updates the state of this view, passing an error message, if any, to
-     * the externally supplied [ErrorHandler].
-     *
-     * @param organization the project to delete.
-     * @return the lambda which deletes [organization].
-     * @see ErrorHandler
-     */
-    private fun deleteOrganization(organization: Organization): suspend WithRequestStatusContext.(ErrorHandler) -> Unit = { errorHandler ->
-        val response = delete(
-            url = "$apiUrl/organizations/${organization.name}/delete",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            errorHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            setState {
-                /*
-                 * Force the component to get re-rendered once an organization
-                 * is deleted.
-                 */
-                organizations -= organization
-            }
-        } else {
-            errorHandler(response.unpackMessageOrHttpStatus())
         }
     }
 
@@ -224,5 +206,5 @@ internal external interface OrganizationAdminState : State {
      * Allows avoiding to run an `HTTP GET` each time an organization is deleted
      * (re-rendering gets triggered by updating the state instead).
      */
-    var organizations: MutableList<Organization>
+    var organizations: MutableList<OrganizationDto>
 }

@@ -5,7 +5,8 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -75,9 +76,14 @@ external interface UserSettingsViewState : State {
     var token: String?
 
     /**
-     * Organizations connected to user
+     * A list of organization with users connected to user
      */
-    var selfOrganizationDtos: List<OrganizationDto>
+    var selfOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -87,7 +93,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
-        state.selfOrganizationDtos = emptyList()
+        state.selfOrganizationWithUserList = emptyList()
     }
 
     /**
@@ -108,17 +114,18 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationDtos = getOrganizationDtos()
+            val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationDtos = organizationDtos
+                selfOrganizationWithUserList = organizationDtos
             }
         }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
+        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
         userInfo.email?.let { fieldsMap[InputTypes.USER_EMAIL] = it }
         userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
         userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
@@ -282,8 +289,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
     fun updateUser() {
+        val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
+        val nameInDb = state.userInfo!!.name
+        val oldName = if (newName != nameInDb) nameInDb else null
         val newUserInfo = UserInfo(
-            name = state.userInfo!!.name,
+            name = newName ?: nameInDb,
+            oldName = oldName,
             originalLogins = state.userInfo!!.originalLogins,
             source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
@@ -302,12 +313,22 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post(
+            val response = post(
                 "$apiUrl/users/save",
                 headers,
                 Json.encodeToString(newUserInfo),
                 loadingHandler = ::classLoadingHandler,
             )
+            if (response.isConflict()) {
+                val responseText = response.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
+            } else {
+                setState {
+                    conflictErrorMessage = null
+                }
+            }
         }
     }
 
@@ -336,10 +357,10 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
 
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/not-deleted",
+    private suspend fun getOrganizationWithUsersList() = get(
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
 }

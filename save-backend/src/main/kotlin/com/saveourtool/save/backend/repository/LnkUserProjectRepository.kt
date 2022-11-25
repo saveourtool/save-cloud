@@ -37,10 +37,10 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
 
     /**
      * @param userId
-     * @param status
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return List of [LnkUserProject] where user with [userId] is a member
      */
-    fun findByUserIdAndProjectStatus(userId: Long, status: ProjectStatus): List<LnkUserProject>
+    fun findByUserIdAndProjectStatusIn(userId: Long, statuses: Set<ProjectStatus>): List<LnkUserProject>
 
     /**
      * Save [LnkUserProject] using only ids and role string.

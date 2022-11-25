@@ -31,6 +31,7 @@ class TestSuitePermissionEvaluator(
         when (permission) {
             Permission.READ -> testSuite.isPublic || canAccessTestSuite(currentRights)
             Permission.WRITE, Permission.DELETE -> canMaintainTestSuite(currentRights)
+            Permission.BAN -> throw IllegalStateException("Permission is not correct")
         }
     }
 
