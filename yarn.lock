@@ -367,6 +367,13 @@
   resolved "https://registry.yarnpkg.com/@react-sigma/core/-/core-3.1.0.tgz#c2bbb54360cabd50a78cf557a6cc271e3d2ff965"
   integrity sha512-b/Jq91WGTBIdQrD+Z34BASkn+mXRVLiLyxJS/n5Q9wPKjiIt6qlaqpbjdgj1sN8C7w3brA0+bAMl1ZnGjxOuIg==
 
+"@react-sigma/layout-circular@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@react-sigma/layout-circular/-/layout-circular-3.1.0.tgz#5c3251f8709ca255eb6b38dee9140f215acc4bac"
+  integrity sha512-kzq58Dpe1UL7x4UTfUpuf271x+EB5SDYx74BR0A1/mcpNCrPK/R469/iwSU7yG8ugDmkVAGIlEe7Jj2humRoDA==
+  dependencies:
+    "@react-sigma/layout-core" "^3.1.0"
+
 "@react-sigma/layout-core@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@react-sigma/layout-core/-/layout-core-3.1.0.tgz#5b72eb8328a31947b6455dd1cb1cc4af98e3e10f"
