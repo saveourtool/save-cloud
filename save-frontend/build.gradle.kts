@@ -107,6 +107,7 @@ kotlin {
             implementation(npm("graphology-layout", "^0.6.1"))
             implementation(npm("@react-sigma/layout-core", "^3.1.0"))
             implementation(npm("@react-sigma/layout-random", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))

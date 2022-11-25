@@ -3,28 +3,23 @@ package com.saveourtool.save.demo.cpg.controller
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
-import com.saveourtool.save.demo.cpg.entity.Neo4jGraph
-import com.saveourtool.save.demo.cpg.entity.Neo4jNode
-import com.saveourtool.save.demo.cpg.entity.Neo4jRelationship
-import com.saveourtool.save.demo.cpg.utils.getId
 import com.saveourtool.save.demo.cpg.utils.toCpgEdge
 import com.saveourtool.save.demo.cpg.utils.toCpgNode
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
+
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
-import de.fraunhofer.aisec.cpg.graph.Component
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.commons.io.FileUtils
 import org.neo4j.driver.exceptions.AuthenticationException
 import org.neo4j.ogm.config.Configuration
 import org.neo4j.ogm.exception.ConnectionException
+import org.neo4j.ogm.response.model.RelationshipModel
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
 import org.slf4j.Logger
@@ -32,10 +27,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+
 import java.nio.file.Files.createTempDirectory
 import java.nio.file.Path
 import java.util.*
+
 import kotlin.io.path.*
+import kotlinx.serialization.ExperimentalSerializationApi
 
 const val FILE_NAME_SEPARATOR = "==="
 
@@ -126,13 +124,19 @@ class CpgController(
         val edges = session.getEdges()
         session.clear()
         factory?.close()
-        return CpgGraph(nodes.map { it.toCpgNode() }, edges.map { it.toCpgEdge() })
+        return CpgGraph(nodes = nodes.map { it.toCpgNode() }, edges = edges.map { it.toCpgEdge() })
     }
 
     private fun Session.getNodes() = query(Node::class.java, "MATCH (n: Node) return n", mapOf("" to "")).toList()
 
-    private fun Session.getEdges() = query(PropertyEdge::class.java, "MATCH () -[r]-> () return r", mapOf("" to "")).toList()
-
+    private fun Session.getEdges() = query("MATCH () -[r]-> () return r", mapOf("" to ""))
+        .map {
+            it.values
+        }
+        .flatten()
+        .map {
+            it as RelationshipModel
+        }
 
     private fun saveTranslationResult(result: TranslationResult) {
         val (session, factory) = connect()
