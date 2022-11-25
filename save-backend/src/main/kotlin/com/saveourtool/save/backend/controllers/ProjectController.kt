@@ -39,7 +39,6 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import java.util.EnumSet
 
 /**
  * Controller for working with projects.
@@ -103,11 +102,12 @@ class ProjectController(
     fun getFilteredProjects(
         @RequestBody(required = true) projectFilters: ProjectFilters,
         authentication: Authentication?,
-    ): Flux<Project> =
+    ): Flux<ProjectDto> =
             blockingToFlux { projectService.getFiltered(projectFilters) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
+                .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
     @RequiresAuthorizationSourceHeader
@@ -128,14 +128,13 @@ class ProjectController(
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<Project> {
+    ): Mono<ProjectDto> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
         }
-
         return with(projectPermissionEvaluator) {
             project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
-        }
+        }.map { it.toDto() }
     }
 
     @PostMapping("/save")
@@ -246,7 +245,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, EnumSet.allOf(ProjectStatus::class.java))
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."

@@ -1,9 +1,9 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 

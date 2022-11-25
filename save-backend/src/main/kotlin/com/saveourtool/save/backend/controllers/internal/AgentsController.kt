@@ -26,6 +26,8 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+import kotlinx.datetime.toJavaLocalDateTime
+
 /**
  * Controller to manipulate with Agent related data
  */
@@ -156,7 +158,7 @@ class AgentsController(
                     throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
                 agentState.state -> {
                     // updating time
-                    agentStatus.endTime = agentState.time
+                    agentStatus.endTime = agentState.time.toJavaLocalDateTime()
                     agentStatusRepository.save(agentStatus)
                 }
                 else -> {

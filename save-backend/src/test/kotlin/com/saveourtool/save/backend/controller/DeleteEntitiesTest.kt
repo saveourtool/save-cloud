@@ -69,7 +69,10 @@ class DeleteEntitiesTest {
             Project.stub(99).apply { id = 1 }
         )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", OrganizationStatus.CREATED, null, null, null)
+            Organization.stub(null)
+        )
+        whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
+            Organization.stub(null).copy(status = OrganizationStatus.CREATED)
         )
         whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
             Organization("stub", OrganizationStatus.CREATED, null, null, null)

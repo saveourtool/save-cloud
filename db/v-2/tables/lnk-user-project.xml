@@ -82,4 +82,11 @@
     </dropColumn>
   </changeSet>
 
+  <changeSet id="lnk-user-project-5" author="frolov">
+    <delete tableName="lnk_user_project">
+      <where>role is NULL or role='NONE'</where>
+    </delete>
+    <addNotNullConstraint tableName="lnk_user_project" columnName="role" columnDataType="varchar(250)"/>
+  </changeSet>
+
 </databaseChangeLog>

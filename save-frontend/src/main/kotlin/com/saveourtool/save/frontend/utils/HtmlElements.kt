@@ -4,10 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -24,29 +21,13 @@ import kotlinx.js.jso
 /**
  * @param project
  */
-fun ChildrenBuilder.statusSpan(project: Project) {
-    when (project.status) {
-        ProjectStatus.CREATED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +if (project.public) "public" else "private"
+fun ChildrenBuilder.privacySpan(project: ProjectDto) {
+    span {
+        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+        style = jso {
+            borderRadius = "2em".unsafeCast<BorderRadius>()
         }
-        ProjectStatus.DELETED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +"deleted"
-        }
-        ProjectStatus.BANNED -> span {
-            className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
-            style = jso {
-                borderRadius = "2em".unsafeCast<BorderRadius>()
-            }
-            +"banned"
-        }
+        +if (project.isPublic) "public" else "private"
     }
 }
 
@@ -62,6 +43,7 @@ fun ChildrenBuilder.statusSpan(organization: Organization) {
             }
             +"active"
         }
+
         OrganizationStatus.DELETED -> span {
             className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
             style = jso {
@@ -69,6 +51,7 @@ fun ChildrenBuilder.statusSpan(organization: Organization) {
             }
             +"deleted"
         }
+
         OrganizationStatus.BANNED -> span {
             className = ClassName("border ml-2 pr-1 pl-1 text-xs text-danger ")
             style = jso {
@@ -77,7 +60,6 @@ fun ChildrenBuilder.statusSpan(organization: Organization) {
             +"banned"
         }
     }
-}
 
 /**
  * @param icon

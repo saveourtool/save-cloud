@@ -27,6 +27,8 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import react.router.NavigateFunction
+import react.router.useNavigate
 import tanstack.react.table.renderCell
 import tanstack.react.table.renderHeader
 import tanstack.react.table.useReactTable
@@ -116,7 +118,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: ChildrenBuilder.(table: Table<D>) -> Unit = {},
+    commonHeader: ChildrenBuilder.(table: Table<D>, navigate: NavigateFunction) -> Unit = { _, _ -> },
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
 ): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
@@ -210,6 +212,8 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
         }
     }
 
+    val navigate = useNavigate()
+
     div {
         className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
         div {
@@ -228,7 +232,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     width = 100.0
                     cellSpacing = "0"
                     thead {
-                        commonHeader(tableInstance)
+                        commonHeader(tableInstance, navigate)
                         tableInstance.getHeaderGroups().map { headerGroup ->
                             tr {
                                 id = headerGroup.id

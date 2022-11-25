@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
@@ -33,7 +33,7 @@ import kotlinx.serialization.json.Json
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
     @Suppress("TYPE_ALIAS")
-    private val organizationTable: FC<com.saveourtool.save.frontend.components.tables.TableProps<Organization>> = tableComponent(
+    private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
             columns {
                 column(
@@ -244,7 +244,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     /**
      * @return the list of all organizations, excluding the deleted ones.
      */
-    private suspend fun getOrganizations(): MutableList<Organization> {
+    private suspend fun getOrganizations(): MutableList<OrganizationDto> {
         val response = post(
             url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
@@ -291,5 +291,5 @@ internal external interface OrganizationAdminState : State {
      * Allows avoiding to run an `HTTP GET` each time an organization is deleted
      * (re-rendering gets triggered by updating the state instead).
      */
-    var organizations: MutableList<Organization>
+    var organizations: MutableList<OrganizationDto>
 }

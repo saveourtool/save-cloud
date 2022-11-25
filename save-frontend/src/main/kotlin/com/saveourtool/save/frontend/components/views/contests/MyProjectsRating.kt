@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 
@@ -23,14 +23,14 @@ val myProjectsRating = myProjectsRatings()
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
-    val (myProjects, setMyProjects) = useState(emptySet<Project>())
+    val (myProjects, setMyProjects) = useState(emptySet<ProjectDto>())
     val getMyProjects = useDeferredRequest {
         setMyProjects(
             get(
                 url = "$apiUrl/projects/get-for-current-user",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<Set<Project>>()
+            ).decodeFromJsonString<Set<ProjectDto>>()
         )
     }
 

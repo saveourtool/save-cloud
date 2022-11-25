@@ -5,8 +5,8 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.OrganizationWithRating
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
@@ -68,12 +68,12 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All organizations
      */
-    var organizations: Array<OrganizationDto>
+    var organizationWithRatingList: Array<OrganizationWithRating>
 
     /**
      * All projects
      */
-    var projects: Array<Project>
+    var projects: Array<ProjectDto>
 
     /**
      * All filters for project
@@ -101,7 +101,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         "STRING_TEMPLATE_QUOTES",
         "TYPE_ALIAS",
     )
-    private val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
+    private val tableWithOrganizationRating: FC<TableProps<OrganizationWithRating>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") {
@@ -112,14 +112,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                column(id = "name", header = "Name", { name }) { cellContext ->
+                column(id = "name", header = "Name", { organization.name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellContext.row.original.avatar?.let {
+                                    src = cellContext.row.original.organization.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     style = jso {
@@ -136,7 +136,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
-                            +"${cellContext.value.globalRating?.toFixedStr(2)}"
+                            +cellContext.value.globalRating.toFixedStr(2)
                         }
                     }
                 }
@@ -148,7 +148,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
@@ -177,10 +177,11 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
+        "TYPE_ALIAS",
     )
-    private val renderingProjectChampionsTable: FC<TableProps<Project>> = tableComponent(
+    private val renderingProjectChampionsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
-            columns<Project> {
+            columns<ProjectDto> {
                 column(id = "index", header = "Position") {
                     Fragment.create {
                         td {
@@ -193,7 +194,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }
@@ -214,7 +215,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         getAdditionalDependencies = {
             arrayOf(it)
         },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, _ ->
             tr {
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
@@ -242,7 +243,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     )
 
     init {
-        state.organizations = emptyArray()
+        state.organizationWithRatingList = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters.created
@@ -251,8 +252,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
-            val organizationsFromBackend: List<OrganizationDto> = post(
-                url = "$apiUrl/organizations/by-filters",
+            val organizationsFromBackend: List<OrganizationWithRating> = post(
+                url = "$apiUrl/organizations/by-filters-with-rating",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
@@ -260,14 +261,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 .decodeFromJsonString()
 
             setState {
-                organizations = organizationsFromBackend.toTypedArray()
+                organizationWithRatingList = organizationsFromBackend.toTypedArray()
             }
         }
     }
 
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
-            val projectsFromBackend: List<Project> = post(
+            val projectsFromBackend: List<ProjectDto> = post(
                 url = "$apiUrl/projects/by-filters",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
@@ -349,7 +350,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 className = ClassName("col-8")
                 tableWithOrganizationRating {
                     getData = { _, _ ->
-                        state.organizations
+                        state.organizationWithRatingList
                     }
                     getPageCount = null
                 }

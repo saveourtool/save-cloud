@@ -24,6 +24,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
@@ -102,12 +103,12 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * Organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: MutableList<ProjectDto>
 
     /**
      * Message of error
@@ -166,7 +167,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     init {
         state.isUploading = false
-        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
+        state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
         state.closeButtonLabel = null
@@ -370,24 +371,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun onOrganizationSave(newOrganization: Organization) {
-        newOrganization.apply {
+    private fun onOrganizationSave(newOrganization: OrganizationDto) {
+        newOrganization.copy(
             description = state.draftOrganizationDescription
-        }
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/update",
-                headers,
-                Json.encodeToString(newOrganization),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = newOrganization
+        ).let { organizationWithNewDescription ->
+            scope.launch {
+                val response = post(
+                    "$apiUrl/organizations/${props.organizationName}/update",
+                    jsonHeaders,
+                    Json.encodeToString(organizationWithNewDescription),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    setState {
+                        organization = organizationWithNewDescription
+                    }
                 }
             }
         }
@@ -427,7 +425,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
-            organization = state.organization ?: Organization.stub(-1)
+            organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
@@ -441,7 +439,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getProjectsForOrganization(): MutableList<Project> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilters("", props.organizationName, ProjectStatus.values().toSet())),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -511,7 +508,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
             topProject?.let {

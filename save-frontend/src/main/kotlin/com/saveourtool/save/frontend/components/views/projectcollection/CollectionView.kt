@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views.projectcollection
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -38,15 +38,15 @@ external interface CreationViewProps : Props {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<CreationViewProps, State>() {
-    @Suppress("MAGIC_NUMBER")
-    private val projectsTable: FC<TableProps<Project>> = tableComponent(
+    @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
+    private val projectsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "organization", header = "Organization", { organization.name }) { cellContext ->
+                column(id = "organization", header = "Organization", { organizationName }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellContext.row.original.organization.name}"
+                                href = "#/${cellContext.row.original.organizationName}"
                                 +cellContext.value
                             }
                         }
@@ -56,7 +56,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellContext.row.original.organization.name}/${cellContext.value}"
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
                                 +cellContext.value
                             }
                             statusSpan(cellContext.row.original)
@@ -112,7 +112,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                         )
                         if (response.ok) {
                             response.unsafeMap {
-                                it.decodeFromJsonString<Array<Project>>()
+                                it.decodeFromJsonString<Array<ProjectDto>>()
                             }
                         } else {
                             emptyArray()
