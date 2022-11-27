@@ -31,9 +31,9 @@ val cpgView: VFC = VFC {
     val (graph, setGraph) = useState(CpgGraph.placeholder)
     val graphLoader = VFC {
         val loadGraph = useLoadGraph()
-        val (_, assign) = useLayoutRandom()
+        val (_, assign) = useLayoutCircular()
         useEffect(assign, loadGraph) {
-            loadGraph(graph.paintNodes().toJson())
+            loadGraph(graph.removeMultiEdges().paintNodes().toJson())
             assign()
         }
     }
@@ -73,8 +73,10 @@ val cpgView: VFC = VFC {
                                     height = "83%".unsafeCast<Height>()
                                     display = Display.block
                                 }
+                                val graphology = kotlinext.js.require("graphology")
                                 sigmaContainer {
                                     settings = getSigmaContainerSettings()
+                                    this.graph = graphology.MultiDirectedGraph
                                     graphLoader()
                                 }
                             }

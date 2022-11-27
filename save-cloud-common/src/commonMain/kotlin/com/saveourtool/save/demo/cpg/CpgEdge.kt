@@ -35,5 +35,5 @@ data class CpgEdge(
 data class CpgEdgeAttributes(
     @EncodeDefault(NEVER) val label: String? = null,
     @EncodeDefault(NEVER) val color: String? = null,
-    @EncodeDefault(ALWAYS) val size: Int = 10,
+    @EncodeDefault(ALWAYS) val size: Int = 2,
 )
