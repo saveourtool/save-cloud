@@ -33,7 +33,7 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
-) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
+) : CliRunner<DiktatDemoAdditionalParams, ToolKey, DiktatDemoResult> {
 
     private fun getRunCommandForDiktat(
         workingDir: Path,
@@ -42,9 +42,13 @@ class DiktatCliRunner(
        configPath: Path?,
        params: DiktatDemoAdditionalParams,
     ): String = buildString {
-        val executable = getExecutable(workingDir, params)
-        append(executable)
-        append(" -o $outputPath ")
+        //TODO: this information should not be hardcoded but stored in database
+        val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
+        val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+        append(ktlintExecutable)
+        append(" -R $diktatExecutable ")
+        append(" --disabled_rules=standard")
+        append(" --reporter=plain,output=$outputPath ")
         configPath?.let {
             append(" --config=$it ")
         }
@@ -61,9 +65,10 @@ class DiktatCliRunner(
         configPath: Path?,
         params: DiktatDemoAdditionalParams,
     ): String = buildString {
-        val executable = getExecutable(workingDir, params)
+        //TODO: this information should not be hardcoded but stored in database
+        val executable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         append(executable)
-        append(" -o $outputPath ")
+        append(" --reporter=plain,output=$outputPath ")
         configPath?.let {
             append(" --config=$it ")
         }
@@ -73,12 +78,10 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
-        val key = params.tool.toToolKey()
-
+    override fun getExecutable(workingDir: Path, key: ToolKey): Path {
         return Mono.zip(
             key.toMono(),
-            toolStorage.doesExist(key)
+            toolStorage.doesExist(key),
         )
             .filter { (_, doesExist) ->
                 doesExist

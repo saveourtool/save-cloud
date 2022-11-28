@@ -14,9 +14,9 @@ data class ToolKey(
     val executableName: String,
 )
 
-fun DiktatDemoTool.toToolKey() = ToolKey(
+fun DiktatDemoTool.toToolKey(executableName: String) = ToolKey(
     owner,
     toolName,
     version,
-    "",
+    executableName,
 )

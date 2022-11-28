@@ -4,24 +4,27 @@ import com.saveourtool.save.demo.entities.ReleaseAsset
 import com.saveourtool.save.demo.entities.ReleaseMetadata
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.utils.toFluxByteBufferAsJson
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.json.Json
+import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
+import toByteBufferFlux
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
 
@@ -54,27 +57,40 @@ class GithubDownloadToolService(
         return runBlocking { channel.receive() }
     }
 
-    private fun downloadToolByUrl(url: String): Flux<ByteBuffer> {
-        val byteChannel = ByteChannel()
-        scope.launch {
-            httpClient.get(url)
+    private fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> {
+        val result = scope.async {
+            val listOfByteBuffers = mutableListOf<ByteBuffer>()
+            httpClient.get {
+                url(asset.downloadUrl)
+                accept(asset.contentType())
+            }
                 .bodyAsChannel()
-                .copyTo(byteChannel)
+                .toByteBufferFlux()
         }
-        val listOfByteBuffers: MutableList<ByteBuffer> = mutableListOf()
-        runBlocking {
-            byteChannel.read {
+
+        return runBlocking {
+            result.await()
+        }
+            .let {
+                Flux.fromIterable(it)
+            }
+    }
+
+    private suspend fun ByteReadChannel.readAllBytes() = run {
+        val listOfByteBuffers = mutableListOf<ByteBuffer>()
+        while (availableForRead != 0) {
+            read {
                 listOfByteBuffers.add(it)
             }
         }
-        return listOfByteBuffers.toFlux()
+        listOfByteBuffers.toList()
     }
 
     private fun downloadFromGithub(key: ToolKey): Flux<ByteBuffer> = getMetadata(key).assets
         .filterNot(ReleaseAsset::isDigest)
         .first()
         .let { asset ->
-            downloadToolByUrl(asset.downloadUrl)
+            downloadAsset(asset)
         }
 
     private fun uploadToStorageFromGithub(key: ToolKey): Mono<Long> = toolStorage.upload(key, downloadFromGithub(key))
@@ -99,10 +115,10 @@ class GithubDownloadToolService(
             ToolKey("pinterest", "ktlint", "0.46.1", "ktlint"),
         )
         private fun httpClient(): HttpClient = HttpClient {
-            install(HttpTimeout) {
-                this.requestTimeoutMillis = requestTimeoutMillis
-                this.socketTimeoutMillis = socketTimeoutMillis
-            }
+//            install(HttpTimeout) {
+//                this.requestTimeoutMillis = requestTimeoutMillis
+//                this.socketTimeoutMillis = socketTimeoutMillis
+//            }
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
                 json(json)
