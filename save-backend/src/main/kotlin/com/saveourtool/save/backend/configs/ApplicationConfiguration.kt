@@ -17,8 +17,10 @@ import org.springframework.web.reactive.config.EnableWebFlux
 @ImportAutoConfiguration(HibernateMetricsAutoConfiguration::class)
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class ApplicationConfiguration {
+    /**
+     * @param configProperties
+     * @return [LokiLogService] if [ConfigProperties.lokiServiceUrl] is provided, otherwise [LogService.stub]
+     */
     @Bean
-    fun logService(configProperties: ConfigProperties): LogService {
-        return configProperties.lokiServiceUrl?.let { LokiLogService(it) } ?: LogService.STUB
-    }
+    fun logService(configProperties: ConfigProperties): LogService = configProperties.lokiServiceUrl?.let { LokiLogService(it) } ?: LogService.stub
 }

@@ -19,7 +19,7 @@ interface LogService {
         /**
          * Stub implementation of [LogService]
          */
-        val STUB: LogService = object : LogService {
+        val stub: LogService = object : LogService {
             override fun get(containerName: String, from: Instant, to: Instant): Flux<String> = Flux.just(
                 "Stub implementation: requested logs for $containerName from $from to $to"
             )

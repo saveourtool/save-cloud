@@ -23,11 +23,11 @@ class LogServiceConfig {
     ): LogService = LokiLogService(lokiServiceUrl)
 
     /**
-     * @return [LogService.STUB] when property [LOKI_SERVICE_URL] is not set
+     * @return [LogService.stub] when property [LOKI_SERVICE_URL] is not set
      */
     @Bean
     @ConditionalOnProperty(LOKI_SERVICE_URL, matchIfMissing = true)
-    fun stubLogService(): LogService = LogService.STUB
+    fun stubLogService(): LogService = LogService.stub
 
     companion object {
         private const val LOKI_SERVICE_URL: String = "\${sandbox.loki-service-url}"

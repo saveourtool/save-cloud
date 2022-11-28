@@ -15,7 +15,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.service.LogService
-import com.saveourtool.save.service.LokiLogService
 import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.Operation
@@ -50,6 +49,9 @@ typealias JpaSandboxAgentRepository = com.saveourtool.save.sandbox.repository.Sa
  * @property sandboxExecutionRepository
  * @property agentsController
  * @property agentRepository
+ * @property sandboxAgentRepository
+ * @property sandboxAgentStatusRepository
+ * @property logService
  */
 @ApiSwaggerSupport
 @Tags(
@@ -335,6 +337,10 @@ class SandboxController(
             }
     }
 
+    /**
+     * @param authentication
+     * @return logs from agent sandbox
+     */
     @GetMapping("/logs-from-agent")
     fun getAgentLogs(
         authentication: Authentication,
