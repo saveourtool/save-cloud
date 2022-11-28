@@ -54,7 +54,6 @@ data class ConfigProperties(
     data class DockerSettings(
         val host: String,
         val useLoki: Boolean = true,
-        val loggingDriver: String,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
         val testResourcesVolumeType: String = "volume",
