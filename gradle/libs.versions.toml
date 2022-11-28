@@ -24,7 +24,6 @@ mockito-kotlin = "4.1.0"
 slf4j = "1.7.36"
 log4j = "2.19.0"
 jpa = "1.0.2"
-hibernate = "5.6.14.Final"
 mySql = "8.0.31"
 testcontainers = "1.17.6"
 okhttp3 = "4.10.0"
@@ -131,8 +130,8 @@ validation-api = { module = "jakarta.validation:jakarta.validation-api"}
 
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
-hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
-hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer", version.ref = "hibernate" }
+hibernate-core = { module = "org.hibernate:hibernate-core" }
+hibernate-micrometer = { module = "org.hibernate:hibernate-micrometer" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mySql" }
 
