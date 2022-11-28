@@ -8,11 +8,10 @@ import com.saveourtool.save.frontend.externals.animations.*
 
 import csstype.Color
 import csstype.Width
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
-
-import kotlinx.js.jso
 
 @Suppress("CUSTOM_GETTERS_SETTERS")
 object GeneralInfoFirstPicture : WelcomePager {

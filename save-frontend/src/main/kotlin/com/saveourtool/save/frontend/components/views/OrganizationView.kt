@@ -33,9 +33,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 import dom.html.HTMLInputElement
 import history.Location
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
@@ -55,9 +55,9 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
+import web.http.FormData
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -187,10 +187,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                     }
                 }
-                column(id = "description", header = "Description") {
+                column(id = "description", header = "Description") { cellContext ->
                     Fragment.create {
                         td {
-                            +(it.value.description ?: "Description not provided")
+                            +(cellContext.value.description.ifEmpty { "Description not provided" })
                         }
                     }
                 }
@@ -307,7 +307,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
-                draftOrganizationDescription = organizationLoaded.description ?: ""
+                draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole

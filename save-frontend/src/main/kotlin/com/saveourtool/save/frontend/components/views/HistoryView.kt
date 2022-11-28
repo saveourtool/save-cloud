@@ -27,6 +27,7 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import csstype.Background
 import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
@@ -40,7 +41,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

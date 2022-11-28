@@ -15,6 +15,7 @@ import com.saveourtool.save.utils.secondsToInstant
 
 import csstype.ClassName
 import csstype.Cursor
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -23,8 +24,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
-
-import kotlinx.js.jso
 
 /**
  * Display single TestSuiteSource as list option

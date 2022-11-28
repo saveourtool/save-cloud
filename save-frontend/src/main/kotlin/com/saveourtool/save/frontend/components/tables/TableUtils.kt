@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.frontend.components.tables
 
+import js.core.jso
 import react.ChildrenBuilder
 import react.StateSetter
 import react.useState
@@ -19,8 +20,6 @@ import tanstack.table.core.TableOptions
 import tanstack.table.core.TableState
 import tanstack.table.core.Updater
 import tanstack.table.core.getExpandedRowModel
-
-import kotlinx.js.jso
 
 val <TData : RowData, TValue> CellContext<TData, TValue>.value: TValue get() = this.getValue()
 

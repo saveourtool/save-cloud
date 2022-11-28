@@ -31,6 +31,7 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
@@ -42,7 +43,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.js.jso
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString

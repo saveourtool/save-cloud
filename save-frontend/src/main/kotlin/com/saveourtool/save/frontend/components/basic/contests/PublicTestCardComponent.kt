@@ -10,11 +10,10 @@ import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-
-import kotlinx.js.jso
 
 /**
  * Component that allows to see public tests

@@ -8,10 +8,9 @@ import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
-
-import kotlinx.js.jso
 
 private val columnCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 

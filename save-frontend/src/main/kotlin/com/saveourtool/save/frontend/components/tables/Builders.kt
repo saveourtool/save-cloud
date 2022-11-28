@@ -6,15 +6,14 @@
 
 package com.saveourtool.save.frontend.components.tables
 
+import js.core.ReadonlyArray
+import js.core.jso
 import react.ReactNode
 import tanstack.table.core.CellContext
 import tanstack.table.core.ColumnDef
 import tanstack.table.core.ColumnDefTemplate
 import tanstack.table.core.RowData
 import tanstack.table.core.StringOrTemplateHeader
-
-import kotlinx.js.ReadonlyArray
-import kotlinx.js.jso
 
 /**
  * Inspired by (meaning copy-pasted) `ColumnBuilder` from `kotlin-react-table`,
