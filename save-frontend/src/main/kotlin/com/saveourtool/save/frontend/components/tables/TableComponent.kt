@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.utils.spread
 
 import csstype.ClassName
 import csstype.Cursor
+import js.core.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
@@ -51,7 +52,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 /**
  * [Props] of a data table

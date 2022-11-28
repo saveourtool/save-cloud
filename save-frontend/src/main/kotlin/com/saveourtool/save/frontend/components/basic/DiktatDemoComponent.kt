@@ -14,8 +14,7 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.dom.asList
-import org.w3c.files.FileReader
+import js.core.asList
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
@@ -29,6 +28,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import web.file.FileReader
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

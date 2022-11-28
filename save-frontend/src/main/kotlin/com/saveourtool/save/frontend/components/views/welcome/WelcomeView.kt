@@ -18,6 +18,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -33,7 +34,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 /**
  * [State] of project creation view component

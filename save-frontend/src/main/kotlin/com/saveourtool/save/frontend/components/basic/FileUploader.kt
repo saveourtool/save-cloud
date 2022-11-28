@@ -17,11 +17,10 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import csstype.ClassName
 import csstype.Width
 import io.ktor.http.escapeIfNeeded
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-import org.w3c.files.File
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.html.ButtonType
@@ -36,12 +35,13 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import web.file.File
+import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.js.jso
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()

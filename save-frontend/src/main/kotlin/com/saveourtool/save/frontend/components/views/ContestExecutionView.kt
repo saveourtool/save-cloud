@@ -27,6 +27,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.*
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -34,7 +35,6 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 
 import kotlinx.datetime.Instant
-import kotlinx.js.jso
 
 /**
  * [Props] for [ContestExecutionView]

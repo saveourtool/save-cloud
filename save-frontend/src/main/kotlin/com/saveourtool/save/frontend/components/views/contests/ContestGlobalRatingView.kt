@@ -26,6 +26,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import csstype.rem
 import history.Location
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -37,7 +38,6 @@ import react.dom.html.ReactHTML.tr
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
