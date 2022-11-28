@@ -5,13 +5,12 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import csstype.*
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
-
-import kotlinx.js.jso
 
 /**
  * rendering of "Read more" section

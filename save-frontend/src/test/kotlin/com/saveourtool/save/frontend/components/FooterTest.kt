@@ -9,7 +9,7 @@ import react.react
 
 import kotlin.test.Test
 import kotlin.test.assertNotNull
-import kotlinx.js.jso
+import js.core.jso
 
 class FooterTest {
     @Test

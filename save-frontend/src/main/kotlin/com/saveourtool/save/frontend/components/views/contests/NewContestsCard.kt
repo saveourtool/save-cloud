@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import csstype.rem
+import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -17,8 +18,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import react.useState
-
-import kotlinx.js.jso
 
 val newContestsCard = newContestsCard()
 

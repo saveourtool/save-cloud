@@ -28,8 +28,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
+import browser.document
 import csstype.ClassName
 import dom.html.HTMLElement
+import js.core.get
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -39,11 +41,9 @@ import react.router.Routes
 import react.router.dom.HashRouter
 import web.url.URLSearchParams
 
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
