@@ -86,7 +86,7 @@ class Beans {
      * @return [ContainerLogService] from Docker or Loki if loki is available
      */
     @Bean
-    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): ContainerLogService = configProperties.lokiServiceUrl
+    fun logService(configProperties: ConfigProperties, dockerClient: DockerClient): ContainerLogService = configProperties.lokiServiceUrl
         ?.takeIf { it.isNotBlank() }
         ?.let {
             LokiLogService(it)

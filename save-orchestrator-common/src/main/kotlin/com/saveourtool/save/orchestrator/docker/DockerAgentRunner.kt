@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
-import kotlin.random.Random
 
 /**
  * [AgentRunner] that uses Docker Daemon API to run save-agents
@@ -65,7 +64,7 @@ class DockerAgentRunner(
 
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration, containerName(executionId.toString())).also { agentId ->
+            createContainerFromImage(configuration, containerName(executionId, number)).also { agentId ->
                 logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
@@ -234,11 +233,7 @@ class DockerAgentRunner(
         }
     }
 
-    /**
-     * @param id
-     */
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
-    private fun containerName(id: String) = "${configProperties.containerNamePrefix}$id-${Random.nextInt(100, 999)}"
+    private fun containerName(id: Long, number: Int) = "${configProperties.containerNamePrefix}$id-$number"
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
