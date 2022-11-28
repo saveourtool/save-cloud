@@ -1,12 +1,8 @@
 package com.saveourtool.save.orchestrator.config
 
 import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
-import com.saveourtool.save.orchestrator.service.ContainerLogService
-import com.saveourtool.save.orchestrator.service.DockerLogService
-import com.saveourtool.save.orchestrator.service.LokiLogService
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.model.LogConfig
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
@@ -60,35 +56,4 @@ class Beans {
 
         return DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
     }
-
-    /**
-     * @param configProperties
-     * @return a [LogConfig] bean
-     */
-    @Bean
-    fun logConfig(configProperties: ConfigProperties): LogConfig = configProperties.lokiServiceUrl
-        ?.takeIf { it.isNotBlank() }
-        ?.let {
-            LogConfig(
-                LogConfig.LoggingType.LOKI,
-                mapOf(
-                    // similar to config in docker-compose.yaml
-                    "mode" to "non-blocking",
-                    "loki-url" to "$it/loki/api/v1/push",
-                    "loki-external-labels" to "container_name={{.Name}},source=save-agent"
-                )
-            )
-        } ?: LogConfig(LogConfig.LoggingType.DEFAULT)
-
-    /**
-     * @param configProperties
-     * @param dockerClient
-     * @return [ContainerLogService] from Docker or Loki if loki is available
-     */
-    @Bean
-    fun logService(configProperties: ConfigProperties, dockerClient: DockerClient): ContainerLogService = configProperties.lokiServiceUrl
-        ?.takeIf { it.isNotBlank() }
-        ?.let {
-            LokiLogService(it)
-        } ?: DockerLogService(dockerClient)
 }

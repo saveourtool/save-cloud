@@ -8,11 +8,14 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
+import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.service.LogService
+import com.saveourtool.save.service.LokiLogService
 import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.Operation
@@ -36,7 +39,10 @@ import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.transaction.Transactional
+
+typealias JpaSandboxAgentRepository = com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 
 /**
  * @property configProperties
@@ -55,8 +61,11 @@ class SandboxController(
     val configProperties: ConfigProperties,
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
+    val sandboxAgentRepository: JpaSandboxAgentRepository,
+    val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     val agentsController: AgentsController,
     val agentRepository: SandboxAgentRepository,
+    val logService: LogService,
 ) {
     @Operation(
         method = "GET",
@@ -325,6 +334,31 @@ class SandboxController(
                 agentsController.initialize(request)
             }
     }
+
+    @GetMapping("/logs-from-agent")
+    fun getAgentLogs(
+        authentication: Authentication,
+    ): Flux<String> = blockingToMono {
+        sandboxExecutionRepository.findTopByUserIdOrderByStartTimeDesc(authentication.userId())
+    }
+        .switchIfEmptyToNotFound {
+            "There is no run for ${authentication.username()} yet"
+        }
+        .flatMapMany { execution ->
+            val agent = sandboxAgentRepository.findByExecutionId(execution.requiredId())
+                .singleOrNull()
+                .orConflict { "Only a single agent expected for execution ${execution.requiredId()}" }
+            val startTime = sandboxAgentStatusRepository.findTopByAgentOrderByStartTimeAsc(agent)
+                ?.startTime
+                .orNotFound { "Not found first agent status for execution ${execution.requiredId()}" }
+            val endTime = sandboxAgentStatusRepository.findTopByAgentOrderByEndTimeDesc(agent)
+                ?.endTime
+                .orNotFound { "Not found latest agent status for execution ${execution.requiredId()}" }
+            logService.get(agent.containerName,
+                startTime.atZone(ZoneId.systemDefault()).toInstant(),
+                endTime.atZone(ZoneId.systemDefault()).toInstant(),
+            )
+        }
 
     private fun validateNoRunningExecution(
         userId: Long,

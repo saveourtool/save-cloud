@@ -1,4 +1,4 @@
-package com.saveourtool.save.orchestrator.service
+package com.saveourtool.save.service
 
 import com.saveourtool.save.utils.sortBy
 
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
+import reactor.core.publisher.Flux
 import reactor.kotlin.core.publisher.toFlux
 
 import java.time.Instant
@@ -20,10 +20,10 @@ import java.time.temporal.ChronoField
  */
 class LokiLogService(
     lokiServiceUrl: String,
-) : ContainerLogService {
+) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
 
-    override fun get(containerName: String, from: Instant, to: Instant): Mono<List<String>> = webClient.get()
+    override fun get(containerName: String, from: Instant, to: Instant): Flux<String> = webClient.get()
         .uri(
             "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
             "{container_name=\"$containerName\"}",
@@ -57,7 +57,6 @@ class LokiLogService(
         .map { (timestamp, msg) ->
             "${dateTimeFormatter.format(timestamp)} $msg"
         }
-        .collectList()
 
     private fun Instant.toEpochNanoStr(): String = "$epochSecond$nano"
 

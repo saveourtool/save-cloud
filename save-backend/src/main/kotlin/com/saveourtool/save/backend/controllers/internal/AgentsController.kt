@@ -4,6 +4,7 @@ import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
@@ -36,6 +37,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
     private val testService: TestService,
@@ -227,8 +229,7 @@ class AgentsController(
      * @return list of container ids
      */
     @GetMapping("/agents/get-container-ids")
-    fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
-        .map(Agent::containerId)
+    fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentService.getAgentsByExecutionId(executionId).map(Agent::containerId)
 
     /**
      * Get agent by containerId.

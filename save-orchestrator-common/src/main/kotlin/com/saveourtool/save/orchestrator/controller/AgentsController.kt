@@ -1,17 +1,14 @@
 package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.ContainerLogService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
-import com.saveourtool.save.utils.StringList
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
@@ -25,15 +22,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
-import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import java.util.*
-
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toJavaInstant
 
 /**
  * Controller used to start agents with needed information
@@ -43,7 +33,6 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val agentRunner: AgentRunner,
-    private val containerLogService: ContainerLogService,
     private val agentRepository: AgentRepository,
 ) {
     /**
@@ -132,38 +121,6 @@ class AgentsController(
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())
-        }
-
-    /**
-     * @param executionId ID of execution
-     * @param filterByContainerId name of container\agent
-     * @return logs
-     */
-    @GetMapping("/logs")
-    fun logs(
-        @RequestParam executionId: Long,
-        @RequestParam("containerId") filterByContainerId: String,
-    ): Mono<StringList> = agentRepository.getContainerIds(executionId)
-        .filter(filterByContainerId::equals)
-        .singleOrEmpty()
-        .zipWhen(agentRepository::getContainerName)
-        .flatMap { (containerId, containerName) ->
-            agentRepository.getAgentsStatuses(listOf(containerId))
-                .map {
-                    it.sortedBy(AgentStatusDto::time)
-                }
-                .map {
-                    it.first().time to it.last().time
-                }
-                .zipWith(containerName.toMono())
-        }
-        .flatMap { (fromTo, containerName) ->
-            val (from, to) = fromTo
-            containerLogService.get(
-                containerName,
-                from.toInstant(TimeZone.currentSystemDefault()).toJavaInstant(),
-                to.toInstant(TimeZone.currentSystemDefault()).toJavaInstant()
-            )
         }
 
     companion object {

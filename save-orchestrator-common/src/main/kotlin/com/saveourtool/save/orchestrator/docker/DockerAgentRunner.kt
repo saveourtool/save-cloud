@@ -42,7 +42,6 @@ class DockerAgentRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-    private val logConfig: LogConfig,
 ) : AgentRunner {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
@@ -195,7 +194,20 @@ class DockerAgentRunner(
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
-                    .withLogConfig(logConfig)
+                    .withLogConfig(
+                        when {
+                            settings.useLoki -> LogConfig(
+                                LogConfig.LoggingType.LOKI,
+                                mapOf(
+                                    // similar to config in docker-compose.yaml
+                                    "mode" to "non-blocking",
+                                    "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                                    "loki-external-labels" to "container_name={{.Name}},source=save-agent"
+                                )
+                            )
+                            else -> LogConfig(LogConfig.LoggingType.DEFAULT)
+                        }
+                    )
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 

@@ -6,6 +6,7 @@ data:
   application.properties: |
     backend.preprocessor-url=http://preprocessor
     backend.orchestrator-url=http://orchestrator
+    backend.loki-service-url=http://loki:3100
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.backend.managementPort }}
