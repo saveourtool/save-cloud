@@ -10,9 +10,9 @@ import java.time.Instant
 /**
  * @property dockerClient a client to docker
  */
-class DockerAgentLogService(
+class DockerLogService(
     private val dockerClient: DockerClient,
-) : AgentLogService {
+) : ContainerLogService {
     override fun get(containerName: String, from: Instant, to: Instant): Mono<List<String>> {
         val logs: MutableList<String> = mutableListOf()
         val callback = object : ResultCallback.Adapter<Frame>() {

@@ -4,9 +4,9 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.service.AgentLogService
 import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.ContainerLogService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
@@ -29,8 +29,11 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-import java.time.ZoneId
 import java.util.*
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toJavaInstant
 
 /**
  * Controller used to start agents with needed information
@@ -40,7 +43,7 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val agentRunner: AgentRunner,
-    private val agentLogService: AgentLogService,
+    private val containerLogService: ContainerLogService,
     private val agentRepository: AgentRepository,
 ) {
     /**
@@ -156,10 +159,10 @@ class AgentsController(
         }
         .flatMap { (fromTo, containerName) ->
             val (from, to) = fromTo
-            agentLogService.get(
+            containerLogService.get(
                 containerName,
-                from.atZone(ZoneId.systemDefault()).toInstant(),
-                to.atZone(ZoneId.systemDefault()).toInstant()
+                from.toInstant(TimeZone.currentSystemDefault()).toJavaInstant(),
+                to.toInstant(TimeZone.currentSystemDefault()).toJavaInstant()
             )
         }
 

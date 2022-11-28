@@ -1,9 +1,9 @@
 package com.saveourtool.save.orchestrator.config
 
 import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
-import com.saveourtool.save.orchestrator.service.AgentLogService
-import com.saveourtool.save.orchestrator.service.DockerAgentLogService
-import com.saveourtool.save.orchestrator.service.LokiAgentLogService
+import com.saveourtool.save.orchestrator.service.ContainerLogService
+import com.saveourtool.save.orchestrator.service.DockerLogService
+import com.saveourtool.save.orchestrator.service.LokiLogService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.model.LogConfig
@@ -83,12 +83,12 @@ class Beans {
     /**
      * @param configProperties
      * @param dockerClient
-     * @return [AgentLogService] from Docker or Loki if loki is available
+     * @return [ContainerLogService] from Docker or Loki if loki is available
      */
     @Bean
-    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): AgentLogService = configProperties.lokiServiceUrl
+    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): ContainerLogService = configProperties.lokiServiceUrl
         ?.takeIf { it.isNotBlank() }
         ?.let {
-            LokiAgentLogService(it)
-        } ?: DockerAgentLogService(dockerClient)
+            LokiLogService(it)
+        } ?: DockerLogService(dockerClient)
 }

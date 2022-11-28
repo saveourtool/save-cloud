@@ -18,9 +18,9 @@ import java.time.temporal.ChronoField
 /**
  * AgentLogService from Loki
  */
-class LokiAgentLogService(
+class LokiLogService(
     lokiServiceUrl: String,
-) : AgentLogService {
+) : ContainerLogService {
     private val webClient = WebClient.create(lokiServiceUrl)
 
     override fun get(containerName: String, from: Instant, to: Instant): Mono<List<String>> = webClient.get()

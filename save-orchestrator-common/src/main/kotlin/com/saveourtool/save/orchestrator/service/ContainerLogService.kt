@@ -4,11 +4,11 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 
 /**
- * A service which provides logs of agents
+ * A service which provides logs of containers
  */
-interface AgentLogService {
+interface ContainerLogService {
     /**
-     * @param containerName name of container\agent
+     * @param containerName name of container
      * @param from query is from this timestamp in UTC
      * @param to query is to this timestamp in UTC
      * @return logs as list of Strings
