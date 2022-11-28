@@ -125,17 +125,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                     className = ClassName("row")
                     // Marketing information
-                    div {
-                        className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white")
-                        marketingTitle("Software")
-                        marketingTitle("Analysis")
-                        marketingTitle("Verification &")
-                        marketingTitle("Evaluation")
-                        h3 {
-                            className = ClassName("mt-4")
-                            +"Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
-                        }
-                    }
+                    welcomeMarketingTitle("text-white")
 
                     // Sign-in header
                     div {
@@ -298,30 +288,6 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    private fun ChildrenBuilder.marketingTitle(str: String) {
-        div {
-            className = ClassName("mb-0 mt-0")
-            h1Bold(str[0].toString())
-            h1Normal(str.substring(1, str.length))
-        }
-    }
-
-    private fun ChildrenBuilder.h1Bold(str: String) = h1 {
-        +str
-        style = jso {
-            fontWeight = "bold".unsafeCast<FontWeight>()
-            display = Display.inline
-            fontSize = "4.5rem".unsafeCast<FontSize>()
-        }
-    }
-
-    private fun ChildrenBuilder.h1Normal(str: String) = h1 {
-        +str
-        style = jso {
-            display = Display.inline
-        }
-    }
-
     private fun ChildrenBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
         div {
             className = ClassName("col text-center px-1")
@@ -365,3 +331,5 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 }
+
+

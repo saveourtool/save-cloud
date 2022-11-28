@@ -1,17 +1,20 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import com.saveourtool.save.frontend.externals.animations.Animation
+import com.saveourtool.save.frontend.externals.animations.animator
+import com.saveourtool.save.frontend.externals.animations.scrollContainer
+import com.saveourtool.save.frontend.externals.animations.scrollPage
 import react.ChildrenBuilder
 
 val allWelcomePagers = listOf(
-    listOf(HighLevelSave),
+    // listOf(HighLevelSave),
     listOf(SloganAboutCi),
     listOf(GeneralInfoFirstPicture, GeneralInfoSecondPicture, GeneralInfoThirdPicture, GeneralInfoFourthPicture),
     listOf(SloganAboutBenchmarks),
     listOf(AwesomeBenchmarks),
     listOf(SloganAboutTests),
     listOf(SloganAboutContests),
-    listOf(BobPager)
+    // listOf(BobPager)
 )
 
 /**
