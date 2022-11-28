@@ -2211,6 +2211,134 @@
         ]
       }
     },
+    "/api/v1/logs/by-container-name": {
+      "get": {
+        "description": "Get logs for containerName in provided time range.",
+        "operationId": "getByContainerName",
+        "parameters": [
+          {
+            "description": "name of a container",
+            "in": "query",
+            "name": "containerName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "start of requested time range",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "end of requested time range",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get logs for containerName in provided time range.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/api/v1/logs/from-agent": {
+      "get": {
+        "description": "Get all logs from agent by container name.",
+        "operationId": "logs",
+        "parameters": [
+          {
+            "description": "name of a container",
+            "in": "query",
+            "name": "containerName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all logs from agent by container name.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
     "/api/v1/organizations/all": {
       "get": {
         "description": "Get organizations",
