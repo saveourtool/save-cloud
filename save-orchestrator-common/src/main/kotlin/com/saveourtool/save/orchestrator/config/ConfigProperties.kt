@@ -49,7 +49,6 @@ data class ConfigProperties(
      * @property testResourcesVolumeType Type of Docker volume (bind/volume). `bind` should only be used for local running and for tests.
      * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
      * Nullable, because it's not required in Kubernetes
-     * @property loggingDriver
      */
     data class DockerSettings(
         val host: String,
