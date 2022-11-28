@@ -34,12 +34,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
-import org.springframework.util.FileSystemUtils
 import reactor.kotlin.core.publisher.toMono
 
 import java.net.InetSocketAddress
-import java.nio.file.Files
-import java.nio.file.Paths
 
 @SpringBootTest
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
@@ -54,11 +51,11 @@ class DockerServiceTest {
     @Autowired private lateinit var dockerService: DockerService
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var testContainerId: String
-    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
     fun setUp() {
-        whenever(agentRepository.updateExecutionByDto(any(), any(), anyOrNull()))
+        whenever(orchestratorAgentService.updateExecutionByDto(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
 
@@ -114,8 +111,8 @@ class DockerServiceTest {
 
         // tear down
         dockerService.stopAgents(listOf(testContainerId))
-        verify(agentRepository).updateExecutionByDto(any(), any(), anyOrNull())
-        verifyNoMoreInteractions(agentRepository)
+        verify(orchestratorAgentService).updateExecutionByDto(any(), any(), anyOrNull())
+        verifyNoMoreInteractions(orchestratorAgentService)
     }
 
     @AfterEach

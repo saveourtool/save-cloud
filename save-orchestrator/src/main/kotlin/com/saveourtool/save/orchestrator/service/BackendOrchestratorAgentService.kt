@@ -26,10 +26,10 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
  * Service for work with agents and backend
  */
 @Component
-class BackendAgentRepository(
+class BackendOrchestratorAgentService(
     @Value("\${orchestrator.backend-url}") private val backendUrl: String,
     customizers: List<WebClientCustomizer>,
-) : AgentRepository {
+) : OrchestratorAgentService {
     private val webClientBackend = WebClient.builder()
         .baseUrl(backendUrl)
         .applyAll(customizers)
@@ -102,6 +102,6 @@ class BackendAgentRepository(
     }
 
     companion object {
-        private val log: Logger = getLogger<BackendAgentRepository>()
+        private val log: Logger = getLogger<BackendOrchestratorAgentService>()
     }
 }

@@ -6,7 +6,7 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
-import com.saveourtool.save.orchestrator.service.AgentRepository
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -31,7 +31,7 @@ class DockerContainerManagerTest {
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String
-    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
     fun setUp() {

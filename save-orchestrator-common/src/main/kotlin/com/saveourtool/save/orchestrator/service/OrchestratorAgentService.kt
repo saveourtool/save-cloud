@@ -18,7 +18,7 @@ typealias TestExecutionList = List<TestExecutionDto>
 /**
  * Repository to work with agents
  */
-interface AgentRepository {
+interface OrchestratorAgentService {
     /**
      * Gets config to init agent
      *
