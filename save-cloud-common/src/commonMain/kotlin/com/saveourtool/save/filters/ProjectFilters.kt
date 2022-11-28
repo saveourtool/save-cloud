@@ -15,7 +15,15 @@ data class ProjectFilters(
     val statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED),
 ) {
     companion object {
-        val created = ProjectFilters("")
-        val any = ProjectFilters("", "", ProjectStatus.values().toSet())
+        val created = ProjectFilters(name = "")
+
+        /**
+         * The filter which returns projects with any status, not just
+         * [ProjectStatus.CREATED].
+         */
+        val any = ProjectFilters(
+            name = "",
+            statuses = enumValues<ProjectStatus>().toSet(),
+        )
     }
 }
