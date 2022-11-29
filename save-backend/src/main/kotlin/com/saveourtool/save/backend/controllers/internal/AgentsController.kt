@@ -239,9 +239,7 @@ class AgentsController(
      * @return [Agent]
      */
     private fun getAgentByContainerId(containerId: String): Agent = agentRepository.findByContainerId(containerId)
-        .orNotFound {
-            "Agent with containerId=$containerId not found in the DB"
-        }
+        .orNotFound { "Agent with containerId=$containerId not found in the DB" }
 
     private fun getAgentByContainerIdAsMono(containerId: String): Mono<Agent> = blockingToMono {
         agentRepository.findByContainerId(containerId)
