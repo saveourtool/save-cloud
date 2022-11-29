@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.toInstantAtDefaultZone
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -16,7 +17,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import java.time.Instant
-import java.time.ZoneId
 
 typealias StringFluxResponse = ResponseEntity<Flux<String>>
 
@@ -72,8 +72,8 @@ class ContainerLogController(
         .flatMapMany { (from, to) ->
             logService.get(
                 containerName,
-                from.atZone(ZoneId.systemDefault()).toInstant(),
-                to.atZone(ZoneId.systemDefault()).toInstant()
+                from.toInstantAtDefaultZone(),
+                to.toInstantAtDefaultZone()
             )
         }
         .let {

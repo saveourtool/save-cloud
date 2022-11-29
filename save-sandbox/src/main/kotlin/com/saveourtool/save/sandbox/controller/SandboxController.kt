@@ -39,7 +39,6 @@ import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.transaction.Transactional
 
 /**
@@ -361,8 +360,8 @@ class SandboxController(
                 ?.endTime
                 .orNotFound { "Not found latest agent status for execution ${execution.requiredId()}" }
             logService.get(agent.containerName,
-                startTime.atZone(ZoneId.systemDefault()).toInstant(),
-                endTime.atZone(ZoneId.systemDefault()).toInstant(),
+                startTime.toInstantAtDefaultZone(),
+                endTime.toInstantAtDefaultZone(),
             )
         }
 
