@@ -28,7 +28,7 @@ tasks.withType<BootRun>().configureEach {
             os.isMacOsX -> append(",mac")
         }
         if (listOf("save-sandbox", "save-backend").any { project.path.contains(it) }) {
-            append(",secure")
+            // append(",secure")
         }
     }
     environment["SPRING_PROFILES_ACTIVE"] = profiles

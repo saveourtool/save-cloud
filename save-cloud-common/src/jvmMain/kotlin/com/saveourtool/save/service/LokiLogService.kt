@@ -1,6 +1,7 @@
 package com.saveourtool.save.service
 
 import com.saveourtool.save.utils.StringList
+import com.saveourtool.save.utils.enableHuaweiProxy
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -20,8 +21,16 @@ import java.time.temporal.ChronoField
  */
 class LokiLogService(
     lokiServiceUrl: String,
+    enableHuaweiProxy: Boolean = false,
 ) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
+        .let {
+            if (enableHuaweiProxy) {
+                it.enableHuaweiProxy()
+            } else {
+                it
+            }
+        }
 
     override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> = webClient.get()
         .uri(

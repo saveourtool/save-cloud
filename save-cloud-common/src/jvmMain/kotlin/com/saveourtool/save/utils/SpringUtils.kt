@@ -6,6 +6,7 @@ package com.saveourtool.save.utils
 
 import com.saveourtool.save.storage.Storage
 import org.springframework.http.codec.multipart.Part
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 /**
@@ -49,3 +50,24 @@ fun <K> Storage<K>.overwrite(key: K, content: Part): Mono<Long> = content.conten
  */
 fun <K> Storage<K>.overwrite(key: K, contentMono: Mono<Part>): Mono<Long> = contentMono
     .flatMap { overwrite(key, it) }
+
+/**
+ * @return [WebClient] with enabled Huawei proxy
+ */
+@Suppress(
+    "COMPLEX_EXPRESSION",
+    "MAGIC_NUMBER", "MagicNumber",
+)
+fun WebClient.enableHuaweiProxy(): WebClient = this
+    .mutate()
+    .clientConnector(
+        org.springframework.http.client.reactive.ReactorClientHttpConnector(
+            reactor.netty.http.client.HttpClient.create()
+                .proxy { proxy ->
+                    proxy.type(reactor.netty.transport.ProxyProvider.Proxy.HTTP)
+                        .host("proxy.huawei.com")
+                        .port(8080)
+                }
+        )
+    )
+    .build()

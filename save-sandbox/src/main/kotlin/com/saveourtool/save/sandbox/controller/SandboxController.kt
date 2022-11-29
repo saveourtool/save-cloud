@@ -343,13 +343,13 @@ class SandboxController(
     @GetMapping("/logs-from-agent")
     fun getAgentLogs(
         authentication: Authentication,
-    ): Flux<String> = blockingToMono {
+    ): Mono<StringList> = blockingToMono {
         sandboxExecutionRepository.findTopByUserIdOrderByStartTimeDesc(authentication.userId())
     }
         .switchIfEmptyToNotFound {
             "There is no run for ${authentication.username()} yet"
         }
-        .flatMapMany { execution ->
+        .flatMap { execution ->
             val agent = sandboxAgentRepository.findByExecutionId(execution.requiredId())
                 .singleOrNull()
                 .orConflict { "Only a single agent expected for execution ${execution.requiredId()}" }

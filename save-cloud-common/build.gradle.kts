@@ -50,10 +50,12 @@ kotlin {
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
-                implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+                implementation(libs.reactor.kotlin.extensions)
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
+                compileOnly("io.projectreactor.netty:reactor-netty-core")
+                compileOnly("io.projectreactor.netty:reactor-netty-http")
             }
         }
         val jvmTest by getting {
