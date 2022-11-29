@@ -6,7 +6,7 @@ package com.saveourtool.save.demo.diktat
  * @property toolName
  * @property version
  */
-enum class DiktatDemoTool(val owner: String, val toolName: String, val version: String) {
+enum class DiktatDemoTool(val owner: String, val toolName: String, val vcsTagName: String) {
     /**
      * Run diktat
      */
