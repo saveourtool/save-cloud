@@ -15,10 +15,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.time.Instant
-
-typealias StringFluxResponse = ResponseEntity<Flux<String>>
 
 /**
  * Controller to fetch logs
@@ -49,7 +47,7 @@ class ContainerLogController(
         @RequestParam containerName: String,
         @RequestParam from: Instant,
         @RequestParam to: Instant,
-    ): StringFluxResponse = ResponseEntity.ok(logService.get(containerName, from, to))
+    ): Mono<StringListResponse> = logService.get(containerName, from, to).map { ResponseEntity.ok(it) }
 
     @GetMapping("/from-agent")
     @Operation(
@@ -63,20 +61,18 @@ class ContainerLogController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched logs for container.")
     fun logs(
         @RequestParam containerName: String,
-    ): StringFluxResponse = blockingToMono {
+    ): Mono<StringListResponse> = blockingToMono {
         agentService.getAgentByContainerName(containerName)
     }
         .map {
             agentService.getAgentTimes(it)
         }
-        .flatMapMany { (from, to) ->
+        .flatMap { (from, to) ->
             logService.get(
                 containerName,
                 from.toInstantAtDefaultZone(),
                 to.toInstantAtDefaultZone()
             )
         }
-        .let {
-            ResponseEntity.ok(it)
-        }
+        .map { ResponseEntity.ok(it) }
 }

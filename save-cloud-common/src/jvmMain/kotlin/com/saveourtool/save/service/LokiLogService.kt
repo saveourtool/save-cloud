@@ -1,13 +1,13 @@
 package com.saveourtool.save.service
 
-import com.saveourtool.save.utils.sortBy
+import com.saveourtool.save.utils.StringList
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
-import reactor.kotlin.core.publisher.toFlux
+import reactor.core.publisher.Mono
 
 import java.time.Instant
 import java.time.LocalDateTime
@@ -23,7 +23,7 @@ class LokiLogService(
 ) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
 
-    override fun get(containerName: String, from: Instant, to: Instant): Flux<String> = webClient.get()
+    override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> = webClient.get()
         .uri(
             "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
             "{container_name=\"$containerName\"}",
@@ -35,30 +35,32 @@ class LokiLogService(
         .filter {
             it["status"].asText() == "success"
         }
-        .flatMapMany {
-            (it["data"]["result"] as ArrayNode).elements()
-                .toFlux()
-        }
-        .flatMap {
-            (it["values"] as ArrayNode).elements()
-                .toFlux()
-        }
-        .map { jsonNode ->
-            val elements = (jsonNode as ArrayNode).elements()
-            val timestamp = elements.next().asText()
-                .fromEpochNanoStr()
-                .let {
-                    LocalDateTime.ofInstant(it, zoneId)
+        .map { objectNode ->
+            objectNode["data"]
+                .elementsAsSequenceFrom("result")
+                .flatMap { it.elementsAsSequenceFrom("values") }
+                .map { jsonNode ->
+                    val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
+                    val timestamp = timestampNode.asText()
+                        .fromEpochNanoStr()
+                        .let {
+                            LocalDateTime.ofInstant(it, zoneId)
+                        }
+                    val msg = msgNode.asText()
+                    timestamp to msg
                 }
-            val msg = elements.next().asText()
-            timestamp to msg
-        }
-        .sortBy { (timestamp, _) -> timestamp }
-        .map { (timestamp, msg) ->
-            "${dateTimeFormatter.format(timestamp)} $msg"
+                .sortedBy { (timestamp, _) -> timestamp }
+                .map { (timestamp, msg) ->
+                    "${dateTimeFormatter.format(timestamp)} $msg"
+                }
+                .toList()
         }
 
-    private fun Instant.toEpochNanoStr(): String = "$epochSecond$nano"
+    private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(9, '0')}"
+
+    private fun JsonNode.elementsAsSequence(): Sequence<JsonNode> = (this as ArrayNode).elements().asSequence()
+    private fun JsonNode.elementsAsSequenceFrom(fieldName: String): Sequence<JsonNode> = (this[fieldName] as ArrayNode)
+        .elementsAsSequence()
 
     private fun String.fromEpochNanoStr(): Instant {
         val epochSecond = substring(0, length - NANO_COUNT)
