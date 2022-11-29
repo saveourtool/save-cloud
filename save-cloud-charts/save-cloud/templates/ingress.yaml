@@ -1,0 +1,46 @@
+{{ if .Values.ingress.enabled }}
+{{ if .Values.ingress.https.enabled }}
+apiVersion: v1
+type: IngressTLS
+kind: Secret
+metadata:
+  annotations:
+    description: SSL certificate for ingress
+  name: ingress-certificate
+data:
+  tls.crt: {{ .Files.Get .Values.ingress.https.certFile | b64enc }}
+  tls.key: {{ .Files.Get .Values.ingress.https.certKey | b64enc }}
+---
+{{ end }}
+
+apiVersion: networking.k8s.io/v1 #beta1
+kind: Ingress
+metadata:
+  name: ingress-main
+  {{- if .Values.ingress.annotations }}
+  {{- with .Values.ingress.annotations  }}
+  annotations:
+  {{- toYaml . | indent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  {{ if .Values.ingress.https.enabled }}
+  tls:
+  - secretName: ingress-certificate
+  {{ end }}
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - http:
+        paths:
+          # @see https://kubernetes.io/docs/concepts/services-networking/ingress/#examples
+          - backend:
+              service:
+                name: {{ .Values.gateway.name }}
+                port:
+                  name: http
+            pathType: Prefix
+            path: '/'
+
+{{ end }}
