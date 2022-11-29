@@ -16,28 +16,33 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
+import com.saveourtool.save.frontend.components.tables.invoke
+import com.saveourtool.save.frontend.components.tables.isExpanded
+import com.saveourtool.save.frontend.components.tables.pageIndex
+import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.externals.table.useFilters
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.table.*
-import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.js.jso
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -88,35 +93,35 @@ external interface StatusProps<D : Any> : TableProps<D> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-@Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
+@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
-    private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
-    private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
+    private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
+    private val testExecutionsTable: FC<StatusProps<TestExecutionDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "#") {
                     Fragment.create {
                         td {
-                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
+                            +"${it.row.index + 1 + it.pageIndex * it.pageSize}"
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
-                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
                     }
                 }
-                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
+                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
-                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
                                 ?: "Running"
                             }"
                         }
@@ -143,18 +148,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "path", header = "Test Name") { cellProps ->
+                column(id = "path", header = "Test Name") { cellContext ->
                     Fragment.create {
                         td {
-                            val testName = cellProps.value.filePath
+                            val testName = cellContext.value.filePath
                             val shortTestName =
                                     if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                             +shortTestName
 
                             // debug info is provided by agent after the execution
                             // possibly there can be cases when this info is not available
-                            if (cellProps.value.hasDebugInfo == true) {
-                                spread(cellProps.row.getToggleRowExpandedProps())
+                            if (cellContext.value.hasDebugInfo == true) {
                                 style = jso {
                                     textDecoration = "underline".unsafeCast<TextDecoration>()
                                     color = "blue".unsafeCast<Color>()
@@ -163,10 +167,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                                 onClick = {
                                     this@ExecutionView.scope.launch {
-                                        if (!cellProps.row.isExpanded) {
-                                            getAdditionalInfoFor(cellProps.value, cellProps.row.id)
+                                        if (!cellContext.row.isExpanded) {
+                                            getAdditionalInfoFor(cellContext.value, cellContext.row.id)
                                         }
-                                        cellProps.row.toggleRowExpanded()
+                                        cellContext.row.toggleExpanded(null)
                                     }
                                 }
                             }
@@ -212,18 +216,15 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         },
         useServerPaging = true,
         usePageSelection = true,
-        plugins = arrayOf(
-            useFilters,
-            useSortBy,
-            useExpanded,
-            usePagination,
-        ),
+        tableOptionsCustomizer = { tableOptions ->
+            enableExpanding(tableOptions)
+        },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
             when {
                 errorDescription != null -> tr {
                     td {
-                        colSpan = tableInstance.columns.size
+                        colSpan = tableInstance.visibleColumnsCount()
                         +"Error retrieving additional information: $errorDescription"
                     }
                 }
@@ -233,59 +234,29 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
                 else -> tr {
                     td {
-                        colSpan = tableInstance.columns.size
+                        colSpan = tableInstance.visibleColumnsCount()
                         +"No info available yet for this test execution"
                     }
                 }
             }
         },
-        additionalOptions = {
-            this.asDynamic().manualFilters = true
-        },
-        commonHeader = { tableInstance ->
+        commonHeader = { tableInstance, navigate ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     testExecutionFiltersRow {
                         filters = state.filters
                         onChangeFilters = { filterValue ->
-                            if (filterValue.status == null || filterValue.status?.name == "ANY") {
-                                setState {
-                                    filters = filters.copy(status = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(status = filterValue.status)
-                                }
+                            setState {
+                                filters = filters.copy(
+                                    status = filterValue.status?.takeIf { it.name != "ANY" },
+                                    fileName = filterValue.fileName?.ifEmpty { null },
+                                    testSuite = filterValue.testSuite?.ifEmpty { null },
+                                    tag = filterValue.tag?.ifEmpty { null },
+                                )
                             }
-                            if (filterValue.fileName?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(fileName = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(fileName = filterValue.fileName)
-                                }
-                            }
-                            if (filterValue.testSuite?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(testSuite = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(testSuite = filterValue.testSuite)
-                                }
-                            }
-                            if (filterValue.tag?.isEmpty() == true) {
-                                setState {
-                                    filters = filters.copy(tag = null)
-                                }
-                            } else {
-                                setState {
-                                    filters = filters.copy(tag = filterValue.tag)
-                                }
-                            }
-                            window.location.href = getUrlWithFiltersParams(filterValue)
+                            tableInstance.resetPageIndex(true)
+                            navigate(getUrlWithFiltersParams(filterValue))
                         }
                     }
                 }
@@ -323,7 +294,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     } ?: ""
 
-    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
+    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution)
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
         // there may be errors during deserialization, which will otherwise be silently ignored
@@ -435,7 +406,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         displayTestNotFound(state.executionDto)
     }
 
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) =
+            // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
+            "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {

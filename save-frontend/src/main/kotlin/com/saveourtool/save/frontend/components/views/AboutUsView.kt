@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 
 import csstype.*
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -18,8 +19,6 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
-
-import kotlinx.js.jso
 
 /**
  * [Props] of [AboutUsView]

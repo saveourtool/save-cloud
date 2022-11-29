@@ -24,6 +24,7 @@ import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
 import history.Location
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -50,7 +51,6 @@ import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 const val ALL_LANGS = "all"
 

@@ -18,6 +18,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import csstype.rem
 import dom.html.HTMLButtonElement
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
@@ -40,7 +41,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.js.jso
 
 /**
  * [Props] of the top bor component

@@ -13,12 +13,15 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.TestingType.CONTEST_MODE
+import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 import arrow.core.Either
 import arrow.core.flatMap
@@ -49,7 +52,6 @@ import io.ktor.serialization.kotlinx.json.json
 import java.lang.System.nanoTime
 import java.net.URL
 import java.nio.file.Path
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.coroutines.CoroutineContext
@@ -91,15 +93,22 @@ internal class DefaultSaveCloudClient(
     override suspend fun listOrganizations(): Either<SaveCloudError, List<Organization>> =
             getAndCheck("/organizations/get/list")
 
-    override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<Project>> =
-            getAndCheck(
-                "/projects/get/projects-by-organization",
-                requestBody = EmptyContent,
-                ORGANIZATION_NAME to organizationName
+    override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>> =
+            postAndCheck(
+                "/projects/by-filters",
+                ProjectFilters(
+                    name = "",
+                    organizationName = organizationName,
+                ),
+                Application.Json
             )
 
     override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>> =
-            getAndCheck("/test-suites/$organizationName/available")
+            getAndCheck(
+                "/test-suites/$organizationName/available",
+                requestBody = EmptyContent,
+                PERMISSION to READ
+            )
 
     override suspend fun listFiles(
         organizationName: String,
@@ -163,23 +172,37 @@ internal class DefaultSaveCloudClient(
 
     override suspend fun listExecutions(
         organizationName: String,
-        projectName: String
+        projectName: String,
+        contestName: String?
     ): Either<SaveCloudError, List<ExecutionDto>> =
-            getAndCheck(
-                "/executionDtoList",
-                requestBody = EmptyContent,
-                ORGANIZATION_NAME to organizationName,
-                NAME to projectName
-            )
+            when (contestName) {
+                null -> postAndCheck(
+                    "/executionDtoList",
+                    requestBody = EmptyContent,
+                    contentType = Application.Json,
+                    ORGANIZATION_NAME to organizationName,
+                    PROJECT_NAME to projectName,
+                )
+
+                else -> getAndCheck(
+                    "/contests/$contestName/executions/$organizationName/$projectName",
+                    requestBody = EmptyContent,
+                )
+            }
 
     override suspend fun submitExecution(
         request: CreateExecutionRequest,
         timeoutValue: Long,
         timeoutUnit: TimeUnit
     ): Either<SaveCloudError, ExecutionDto> {
+        val contestName = request.contestName
+        require((request.testingType == CONTEST_MODE) == (contestName != null)) {
+            "testingType: ${request.testingType}, contestName: $contestName"
+        }
+
         val (organizationName, projectName) = request.projectCoordinates
 
-        val ignoredExecutionIds = listExecutions(organizationName, projectName).getOrHandle { error ->
+        val ignoredExecutionIds = listExecutions(organizationName, projectName, contestName).getOrHandle { error ->
             return error.left()
         }
             .asSequence()
@@ -192,7 +215,7 @@ internal class DefaultSaveCloudClient(
                 timeoutUnit,
                 "while waiting for the submitted execution to appear"
             ) {
-                listExecutions(organizationName, projectName).map { executions ->
+                listExecutions(organizationName, projectName, contestName).map { executions ->
                     executions.firstOrNull { (id) ->
                         id !in ignoredExecutionIds
                     }
@@ -307,7 +330,9 @@ internal class DefaultSaveCloudClient(
         private const val EXECUTION_ID = "executionId"
         private const val NAME = "name"
         private const val ORGANIZATION_NAME = "organizationName"
+        private const val PERMISSION = "permission"
         private const val POLL_DELAY_MILLIS = 100L
+        private const val PROJECT_NAME = "projectName"
         private const val UPLOADED_MILLIS = "uploadedMillis"
         private val fileWithVersion =
                 Regex("""^(?<basename>.+?)-(?<version>\d+(?:\.\d+)*)(?<extension>(?:\.[^.\s-]+)+?)?$""")
@@ -326,7 +351,7 @@ internal class DefaultSaveCloudClient(
                     install(ContentNegotiation) {
                         val json = Json {
                             serializersModule = SerializersModule {
-                                contextual(LocalDateTime::class, LocalDateTimeSerializer)
+                                supportJLocalDateTime()
                             }
                         }
 

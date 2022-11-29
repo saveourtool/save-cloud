@@ -2,15 +2,13 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 import react.create
 import react.react
@@ -18,14 +16,14 @@ import react.router.MemoryRouter
 
 import kotlin.js.Promise
 import kotlin.test.*
-import kotlinx.js.jso
+import js.core.jso
 
 class OrganizationViewTest {
-    private val testOrganization = Organization(
-        "TestOrg",
-        OrganizationStatus.CREATED,
-        LocalDateTime(2022, 6, 1, 12, 25),
-    )
+    private val testOrganization = OrganizationDto.empty
+        .copy(
+            name = "TestOrg",
+            dateCreated = LocalDateTime(2022, 6, 1, 12, 25),
+        )
     private val testUserInfo = UserInfo(
         "TestUser",
         source = "basic",
@@ -52,11 +50,11 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/projects/get/not-deleted-projects-by-organization") { _, res, _ ->
+        rest.post("$apiUrl/projects/by-filters") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
-                    arrayListOf<Project>()
+                    arrayListOf<ProjectDto>()
                 )
             }
         },

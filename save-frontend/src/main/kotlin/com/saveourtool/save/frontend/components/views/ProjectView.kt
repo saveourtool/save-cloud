@@ -30,6 +30,7 @@ import com.saveourtool.save.utils.getHighestRole
 import csstype.ClassName
 import csstype.Cursor
 import history.Location
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
@@ -39,7 +40,6 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -61,7 +61,7 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
     /**
      * Currently loaded for display Project
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Message of error
@@ -103,7 +103,7 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     init {
-        state.project = Project.stub(null, Organization.stub(null))
+        state.project = ProjectDto.empty
         state.isErrorOpen = false
         state.errorMessage = ""
         state.errorLabel = ""
@@ -136,13 +136,13 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
             }
             val currentUserRoleInProject: Role = get(
-                "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
+                "$apiUrl/projects/${project.organizationName}/${project.name}/users/roles",
                 jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
 
             val currentUserRoleInOrganization: Role = get(
-                url = "$apiUrl/organizations/${project.organization.name}/users/roles",
+                url = "$apiUrl/organizations/${project.organizationName}/users/roles",
                 headers = jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
@@ -169,7 +169,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 loadingHandler = ::classLoadingHandler,
             )
             if (response.ok) {
-                navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
+                navigate(to = "/${state.project.organizationName}/${state.project.name}/history")
             }
         }
     }
@@ -287,7 +287,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
     private suspend fun fetchLatestExecutionId() {
         val response = get(
-            "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
+            "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organizationName}",
             jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,

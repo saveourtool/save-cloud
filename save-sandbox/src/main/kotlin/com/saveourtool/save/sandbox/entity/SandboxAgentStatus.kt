@@ -13,6 +13,9 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.Table
 
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
+
 /**
  * @property startTime staring time of status
  * @property endTime time of update
@@ -35,7 +38,7 @@ class SandboxAgentStatus(
     /**
      * @return this object converted to [AgentStatusDto]
      */
-    fun toDto() = AgentStatusDto(endTime, state, agent.containerId)
+    fun toDto() = AgentStatusDto(state, agent.containerId, endTime.toKotlinLocalDateTime())
 }
 
 /**
@@ -43,8 +46,8 @@ class SandboxAgentStatus(
  * @return [SandboxAgentStatus] built from [AgentStatusDto]
  */
 fun AgentStatusDto.toEntity(agentResolver: (String) -> SandboxAgent) = SandboxAgentStatus(
-    startTime = time,
-    endTime = time,
+    startTime = time.toJavaLocalDateTime(),
+    endTime = time.toJavaLocalDateTime(),
     state = state,
     agent = agentResolver(containerId)
 )

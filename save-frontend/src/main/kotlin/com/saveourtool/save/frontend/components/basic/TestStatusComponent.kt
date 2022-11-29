@@ -8,6 +8,7 @@ import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.core.result.TestStatus
 import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -20,7 +21,7 @@ import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
-import react.table.TableInstance
+import tanstack.table.core.Table
 
 import kotlinx.browser.window
 
@@ -32,14 +33,14 @@ import kotlinx.browser.window
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = FC<Props> {
+fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: Table<D>) = FC<Props> {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
         is Ignored -> status.reason
         is Crash -> status.message
     }
-    val numColumns = tableInstance.columns.size
+    val numColumns = tableInstance.visibleColumnsCount()
     val testSuiteName = testResultDebugInfo.testResultLocation.testSuiteName
     val pluginName = testResultDebugInfo.testResultLocation.pluginName
     val testFilePath = with(testResultDebugInfo.testResultLocation) {
@@ -95,7 +96,7 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
  */
 fun <D : Any> executionStatusComponent(
     failReason: String,
-    tableInstance: TableInstance<D>
+    tableInstance: Table<D>
 ) = FC<Props> {
     tr {
         td {
@@ -103,7 +104,7 @@ fun <D : Any> executionStatusComponent(
             +"Execution fail reason:"
         }
         td {
-            colSpan = tableInstance.columns.size - 2
+            colSpan = tableInstance.visibleColumnsCount() - 2
             small {
                 samp {
                     +failReason

@@ -3,10 +3,9 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 import com.saveourtool.save.frontend.externals.animations.*
 
 import csstype.Width
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
-
-import kotlinx.js.jso
 
 /**
  * Funny picture

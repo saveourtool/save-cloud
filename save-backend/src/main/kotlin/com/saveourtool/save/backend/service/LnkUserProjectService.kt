@@ -28,7 +28,7 @@ class LnkUserProjectService(
      * @return all users with role in project
      */
     fun getAllUsersAndRolesByProject(project: Project) =
-            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role ?: Role.NONE) }
+            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role) }
 
     /**
      * @param userId
@@ -117,10 +117,11 @@ class LnkUserProjectService(
 
     /**
      * @param userId
+     * @param statuses
      * @return list of [Project]s that are connected to user with [userId]
      */
-    fun getNonDeletedProjectsByUserId(userId: Long): List<Project> = lnkUserProjectRepository.findByUserIdAndProjectStatus(userId, ProjectStatus.CREATED)
-        .mapNotNull { it.project }
+    fun getProjectsByUserIdAndStatuses(userId: Long, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)): List<Project> =
+            lnkUserProjectRepository.findByUserIdAndProjectStatusIn(userId, statuses).mapNotNull { it.project }
 
     /**
      * @param authentication

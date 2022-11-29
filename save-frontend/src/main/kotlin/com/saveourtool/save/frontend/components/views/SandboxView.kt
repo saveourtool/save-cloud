@@ -26,6 +26,7 @@ import csstype.ClassName
 import csstype.Color
 import csstype.Display
 import io.ktor.http.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
@@ -39,7 +40,6 @@ import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
