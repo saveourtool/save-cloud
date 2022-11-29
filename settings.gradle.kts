@@ -22,5 +22,6 @@ include("save-sandbox")
 include("authentication-service")
 include("save-demo")
 include("save-demo-cpg")
+include("test-analysis-core")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
