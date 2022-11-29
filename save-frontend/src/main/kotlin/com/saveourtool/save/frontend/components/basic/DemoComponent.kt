@@ -15,14 +15,13 @@ import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import csstype.Height
+import js.core.jso
 import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
-
-import kotlinx.js.jso
 
 @Suppress(
     "TOO_LONG_FUNCTION",
