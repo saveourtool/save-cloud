@@ -10,7 +10,6 @@ import javax.persistence.OneToOne
  * @property project
  * @property contest
  * @property bestExecution
- * @property bestScore
  */
 @Entity
 class LnkContestProject(
