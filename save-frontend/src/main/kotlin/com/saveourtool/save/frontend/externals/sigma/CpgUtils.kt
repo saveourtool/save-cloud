@@ -8,8 +8,9 @@ import com.saveourtool.save.demo.cpg.CpgEdge
 import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.CpgNode
 
+import js.core.jso
+
 import kotlin.random.Random
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
