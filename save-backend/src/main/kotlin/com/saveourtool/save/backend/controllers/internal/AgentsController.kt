@@ -34,26 +34,14 @@ import kotlinx.datetime.toJavaLocalDateTime
  */
 @RestController
 @RequestMapping("/internal")
-@SuppressWarnings("LongParameterList")
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentRepository: AgentRepository,
-    private val agentService: AgentService,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
 ) {
-    /**
-     * @param containerId [Agent.containerId]
-     * @return [Mono] with [Agent.containerName]
-     */
-    @GetMapping("/agents/get-container-name")
-    fun getContainerName(
-        @RequestParam containerId: String,
-    ): Mono<String> = getAgentByContainerIdAsMono(containerId)
-        .map { it.containerName }
-
     /**
      * @param containerId [Agent.containerId]
      * @return [Mono] with [AgentInitConfig]
@@ -222,15 +210,6 @@ class AgentsController(
             latestStatus.toDto()
         }
     }
-
-    /**
-     * Returns containerIds for all agents for [executionId]
-     *
-     * @param executionId id of execution
-     * @return list of container ids
-     */
-    @GetMapping("/agents/get-container-ids")
-    fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentService.getAgentsByExecutionId(executionId).map(Agent::containerId)
 
     /**
      * Get agent by containerId.

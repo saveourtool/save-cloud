@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -45,9 +44,6 @@ class SandboxOrchestratorAgentService(
     private val sandboxStorage: SandboxStorage,
     @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
 ) : OrchestratorAgentService {
-    override fun getContainerName(containerId: String): Mono<String> = blockingToMono {
-        getAgent(containerId).containerName
-    }
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
@@ -150,11 +146,6 @@ class SandboxOrchestratorAgentService(
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }
-
-    override fun getContainerIds(executionId: Long): Flux<String> = blockingToFlux {
-        sandboxAgentRepository.findByExecutionId(executionId)
-    }
-        .map { it.containerId }
 
     /**
      * @param execution

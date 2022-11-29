@@ -9,7 +9,6 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.EmptyResponse
 
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 typealias IdList = List<Long>
@@ -20,14 +19,6 @@ typealias TestExecutionList = List<TestExecutionDto>
  * Repository to work with agents
  */
 interface OrchestratorAgentService {
-    /**
-     * Gets containerName by ID of container
-     *
-     * @param containerId
-     * @return [Mono] of [String]
-     */
-    fun getContainerName(containerId: String): Mono<String>
-
     /**
      * Gets config to init agent
      *
@@ -105,10 +96,4 @@ interface OrchestratorAgentService {
      * @return a Mono without body
      */
     fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
-
-    /**
-     * @param executionId the execution ID
-     * @return container id where [executionId] was running
-     */
-    fun getContainerIds(executionId: Long): Flux<String>
 }

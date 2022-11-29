@@ -16,9 +16,7 @@ import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -33,11 +31,6 @@ class BackendOrchestratorAgentService(
         .baseUrl(backendUrl)
         .applyAll(customizers)
         .build()
-    override fun getContainerName(containerId: String): Mono<String> = webClientBackend
-        .get()
-        .uri("/agents/get-container-name?containerId=$containerId")
-        .retrieve()
-        .bodyToMono()
 
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
@@ -104,12 +97,6 @@ class BackendOrchestratorAgentService(
             .retrieve()
             .toBodilessEntity()
     }
-
-    override fun getContainerIds(executionId: Long): Flux<String> = webClientBackend
-        .get()
-        .uri("/agents/get-container-ids?executionId=$executionId")
-        .retrieve()
-        .bodyToFlux()
 
     companion object {
         private val log: Logger = getLogger<BackendOrchestratorAgentService>()

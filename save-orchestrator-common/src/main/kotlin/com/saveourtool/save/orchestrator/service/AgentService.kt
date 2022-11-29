@@ -34,11 +34,6 @@ class AgentService(
     internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
-     * @param containerId
-     */
-    internal fun getContainerName(containerId: String): Mono<String> = orchestratorAgentService.getContainerName(containerId)
-
-    /**
      * Gets configuration to init agent
      *
      * @param agentId
