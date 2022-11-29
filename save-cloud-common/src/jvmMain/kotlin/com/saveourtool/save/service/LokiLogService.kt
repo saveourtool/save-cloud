@@ -32,42 +32,93 @@ class LokiLogService(
             }
         }
 
-    override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> = webClient.get()
+    override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> {
+        val query = "{container_name=\"$containerName\"}"
+        return webClient.get()
+            .uri(
+                "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
+                query,
+                from.toEpochNanoStr(),
+                to.toEpochNanoStr(),
+            )
+            .retrieve()
+            .bodyToMono<ObjectNode>()
+            .filter {
+                it["status"].asText() == "success"
+            }
+            .map { objectNode ->
+                objectNode["data"]
+                    .elementsAsSequenceFrom("result")
+                    .flatMap { it.elementsAsSequenceFrom("values") }
+                    .map { jsonNode ->
+                        val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
+                        val timestamp = timestampNode.asText()
+                            .fromEpochNanoStr()
+                            .let {
+                                LocalDateTime.ofInstant(it, zoneId)
+                            }
+                        val msg = msgNode.asText()
+                        timestamp to msg
+                    }
+                    .sortedBy { (timestamp, _) -> timestamp }
+                    .map { (timestamp, msg) ->
+                        "${dateTimeFormatter.format(timestamp)} $msg"
+                    }
+                    .toList()
+            }
+    }
+
+    private fun doQueryRange(
+        query: String,
+        start: Instant,
+        end: Instant,
+        previousLokiBatch: LokiBatch
+    ): Mono<LokiBatch> = webClient.get()
         .uri(
             "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
-            "{container_name=\"$containerName\"}",
-            from.toEpochNanoStr(),
-            to.toEpochNanoStr(),
+            query,
+            start.toEpochNanoStr(),
+            end.toEpochNanoStr(),
         )
         .retrieve()
         .bodyToMono<ObjectNode>()
-        .filter {
-            it["status"].asText() == "success"
-        }
-        .map { objectNode ->
-            objectNode["data"]
-                .elementsAsSequenceFrom("result")
-                .flatMap { it.elementsAsSequenceFrom("values") }
-                .map { jsonNode ->
-                    val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
-                    val timestamp = timestampNode.asText()
-                        .fromEpochNanoStr()
-                        .let {
-                            LocalDateTime.ofInstant(it, zoneId)
-                        }
-                    val msg = msgNode.asText()
-                    timestamp to msg
-                }
-                .sortedBy { (timestamp, _) -> timestamp }
-                .map { (timestamp, msg) ->
-                    "${dateTimeFormatter.format(timestamp)} $msg"
-                }
-                .toList()
-        }
+        .map { it.extractResult(previousLokiBatch.lastEntries) }
 
     private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(NANO_COUNT, '0')}"
 
+    private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>): LokiBatch {
+        return validateFieldValue("status", "success")
+            .get("data")
+            .validateFieldValue("resultType", "streams")
+            .elementsAsSequenceFrom("result")
+            .flatMap { it.elementsAsSequenceFrom("values") }
+            .map { jsonNode ->
+                val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
+                    .also {
+                        require(it.size == 2) {
+                            "Only two values are expected in each elements in [values]"
+                        }
+                    }
+                val timestamp = timestampNode.asText()
+                    .fromEpochNanoStr()
+                val msg = msgNode.asText()
+                LogEntry(timestamp, msg)
+            }
+            .filterNot(logEntriesToSkip::contains)
+            .sorted()
+            .toList()
+            .let { LokiBatch(it) }
+    }
+
+    private fun JsonNode.validateFieldValue(fieldName: String, expectedValue: String): JsonNode = also {
+        val actualValue = it[fieldName].asText()
+        require(actualValue == expectedValue) {
+            "Invalid $fieldName: $actualValue"
+        }
+    }
+
     private fun JsonNode.elementsAsSequence(): Sequence<JsonNode> = (this as ArrayNode).elements().asSequence()
+
     private fun JsonNode.elementsAsSequenceFrom(fieldName: String): Sequence<JsonNode> = (this[fieldName] as ArrayNode)
         .elementsAsSequence()
 
@@ -77,7 +128,24 @@ class LokiLogService(
         return Instant.ofEpochSecond(epochSecond.toLong(), nano.toLong())
     }
 
+    private data class LokiBatch(
+        val entries: List<LogEntry>,
+        val lastEntries: Set<LogEntry>
+    ) {
+        constructor(entries: List<LogEntry>) : this(entries, entries.lastEntries())
+    }
+
+    private data class LogEntry(
+        val timestamp: Instant,
+        val msg: String,
+    ) : Comparable<LogEntry> {
+        override fun compareTo(other: LogEntry): Int = timestamp.compareTo(other.timestamp)
+
+        override fun toString(): String = "${dateTimeFormatter.format(timestamp)} $msg"
+    }
+
     companion object {
+        private const val LOKI_LIMIT = 100
         private const val NANO_COUNT = 9
         private val zoneId = ZoneOffset.UTC
         private val dateTimeFormatter = DateTimeFormatterBuilder()
@@ -94,5 +162,16 @@ class LokiLogService(
             .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
             .appendFraction(ChronoField.NANO_OF_SECOND, 9, 9, true)
             .toFormatter()
+
+        private fun List<LogEntry>.lastEntries(): Set<LogEntry> = this
+            .lastOrNull()
+            ?.timestamp
+            ?.let { lastTimestamp -> filterTo(HashSet()) { it.timestamp == lastTimestamp } }
+            ?.also {
+                require(it.size < LOKI_LIMIT) {
+                    "Need to increase limit in request to loki"
+                }
+            }
+            .orEmpty()
     }
 }
