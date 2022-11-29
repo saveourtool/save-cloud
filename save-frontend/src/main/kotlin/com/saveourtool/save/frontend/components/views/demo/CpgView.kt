@@ -14,13 +14,13 @@ import com.saveourtool.save.frontend.utils.loadingHandler
 import csstype.ClassName
 import csstype.Display
 import csstype.Height
+import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.useEffect
 import react.useState
 
 import kotlinx.coroutines.await
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
