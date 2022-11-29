@@ -21,7 +21,7 @@ import java.time.temporal.ChronoField
  */
 class LokiLogService(
     lokiServiceUrl: String,
-    enableHuaweiProxy: Boolean = false,
+    enableHuaweiProxy: Boolean = true,
 ) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
         .let {
@@ -64,6 +64,12 @@ class LokiLogService(
                 }
                 .toList()
         }
+
+    private fun doQueryRange(query: String, start: String, end: String): Mono<StringList> {
+        return Mono.empty()
+    }
+
+    private fun
 
     private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(NANO_COUNT, '0')}"
 
