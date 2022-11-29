@@ -25,9 +25,6 @@ class LnkContestProject(
     @OneToOne
     @JoinColumn(name = "best_execution_id")
     var bestExecution: Execution?,
-
-    var bestScore: Double?,
-
 ) : BaseEntity() {
     /**
      * Get [ContestResult]
