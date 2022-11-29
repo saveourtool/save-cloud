@@ -56,7 +56,7 @@ class LokiLogService(
                 .toList()
         }
 
-    private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(9, '0')}"
+    private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(NANO_COUNT, '0')}"
 
     private fun JsonNode.elementsAsSequence(): Sequence<JsonNode> = (this as ArrayNode).elements().asSequence()
     private fun JsonNode.elementsAsSequenceFrom(fieldName: String): Sequence<JsonNode> = (this[fieldName] as ArrayNode)
