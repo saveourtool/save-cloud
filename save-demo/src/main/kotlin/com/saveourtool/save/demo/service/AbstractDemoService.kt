@@ -7,7 +7,7 @@ import com.saveourtool.save.demo.runners.cli.CliRunner
 /**
  * Abstract service interface for different demonstration services
  */
-abstract class AbstractDemoService<in P : DemoAdditionalParams, in K, out R : DemoResult>(
+abstract class AbstractDemoService<in P : DemoAdditionalParams, in K : Any, out R : DemoResult>(
     private val runner: CliRunner<P, K, R>,
 ) {
     /**

@@ -33,7 +33,7 @@ import kotlin.io.path.*
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
 ) : CliRunner<DiktatDemoAdditionalParams, ToolKey, DiktatDemoResult> {
-    private fun getRunCommandForDiktat(
+    override fun getRunCommand(
         workingDir: Path,
         testPath: Path,
         outputPath: Path,
@@ -42,34 +42,13 @@ class DiktatCliRunner(
     ): String = buildString {
         // TODO: this information should not be hardcoded but stored in database
         val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
-        val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
         append(ktlintExecutable)
-        append(" -R $diktatExecutable ")
-        append(" --disabled_rules=standard")
+        if (params.tool == DiktatDemoTool.DIKTAT) {
+            val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+            append(" -R $diktatExecutable ")
+            append(" --disabled_rules=standard")
+        }
         append(" --reporter=plain,output=$outputPath ")
-        configPath?.let {
-            append(" --config=$it ")
-        }
-        if (params.mode == DiktatDemoMode.FIX) {
-            append(" --format ")
-        }
-        append(testPath)
-    }
-
-    private fun getRunCommandForKtlint(
-        workingDir: Path,
-        testPath: Path,
-        outputPath: Path,
-        configPath: Path?,
-        params: DiktatDemoAdditionalParams,
-    ): String = buildString {
-        // TODO: this information should not be hardcoded but stored in database
-        val executable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
-        append(executable)
-        append(" --reporter=plain,output=$outputPath ")
-        configPath?.let {
-            append(" --config=$it ")
-        }
         if (params.mode == DiktatDemoMode.FIX) {
             append(" --format ")
         }
@@ -96,17 +75,6 @@ class DiktatCliRunner(
         .apply {
             toFile().setExecutable(true, false)
         }
-
-    override fun getRunCommand(
-        workingDir: Path,
-        testPath: Path,
-        outputPath: Path,
-        configPath: Path?,
-        params: DiktatDemoAdditionalParams,
-    ): String = when (params.tool) {
-        DiktatDemoTool.DIKTAT -> getRunCommandForDiktat(workingDir, testPath, outputPath, configPath, params)
-        DiktatDemoTool.KTLINT -> getRunCommandForKtlint(workingDir, testPath, outputPath, configPath, params)
-    }
 
     override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent

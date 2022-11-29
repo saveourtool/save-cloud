@@ -10,9 +10,13 @@ import kotlin.io.path.*
 
 /**
  * Interface that should be implemented by all the runners that use [ProcessBuilder] in order to run tools for demo.
+ *
+ * @param P additional params that are required for demo run - should implement [DemoAdditionalParams]
+ * @param K storage key needed to let runner download tools from ToolStorage
+ * @param R result of demo run - should implement [DemoAdditionalParams]
  */
 @Component
-interface CliRunner <in P : DemoAdditionalParams, in K, out R : DemoResult> : Runner<P, K, R> {
+interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DemoResult> : Runner<P, K, R> {
     /**
      * Save [lines] into file with [filePath]
      *

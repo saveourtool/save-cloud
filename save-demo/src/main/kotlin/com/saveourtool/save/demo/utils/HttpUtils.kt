@@ -12,6 +12,9 @@ import java.nio.ByteBuffer
 private const val DEFAULT_BUFFER_SIZE = 4096
 
 /**
+ * Read bytes from [ByteReadChannel] as [Flux] of [ByteBuffer].
+ * The input stream is closed when Flux is terminated.
+ *
  * @return [Flux] of [ByteBuffer]s read from [ByteReadChannel]
  */
 fun ByteReadChannel.toByteBufferFlux(): Flux<ByteBuffer> = DataBufferUtils.readInputStream(

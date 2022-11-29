@@ -24,5 +24,5 @@ class ToolStorage(
         pathToContent.name,
     )
 
-    override fun buildPathToContent(rootDir: Path, key: ToolKey): Path = rootDir / key.ownerName / key.toolName / key.version / key.executableName
+    override fun buildPathToContent(rootDir: Path, key: ToolKey): Path = rootDir / key.ownerName / key.toolName / key.vcsTagName / key.executableName
 }
