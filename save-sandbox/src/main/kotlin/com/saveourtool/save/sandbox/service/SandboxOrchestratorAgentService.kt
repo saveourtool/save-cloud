@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.sandbox.entity.SandboxAgent
@@ -37,17 +38,16 @@ import java.util.stream.Collectors
  * Sandbox implementation for agent service
  */
 @Component("SandboxAgentRepositoryForOrchestrator")
-class SandboxAgentRepository(
+class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
     @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
-) : com.saveourtool.save.orchestrator.service.AgentRepository {
+) : OrchestratorAgentService {
     override fun getContainerName(containerId: String): Mono<String> = blockingToMono {
         getAgent(containerId).containerName
     }
-
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)

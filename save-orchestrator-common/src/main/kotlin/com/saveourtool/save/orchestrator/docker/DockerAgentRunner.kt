@@ -245,7 +245,7 @@ class DockerAgentRunner(
         }
     }
 
-    private fun containerName(id: Long, number: Int) = "${configProperties.containerNamePrefix}$id-$number"
+    private fun containerName(executionId: Long, number: Int) = "${configProperties.containerNamePrefix}$executionId-$number"
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)

@@ -19,7 +19,7 @@ typealias TestExecutionList = List<TestExecutionDto>
 /**
  * Repository to work with agents
  */
-interface AgentRepository {
+interface OrchestratorAgentService {
     /**
      * Gets containerName by ID of container
      *
@@ -27,7 +27,6 @@ interface AgentRepository {
      * @return [Mono] of [String]
      */
     fun getContainerName(containerId: String): Mono<String>
-
     /**
      * Gets config to init agent
      *

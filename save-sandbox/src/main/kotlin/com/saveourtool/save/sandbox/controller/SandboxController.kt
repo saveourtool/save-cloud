@@ -8,9 +8,10 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
+import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
-import com.saveourtool.save.sandbox.service.SandboxAgentRepository
+import com.saveourtool.save.sandbox.service.SandboxOrchestratorAgentService
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
@@ -41,16 +42,14 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.transaction.Transactional
 
-typealias JpaSandboxAgentRepository = com.saveourtool.save.sandbox.repository.SandboxAgentRepository
-
 /**
  * @property configProperties
  * @property storage
  * @property sandboxExecutionRepository
- * @property agentsController
- * @property agentRepository
  * @property sandboxAgentRepository
  * @property sandboxAgentStatusRepository
+ * @property agentsController
+ * @property orchestratorAgentService
  * @property logService
  */
 @ApiSwaggerSupport
@@ -63,10 +62,10 @@ class SandboxController(
     val configProperties: ConfigProperties,
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
-    val sandboxAgentRepository: JpaSandboxAgentRepository,
+    val sandboxAgentRepository: SandboxAgentRepository,
     val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     val agentsController: AgentsController,
-    val agentRepository: SandboxAgentRepository,
+    val orchestratorAgentService: SandboxOrchestratorAgentService,
     val logService: LogService,
 ) {
     @Operation(
@@ -331,7 +330,7 @@ class SandboxController(
                 )
             }
             .map { sandboxExecutionRepository.save(it) }
-            .map { agentRepository.getRunRequest(it) }
+            .map { orchestratorAgentService.getRunRequest(it) }
             .flatMap { request ->
                 agentsController.initialize(request)
             }

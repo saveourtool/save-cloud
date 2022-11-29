@@ -26,7 +26,7 @@ import java.time.Duration
 class AgentService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
-    private val agentRepository: AgentRepository,
+    private val orchestratorAgentService: OrchestratorAgentService,
 ) {
     /**
      * A scheduler that executes long-running background tasks
@@ -45,7 +45,7 @@ class AgentService(
      * @return [Mono] of [InitResponse]
      */
     internal fun getInitConfig(agentId: String): Mono<HeartbeatResponse> =
-            agentRepository.getInitConfig(agentId)
+            orchestratorAgentService.getInitConfig(agentId)
                 .map { InitResponse(it) }
 
     /**
@@ -55,7 +55,7 @@ class AgentService(
      * @return [Mono] of [NewJobResponse] or [WaitResponse]
      */
     internal fun getNextRunConfig(agentId: String): Mono<HeartbeatResponse> =
-            agentRepository.getNextRunConfig(agentId)
+            orchestratorAgentService.getNextRunConfig(agentId)
                 .map { NewJobResponse(it) }
                 .cast(HeartbeatResponse::class.java)
                 .defaultIfEmpty(WaitResponse)
@@ -67,10 +67,10 @@ class AgentService(
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<EmptyResponse> = agentRepository
+    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<EmptyResponse> = orchestratorAgentService
         .addAgents(agents)
         .flatMap {
-            agentRepository.updateAgentStatusesWithDto(agents.map { agent ->
+            orchestratorAgentService.updateAgentStatusesWithDto(agents.map { agent ->
                 AgentStatusDto(STARTING, agent.containerId)
             })
         }
@@ -80,7 +80,7 @@ class AgentService(
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
-            agentRepository
+            orchestratorAgentService
                 .updateAgentStatusesWithDto(listOf(agentState))
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
@@ -93,7 +93,7 @@ class AgentService(
      * @param agentId agent for which data is checked
      * @return true if all executions have status other than `READY_FOR_TESTING`
      */
-    fun checkSavedData(agentId: String): Mono<Boolean> = agentRepository
+    fun checkSavedData(agentId: String): Mono<Boolean> = orchestratorAgentService
         .getReadyForTestingTestExecutions(agentId)
         .map { it.isEmpty() }
 
@@ -145,7 +145,7 @@ class AgentService(
     ): Mono<EmptyResponse> {
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
-        return agentRepository
+        return orchestratorAgentService
             .getAgentsStatuses(agentIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
@@ -174,7 +174,7 @@ class AgentService(
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<EmptyResponse> =
-            agentRepository.updateExecutionByDto(executionId, executionStatus, failReason)
+            orchestratorAgentService.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
@@ -188,7 +188,7 @@ class AgentService(
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = agentRepository
+    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = orchestratorAgentService
         .getAgentsStatusesForSameExecution(agentId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
@@ -207,7 +207,7 @@ class AgentService(
      * @param agentId containerId of an agent
      * @return true if all agents match [areIdleOrFinished]
      */
-    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = agentRepository
+    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = orchestratorAgentService
         .getAgentsStatusesForSameExecution(agentId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
@@ -224,7 +224,7 @@ class AgentService(
     fun markTestExecutionsAsFailed(
         agentsList: Collection<String>,
         onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = agentRepository.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

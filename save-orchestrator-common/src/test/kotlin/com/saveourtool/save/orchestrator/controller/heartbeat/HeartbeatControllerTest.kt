@@ -12,8 +12,7 @@ import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
-import com.saveourtool.save.orchestrator.service.AgentRepository
-import com.saveourtool.save.utils.getCurrentLocalDateTime
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -60,7 +59,7 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
-    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
     fun webClientSetUp() {
@@ -72,7 +71,7 @@ class HeartbeatControllerTest {
 
     @AfterEach
     fun cleanup() {
-        verifyNoMoreInteractions(agentRepository)
+        verifyNoMoreInteractions(orchestratorAgentService)
         heartBeatInspector.clear()
     }
 
@@ -80,7 +79,7 @@ class HeartbeatControllerTest {
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
 
-        whenever(agentRepository.updateAgentStatusesWithDto(any()))
+        whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         webClient.post()
             .uri("/heartbeat")
@@ -90,14 +89,14 @@ class HeartbeatControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-        verify(agentRepository).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService).updateAgentStatusesWithDto(any())
     }
 
     @Test
     fun `should respond with NewJobResponse when there are tests`() {
         val agentContainerId = "container-1"
         val cliArgs = "qwe"
-        whenever(agentRepository.getNextRunConfig(agentContainerId))
+        whenever(orchestratorAgentService.getNextRunConfig(agentContainerId))
             .thenReturn(
                 AgentRunConfig(
                     cliArgs = cliArgs,
@@ -110,7 +109,7 @@ class HeartbeatControllerTest {
 
         assertTrue(monoResponse.config.cliArgs.isNotEmpty())
         assertEquals(cliArgs, monoResponse.config.cliArgs)
-        verify(agentRepository).getNextRunConfig(any())
+        verify(orchestratorAgentService).getNextRunConfig(any())
     }
 
     @Test
@@ -315,10 +314,10 @@ class HeartbeatControllerTest {
         )
 
         doReturn(Mono.just(testExecutions))
-            .whenever(agentRepository)
+            .whenever(orchestratorAgentService)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(agentRepository.markTestExecutionsOfAgentsAsFailed(any(), any()))
+        whenever(orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(any(), any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
@@ -332,8 +331,8 @@ class HeartbeatControllerTest {
             mockUpdateAgentStatusesCount = 1
         ) {
             // not interested in any checks for heartbeats
-            verify(agentRepository).getReadyForTestingTestExecutions(any())
-            verify(agentRepository).markTestExecutionsOfAgentsAsFailed(any(), any())
+            verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
+            verify(orchestratorAgentService).markTestExecutionsOfAgentsAsFailed(any(), any())
         }
     }
 
@@ -363,7 +362,7 @@ class HeartbeatControllerTest {
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
         initConfigs.forEach {
-            whenever(agentRepository.getInitConfig(any()))
+            whenever(orchestratorAgentService.getInitConfig(any()))
                 .thenReturn(Mono.just(it))
         }
         testBatchNullable?.let { testBatch ->
@@ -376,16 +375,16 @@ class HeartbeatControllerTest {
             } else {
                 Mono.empty()
             }
-            whenever(agentRepository.getNextRunConfig(any()))
+            whenever(orchestratorAgentService.getNextRunConfig(any()))
                 .thenReturn(returnValue)
         }
 
         repeat(mockUpdateAgentStatusesCount) {
-            whenever(agentRepository.updateAgentStatusesWithDto(any()))
+            whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         }
         if (mockAgentStatusesForSameExecution) {
-            whenever(agentRepository.getAgentsStatusesForSameExecution(any()))
+            whenever(orchestratorAgentService.getAgentsStatusesForSameExecution(any()))
                 .thenReturn(Mono.just(AgentStatusesForExecution(0, agentStatusDtos)))
         }
 
@@ -414,14 +413,14 @@ class HeartbeatControllerTest {
         // wait for background tasks
         Thread.sleep(5_000)
 
-        verify(agentRepository, times(initConfigs.size)).getInitConfig(any())
+        verify(orchestratorAgentService, times(initConfigs.size)).getInitConfig(any())
         heartbeatResponses.filterIsInstance<InitResponse>().shouldHaveSize(initConfigs.size)
         testBatchNullable?.let {
-            verify(agentRepository).getNextRunConfig(any())
+            verify(orchestratorAgentService).getNextRunConfig(any())
         }
-        verify(agentRepository, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
         if (mockAgentStatusesForSameExecution) {
-            verify(agentRepository).getAgentsStatusesForSameExecution(any())
+            verify(orchestratorAgentService).getAgentsStatusesForSameExecution(any())
         }
         verification.invoke(heartbeatResponses)
     }
