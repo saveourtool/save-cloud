@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
+import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -26,7 +27,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import java.time.LocalDateTime
 import java.time.Month
 import javax.persistence.EntityManager
 
@@ -68,7 +68,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
+                    AgentStatusDto(AgentState.IDLE, "container-1")
                 )
             )
             .exchange()
@@ -80,7 +80,7 @@ class AgentsControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         updateAgentStatuses(
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+            AgentStatusDto(AgentState.IDLE, "container-2")
         )
 
         val firstAgentIdle = getLastIdleForSecondContainer()
@@ -92,7 +92,7 @@ class AgentsControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
                 listOf(
-                    AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+                    AgentStatusDto(AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
                 )
             )
             .exchange()
@@ -100,7 +100,7 @@ class AgentsControllerTest {
             .isOk
 
         updateAgentStatuses(
-            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+            AgentStatusDto(AgentState.BUSY, "container-2")
         )
 
         assertTrue(

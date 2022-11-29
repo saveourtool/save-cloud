@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
+import js.core.jso
 import react.ChildrenBuilder
 import react.StateSetter
 import react.VFC
@@ -29,8 +30,6 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.useState
-
-import kotlinx.js.jso
 
 const val INVERT_TO_OPPOSITE = 100
 

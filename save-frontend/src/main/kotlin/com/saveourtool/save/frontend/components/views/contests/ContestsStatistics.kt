@@ -9,14 +9,13 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import csstype.rem
+import js.core.jso
 import react.ChildrenBuilder
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
 import react.useState
-
-import kotlinx.js.jso
 
 val statistics = statistics()
 

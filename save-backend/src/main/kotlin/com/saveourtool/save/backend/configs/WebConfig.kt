@@ -8,6 +8,7 @@
 package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.domain.supportTestStatus
+import com.saveourtool.save.utils.supportKLocalDateTime
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
@@ -23,8 +24,10 @@ import org.springframework.web.reactive.config.WebFluxConfigurer
 @Configuration
 class WebConfig {
     @Bean
-    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
-        jacksonObjectMapperBuilder.supportTestStatus()
+    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
+        builder
+            .supportTestStatus()
+            .supportKLocalDateTime()
     }
 
     @Bean

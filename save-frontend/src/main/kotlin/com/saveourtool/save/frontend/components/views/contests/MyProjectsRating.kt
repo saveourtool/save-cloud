@@ -4,17 +4,16 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
-
-import kotlinx.js.jso
 
 val myProjectsRating = myProjectsRatings()
 
@@ -23,14 +22,14 @@ val myProjectsRating = myProjectsRatings()
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
-    val (myProjects, setMyProjects) = useState(emptySet<Project>())
+    val (myProjects, setMyProjects) = useState(emptySet<ProjectDto>())
     val getMyProjects = useDeferredRequest {
         setMyProjects(
             get(
                 url = "$apiUrl/projects/get-for-current-user",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<Set<Project>>()
+            ).decodeFromJsonString<Set<ProjectDto>>()
         )
     }
 

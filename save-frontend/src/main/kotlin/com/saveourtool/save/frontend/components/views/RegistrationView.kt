@@ -20,9 +20,9 @@ import com.saveourtool.save.validation.isValidName
 import csstype.ClassName
 import csstype.rem
 import dom.html.HTMLInputElement
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
@@ -37,10 +37,10 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

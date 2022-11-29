@@ -26,6 +26,8 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+import kotlinx.datetime.toJavaLocalDateTime
+
 /**
  * Controller to manipulate with Agent related data
  */
@@ -46,12 +48,7 @@ class AgentsController(
     @GetMapping("/agents/get-init-config")
     fun getInitConfig(
         @RequestParam containerId: String,
-    ): Mono<AgentInitConfig> = blockingToMono {
-        agentRepository.findByContainerId(containerId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found agent with container id $containerId"
-        }
+    ): Mono<AgentInitConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
             it.execution
         }
@@ -94,12 +91,7 @@ class AgentsController(
     @Transactional
     fun getNextRunConfig(
         @RequestParam containerId: String,
-    ): Mono<AgentRunConfig> = blockingToMono {
-        agentRepository.findByContainerId(containerId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found agent with container id $containerId"
-        }
+    ): Mono<AgentRunConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
             it.execution
         }
@@ -156,7 +148,7 @@ class AgentsController(
                     throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
                 agentState.state -> {
                     // updating time
-                    agentStatus.endTime = agentState.time
+                    agentStatus.endTime = agentState.time.toJavaLocalDateTime()
                     agentStatusRepository.save(agentStatus)
                 }
                 else -> {
@@ -179,7 +171,7 @@ class AgentsController(
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
         val execution = getAgentByContainerId(agentId).execution
-        val agentStatuses = agentRepository.findByExecutionId(execution.id!!).map { agent ->
+        val agentStatuses = agentRepository.findByExecutionId(execution.requiredId()).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
@@ -187,7 +179,7 @@ class AgentsController(
             }
             latestStatus.toDto()
         }
-        return AgentStatusesForExecution(execution.id!!, agentStatuses)
+        return AgentStatusesForExecution(execution.requiredId(), agentStatuses)
     }
 
     /**
@@ -232,14 +224,17 @@ class AgentsController(
      * Get agent by containerId.
      *
      * @param containerId containerId of an agent.
-     * @return list of agent statuses
+     * @return [Agent]
      */
-    private fun getAgentByContainerId(containerId: String): Agent {
-        val agent = agentRepository.findOne { root, _, cb ->
-            cb.equal(root.get<String>("containerId"), containerId)
-        }
-        return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
+    private fun getAgentByContainerId(containerId: String): Agent = agentRepository.findByContainerId(containerId)
+        .orNotFound { "Agent with containerId=$containerId not found in the DB" }
+
+    private fun getAgentByContainerIdAsMono(containerId: String): Mono<Agent> = blockingToMono {
+        agentRepository.findByContainerId(containerId)
     }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
 
     private fun List<TestDto>.constructCliCommand() = joinToString(" ") { it.filePath }
         .also {

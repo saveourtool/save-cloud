@@ -4,15 +4,10 @@
 
 package com.saveourtool.save.utils
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-
-actual typealias LocalDateTime = kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.*
 
 /**
- * @return [LocalDateTime] from epoch time
+ * @return [Instant] from epoch time
  */
 fun Long.secondsToInstant(): Instant = Instant.fromEpochMilliseconds(this)
 
@@ -27,4 +22,4 @@ fun Instant.prettyPrint() = this.toString()
 /**
  * @return current local date-time in UTC timezone
  */
-fun getCurrentLocalDateTime() = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+fun getCurrentLocalDateTime(): LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)

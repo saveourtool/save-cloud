@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.sandbox.entity.SandboxAgent
@@ -32,19 +33,17 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import java.util.stream.Collectors
 
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
-
 /**
  * Sandbox implementation for agent service
  */
 @Component("SandboxAgentRepositoryForOrchestrator")
-class SandboxAgentRepository(
+class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
     @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
-) : com.saveourtool.save.orchestrator.service.AgentRepository {
+) : OrchestratorAgentService {
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
@@ -91,7 +90,7 @@ class SandboxAgentRepository(
             .map { it.requiredId() }
     }
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> = blockingToMono {
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {
         agentStates
             .map { it.toEntity(this::getAgent) }
             .let { sandboxAgentStatusRepository.saveAll(it) }
@@ -115,7 +114,7 @@ class SandboxAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
-    ): Mono<BodilessResponseEntity> = getExecutionAsMono(executionId)
+    ): Mono<EmptyResponse> = getExecutionAsMono(executionId)
         .map { execution ->
             sandboxExecutionRepository.save(
                 execution.apply {
@@ -143,7 +142,7 @@ class SandboxAgentRepository(
                 }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> = Mono.fromCallable {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }

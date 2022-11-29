@@ -3,7 +3,9 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.utils.toFixedStr
+
 import csstype.*
+import js.core.jso
 import react.FC
 import react.Props
 import react.dom.aria.AriaRole
@@ -13,8 +15,6 @@ import react.dom.aria.ariaValueNow
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-
-import kotlinx.js.jso
 
 /**
  * ReactElement that represents scorecard

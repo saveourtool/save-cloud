@@ -39,7 +39,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
 
             ul {
                 className = ClassName("list-group list-group-flush")
-                state.selfOrganizationDtos.forEach { organizationDto ->
+                state.selfOrganizationWithUserList.forEach { organizationWithUsers ->
+                    val organizationDto = organizationWithUsers.organization
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -62,7 +63,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             }
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
+                                val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     actionButton {
                                         title = "WARNING: About to delete this organization..."
@@ -86,7 +87,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                            setState { selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers) }
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->

@@ -5,7 +5,9 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
@@ -16,7 +18,6 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.td
-import react.table.columns
 
 @Suppress(
     "MAGIC_NUMBER",

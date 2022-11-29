@@ -7,10 +7,9 @@ import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import io.github.petertrr.diffutils.diff
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
-
-import kotlinx.js.jso
 
 /**
  * @param text displayed text

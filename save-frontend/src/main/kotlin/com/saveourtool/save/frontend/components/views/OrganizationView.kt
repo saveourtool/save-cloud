@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -17,7 +18,9 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
@@ -30,9 +33,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 import dom.html.HTMLInputElement
 import history.Location
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
@@ -52,10 +55,9 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
-import react.table.columns
+import web.http.FormData
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -108,12 +110,12 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * Organization
      */
-    var organization: Organization?
+    var organization: OrganizationDto?
 
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<Project>
+    var projects: MutableList<ProjectDto>
 
     /**
      * Message of error
@@ -170,24 +172,25 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+    @Suppress("TYPE_ALIAS")
+    private val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
-                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                                +cellProps.value
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +cellContext.value
                             }
-                            privacySpan(cellProps.row.original)
+                            privacySpan(cellContext.row.original)
                         }
                     }
                 }
-                column(id = "description", header = "Description") {
+                column(id = "description", header = "Description") { cellContext ->
                     Fragment.create {
                         td {
-                            +(it.value.description ?: "Description not provided")
+                            +(cellContext.value.description.ifEmpty { "Description not provided" })
                         }
                     }
                 }
@@ -203,10 +206,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                  * A "secret" possibility to delete projects (intended for super-admins).
                  */
                 if (state.selfRole.isHigherOrEqualThan(Role.OWNER)) {
-                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
+                    column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellContext ->
                         Fragment.create {
                             td {
-                                val project = cellProps.row.original
+                                val project = cellContext.row.original
                                 val projectName = project.name
 
                                 actionButton {
@@ -239,7 +242,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     conditionClick = props.currentUserInfo.isSuperAdmin()
                                     sendRequest = { isBanned ->
                                         val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                        responseChangeProjectStatus("${project.organization.name}/${project.name}", newStatus)
+                                        responseChangeProjectStatus("${project.organizationName}/${project.name}", newStatus)
                                     }
                                 }
                             }
@@ -263,7 +266,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     init {
         state.isUploading = false
-        state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
+        state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
         state.closeButtonLabel = null
@@ -304,7 +307,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
-                draftOrganizationDescription = organizationLoaded.description ?: ""
+                draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
@@ -484,24 +487,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun onOrganizationSave(newOrganization: Organization) {
-        newOrganization.apply {
+    private fun onOrganizationSave(newOrganization: OrganizationDto) {
+        newOrganization.copy(
             description = state.draftOrganizationDescription
-        }
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/update",
-                headers,
-                Json.encodeToString(newOrganization),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = newOrganization
+        ).let { organizationWithNewDescription ->
+            scope.launch {
+                val response = post(
+                    "$apiUrl/organizations/${props.organizationName}/update",
+                    jsonHeaders,
+                    Json.encodeToString(organizationWithNewDescription),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    setState {
+                        organization = organizationWithNewDescription
+                    }
                 }
             }
         }
@@ -541,7 +541,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
-            organization = state.organization ?: Organization.stub(-1)
+            organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
@@ -555,11 +555,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     /**
      * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
      */
-    private fun getProjectsFromCache(): List<Project> = state.projects
+    private fun getProjectsFromCache(): List<ProjectDto> = state.projects
 
-    private suspend fun getProjectsForOrganization(): MutableList<Project> = get(
-        url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
+    private suspend fun getProjectsForOrganization(): MutableList<ProjectDto> = post(
+        url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
+        body = Json.encodeToString(ProjectFilters("", props.organizationName)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -629,7 +630,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
             topProject?.let {
