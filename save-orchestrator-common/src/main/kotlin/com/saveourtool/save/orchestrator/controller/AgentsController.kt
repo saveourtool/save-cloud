@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.controller
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
@@ -13,6 +12,7 @@ import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -23,8 +23,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 
-import java.util.*
-
 /**
  * Controller used to start agents with needed information
  */
@@ -33,7 +31,7 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val agentRunner: AgentRunner,
-    private val agentRepository: AgentRepository,
+    private val orchestratorAgentService: OrchestratorAgentService,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.

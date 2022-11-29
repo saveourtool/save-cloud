@@ -36,7 +36,7 @@ class AgentService(
     /**
      * @param containerId
      */
-    internal fun getContainerName(containerId: String): Mono<String> = agentRepository.getContainerName(containerId)
+    internal fun getContainerName(containerId: String): Mono<String> = orchestratorAgentService.getContainerName(containerId)
 
     /**
      * Gets configuration to init agent
