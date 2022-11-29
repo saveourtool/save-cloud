@@ -7,7 +7,6 @@ import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.storage.toToolKey
-import com.saveourtool.save.demo.utils.isWindows
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.getLogger
@@ -34,15 +33,14 @@ import kotlin.io.path.*
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
 ) : CliRunner<DiktatDemoAdditionalParams, ToolKey, DiktatDemoResult> {
-
     private fun getRunCommandForDiktat(
         workingDir: Path,
-       testPath: Path,
-       outputPath: Path,
-       configPath: Path?,
-       params: DiktatDemoAdditionalParams,
+        testPath: Path,
+        outputPath: Path,
+        configPath: Path?,
+        params: DiktatDemoAdditionalParams,
     ): String = buildString {
-        //TODO: this information should not be hardcoded but stored in database
+        // TODO: this information should not be hardcoded but stored in database
         val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
         append(ktlintExecutable)
@@ -65,7 +63,7 @@ class DiktatCliRunner(
         configPath: Path?,
         params: DiktatDemoAdditionalParams,
     ): String = buildString {
-        //TODO: this information should not be hardcoded but stored in database
+        // TODO: this information should not be hardcoded but stored in database
         val executable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         append(executable)
         append(" --reporter=plain,output=$outputPath ")
@@ -78,28 +76,26 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun getExecutable(workingDir: Path, key: ToolKey): Path {
-        return Mono.zip(
-            key.toMono(),
-            toolStorage.doesExist(key),
-        )
-            .filter { (_, doesExist) ->
-                doesExist
-            }
-            .switchIfEmpty {
-                throw FileNotFoundException("Could not find file with key $key")
-            }
-            .flatMapMany { (key, _) ->
-                toolStorage.download(key)
-            }
-            .collectToFile(workingDir / key.executableName)
-            .thenReturn(workingDir / key.executableName)
-            .block()
-            .let { requireNotNull(it) }
-            .apply {
-                toFile().setExecutable(true, false)
-            }
-    }
+    override fun getExecutable(workingDir: Path, key: ToolKey): Path = Mono.zip(
+        key.toMono(),
+        toolStorage.doesExist(key),
+    )
+        .filter { (_, doesExist) ->
+            doesExist
+        }
+        .switchIfEmpty {
+            throw FileNotFoundException("Could not find file with key $key")
+        }
+        .flatMapMany { (key, _) ->
+            toolStorage.download(key)
+        }
+        .collectToFile(workingDir / key.executableName)
+        .thenReturn(workingDir / key.executableName)
+        .block()
+        .let { requireNotNull(it) }
+        .apply {
+            toFile().setExecutable(true, false)
+        }
 
     override fun getRunCommand(
         workingDir: Path,
@@ -107,7 +103,7 @@ class DiktatCliRunner(
         outputPath: Path,
         configPath: Path?,
         params: DiktatDemoAdditionalParams,
-    ): String = when(params.tool) {
+    ): String = when (params.tool) {
         DiktatDemoTool.DIKTAT -> getRunCommandForDiktat(workingDir, testPath, outputPath, configPath, params)
         DiktatDemoTool.KTLINT -> getRunCommandForKtlint(workingDir, testPath, outputPath, configPath, params)
     }

@@ -24,7 +24,6 @@ dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
 
-
     implementation(libs.ktor.client.apache)
     api(libs.ktor.client.auth)
     implementation(libs.ktor.client.core)

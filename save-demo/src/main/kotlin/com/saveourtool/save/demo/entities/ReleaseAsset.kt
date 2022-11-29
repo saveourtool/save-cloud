@@ -23,32 +23,32 @@ data class ReleaseAsset(
      * @return `true` if this asset is an MD5 or an SHA digest, `false` otherwise.
      */
     fun isDigest(): Boolean =
-        digestSuffixes().any { suffix ->
-            name.endsWith(suffix)
-        }
+            digestSuffixes().any { suffix ->
+                name.endsWith(suffix)
+            }
 
     /**
      * @return the MIME `Content-Type` of the file.
      */
     fun contentType(): ContentType =
-        when (val separatorIndex = rawContentType.indexOf('/')) {
-            -1 -> ContentType(rawContentType, "*")
-            else -> ContentType(
-                rawContentType.substring(0, separatorIndex),
-                rawContentType.substring(separatorIndex + 1)
-            )
-        }
+            when (val separatorIndex = rawContentType.indexOf('/')) {
+                -1 -> ContentType(rawContentType, "*")
+                else -> ContentType(
+                    rawContentType.substring(0, separatorIndex),
+                    rawContentType.substring(separatorIndex + 1)
+                )
+            }
 
     private companion object {
         private val knownDigestNames = arrayOf("md5")
 
         private fun digestSuffixes(): Sequence<String> =
-            sequence {
-                yield(".asc")
+                sequence {
+                    yield(".asc")
 
-                yieldAll(knownDigestNames.asSequence().map(String::lowercase).flatMap { digest ->
-                    sequenceOf(".$digest", ".asc.$digest")
-                })
-            }
+                    yieldAll(knownDigestNames.asSequence().map(String::lowercase).flatMap { digest ->
+                        sequenceOf(".$digest", ".asc.$digest")
+                    })
+                }
     }
 }
