@@ -33,8 +33,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import java.util.stream.Collectors
 
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
-
 /**
  * Sandbox implementation for agent service
  */
@@ -92,7 +90,7 @@ class SandboxOrchestratorAgentService(
             .map { it.requiredId() }
     }
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> = blockingToMono {
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {
         agentStates
             .map { it.toEntity(this::getAgent) }
             .let { sandboxAgentStatusRepository.saveAll(it) }
@@ -116,7 +114,7 @@ class SandboxOrchestratorAgentService(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
-    ): Mono<BodilessResponseEntity> = getExecutionAsMono(executionId)
+    ): Mono<EmptyResponse> = getExecutionAsMono(executionId)
         .map { execution ->
             sandboxExecutionRepository.save(
                 execution.apply {
@@ -144,7 +142,7 @@ class SandboxOrchestratorAgentService(
                 }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> = Mono.fromCallable {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }

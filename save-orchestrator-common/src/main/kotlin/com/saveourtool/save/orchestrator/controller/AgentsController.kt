@@ -5,7 +5,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
@@ -124,6 +123,5 @@ class AgentsController(
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
-        private val loggingContext = LoggingContextImpl(log)
     }
 }

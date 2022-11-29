@@ -20,8 +20,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
-
 /**
  * Service for work with agents and backend
  */
@@ -54,7 +52,7 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
@@ -79,7 +77,7 @@ class BackendOrchestratorAgentService(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
-    ): Mono<BodilessResponseEntity> =
+    ): Mono<EmptyResponse> =
             webClientBackend.post()
                 .uri("/updateExecutionByDto")
                 .bodyValue(ExecutionUpdateDto(executionId, executionStatus, failReason))
@@ -92,7 +90,7 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> {
         log.debug("Attempt to mark test executions of agents=$containerIds as failed with internal error")
         return webClientBackend.post()
             .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting")
