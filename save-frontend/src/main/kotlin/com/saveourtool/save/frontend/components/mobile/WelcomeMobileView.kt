@@ -1,7 +1,12 @@
-package com.saveourtool.save.frontend.components.views.welcome
+package com.saveourtool.save.frontend.components.mobile
 
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.welcome.IndexViewState
+import com.saveourtool.save.frontend.components.views.welcome.WelcomeProps
+import com.saveourtool.save.frontend.components.views.welcome.chevron
 import com.saveourtool.save.frontend.components.views.welcome.pagers.allWelcomePagers
+import com.saveourtool.save.frontend.components.views.welcome.pagers.renderReadMorePage
+import com.saveourtool.save.frontend.components.views.welcome.welcomeMarketingTitle
 import com.saveourtool.save.frontend.externals.animations.animator
 import com.saveourtool.save.frontend.externals.animations.scrollContainer
 import com.saveourtool.save.frontend.externals.animations.scrollPage
@@ -11,10 +16,8 @@ import csstype.*
 import js.core.jso
 import react.dom.html.*
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
@@ -22,33 +25,40 @@ import react.dom.html.ReactHTML.img
 class WelcomeViewMobile : AbstractView<WelcomeProps, IndexViewState>(false) {
 
     override fun ChildrenBuilder.render() {
-        sorryYourScreenIsTooSmall()
+        div {
+            style = jso {
+                background =
+                    "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
+            }
+            sorryYourScreenIsTooSmall()
+        }
     }
 }
 
 private fun ChildrenBuilder.sorryYourScreenIsTooSmall() {
-        @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-        scrollContainer {
-            scrollPage {
-                notSupportedMobileYet()
-                title()
-                chevron()
-            }
+    notSupportedMobileYet()
+    title()
+    chevron("rgb(6, 7, 89)")
 
-            allWelcomePagers.forEach { pager ->
-                scrollPage { }
-                pager.forEach {
-                    scrollPage {
-                        div {
-                            animator {
-                                animation = it.animation
-                                it.renderPage(this)
-                            }
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+    scrollContainer {
+        scrollPage {}
+        allWelcomePagers.forEach { pager ->
+            scrollPage { }
+            pager.forEach {
+                scrollPage {
+                    div {
+                        animator {
+                            animation = it.animation
+                            it.renderPage(this)
                         }
                     }
                 }
             }
         }
+    }
+
+    renderReadMorePage()
 }
 
 private fun ChildrenBuilder.notSupportedMobileYet() {
@@ -60,7 +70,7 @@ private fun ChildrenBuilder.notSupportedMobileYet() {
             b {
                 +"yet "
             }
-            +"support devices with small screen size"
+            +"support devices with small screen size. But you can get familiar with SAVE using the information below."
         }
     }
     div {
@@ -79,17 +89,5 @@ private fun ChildrenBuilder.title() {
     }
 }
 
-private fun ChildrenBuilder.chevron() {
-    div {
-        className = ClassName("row justify-content-center")
-        h2 {
-            className = ClassName("animate__animated animate__pulse animate__infinite")
-            style = jso {
-                fontSize = 3.rem
-                color = "rgb(6, 7, 89)".unsafeCast<Color>()
-            }
-            fontAwesomeIcon(faChevronDown)
-        }
-    }
-}
+
 

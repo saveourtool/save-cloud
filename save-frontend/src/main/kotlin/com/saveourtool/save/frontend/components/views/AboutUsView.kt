@@ -7,6 +7,8 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.faGithub
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 
 import csstype.*
@@ -35,27 +37,29 @@ external interface AboutUsViewState : State
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
-    private val developers = listOf(
-        Developer("Vladislav Frolov", "Cheshiriks", "Fullstack"),
-        Developer("Peter Trifanov", "petertrr", "Fullstack"),
-        Developer("Andrey Shcheglov", "0x6675636b796f75676974687562", "Backend"),
-        Developer("Alexander Frolov", "sanyavertolet", "Frontend"),
-        Developer("Andrey Kuleshov", "akuleshov7", "Team leader"),
-        Developer("Nariman Abdullin", "nulls", "Fullstack"),
-        Developer("Alexey Votintsev", "Arrgentum", "Frontend"),
-        Developer("Kirill Gevorkyan", "kgevorkyan", "Backend"),
-        Developer("Dmitriy Morozovsky", "icemachined", "Backend"),
+open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
+    protected val developers = listOf(
+        Developer("Vlad", "Frolov", "Cheshiriks", "Fullstack"),
+        Developer("Peter", "Trifanov", "petertrr", "Arch"),
+        Developer("Andrey", "Shcheglov", "0x6675636b796f75676974687562", "Backend"),
+        Developer("Sasha", "Frolov", "sanyavertolet", "Frontend"),
+        Developer("Andrey", "Kuleshov", "akuleshov7", "Ideas 😎"),
+        Developer("Nariman", "Abdullin", "nulls", "Fullstack"),
+        Developer("Alexey", "Votintsev", "Arrgentum", "Frontend"),
+        Developer("Kirill", "Gevorkyan", "kgevorkyan", "Backend"),
+        Developer("Dmitriy", "Morozovsky", "icemachined", "Sensei"),
     ).sortedBy { it.name }
-    private val devCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
+
+    protected val devCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
+    protected val infoCard = cardComponent(hasBg = true, isPaddingBottomNull = true, isNoPadding = false)
 
     override fun ChildrenBuilder.render() {
         renderViewHeader()
         renderSaveourtoolInfo()
-        renderDevelopers()
+        renderDevelopers(3)
     }
 
-    private fun ChildrenBuilder.renderViewHeader() {
+    protected fun ChildrenBuilder.renderViewHeader() {
         h2 {
             className = ClassName("text-center mt-3")
             style = jso {
@@ -65,13 +69,13 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
         }
     }
 
-    private fun ChildrenBuilder.renderSaveourtoolInfo() {
+    protected open fun ChildrenBuilder.renderSaveourtoolInfo() {
         div {
             div {
                 className = ClassName("mt-3 d-flex justify-content-center align-items-center")
                 div {
                     className = ClassName("col-6 p-0")
-                    devCard {
+                    infoCard {
                         div {
                             className = ClassName("m-2 d-flex justify-content-around align-items-center")
                             div {
@@ -102,23 +106,24 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
     }
 
     @Suppress("MAGIC_NUMBER")
-    private fun ChildrenBuilder.renderDevelopers() {
+    protected fun ChildrenBuilder.renderDevelopers(columns: Int) {
         div {
             h4 {
                 className = ClassName("text-center mb-1 mt-4")
-                +"core team"
+                +"Active contributors"
             }
             div {
                 className = ClassName("mt-3 d-flex justify-content-around align-items-center")
                 div {
                     className = ClassName("col-6 p-1")
-                    for (rowIndex in 0..2) {
+                    val numberOfRows = developers.size / columns
+                    for (rowIndex in 0..numberOfRows) {
                         div {
                             className = ClassName("row")
-                            for (colIndex in 0..2) {
+                            for (colIndex in 0 until columns) {
                                 div {
-                                    className = ClassName("col-4 p-2")
-                                    developers.getOrNull(3 * rowIndex + colIndex)?.let {
+                                    className = ClassName("col-${12/columns} p-2")
+                                    developers.getOrNull(columns * rowIndex + colIndex)?.let {
                                         renderDeveloperCard(it)
                                     }
                                 }
@@ -130,7 +135,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
         }
     }
 
-    private fun ChildrenBuilder.renderDeveloperCard(developer: Developer) {
+    open fun ChildrenBuilder.renderDeveloperCard(developer: Developer) {
         devCard {
             div {
                 className = ClassName("p-3")
@@ -144,8 +149,12 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
                 div {
                     className = ClassName("mt-2")
                     h5 {
-                        className = ClassName("d-flex justify-content-center")
+                        className = ClassName("d-flex justify-content-center text-center")
                         +developer.name
+                    }
+                    h5 {
+                        className = ClassName("d-flex justify-content-center text-center")
+                        +developer.surname
                     }
                     h6 {
                         className = ClassName("text-center")
@@ -154,7 +163,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
                     a {
                         className = ClassName("d-flex justify-content-center")
                         href = "$GITHUB_LINK${developer.githubNickname}"
-                        +developer.githubNickname
+                        fontAwesomeIcon(faGithub)
                     }
                 }
             }
@@ -163,15 +172,15 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
 
     companion object :
         RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
-        private const val DEFAULT_AVATAR_SIZE = "200"
-        private const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
-        private const val GITHUB_LINK = "https://github.com/"
-        private const val MAX_NICKNAME_LENGTH = 15
-        private const val SAVEOURTOOL_EMAIL = "saveourtool@gmail.com"
-        private val saveourtoolDescription = """
+        protected const val DEFAULT_AVATAR_SIZE = "200"
+        protected const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
+        protected const val GITHUB_LINK = "https://github.com/"
+        protected const val MAX_NICKNAME_LENGTH = 15
+        protected const val SAVEOURTOOL_EMAIL = "saveourtool@gmail.com"
+        protected val saveourtoolDescription = """
             # Save Our Tool!
     
-            Our organization is mostly focused on Static Analysis tools and the eco-system related to such kind of tools.
+            Our community is mainly focused on Static Analysis tools and the eco-system related to such kind of tools.
             We love Kotlin and mostly everything we develop is connected with Kotlin JVM, Kotlin JS or Kotlin Native.
     
             ### Main Repositories:
@@ -194,6 +203,7 @@ class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
  */
 data class Developer(
     val name: String,
+    val surname: String,
     val githubNickname: String,
     val description: String = "",
 )

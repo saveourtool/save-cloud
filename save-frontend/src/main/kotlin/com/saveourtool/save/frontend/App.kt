@@ -29,8 +29,8 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import browser.document
-import com.saveourtool.save.frontend.components.views.welcome.WelcomeViewMobile
-import com.saveourtool.save.frontend.components.views.welcome.pagers.renderGeneralInfoPage
+import com.saveourtool.save.frontend.components.mobile.AboutUsMobileView
+import com.saveourtool.save.frontend.components.mobile.WelcomeViewMobile
 import csstype.ClassName
 import dom.html.HTMLElement
 import js.core.get
@@ -227,20 +227,26 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                         if (!isMobile) {
                             topBarComponent {
                                 userInfo = state.userInfo
+                                isMobileScreen = isMobile
                             }
                         }
 
-                        div {
-                            className = ClassName("container-fluid")
-                            id = "common-save-container"
-                            if (isMobile) {
-                                Routes {
-                                    Route {
-                                        path = "*"
-                                        element = WelcomeViewMobile::class.react.create()
-                                    }
+                        if (isMobile) {
+                            Routes {
+                                Route {
+                                    path = "/${FrontendRoutes.ABOUT_US.path}"
+                                    element = AboutUsMobileView::class.react.create()
                                 }
-                            } else {
+                                Route {
+                                    path = "*"
+                                    element = WelcomeViewMobile::class.react.create()
+                                }
+                            }
+                        } else {
+                            div {
+                                className = ClassName("container-fluid")
+                                id = "common-save-container"
+
                                 Routes {
                                     Route {
                                         path = "/"
@@ -450,7 +456,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         }
     }
 }
-
 
 
 /**

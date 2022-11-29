@@ -142,17 +142,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
-                div {
-                    className = ClassName("row justify-content-center")
-                    h1 {
-                        className = ClassName("animate__animated animate__pulse animate__infinite")
-                        style = jso {
-                            fontSize = 5.rem
-                            color = "#ffffff".unsafeCast<Color>()
-                        }
-                        fontAwesomeIcon(faChevronDown)
-                    }
-                }
+
+                chevron("#FFFFFF")
             }
 
             div {

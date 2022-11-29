@@ -33,16 +33,22 @@ external interface CardProps : PropsWithChildren {
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-fun cardComponent(isBordered: Boolean = false, hasBg: Boolean = false, isPaddingBottomNull: Boolean = false) = FC<CardProps> { props ->
+fun cardComponent(
+    isBordered: Boolean = false,
+    hasBg: Boolean = false,
+    isPaddingBottomNull: Boolean = false,
+    isNoPadding: Boolean = true
+) = FC<CardProps> { props ->
     val boarder = if (isBordered) "border-secondary" else ""
     val card = if (hasBg) "card" else ""
     val pb = if (isPaddingBottomNull) "pb-0" else ""
+    val paddingInside = if (isNoPadding) "pt-0 pr-0 pl-0" else ""
     div {
-        className = ClassName("$card card-body mt-0 pt-0 pr-0 pl-0 $pb $boarder")
+        className = ClassName("$card card-body mt-0 $paddingInside $pb $boarder")
         div {
             className = ClassName("col mr-2 pr-0 pl-0")
             div {
-                className = ClassName("mb-0 font-weight-bold text-gray-800")
+                className = ClassName("mb-0 text-gray-800")
                 props.children?.let { +it }
             }
         }

@@ -13,8 +13,9 @@ val allWelcomePagers = listOf(
     listOf(SloganAboutBenchmarks),
     listOf(AwesomeBenchmarks),
     listOf(SloganAboutTests),
+    listOf(TestsSelector),
     listOf(SloganAboutContests),
-    // listOf(BobPager)
+    listOf(Contests)
 )
 
 /**

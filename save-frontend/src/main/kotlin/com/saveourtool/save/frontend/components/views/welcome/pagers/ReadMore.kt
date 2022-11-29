@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
+import browser.window
 import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
@@ -26,17 +27,19 @@ fun ChildrenBuilder.renderReadMorePage() {
         wantToKnowMore()
 
         div {
-            className = ClassName("col")
-
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.center
+            className = ClassName("col justify-content-center")
+            div {
+                className = ClassName("row justify-content-center")
+                link("https://github.com/saveourtool/save-cloud", "Github")
             }
-            link("https://github.com/saveourtool/save-cloud", "Github")
-            link("https://github.com/saveourtool/save-cloud/blob/master/info/SaveMotivation.md", "Motivation")
-            link("https://github.com/saveourtool/save-cloud/graphs/contributors", "About us")
+            div {
+                className = ClassName("row justify-content-center")
+                link("https://github.com/saveourtool/save-cloud/blob/master/info/SaveMotivation.md", "Motivation")
+            }
+            div {
+                className = ClassName("row justify-content-center")
+                link("#/about", "About us")
+            }
         }
     }
 }
@@ -66,6 +69,7 @@ private fun ChildrenBuilder.link(url: String, text: String) {
         a {
             href = url
             h3 {
+                className = ClassName("text-center")
                 +text
             }
         }

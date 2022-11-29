@@ -1,5 +1,7 @@
 package com.saveourtool.save.frontend.components.views.welcome
 
+import com.saveourtool.save.frontend.externals.fontawesome.faChevronDown
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.*
 import js.core.jso
 
@@ -51,5 +53,19 @@ private fun ChildrenBuilder.h1Normal(str: String) = ReactHTML.h1 {
     +str
     style = jso {
         display = Display.inline
+    }
+}
+
+fun ChildrenBuilder.chevron(col: String) {
+    ReactHTML.div {
+        className = ClassName("row justify-content-center")
+        ReactHTML.h1 {
+            className = ClassName("animate__animated animate__pulse animate__infinite")
+            style = jso {
+                fontSize = 5.rem
+                color = col.unsafeCast<Color>()
+            }
+            fontAwesomeIcon(faChevronDown)
+        }
     }
 }
