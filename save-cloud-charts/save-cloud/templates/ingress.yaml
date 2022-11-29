@@ -1,18 +1,4 @@
-{{ if .Values.ingress.enabled }}
-{{ if .Values.ingress.https.enabled }}
-apiVersion: v1
-type: IngressTLS
-kind: Secret
-metadata:
-  annotations:
-    description: SSL certificate for ingress
-  name: ingress-certificate
-data:
-  tls.crt: {{ .Files.Get .Values.ingress.https.certFile | b64enc }}
-  tls.key: {{ .Files.Get .Values.ingress.https.certKey | b64enc }}
----
-{{ end }}
-
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1 #beta1
 kind: Ingress
 metadata:
@@ -20,14 +6,16 @@ metadata:
   {{- if .Values.ingress.annotations }}
   {{- with .Values.ingress.annotations  }}
   annotations:
-  {{- toYaml . | indent 4 }}
+{{ toYaml . | indent 4 }}
   {{- end }}
   {{- end }}
 spec:
-  {{ if .Values.ingress.https.enabled }}
+  {{- if .Values.ingress.https.enabled }}
+  # Since Helm doesn't allow references to eternal files (https://github.com/helm/helm/issues/3276)
+  # the Secret needs to be created beforehand.
   tls:
-  - secretName: ingress-certificate
-  {{ end }}
+  - secretName: {{ .Values.ingress.https.secretName }}
+  {{- end }}
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
@@ -43,4 +31,4 @@ spec:
             pathType: Prefix
             path: '/'
 
-{{ end }}
+{{- end }}
