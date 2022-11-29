@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.utils.*
@@ -63,7 +62,7 @@ class AgentService(
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<BodilessResponseEntity> = orchestratorAgentService
+    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<EmptyResponse> = orchestratorAgentService
         .addAgents(agents)
         .flatMap {
             orchestratorAgentService.updateAgentStatusesWithDto(agents.map { agent ->
@@ -75,7 +74,7 @@ class AgentService(
      * @param agentState [AgentStatus] to update in the DB
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
+    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
             orchestratorAgentService
                 .updateAgentStatusesWithDto(listOf(agentState))
                 .onErrorResume(WebClientException::class) {
@@ -138,7 +137,7 @@ class AgentService(
     private fun markExecutionBasedOnAgentStates(
         executionId: Long,
         agentIds: List<String>,
-    ): Mono<BodilessResponseEntity> {
+    ): Mono<EmptyResponse> {
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return orchestratorAgentService
@@ -169,7 +168,7 @@ class AgentService(
      * @param failReason to show to user in case of error status
      * @return a bodiless response entity
      */
-    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
+    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<EmptyResponse> =
             orchestratorAgentService.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
@@ -220,7 +219,7 @@ class AgentService(
     fun markTestExecutionsAsFailed(
         agentsList: Collection<String>,
         onlyReadyForTesting: Boolean
-    ): Mono<BodilessResponseEntity> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
