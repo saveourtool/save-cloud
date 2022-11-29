@@ -58,6 +58,7 @@ import javax.transaction.Transactional
 )
 @RestController
 @RequestMapping("/sandbox/api")
+@SuppressWarnings("LongParameterList")
 class SandboxController(
     val configProperties: ConfigProperties,
     val storage: SandboxStorage,
