@@ -9,7 +9,6 @@ data:
     gateway.sandbox.url=http://sandbox
     gateway.demo-cpg.url=http://demo-cpg
     gateway.demo.url=http://demo
-    gateway.grafana.url=http://grafana
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.gateway.managementPort }}
