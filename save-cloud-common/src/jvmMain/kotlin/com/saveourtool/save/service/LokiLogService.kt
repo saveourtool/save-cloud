@@ -11,8 +11,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
@@ -21,11 +20,10 @@ import java.time.temporal.ChronoField
  */
 class LokiLogService(
     lokiServiceUrl: String,
-    enableHuaweiProxy: Boolean = true,
 ) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
         .let {
-            if (enableHuaweiProxy) {
+            if (System.getProperty("ENABLE_HUAWEI_PROXY").toBoolean()) {
                 it.enableHuaweiProxy()
             } else {
                 it
@@ -34,63 +32,31 @@ class LokiLogService(
 
     override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> {
         val query = "{container_name=\"$containerName\"}"
-        return webClient.get()
-            .uri(
-                "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
-                query,
-                from.toEpochNanoStr(),
-                to.toEpochNanoStr(),
-            )
-            .retrieve()
-            .bodyToMono<ObjectNode>()
-            .filter {
-                it["status"].asText() == "success"
+        return doQueryRange(query, from, to, null)
+            .expand { previousLokiBatch ->
+                doQueryRange(query, from, to, previousLokiBatch)
             }
-            .map { objectNode ->
-                objectNode["data"]
-                    .elementsAsSequenceFrom("result")
-                    .flatMap { it.elementsAsSequenceFrom("values") }
-                    .map { jsonNode ->
-                        val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
-                        val timestamp = timestampNode.asText()
-                            .fromEpochNanoStr()
-                            .let {
-                                LocalDateTime.ofInstant(it, zoneId)
-                            }
-                        val msg = msgNode.asText()
-                        timestamp to msg
-                    }
-                    .sortedBy { (timestamp, _) -> timestamp }
-                    .map { (timestamp, msg) ->
-                        "${dateTimeFormatter.format(timestamp)} $msg"
-                    }
-                    .toList()
-            }
+            .flatMapIterable { it.entries.map(LogEntry::toString) }
+            .collectList()
     }
 
     private fun doQueryRange(
         query: String,
-        start: Instant,
+        originalStart: Instant,
         end: Instant,
-        previousLokiBatch: LokiBatch
+        previousLokiBatch: LokiBatch?,
     ): Mono<LokiBatch> = webClient.get()
         .uri(
-            "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward",
+            "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward&limit={limit}",
             query,
-            start.toEpochNanoStr(),
+            (previousLokiBatch?.lastEntries?.firstOrNull()?.timestamp ?: originalStart).toEpochNanoStr(),
             end.toEpochNanoStr(),
+            LOKI_LIMIT,
         )
         .retrieve()
         .bodyToMono<ObjectNode>()
-        .map { it.extractResult(previousLokiBatch.lastEntries) }
-
-    private fun doQueryRange(query: String, start: String, end: String): Mono<StringList> {
-        return Mono.empty()
-    }
-
-    private fun
-
-    private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(NANO_COUNT, '0')}"
+        .map { it.extractResult(previousLokiBatch?.lastEntries.orEmpty()) }
+        .filter(LokiBatch::isEmpty)
 
     private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>): LokiBatch {
         return validateFieldValue("status", "success")
@@ -111,7 +77,7 @@ class LokiLogService(
                 LogEntry(timestamp, msg)
             }
             .filterNot(logEntriesToSkip::contains)
-            .sorted()
+            .sorted() // it's not clear why loki/logcli sorts output -- so we will sort too
             .toList()
             .let { LokiBatch(it) }
     }
@@ -128,6 +94,8 @@ class LokiLogService(
     private fun JsonNode.elementsAsSequenceFrom(fieldName: String): Sequence<JsonNode> = (this[fieldName] as ArrayNode)
         .elementsAsSequence()
 
+    private fun Instant.toEpochNanoStr(): String = "$epochSecond${nano.toString().padStart(NANO_COUNT, '0')}"
+
     private fun String.fromEpochNanoStr(): Instant {
         val epochSecond = substring(0, length - NANO_COUNT)
         val nano = substring(length - NANO_COUNT)
@@ -136,9 +104,22 @@ class LokiLogService(
 
     private data class LokiBatch(
         val entries: List<LogEntry>,
-        val lastEntries: Set<LogEntry>
     ) {
-        constructor(entries: List<LogEntry>) : this(entries, entries.lastEntries())
+        val lastEntries: Set<LogEntry> = entries
+            .lastOrNull()
+            ?.timestamp
+            ?.let { lastTimestamp -> entries.filterTo(HashSet()) { it.timestamp == lastTimestamp } }
+            ?.also {
+                require(it.size < LOKI_LIMIT) {
+                    "Need to increase limit in request to loki"
+                }
+            }
+            .orEmpty()
+
+        /**
+         * @return true if there are no [entries]
+         */
+        fun isEmpty(): Boolean = entries.isEmpty()
     }
 
     private data class LogEntry(
@@ -147,13 +128,12 @@ class LokiLogService(
     ) : Comparable<LogEntry> {
         override fun compareTo(other: LogEntry): Int = timestamp.compareTo(other.timestamp)
 
-        override fun toString(): String = "${dateTimeFormatter.format(timestamp)} $msg"
+        override fun toString(): String = "${dateTimeFormatter.format(timestamp.atZone(ZoneId.systemDefault()))} $msg"
     }
 
     companion object {
         private const val LOKI_LIMIT = 100
         private const val NANO_COUNT = 9
-        private val zoneId = ZoneOffset.UTC
         private val dateTimeFormatter = DateTimeFormatterBuilder()
             .appendValue(ChronoField.YEAR, 4)
             .appendLiteral('-')
@@ -168,16 +148,5 @@ class LokiLogService(
             .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
             .appendFraction(ChronoField.NANO_OF_SECOND, 9, 9, true)
             .toFormatter()
-
-        private fun List<LogEntry>.lastEntries(): Set<LogEntry> = this
-            .lastOrNull()
-            ?.timestamp
-            ?.let { lastTimestamp -> filterTo(HashSet()) { it.timestamp == lastTimestamp } }
-            ?.also {
-                require(it.size < LOKI_LIMIT) {
-                    "Need to increase limit in request to loki"
-                }
-            }
-            .orEmpty()
     }
 }
