@@ -23,7 +23,7 @@ class LokiLogService(
 ) : LogService {
     private val webClient = WebClient.create(lokiServiceUrl)
         .let {
-            if (System.getProperty("ENABLE_HUAWEI_PROXY").toBoolean()) {
+            if (System.getenv("ENABLE_HUAWEI_PROXY").toBoolean()) {
                 it.enableHuaweiProxy()
             } else {
                 it
