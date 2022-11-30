@@ -8,6 +8,8 @@ gateway:
     url: http://localhost:5400
   demo:
     url: http://localhost:5401
+  demo-cpg:
+    url: http://localhost:5500
 spring:
   security:
     oauth2:

@@ -1,6 +1,6 @@
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
-import com.saveourtool.save.frontend.externals.reactace.AceModes
+import com.saveourtool.save.utils.Languages
 
 /**
  * @property fileName displayed name
@@ -10,10 +10,10 @@ import com.saveourtool.save.frontend.externals.reactace.AceModes
 enum class FileType(
     val fileName: String,
     val urlPart: String,
-    val editorMode: AceModes?,
+    val editorMode: Languages?,
 ) {
-    SAVE_TOML("save.toml", "test", AceModes.TOML),
-    SETUP_SH("setup.sh", "file", AceModes.SHELL),
+    SAVE_TOML("save.toml", "test", Languages.TOML),
+    SETUP_SH("setup.sh", "file", Languages.SHELL),
     TEST("test", "test", null),
     ;
     companion object {

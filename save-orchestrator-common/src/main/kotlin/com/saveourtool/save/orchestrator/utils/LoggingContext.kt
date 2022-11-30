@@ -8,6 +8,8 @@ import org.slf4j.Logger
 
 /**
  * Context receiver to provide an instance of [Logger]
+ *
+ * **KEEP:** [Context receivers](https://github.com/Kotlin/KEEP/blob/master/proposals/context-receivers.md)
  */
 interface LoggingContext {
     /**

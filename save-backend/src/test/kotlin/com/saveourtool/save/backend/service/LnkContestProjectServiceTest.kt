@@ -36,7 +36,7 @@ class LnkContestProjectServiceTest {
         then(lnkContestProjectRepository)
             .should(times(1))
             .save(argWhere {
-                abs(it.bestScore!! - 4.0) < 1e-4
+                abs(it.bestExecution?.score!! - 4.0) < 1e-4
             })
     }
 
@@ -54,7 +54,7 @@ class LnkContestProjectServiceTest {
         then(lnkContestProjectRepository)
             .should(times(1))
             .save(argWhere {
-                abs(it.bestScore!! - 4.0) < 1e-4
+                abs(it.bestExecution?.score!! - 4.0) < 1e-4
             })
     }
 
@@ -80,7 +80,7 @@ class LnkContestProjectServiceTest {
         @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
         given(lnkContestProjectRepository.findByContestAndProject(any(), any()))
             .willAnswer {
-                LnkContestProject(it.arguments[1] as Project, it.arguments[0] as Contest, oldBestExecution, oldBestExecution?.score)
+                LnkContestProject(it.arguments[1] as Project, it.arguments[0] as Contest, oldBestExecution)
                     .let { Optional.of(it) }
             }
     }

@@ -165,6 +165,18 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
+                    val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
+                    style = jso {
+                        width = 3.5.rem
+                    }
+                    href = "#/$hrefAnchor"
+                    +"CPG"
+                }
+            }
+            li {
+                className = ClassName("nav-item")
+                a {
                     val hrefAnchor = FrontendRoutes.SANDBOX.path
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {

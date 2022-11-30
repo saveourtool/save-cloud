@@ -13,23 +13,20 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
-import org.springframework.http.ResponseEntity
 
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
-
 /**
  * Service for work with agents and backend
  */
 @Component
-class BackendAgentRepository(
+class BackendOrchestratorAgentService(
     @Value("\${orchestrator.backend-url}") private val backendUrl: String,
     customizers: List<WebClientCustomizer>,
-) : AgentRepository {
+) : OrchestratorAgentService {
     private val webClientBackend = WebClient.builder()
         .baseUrl(backendUrl)
         .applyAll(customizers)
@@ -54,7 +51,7 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
@@ -79,7 +76,7 @@ class BackendAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
-    ): Mono<BodilessResponseEntity> =
+    ): Mono<EmptyResponse> =
             webClientBackend.post()
                 .uri("/updateExecutionByDto")
                 .bodyValue(ExecutionUpdateDto(executionId, executionStatus, failReason))
@@ -92,7 +89,7 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> {
         log.debug("Attempt to mark test executions of agents=$containerIds as failed with internal error")
         return webClientBackend.post()
             .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting")
@@ -102,6 +99,6 @@ class BackendAgentRepository(
     }
 
     companion object {
-        private val log: Logger = getLogger<BackendAgentRepository>()
+        private val log: Logger = getLogger<BackendOrchestratorAgentService>()
     }
 }
