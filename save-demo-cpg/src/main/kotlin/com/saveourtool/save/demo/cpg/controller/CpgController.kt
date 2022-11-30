@@ -1,11 +1,8 @@
 package com.saveourtool.save.demo.cpg.controller
 
-import arrow.core.right
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
-import com.saveourtool.save.demo.cpg.utils.toCpgEdge
-import com.saveourtool.save.demo.cpg.utils.toCpgNode
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
@@ -14,21 +11,14 @@ import com.saveourtool.save.utils.info
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.graph.Node
-import arrow.core.Either
-import arrow.core.getOrHandle
-import com.saveourtool.save.demo.cpg.utils.tryConnect
-import com.saveourtool.save.demo.cpg.utils.use
+import com.saveourtool.save.demo.cpg.utils.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.apache.commons.io.FileUtils
-import org.neo4j.driver.exceptions.AuthenticationException
-import org.neo4j.ogm.config.Configuration
-import org.neo4j.ogm.exception.ConnectionException
 import org.neo4j.ogm.response.model.RelationshipModel
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -39,7 +29,6 @@ import java.util.*
 
 import kotlin.io.path.*
 import kotlinx.serialization.ExperimentalSerializationApi
-import java.lang.IllegalArgumentException
 
 const val FILE_NAME_SEPARATOR = "==="
 
@@ -63,8 +52,6 @@ typealias SessionWithFactory = Pair<Session, SessionFactory>
 class CpgController(
     val configProperties: ConfigProperties,
 ) {
-    private val logger = LoggerFactory.getLogger(CpgController::class.java)
-
     /**
      * @param request
      * @return result of uploading, it contains ID to request the result further
@@ -161,35 +148,13 @@ class CpgController(
         }
     }
 
-    private fun connect(): SessionWithFactory {
-        var fails = 0
-        var sessionWithFactory: SessionWithFactory? = null
-        while (sessionWithFactory == null && fails < MAX_RETRIES) {
-            sessionWithFactory = tryConnect(
-                configProperties.uri,
-                configProperties.authentication.username,
-                configProperties.authentication.password,
-                "de.fraunhofer.aisec.cpg.graph"
-            )
-                .getOrHandle { ex ->
-                fails++
-                if (fails != MAX_RETRIES) {
-                    logger.error(
-                        "Unable to connect to ${configProperties.uri}, " +
-                                "ensure that the database is running and that " +
-                                "there is a working network connection to it.",
-                        ex
-                    )
-                    Thread.sleep(TIME_BETWEEN_CONNECTION_TRIES)
-                    return@getOrHandle null
-                } else {
-                    throw IllegalStateException("Cannot connect to a neo4j database", ex)
-                }
-            }
-        }
-        return requireNotNull(sessionWithFactory) {
-            "Invalid state"
-        }
+    private fun connect(): SessionWithFactory = retry(MAX_RETRIES, TIME_BETWEEN_CONNECTION_TRIES) {
+        tryConnect(
+            configProperties.uri,
+            configProperties.authentication.username,
+            configProperties.authentication.password,
+            "de.fraunhofer.aisec.cpg.graph"
+        )
     }
 
     private fun createFiles(request: DemoRunRequest, tmpFolder: Path) {
@@ -223,15 +188,13 @@ class CpgController(
         val name: String,
         val lines: MutableList<String>
     ) {
-        private val logger = LoggerFactory.getLogger(SourceCodeFile::class.java)
-
         /**
          * @param tmpFolder
          */
         fun createSourceFile(tmpFolder: Path) {
             val file = (tmpFolder / name)
             file.writeLines(lines)
-            logger.info("Created a file with sources: ${file.fileName}")
+            log.info("Created a file with sources: ${file.fileName}")
         }
     }
 

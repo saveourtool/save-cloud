@@ -5,9 +5,6 @@
 package com.saveourtool.save.demo.cpg.utils
 
 import arrow.core.Either
-import arrow.core.computations.ResultEffect.bind
-import arrow.core.continuations.either
-import arrow.core.continuations.result
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -17,10 +14,20 @@ import org.neo4j.ogm.exception.ConnectionException
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
 import java.lang.IllegalArgumentException
+import kotlin.jvm.Throws
 
 
 typealias SessionWithFactory = Pair<Session, SessionFactory>
 
+/**
+ * Try to connect Neo4j database using OGM or returns [ConnectionException]
+ *
+ * @param uri
+ * @param username
+ * @param password
+ * @param packageName
+ */
+@Throws(IllegalArgumentException::class)
 fun tryConnect(
     uri: String,
     username: String,
@@ -45,34 +52,45 @@ fun tryConnect(
     throw IllegalArgumentException("Unable to connect to $uri, wrong username/password of the database", ex)
 }
 
-fun <R> SessionWithFactory.use(action: (Session) -> R): R {
+/**
+ * Invoke [function] on [Session] and close it with [SessionFactory] after it
+ *
+ * @param function on [Session]
+ * @return result of [function]
+ */
+fun <R> SessionWithFactory.use(function: (Session) -> R): R {
     try {
-        return action(first)
+        return function(first)
     } finally {
         first.clear()
         second.close()
     }
 }
 
+/**
+ * @param maxRetry
+ * @param timeoutMills sleep between tries
+ * @param supplier returns a result or an exception if it's failed
+ * @return a result or an exception if we failed to get some result after [maxRetry] tries
+ */
 fun <R, E : Throwable> retry(
     maxRetry: Int,
+    timeoutMills: Long,
     supplier: () -> Either<E, R>
 ): R {
     return generateSequence(supplier) { previousResult ->
         if (previousResult.isLeft()) {
-            // wait
+            Thread.sleep(timeoutMills)
             supplier()
         } else {
-            either {
-
-            }
             previousResult
         }
     }
-        .filterIndexed { attempt, result ->
+        .withIndex()
+        .first { (attempt, result) ->
             result.isRight() || attempt >= maxRetry
         }
-        .first()
+        .value
         .getOrHandle {
             throw it
         }
