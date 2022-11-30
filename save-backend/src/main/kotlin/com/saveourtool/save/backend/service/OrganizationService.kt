@@ -43,7 +43,8 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organization] as deleted
+     * Mark organization with [organization] as [newProjectStatus].
+     * Before performing the function, check for user permissions by the [organization].
      *
      * @param newProjectStatus is new status for [organization]
      * @param organization is organization in which the status will be changed
