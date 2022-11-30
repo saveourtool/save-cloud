@@ -176,3 +176,27 @@ loki:
       storage:
         type: 'local'
   singleBinary:
+
+neo4j:
+  svc:
+    annotations: {}
+    # Any additional options for Service `spec` block
+    spec: {}
+  neo4j:
+    edition: community
+    name: simple-neo4j
+    resources:
+      cpu: "500m"
+      memory: "2Gi"
+  volumes:
+    data:
+      mode: selector
+      selector:
+
+demo_cpg:
+  name: demo-cpg
+  profile: dev
+  imageName: save-demo-cpg
+  containerPort: 5500
+  managementPort: 5501
+  clusterIP: null

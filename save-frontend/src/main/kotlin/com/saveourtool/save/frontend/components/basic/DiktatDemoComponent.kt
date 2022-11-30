@@ -9,9 +9,9 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import js.core.asList
@@ -55,7 +55,7 @@ external interface DiktatDemoComponentProps : Props {
     /**
      * Mode for Ace Editor
      */
-    var selectedMode: AceModes
+    var selectedMode: Languages
 }
 
 private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flushWarnings: () -> Unit) {
@@ -116,7 +116,7 @@ private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flu
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatDemoRunRequest(emptyList(), DiktatDemoAdditionalParams()))
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest(emptyList(), DemoAdditionalParams()))
     val (diktatResult, setDiktatResult) = useState(DiktatDemoResult(emptyList(), ""))
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 

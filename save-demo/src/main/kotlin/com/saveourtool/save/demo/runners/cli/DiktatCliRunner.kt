@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.diktat.DiktatDemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoMode
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
@@ -32,13 +32,13 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
-) : CliRunner<DiktatDemoAdditionalParams, ToolKey, DiktatDemoResult> {
+) : CliRunner<DemoAdditionalParams, ToolKey, DiktatDemoResult> {
     override fun getRunCommand(
         workingDir: Path,
         testPath: Path,
         outputPath: Path,
         configPath: Path?,
-        params: DiktatDemoAdditionalParams,
+        params: DemoAdditionalParams,
     ): String = buildString {
         // TODO: this information should not be hardcoded but stored in database
         val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
@@ -76,7 +76,7 @@ class DiktatCliRunner(
             toFile().setExecutable(true, false)
         }
 
-    override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
+    override fun run(testPath: Path, params: DemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent
         val outputPath = workingDir / "report"
         val configPath = prepareFile(workingDir / "config", params.config)
