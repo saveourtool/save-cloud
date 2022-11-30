@@ -10,7 +10,6 @@ import javax.persistence.OneToOne
  * @property project
  * @property contest
  * @property bestExecution
- * @property bestScore
  */
 @Entity
 class LnkContestProject(
@@ -25,9 +24,6 @@ class LnkContestProject(
     @OneToOne
     @JoinColumn(name = "best_execution_id")
     var bestExecution: Execution?,
-
-    var bestScore: Double?,
-
 ) : BaseEntity() {
     /**
      * Get [ContestResult]
