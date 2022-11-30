@@ -58,32 +58,31 @@ class LokiLogService(
         .map { it.extractResult(previousLokiBatch?.lastEntries.orEmpty()) }
         .filter(LokiBatch::isEmpty)
 
-    private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>): LokiBatch {
-        return validateFieldValue("status", "success")
-            .get("data")
-            .validateFieldValue("resultType", "streams")
-            .elementsAsSequenceFrom("result")
-            .flatMap { it.elementsAsSequenceFrom("values") }
-            .map { jsonNode ->
-                val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
-                    .also {
-                        require(it.size == 2) {
-                            "Only two values are expected in each elements in [values]"
-                        }
+    private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>): LokiBatch = this
+        .validateFieldValue("status", "success")
+        .get("data")
+        .validateFieldValue("resultType", "streams")
+        .elementsAsSequenceFrom("result")
+        .flatMap { it.elementsAsSequenceFrom("values") }
+        .map { jsonNode ->
+            val (timestampNode, msgNode) = jsonNode.elementsAsSequence().toList()
+                .also { child ->
+                    require(child.size == 2) {
+                        "Only two values are expected in each elements in [values]"
                     }
-                val timestamp = timestampNode.asText()
-                    .fromEpochNanoStr()
-                val msg = msgNode.asText()
-                LogEntry(timestamp, msg)
-            }
-            .filterNot(logEntriesToSkip::contains)
-            .sorted() // it's not clear why loki/logcli sorts output -- so we will sort too
-            .toList()
-            .let { LokiBatch(it) }
-    }
+                }
+            val timestamp = timestampNode.asText()
+                .fromEpochNanoStr()
+            val msg = msgNode.asText()
+            LogEntry(timestamp, msg)
+        }
+        .filterNot(logEntriesToSkip::contains)
+        .sorted()  // it's not clear why loki/logcli sorts output -- so we will sort too
+        .toList()
+        .let { LokiBatch(it) }
 
-    private fun JsonNode.validateFieldValue(fieldName: String, expectedValue: String): JsonNode = also {
-        val actualValue = it[fieldName].asText()
+    private fun JsonNode.validateFieldValue(fieldName: String, expectedValue: String): JsonNode = also { jsonNode ->
+        val actualValue = jsonNode[fieldName].asText()
         require(actualValue == expectedValue) {
             "Invalid $fieldName: $actualValue"
         }
@@ -102,6 +101,9 @@ class LokiLogService(
         return Instant.ofEpochSecond(epochSecond.toLong(), nano.toLong())
     }
 
+    /**
+     * @property entries
+     */
     private data class LokiBatch(
         val entries: List<LogEntry>,
     ) {
@@ -109,8 +111,8 @@ class LokiLogService(
             .lastOrNull()
             ?.timestamp
             ?.let { lastTimestamp -> entries.filterTo(HashSet()) { it.timestamp == lastTimestamp } }
-            ?.also {
-                require(it.size < LOKI_LIMIT) {
+            ?.also { result ->
+                require(result.size < LOKI_LIMIT) {
                     "Need to increase limit in request to loki"
                 }
             }
@@ -122,6 +124,10 @@ class LokiLogService(
         fun isEmpty(): Boolean = entries.isEmpty()
     }
 
+    /**
+     * @property timestamp
+     * @property msg
+     */
     private data class LogEntry(
         val timestamp: Instant,
         val msg: String,
