@@ -3900,7 +3900,7 @@
     "/api/v1/projects/": {
       "get": {
         "description": "Get all projects, available for current user.",
-        "operationId": "getProjects_1",
+        "operationId": "getProjects",
         "parameters": [
           {
             "example": "basic",
@@ -3943,73 +3943,6 @@
           }
         ],
         "summary": "Get all available projects.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
-    "/api/v1/projects/all-by-filters": {
-      "post": {
-        "description": "Get all projects, including deleted and private. Only accessible for super admins",
-        "operationId": "getProjects",
-        "parameters": [
-          {
-            "description": "project filters",
-            "in": "query",
-            "name": "projectFilters",
-            "required": true
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProjectFilters"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Projects successfully fetched."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get all projects.",
         "tags": [
           "projects"
         ]
