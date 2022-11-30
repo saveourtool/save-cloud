@@ -66,7 +66,7 @@ class ProjectController(
         description = "Get all projects, including deleted and private. Only accessible for super admins",
     )
     @Parameters(
-        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjects(
@@ -266,15 +266,15 @@ class ProjectController(
         .map { project ->
             when (status) {
                 ProjectStatus.BANNED -> {
-                    projectService.banProject(project, authentication)
+                    projectService.changeProjectStatus(project, ProjectStatus.BANNED)
                     ResponseEntity.ok("Successfully banned the project")
                 }
                 ProjectStatus.DELETED -> {
-                    projectService.deleteProject(project, authentication)
+                    projectService.changeProjectStatus(project, ProjectStatus.DELETED)
                     ResponseEntity.ok("Successfully deleted the project")
                 }
                 ProjectStatus.CREATED -> {
-                    projectService.recoverProject(project, authentication)
+                    projectService.changeProjectStatus(project, ProjectStatus.CREATED)
                     ResponseEntity.ok("Successfully recovered the project")
                 }
             }

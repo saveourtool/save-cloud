@@ -52,61 +52,18 @@ class ProjectService(
     /**
      * Mark organization with [project] as deleted
      *
-     * @param newStatus is new status for [project]
+     * @param newProjectStatus is new status for [project]
      * @param project is organization in which the status will be changed
      * @return project
      */
     @Suppress("UnsafeCallOnNullableType")
-    private fun changeProjectStatus(project: Project, newStatus: ProjectStatus): Project = project
+    fun changeProjectStatus(project: Project, newProjectStatus: ProjectStatus): Project = project
         .apply {
-            status = newStatus
+            status = newProjectStatus
         }
         .let {
             projectRepository.save(it)
         }
-
-    /**
-     * Mark organization [project] as deleted
-     *
-     * @param project an [project] to delete
-     * @param authentication
-     * @return deleted organization
-     */
-    fun deleteProject(project: Project, authentication: Authentication?): Project =
-            if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.DELETED)) {
-                changeProjectStatus(project, ProjectStatus.DELETED)
-            } else {
-                project
-            }
-
-    /**
-     * Mark organization with [project] as created.
-     * If an organization was previously banned, then all its projects become deleted.
-     *
-     * @param project an [project] to create
-     * @param authentication
-     * @return recovered project
-     */
-    fun recoverProject(project: Project, authentication: Authentication?): Project =
-            if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.CREATED)) {
-                changeProjectStatus(project, ProjectStatus.CREATED)
-            } else {
-                project
-            }
-
-    /**
-     * Mark organization with [project] and all its projects as banned.
-     *
-     * @param project an [project] to ban
-     * @param authentication
-     * @return banned project
-     */
-    fun banProject(project: Project, authentication: Authentication?): Project =
-            if (projectPermissionEvaluator.hasPermissionToChangeStatus(authentication, project, ProjectStatus.BANNED)) {
-                changeProjectStatus(project, ProjectStatus.BANNED)
-            } else {
-                project
-            }
 
     /**
      * @param project [Project] to be updated

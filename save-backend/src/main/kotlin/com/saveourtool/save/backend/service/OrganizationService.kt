@@ -1,15 +1,11 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.OrganizationRepository
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.OrganizationSaveStatus
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -25,7 +21,6 @@ import kotlin.NoSuchElementException
 @Service
 class OrganizationService(
     private val projectService: ProjectService,
-    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationRepository: OrganizationRepository,
 ) {
     /**
@@ -50,14 +45,14 @@ class OrganizationService(
     /**
      * Mark organization with [organization] as deleted
      *
-     * @param newStatus is new status for [organization]
+     * @param newProjectStatus is new status for [organization]
      * @param organization is organization in which the status will be changed
      * @return organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
+    private fun changeOrganizationStatus(organization: Organization, newProjectStatus: OrganizationStatus): Organization = organization
         .apply {
-            status = newStatus
+            status = newProjectStatus
         }
         .let {
             organizationRepository.save(it)
@@ -71,15 +66,7 @@ class OrganizationService(
      * @return deleted organization
      */
     fun deleteOrganization(organization: Organization, authentication: Authentication): Organization =
-            if (!hasProjects(organization.name) || organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.BAN)) {
-                projectService.getAllByOrganizationName(organization.name).forEach {
-                    it.status = DELETED
-                    projectService.updateProject(it)
-                }
-                changeOrganizationStatus(organization, OrganizationStatus.DELETED)
-            } else {
-                organization
-            }
+            changeOrganizationStatus(organization, OrganizationStatus.DELETED)
 
     /**
      * Mark organization with [organization] as created.
@@ -108,16 +95,13 @@ class OrganizationService(
      * @return banned organization
      */
     @Transactional
-    fun banOrganization(organization: Organization, authentication: Authentication): Organization =
-            if (organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.BAN)) {
-                projectService.getAllByOrganizationName(organization.name).forEach {
-                    it.status = BANNED
-                    projectService.updateProject(it)
-                }
-                changeOrganizationStatus(organization, OrganizationStatus.BANNED)
-            } else {
-                organization
-            }
+    fun banOrganization(organization: Organization, authentication: Authentication): Organization {
+        projectService.getAllByOrganizationName(organization.name).forEach {
+            it.status = BANNED
+            projectService.updateProject(it)
+        }
+        return changeOrganizationStatus(organization, OrganizationStatus.BANNED)
+    }
 
     /**
      * @param organizationName the unique name of the organization.
@@ -128,15 +112,6 @@ class OrganizationService(
             projectService.getAllByOrganizationName(organizationName).any { project ->
                 project.status == CREATED
             }
-
-    /**
-     * @param organizationName
-     * @param status
-     * @param authentication
-     * @return whether user described by [authentication] can have permission on change [organization] status on [newStatus] depending on the number of projects in the organization
-     */
-    fun canChangeStatus(organizationName: String, status: OrganizationStatus, authentication: Authentication) =
-            status != OrganizationStatus.DELETED || !hasProjects(organizationName) || authentication.hasRole(Role.SUPER_ADMIN)
 
     /**
      * @param organizationId

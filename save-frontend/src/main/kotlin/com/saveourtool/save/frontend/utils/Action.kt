@@ -19,12 +19,11 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
     val (displayMessage, setDisplayMessage) = useState(props.message)
     val (isError, setError) = useState(false)
     val (isClickMode, setClickMode) = useState(false)
-    val (numberOfButton, setNumberOfButton) = useState(0)
 
     val action = useDeferredRequest {
-        val response = props.sendRequest(isClickMode, numberOfButton)(this)
+        val response = props.sendRequest(isClickMode)(this)
         if (response.ok) {
-            props.onActionSuccess(isClickMode, numberOfButton)
+            props.onActionSuccess(isClickMode)
         } else {
             setDisplayTitle(props.errorTitle)
             setDisplayMessage(response.unpackMessage())
@@ -59,7 +58,7 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
                     setError(false)
                 }
             } else {
-                props.modalButtons(action, windowOpenness.closeWindowAction(), this, isClickMode, setNumberOfButton)
+                props.modalButtons(action, windowOpenness.closeWindowAction(), this, isClickMode)
             }
         },
         clickBuilder = {
@@ -127,7 +126,7 @@ external interface ButtonWithActionProps : Props {
      * @param buttonNumber is number of the button pressed
      */
     @Suppress("TYPE_ALIAS")
-    var onActionSuccess: (isClickMode: Boolean, buttonNumber: Int) -> Unit
+    var onActionSuccess: (isClickMode: Boolean) -> Unit
 
     /**
      * Button View
@@ -155,7 +154,6 @@ external interface ButtonWithActionProps : Props {
         closeWindow: () -> Unit,
         ChildrenBuilder,
         isClickMode: Boolean,
-        setButtonNumber: StateSetter<Int>,
     ) -> Unit
 
     /**
@@ -171,5 +169,5 @@ external interface ButtonWithActionProps : Props {
      * @return lazy response
      */
     @Suppress("TYPE_ALIAS")
-    var sendRequest: (isClickMode: Boolean, buttonNumber: Int) -> DeferredRequestAction<Response>
+    var sendRequest: (isClickMode: Boolean) -> DeferredRequestAction<Response>
 }

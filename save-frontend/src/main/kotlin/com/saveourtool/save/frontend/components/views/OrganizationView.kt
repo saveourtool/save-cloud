@@ -47,7 +47,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
-import react.router.dom.Link
 import web.http.FormData
 
 import kotlinx.coroutines.launch
@@ -200,7 +199,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
-            val projectsLoaded = getProjectsForOrganizationAndStatus(ProjectStatus.values().toSet())
+            val projectsLoaded = getProjectsForOrganizationAndStatus(enumValues<ProjectStatus>().toSet())
             val role = getRoleInOrganization()
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)

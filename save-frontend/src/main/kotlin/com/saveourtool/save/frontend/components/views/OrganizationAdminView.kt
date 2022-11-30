@@ -94,10 +94,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     classes = actionButtonClasses.joinToString(" ")
-                                    modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
-                                        val word = if (isClickMode) "ban" else "delete"
+                                    modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                        val actionName = if (isClickMode) "ban" else "delete"
                                         with(childrenBuilder) {
-                                            buttonBuilder(label = "Yes, $word $organizationName", style = "danger", classes = "mr-2") {
+                                            buttonBuilder(label = "Yes, $actionName $organizationName", style = "danger", classes = "mr-2") {
                                                 action()
                                                 closeWindow()
                                             }
@@ -106,7 +106,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             }
                                         }
                                     }
-                                    onActionSuccess = { isBanned, _ ->
+                                    onActionSuccess = { isBanned ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                         setState {
                                             organizations -= organization
@@ -114,7 +114,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     conditionClick = true
-                                    sendRequest = { isBanned, _ ->
+                                    sendRequest = { isBanned ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                         responseChangeOrganizationStatus(organizationName, newStatus)
                                     }
@@ -129,7 +129,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     classes = actionButtonClasses.joinToString(" ")
-                                    modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                    modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                         with(childrenBuilder) {
                                             buttonBuilder(label = "Yes, recover $organizationName", style = "danger", classes = "mr-2") {
                                                 action()
@@ -140,14 +140,14 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             }
                                         }
                                     }
-                                    onActionSuccess = { _, _ ->
+                                    onActionSuccess = { _ ->
                                         setState {
                                             organizations -= organization
                                             organizations += organization.copy(status = OrganizationStatus.CREATED)
                                         }
                                     }
                                     conditionClick = false
-                                    sendRequest = { _, _ ->
+                                    sendRequest = { _ ->
                                         responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
                                     }
                                 }
@@ -161,7 +161,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     classes = actionButtonClasses.joinToString(" ")
-                                    modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                    modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                         with(childrenBuilder) {
                                             buttonBuilder(label = "Yes, unban $organizationName", style = "danger", classes = "mr-2") {
                                                 action()
@@ -172,14 +172,14 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                             }
                                         }
                                     }
-                                    onActionSuccess = { _, _ ->
+                                    onActionSuccess = { _ ->
                                         setState {
                                             organizations -= organization
                                             organizations += organization.copy(status = OrganizationStatus.CREATED)
                                         }
                                     }
                                     conditionClick = false
-                                    sendRequest = { _, _ ->
+                                    sendRequest = { _ ->
                                         responseChangeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
                                     }
                                 }

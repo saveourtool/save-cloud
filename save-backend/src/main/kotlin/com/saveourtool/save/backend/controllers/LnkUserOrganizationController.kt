@@ -252,16 +252,16 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @PostMapping("/by-user-and-filters")
+    @PostMapping("/by-filters")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get user's organizations by filters",
+        summary = "Get the list of organizations available to the current user and matching the filters, if any",
         description = "Get organizations by filters available for the current user.",
     )
     @Parameters(
-        Parameter(name = "filters", `in` = ParameterIn.DEFAULT, description = "this type of organizations", required = true),
+        Parameter(name = "filters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")

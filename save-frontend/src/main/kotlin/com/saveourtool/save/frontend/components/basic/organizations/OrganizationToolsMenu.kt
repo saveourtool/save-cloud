@@ -130,10 +130,10 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
-                                            val word = if (isClickMode) "ban" else "delete"
+                                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                            val actionName = if (isClickMode) "ban" else "delete"
                                             with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, $word $projectName", style = "danger", classes = "mr-2") {
+                                                buttonBuilder(label = "Yes, $actionName $projectName", style = "danger", classes = "mr-2") {
                                                     action()
                                                     closeWindow()
                                                 }
@@ -142,13 +142,13 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { isBanMode, _ ->
+                                        onActionSuccess = { isBanMode ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
-                                        sendRequest = { isBanned, _ ->
+                                        sendRequest = { isBanned ->
                                             val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", newStatus)
                                         }
@@ -163,7 +163,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, recover $projectName", style = "warning", classes = "mr-2") {
                                                     action()
@@ -174,13 +174,13 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _, _ ->
+                                        onActionSuccess = { _ ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
                                         conditionClick = false
-                                        sendRequest = { _, _ ->
+                                        sendRequest = { _ ->
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
@@ -194,7 +194,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
                                                     action()
@@ -205,13 +205,13 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _, _ ->
+                                        onActionSuccess = { _ ->
                                             val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
                                         conditionClick = false
-                                        sendRequest = { _, _ ->
+                                        sendRequest = { _ ->
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }

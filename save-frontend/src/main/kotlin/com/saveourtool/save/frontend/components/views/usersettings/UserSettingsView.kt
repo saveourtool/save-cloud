@@ -374,7 +374,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationWithUsersList() = post(
-        url = "$apiUrl/organizations/by-user-and-filters",
+        url = "$apiUrl/organizations/by-filters",
         headers = jsonHeaders,
         body = Json.encodeToString(OrganizationFilters.all),
         loadingHandler = ::classLoadingHandler,

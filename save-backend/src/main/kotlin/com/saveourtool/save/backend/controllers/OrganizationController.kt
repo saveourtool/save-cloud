@@ -348,7 +348,7 @@ internal class OrganizationController(
             "Not enough permission for this action with organization $organizationName."
         }
         .filter {
-            organizationService.canChangeStatus(organizationName, status, authentication)
+            status != OrganizationStatus.DELETED || !organizationService.hasProjects(organizationName)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."

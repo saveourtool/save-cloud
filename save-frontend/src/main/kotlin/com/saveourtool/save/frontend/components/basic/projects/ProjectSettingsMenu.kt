@@ -261,7 +261,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             errorTitle = "You cannot delete the project ${props.project.name}"
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
-                            onActionSuccess = { _, _ ->
+                            onActionSuccess = { _ ->
                                 navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
@@ -270,10 +270,10 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             classes = "btn btn-sm btn-danger"
-                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
-                                val word = if (isClickMode) "ban" else "delete"
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                val actionName = if (isClickMode) "ban" else "delete"
                                 with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, $word ${props.project.name}", style = "danger", classes = "mr-2") {
+                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
                                         action()
                                         closeWindow()
                                     }
@@ -283,7 +283,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             conditionClick = props.currentUserInfo.isSuperAdmin()
-                            sendRequest = { isBanned, _ ->
+                            sendRequest = { isBanned ->
                                 val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
                                 responseChangeProjectStatus(projectPath, newStatus)
                             }

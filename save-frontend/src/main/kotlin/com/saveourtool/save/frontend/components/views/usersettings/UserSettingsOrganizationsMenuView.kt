@@ -78,7 +78,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(
                                                     label = "Yes, delete ${organizationDto.name}",
@@ -93,7 +93,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _, _ ->
+                                        onActionSuccess = { _ ->
                                             setState {
                                                 selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
                                                 selfDeletedOrganizationWithUserList =
@@ -103,7 +103,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { _, _ ->
+                                        sendRequest = { _ ->
                                             responseChangeOrganizationStatus(
                                                 organizationDto.name,
                                                 OrganizationStatus.DELETED
@@ -153,7 +153,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _, _ ->
+                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                             with(childrenBuilder) {
                                                 buttonBuilder(label = "Yes, recover ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                     action()
@@ -164,7 +164,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                         }
-                                        onActionSuccess = { _, _ ->
+                                        onActionSuccess = { _ ->
                                             setState {
                                                 selfDeletedOrganizationWithUserList = selfDeletedOrganizationWithUserList.minusElement(organizationWithUsers)
                                                 selfOrganizationWithUserList = selfOrganizationWithUserList.plusElement(
@@ -173,7 +173,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         conditionClick = false
-                                        sendRequest = { _, _ ->
+                                        sendRequest = { _ ->
                                             responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.CREATED)
                                         }
                                     }

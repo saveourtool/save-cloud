@@ -172,10 +172,10 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
-                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode, _ ->
-                            val word = if (isClickMode) "ban" else "delete"
+                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                            val actionName = if (isClickMode) "ban" else "delete"
                             with(childrenBuilder) {
-                                buttonBuilder(label = "Yes, $word ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                buttonBuilder(label = "Yes, $actionName ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action()
                                     closeWindow()
                                 }
@@ -184,11 +184,11 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 }
                             }
                         }
-                        onActionSuccess = { _, _ ->
+                        onActionSuccess = { _ ->
                             navigate(to = "/${FrontendRoutes.PROJECTS}")
                         }
                         conditionClick = props.currentUserInfo.isSuperAdmin()
-                        sendRequest = { isBanned, _ ->
+                        sendRequest = { isBanned ->
                             val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                             responseChangeOrganizationStatus(props.organizationName, newStatus)
                         }
