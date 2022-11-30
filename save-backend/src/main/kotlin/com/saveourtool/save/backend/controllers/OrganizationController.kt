@@ -83,7 +83,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizationsByFilters(
-        @RequestBody(required = true) organizationFilters: OrganizationFilters
+        @RequestBody organizationFilters: OrganizationFilters
     ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilters).map(Organization::toDto) }
 
     @PostMapping("/by-filters-with-rating")
@@ -98,7 +98,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizationsWithRating(
-        @RequestBody(required = true) organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilters)
         .flatMap { organizationDto ->
@@ -356,11 +356,11 @@ internal class OrganizationController(
         .map {organization ->
             when (status) {
                 OrganizationStatus.BANNED -> {
-                    organizationService.banOrganization(organization, authentication)
+                    organizationService.banOrganization(organization)
                     ResponseEntity.ok("Successfully banned the organization")
                 }
                 OrganizationStatus.DELETED -> {
-                    organizationService.deleteOrganization(organization, authentication)
+                    organizationService.deleteOrganization(organization)
                     ResponseEntity.ok("Successfully deleted the organization")
                 }
                 OrganizationStatus.CREATED -> {

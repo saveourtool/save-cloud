@@ -57,22 +57,6 @@ class ProjectController(
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
-    @PostMapping("/all-by-filters")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @Operation(
-        method = "POST",
-        summary = "Get all projects.",
-        description = "Get all projects, including deleted and private. Only accessible for super admins",
-    )
-    @Parameters(
-        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjects(
-        @RequestBody(required = true) projectFilters: ProjectFilters
-    ): Flux<Project> = blockingToFlux { projectService.getFiltered(projectFilters) }
-
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -101,7 +85,7 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody(required = true) projectFilters: ProjectFilters,
+        @RequestBody projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<ProjectDto> =
             blockingToFlux { projectService.getFiltered(projectFilters) }

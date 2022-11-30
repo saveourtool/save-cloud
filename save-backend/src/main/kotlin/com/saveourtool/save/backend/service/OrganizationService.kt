@@ -63,11 +63,9 @@ class OrganizationService(
      * Mark organization [organization] as deleted
      *
      * @param organization an [Organization] to delete
-     * @param authentication
      * @return deleted organization
      */
-    fun deleteOrganization(organization: Organization, authentication: Authentication): Organization =
-            changeOrganizationStatus(organization, OrganizationStatus.DELETED)
+    fun deleteOrganization(organization: Organization): Organization = changeOrganizationStatus(organization, OrganizationStatus.DELETED)
 
     /**
      * Mark organization with [organization] as created.
@@ -92,11 +90,10 @@ class OrganizationService(
      * Mark organization with [organization] and all its projects as banned.
      *
      * @param organization an [Organization] to ban
-     * @param authentication
      * @return banned organization
      */
     @Transactional
-    fun banOrganization(organization: Organization, authentication: Authentication): Organization {
+    fun banOrganization(organization: Organization): Organization {
         projectService.getAllByOrganizationName(organization.name).forEach {
             it.status = BANNED
             projectService.updateProject(it)

@@ -267,14 +267,14 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRolesAndFilters(
-        @RequestBody(required = true) organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilters: OrganizationFilters,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters))
+        .flatMapIterable {
+            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters)
         }
         .map {
             OrganizationWithUsers(
