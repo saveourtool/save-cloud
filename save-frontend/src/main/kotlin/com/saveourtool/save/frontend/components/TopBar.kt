@@ -10,8 +10,8 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.ButtonWithActionProps
 import com.saveourtool.save.frontend.utils.TopBarUrl
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -43,7 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.datetime.internal.JSJoda.use
+import react.router.useNavigate
 
 /**
  * [Props] of the top bor component
@@ -87,25 +87,30 @@ private fun ChildrenBuilder.dropdownEntry(
 )
 fun topBar() = FC<TopBarProps> { props ->
     val locationU = useLocation()
-    topBarUrlSplits{
-        userInfo = props.userInfo
-        isMobileScreen = props.isMobileScreen
-        location = locationU
-    }
-    topBarLinks{
-        userInfo = props.userInfo
-        isMobileScreen = props.isMobileScreen
-        location = locationU
-    }
-    topBarUserField{
-        userInfo = props.userInfo
-        isMobileScreen = props.isMobileScreen
+    nav {
+        className =
+            ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+        id = "navigation-top-bar"
+        topBarUrlSplits {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+            location = locationU
+        }
+        topBarLinks {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+            location = locationU
+        }
+        topBarUserField {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+        }
     }
 }
 
 
 /**
- * [Props] of the top bor component
+ * [Props] of the top bor component with [location]
  */
 external interface TopBarPropsWithLocation : TopBarProps {
     /**
@@ -113,9 +118,6 @@ external interface TopBarPropsWithLocation : TopBarProps {
      */
     var location: Location
 }
-
-private fun textColor(hrefAnchor: String, location: Location) =
-        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
 
 private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
     nav {
@@ -169,11 +171,12 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
 
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     ul {
+        val navigate = useNavigate()
         className = ClassName("navbar-nav mx-auto")
         li {
             className = ClassName("nav-item")
             a {
-                val hrefAnchor = com.saveourtool.save.validation.FrontendRoutes.AWESOME_BENCHMARKS.path
+                val hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path
                 className = ClassName(
                     "nav-link d-flex align-items-center me-2 ${
                         textColor(
@@ -192,7 +195,7 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
         li {
             className = ClassName("nav-item")
             a {
-                val hrefAnchor = "${com.saveourtool.save.validation.FrontendRoutes.DEMO.path}/cpg"
+                val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
                 className = ClassName(
                     "nav-link d-flex align-items-center me-2 ${
                         textColor(
@@ -211,7 +214,7 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
         li {
             className = ClassName("nav-item")
             a {
-                val hrefAnchor = com.saveourtool.save.validation.FrontendRoutes.SANDBOX.path
+                val hrefAnchor = FrontendRoutes.SANDBOX.path
                 className = ClassName(
                     "nav-link d-flex align-items-center me-2 ${
                         textColor(
@@ -241,7 +244,7 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
         li {
             className = ClassName("nav-item")
             a {
-                val hrefAnchor = com.saveourtool.save.validation.FrontendRoutes.PROJECTS.path
+                val hrefAnchor = FrontendRoutes.PROJECTS.path
                 className = ClassName(
                     "nav-link d-flex align-items-center me-2 ${
                         textColor(
@@ -260,7 +263,7 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
         li {
             className = ClassName("nav-item")
             a {
-                val hrefAnchor = com.saveourtool.save.validation.FrontendRoutes.CONTESTS.path
+                val hrefAnchor = FrontendRoutes.CONTESTS.path
                 className = ClassName(
                     "nav-link d-flex align-items-center me-2 ${
                         textColor(
@@ -322,7 +325,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                     !it
                 }
             }
-            react.dom.html.ReactHTML.a {
+            a {
                 href = "#"
                 className = ClassName("nav-link dropdown-toggle")
                 id = "userDropdown"
@@ -331,24 +334,24 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                 ariaHasPopup = true.unsafeCast<AriaHasPopup>()
                 asDynamic()["data-toggle"] = "dropdown"
 
-                react.dom.html.ReactHTML.div {
+                div {
                     className = ClassName("d-flex flex-row")
-                    react.dom.html.ReactHTML.div {
+                    div {
                         className = ClassName("d-flex flex-column")
-                        react.dom.html.ReactHTML.span {
+                        span {
                             className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                             +(props.userInfo?.name ?: "")
                         }
-                        val globalRole = props.userInfo?.globalRole ?: com.saveourtool.save.domain.Role.VIEWER
-                        if (globalRole.isHigherOrEqualThan(com.saveourtool.save.domain.Role.ADMIN)) {
-                            react.dom.html.ReactHTML.small {
+                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                        if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                            small {
                                 className = ClassName("text-gray-400 text-justify")
                                 +globalRole.formattedName
                             }
                         }
                     }
                     props.userInfo?.avatar?.let {
-                        react.dom.html.ReactHTML.img {
+                        img {
                             className =
                                 ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
                             src = "/api/${v1}/avatar$it"
@@ -361,13 +364,13 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                 }
             }
             // Dropdown - User Information
-            react.dom.html.ReactHTML.div {
+            div {
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else ""}")
                 ariaLabelledBy = "userDropdown"
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            window.location.href = "#/$name/${com.saveourtool.save.validation.FrontendRoutes.SETTINGS_EMAIL.path}"
+                            window.location.href = "#/$name/${FrontendRoutes.SETTINGS_EMAIL.path}"
                         }
                     }
                     dropdownEntry(
@@ -376,7 +379,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                     ) { attrs ->
                         attrs.onClick = {
                             window.location.href =
-                                "#/$name/${com.saveourtool.save.validation.FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                         }
                     }
                 }
@@ -395,3 +398,6 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
         isOpen = isLogoutModalOpen
     }
 }
+
+private fun textColor(hrefAnchor: String, location: Location) =
+    if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
