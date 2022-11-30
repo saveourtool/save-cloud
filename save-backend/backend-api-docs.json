@@ -2339,22 +2339,28 @@
         ]
       }
     },
-    "/api/v1/organizations/all": {
-      "get": {
+    "/api/v1/organizations/all-by-filters": {
+      "post": {
         "description": "Get organizations",
-        "operationId": "getAllOrganizations",
+        "operationId": "getAllOrganizationsByFilters",
         "parameters": [
           {
-            "description": "Whether deleted organizations should be excluded from the response. The default is false.",
+            "description": "organization filters",
             "in": "query",
-            "name": "onlyActive",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
+            "name": "organizationFilters",
+            "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -2390,6 +2396,87 @@
         ],
         "summary": "Get all organizations",
         "tags": [
+          "organizations"
+        ]
+      }
+    },
+    "/api/v1/organizations/by-filters": {
+      "post": {
+        "description": "Get organizations by filters available for the current user.",
+        "operationId": "getOrganizationWithRolesAndFilters",
+        "parameters": [
+          {
+            "description": "organization filters",
+            "in": "query",
+            "name": "filters",
+            "required": true
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched organization infos."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithUsers"
+                  }
+                }
+              }
+            },
+            "description": "Could not find user with this id."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get the list of organizations available to the current user and matching the filters, if any",
+        "tags": [
+          "roles",
           "organizations"
         ]
       }
@@ -2451,86 +2538,6 @@
         ],
         "summary": "Get organizations with rating matching filters.",
         "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/by-user": {
-      "get": {
-        "description": "Get organizations by status available for the current user.",
-        "operationId": "getOrganizationWithRoles",
-        "parameters": [
-          {
-            "description": "this type of organizations",
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "CREATED",
-              "enum": [
-                "BANNED",
-                "CREATED",
-                "DELETED"
-              ]
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationWithUsers"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched organization infos."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationWithUsers"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationWithUsers"
-                  }
-                }
-              }
-            },
-            "description": "Could not find user with this id."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get user\u0027s organizations by status",
-        "tags": [
-          "roles",
           "organizations"
         ]
       }
@@ -4064,57 +4071,6 @@
           }
         ],
         "summary": "Get all available projects.",
-        "tags": [
-          "projects"
-        ]
-      }
-    },
-    "/api/v1/projects/all": {
-      "get": {
-        "description": "Get all projects, including deleted and private. Only accessible for super admins",
-        "operationId": "getProjects_1",
-        "parameters": [
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Projects successfully fetched."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get all projects.",
         "tags": [
           "projects"
         ]

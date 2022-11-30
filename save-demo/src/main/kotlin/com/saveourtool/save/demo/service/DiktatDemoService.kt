@@ -5,6 +5,7 @@ import com.saveourtool.save.demo.diktat.DemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 
 import com.saveourtool.save.demo.runners.cli.DiktatCliRunner
+import com.saveourtool.save.demo.storage.ToolKey
 import org.springframework.stereotype.Service
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -16,7 +17,7 @@ import kotlin.io.path.div
 class DiktatDemoService(
     private val diktatCliRunner: DiktatCliRunner,
     configProperties: ConfigProperties,
-) : AbstractDemoService<DemoAdditionalParams, DiktatDemoResult>(diktatCliRunner) {
+) : AbstractDemoService<DemoAdditionalParams, ToolKey, DiktatDemoResult>(diktatCliRunner) {
     private val tmpDir = Path.of(configProperties.fileStorage.location) / "tmp"
 
     /**
