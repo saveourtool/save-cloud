@@ -10,20 +10,22 @@ import csstype.*
 import js.core.jso
 
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h3
 
 /**
  * @param textColor
  * @param isDark
  */
 fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
-    ReactHTML.div {
+    div {
         className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 $textColor")
         marketingTitle("Software", isDark)
         marketingTitle("Analysis", isDark)
         marketingTitle("Verification &", isDark)
         marketingTitle("Evaluation", isDark)
-        ReactHTML.h3 {
+        h3 {
             if (isDark) {
                 style = jso {
                     color = "rgb(6, 7, 89)".unsafeCast<Color>()
@@ -40,7 +42,7 @@ fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = f
  * @param isDark
  */
 fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
-    ReactHTML.div {
+    div {
         if (isDark) {
             style = jso {
                 color = "rgb(6, 7, 89)".unsafeCast<Color>()
@@ -57,9 +59,9 @@ fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
  */
 @Suppress("MAGIC_NUMBER")
 fun ChildrenBuilder.chevron(col: String) {
-    ReactHTML.div {
+    div {
         className = ClassName("row justify-content-center")
-        ReactHTML.h1 {
+        h1 {
             className = ClassName("animate__animated animate__pulse animate__infinite")
             style = jso {
                 fontSize = 5.rem
@@ -70,7 +72,7 @@ fun ChildrenBuilder.chevron(col: String) {
     }
 }
 
-private fun ChildrenBuilder.h1Bold(str: String) = ReactHTML.h1 {
+private fun ChildrenBuilder.h1Bold(str: String) = h1 {
     +str
     style = jso {
         fontWeight = "bold".unsafeCast<FontWeight>()
@@ -79,7 +81,7 @@ private fun ChildrenBuilder.h1Bold(str: String) = ReactHTML.h1 {
     }
 }
 
-private fun ChildrenBuilder.h1Normal(str: String) = ReactHTML.h1 {
+private fun ChildrenBuilder.h1Normal(str: String) = h1 {
     +str
     style = jso {
         display = Display.inline
