@@ -6,6 +6,9 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationStatus.BANNED
+import com.saveourtool.save.entities.OrganizationStatus.CREATED
+import com.saveourtool.save.entities.OrganizationStatus.DELETED
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -133,12 +136,17 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.CREATED }
-                selfDeletedOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.DELETED }
-                selfBannedOrganizationWithUserList = organizationDtos.filter { it.organization.status == OrganizationStatus.BANNED }
+                selfOrganizationWithUserList = organizationDtos.filterHasStatus(CREATED)
+                selfDeletedOrganizationWithUserList = organizationDtos.filterHasStatus(DELETED)
+                selfBannedOrganizationWithUserList = organizationDtos.filterHasStatus(BANNED)
             }
         }
     }
+
+    private fun List<OrganizationWithUsers>.filterHasStatus(status: OrganizationStatus): List<OrganizationWithUsers> =
+            filter {
+                it.organization.status == status
+            }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
         userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
