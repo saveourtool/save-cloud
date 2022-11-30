@@ -39,7 +39,7 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             publishToSonatype
-            closeSonatypeStagingRepository
+            closeAndReleaseSonatypeStagingRepository
       - name: Status git after
         if: ${{ always() }}
         run: git status

@@ -9,7 +9,7 @@ import react.*
 import react.router.MemoryRouter
 
 import kotlin.test.*
-import kotlinx.js.jso
+import js.core.jso
 
 /**
  * [MemoryRouter] is used to enable usage of `useLocation` hook inside the component

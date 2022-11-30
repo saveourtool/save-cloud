@@ -8,7 +8,7 @@ import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.service.AgentRepository
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 
@@ -41,7 +41,7 @@ class AgentsControllerTest {
     lateinit var webClient: WebTestClient
 
     @MockBean private lateinit var dockerService: DockerService
-    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
     @MockBean private lateinit var agentRunner: AgentRunner
 
     @Test
@@ -68,9 +68,9 @@ class AgentsControllerTest {
 
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(agentRepository.addAgents(anyList()))
+        whenever(orchestratorAgentService.addAgents(anyList()))
             .thenReturn(listOf<Long>(1, 2).toMono())
-        whenever(agentRepository.updateAgentStatusesWithDto(anyList()))
+        whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 

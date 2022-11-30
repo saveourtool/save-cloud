@@ -2,7 +2,7 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
-import com.saveourtool.save.orchestrator.service.AgentRepository
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
@@ -32,7 +32,7 @@ import java.net.HttpURLConnection
 class KubernetesManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager
-    @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var agentRepository: OrchestratorAgentService
 
     @BeforeEach
     fun setUp() {

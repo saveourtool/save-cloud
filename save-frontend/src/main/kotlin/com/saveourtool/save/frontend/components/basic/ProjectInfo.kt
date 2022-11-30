@@ -128,7 +128,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
                             className = ClassName("form-control-plaintext pt-0 pb-0")
                             type = InputType.text
                             this.id = fieldId
-                            value = text ?: ""
+                            value = text
                             // temporary workaround for https://github.com/saveourtool/save-cloud/issues/589#issuecomment-1049674021
                             disabled = fieldId != "name" && props.onProjectUpdate != null && isEditDisabled
                             readOnly = fieldId == "name" || props.onProjectUpdate == null

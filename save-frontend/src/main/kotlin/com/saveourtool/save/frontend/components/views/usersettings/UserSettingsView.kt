@@ -20,9 +20,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
@@ -35,6 +35,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import web.http.FormData
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -165,7 +166,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary")
                     div {
                         className = ClassName("col mr-2 pr-0 pl-0")
-                        style = kotlinx.js.jso {
+                        style = jso {
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
                         div {
@@ -199,7 +200,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     }
                                     div {
                                         className = ClassName("col-md-6 pl-0")
-                                        style = kotlinx.js.jso {
+                                        style = jso {
                                             display = Display.flex
                                             alignItems = AlignItems.center
                                         }

@@ -10,13 +10,12 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.BorderRadius
 import csstype.ClassName
+import js.core.jso
 import react.ChildrenBuilder
 import react.StateInstance
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.span
-
-import kotlinx.js.jso
 
 /**
  * @param project

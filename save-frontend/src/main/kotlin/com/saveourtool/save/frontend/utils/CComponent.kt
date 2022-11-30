@@ -2,11 +2,10 @@
 
 package com.saveourtool.save.frontend.utils
 
+import js.core.jso
 import kotlinext.js.assign
 import react.*
 import react.Fragment
-
-import kotlinx.js.jso
 
 /**
  * Base class that inherit [Component] class in order to provide [ChildrenBuilder] API in class components.
