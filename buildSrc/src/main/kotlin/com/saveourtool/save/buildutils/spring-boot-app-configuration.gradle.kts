@@ -16,7 +16,11 @@ plugins {
 }
 
 configure<SpringBootExtension> {
-    buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+    // todo: BuildProperties used to be injected into one of backend's controllers, but not anymore.
+    // todo: This can be changed to something like `if release` to omit these files in dev builds.
+    if (name == "save-backend") {
+        buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+    }
 }
 
 tasks.withType<BootRun>().configureEach {
