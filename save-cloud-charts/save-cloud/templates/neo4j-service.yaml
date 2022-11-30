@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  {{- include "service.common.metadata" (dict "service" .Values.neo4j.neo4j) | nindent 2 }}
+  {{- if .Values.neo4j.svc.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.neo4j.svc.annotations }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+  {{- end }}
+spec:
+  ports:
+    - name: tcp-bolt
+      port: 7687
+      targetPort: 7687
+      protocol: TCP
+  selector:
+    app: {{ .Values.neo4j.neo4j.name }}
+  {{- range $key, $value := .Values.neo4j.svc.spec }}
+  {{ $key }}: {{ $value }}
+  {{- end }}
