@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-test-suites-source-table" author="nulls">
+        <createTable tableName="test_suites_source">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_test_suites_source_organization" references="organization(id)" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="git_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_test_suites_source_git" references="git(id)" nullable="false"/>
+            </column>
+            <column name="branch" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_root_path" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="test_suites_source" columnNames="organization_id,name" constraintName="test_suites_source_name"/>
+        <addUniqueConstraint tableName="test_suites_source" columnNames="git_id,test_root_path,branch" constraintName="test_suites_source_git_location"/>
+    </changeSet>
+
+    <changeSet id="add-latest-fetched-version" author="sanyavertolet">
+        <addColumn tableName="test_suites_source">
+            <column name="latest_fetched_version" type="varchar(170)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="remove-branch-name" author="nulls">
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_git"/>
+        <dropUniqueConstraint tableName="test_suites_source" constraintName="test_suites_source_git_location"/>
+        <dropColumn tableName="test_suites_source">
+            <column name="branch"/>
+        </dropColumn>
+        <addForeignKeyConstraint baseTableName="test_suites_source" baseColumnNames="git_id"
+                                 constraintName="fk_lnk_test_suites_source_git"
+                                 referencedTableName="git"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="test_suites_source" columnNames="git_id,test_root_path" constraintName="test_suites_source_git_location"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-test-suite-source" author="frolov">
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_git"/>
+        <addForeignKeyConstraint baseColumnNames="git_id"
+          baseTableName="test_suites_source"
+          constraintName="fk_test_suites_source_git"
+          referencedColumnNames="id"
+          referencedTableName="git"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_organization"/>
+        <addForeignKeyConstraint baseColumnNames="organization_id"
+          baseTableName="test_suites_source"
+          constraintName="fk_test_suites_source_organization"
+          referencedColumnNames="id"
+          referencedTableName="organization"
+          onDelete="CASCADE"/>
+    </changeSet>
+</databaseChangeLog>

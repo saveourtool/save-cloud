@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-user-organization-1" author="frolov" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="lnk_user_organization"/>
+      </not>
+    </preConditions>
+    <createTable tableName="lnk_user_organization">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="organization_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_organization_organization" references="organization(id)" nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_organization_user" references="user(id)" nullable="false"/>
+      </column>
+    </createTable>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="lnk-user-project" />
+    </rollback>
+  </changeSet>
+
+  <changeSet id="lnk-user-organization-2" author="frolov" context="dev or prod">
+    <addColumn tableName="lnk_user_organization">
+      <column name="role" type="varchar(250)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="lnk-user-organization-3" author="sanyavertolet">
+    <addUniqueConstraint tableName="lnk_user_organization" columnNames="user_id, organization_id"/>
+  </changeSet>
+
+  <changeSet id="remove-and-add-fk-lnk-user-organization" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_user_organization" constraintName="fk_lnk_user_organization_user"/>
+    <addForeignKeyConstraint baseColumnNames="user_id"
+      baseTableName="lnk_user_organization"
+      constraintName="fk_lnk_user_organization_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_user_organization" constraintName="fk_lnk_user_organization_organization"/>
+    <addForeignKeyConstraint baseColumnNames="organization_id"
+      baseTableName="lnk_user_organization"
+      constraintName="fk_lnk_user_organization_organization"
+      referencedColumnNames="id"
+      referencedTableName="organization"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="lnk-user-organization-4" author="nulls">
+    <delete tableName="lnk_user_organization">
+      <where>role is NULL</where>
+    </delete>
+    <addNotNullConstraint tableName="lnk_user_organization" columnName="role" columnDataType="varchar(250)"/>
+  </changeSet>
+
+  <changeSet id="remove-organization-owner-id" author="nulls">
+    <sql>
+      update lnk_user_organization
+      set role = 'OWNER'
+      where exists(
+      select * from organization where organization.owner_id = user_id and organization.id = organization_id
+      );
+      insert into lnk_user_organization(user_id, organization_id, role)
+      select owner_id, id, 'OWNER'
+      from organization
+      where owner_id is not NULL
+      and not exists(
+      select * from lnk_user_organization where user_id = organization.owner_id and organization_id = organization.id
+      );
+    </sql>
+    <dropForeignKeyConstraint baseTableName="organization" constraintName="fk_organization_user"/>
+    <dropColumn tableName="organization">
+      <column name="owner_id"/>
+    </dropColumn>
+  </changeSet>
+
+</databaseChangeLog>

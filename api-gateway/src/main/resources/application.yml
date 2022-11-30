@@ -1,0 +1,103 @@
+server:
+  port: 5300
+  error:
+    path: /error
+gateway:
+  backend:
+    url: http://backend:5800
+  frontend:
+    url: http://frontend:5810
+  sandbox:
+    url: http://sandbox:5400
+  demo:
+    url: http://demo:5401
+  demo-cpg:
+    url: http://demo-cpg:5500
+  neo4j-browser:
+    url: http://save-cloud:7474
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+spring:
+  profiles:
+    default: dev
+  cloud:
+    gateway:
+      routes:
+        - id: api_route
+          uri: ${gateway.backend.url}
+          predicates:
+            - Path=/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: index_route
+          uri: ${gateway.frontend.url}/index.html
+          predicates:
+            - Path=/
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: error_route
+          uri: ${gateway.backend.url}/error
+          predicates:
+            - Path=/error
+        - id: resource_route
+          uri: ${gateway.frontend.url}
+          predicates:
+            - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: sandbox-api_route
+          uri: ${gateway.sandbox.url}
+          predicates:
+            - Path=/sandbox/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: demo-api_route
+          uri: ${gateway.demo.url}
+          predicates:
+            - Path=/demo/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: demo-cpg-api_route
+          uri: ${gateway.demo-cpg.url}
+          predicates:
+            - Path=/cpg/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: neo4j_route
+          uri: ${gateway.neo4j-browser.url}
+          predicates:
+            - Path=/neo4j/browser/**
+          filters:
+            - StripPrefix=1
+
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login

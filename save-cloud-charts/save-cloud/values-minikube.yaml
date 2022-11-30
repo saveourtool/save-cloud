@@ -1,0 +1,32 @@
+# values specific to deployment into Minikube
+
+profile: dev
+ingress:
+  enabled: false
+backend:
+  profile: dev,secure,kubernetes
+gateway:
+  profile: dev,kubernetes
+  applicationProperties: |+
+    server.shutdown=graceful
+    management.endpoints.web.exposure.include=*
+    gateway.knownActuatorConsumers=172.0.0.0/8
+orchestrator:
+  profile: dev,kubernetes,minikube
+  dockerHost: tcp://${HOST_IP}:2376
+  applicationProperties: |
+    orchestrator.docker.host=tcp://localhost:2376
+    logging.level.com.saveourtool=DEBUG
+    orchestrator.kubernetes.useGvisor=false
+sandbox:
+  profile: dev,kubernetes,minikube
+  dockerHost: tcp://${HOST_IP}:2376
+  applicationProperties: |
+    orchestrator.docker.host=tcp://localhost:2376
+    logging.level.com.saveourtool=DEBUG
+    orchestrator.kubernetes.useGvisor=false
+mysql:
+  external: false
+  ip: nil
+
+# dependencies

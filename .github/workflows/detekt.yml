@@ -8,21 +8,32 @@ on:
 jobs:
   detekt_check:
     runs-on: ubuntu-20.04
-    env:
-      GRADLE_OPTS: -Dorg.gradle.daemon=false
 
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v3
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: 1.11
-      - uses: burrunan/gradle-cache-action@v1
+          java-version: 11
+          distribution: temurin
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            buildSrc/**/Versions.kt
-      # Workaround for bug in gradle-cache-action + detekt
-      - name: Run gradle command
-        run: ./gradlew detektAll
+          arguments: |
+            detektAll
+            --build-cache
+            --continue
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+      - name: Upload SARIF to Github
+        if: ${{ always() }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: build/detekt-sarif-reports/detekt-merged.sarif
+      - name: Upload SARIF artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: sarif-reports
+          path: "**/build/detekt-sarif-reports/"
+          retention-days: 1

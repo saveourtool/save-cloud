@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-addContainerName" author="kgevorkyan" context="dev or prod">
+        <addColumn tableName="agent">
+            <column name="container_name" type="text" defaultValue="null"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-agent" author="frolov">
+        <dropForeignKeyConstraint baseTableName="agent" constraintName="fk_agent_execution"/>
+        <addForeignKeyConstraint baseTableName="agent" baseColumnNames="execution_id"
+          constraintName="fk_agent_execution"
+          referencedTableName="execution"
+          referencedColumnNames="id"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

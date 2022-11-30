@@ -262,166 +262,6 @@ exceptions:
       - Throwable
       - RuntimeException
 
-formatting:
-  active: true
-  android: false
-  autoCorrect: true
-  AnnotationOnSeparateLine:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  AnnotationSpacing:
-    active: true
-  ArgumentListWrapping:
-    active: true
-  ChainWrapping:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  CommentSpacing:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  EnumEntryNameCase:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  Filename:
-    excludes: ['**/resources/**']
-    active: true
-  FinalNewline:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-    insertFinalNewLine: true
-  ImportOrdering:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-    layout: 'idea'
-  Indentation:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-    indentSize: 4
-    continuationIndentSize: 4
-  MaximumLineLength:
-    excludes: ['**/resources/**']
-    active: true
-    maxLineLength: 180
-  ModifierOrdering:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  MultiLineIfElse:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoBlankLineBeforeRbrace:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoConsecutiveBlankLines:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoEmptyClassBody:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoEmptyFirstLineInMethodBlock:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  NoLineBreakAfterElse:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoLineBreakBeforeAssignment:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoMultipleSpaces:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoSemicolons:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoTrailingSpaces:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoUnitReturn:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoUnusedImports:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  NoWildcardImports:
-    excludes: ['**/resources/**']
-    active: true
-  PackageName:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  ParameterListWrapping:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-    indentSize: 4
-  SpacingAroundColon:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundComma:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundCurly:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundDot:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundDoubleColon:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  SpacingAroundKeyword:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundOperators:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundParens:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingAroundRangeOperator:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-  SpacingBetweenDeclarationsWithAnnotations:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  SpacingBetweenDeclarationsWithComments:
-    excludes: ['**/resources/**']
-    active: false
-    autoCorrect: true
-  StringTemplate:
-    excludes: ['**/resources/**']
-    active: true
-    autoCorrect: true
-
 naming:
   active: true
   ClassNaming:
@@ -476,6 +316,9 @@ naming:
     excludes: ['**/resources/**']
     active: true
     ignoreOverridden: true
+  NoNameShadowing:
+    # Different rule (in Diktat) checks that implicit lambda hasn't been shadowed.
+    active: false
   NonBooleanPropertyPrefixedWithIs:
     active: true
   ObjectPropertyNaming:
@@ -569,7 +412,7 @@ potential-bugs:
   LateinitUsage:
     active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
-    excludeAnnotatedProperties: []
+    ignoreAnnotated: []
     ignoreOnClassesPattern: ''
   MapGetWithNotNullAssertionOperator:
     excludes: ['**/resources/**']
@@ -645,9 +488,9 @@ style:
     imports: []
     forbiddenPatterns: ''
   ForbiddenMethodCall:
-    excludes: ['**/resources/**']
-    active: false
-    methods: ['kotlin.io.println', 'kotlin.io.print']
+    excludes: ['**/resources/**', '**/src/test/**']
+    active: true
+    methods: ['kotlin.io.println', 'kotlin.io.print', 'react.fc']
   ForbiddenPublicDataClass:
     excludes: ['**/resources/**']
     active: false
@@ -662,7 +505,7 @@ style:
     active: true
     ignoreOverridableFunction: true
     excludedFunctions: 'describeContents'
-    excludeAnnotatedFunction: ['dagger.Provides']
+    ignoreAnnotated: ['dagger.Provides']
   LibraryCodeMustSpecifyReturnType:
     excludes: ['**/resources/**']
     active: false
@@ -763,11 +606,11 @@ style:
   UnderscoresInNumericLiterals:
     excludes: ['**/resources/**']
     active: false
-    acceptableDecimalLength: 5
+    acceptableLength: 5
   UnnecessaryAbstractClass:
     excludes: ['**/resources/**']
     active: true
-    excludeAnnotatedClasses: ['dagger.Module']
+    ignoreAnnotated: ['dagger.Module']
   UnnecessaryAnnotationUseSiteTarget:
     excludes: ['**/resources/**']
     active: false
@@ -807,7 +650,7 @@ style:
   UseDataClass:
     excludes: ['**/resources/**']
     active: false
-    excludeAnnotatedClasses: []
+    ignoreAnnotated: []
     allowVars: false
   UseEmptyCounterpart:
     active: true
@@ -831,6 +674,6 @@ style:
     excludes: ['**/resources/**']
     active: false
   WildcardImport:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     excludeImports: ['java.util.*', 'kotlinx.android.synthetic.*', 'kotlinx.serialization']

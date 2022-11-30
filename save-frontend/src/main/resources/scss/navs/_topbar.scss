@@ -1,5 +1,6 @@
 // Topbar
 .topbar {
+  z-index: 1;
   height: $topbar-base-height;
   #sidebarToggleTop {
     height: 2.5rem;
@@ -10,6 +11,10 @@
     &:active {
       background-color: $gray-300;
     }
+  }
+  .breadcrumb {
+       background-color: #646570;
+       color: white;
   }
   .navbar-search {
     width: 50rem;

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-user-project-1" author="frolov" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="lnk-user-project"/>
+      </not>
+    </preConditions>
+    <createTable tableName="lnk-user-project">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="project_id" type="bigint">
+          <constraints foreignKeyName="fk_lnk_user_project_project" references="project(id)" nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint">
+          <constraints foreignKeyName="fk_lnk_user_project_user" references="user(id)" nullable="false"/>
+      </column>
+      <column name="user_role" type="varchar(250)" />
+    </createTable>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="lnk-user-project" />
+    </rollback>
+  </changeSet>
+
+  <changeSet id="lnk-user-project-2" author="frolov" context="dev or prod">
+    <renameTable newTableName="lnk_user_project" oldTableName="lnk-user-project" />
+  </changeSet>
+
+  <changeSet id="lnk-user-project-3" author="frolov" context="dev or prod">
+    <renameColumn columnDataType="varchar(250)" newColumnName="role" oldColumnName="user_role" tableName="lnk_user_project"/>
+  </changeSet>
+
+  <changeSet id="lnk-user-project-4" author="sanyavertolet">
+    <addUniqueConstraint tableName="lnk_user_project" columnNames="user_id, project_id" constraintName="user_project_constraint"/>
+  </changeSet>
+
+  <changeSet id="remove-and-add-fk-lnk-user-project" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_project"/>
+    <addForeignKeyConstraint baseColumnNames="project_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_project"
+      referencedColumnNames="id"
+      referencedTableName="project"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_user"/>
+    <addForeignKeyConstraint baseColumnNames="user_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="remove-project-user-id" author="nulls">
+    <sql>
+      update lnk_user_project
+      set role = 'OWNER'
+      where exists(
+      select * from project where project.user_id = user_id and project.id = project_id
+      );
+      insert into lnk_user_project(user_id, project_id, role)
+      select user_id, id, 'OWNER'
+      from project
+      where user_id is not NULL
+      and not exists(
+      select * from lnk_user_project where user_id = project.user_id and project_id = project.id
+      );
+    </sql>
+    <dropForeignKeyConstraint baseTableName="project" constraintName="fk_project_user"/>
+    <dropColumn tableName="project">
+      <column name="user_id"/>
+    </dropColumn>
+  </changeSet>
+
+  <changeSet id="lnk-user-project-5" author="frolov">
+    <delete tableName="lnk_user_project">
+      <where>role is NULL or role='NONE'</where>
+    </delete>
+    <addNotNullConstraint tableName="lnk_user_project" columnName="role" columnDataType="varchar(250)"/>
+  </changeSet>
+
+</databaseChangeLog>

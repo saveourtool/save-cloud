@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="execution-user" author="petertrr" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_user" references="user(id)" nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-execCmd-and-batchSizeForAnalyzer-columns" author="kgevorkyan" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="exec_cmd" type="text" defaultValue="NULL"/>
+        </addColumn>
+
+        <addColumn tableName="execution">
+            <column name="batch_size_for_analyzer" type="varchar(255)" defaultValue="NULL"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="precision-recall-supporting" author="nulls" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="all_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="unmatched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="matched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="expected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="unexpected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-testSuiteSourceName" author="kgevorkyan" context="dev or prod">
+        <sql>
+            ALTER TABLE execution ADD COLUMN test_suite_source_name text;
+            UPDATE execution SET test_suite_source_name = 'unknown' WHERE test_suite_source_name IS NULL;
+            ALTER TABLE execution MODIFY test_suite_source_name text NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="drop_resources_root_path" author="frolov">
+        <dropColumn tableName="execution" columnName="resources_root_path"/>
+    </changeSet>
+
+    <changeSet id="drop_test_suite_ids" author="frolov">
+        <dropColumn tableName="execution" columnName="test_suite_ids"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-execution" author="frolov">
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_project"/>
+        <addForeignKeyConstraint baseColumnNames="project_id"
+          baseTableName="execution"
+          constraintName="fk_execution_project"
+          referencedColumnNames="id"
+          referencedTableName="project"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="execution"
+          constraintName="fk_execution_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

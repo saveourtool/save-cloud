@@ -1,8 +1,12 @@
+import com.saveourtool.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configureSpotless
+
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
-    kotlin("plugin.jpa") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.jpa)
+    `maven-publish`
 }
 kotlin {
     allOpen {
@@ -17,30 +21,51 @@ kotlin {
             }
         }
     }
+    jvmToolchain {
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+    }
     js(BOTH).browser()
 
     // setup native compilation
-    val os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()
-    val hostTarget = when {
-        os.isLinux -> linuxX64()
-        os.isWindows -> mingwX64()
-        os.isMacOsX -> macosX64()
-        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
-    }
+    linuxX64()
 
     sourceSets {
         sourceSets.all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.RequiresOptIn")
         }
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.serialization}")
+                implementation(libs.save.common)
+                api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.datetime)
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${Versions.jpa}")
+                implementation(project.dependencies.platform(libs.spring.boot.dependencies))
+                implementation(libs.spring.web)
+                implementation(libs.spring.webflux)
+                implementation(libs.spring.boot)
+                implementation(libs.spring.data.jpa)
+                implementation(libs.jackson.module.kotlin)
+                implementation(libs.hibernate.jpa21.api)
+                api(libs.slf4j.api)
+                implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+                implementation(libs.commons.compress)
+                implementation(libs.validation.api)
+                implementation(libs.swagger.annotations)
+            }
+        }
+        val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
+            dependencies {
+                implementation(libs.kotlin.test)
             }
         }
     }
 }
+
+configureSpotless()
+configurePublishing()

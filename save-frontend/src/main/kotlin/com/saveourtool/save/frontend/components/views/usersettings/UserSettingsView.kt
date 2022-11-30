@@ -1,0 +1,367 @@
+/**
+ * A view with settings user
+ */
+
+package com.saveourtool.save.frontend.components.views.usersettings
+
+import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
+
+import csstype.*
+import dom.html.HTMLInputElement
+import js.core.asList
+import js.core.jso
+import org.w3c.fetch.Headers
+import react.*
+import react.dom.aria.ariaLabel
+import react.dom.events.ChangeEvent
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.nav
+import web.http.FormData
+
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+/**
+ * `Props` retrieved from router
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
+external interface UserSettingsProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userName: String?
+}
+
+/**
+ * [State] of project view component
+ */
+@Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
+external interface UserSettingsViewState : State {
+    /**
+     * Flag to handle uploading a file
+     */
+    var isUploading: Boolean
+
+    /**
+     * Image to owner avatar
+     */
+    var image: ImageInfo?
+
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+
+    /**
+     * Token for user
+     */
+    var token: String?
+
+    /**
+     * A list of organization with users connected to user
+     */
+    var selfOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
+}
+
+@Suppress("MISSING_KDOC_TOP_LEVEL")
+abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
+    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    private val renderMenu = renderMenu()
+
+    init {
+        state.isUploading = false
+        state.selfOrganizationWithUserList = emptyList()
+    }
+
+    /**
+     * @param fieldName
+     * @param target
+     */
+    fun changeFields(
+        fieldName: InputTypes,
+        target: ChangeEvent<HTMLInputElement>,
+    ) {
+        val tg = target.target
+        val value = tg.value
+        fieldsMap[fieldName] = value
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        scope.launch {
+            val user = props.userName
+                ?.let { getUser(it) }
+            val organizationDtos = getOrganizationWithUsersList()
+            setState {
+                userInfo = user
+                image = ImageInfo(user?.avatar)
+                userInfo?.let { updateFieldsMap(it) }
+                selfOrganizationWithUserList = organizationDtos
+            }
+        }
+    }
+
+    private fun updateFieldsMap(userInfo: UserInfo) {
+        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
+        userInfo.email?.let { fieldsMap[InputTypes.USER_EMAIL] = it }
+        userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
+        userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
+        userInfo.linkedin?.let { fieldsMap[InputTypes.LINKEDIN] = it }
+        userInfo.gitHub?.let { fieldsMap[InputTypes.GIT_HUB] = it }
+        userInfo.twitter?.let { fieldsMap[InputTypes.TWITTER] = it }
+    }
+
+    /**
+     * @return element
+     */
+    abstract fun renderMenu(): FC<UserSettingsProps>
+
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
+    override fun ChildrenBuilder.render() {
+        div {
+            className = ClassName("row justify-content-center")
+            // ===================== LEFT COLUMN =======================================================================
+            div {
+                className = ClassName("col-2 mr-3")
+                div {
+                    className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary")
+                    div {
+                        className = ClassName("col mr-2 pr-0 pl-0")
+                        style = jso {
+                            background = "#e1e9ed".unsafeCast<Background>()
+                        }
+                        div {
+                            className = ClassName("mb-0 font-weight-bold text-gray-800")
+                            form {
+                                div {
+                                    className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom")
+                                    div {
+                                        className = ClassName("col-md-4 pl-0 pr-0")
+                                        label {
+                                            input {
+                                                type = InputType.file
+                                                hidden = true
+                                                onChange = {
+                                                    postImageUpload(it.target)
+                                                }
+                                            }
+                                            ariaLabel = "Change avatar owner"
+                                            img {
+                                                className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                                src = state.image?.path?.let {
+                                                    "/api/$v1/avatar$it"
+                                                }
+                                                    ?: run {
+                                                        "img/undraw_profile.svg"
+                                                    }
+                                                height = 60.0
+                                                width = 60.0
+                                            }
+                                        }
+                                    }
+                                    div {
+                                        className = ClassName("col-md-6 pl-0")
+                                        style = jso {
+                                            display = Display.flex
+                                            alignItems = AlignItems.center
+                                        }
+                                        h1 {
+                                            className = ClassName("h5 mb-0 text-gray-800")
+                                            +"${props.userName}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    div {
+                        className = ClassName("col mr-2 pr-0 pl-0")
+                        nav {
+                            div {
+                                className = ClassName("pl-3 ui vertical menu profile-setting")
+                                form {
+                                    div {
+                                        className = ClassName("item mt-2")
+                                        div {
+                                            className = ClassName("header")
+                                            +"Basic Setting"
+                                        }
+                                        div {
+                                            className = ClassName("menu")
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
+                                                    fontAwesomeIcon(icon = faUser) {
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Profile"
+                                                }
+                                            }
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
+                                                    fontAwesomeIcon(icon = faEnvelope) {
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Email management"
+                                                }
+                                            }
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                                    fontAwesomeIcon(icon = faCity) {
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Organizations"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                form {
+                                    div {
+                                        className = ClassName("item mt-2")
+                                        div {
+                                            className = ClassName("header")
+                                            +"Security Setting"
+                                        }
+                                        div {
+                                            className = ClassName("menu")
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
+                                                    fontAwesomeIcon(icon = faKey) {
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                    }
+                                                    +"Personal access tokens"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ===================== RIGHT COLUMN =======================================================================
+            div {
+                className = ClassName("col-6")
+                renderMenu {
+                    userName = props.userName
+                }
+            }
+        }
+    }
+
+    @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+    fun updateUser() {
+        val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
+        val nameInDb = state.userInfo!!.name
+        val oldName = if (newName != nameInDb) nameInDb else null
+        val newUserInfo = UserInfo(
+            name = newName ?: nameInDb,
+            oldName = oldName,
+            originalLogins = state.userInfo!!.originalLogins,
+            source = state.userInfo!!.source,
+            projects = state.userInfo!!.projects,
+            email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
+            company = fieldsMap[InputTypes.COMPANY]?.trim(),
+            location = fieldsMap[InputTypes.LOCATION]?.trim(),
+            linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
+            gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
+            twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
+            avatar = state.userInfo!!.avatar,
+            isActive = state.userInfo!!.isActive,
+        )
+
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+        scope.launch {
+            val response = post(
+                "$apiUrl/users/save",
+                headers,
+                Json.encodeToString(newUserInfo),
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.isConflict()) {
+                val responseText = response.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
+            } else {
+                setState {
+                    conflictErrorMessage = null
+                }
+            }
+        }
+    }
+
+    private fun postImageUpload(element: HTMLInputElement) =
+            scope.launch {
+                setState {
+                    isUploading = true
+                }
+                element.files!!.asList().single().let { file ->
+                    val response: ImageInfo? = post(
+                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        },
+                        loadingHandler = ::classLoadingHandler,
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        image = response
+                    }
+                }
+                setState {
+                    isUploading = false
+                }
+            }
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getOrganizationWithUsersList() = get(
+        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
+        Headers(),
+        loadingHandler = ::classLoadingHandler,
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
+}

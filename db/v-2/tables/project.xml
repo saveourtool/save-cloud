@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="project-addStatus" author="frolov" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="status" type="varchar(250)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-add-user" author="petertrr" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="user_id" type="bigint">
+<!-- Shouldn't be nullable, but mappings should be done at first -->
+                <constraints foreignKeyName="fk_project_user" references="user(id)" nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="project">
+            <column name="admin_ids" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Should be foreignKeyName on Organization -->
+    <changeSet id="project-add-organization" author="frolov" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="organization_id" type="bigint">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-drop-adminIds" author="frolov" context="dev or prod">
+        <dropColumn columnName="admin_ids" tableName="project"/>
+    </changeSet>
+
+    <changeSet id="project-drop-owner" author="frolov" context="dev or prod">
+        <dropColumn columnName="owner" tableName="project"/>
+    </changeSet>
+
+    <changeSet id="project-add-email" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "email" type="varchar(256)">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-add-number-of-containers" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "number_of_containers" type="int" defaultValue="3">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-new-column-contest-rating" author="akuleshov7" context="dev or prod">
+        <addColumn tableName="project">
+            <column name = "contest_rating" type="int" defaultValue="0">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="project-make-contest-rating-double" author="kgevorkyan">
+        <modifyDataType tableName="project" columnName="contest_rating" newDataType="double DEFAULT 0.0"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-project" author="frolov">
+        <dropForeignKeyConstraint baseTableName="project" constraintName="fk_project_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="project"
+          constraintName="fk_project_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

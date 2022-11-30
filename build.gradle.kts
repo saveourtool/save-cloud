@@ -1,44 +1,53 @@
-import org.cqfn.save.buildutils.configureDetekt
-import org.cqfn.save.buildutils.configureDiktat
-import org.cqfn.save.buildutils.configureVersioning
-import org.cqfn.save.buildutils.createDetektTask
-import org.cqfn.save.buildutils.createDiktatTask
-import org.cqfn.save.buildutils.createStackDeployTask
-import org.cqfn.save.buildutils.getDatabaseCredentials
-import org.cqfn.save.buildutils.installGitHooks
+import com.saveourtool.save.buildutils.*
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.39.0"
-    id("com.cdsap.talaiot.plugin.base") version "1.4.2"
-    id("org.liquibase.gradle") version Versions.liquibaseGradlePlugin
+    alias(libs.plugins.talaiot.base)
+    alias(libs.plugins.liquibase.gradle)
+    java
 }
 
-val profile = properties.getOrDefault("profile", "dev") as String
-val databaseCredentials = getDatabaseCredentials(profile)
+val profile = properties.getOrDefault("save.profile", "dev") as String
 
 liquibase {
     activities {
-        // Configuring luiquibase
+        val commonArguments = mapOf(
+            "logLevel" to "info",
+            "contexts" to when (profile) {
+                "prod" -> "prod"
+                "dev" -> "dev"
+                else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+            }
+        )
+        // Configuring liquibase
         register("main") {
+            arguments = mapOf("changeLogFile" to "db/db.changelog-master.xml") +
+                    getBackendDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
+        }
+        register("sandbox") {
             arguments = mapOf(
-                "changeLogFile" to "db/changelog/db.changelog-master.xml",
-                "url" to databaseCredentials.databaseUrl,
-                "username" to databaseCredentials.username,
-                "password" to databaseCredentials.password,
-                "logLevel" to "info",
-                "contexts" to when (profile) {
-                    "prod" -> "prod"
-                    "dev" -> "dev"
-                    else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
-                }
-            )
+                "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
+                "liquibaseSchemaName" to "save_sandbox",
+                "defaultSchemaName" to "save_sandbox",
+            ) +
+                    getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
         }
     }
 }
 
 dependencies {
-    liquibaseRuntime("org.liquibase:liquibase-core:${Versions.liquibase}")
-    liquibaseRuntime("mysql:mysql-connector-java:${Versions.mySql}")
+    liquibaseRuntime(libs.liquibase.core)
+    liquibaseRuntime(libs.mysql.connector.java)
+    liquibaseRuntime(libs.picocli)
+}
+
+tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
+    @Suppress("MAGIC_NUMBER")
+    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+        // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13 on Windows; works on Mac
+        languageVersion.set(JavaLanguageVersion.of(11))
+    })
 }
 
 talaiot {
@@ -48,26 +57,21 @@ talaiot {
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") {
-            // detekt requires kotlinx.html
-            content {
-                includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
-            }
-        }
-        maven("https://oss.sonatype.org/content/repositories/snapshots") {
-            content {
-                includeGroup("org.cqfn.save")
-            }
-        }
-    }
-    configureDiktat()
     configureDetekt()
+    configurations.all {
+        // if SNAPSHOT dependencies are used, refresh them periodically
+        resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
+        resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
+    }
 }
+allprojects {
+    configureDiktat()
+}
+configureSpotless()
 
 createStackDeployTask(profile)
 configureVersioning()
-createDiktatTask()
+configurePublishing()
 createDetektTask()
 installGitHooks()
+registerSaveCliVersionCheckTask()

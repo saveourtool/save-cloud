@@ -1,35 +1,27 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
 }
-
-configureSpringBoot()
 
 dependencies {
-    implementation(project(":save-cloud-common"))
-    implementation("org.cqfn.save:save-common-jvm:${Versions.saveCore}")
-    implementation("org.cqfn.save:save-core-jvm:${Versions.saveCore}")
-    implementation("org.cqfn.save:warn-plugin-jvm:${Versions.saveCore}")
-    implementation("org.cqfn.save:fix-plugin-jvm:${Versions.saveCore}")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:${Versions.jgit}")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:${Versions.reactor}")
-    testImplementation("com.squareup.okhttp3:okhttp:${Versions.okhttp3}")
-    testImplementation("com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+    implementation(projects.saveCloudCommon)
+    testImplementation(projects.testUtils)
+    implementation(libs.save.common.jvm)
+    implementation(libs.save.core.jvm)
+    implementation(libs.save.plugins.warn.jvm)
+    implementation(libs.save.plugins.fix.jvm)
+    implementation(libs.save.plugins.fixAndWarn.jvm)
+    implementation(libs.jgit)
+    implementation(libs.kotlinx.serialization.properties)
+    implementation(libs.ktoml.file)
+    implementation(libs.ktoml.core)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.commons.compress)
 }
 
 configureJacoco()
+configureSpotless()

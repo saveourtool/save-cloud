@@ -1,67 +1,96 @@
-import org.cqfn.save.buildutils.getSaveCliVersion
-
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
+import com.saveourtool.save.buildutils.configureSpotless
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version Versions.kotlin
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 kotlin {
-    val os = getCurrentOperatingSystem()
-    // Create a target for the host platform.
-    val hostTarget = when {
-        os.isLinux -> linuxX64("agent")
-        os.isWindows -> mingwX64("agent")  // you'll need to install msys2 and run `pacman -S mingw-w64-x86_64-curl` to have libcurl for ktor-client
-        os.isMacOsX -> macosX64("agent")
-        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = Versions.jdk
+            }
+        }
     }
 
-    configure(listOf(hostTarget)) {
+    // Create a target for the host platform.
+    val linuxTarget = linuxX64 {
         binaries.executable {
-            entryPoint = "org.cqfn.save.agent.main"
+            entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
+        }
+        binaries.all {
+            binaryOptions["memoryModel"] = "experimental"
+            freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
         }
     }
 
     sourceSets {
         all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
-            languageSettings.useExperimentalAnnotation("okio.ExperimentalFileSystem")
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        val nativeMain by creating {
+
+        val commonMain by getting {
             dependencies {
-                implementation(project(":save-cloud-common"))
-                implementation("org.cqfn.save:save-common:${Versions.saveCore}")
-                implementation("io.ktor:ktor-client-core:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-curl:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:${Versions.serialization}")
-                implementation("com.squareup.okio:okio-multiplatform:3.0.0-alpha.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
-                // as for 2.0.4, kotlin-logging doesn't have mingw version and it'll be PITA to use it
-                // implementation("io.github.microutils:kotlin-logging:2.0.4")
+                implementation(libs.save.common)
+                implementation(projects.saveCloudCommon)
+                implementation(libs.save.core)
+                implementation(libs.save.plugins.fix)
+                implementation(libs.save.reporters)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.kotlinx.serialization.properties)
+                implementation(libs.okio)
+                implementation(libs.kotlinx.datetime)
             }
         }
-        getByName("${hostTarget.name}Main").dependsOn(nativeMain)
-        val nativeTest by creating {
+        val commonTest by getting
+
+        val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
+                implementation(libs.ktor.client.apache)
+                implementation(libs.commons.compress)
             }
         }
-        getByName("${hostTarget.name}Test").dependsOn(nativeTest)
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+            }
+        }
+
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.curl)
+                implementation(libs.kotlinx.coroutines.core.linuxx64)
+            }
+        }
+        val linuxX64Test by getting {
+            dependencies {
+                implementation(libs.ktor.client.mock)
+            }
+        }
     }
 
-    val distribution by configurations.creating
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
+
     val copyAgentDistribution by tasks.registering(Jar::class) {
-        dependsOn("linkReleaseExecutableAgent")
+        dependsOn(linkTask)
         archiveClassifier.set("distribution")
-        from(file("$buildDir/bin/agent/releaseExecutable")) {
-            include("*")
-        }
-        from(file("$projectDir/src/nativeMain/resources/agent.properties"))
+        from(linkTask.flatMap { it.outputFile })
+        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
     }
-    artifacts.add(distribution.name, file("$buildDir/libs/${project.name}-${project.version}-distribution.jar")) {
+    val distribution by configurations.creating
+    artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {
         builtBy(copyAgentDistribution)
     }
 
@@ -69,15 +98,15 @@ kotlin {
     // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
     if (false) {
         // this doesn't work for 1.4.31, maybe will be fixed later
-        hostTarget.binaries.getTest("DEBUG").apply {
-            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
+        linuxTarget.binaries.getTest("DEBUG").apply {
+            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${linuxTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
         val createCoverageReportTask by tasks.creating {
-            dependsOn("${hostTarget.name}Test")
+            dependsOn("${linuxTarget.name}Test")
             description = "Create coverage report"
 
             doLast {
-                val testDebugBinary = hostTarget.binaries.getTest("DEBUG").outputFile
+                val testDebugBinary = linuxTarget.binaries.getTest("DEBUG").outputFile
                 val llvmPath = "${System.getenv()["HOME"]}/.konan/dependencies/clang-llvm-8.0.0-linux-x86-64/bin"
                 exec {
                     commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
@@ -87,38 +116,35 @@ kotlin {
                 }
             }
         }
-        tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
+        tasks.named("${linuxTarget.name}Test") {
+            finalizedBy(createCoverageReportTask)
+        }
     }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
+configureSpotless()
 
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    val saveCliVersion = getSaveCliVersion()
-    inputs.property("Version of save-cli", saveCliVersion)
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
-
-            """.trimIndent()
-        )
+/*
+ * On Windows, it's impossible to link a Linux executable against
+ * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ */
+tasks.named("linkDebugExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
     }
 }
-val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
-    kotlin.srcDir("$buildDir/generated/src")
+
+tasks.named("linkReleaseExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
 }
-kotlin.sourceSets.getByName("nativeMain").dependsOn(generatedKotlinSrc)
-tasks.getByName("compileKotlinAgent").dependsOn(generateVersionFileTaskProvider)
+
+tasks.named("linkDebugTestLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}

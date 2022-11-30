@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - 'master'
+      
+concurrency:
+  # https://docs.github.com/en/actions/using-jobs/using-concurrency
+  # The latest queued workflow is preferred; the ones already in progress get cancelled
+  # Workflows on master branch shouldn't be cancelled, that's why they are identified by commit SHA
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   build_and_test_with_code_coverage:
@@ -12,24 +19,27 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      # actions/checkout v1.* is needed for correct codecov upload, see https://github.com/actions/checkout/issues/237 for details
-      - uses: actions/checkout@v1
-      # ensure that gradle wrapper files in repository are valid by checking checksums
-      - uses: gradle/wrapper-validation-action@v1
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
         with:
-          java-version: 1.11
+          # required for correct codecov upload
+          fetch-depth: 0
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: temurin
       - name: Install system packages
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+        # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
+      - name: Retrieve Kotlin version
+        run: |
+          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
       - name: Cache konan
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan
-          restore-keys: |
-            ${{ runner.os }}-gradle-konan
+          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
@@ -44,28 +54,35 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            buildSrc/**/Versions.kt
+          gradle-home-cache-cleanup: true
           arguments: |
             build
             -x detekt
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: gradle-reports
           path: '**/build/reports/'
+          retention-days: 1
       - name: Upload frontend distribution
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
+          retention-days: 1
       - name: Code coverage report
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
