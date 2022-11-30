@@ -123,7 +123,6 @@ external interface ButtonWithActionProps : Props {
      * If the action (request) is successful, this is done
      *
      * @param isClickMode is checkBox status
-     * @param buttonNumber is number of the button pressed
      */
     @Suppress("TYPE_ALIAS")
     var onActionSuccess: (isClickMode: Boolean) -> Unit
@@ -145,7 +144,6 @@ external interface ButtonWithActionProps : Props {
      * @param closeWindow is the action of closing the window and assigning the status false to the checkBox
      * @param ChildrenBuilder
      * @param isClickMode is checkBox status
-     * @param setButtonNumber with a large number of buttons, it allows to identify the button using a number
      * @return buttons
      */
     @Suppress("TYPE_ALIAS")
@@ -165,7 +163,6 @@ external interface ButtonWithActionProps : Props {
      * function passes arguments to call the request
      *
      * @param isClickMode is checkBox status
-     * @param buttonNumber is number of the button pressed
      * @return lazy response
      */
     @Suppress("TYPE_ALIAS")
