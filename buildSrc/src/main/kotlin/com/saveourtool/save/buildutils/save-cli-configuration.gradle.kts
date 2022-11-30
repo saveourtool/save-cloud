@@ -32,7 +32,7 @@ dependencies {
     )
 }
 
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 

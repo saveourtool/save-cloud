@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.buildutils
 
+import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.springframework.boot.gradle.dsl.SpringBootExtension
@@ -61,3 +62,8 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         }
     }
 }
+
+// FixMe: temporarily copy-pasted
+fun Project.versionForDockerImages(): String =
+    (project.findProperty("build.dockerTag") as String? ?: version.toString())
+        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
