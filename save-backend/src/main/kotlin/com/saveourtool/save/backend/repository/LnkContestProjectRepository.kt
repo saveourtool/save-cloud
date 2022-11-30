@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.Optional
@@ -49,7 +50,26 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
 
     /**
      * @param contestName
+     * @param organizationName
+     * @param projectName
+     * @return a [LnkContestProject] if any has been found
+     */
+    fun findByContestNameAndProjectOrganizationNameAndProjectName(
+        contestName: String,
+        organizationName: String,
+        projectName: String,
+    ): LnkContestProject?
+
+    /**
+     * @param contestName
      * @return list of [LnkContestProject] linked to contest with name [contestName]
      */
     fun findByContestName(contestName: String): List<LnkContestProject>
+
+    /**
+     * @param project
+     * @param contestName
+     * @return a [LnkContestProject], if any, associated with [project] and [Contest] named [contestName]
+     */
+    fun findByProjectAndContestName(project: Project, contestName: String): LnkContestProject?
 }

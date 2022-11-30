@@ -1,24 +1,9 @@
 import com.saveourtool.save.buildutils.configureJacoco
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.configureSpringBoot
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
-}
-
-configureSpringBoot()
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
 }
 
 dependencies {
@@ -28,6 +13,7 @@ dependencies {
     implementation(libs.spring.boot.starter.oauth2.client)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.spring.security.core)
+    implementation(projects.authenticationService)
 }
 
 configureJacoco()

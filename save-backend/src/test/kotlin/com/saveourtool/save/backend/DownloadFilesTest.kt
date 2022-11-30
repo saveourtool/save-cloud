@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.repository.*
@@ -14,17 +14,14 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
@@ -37,7 +34,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -83,27 +79,21 @@ import kotlin.io.path.*
     MockBean(ExecutionService::class),
 )
 class DownloadFilesTest {
-    private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
-    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
-    private var testProject: Project = Project(
-        organization = organization,
-        name = "TheProject",
-        url = "example.com",
-        description = "This is an example project",
-        status = ProjectStatus.CREATED,
-        userId = 2,
-    ).apply {
-        id = 3
+    private val organization = Organization.stub(2).apply {
+        name = "Example.com"
     }
-    private var testProject2: Project = Project(
-        organization = organization2,
-        name = "huaweiName",
-        url = "huawei.com",
-        description = "test description",
-        status = ProjectStatus.CREATED,
-        userId = 1,
-    ).apply {
-        id = 1
+    private val organization2 = Organization.stub(1).apply {
+        name = "Huawei"
+    }
+    private var testProject: Project = Project.stub(3, organization).apply {
+        name = "TheProject"
+        url = "example.com"
+        description = "This is an example project"
+    }
+    private var testProject2: Project = Project.stub(1, organization2).apply {
+        name = "huaweiName"
+        url = "huawei.com"
+        description = "test description"
     }
 
     @Autowired
@@ -139,17 +129,18 @@ class DownloadFilesTest {
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
-        val sampleFileInfo = tmpFile.toFileInfo()
-        val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "TheProject"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
+        val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
+        val fileKey = sampleFileInfo.key
+        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
 
         webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download")
+            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
+                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
@@ -168,7 +159,7 @@ class DownloadFilesTest {
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().name
+                    tmpFile.name, it.responseBody!!.first().key.name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
@@ -210,12 +201,12 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ShortFileInfo>()
+            .expectBody<FileInfo>()
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.toStorageKey() }
-                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
+                        .map { it.key }
+                        .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
                         .toFuture()
@@ -228,11 +219,9 @@ class DownloadFilesTest {
     fun `should save test data`() {
         val execution: Execution = mock()
         whenever(execution.id).thenReturn(1)
-        whenever(agentRepository.findByContainerId("container-1"))
-            .thenReturn(Agent("container-1", execution, "0.0.1"))
 
         webTestClient.post()
-            .uri("/internal/files/debug-info?agentId=container-1")
+            .uri("/internal/files/debug-info?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(
@@ -247,7 +236,6 @@ class DownloadFilesTest {
     }
 
     companion object {
-        @JvmStatic private val logger = LoggerFactory.getLogger(DownloadFilesTest::class.java)
         @TempDir internal lateinit var tmpDir: Path
 
         @DynamicPropertySource

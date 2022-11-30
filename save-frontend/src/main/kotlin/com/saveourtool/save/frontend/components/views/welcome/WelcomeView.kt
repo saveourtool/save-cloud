@@ -18,7 +18,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import csstype.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -34,7 +34,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 /**
  * [State] of project creation view component
@@ -96,7 +95,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
+    @Suppress(
+        "ForbiddenComment",
+        "LongMethod",
+        "TOO_LONG_FUNCTION",
+        "COMMENTED_OUT_CODE",
+    )
     override fun ChildrenBuilder.render() {
         main {
             className = ClassName("main-content mt-0 ps")
@@ -113,10 +117,11 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div {
-                    Particles::class.react {
+                    // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
+                    /* Particles::class.react {
                         id = "tsparticles"
                         url = "${window.location.origin}/particles.json"
-                    }
+                    }*/
 
                     className = ClassName("row")
                     // Marketing information
@@ -148,16 +153,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
                 div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        alignItems = AlignItems.center
-                        position = Position.absolute
-                        bottom = 7.em
-                        left = "50%".unsafeCast<Left>()
-                    }
+                    className = ClassName("row justify-content-center")
                     h1 {
                         className = ClassName("animate__animated animate__pulse animate__infinite")
                         style = jso {
@@ -292,6 +288,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
                 menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                if (props.userInfo.isSuperAdmin()) {
+                    hrNoMargin()
+                    menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }

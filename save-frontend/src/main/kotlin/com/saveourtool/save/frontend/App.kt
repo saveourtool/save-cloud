@@ -7,11 +7,16 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
+import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
+import com.saveourtool.save.frontend.components.views.demo.cpgView
+import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -24,22 +29,22 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
+import browser.document
 import csstype.ClassName
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.url.URLSearchParams
-import org.w3c.fetch.Headers
+import dom.html.HTMLElement
+import js.core.get
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
+import web.url.URLSearchParams
 
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -63,11 +68,12 @@ external interface AppState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
-    private val projectView: FC<Props> = withRouter { _, params ->
+    private val projectView: FC<Props> = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
         }
     }
     private val historyView: FC<Props> = withRouter { _, params ->
@@ -89,10 +95,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
         }
     }
-    private val contestView: FC<Props> = withRouter { _, params ->
+    private val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+        ContestGlobalRatingView::class.react {
+            organizationName = URLSearchParams(location.search).get("organizationName")
+            projectName = URLSearchParams(location.search).get("projectName")
+            this.location = location
+        }
+    }
+    private val contestView: FC<Props> = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = state.userInfo
             currentContestName = params["contestName"]
+            this.location = location
         }
     }
     private val contestExecutionView: FC<Props> = withRouter { _, params ->
@@ -103,10 +117,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             projectName = params["projectName"]!!
         }
     }
-    private val organizationView: FC<Props> = withRouter { _, params ->
+    private val creationView: FC<Props> = withRouter { _, params ->
+        CreationView::class.react {
+            organizationName = params["owner"]
+        }
+    }
+    private val organizationView: FC<Props> = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
+        }
+    }
+    private val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+        AwesomeBenchmarksView::class.react {
+            this.location = location
         }
     }
     private val fallbackNode = FallbackView::class.react.create {
@@ -128,7 +153,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         scope.launch {
             val userName: String? = get(
                 "${window.location.origin}/sec/user",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
@@ -138,7 +163,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
             val globalRole: Role? = get(
                 "${window.location.origin}/api/$v1/users/global-role",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
@@ -159,11 +184,31 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress(
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "ComplexMethod",
+    )
     override fun ChildrenBuilder.render() {
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
+
+                withRouter<Props> { location, _ ->
+                    if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.REGISTRATION.path}"
+                            replace = false
+                        }
+                    } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.PROJECTS.path}"
+                            replace = false
+                        }
+                    }
+                }()
+
                 div {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"
@@ -184,18 +229,63 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    element = AwesomeBenchmarksView::class.react.create()
+                                    path = "/${FrontendRoutes.ABOUT_US.path}"
+                                    element = AboutUsView::class.react.create()
                                 }
+
+                                Route {
+                                    path = "/${FrontendRoutes.DEMO.path}/diktat"
+                                    element = diktatDemoView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.DEMO.path}/cpg"
+                                    element = cpgView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.SANDBOX.path}"
+                                    element = SandboxView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                                    element = awesomeBenchmarksView.create()
+                                }
+
+                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
+                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView
+                                )
+
+                                Route {
+                                    path = "/${FrontendRoutes.REGISTRATION.path}"
+                                    element = RegistrationView::class.react.create() {
+                                        userInfo = state.userInfo
+                                    }
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    element = contestGlobalRatingView.create()
+                                }
+
+                                createRoutersWithPathAndEachListItem<UserRatingTab>("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", contestGlobalRatingView)
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
 
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView)
+
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
                                     element = contestExecutionView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName"
+                                    element = Navigate.create { to = "/${FrontendRoutes.CONTESTS.path}" }
                                 }
 
                                 Route {
@@ -234,14 +324,34 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     } ?: fallbackNode
                                 }
 
+                                state.userInfo?.name.run {
+                                    Route {
+                                        path = "/$this"
+                                        element = Navigate.create { to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}" }
+                                    }
+                                }
+
                                 Route {
                                     path = "/${FrontendRoutes.CREATE_PROJECT.path}"
                                     element = CreationView::class.react.create()
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
+                                    element = creationView.create()
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
                                     element = CreateOrganizationView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}"
+                                    element = when (state.userInfo.isSuperAdmin()) {
+                                        true -> OrganizationAdminView::class.react.create()
+                                        else -> fallbackNode
+                                    }
                                 }
 
                                 Route {
@@ -263,15 +373,19 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                Route {
-                                    path = "/:owner/:name"
-                                    element = projectView.create()
-                                }
+                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView)
 
                                 Route {
                                     path = "/:owner/:name/history"
                                     element = historyView.create()
                                 }
+
+                                Route {
+                                    path = "/:owner/:name"
+                                    element = projectView.create()
+                                }
+
+                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView)
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -300,6 +414,25 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
             scrollToTopButton()
         }
+    }
+}
+
+/**
+ * The function creates routers with the given [basePath] and ending of string with all the elements given Enum<T>
+ *
+ * @param basePath
+ * @param routeElement
+ */
+inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(basePath: String, routeElement: FC<Props>) {
+    enumValues<T>().map { it.name.lowercase() }.forEach { item ->
+        Route {
+            path = "$basePath/$item"
+            element = routeElement.create()
+        }
+    }
+    Route {
+        path = basePath
+        element = routeElement.create()
     }
 }
 

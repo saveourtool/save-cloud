@@ -1,27 +1,28 @@
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLOptionElement
-import org.w3c.dom.HTMLSelectElement
+import dom.html.HTMLDivElement
+import dom.html.HTMLOptionElement
+import dom.html.HTMLSelectElement
 import react.*
 import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
-    private val selectFormRequired = selectFormRequired<Organization>()
+    @Suppress("TYPE_ALIAS")
+    private val selectFormRequired: FC<SelectFormRequiredProps<OrganizationDto>> = selectFormRequired()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organizations/get/list") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response, listOf(
-                        Organization.stub(1).apply { name = "Test Organization 1" },
-                        Organization.stub(2),
-                        Organization.stub(3),
+                        OrganizationDto.empty.copy(name = "Test Organization 1"),
+                        OrganizationDto.empty,
+                        OrganizationDto.empty,
                     )
                 )
             }
@@ -44,6 +45,7 @@ class SelectFormTest {
                                 .decodeFromJsonString()
                         }
                         dataToString = { it.name }
+                        disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"
@@ -69,7 +71,7 @@ class SelectFormTest {
             rest.get("/api/$v1/organizations/get/list") { _, res, _ ->
                 res { response ->
                     mockMswResponse(
-                        response, emptyList<Organization>()
+                        response, emptyList<OrganizationDto>()
                     )
                 }
             }
@@ -87,6 +89,7 @@ class SelectFormTest {
                                 .decodeFromJsonString()
                         }
                         dataToString = { it.name }
+                        disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"

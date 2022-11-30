@@ -1,7 +1,5 @@
 import com.saveourtool.save.buildutils.*
 
-import org.apache.tools.ant.taskdefs.condition.Os
-
 plugins {
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
@@ -9,24 +7,31 @@ plugins {
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
-val databaseCredentials = getDatabaseCredentials(profile)
 
 liquibase {
     activities {
-        // Configuring luiquibase
+        val commonArguments = mapOf(
+            "logLevel" to "info",
+            "contexts" to when (profile) {
+                "prod" -> "prod"
+                "dev" -> "dev"
+                else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+            }
+        )
+        // Configuring liquibase
         register("main") {
+            arguments = mapOf("changeLogFile" to "db/db.changelog-master.xml") +
+                    getBackendDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
+        }
+        register("sandbox") {
             arguments = mapOf(
-                "changeLogFile" to "db/db.changelog-master.xml",
-                "url" to databaseCredentials.databaseUrl,
-                "username" to databaseCredentials.username,
-                "password" to databaseCredentials.password,
-                "logLevel" to "info",
-                "contexts" to when (profile) {
-                    "prod" -> "prod"
-                    "dev" -> "dev"
-                    else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
-                }
-            )
+                "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
+                "liquibaseSchemaName" to "save_sandbox",
+                "defaultSchemaName" to "save_sandbox",
+            ) +
+                    getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
         }
     }
 }
@@ -41,8 +46,7 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     @Suppress("MAGIC_NUMBER")
     this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
         // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13 on Windows; works on Mac
-        val javaVersion = if (Os.isFamily(Os.FAMILY_MAC)) 17 else 11
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        languageVersion.set(JavaLanguageVersion.of(11))
     })
 }
 

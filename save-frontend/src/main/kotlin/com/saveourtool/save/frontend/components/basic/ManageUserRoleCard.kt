@@ -7,31 +7,26 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.OWNER
+import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
-import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
-import csstype.None
-import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
-import react.dom.html.ReactHTML.datalist
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+val manageUserRoleCardComponent = manageUserRoleCardComponent()
 
 /**
  * [Props] for card component
@@ -53,24 +48,9 @@ external interface ManageUserRoleCardProps : Props {
     var groupType: String
 
     /**
-     * Flag that shows if the confirm windows was shown or not
-     */
-    var wasConfirmationModalShown: Boolean
-
-    /**
-     * Lambda to show error after fail response
-     */
-    var updateErrorMessage: (Response) -> Unit
-
-    /**
      * Lambda to get users from project/organization
      */
     var getUserGroups: (UserInfo) -> Map<String, Role>
-
-    /**
-     * Lambda to show warning if current user is super admin
-     */
-    var showGlobalRoleWarning: () -> Unit
 }
 
 /**
@@ -85,15 +65,12 @@ external interface ManageUserRoleCardProps : Props {
     "MAGIC_NUMBER",
     "ComplexMethod",
 )
-fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
-    val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
+private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
     val getUsersFromGroup = useDeferredRequest {
         val usersFromDb = get(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -104,82 +81,40 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
 
     val (roleChange, setRoleChange) = useState(SetRoleRequest("", Role.NONE))
     val updatePermissions = useDeferredRequest {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
         val response = post(
             "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-            headers,
+            jsonHeaders,
             Json.encodeToString(roleChange),
             loadingHandler = ::noopLoadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response)
-        } else {
+        if (response.ok) {
             getUsersFromGroup()
         }
     }
 
     val (userToAdd, setUserToAdd) = useState(UserInfo(""))
-    val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
-    val getUsersNotFromGroup = debounce(
-        useDeferredRequest {
-            val headers = Headers().apply {
-                set("Accept", "application/json")
-                set("Content-Type", "application/json")
-            }
-            val users = get(
-                url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
-                headers = headers,
-                loadingHandler = ::noopLoadingHandler,
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<List<UserInfo>>()
-                }
-            setUsersNotFromGroup(users)
-        },
-        DEFAULT_DEBOUNCE_PERIOD,
-    )
     val addUserToGroup = useDeferredRequest {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
         val response = post(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-            headers = headers,
+            headers = jsonHeaders,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
-            setChangeUsersFromGroup { !it }
             getUsersFromGroup()
-            setUsersNotFromGroup(emptyList())
-        } else {
-            props.updateErrorMessage(response)
         }
     }
 
     val (userToDelete, setUserToDelete) = useState(UserInfo(""))
     val deleteUser = useDeferredRequest {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
         val response = delete(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
-            headers = headers,
-            body = Json.encodeToString(userToDelete),
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-        if (!response.ok) {
-            props.updateErrorMessage(response)
-        } else {
-            setChangeUsersFromGroup { !it }
+        if (response.ok) {
             getUsersFromGroup()
-            setUsersNotFromGroup(emptyList())
         }
     }
 
@@ -187,17 +122,15 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     useRequest {
         val role = get(
             "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
-            props.showGlobalRoleWarning()
+        if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
+            showGlobalRoleConfirmation()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
@@ -209,30 +142,23 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
         div {
-            className = ClassName("row mt-0 ml-0 mr-0")
+            className = ClassName("row mt-0 ml-0 mr-0 shadow-sm rounded")
             div {
                 className = ClassName("input-group")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    id = "input-users-to-add"
-                    list = "complete-users-to-add"
+                inputWithDebounceForUserInfo {
+                    getOptionFromString = { UserInfo(it) }
+                    selectedOption = userToAdd
+                    setSelectedOption = { setUserToAdd(it) }
+                    getUrlForOptions = { prefix -> "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=$prefix" }
+                    getString = { it.name }
                     placeholder = "username"
-                    value = userToAdd.name
-                    onChange = {
-                        setUserToAdd(UserInfo(it.target.value))
-                        getUsersNotFromGroup()
-                    }
-                }
-                datalist {
-                    id = "complete-users-to-add"
-                    style = jso {
-                        appearance = None.none
-                    }
-                    for (user in usersNotFromGroup) {
-                        option {
-                            value = user.name
-                            label = user.source ?: ""
+                    decodeListFromJsonString = { it.decodeFromJsonString() }
+                    getHTMLDataListElementFromOption = { childrenBuilder, userInfo ->
+                        with(childrenBuilder) {
+                            option {
+                                value = userInfo.name
+                                label = userInfo.source
+                            }
                         }
                     }
                 }
@@ -244,6 +170,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                         onClick = {
                             addUserToGroup()
                         }
+                        disabled = userToAdd.name.isBlank()
                         +"Add user"
                     }
                 }
@@ -276,10 +203,11 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                 div {
                     className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
-                        val canDelete = selfRole == Role.SUPER_ADMIN ||
-                                selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                        val canDelete = selfRole.isSuperAdmin() ||
+                                selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
                                 userRole.isLowerThan(selfRole)
                         id = "remove-user-$userIndex"
                         hidden = !canDelete
@@ -306,8 +234,8 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                                     +it.formattedName
                                 }
                             }
-                        disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) ||
-                                !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
+                        disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
+                                !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
                     }
                 }
             }
@@ -319,5 +247,5 @@ private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = othe
 
 private fun rolesAssignableBy(role: Role) = Role.values()
     .filter { it != Role.NONE }
-    .filter { it != Role.SUPER_ADMIN }
-    .filter { role == Role.OWNER || it.isLowerThan(role) || role == it }
+    .filterNot(Role::isSuperAdmin)
+    .filter { role == OWNER || it.isLowerThan(role) || role == it }

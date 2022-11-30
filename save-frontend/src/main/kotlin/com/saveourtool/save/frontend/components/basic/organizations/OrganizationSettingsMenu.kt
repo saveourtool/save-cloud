@@ -3,23 +3,26 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.isSuperAdmin
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
+import com.saveourtool.save.validation.FrontendRoutes
 
+import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-
-import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.router.useNavigate
 
-private val organizationPermissionManagerCard = manageUserRoleCardComponent()
+import kotlinx.browser.window
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -48,14 +51,10 @@ external interface OrganizationSettingsMenuProps : Props {
     var selfRole: Role
 
     /**
-     * Callback to delete organization
-     */
-    var deleteOrganizationCallback: () -> Unit
-
-    /**
      * Callback to show error message
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Callback to show notification message
@@ -65,12 +64,29 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Current organization
      */
-    var organization: Organization
+    var organization: OrganizationDto
 
     /**
      * Callback invoked in order to change canCreateContests flag
      */
     var onCanCreateContestsChange: (Boolean) -> Unit
+}
+
+/**
+ * Makes a call to change project status
+ *
+ * @param organizationName name of the organization whose status will be changed
+ * @param status is new status
+ * @return lazy response
+ */
+fun responseChangeOrganizationStatus(organizationName: String, status: OrganizationStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }
 
 @Suppress(
@@ -82,7 +98,8 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
+
+    val navigate = useNavigate()
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -92,14 +109,11 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
             }
-            organizationPermissionManagerCard {
+            manageUserRoleCardComponent {
                 selfUserInfo = props.currentUserInfo
                 groupPath = organizationPath
                 groupType = "organization"
-                this.wasConfirmationModalShown = wasConfirmationModalShown
-                updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.organizations }
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -112,9 +126,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             organizationGitCredentialsManageCard {
                 selfUserInfo = props.currentUserInfo
                 organizationName = props.organizationName
-                this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         div {
@@ -125,7 +137,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
             div {
                 className = ClassName("card card-body mt-0 p-0")
-                if (props.selfRole == Role.SUPER_ADMIN) {
+                if (props.selfRole.isSuperAdmin()) {
                     div {
                         className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
                         div {
@@ -151,14 +163,36 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-danger")
-                        disabled = !props.selfRole.hasDeletePermission()
-                        onClick = {
-                            props.deleteOrganizationCallback()
+                    actionButton {
+                        title = "WARNING: About to delete this organization..."
+                        errorTitle = "You cannot delete the organization ${props.organizationName}"
+                        message = "Are you sure you want to delete the organization ${props.organizationName}?"
+                        clickMessage = "Also ban this organization"
+                        buttonStyleBuilder = { childrenBuilder ->
+                            with(childrenBuilder) {
+                                +"Delete ${props.organizationName}"
+                            }
                         }
-                        +"Delete organization"
+                        classes = "btn btn-sm btn-danger"
+                        modalButtons = { action, window, childrenBuilder ->
+                            with(childrenBuilder) {
+                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                    action()
+                                    window.closeWindow()
+                                }
+                                buttonBuilder("Cancel") {
+                                    window.closeWindow()
+                                }
+                            }
+                        }
+                        onActionSuccess = { _ ->
+                            navigate(to = "/${FrontendRoutes.PROJECTS}")
+                        }
+                        conditionClick = props.currentUserInfo.isSuperAdmin()
+                        sendRequest = { isBanned ->
+                            val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
+                            responseChangeOrganizationStatus(props.organizationName, newStatus)
+                        }
                     }
                 }
             }

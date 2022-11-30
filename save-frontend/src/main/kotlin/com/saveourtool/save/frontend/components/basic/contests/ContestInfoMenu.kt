@@ -8,11 +8,9 @@ import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
-
-import kotlinx.js.jso
 
 private val columnCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
@@ -36,19 +34,17 @@ external interface ContestInfoMenuProps : Props {
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
-    val (contest, setContest) = useState<ContestDto?>(null)
+    var contest by useState<ContestDto?>(null)
     useRequest {
         val contestDto = get(
             "$apiUrl/contests/${props.contestName}",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString<ContestDto>()
             }
-        setContest(contestDto)
+        contest = contestDto
     }
 
     div {
@@ -77,6 +73,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
             +"Public tests"
         }
         publicTestComponent {
+            this.contestTestSuites = contest?.testSuites ?: emptyList()
             this.contestName = props.contestName ?: ""
         }
     }

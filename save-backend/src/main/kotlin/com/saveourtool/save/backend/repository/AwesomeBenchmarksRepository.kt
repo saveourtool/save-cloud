@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.benchmarks.AwesomeBenchmarks
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
@@ -9,4 +9,4 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-interface AwesomeBenchmarksRepository : BaseEntityRepository<AwesomeBenchmarks>, JpaSpecificationExecutor<AwesomeBenchmarks>
+interface AwesomeBenchmarksRepository : BaseEntityRepository<AwesomeBenchmarks>

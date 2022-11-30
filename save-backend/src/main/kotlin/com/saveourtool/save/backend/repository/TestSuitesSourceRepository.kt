@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
@@ -26,14 +27,12 @@ interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
     /**
      * @param organization
      * @param git
-     * @param branch
      * @param testRootPath
      * @return found entity or null
      */
-    fun findByOrganizationAndGitAndBranchAndTestRootPath(
+    fun findByOrganizationAndGitAndTestRootPath(
         organization: Organization,
         git: Git,
-        branch: String,
         testRootPath: String
     ): TestSuitesSource?
 

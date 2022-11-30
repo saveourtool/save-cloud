@@ -2,16 +2,19 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toFileKeyList
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
-import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -20,7 +23,6 @@ import javax.persistence.ManyToOne
  * @property startTime
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
- * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
@@ -39,12 +41,13 @@ import javax.persistence.ManyToOne
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property testSuiteSourceName
+ * @property score a rating of this execution. Specific meaning may vary depending on [type]
  */
 @Suppress("LongParameterList")
 @Entity
 class Execution(
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "project_id")
     var project: Project,
 
@@ -55,12 +58,10 @@ class Execution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
 
-    var testSuiteIds: String?,
-
     var batchSize: Int?,
 
     @Enumerated(EnumType.STRING)
-    var type: ExecutionType,
+    var type: TestingType,
 
     var version: String?,
 
@@ -96,52 +97,59 @@ class Execution(
 
     var testSuiteSourceName: String?,
 
+    var score: Double?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ExecutionDto(
-        id!!,
-        status,
-        type,
-        version,
-        startTime.toEpochSecond(ZoneOffset.UTC),
-        endTime?.toEpochSecond(ZoneOffset.UTC),
-        allTests,
-        runningTests,
-        passedTests,
-        failedTests,
-        skippedTests,
-        unmatchedChecks,
-        matchedChecks,
-        expectedChecks,
-        unexpectedChecks,
-        testSuiteSourceName,
+        id = id!!,
+        status = status,
+        type = type,
+        version = version,
+        startTime = startTime.toEpochSecond(ZoneOffset.UTC),
+        endTime = endTime?.toEpochSecond(ZoneOffset.UTC),
+        allTests = allTests,
+        runningTests = runningTests,
+        passedTests = passedTests,
+        failedTests = failedTests,
+        skippedTests = skippedTests,
+        unmatchedChecks = unmatchedChecks,
+        matchedChecks = matchedChecks,
+        expectedChecks = expectedChecks,
+        unexpectedChecks = unexpectedChecks,
+        testSuiteSourceName = testSuiteSourceName,
+        score = score,
     )
 
     /**
-     * Parse and get testSuiteIds as List<Long>
-     *
-     * @return list of TestSuite IDs
-     */
-    fun parseAndGetTestSuiteIds(): List<Long>? = parseAndGetTestSuiteIds(this.testSuiteIds)
-
-    /**
-     * Format and set provided list of TestSuite IDs
-     *
-     * @param testSuiteIds list of TestSuite IDs
-     */
-    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = formatTestSuiteIds(testSuiteIds)
-    }
-
-    /**
-     * Parse and get additionalFiles as List<String>
+     * Parse and get additionalFiles as [List] of [FileKey]
      *
      * @return list of keys [FileKey] of additional files
      */
-    fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
+    fun getFileKeys(): List<FileKey> = additionalFiles.toFileKeyList(project.toProjectCoordinates())
+
+    /**
+     * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]
+     * @param saveAgentUrl an url to download save-agent
+     * @return [RunExecutionRequest] created from current entity
+     */
+    fun toRunRequest(
+        saveAgentVersion: String,
+        saveAgentUrl: String,
+    ): RunExecutionRequest {
+        require(status == ExecutionStatus.PENDING) {
+            "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
+        }
+        return RunExecutionRequest(
+            executionId = requiredId(),
+            sdk = sdk.toSdk(),
+            saveAgentVersion = saveAgentVersion,
+            saveAgentUrl = saveAgentUrl,
+        )
+    }
 
     companion object {
         /**
@@ -155,9 +163,8 @@ class Execution(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.RUNNING,
-            testSuiteIds = null,
             batchSize = 20,
-            type = ExecutionType.GIT,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             allTests = 0,
             runningTests = 0,
@@ -174,6 +181,7 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
             testSuiteSourceName = "",
+            score = null,
         )
 
         /**

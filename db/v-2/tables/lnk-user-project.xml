@@ -43,4 +43,50 @@
     <addUniqueConstraint tableName="lnk_user_project" columnNames="user_id, project_id" constraintName="user_project_constraint"/>
   </changeSet>
 
+  <changeSet id="remove-and-add-fk-lnk-user-project" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_project"/>
+    <addForeignKeyConstraint baseColumnNames="project_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_project"
+      referencedColumnNames="id"
+      referencedTableName="project"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_user"/>
+    <addForeignKeyConstraint baseColumnNames="user_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="remove-project-user-id" author="nulls">
+    <sql>
+      update lnk_user_project
+      set role = 'OWNER'
+      where exists(
+      select * from project where project.user_id = user_id and project.id = project_id
+      );
+      insert into lnk_user_project(user_id, project_id, role)
+      select user_id, id, 'OWNER'
+      from project
+      where user_id is not NULL
+      and not exists(
+      select * from lnk_user_project where user_id = project.user_id and project_id = project.id
+      );
+    </sql>
+    <dropForeignKeyConstraint baseTableName="project" constraintName="fk_project_user"/>
+    <dropColumn tableName="project">
+      <column name="user_id"/>
+    </dropColumn>
+  </changeSet>
+
+  <changeSet id="lnk-user-project-5" author="frolov">
+    <delete tableName="lnk_user_project">
+      <where>role is NULL or role='NONE'</where>
+    </delete>
+    <addNotNullConstraint tableName="lnk_user_project" columnName="role" columnDataType="varchar(250)"/>
+  </changeSet>
+
 </databaseChangeLog>

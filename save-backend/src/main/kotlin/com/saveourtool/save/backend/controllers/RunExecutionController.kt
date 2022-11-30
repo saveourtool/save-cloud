@@ -1,18 +1,20 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.EmptyResponse
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.blockingToMono
-import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.request.CreateExecutionRequest
+import com.saveourtool.save.spring.utils.applyAll
+import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -20,8 +22,10 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -48,15 +52,18 @@ class RunExecutionController(
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientOrchestrator = WebClient.builder()
         .baseUrl(configProperties.orchestratorUrl)
         .codecs {
             it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
         }
+        .applyAll(customizers)
         .build()
     private val scheduler = Schedulers.boundedElastic()
 
@@ -67,11 +74,12 @@ class RunExecutionController(
      */
     @PostMapping("/trigger")
     fun trigger(
-        @RequestBody request: RunExecutionRequest,
+        @RequestBody request: CreateExecutionRequest,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
-        .map {
+        .validateContestEnrollment(request)
+        .flatMap {
             executionService.createNew(
                 projectCoordinates = request.projectCoordinates,
                 testSuiteIds = request.testSuiteIds,
@@ -79,7 +87,9 @@ class RunExecutionController(
                 username = authentication.username(),
                 sdk = request.sdk,
                 execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer
+                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                testingType = request.testingType,
+                contestName = request.contestName,
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
@@ -101,13 +111,17 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { executionService.findExecution(executionId) }
         .switchIfEmptyToNotFound { "Not found execution id = $executionId" }
+        .filter { it.type != TestingType.CONTEST_MODE }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Rerun is not supported for executions that were performed under a contest"
+        }
         .validateAccess(authentication) { execution ->
             ProjectCoordinates(
                 execution.project.organization.name,
                 execution.project.name
             )
         }
-        .map { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { executionService.createNewCopy(it, authentication.username()) }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
@@ -133,13 +147,24 @@ class RunExecutionController(
                 }.map { value }
             }
 
+    @Suppress("UnsafeCallOnNullableType")
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: CreateExecutionRequest) =
+            filter { projectCoordinates ->
+                if (request.testingType == TestingType.CONTEST_MODE) {
+                    lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+                } else {
+                    true
+                }
+            }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
+                }
+
     @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
         val executionId = execution.requiredId()
         blockingToMono {
-            val tests = execution.parseAndGetTestSuiteIds()
-                .orEmpty()
-                .flatMap { testService.findTestsByTestSuiteId(it) }
+            val tests = testService.findTestsByExecutionId(executionId)
             log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
             meterRegistry.timer("save.backend.saveTestExecution").record {
                 testExecutionService.saveTestExecutions(execution, tests)
@@ -179,14 +204,20 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution)
+        .bodyValue(
+            execution.toRunRequest(
+                saveAgentVersion = SAVE_CLOUD_VERSION,
+                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
+            )
+        )
         .retrieve()
         .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
-            ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")
+            ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()
+        internal const val RESPONSE_BODY_PREFIX = "Clone pending, execution id is "
     }
 }

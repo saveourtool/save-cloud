@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.useTooltipAndPopover
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -25,19 +25,19 @@ import react.dom.html.ReactHTML.sup
 /**
  * constant FC to avoid re-creation
  */
-val inputTextFormOptionalWrapperConst = inputTextFormOptionalWrapper()
+val inputTextFormOptional = inputTextFormOptionalWrapper()
 
 /**
- * Properties for a inputTextFormOptional FC
+ * Properties for a [inputTextFormOptional]
  */
 external interface InputTextFormOptionalProps : Props {
     /**
-     * type of a form
+     * Type of form
      */
     var form: InputTypes
 
     /**
-     * value for the input
+     * Current input value
      */
     var textValue: String?
 
@@ -47,22 +47,22 @@ external interface InputTextFormOptionalProps : Props {
     var classes: String
 
     /**
-     * label that will be used in a description of an input form
+     * Label that will be displayed as an input title
      */
     var name: String?
 
     /**
-     * check (this check will be used to validate an input and mark it red or green)
+     * Flag that indicates if current [textValue] is valid or not
      */
     var validInput: Boolean?
 
     /**
-     * text of an error in case of invalid input
+     * Conflict error message received from backend
      */
-    var errorText: String?
+    var conflictMessage: String?
 
     /**
-     * lambda for a change of input form
+     * Callback invoked when [textValue] changed
      */
     var onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 }
@@ -71,13 +71,11 @@ external interface InputTextFormOptionalProps : Props {
  * Unfortunately we had to wrap temporary this method with FC because of a useEffect statement
  *
  * @param form
+ * @param textValue
  * @param classes
  * @param name
  * @param validInput
  * @param onChangeFun
- * @param errorText
- * @param textValue
- * @param onClickFun
  * @return div with an input form
  */
 @Suppress(
@@ -92,6 +90,7 @@ private fun ChildrenBuilder.inputTextFormOptional(
     classes: String,
     name: String?,
     validInput: Boolean?,
+    conflictErrorMessage: String?,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit,
 ) {
     div {
@@ -136,7 +135,7 @@ private fun ChildrenBuilder.inputTextFormOptional(
                 ClassName("form-control is-invalid")
             }
         }
-        if (validInput == false && !textValue.isNullOrEmpty()) {
+        if (conflictErrorMessage == null && validInput == false && !textValue.isNullOrEmpty()) {
             div {
                 className = ClassName("invalid-feedback d-block")
                 +(form.errorMessage ?: "Please input a valid ${form.str}")
@@ -148,15 +147,15 @@ private fun ChildrenBuilder.inputTextFormOptional(
 /**
  * @return functional component (wrapper for ChildrenBuilder)
  */
-fun inputTextFormOptionalWrapper() = FC<InputTextFormOptionalProps> { props ->
+private fun inputTextFormOptionalWrapper() = FC<InputTextFormOptionalProps> { props ->
+    useTooltipAndPopover()
     inputTextFormOptional(
         props.form,
         props.textValue,
         props.classes,
         props.name,
         props.validInput,
-        props.onChangeFun
+        props.conflictMessage,
+        props.onChangeFun,
     )
-
-    useTooltipAndPopover()
 }

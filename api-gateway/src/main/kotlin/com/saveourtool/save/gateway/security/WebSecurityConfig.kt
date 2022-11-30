@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.gateway.security
 
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
-import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -84,12 +84,14 @@ class WebSecurityConfig(
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
+                "/demo/api/**",
+                "/neo4j/**",
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**")
+                .pathMatchers("/api/**", "/sandbox/api/**")
                 .access { authentication, authorizationContext ->
                     AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                         authentication, authorizationContext

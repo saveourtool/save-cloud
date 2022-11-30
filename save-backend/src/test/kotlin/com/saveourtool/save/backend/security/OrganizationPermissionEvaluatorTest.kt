@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -33,6 +33,8 @@ class OrganizationPermissionEvaluatorTest {
     @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockOrganization: Organization
 
+    private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()
+
     @BeforeEach
     fun setUp() {
         mockOrganization = Organization.stub(99)
@@ -40,18 +42,17 @@ class OrganizationPermissionEvaluatorTest {
 
     @Test
     fun `permissions for organization owners`() {
-        mockOrganization.ownerId = 99
         userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
+            "super_admin", Role.SUPER_ADMIN, Role.OWNER,  *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, Role.OWNER, *Permission.values(), userId = 99
+            "admin", Role.ADMIN, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, Role.OWNER, *Permission.values(), userId = 99
+            "owner", Role.OWNER, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, Role.OWNER, *Permission.values(), userId = 99
+            "viewer", Role.VIEWER, Role.OWNER, *ownerPermissions, userId = 99
         )
     }
 

@@ -1,11 +1,13 @@
 package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
+
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.Resource
@@ -14,8 +16,10 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.time.Instant
 
 /**
@@ -24,11 +28,11 @@ import java.time.Instant
 @Service
 class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
-    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backend)
-        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .applyAll(customizers)
         .build()
 
     /**
@@ -50,6 +54,13 @@ class TestsPreprocessorToBackendBridge(
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(BodyInserters.fromMultipartData("content", resourceWithContent))
         .retrieve()
+        .onStatus({ !it.is2xxSuccessful }) {
+            Mono.error(
+                IllegalStateException("Failed to upload test suite source snapshot",
+                    ResponseStatusException(it.statusCode())
+                )
+            )
+        }
         .bodyToMono()
 
     /**
@@ -65,76 +76,33 @@ class TestsPreprocessorToBackendBridge(
                 .bodyToMono()
 
     /**
+     * @param testSuiteDto
+     * @return saved [TestSuite]
+     */
+    fun saveTestSuite(testSuiteDto: TestSuiteDto): Mono<TestSuite> = webClientBackend.post()
+        .uri("/test-suites/save")
+        .bodyValue(testSuiteDto)
+        .retrieve()
+        .bodyToMono()
+
+    /**
      * @param testSuitesSource
-     * @return list of [TestSuitesSourceSnapshotKey] related to [testSuitesSource]
-     */
-    fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Mono<TestSuitesSourceSnapshotKeyList> =
-            webClientBackend.get()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/list-snapshot",
-                    testSuitesSource.organizationName, testSuitesSource.name)
-                .retrieve()
-                .bodyToMono()
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
      * @param version
-     * @return list of [TestSuite]
+     * @return empty response
      */
-    fun getTestSuites(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String
-    ) = webClientBackend.get()
-        .uri(
-            "/test-suites-sources/{organizationName}/{testSuitesSourceName}/get-test-suites?version={version}",
-            organizationName, testSuitesSourceName, version
-        )
-        .retrieve()
-        .bodyToMono<List<TestSuite>>()
-
-    /**
-     * @param organizationName
-     * @param gitUrl
-     * @param testRootPath
-     * @param branch
-     * @return created of existed [TestSuitesSourceDto]
-     */
-    fun getOrCreateTestSuitesSource(
-        organizationName: String,
-        gitUrl: String,
-        testRootPath: String,
-        branch: String
-    ): Mono<TestSuitesSourceDto> = webClientBackend.post()
-        .uri(
-            "/test-suites-sources/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
-            organizationName,
-            gitUrl,
-            testRootPath,
-            branch
-        )
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * Will be removed in phase 3
-     *
-     * @return list of standard test suites sourcers
-     */
-    fun getStandardTestSuitesSources(): Mono<TestSuitesSourceDtoList> = webClientBackend.get()
-        .uri("/test-suites-sources/get-standard")
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param testSuiteDtos
-     * @return list of saved [TestSuite]
-     */
-    fun saveTestSuites(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> = webClientBackend.post()
-        .uri("/saveTestSuites")
-        .bodyValue(testSuiteDtos)
-        .retrieve()
-        .bodyToMono()
+    fun deleteTestSuitesAndSourceSnapshot(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Unit> =
+            webClientBackend.delete()
+                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-test-suites-and-snapshot?version={version}",
+                    testSuitesSource.organizationName, testSuitesSource.name, version)
+                .retrieve()
+                .bodyToMono<Boolean>()
+                .map { isDeleted ->
+                    with(testSuitesSource) {
+                        log.debug {
+                            "Result of delete operation for $name in $organizationName is $isDeleted"
+                        }
+                    }
+                }
 
     /**
      * @param tests

@@ -4,14 +4,18 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.SUPER_ADMIN
+import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import dom.html.HTMLInputElement
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
 import react.ChildrenBuilder
+import react.StateSetter
+import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
@@ -20,21 +24,32 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * @return a nicely formatted string representation of [FileInfo]
+ * An error message.
  */
-@Suppress("MAGIC_NUMBER", "MagicNumber")
-fun FileInfo.toPrettyString() = "$name (uploaded at ${
-    Instant.fromEpochMilliseconds(uploadedMillis).toLocalDateTime(
-        TimeZone.UTC
-    )
-}, size ${sizeBytes / 1024} KiB)"
+internal typealias ErrorMessage = String
+
+/**
+ * A generic error handler.
+ */
+internal typealias ErrorHandler = (ErrorMessage) -> Unit
+
+/**
+ * The body of a [useDeferredRequest] invocation.
+ *
+ * @param T the return type of this action.
+ */
+internal typealias DeferredRequestActionWithMessage<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
+
+/**
+ * The body of a [useDeferredRequest] invocation.
+ *
+ * @param T the return type of this action.
+ */
+internal typealias DeferredRequestAction<T> = suspend (WithRequestStatusContext) -> T
 
 /**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization
@@ -59,6 +74,35 @@ inline fun <reified T> FormData.appendJson(name: String, obj: T) =
 fun String.toRole() = Role.values().find {
     this == it.formattedName || this == it.toString()
 } ?: throw IllegalStateException("Unknown role is passed: $this")
+
+/**
+ * @return lambda which does the same as receiver but takes unused arg
+ */
+fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+        { event -> this(event.target.value) }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+        { event -> this(event.target.value) }
+
+/**
+ * @return `true` if this user is a super-admin, `false` otherwise.
+ * @see Role.isSuperAdmin
+ */
+internal fun UserInfo?.isSuperAdmin(): Boolean = this?.globalRole.isSuperAdmin()
+
+/**
+ * @return `true` if this is a super-admin role, `false` otherwise.
+ * @see UserInfo.isSuperAdmin
+ */
+internal fun Role?.isSuperAdmin(): Boolean = this?.isHigherOrEqualThan(SUPER_ADMIN) ?: false
 
 /**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
@@ -103,3 +147,14 @@ internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
+
+/**
+ * @param digits number of digits to round to
+ */
+internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)
+
+/**
+ * @param digits number of digits to round to
+ * @return rounded value as String
+ */
+internal fun Double.toFixedStr(digits: Int) = toFixed(digits).toString()

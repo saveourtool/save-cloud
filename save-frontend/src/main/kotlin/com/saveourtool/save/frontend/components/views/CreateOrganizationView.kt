@@ -9,10 +9,13 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import csstype.Width
+import js.core.jso
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
@@ -26,7 +29,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -37,7 +39,7 @@ external interface OrganizationSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithOrganizationSave: Boolean?
+    var isErrorWithOrganizationSave: Boolean
 
     /**
      * Error message
@@ -107,12 +109,10 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         "MAGIC_NUMBER"
     )
     override fun ChildrenBuilder.render() {
-        runErrorModal(
-            state.isErrorWithOrganizationSave,
-            "Error appeared during organization creation",
-            state.errorMessage
-        ) {
-            setState { isErrorWithOrganizationSave = false }
+        displayModal(state.isErrorWithOrganizationSave, "Creation error", state.errorMessage, mediumTransparentModalStyle, { setState { isErrorWithOrganizationSave = false } }) {
+            buttonBuilder("Close", "secondary") {
+                setState { isErrorWithOrganizationSave = false }
+            }
         }
 
         main {
@@ -144,16 +144,18 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                 form {
                                     className = ClassName("needs-validation")
                                     div {
-                                        inputTextFormRequired(
-                                            InputTypes.ORGANIZATION_NAME,
-                                            state.organizationDto.name,
-                                            (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null,
-                                            "",
-                                            "Organization name",
-                                        ) {
-                                            setState {
-                                                organizationDto = organizationDto.copy(name = it.target.value)
-                                                conflictErrorMessage = null
+                                        inputTextFormRequired {
+                                            form = InputTypes.ORGANIZATION_NAME
+                                            conflictMessage = state.conflictErrorMessage
+                                            textValue = state.organizationDto.name
+                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null
+                                            classes = ""
+                                            name = "Organization name"
+                                            onChangeFun = {
+                                                setState {
+                                                    organizationDto = organizationDto.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
+                                                }
                                             }
                                         }
                                     }

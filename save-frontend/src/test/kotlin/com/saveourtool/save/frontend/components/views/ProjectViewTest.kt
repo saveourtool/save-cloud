@@ -8,38 +8,34 @@ import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 import react.create
 import react.react
 
 import kotlin.js.Promise
 import kotlin.test.*
-import kotlinx.js.jso
+import js.core.jso
 
 class ProjectViewTest {
-    private val testOrganization = Organization(
-        "TestOrg",
-        OrganizationStatus.CREATED,
-        2,
-        LocalDateTime(2022, 6, 1, 12, 25),
-    )
-    private val testProject = Project(
-        "TestProject",
-        null,
-        "Project Description",
-        ProjectStatus.CREATED,
-        true,
-        2,
-        "email@test.org",
-        organization = testOrganization,
-    )
+    private val testOrganization = OrganizationDto.empty
+        .copy(
+            name = "TestOrg",
+            dateCreated = LocalDateTime(2022, 6, 1, 12, 25),
+        )
+    private val testProject = ProjectDto.empty
+        .copy(
+            name = "TestProject",
+            description = "Project Description",
+            isPublic = true,
+            email = "email@test.org",
+            organizationName = testOrganization.name,
+        )
     private val testUserInfo = UserInfo(
         "TestUser",
-        "basic",
-        mapOf(testProject.name to Role.VIEWER),
-        mapOf(testOrganization.name to Role.VIEWER),
+        source = "basic",
+        projects = mapOf(testProject.name to Role.VIEWER),
+        organizations = mapOf(testOrganization.name to Role.VIEWER),
         globalRole = Role.SUPER_ADMIN,
     )
 
@@ -58,14 +54,6 @@ class ProjectViewTest {
                 mockMswResponse(
                     response,
                     testUserInfo.projects[testProject.name]
-                )
-            }
-        },
-        rest.get("$apiUrl/allStandardTestSuites") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    emptyList<TestSuiteDto>()
                 )
             }
         },

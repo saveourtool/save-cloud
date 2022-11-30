@@ -19,13 +19,15 @@ import kotlinx.serialization.Serializable
  * @property expectedChecks
  * @property unexpectedChecks
  * @property testSuiteSourceName
+ * @property score see [Execution.score]
+ * @property testSuiteSourceName
  */
 @Serializable
 @Suppress("LongParameterList")
 data class ExecutionDto(
     val id: Long,
     val status: ExecutionStatus,
-    val type: ExecutionType,
+    val type: TestingType,
     val version: String?,
     val startTime: Long,
     val endTime: Long?,
@@ -39,12 +41,13 @@ data class ExecutionDto(
     val expectedChecks: Long,
     val unexpectedChecks: Long,
     val testSuiteSourceName: String?,
+    val score: Double?,
 ) {
     companion object {
         val empty = ExecutionDto(
             id = -1,
             status = ExecutionStatus.PENDING,
-            type = ExecutionType.STANDARD,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             startTime = -1,
             endTime = null,
@@ -58,6 +61,7 @@ data class ExecutionDto(
             expectedChecks = 0,
             unexpectedChecks = 0,
             testSuiteSourceName = "",
+            score = null,
         )
     }
 }

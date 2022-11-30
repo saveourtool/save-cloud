@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -19,17 +20,23 @@ import react.useContext
 import react.useEffect
 import react.useState
 
+import kotlin.js.undefined
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
 
 val apiUrl = "${window.location.origin}/api/$v1"
+val demoApiUrl = "${window.location.origin}/demo/api"
+val cpgDemoApiUrl = "${window.location.origin}/cpg/api"
 
 val jsonHeaders = Headers().apply {
     set("Accept", "application/json")
     set("Content-Type", "application/json")
 }
+
+typealias DtoWithIdList<T> = List<DtoWithId<T>>
 
 /**
  * Interface for objects that have access to [requestStatusContext]
@@ -58,11 +65,45 @@ interface WithRequestStatusContext {
 }
 
 /**
- * Get errors from backend (Spring Boot returns errors in message part of json)
+ * Gets errors from the back-end (_Spring Boot_ returns errors in the `message`
+ * part of JSON).
  *
- * @return message part of json response
+ * @return the `message` part of JSON response, or "null" if the `message` is
+ *   `null`.
+ * @see Response.unpackMessageOrNull
+ * @see Response.unpackMessageOrHttpStatus
  */
-suspend fun Response.unpackMessage(): String = json().await().asDynamic()["message"].toString()
+suspend fun Response.unpackMessage(): String = unpackMessageOrNull().toString()
+
+/**
+ * Gets errors from the back-end (_Spring Boot_ returns errors in the `message`
+ * part of JSON).
+ *
+ * @return the `message` part of JSON response (may well be `null`).
+ * @see Response.unpackMessage
+ * @see Response.unpackMessageOrHttpStatus
+ */
+suspend fun Response.unpackMessageOrNull(): String? {
+    /*
+     * Sometimes the message returned is `null`, so, to avoid a `TypeError`
+     * being thrown, this needs to be declared as `Any?` rather than `dynamic`.
+     */
+    val message: Any? = json().await().asDynamic()["message"]
+    return message?.toString()
+}
+
+/**
+ * Gets errors from the back-end (_Spring Boot_ returns errors in the `message`
+ * part of JSON).
+ *
+ * @return the `message` part of JSON response, or the HTTP status line (in the
+ *   form of "HTTP 418 I'm a teapot").
+ * @see Response.unpackMessage
+ * @see Response.unpackMessageOrNull
+ */
+suspend fun Response.unpackMessageOrHttpStatus(): String =
+        unpackMessageOrNull()
+            ?: "HTTP $status $statusText"
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -83,6 +124,40 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
  * @return response body deserialized as [T]
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
+
+/**
+ * A temporary workaround till migrated to JS Frontend IR: https://github.com/Kotlin/kotlinx.serialization/issues/1448
+ *
+ * @return response body deserialized as [List] of [DtoWithId] with content with type [T]
+ */
+suspend inline fun <reified T> Response.decodeListDtoWithIdFromJsonString(): DtoWithIdList<T> = text().await()
+    .let { Json.parseToJsonElement(it) }
+    .jsonArray
+    .map { it.jsonObject }
+    .map { jsonObject ->
+        val id = requireNotNull(jsonObject["id"]?.jsonPrimitive?.longOrNull)
+        val content: T = Json.decodeFromJsonElement(requireNotNull(jsonObject["content"]))
+        DtoWithId(id, content)
+    }
+
+/**
+ * Read [this] Response body as text and deserialize it using [Json] to [JsonObject] and take [fieldName]
+ *
+ * @param fieldName
+ * @return content of [fieldName] taken from response body
+ */
+suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = text().await()
+    .let { Json.parseToJsonElement(it) }
+    .let { it as? JsonObject }
+    ?.let { it[fieldName] }
+    ?.let { it as? JsonPrimitive }
+    ?.content
+    ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
+
+/**
+ * @return content of [this] with type [T] encoded as JSON
+ */
+inline fun <reified T : Any> T.toJsonBody(): String = Json.encodeToString(this)
 
 /**
  * Perform GET request from a class component. See [request] for parameter description.
@@ -120,10 +195,9 @@ suspend fun ComponentWithScope<*, *>.post(
 suspend fun ComponentWithScope<*, *>.delete(
     url: String,
     headers: Headers,
-    body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-) = request(url, "DELETE", headers, body, loadingHandler = loadingHandler, responseHandler = responseHandler)
+) = request(url, "DELETE", headers, loadingHandler = loadingHandler, responseHandler = responseHandler)
 
 /**
  * Perform GET request from a functional component
@@ -153,18 +227,35 @@ suspend fun WithRequestStatusContext.post(
 ) = request(url, "POST", headers, body, loadingHandler = loadingHandler, responseHandler = responseHandler)
 
 /**
- * Perform DELETE request from a functional component
+ * Perform a `DELETE` request from a functional component.
  *
- * @return [Response]
+ * @param url the request URL.
+ * @param headers the HTTP request headers.
+ *   Use [jsonHeaders] for the standard `Accept` and `Content-Type` headers.
+ * @param loadingHandler use either [WithRequestStatusContext.loadingHandler],
+ *   or [noopLoadingHandler].
+ * @param errorHandler the response handler to be invoked.
+ *   The default implementation is to show the modal dialog if the HTTP response
+ *   code is not in the range of 200..299 (i.e. [Response.ok] is `false`).
+ *   Alternatively, a custom or a [noopResponseHandler] can be used, or the
+ *   return value can be inspected directly.
+ * @return the HTTP response _promise_, see
+ *   [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+ *   The response, even a successful one, can also be processed using
+ *   [errorHandler].
+ * @see jsonHeaders
+ * @see undefined
+ * @see WithRequestStatusContext.loadingHandler
+ * @see noopLoadingHandler
+ * @see noopResponseHandler
  */
-@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "KDOC_WITHOUT_PARAM_TAG")
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 suspend fun WithRequestStatusContext.delete(
     url: String,
     headers: Headers,
-    body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     errorHandler: (Response) -> Unit = this::withModalResponseHandler,
-) = request(url, "DELETE", headers, body, loadingHandler = loadingHandler, responseHandler = errorHandler)
+) = request(url, "DELETE", headers, loadingHandler = loadingHandler, responseHandler = errorHandler)
 
 /**
  * Handler that allows to show loading modal
@@ -380,7 +471,7 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @param response
  * @return Unit
  */
-internal fun noopResponseHandler(response: Response) = Unit
+internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit
 
 @Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
 private fun useRequestStatusContext(): WithRequestStatusContext {

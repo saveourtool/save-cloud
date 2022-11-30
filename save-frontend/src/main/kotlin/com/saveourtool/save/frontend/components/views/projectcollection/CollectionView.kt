@@ -2,26 +2,27 @@
 
 package com.saveourtool.save.frontend.components.views.projectcollection
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
-import react.table.columns
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
@@ -37,41 +38,43 @@ external interface CreationViewProps : Props {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<CreationViewProps, State>() {
-    @Suppress("MAGIC_NUMBER")
-    private val projectsTable = tableComponent(
-        columns = columns<Project> {
-            column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}"
-                            +cellProps.value
+    @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
+    private val projectsTable: FC<TableProps<ProjectDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "organization", header = "Organization", { organizationName }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellContext.row.original.organizationName}"
+                                +cellContext.value
+                            }
                         }
                     }
                 }
-            }
-            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +cellProps.value
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +cellContext.value
+                            }
+                            privacySpan(cellContext.row.original)
                         }
-                        privacySpan(cellProps.row.original)
                     }
                 }
-            }
-            column(id = "passed", header = "Description") {
-                Fragment.create {
-                    td {
-                        +(it.value.description ?: "Description not provided")
+                column(id = "passed", header = "Description") { cellContext ->
+                    Fragment.create {
+                        td {
+                            +(cellContext.value.description.ifEmpty { "Description not provided" })
+                        }
                     }
                 }
-            }
-            column(id = "rating", header = "Contest Rating") {
-                Fragment.create {
-                    td {
-                        +"0"
+                column(id = "rating", header = "Contest Rating") {
+                    Fragment.create {
+                        td {
+                            +"0"
+                        }
                     }
                 }
             }
@@ -100,16 +103,16 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
 
                 projectsTable {
                     getData = { _, _ ->
-                        val response = get(
-                            url = "$apiUrl/projects/not-deleted",
-                            headers = Headers().also {
-                                it.set("Accept", "application/json")
-                            },
+                        val response = post(
+                            url = "$apiUrl/projects/by-filters",
+                            headers = jsonHeaders,
+                            body = Json.encodeToString(ProjectFilters.created),
                             loadingHandler = ::classLoadingHandler,
+                            responseHandler = ::noopResponseHandler
                         )
                         if (response.ok) {
                             response.unsafeMap {
-                                it.decodeFromJsonString<Array<Project>>()
+                                it.decodeFromJsonString<Array<ProjectDto>>()
                             }
                         } else {
                             emptyArray()

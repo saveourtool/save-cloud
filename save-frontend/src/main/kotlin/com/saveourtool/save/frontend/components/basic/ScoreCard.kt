@@ -2,7 +2,10 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.utils.toFixedStr
+
 import csstype.*
+import js.core.jso
 import react.FC
 import react.Props
 import react.dom.aria.AriaRole
@@ -12,8 +15,6 @@ import react.dom.aria.ariaValueNow
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-
-import kotlinx.js.jso
 
 /**
  * ReactElement that represents scorecard
@@ -63,9 +64,8 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                     div {
                         className = ClassName("col-1")
                         div {
-                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2")
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2 justify-content-center")
                             style = jso {
-                                justifyContent = JustifyContent.center
                                 display = Display.flex
                                 alignItems = AlignItems.center
                                 alignSelf = AlignSelf.start
@@ -80,7 +80,7 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                 alignItems = AlignItems.center
                                 alignSelf = AlignSelf.start
                             }
-                            +"${props.contestScore}"
+                            +props.contestScore.toFixedStr(2)
                         }
                     }
                     div {

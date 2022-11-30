@@ -3,13 +3,14 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.service.LnkContestExecutionService
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.v1
@@ -44,6 +45,9 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
+
+    @MockBean
+    private lateinit var lnkContestExecutionService: LnkContestExecutionService
 
     @Test
     @WithMockUser("JohnDoe")
@@ -97,7 +101,7 @@ class ExecutionControllerTest {
             .expectBody<ExecutionDto>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(ExecutionType.GIT, it.responseBody!!.type)
+                assertEquals(TestingType.PRIVATE_TESTS, it.responseBody!!.type)
             }
     }
 
@@ -110,8 +114,8 @@ class ExecutionControllerTest {
 
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
-        webClient.get()
-            .uri("/api/$v1/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
+        webClient.post()
+            .uri("/api/$v1/executionDtoList?projectName=${project.name}&organizationName=${project.organization.name}")
             .exchange()
             .expectStatus()
             .isOk

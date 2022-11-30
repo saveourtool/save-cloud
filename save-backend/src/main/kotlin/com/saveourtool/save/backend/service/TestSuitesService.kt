@@ -4,14 +4,15 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.filters.TestSuiteFilters
+import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
+
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -19,8 +20,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
-import reactor.kotlin.extra.math.max
+
 import java.time.LocalDateTime
 
 typealias TestSuiteDtoList = List<TestSuiteDto>
@@ -36,6 +36,7 @@ class TestSuitesService(
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val executionService: ExecutionService,
     private val agentStatusService: AgentStatusService,
     private val agentService: AgentService,
@@ -43,88 +44,51 @@ class TestSuitesService(
     /**
      * Save new test suites to DB
      *
-     * @param testSuitesDto test suites **from the same source**, that should be checked and possibly saved
-     * @return list of *all* TestSuites
+     * @param testSuiteDto test suite that should be checked and possibly saved
+     * @return saved [TestSuite]
      */
     @Transactional
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
-    fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
+    fun saveTestSuite(testSuiteDto: TestSuiteDto): TestSuite {
         // FIXME: need to check logic about [dateAdded]
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
-        // test suites must be from the same source
-        require(testSuitesDto.map { it.source.name to it.source.organizationName }.distinct().size == 1) {
-            "Do not save test suites from different sources at the same time."
-        }
-
-        // test suites must be from the same commit
-        require(testSuitesDto.map { it.version }.distinct().size == 1) {
-            "Do not save test suites from different commits at the same time."
-        }
-
-        val testSuiteSourceVersion = testSuitesDto.map { it.version }.distinct().single()
-        val testSuiteSource = testSuitesDto.first()
-            .let { dto ->
-                testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name)
-            }
+        val testSuiteSourceVersion = testSuiteDto.version
+        val testSuiteSource = testSuitesSourceService.getByName(testSuiteDto.source.organizationName, testSuiteDto.source.name)
             .apply {
                 latestFetchedVersion = testSuiteSourceVersion
             }
 
-        val testSuites = testSuitesDto
-            .distinctBy {
-                // Same suites may be declared in different directories, we unify them here.
-                // We allow description of existing test suites to be changed.
-                it.copy(description = null)
+        val testSuiteCandidate = TestSuite(
+            name = testSuiteDto.name,
+            description = testSuiteDto.description,
+            source = testSuiteSource,
+            version = testSuiteDto.version,
+            dateAdded = null,
+            language = testSuiteDto.language,
+            tags = testSuiteDto.tags?.let(TestSuite::tagsFromList),
+            plugins = TestSuite.pluginsByTypes(testSuiteDto.plugins)
+        )
+        // try to find TestSuite in the DB based on all non-null properties of `testSuite`
+        // NB: that's why `dateAdded` is null in the mapping above
+        val description = testSuiteCandidate.description
+        val testSuite = testSuiteRepository
+            .findOne(
+                Example.of(testSuiteCandidate.apply { this.description = null })
+            )
+            .orElseGet {
+                // if testSuite is not present in the DB, we will save it with current timestamp
+                testSuiteCandidate.apply {
+                    dateAdded = LocalDateTime.now()
+                    this.description = description
+                }
             }
-            .map { dto ->
-                TestSuite(
-                    name = dto.name,
-                    description = dto.description,
-                    source = testSuiteSource,
-                    version = dto.version,
-                    dateAdded = null,
-                    language = dto.language,
-                    tags = dto.tags?.let(TestSuite::tagsFromList),
-                    plugins = TestSuite.pluginsByTypes(dto.plugins)
-                )
-            }
-            .map { testSuite ->
-                // try to find TestSuite in the DB based on all non-null properties of `testSuite`
-                // NB: that's why `dateAdded` is null in the mapping above
-                val description = testSuite.description
-                testSuiteRepository
-                    .findOne(
-                        Example.of(testSuite.apply { this.description = null })
-                    )
-                    .orElseGet {
-                        // if testSuite is not present in the DB, we will save it with current timestamp
-                        testSuite.apply {
-                            dateAdded = LocalDateTime.now()
-                            this.description = description
-                        }
-                    }
-            }
-        testSuiteRepository.saveAll(testSuites)
+        testSuiteRepository.save(testSuite)
         testSuitesSourceService.update(testSuiteSource)
-        return testSuites
+        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuiteSource.organization, testSuite, Rights.MAINTAIN)
+        return testSuite
     }
-
-    /**
-     * @return all standard test suites
-     */
-    fun getStandardTestSuites(): Mono<TestSuiteDtoList> = blockingToFlux { testSuitesSourceService.getStandardTestSuitesSources() }
-        .flatMap { testSuitesSource ->
-            testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
-                .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
-                .map { testSuitesSource to it.version }
-        }
-        .flatMap { (testSuitesSource, version) ->
-            blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
-        }
-        .map { it.toDto() }
-        .collectList()
 
     /**
      * @param id
@@ -187,6 +151,11 @@ class TestSuitesService(
         .orNotFound { "TestSuite (id=$id) not found" }
 
     /**
+     * @return public [TestSuite]s
+     */
+    fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
+
+    /**
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suites
@@ -209,12 +178,24 @@ class TestSuitesService(
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
-    @Suppress("UnsafeCallOnNullableType")
-    fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
-        val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
-        testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
+    fun deleteTestSuitesDto(testSuiteDtos: List<TestSuiteDto>) {
+        doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
+    }
+
+    /**
+     * Delete testSuites and related tests & test executions from DB
+     *
+     * @param source
+     * @param version
+     */
+    fun deleteTestSuite(source: TestSuitesSource, version: String) {
+        doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
+    }
+
+    private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
+        testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
-            val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
+            val testIds = testRepository.findAllByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
             testIds.forEach { testId ->
                 testExecutionRepository.findByTestId(testId).forEach { testExecution ->
                     // Delete test executions
@@ -226,20 +207,20 @@ class TestSuitesService(
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
-            log.info("Delete test suite $testSuiteName with id $testSuiteId")
-            testSuiteRepository.deleteById(testSuiteId)
+            log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
+            testSuiteRepository.deleteById(testSuite.requiredId())
         }
 
         // Delete agents, which related to the test suites
-        val executionIds = testSuitesNamesAndIds.flatMap { (_, testSuiteId) ->
-            executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+        val executionIds = testSuites.flatMap { testSuite ->
+            executionService.getExecutionsByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
         }.distinct()
 
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
 
         executionIds.forEach {
-            executionService.updateExecutionStatus(executionService.findExecution(it)!!, ExecutionStatus.OBSOLETE)
+            executionService.updateExecutionStatus(executionService.findExecution(it).orNotFound(), ExecutionStatus.OBSOLETE)
         }
     }
 
@@ -269,16 +250,20 @@ class TestSuitesService(
             .single()
     }
 
-    private fun getSavedIdByDto(
+    private fun getSavedEntityByDto(
         dto: TestSuiteDto,
-    ): Long = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
+    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
         dto.name,
         dto.tags?.let(TestSuite::tagsFromList),
         testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
         dto.version
-    )
-        ?.requiredId()
-        .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+
+    /**
+     * @param testSuites list of test suites to be updated
+     * @return saved [testSuites]
+     */
+    fun updateTestSuites(testSuites: List<TestSuite>): List<TestSuite> = testSuiteRepository.saveAll(testSuites)
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)

@@ -6,16 +6,16 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
-import kotlinx.js.timers.setTimeout
 
 import org.w3c.fetch.Response
 import react.FC
 import react.PropsWithChildren
 import react.useState
+import web.timers.setTimeout
 
+import kotlin.js.Promise
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.js.Promise
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)
@@ -41,6 +41,10 @@ inline fun <reified T> mockMswResponse(response: dynamic, value: T): dynamic {
     return response
 }
 
+/**
+ * @param millis the time to wait, in milliseconds.
+ * @return the created `Promise` instance.
+ */
 fun wait(millis: Int) = Promise { resolve, _ ->
-    setTimeout({ resolve(Unit) }, 200)
+    setTimeout({ resolve(Unit) }, millis)
 }

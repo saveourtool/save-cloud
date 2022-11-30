@@ -7,14 +7,16 @@ import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.plugins.fix.FixPlugin
-import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.collectPluginNames
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.thenJust
+
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -26,6 +28,7 @@ import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import kotlin.io.path.absolutePathString
 
 /**
@@ -194,21 +197,34 @@ class TestDiscoveringService(
     ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
 
     @Suppress("TYPE_ALIAS")
-    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap { testsMap ->
-        testsMap.run {
-            saveTestSuites().also {
-                saveTests()
-            }
+    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap {
+        it.saveTestSuites()
+    }.map { testsMap ->
+        testsMap.mapValues { (testSuite, tests) ->
+            tests.map { it.copy(testSuiteId = testSuite.requiredId()) }
         }
+    }.flatMap { testsMaps ->
+        testsMaps.values
+            .flatten()
+            .toFlux()
+            .save()
+            .thenJust(testsMaps.keys.toList())
     }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = keys.toList().save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = entries
+        .toFlux()
+        .flatMap { (testSuiteDto, tests) ->
+            testSuiteDto.save().map { it to tests }
+        }
+        .collectList()
+        .map { it.toMap() }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() = values.flatten()
-        .toFlux()
-        .save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() =
+            values.flatten()
+                .toFlux()
+                .save()
 
     @Suppress("TYPE_ALIAS")
     private fun Sequence<Pair<TestSuiteDto, TestDto>>.convertToMap() = groupBy({ (testSuite, _) ->
@@ -232,7 +248,7 @@ class TestDiscoveringService(
     /**
      * Save test suites via backend
      */
-    private fun List<TestSuiteDto>.save(): Mono<List<TestSuite>> = testsPreprocessorToBackendBridge.saveTestSuites(this)
+    private fun TestSuiteDto.save(): Mono<TestSuite> = testsPreprocessorToBackendBridge.saveTestSuite(this)
 
     /**
      * Save tests via backend

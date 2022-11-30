@@ -4,7 +4,10 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
@@ -15,29 +18,33 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.td
-import react.table.columns
 
-@Suppress("MAGIC_NUMBER")
-private val executionDetailsTable = tableComponent(
-    columns = columns<TestSuiteExecutionStatisticDto> {
-        column(id = "name", header = "Test suite", { testSuiteName }) {
-            Fragment.create {
-                td {
-                    +it.value
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+)
+private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>> = tableComponent(
+    columns = {
+        columns {
+            column(id = "name", header = "Test suite", { testSuiteName }) {
+                Fragment.create {
+                    td {
+                        +it.value
+                    }
                 }
             }
-        }
-        column(id = "tests", header = "Number of tests", { countTest }) {
-            Fragment.create {
-                td {
-                    +"${it.value}"
+            column(id = "tests", header = "Number of tests", { countTest }) {
+                Fragment.create {
+                    td {
+                        +"${it.value}"
+                    }
                 }
             }
-        }
-        column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
-            Fragment.create {
-                td {
-                    +"${it.value}"
+            column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
+                Fragment.create {
+                    td {
+                        +"${it.value}"
+                    }
                 }
             }
         }

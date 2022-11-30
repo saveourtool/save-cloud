@@ -12,10 +12,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="3" />
             <column name="passed_tests" value="9" />
@@ -23,16 +21,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="14"/>
-
             <column name="unmatched_checks" value="1"/>
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="100.0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -40,10 +36,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
@@ -51,16 +45,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="0"/>
-
             <column name="unmatched_checks" value="0"/>
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="0"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="75.0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -68,10 +60,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-03-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="4" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="2" />
             <column name="passed_tests" value="0" />
@@ -79,16 +69,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="2"/>
-
             <column name="unmatched_checks" value="0"/>
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="24.4"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="4" />
@@ -96,10 +84,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="3" />
             <column name="passed_tests" value="9" />
@@ -107,16 +93,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="2"/>
-
             <column name="unmatched_checks" value="0"/>
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="11.2"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="5" />
@@ -124,10 +108,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="11" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
@@ -135,16 +117,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="14"/>
-
             <column name="unmatched_checks" value="1"/>
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="0.0"/>
         </insert>
 
         <insert dbms="mysql" tableName="execution">
@@ -153,10 +133,8 @@
             <column name="start_time" value="2021-01-01 00:00:00" />
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
-            <column name="test_suite_ids" value="11" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
@@ -164,16 +142,14 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="test.bat:123" />
-
             <column name="user_id" value="1"/>
-
             <column name="all_tests" value="14"/>
-
             <column name="unmatched_checks" value="1"/>
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="11.11"/>
         </insert>
     </changeSet>
 

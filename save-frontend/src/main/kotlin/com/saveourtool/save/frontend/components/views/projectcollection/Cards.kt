@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.b
@@ -14,8 +15,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
-
-import kotlinx.js.jso
 
 /**
  * Buttons for creation and deletion of new projects and organizations
@@ -122,12 +121,7 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
             }
 
             div {
-                className = ClassName("col-lg-6")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
+                className = ClassName("col-lg-6 justify-content-center align-items-center")
                 img {
                     src = image
                     style = jso {

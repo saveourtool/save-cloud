@@ -6,26 +6,23 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
+import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import react.*
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
 
@@ -34,19 +31,24 @@ val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
  */
 external interface TestSuiteSelectorSearchModeProps : Props {
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteDto>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
+    var currentOrganizationName: String
 }
 
 private fun ChildrenBuilder.buildInput(
@@ -83,31 +85,14 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest {
-        val contestFlag = if (props.selectorPurpose == CONTEST) {
-            "?isContest=true"
-        } else {
-            ""
-        }
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids$contestFlag",
-            headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuiteIds),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setSelectedTestSuites(testSuitesFromBackend)
-    }
-
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
         useDeferredRequest {
             if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
-                    url = "$apiUrl/test-suites/filtered${
+                    url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
                         filters.copy(language = encodeURIComponent(filters.language))
                         .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
                     }",
@@ -181,7 +166,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
                 }
                 .toList()
                 .also { listOfTestSuiteDtos ->
-                    props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                    props.onTestSuitesUpdate(listOfTestSuiteDtos)
                 }
         }
     }

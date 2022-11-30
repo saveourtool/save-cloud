@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.entities.benchmarks
 
+import com.saveourtool.save.frontend.TabMenuBar
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,6 +20,16 @@ enum class BenchmarkCategoryEnum {
     PERFORMANCE,
     STATIC_ANALYSIS,
     ;
+
+    companion object : TabMenuBar<BenchmarkCategoryEnum> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
+        override val nameOfTheHeadUrlSection = "archive"
+        override val defaultTab: BenchmarkCategoryEnum = ALL
+        override val regexForUrlClassification: Regex = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
+        override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
+        override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
+    }
 }
 
 /**

@@ -6,15 +6,12 @@ import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
-
-import kotlinx.js.jso
 
 /**
  * SUMMARY tab in ContestView
@@ -41,18 +38,15 @@ private fun ChildrenBuilder.displayTopProjects(sortedResults: List<ContestResult
             "Score",
             null
         )
-        sortedResults.filter {
-            it.score != null
+        sortedResults.forEachIndexed { index, contestResult ->
+            displayResult(
+                "${index + 1}. ",
+                contestResult.projectName,
+                contestResult.organizationName,
+                contestResult.score?.toFixedStr(2) ?: "-",
+                "#/${contestResult.organizationName}/${contestResult.projectName}"
+            )
         }
-            .forEachIndexed { index, contestResult ->
-                displayResult(
-                    "${index + 1}. ",
-                    contestResult.projectName,
-                    contestResult.organizationName,
-                    contestResult.score.toString(),
-                    "#/${contestResult.organizationName}/${contestResult.projectName}"
-                )
-            }
     }
 }
 
@@ -111,9 +105,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
     useRequest {
         val results = get(
             url = "$apiUrl/contests/${props.contestName}/scores",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -123,13 +115,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
         setSortedResults(results)
     }
     div {
-        className = ClassName("mb-3")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            flexDirection = FlexDirection.column
-            alignItems = AlignItems.center
-        }
+        className = ClassName("mb-3 row justify-content-center align-items-center")
         if (sortedResults.isEmpty()) {
             h6 {
                 className = ClassName("text-center")

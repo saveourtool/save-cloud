@@ -8,24 +8,19 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.manageTestSuitePermissionsComponent
+import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
+import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+import com.saveourtool.save.testsuite.*
+
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.td
-import react.table.columns
+
+import kotlinx.browser.window
 
 /**
  * TESTS tab in OrganizationView
@@ -49,41 +44,35 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
-    val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
+    useTooltip()
+    val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
+    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
         } else {
-            setTestSuitesSources(emptyList())
+            setTestSuitesSourcesWithId(emptyList())
         }
     }
-    val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto?>(null)
-    val triggerFetchTestSuiteSource = useDeferredRequest {
-        testSuiteSourceToFetch?.let { testSuiteSource ->
-            post(
-                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                body = undefined
-            )
-        }
-    }
+    val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
+    val testSuitesSourceFetcherWindowOpenness = useWindowOpenness()
+    testSuitesSourceFetcher(
+        testSuitesSourceFetcherWindowOpenness,
+        testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
+    )
 
-    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
+    val (selectedTestSuitesSourceWithId, setSelectedTestSuitesSourceWithId) = useState<TestSuitesSourceDtoWithId>()
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
-        selectedTestSuitesSource?.let { testSuitesSource ->
+        selectedTestSuitesSourceWithId?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.content.organizationName}/${encodeURIComponent(testSuitesSource.content.name)}/list-snapshot",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
@@ -98,176 +87,82 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             }
         }
     }
-    val selectHandler: (TestSuitesSourceDto) -> Unit = {
-        if (selectedTestSuitesSource == it) {
-            setSelectedTestSuitesSource(null)
+
+    val (testSuitesSourceSnapshotKeyToDelete, setTestSuitesSourceSnapshotKeyToDelete) = useState<TestSuitesSourceSnapshotKey>()
+    val deleteTestSuitesSourcesSnapshotKey = useDeferredRequest {
+        testSuitesSourceSnapshotKeyToDelete?.let { key ->
+            delete(
+                url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+            setTestSuitesSourceSnapshotKeyToDelete(null)
+        }
+    }
+    val selectHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        if (selectedTestSuitesSourceWithId == it) {
+            setSelectedTestSuitesSourceWithId(null)
         } else {
-            setSelectedTestSuitesSource(it)
+            setSelectedTestSuitesSourceWithId(it)
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
-        triggerFetchTestSuiteSource()
+        testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
-
-    showTestSuiteSourceCreationModal(
-        isTestSuiteSourceCreationModalOpen,
-        props.organizationName,
-        { source ->
-            setIsTestSuitesSourceCreationModalOpen(false)
-            setTestSuiteSourceToFetch(source)
-            triggerFetchTestSuiteSource()
-            setIsSourceCreated { !it }
-        },
+    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
+    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        setTestSuiteSourceWithIdToUpsert(it)
+        testSuitesSourceUpsertWindowOpenness.openWindow()
+    }
+    val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.testSuitesSourceName}?")) {
+            setTestSuitesSourceSnapshotKeyToDelete(it)
+            deleteTestSuitesSourcesSnapshotKey()
+            setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+        }
+    }
+    val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
+    manageTestSuitePermissionsComponent {
+        organizationName = props.organizationName
+        isModalOpen = managePermissionsMode != null
+        closeModal = { setManagePermissionsMode(null) }
+        mode = managePermissionsMode
+    }
+    showTestSuiteSourceUpsertModal(
+        windowOpenness = testSuitesSourceUpsertWindowOpenness,
+        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        organizationName = props.organizationName,
     ) {
-        setIsTestSuitesSourceCreationModalOpen(false)
+        setIsSourceCreated { !it }
     }
+
     div {
         className = ClassName("d-flex justify-content-center mb-3")
-        button {
-            type = ButtonType.button
-            className = ClassName("btn btn-sm btn-primary")
-            disabled = !props.selfRole.hasWritePermission()
-            onClick = {
-                setIsTestSuitesSourceCreationModalOpen(true)
-            }
-            +"+ Create test suites source"
+        buttonBuilder("+ Create test suites source", "primary", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2") {
+            testSuitesSourceUpsertWindowOpenness.openWindow()
+        }
+        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2 ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.TRANSFER)
+        }
+        buttonBuilder("Publish test suites", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.PUBLISH)
         }
     }
+
     div {
         className = ClassName("mb-2")
-        testSuitesSourcesTable {
-            getData = { _, _ ->
-                testSuitesSources.toTypedArray()
-            }
-            content = testSuitesSources
-        }
-    }
-
-    selectedTestSuitesSource?.let {
-        div {
-            className = ClassName("mb-2")
-            testSuitesSourceSnapshotKeysTable {
-                getData = { _, _ ->
-                    testSuitesSourceSnapshotKeys.toTypedArray()
-                }
-                content = testSuitesSourceSnapshotKeys
-            }
+        when (selectedTestSuitesSourceWithId) {
+            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler)
+            else -> showTestSuitesSourceSnapshotKeys(
+                selectedTestSuitesSourceWithId,
+                testSuitesSourceSnapshotKeys,
+                selectHandler,
+                editHandler,
+                fetchHandler,
+                deleteHandler,
+            )
         }
     }
 }
-
-/**
- * Extensions for [TableProps] which adds content field (where content of table is taken from external variable)
- */
-external interface TablePropsWithContent<D : Any> : TableProps<D> {
-    /**
-     * Signal to update table
-     */
-    var content: List<D>
-}
-
-@Suppress(
-    "MAGIC_NUMBER",
-    "TYPE_ALIAS",
-    "TOO_LONG_FUNCTION",
-    "LongMethod"
-)
-private fun prepareTestSuitesSourcesTable(
-    selectHandler: (TestSuitesSourceDto) -> Unit,
-    fetchHandler: (TestSuitesSourceDto) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
-    columns = columns {
-        column(id = "organizationName", header = "Organization", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.organizationName
-                }
-            }
-        }
-        column(id = "name", header = "Name", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.name
-                }
-            }
-        }
-        column(id = "description", header = "Description", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +(cellProps.value.description ?: "Description is not provided")
-                }
-            }
-        }
-        column(id = "location", header = "Git location", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    a {
-                        href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
-                        +"source"
-                    }
-                }
-            }
-        }
-        column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
-                        onClick = {
-                            fetchHandler(cellProps.value)
-                        }
-                        +"fetch"
-                    }
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)
-
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private val testSuitesSourceSnapshotKeysTable: FC<TablePropsWithContent<TestSuitesSourceSnapshotKey>> = tableComponent(
-    columns = columns {
-        column(id = "version", header = "Version", { version }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value
-                }
-            }
-        }
-        column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value.toString()
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)

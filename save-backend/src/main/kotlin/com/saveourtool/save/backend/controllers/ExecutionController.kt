@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -14,6 +15,8 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.filters.ExecutionFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -31,8 +34,12 @@ import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.util.concurrent.atomic.AtomicBoolean
+
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Controller that accepts executions
@@ -47,6 +54,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
+                          private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -95,25 +103,46 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * @param name
+     * @param projectName
      * @param authentication
      * @param organizationName
+     * @param filters
      * @return list of execution dtos
      */
-    @GetMapping(path = ["/api/$v1/executionDtoList"])
+    @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
+    @PostMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(
-        @RequestParam name: String,
+        @RequestParam projectName: String,
         @RequestParam organizationName: String,
+        @RequestBody(required = false) filters: ExecutionFilters?,
         authentication: Authentication,
-    ): Mono<List<ExecutionDto>> = organizationService.findByName(organizationName)
+    ): Mono<List<ExecutionDto>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "Organization with name [$organizationName] was not found."
         }
-        .flatMap { organization ->
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+        .zipWhen { organization ->
+            projectService.findWithPermissionByNameAndOrganization(authentication, projectName, organization.name, Permission.READ)
+        }
+        .map { (organization, _) ->
+            filters?.let {
+                val startTime = filters.startTime.toJavaLocalDateTime()
+                val endTime = filters.endTime.toJavaLocalDateTime()
+                executionService.getExecutionByNameAndOrganizationAndStartTimeBetween(
+                    projectName,
+                    organization,
+                    startTime,
+                    endTime,
+                )
+            } ?: executionService.getExecutionByNameAndOrganization(projectName, organization)
+        }
+        .map {
+            it.filter {execution ->
+                execution.type != TestingType.CONTEST_MODE
+            }.map { execution ->
+                execution.toDto()
             }
+                .reversed()
         }
 
     /**
@@ -137,7 +166,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * Delete all executions by project name and organization
+     * Delete all, except participating in contests, executions, by project name and organization
      *
      * @param name name of project
      * @param organizationName organization of project
@@ -145,14 +174,14 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping(path = ["/api/$v1/execution/deleteAll"])
+    @PostMapping(path = ["/api/$v1/execution/delete-all-except-contest"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<*>> {
-        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("No such organization was found")
+        val organization = organizationService.findByNameAndCreatedStatus(organizationName) ?: throw NoSuchElementException("No such organization was found")
         return projectService.findWithPermissionByNameAndOrganization(
             authentication,
             name,
@@ -162,10 +191,13 @@ class ExecutionController(private val executionService: ExecutionService,
         )
             .mapNotNull { it.id!! }
             .map { id ->
-                testExecutionService.deleteTestExecutionWithProjectId(id)
-                agentStatusService.deleteAgentStatusWithProjectId(id)
-                agentService.deleteAgentWithProjectId(id)
-                executionService.deleteExecutionByProjectNameAndProjectOrganization(name, organization)
+                val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
+                    it.requiredId()
+                }
+                testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
+                agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
+                agentService.deleteAgentByExecutionIds(executionsNotInContests)
+                executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
                 ResponseEntity.ok().build<String>()
             }
     }

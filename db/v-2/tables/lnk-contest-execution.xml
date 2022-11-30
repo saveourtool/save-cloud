@@ -33,4 +33,32 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="move-score-from-lnk_contest_execution-to-execution" author="petertrr" context="dev or prod">
+    <addColumn tableName="execution">
+      <column name="score" type="double" defaultValue="null"/>
+    </addColumn>
+    <sql>
+      update lnk_contest_execution lce inner join execution e on e.id = lce.execution_id set e.score = lce.score;
+    </sql>
+    <dropColumn tableName="lnk_contest_execution" columnName="score"/>
+  </changeSet>
+
+  <changeSet id="remove-and-add-fk-lnk-contest-execution" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_contest_execution" constraintName="fk_lnk_contest_execution_contest"/>
+    <addForeignKeyConstraint baseColumnNames="contest_id"
+      baseTableName="lnk_contest_execution"
+      constraintName="fk_lnk_contest_execution_contest"
+      referencedColumnNames="id"
+      referencedTableName="contest"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_execution" constraintName="fk_lnk_contest_execution_execution"/>
+    <addForeignKeyConstraint baseColumnNames="execution_id"
+      baseTableName="lnk_contest_execution"
+      constraintName="fk_lnk_contest_execution_execution"
+      referencedColumnNames="id"
+      referencedTableName="execution"
+      onDelete="CASCADE"/>
+  </changeSet>
+
 </databaseChangeLog>

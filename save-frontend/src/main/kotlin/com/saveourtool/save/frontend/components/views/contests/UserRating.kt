@@ -2,65 +2,53 @@
  * Card for the rendering of ratings: for organizations and tools
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
+import com.saveourtool.save.entities.OrganizationWithRating
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import react.ChildrenBuilder
-import react.FC
-import react.Props
-import react.dom.html.ReactHTML
+import js.core.jso
+import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 
-import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-const val NUMBER_OF_CHARACTERS_TRIMMED = 20
-
-val userRatingFc = userRating()
+val userRating = userRating()
 
 /**
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGANIZATIONS, TOOLS
+    ORGS,
+    TOOLS,
+    ;
+
+    companion object : TabMenuBar<UserRatingTab> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: UserRatingTab = UserRatingTab.ORGS
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
+        override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
+        override fun values(): Array<UserRatingTab> = UserRatingTab.values()
+    }
 }
 
-/**
- * properties for rating fc
- */
-external interface UserRatingProps : Props {
-    /**
-     * all projects that are registered in SAVE.
-     * FixMe: only TOP PUBLIC projects will be used here in future
-     */
-    var projects: Set<Project>
-
-    /**
-     * all organizations that are registered in SAVE.
-     * FixMe: only TOP PUBLIC organizations will be used here in future
-     */
-    var organizations: Set<Organization>
-
-    /**
-     * string value of the selected tab: organization/tools/etc.
-     */
-    var selectedTab: String?
-
-    /**
-     * callback that will be passed into this fc from the view
-     */
-    var updateTabState: (String) -> Unit
-}
-
-private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
+private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<ProjectDto>) {
     projects.forEachIndexed { i, project ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
@@ -76,31 +64,29 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                 className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
+                    strong {
                         className = ClassName("d-block text-gray-dark")
-                        +project.name
+                        a {
+                            href = "#/${project.url}"
+                            +project.name
+                        }
                     }
-                    +("${project.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
-                    a {
-                        href = "#/${project.url}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
+                    +("${project.description} ")
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +project.contestRating.toFixedStr(2)
                 }
             }
         }
     }
 }
 
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
-    organizations.forEachIndexed { i, organization ->
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationWithRating>) {
+    organizations.forEachIndexed { i, organizationWithRating ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
             div {
@@ -115,23 +101,23 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                 className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
-                        className = ClassName("d-block text-gray-dark")
-                        +organization.name
-                    }
-                    +("${organization.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
-                    a {
-                        href = "#/${organization.name}"
-                        fontAwesomeIcon(faArrowRight)
+                    with(organizationWithRating.organization) {
+                        strong {
+                            className = ClassName("d-block text-gray-dark")
+                            a {
+                                href = "#/$name"
+                                +name
+                            }
+                        }
+                        +"$description "
                     }
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +organizationWithRating.globalRating.toFixedStr(2)
                 }
             }
         }
@@ -141,23 +127,52 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
 /**
  * @return functional component for the rating card
  */
-fun userRating() = FC<UserRatingProps> { props ->
+@Suppress("TOO_LONG_FUNCTION")
+private fun userRating() = VFC {
+    val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
+
+    val (organizationsWithRating, setOrganizationsWithRating) = useState<Set<OrganizationWithRating>>(emptySet())
+    useRequest {
+        val organizationsFromBackend: List<OrganizationWithRating> = post(
+            url = "$apiUrl/organizations/by-filters-with-rating",
+            headers = jsonHeaders,
+            body = Json.encodeToString(OrganizationFilters.created),
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setOrganizationsWithRating(organizationsFromBackend.toSet())
+    }
+
+    val (projects, setProjects) = useState(emptySet<ProjectDto>())
+    useRequest {
+        val projectsFromBackend: List<ProjectDto> = post(
+            url = "$apiUrl/projects/by-filters",
+            headers = jsonHeaders,
+            body = Json.encodeToString(ProjectFilters.created),
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setProjects(projectsFromBackend.toSet())
+    }
+
     div {
-        className = ClassName("col-lg-3")
+        className = ClassName("col-lg-4")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 30.rem
+                minHeight = 40.rem
             }
 
             div {
                 className = ClassName("col")
 
                 title(" Global Rating", faTrophy)
-                tab(props.selectedTab, UserRatingTab.values().map { it.name }, props.updateTabState)
-                when (props.selectedTab) {
-                    UserRatingTab.ORGANIZATIONS.name -> renderingOrganizationChampionsTable(props.organizations)
-                    UserRatingTab.TOOLS.name -> renderingProjectChampionsTable(props.projects)
+                tab(selectedTab.name, UserRatingTab.values().map { it.name }) {
+                    setSelectedTab(UserRatingTab.valueOf(it))
+                }
+                when (selectedTab) {
+                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizationsWithRating)
+                    UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
                 }
 
                 div {
@@ -168,11 +183,9 @@ fun userRating() = FC<UserRatingProps> { props ->
                         alignItems = AlignItems.center
                         alignSelf = AlignSelf.start
                     }
-
                     a {
                         className = ClassName("mb-5")
-                        // FixMe: new view on this link
-                        href = ""
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
                 }

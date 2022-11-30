@@ -1,16 +1,17 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import java.util.*
+
 import kotlin.NoSuchElementException
 
 /**
@@ -28,7 +29,7 @@ class LnkUserOrganizationService(
      */
     fun getAllUsersAndRolesByOrganization(organization: Organization) =
             lnkUserOrganizationRepository.findByOrganization(organization)
-                .associate { it.user to (it.role ?: Role.NONE) }
+                .associate { it.user to it.role }
 
     /**
      * @param userId
@@ -149,11 +150,12 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
 
     /**
-     * @param userId
+     * @param userId ID of User
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return Flux of [Organization]s in which user is in
      */
-    fun findAllByAuthentication(userId: Long) = blockingToFlux {
-        lnkUserOrganizationRepository.findByUserId(userId)
+    fun findAllByAuthenticationAndStatuses(userId: Long, statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED)) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserId(userId).filter { it.organization.status in statuses }
     }
 
     /**
@@ -192,7 +194,7 @@ class LnkUserOrganizationService(
         .let {
             lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
         }
-        .mapNotNull { it.organization }
+        .map { it.organization }
 
     /**
      * @param user

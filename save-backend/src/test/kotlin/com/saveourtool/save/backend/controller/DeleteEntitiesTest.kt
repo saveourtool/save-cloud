@@ -65,8 +65,14 @@ class DeleteEntitiesTest {
         whenever(projectRepository.findByNameAndOrganizationName(any(), any())).thenReturn(
             Project.stub(99).apply { id = 1 }
         )
+        whenever(projectRepository.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).thenReturn(
+            Project.stub(99).apply { id = 1 }
+        )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", OrganizationStatus.CREATED, null, null, null)
+            Organization.stub(null)
+        )
+        whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
+            Organization.stub(null).copy(status = OrganizationStatus.CREATED)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()
@@ -142,7 +148,7 @@ class DeleteEntitiesTest {
 
     private fun deleteAllExecutionsAndAssert(name: String, organizationName: String, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/$v1/execution/deleteAll?name=$name&organizationName=$organizationName",
+            uri = "/api/$v1/execution/delete-all-except-contest?name=$name&organizationName=$organizationName",
             assert = assert
         )
     }

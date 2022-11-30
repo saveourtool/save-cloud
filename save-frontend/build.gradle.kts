@@ -1,4 +1,5 @@
 import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
@@ -21,14 +22,16 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
-    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.http)
 }
 
 kotlin {
@@ -46,6 +49,9 @@ kotlin {
                     }
                 }
             }
+            commonWebpackConfig {
+                cssSupport.enabled = true
+            }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
@@ -61,15 +67,18 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
+            // See https://stackoverflow.com/a/72828500; newer versions are supported only for Bootstrap 5.2+
+            compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
+            compileOnly(devNpm("html-webpack-plugin", "^5.5.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("devicon", "^2.15.1"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0"))
@@ -79,6 +88,7 @@ kotlin {
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
+            implementation(npm("react-calendar", "^3.8.0"))
             implementation(npm("bootstrap", "^4.6.0"))
             implementation(npm("react", "^18.0.0"))
             implementation(npm("react-dom", "^18.0.0"))
@@ -89,6 +99,15 @@ kotlin {
             implementation(npm("lodash.debounce", "^4.0.8"))
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
+            implementation(npm("react-ace", "^10.1.0"))
+            // react-sigma
+            implementation(npm("@react-sigma/core", "^3.1.0"))
+            implementation(npm("sigma", "^2.4.0"))
+            implementation(npm("graphology", "^0.25.1"))
+            implementation(npm("graphology-layout", "^0.6.1"))
+            implementation(npm("@react-sigma/layout-core", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-random", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
@@ -203,10 +222,13 @@ tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
     dependsOn(generateVersionFileTaskProvider)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
-    kotlinWebpack.doFirst {
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
+    // Since we inject timestamp into HTML file, we would like this task to always be re-run.
+    inputs.property("Build timestamp", System.currentTimeMillis())
+    doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
+            include("index.html")
         }
         copy {
             from(additionalWebpackResources)
@@ -219,12 +241,39 @@ val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
     dependsOn(":save-frontend:browserDistribution")
     archiveClassifier.set("distribution")
-    from("$buildDir/distributions")
-    into("static")
-    exclude("scss")
+    from("$buildDir/distributions") {
+        into("static")
+        exclude("scss")
+    }
+    from("$projectDir/nginx.conf") {
+        into("")
+    }
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
+}
+
+tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
+    inputs.property("project version", version.toString())
+    inputs.file("$projectDir/nginx.conf")
+
+    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
+    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
+    buildpacks = listOf("paketo-buildpacks/nginx")
+    environment = mapOf(
+        "BP_WEB_SERVER_ROOT" to "static",
+    )
+    isVerboseLogging = true
+    System.getenv("GHCR_PWD")?.let { registryPassword ->
+        isPublish = true
+        docker {
+            publishRegistry {
+                username = "saveourtool"
+                password = registryPassword
+                url = "https://ghcr.io"
+            }
+        }
+    }
 }
 
 detekt {

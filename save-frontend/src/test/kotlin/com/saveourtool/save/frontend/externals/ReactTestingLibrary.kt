@@ -17,7 +17,7 @@
 
 package com.saveourtool.save.frontend.externals
 
-import org.w3c.dom.HTMLElement
+import dom.html.HTMLElement
 import react.Props
 import react.ReactElement
 import kotlin.js.Promise

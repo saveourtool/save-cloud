@@ -37,4 +37,35 @@
             <column name="latest_fetched_version" type="varchar(170)"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="remove-branch-name" author="nulls">
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_git"/>
+        <dropUniqueConstraint tableName="test_suites_source" constraintName="test_suites_source_git_location"/>
+        <dropColumn tableName="test_suites_source">
+            <column name="branch"/>
+        </dropColumn>
+        <addForeignKeyConstraint baseTableName="test_suites_source" baseColumnNames="git_id"
+                                 constraintName="fk_lnk_test_suites_source_git"
+                                 referencedTableName="git"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="test_suites_source" columnNames="git_id,test_root_path" constraintName="test_suites_source_git_location"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-test-suite-source" author="frolov">
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_git"/>
+        <addForeignKeyConstraint baseColumnNames="git_id"
+          baseTableName="test_suites_source"
+          constraintName="fk_test_suites_source_git"
+          referencedColumnNames="id"
+          referencedTableName="git"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="test_suites_source" constraintName="fk_lnk_test_suites_source_organization"/>
+        <addForeignKeyConstraint baseColumnNames="organization_id"
+          baseTableName="test_suites_source"
+          constraintName="fk_test_suites_source_organization"
+          referencedColumnNames="id"
+          referencedTableName="organization"
+          onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

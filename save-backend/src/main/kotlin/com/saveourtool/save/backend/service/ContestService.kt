@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.entities.Organization
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -32,6 +33,12 @@ class ContestService(
      * @return [Contest]s with ids from [contestIds]
      */
     fun findByIdIn(contestIds: Set<Long>): List<Contest> = contestRepository.findByIdIn(contestIds)
+
+    /**
+     * @param contestId
+     * @return true if contest with [contestId] is marked as featured, false otherwise
+     */
+    fun isContestFeatured(contestId: Long) = contestRepository.findFeaturedContestById(contestId) != null
 
     /**
      * @param name name of contest
@@ -84,7 +91,14 @@ class ContestService(
      * @param pageable
      * @return page of contests
      */
-    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findByOrganizationName(organizationName, pageable)
+    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findAll({ root, _, cb ->
+        cb.and(
+            cb.equal(root.get<Organization>("organization").get<String>("name"), organizationName),
+            cb.notEqual(root.get<String>("status"), ContestStatus.DELETED)
+        )
+    },
+        pageable
+    )
 
     /**
      * @param newContest
@@ -97,12 +111,13 @@ class ContestService(
      * @return true if contest was saved, false otherwise
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    @Transactional
     fun createContestIfNotPresent(newContest: Contest): Boolean =
-            if (contestRepository.findByName(newContest.name).isEmpty) {
-                contestRepository.save(newContest)
-                true
-            } else {
+            contestRepository.findByName(newContest.name)?.let {
                 false
+            } ?: run {
+                contestRepository.save(newContest.apply { creationTime = LocalDateTime.now() })
+                true
             }
 
     /**

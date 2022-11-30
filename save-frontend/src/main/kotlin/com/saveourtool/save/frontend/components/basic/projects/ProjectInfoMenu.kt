@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -13,8 +13,8 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -61,9 +61,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     useRequest {
         val users: List<UserInfo> = get(
             url = "$apiUrl/projects/${props.organizationName}/${props.projectName}/users",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -76,9 +74,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     useRequest {
         val results: List<ContestResult> = get(
             url = "$apiUrl/contests/${props.organizationName}/${props.projectName}/best",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -87,13 +83,11 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         setBestResults(results)
     }
 
-    val (project, setProject) = useState(Project.stub(-1))
+    val (project, setProject) = useState(ProjectDto.empty)
     useRequest {
-        val projectFromBackend: Project = get(
+        val projectFromBackend: ProjectDto = get(
             url = "$apiUrl/projects/get/organization-name?name=${props.projectName}&organizationName=${props.organizationName}",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -105,7 +99,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     div {
         className = ClassName("d-flex justify-content-center")
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-2 mr-3")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Best contest scores"
@@ -130,7 +124,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         }
 
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-4")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Members"
@@ -141,46 +135,21 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         }
 
         div {
-            className = ClassName("col-4")
+            className = ClassName("col-3 ml-2")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"General info"
             }
             infoCard {
-                project.description?.let {
-                    div {
-                        className = ClassName("mt-2 d-flex justify-content-between")
-                        div {
-                            className = ClassName("col-5 text-left")
-                            +"Tested tool description: "
-                        }
-                        div {
-                            className = ClassName("col-7 text-left")
-                            +it
-                        }
-                    }
-                }
-                project.url?.let {
-                    div {
-                        className = ClassName("mt-2 d-flex justify-content-between")
-                        div {
-                            className = ClassName("col-5 text-left")
-                            +"Tested tool Url:"
-                        }
-                        div {
-                            className = ClassName("col-7 text-left")
-                            a {
-                                href = it
-                                +it
-                            }
-                        }
-                    }
+                projectInfo {
+                    this.project = project
                 }
                 div {
                     className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
                     fontAwesomeIcon(icon = faHistory)
 
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn btn-link text-left")
                         +"Latest Execution"
                         disabled = props.latestExecutionId == null

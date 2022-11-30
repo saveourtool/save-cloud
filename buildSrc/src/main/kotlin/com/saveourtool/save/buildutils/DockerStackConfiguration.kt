@@ -17,6 +17,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+@Suppress("CONSTANT_UPPERCASE")
+const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 /**
@@ -33,7 +35,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml"
-        val composeFile = "$buildDir/docker-compose.yaml"
+        val composeFile = file("$buildDir/docker-compose.yaml")
         val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
@@ -53,7 +55,17 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
-                           |      - "MYSQL_DATABASE=save_cloud"
+                           |    command: ["--log_bin_trust_function_creators=1"]
+                           |
+                           |  neo4j:
+                           |    image: neo4j:5.1.0-community
+                           |    container_name: neo4j
+                           |    ports:
+                           |        - "7474:7474"
+                           |        - "7687:7687"
+                           |    environment:
+                           |        - "NEO4J_AUTH=neo4j/123"
+                           |
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -61,7 +73,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      ZOOKEEPER_TICK_TIME: 2000
                            |    ports:
                            |      - 22181:2181
-                           |  
+                           |
                            |  kafka:
                            |    image: confluentinc/cp-kafka:latest
                            |    depends_on:
@@ -75,6 +87,8 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                           |  
+                           |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
@@ -82,16 +96,30 @@ fun Project.createStackDeployTask(profile: String) {
                         it
                     }
                 }
-            file(composeFile)
+            composeFile
                 .apply { createNewFile() }
                 .writeText(newText)
         }
 
         doLast {
+            val defaultVersionOrProperty: (propertyName: String) -> String = { propertyName ->
+                // Image tag can be specified explicitly for a particular service,
+                // or specified explicitly for the whole app,
+                // or be inferred based on the project.version
+                findProperty(propertyName) as String?
+                    ?: findProperty("dockerTag") as String?
+                    ?: versionForDockerImages()
+            }
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
-                    TAG=${versionForDockerImages()}
+                    BACKEND_TAG=${defaultVersionOrProperty("backend.dockerTag")}
+                    FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
+                    GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
+                    ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
+                    PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
+                    DEMO_TAG=${defaultVersionOrProperty("demo.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()
             )
@@ -126,7 +154,9 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("backend"))
             Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
+            Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
+            Files.createDirectories(configsDir.resolve("demo"))
         }
         description =
                 "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
@@ -175,6 +205,22 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn("startMysqlDbService")
     }
 
+    tasks.register<Exec>("startNeo4jService") {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d neo4j]")
+        }
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "neo4j")
+        errorOutput = ByteArrayOutputStream()
+        doLast {
+            logger.lifecycle("Waiting $NEO4J_STARTUP_DELAY_MILLIS millis for neo4j to start")
+            Thread.sleep(NEO4J_STARTUP_DELAY_MILLIS)
+        }
+    }
+    tasks.register("startNeo4jDb") {
+        dependsOn("startNeo4jService")
+    }
+
     tasks.register<Exec>("startKafka") {
         dependsOn("generateComposeFile")
         doFirst {
@@ -211,8 +257,11 @@ fun Project.createStackDeployTask(profile: String) {
             "up",
             "-d",
             "orchestrator",
+            "sandbox",
             "backend",
-            "preprocessor"
+            "frontend",
+            "preprocessor",
+            "demo"
         )
     }
 
@@ -228,7 +277,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-sandbox", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }
@@ -236,3 +285,13 @@ fun Project.createStackDeployTask(profile: String) {
         }
     }
 }
+
+private fun Project.declareDexService() =
+        """
+            |dex:
+            |  image: ghcr.io/dexidp/dex:latest-distroless
+            |  ports:
+            |    - "5556:5556"
+            |  volumes:
+            |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
+        """.trimMargin()

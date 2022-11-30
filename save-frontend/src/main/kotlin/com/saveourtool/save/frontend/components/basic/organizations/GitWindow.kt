@@ -7,8 +7,10 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.modal
+import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import react.*
@@ -24,13 +26,13 @@ import react.dom.html.ReactHTML.input
 val gitWindow = createGitWindow()
 
 /**
- * RunSettingGitWindow component props
+ * GitWindow component props
  */
 external interface GitWindowProps : Props {
     /**
-     * Flag to open window
+     * Window openness
      */
-    var isOpen: Boolean
+    var windowOpenness: WindowOpenness
 
     /**
      * name of organization, assumption that it's checked by previous views and valid here
@@ -38,43 +40,73 @@ external interface GitWindowProps : Props {
     var organizationName: String
 
     /**
-     * Git credential to update, it's null in case of creating a new one
+     * Git credential to upsert
      */
-    var gitDto: GitDto?
+    var gitToUpsertState: StateInstance<GitDto>
 
     /**
-     * Lambda to upsert git dto
+     * Flag controls that current window is for update
      */
-    var onGitUpdate: (GitDto) -> Unit
+    var isUpdate: Boolean
 
     /**
-     * Lambda to set state about current modal window to closed
+     * Request to fetch git credentials
      */
-    var setClosedState: () -> Unit
+    var fetchGitCredentials: () -> Unit
 }
-
-private fun GitDto?.toMutableMap(): MutableMap<InputTypes, String> = mutableMapOf<InputTypes, String>().also {
-    it[InputTypes.GIT_URL] = this?.url ?: ""
-    it[InputTypes.GIT_USER] = this?.username ?: ""
-    it[InputTypes.GIT_TOKEN] = this?.password ?: ""
-}
-
-private fun MutableMap<InputTypes, String>.toGitDto(): GitDto = GitDto(
-    url = getValue(InputTypes.GIT_URL),
-    username = getValue(InputTypes.GIT_USER),
-    password = getValue(InputTypes.GIT_TOKEN),
-)
 
 @Suppress(
     "TOO_LONG_FUNCTION",
-    "TYPE_ALIAS",
     "LongMethod",
+    "TYPE_ALIAS",
 )
 private fun createGitWindow() = FC<GitWindowProps> { props ->
-    val fieldsWithGitInfo = props.gitDto.toMutableMap()
+    val (gitToUpsert, setGitToUpsert) = props.gitToUpsertState
+
+    val failedResponseWindowOpenness = useWindowOpenness()
+    val failedResponseWindowCloseAction = {
+        failedResponseWindowOpenness.closeWindow()
+        props.windowOpenness.openWindow()
+    }
+    val (failedReason, setFailedReason) = useState("N/A")
+    displayModal(
+        failedResponseWindowOpenness.isOpen(),
+        "Failed to ${if (props.isUpdate) "update" else "create"} git credential",
+        "Url [${gitToUpsert.url}]: $failedReason",
+        smallTransparentModalStyle,
+        failedResponseWindowCloseAction
+    ) {
+        buttonBuilder(
+            label = "Ok",
+            style = "secondary",
+            onClickFun = failedResponseWindowCloseAction.withUnusedArg()
+        )
+    }
+
+    val upsertGitCredentialRequest = useDeferredRequest {
+        val endpointPrefix = if (props.isUpdate) {
+            "update"
+        } else {
+            "create"
+        }
+        val response = post(
+            "$apiUrl/organizations/${props.organizationName}/$endpointPrefix-git",
+            headers = jsonHeaders,
+            body = gitToUpsert.toJsonBody(),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation
+        )
+        props.windowOpenness.closeWindow()
+        if (!response.ok) {
+            setFailedReason(response.decodeFieldFromJsonString("message"))
+            failedResponseWindowOpenness.openWindow()
+        } else if (!props.isUpdate) {
+            props.fetchGitCredentials()
+        }
+    }
 
     modal { modalProps ->
-        modalProps.isOpen = props.isOpen
+        modalProps.isOpen = props.windowOpenness.isOpen()
 
         div {
             className = ClassName("row mt-2 ml-2 mr-2")
@@ -87,11 +119,16 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                 input {
                     type = InputType.text
                     className = ClassName("form-control")
-                    defaultValue = fieldsWithGitInfo[InputTypes.GIT_URL]
-                    readOnly = props.gitDto != null
+                    defaultValue = gitToUpsert.url
+                    readOnly = props.isUpdate
                     required = true
                     onChange = {
-                        fieldsWithGitInfo[InputTypes.GIT_URL] = it.target.value
+                        setGitToUpsert(gitToUpsert.copy(url = it.target.value))
+                    }
+                    if (props.isUpdate) {
+                        asDynamic()["data-toggle"] = "tooltip"
+                        asDynamic()["data-placement"] = "bottom"
+                        title = "Cannot be changed on update"
                     }
                 }
             }
@@ -107,9 +144,9 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                 input {
                     type = InputType.text
                     className = ClassName("form-control")
-                    defaultValue = fieldsWithGitInfo[InputTypes.GIT_USER]
+                    defaultValue = gitToUpsert.username
                     onChange = {
-                        fieldsWithGitInfo[InputTypes.GIT_USER] = it.target.value
+                        setGitToUpsert(gitToUpsert.copy(username = it.target.value))
                     }
                 }
             }
@@ -126,7 +163,7 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                     type = InputType.text
                     className = ClassName("form-control")
                     onChange = {
-                        fieldsWithGitInfo[InputTypes.GIT_TOKEN] = it.target.value
+                        setGitToUpsert(gitToUpsert.copy(password = it.target.value))
                     }
                 }
             }
@@ -137,20 +174,23 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                 type = ButtonType.button
                 className = ClassName("btn btn-primary mr-3")
                 onClick = {
-                    props.setClosedState()
-                    props.onGitUpdate(fieldsWithGitInfo.toGitDto())
+                    upsertGitCredentialRequest()
                 }
-                val buttonName = props.gitDto?.let { "Save" } ?: "Create"
+                val buttonName = if (props.isUpdate) {
+                    "Update"
+                } else {
+                    "Create"
+                }
                 +buttonName
             }
             button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
-                onClick = {
-                    props.setClosedState()
-                }
+                onClick = props.windowOpenness.closeWindowAction().withUnusedArg()
                 +"Cancel"
             }
         }
     }
+
+    useTooltip()
 }

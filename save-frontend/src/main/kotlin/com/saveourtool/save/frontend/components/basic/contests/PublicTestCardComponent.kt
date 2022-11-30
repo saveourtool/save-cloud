@@ -10,11 +10,10 @@ import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-
-import kotlinx.js.jso
 
 /**
  * Component that allows to see public tests
@@ -33,6 +32,11 @@ external interface PublicTestComponentProps : Props {
      * Name of current contest
      */
     var contestName: String
+
+    /**
+     * List of test suites attached to current contest
+     */
+    var contestTestSuites: List<TestSuiteDto>
 }
 
 private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>, language: String? = null) = div {
@@ -57,24 +61,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
 )
 private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
     val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteDto?>(null)
-
-    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
-    useRequest {
-        val response = get(
-            "$apiUrl/contests/${props.contestName}/test-suites",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
-            setAvaliableTestSuites(testSuites)
-        } else {
-            setPublicTest(null)
-            setSelectedTestSuite(null)
-        }
-    }
 
     useRequest(dependencies = arrayOf(selectedTestSuite)) {
         selectedTestSuite?.let { selectedTestSuite ->
@@ -93,7 +80,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
         }
     }
 
-    if (avaliableTestSuites.isEmpty()) {
+    if (props.contestTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No public tests are provided yet."
@@ -105,7 +92,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             div {
                 className = ClassName("col-6")
                 showAvaliableTestSuites(
-                    avaliableTestSuites,
+                    props.contestTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
                     null,
                 ) { testSuite ->

@@ -4,23 +4,39 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.frontend.utils.*
+
 import csstype.ClassName
 import csstype.rem
-import react.ChildrenBuilder
+import js.core.jso
+import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import react.useState
 
-import kotlinx.js.jso
+val newContestsCard = newContestsCard()
 
 /**
  * rendering of newly added contests
  */
 @Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.newContestsCard() {
+private fun newContestsCard() = VFC {
+    val (newContests, setNewContests) = useState<List<ContestDto>>(emptyList())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/newest?pageSize=3",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler
+        )
+            .decodeFromJsonString()
+        setNewContests(contests.sortedByDescending { it.creationTime })
+    }
+
     div {
         className = ClassName("col-lg-6")
         div {
@@ -37,31 +53,27 @@ fun ChildrenBuilder.newContestsCard() {
                 }
                 h3 {
                     className = ClassName("mb-0")
-                    a {
+
+                    p {
                         className = ClassName("text-dark")
-                        href = "#"
-                        +"Hurry up!"
+                        +"Hurry up! 🔥"
                     }
                 }
                 p {
                     className = ClassName("card-text mb-auto")
-                    +"Checkout and participate in newest contests!"
+                    +"Checkout and participate in newest contests"
                 }
-                a {
-                    href = "https://github.com/saveourtool/save-cloud"
-                    +"Link "
-                }
-                a {
-                    href = "https://github.com/saveourtool/save"
-                    +" Other link"
+                newContests.forEach { contest ->
+                    a {
+                        href = "#/contests/${contest.name}"
+                        +contest.name
+                    }
                 }
             }
 
             img {
                 className = ClassName("card-img-right flex-auto d-none d-md-block")
-                asDynamic()["data-src"] = "holder.js/200x250?theme=thumb"
                 src = "img/undraw_exciting_news_re_y1iw.svg"
-                asDynamic()["data-holder-rendered"] = "true"
                 style = jso {
                     width = 12.rem
                 }

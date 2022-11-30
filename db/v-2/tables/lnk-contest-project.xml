@@ -37,4 +37,49 @@
     <dropColumn tableName="lnk_contest_project" columnName="score"/>
   </changeSet>
 
+  <changeSet id="lnk_contest_project_add_best_execution" author="petertrr">
+    <addColumn tableName="lnk_contest_project">
+      <column name="best_execution_id" type="bigint" defaultValue="null">
+        <constraints foreignKeyName="fk_lnk_contest_project_execution" references="execution(id)" nullable="true"/>
+      </column>
+      <column name="best_score" type="bigint"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="lnk_contest_project_make_best_score_float" author="petertrr">
+    <modifyDataType tableName="lnk_contest_project" columnName="best_score" newDataType="double"/>
+  </changeSet>
+
+  <changeSet id="remove-and-add-fk-lnk-contest-project" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_contest"/>
+    <addForeignKeyConstraint baseColumnNames="contest_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_contest"
+      referencedColumnNames="id"
+      referencedTableName="contest"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_project"/>
+    <addForeignKeyConstraint baseColumnNames="project_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_project"
+      referencedColumnNames="id"
+      referencedTableName="project"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_execution"/>
+    <addForeignKeyConstraint baseColumnNames="best_execution_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_execution"
+      referencedColumnNames="id"
+      referencedTableName="execution"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="drop-test-suite-ids" author="kgevorkyan">
+    <dropColumn tableName="lnk_contest_project">
+      <column name="best_score"/>
+    </dropColumn>
+  </changeSet>
+
 </databaseChangeLog>

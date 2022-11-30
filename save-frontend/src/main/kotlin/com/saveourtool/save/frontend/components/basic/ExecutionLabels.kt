@@ -7,15 +7,19 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.utils.calculateRate
+import com.saveourtool.save.utils.getPrecisionRate
+import com.saveourtool.save.utils.getRecallRate
+import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
-import org.w3c.dom.HTMLAnchorElement
+import dom.html.HTMLAnchorElement
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
@@ -27,8 +31,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
-
-import kotlinx.js.jso
 
 /**
  * Class contains all execution statistics values for rending
@@ -94,12 +96,13 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.failedTests = executionDto?.failedTests?.toString() ?: "0"
         this.runningTests = executionDto?.runningTests?.toString() ?: "0"
         this.passRate = executionDto
-            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?.let { "${calculateRate(it.passedTests, it.allTests)}" }
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
-                    calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks)
+                val precisionRate = it.getPrecisionRate()
+                if (precisionRate.isValidScore()) {
+                    precisionRate.toString()
                 } else {
                     "N/A"
                 }
@@ -107,22 +110,15 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
-                    calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks)
+                val recallRate = it.getRecallRate()
+                if (recallRate.isValidScore()) {
+                    recallRate.toString()
                 } else {
                     "N/A"
                 }
             }
             ?: "0"
     }
-
-    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
-
-    private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
-        ?.run { numerator.toDouble() / denominator }
-        ?.let { it * 100 }
-        ?.toInt()
-        ?.toString()
 }
 
 /**

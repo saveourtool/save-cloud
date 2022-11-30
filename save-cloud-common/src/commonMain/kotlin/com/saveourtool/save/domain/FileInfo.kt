@@ -5,60 +5,42 @@ package com.saveourtool.save.domain
 import kotlinx.serialization.Serializable
 
 /**
- * @property name name of a file
- * @property uploadedMillis timestamp of file uploading
+ * Interface that unified [SandboxFileInfo] and [FileInfo]
+ */
+sealed interface AbstractFileInfo {
+    /**
+     * Size in bytes
+     */
+    val sizeBytes: Long
+
+    /**
+     * Name of a file
+     */
+    val name: String
+}
+
+/**
+ * @property key [FileKey] of this [FileInfo]
  * @property sizeBytes size in bytes
  * @property isExecutable
  */
 @Serializable
 data class FileInfo(
-    val name: String,
-    val uploadedMillis: Long,
-    val sizeBytes: Long,
+    val key: FileKey,
+    override val sizeBytes: Long,
     val isExecutable: Boolean = false,
-) {
-    /**
-     * @return ShortFileInfo
-     */
-    fun toShortFileInfo() = ShortFileInfo(
-        this.name,
-        this.uploadedMillis,
-        this.isExecutable,
-    )
-
-    /**
-     * @return [FileKey]
-     */
-    fun toStorageKey() = FileKey(
-        this.name,
-        this.uploadedMillis,
-    )
+) : AbstractFileInfo {
+    override val name: String = key.name
 }
 
 /**
+ * Class that contains metadata of Sandbox files
+ *
+ * @property sizeBytes size in bytes
  * @property name name of a file
- * @property uploadedMillis timestamp of file uploading
- * @property isExecutable whether the file is executable
  */
 @Serializable
-data class ShortFileInfo(
-    val name: String,
-    val uploadedMillis: Long,
-    val isExecutable: Boolean = false,
-) {
-    /**
-     * @return [FileKey]
-     */
-    fun toStorageKey() = FileKey(
-        this.name,
-        this.uploadedMillis,
-    )
-}
-
-/**
- * @property path path to image
- */
-@Serializable
-data class ImageInfo(
-    val path: String?,
-)
+data class SandboxFileInfo(
+    override val name: String,
+    override val sizeBytes: Long,
+) : AbstractFileInfo

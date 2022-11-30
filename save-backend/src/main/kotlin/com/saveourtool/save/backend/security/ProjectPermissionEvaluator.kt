@@ -1,14 +1,15 @@
 package com.saveourtool.save.backend.security
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
+import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.LnkUserProjectService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
-import org.springframework.beans.factory.annotation.Autowired
+import com.saveourtool.save.utils.getHighestRole
+
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -21,12 +22,27 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * Class that is capable of assessing user's permissions regarding projects.
  */
 @Component
-class ProjectPermissionEvaluator {
-    @Autowired
-    private lateinit var lnkUserProjectService: LnkUserProjectService
+class ProjectPermissionEvaluator(
+    private var lnkUserProjectService: LnkUserProjectService,
+    private var lnkUserProjectRepository: LnkUserProjectRepository,
+    private var lnkUserOrganizationService: LnkUserOrganizationService
+) {
+    /**
+     * @param authentication [Authentication] describing an authenticated request
+     * @param project is organization in which we want to change the status
+     * @param newStatus is new status in [project]
+     * @return whether user described by [authentication] can have permission on change [project] status on [newStatus]
+     * @throws IllegalStateException
+     */
+    fun hasPermissionToChangeStatus(authentication: Authentication?, project: Project, newStatus: ProjectStatus): Boolean {
+        val oldStatus = project.status
 
-    @Autowired
-    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
+        return when {
+            oldStatus == newStatus -> throw IllegalStateException("invalid status")
+            oldStatus.isBan() || newStatus.isBan() -> hasPermission(authentication, project, Permission.BAN)
+            else -> hasPermission(authentication, project, Permission.DELETE)
+        }
+    }
 
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -37,20 +53,21 @@ class ProjectPermissionEvaluator {
     fun hasPermission(authentication: Authentication?, project: Project, permission: Permission): Boolean {
         authentication ?: return when (permission) {
             Permission.READ -> project.public
-            Permission.WRITE -> false
-            Permission.DELETE -> false
+            Permission.BAN, Permission.DELETE, Permission.WRITE -> false
         }
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
         val userId = (authentication.details as AuthenticationDetails).id
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
         return when (permission) {
-            Permission.READ -> project.public || hasReadAccess(userId, projectRole)
-            Permission.WRITE -> hasWriteAccess(userId, projectRole)
-            Permission.DELETE -> hasDeleteAccess(userId, projectRole)
+            Permission.READ -> project.public || hasReadAccess(userId, projectRole, organizationRole)
+            Permission.WRITE -> hasWriteAccess(userId, projectRole, organizationRole)
+            Permission.DELETE -> hasDeleteAccess(userId, projectRole, organizationRole)
+            Permission.BAN -> hasBanAccess(userId, projectRole, organizationRole)
         }
     }
 
@@ -84,17 +101,23 @@ class ProjectPermissionEvaluator {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
 
-    private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
-
-    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = hasWriteAccess(userId, projectRole) ||
+    private fun hasReadAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = hasWriteAccess(userId, projectRole, organizationRole) ||
             userId?.let { projectRole == Role.VIEWER } ?: false
 
-    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
+    private fun hasWriteAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = hasDeleteAccess(userId, projectRole, organizationRole) ||
             userId?.let { projectRole == Role.ADMIN } ?: false
 
-    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
-        projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
-    } ?: false
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean =
+            hasBanAccess(userId, projectRole, organizationRole) || userId?.let {
+                getHighestRole(organizationRole, projectRole) == Role.OWNER
+            } ?: false
+
+    /**
+     * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
+     * Since we have all the rights issued depending on the following, you need to set [false] here
+     */
+    @Suppress("FunctionOnlyReturningConstant")
+    private fun hasBanAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = false
 
     /**
      * @param authentication
@@ -150,3 +173,6 @@ class ProjectPermissionEvaluator {
      */
     fun isProjectAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }
+
+private fun ProjectStatus.isBan(): Boolean =
+        this == ProjectStatus.BANNED

@@ -1,51 +1,43 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import javax.persistence.FetchType
+import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @param organization which this test suites source belongs to
- * @param name unique name of [TestSuitesSource]
- * @param description free text
- * @param git git credentials for this test suites source
- * @param branch branch which is used for this test suites source
- * @param testRootPath relative path to tests in source
- * @property organization
- * @property name
- * @property description
- * @property git
- * @property branch
- * @property testRootPath
+ * @property organization which this test suites source belongs to
+ * @property name unique name of [TestSuitesSource]
+ * @property description free text
+ * @property git git credentials for this test suites source
+ * @property testRootPath relative path to tests in source
  * @property latestFetchedVersion
  */
 @Entity
 @Suppress("LongParameterList")
 class TestSuitesSource(
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
 
     var name: String,
     var description: String?,
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "git_id")
     var git: Git,
-    var branch: String,
     var testRootPath: String,
     var latestFetchedVersion: String?,
-) : BaseEntity() {
+) : BaseEntityWithDto<TestSuitesSourceDto>() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
      */
-    fun toDto(): TestSuitesSourceDto = TestSuitesSourceDto(
+    override fun toDto(): TestSuitesSourceDto = TestSuitesSourceDto(
         organizationName = organization.name,
         name = name,
         description = description,
         gitDto = git.toDto(),
-        branch = branch,
         testRootPath = testRootPath,
         latestFetchedVersion = latestFetchedVersion
     )
@@ -56,7 +48,6 @@ class TestSuitesSource(
             "",
             null,
             Git.empty,
-            "",
             "",
             null,
         )
@@ -83,7 +74,6 @@ class TestSuitesSource(
                 name,
                 description,
                 git,
-                branch,
                 testRootPath,
                 latestFetchedVersion,
             )

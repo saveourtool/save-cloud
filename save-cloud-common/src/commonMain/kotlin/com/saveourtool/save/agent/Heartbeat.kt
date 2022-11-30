@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.test.TestDto
-
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
@@ -13,9 +11,13 @@ import kotlinx.serialization.Serializable
  * Progress of tests execution
  *
  * @property percentCompletion percentage of completed jobs, integer 0..100
+ * @property executionId ID of an execution under which the progress is being tracked
  */
 @Serializable
-data class ExecutionProgress(val percentCompletion: Int) {
+data class ExecutionProgress(
+    val percentCompletion: Int,
+    val executionId: Long,
+) {
     init {
         @Suppress("MAGIC_NUMBER", "MagicNumber")
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }
@@ -56,10 +58,16 @@ object WaitResponse : HeartbeatResponse()
 object ContinueResponse : HeartbeatResponse()
 
 /**
- * @property tests a list of new jobs for this agent
- * @property cliArgs command line arguments for SAVE launch
+ * @property config configuration to init agent
  */
-@Serializable data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
+@Serializable
+data class InitResponse(val config: AgentInitConfig) : HeartbeatResponse()
+
+/**
+ * @property config configuration to run agent
+ */
+@Serializable
+data class NewJobResponse(val config: AgentRunConfig) : HeartbeatResponse()
 
 /**
  * A response that indicates that agent should exit gracefully

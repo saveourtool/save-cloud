@@ -7,14 +7,12 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showContestTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
-import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
@@ -27,7 +25,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
-import kotlinx.browser.window
 import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -120,7 +117,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
+        !contestDto.name.isValidName() || contestDto.testSuites.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -142,7 +139,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {
@@ -155,11 +152,12 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         className = ClassName("card")
         contestCreationCard {
             showContestTestSuitesSelectorModal(
-                contestDto.testSuiteIds,
+                contestDto.organizationName,
+                contestDto.testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
-            ) {
-                setContestDto(contestDto.copy(testSuiteIds = it))
+            ) { testSuiteDtos ->
+                setContestDto(contestDto.copy(testSuites = testSuiteDtos))
             }
             div {
                 className = ClassName("")
@@ -168,15 +166,17 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     // ==== Contest Name
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormRequired(
-                            InputTypes.CONTEST_NAME,
-                            contestDto.name,
-                            (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null,
-                            "col-12 pl-2 pr-2",
-                            "Contest name",
-                        ) {
-                            setContestDto(contestDto.copy(name = it.target.value))
-                            setConflictErrorMessage(null)
+                        inputTextFormRequired {
+                            form = InputTypes.CONTEST_NAME
+                            textValue = contestDto.name
+                            validInput = (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null
+                            classes = "col-12 pl-2 pr-2"
+                            name = "Contest name"
+                            conflictMessage = conflictErrorMessage
+                            onChangeFun = {
+                                setContestDto(contestDto.copy(name = it.target.value))
+                                setConflictErrorMessage(null)
+                            }
                         }
                     }
                     // ==== Organization Name selection
@@ -212,19 +212,22 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     // ==== Contest test suites
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormRequired(
-                            InputTypes.CONTEST_TEST_SUITE_IDS,
-                            contestDto.testSuiteIds.sorted().joinToString(", "),
-                            true,
-                            "col-12 pl-2 pr-2 text-center",
-                            "Test Suites:",
+                        inputTextFormRequired {
+                            form = InputTypes.CONTEST_TEST_SUITE_IDS
+                            conflictMessage = null
+                            textValue = contestDto.testSuites.map { it.name }
+                                .sorted()
+                                .joinToString(", ")
+                            validInput = true
+                            classes = "col-12 pl-2 pr-2 text-center"
+                            name = "Test Suites:"
                             onClickFun = testSuitesSelectorWindowOpenness.openWindowAction()
-                        )
+                        }
                     }
                     // ==== Contest description
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormOptionalWrapperConst {
+                        inputTextFormOptional {
                             form = InputTypes.CONTEST_DESCRIPTION
                             textValue = contestDto.description
                             classes = "col-12 pl-2 pr-2"

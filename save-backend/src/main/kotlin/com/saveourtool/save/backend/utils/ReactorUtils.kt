@@ -4,20 +4,17 @@
 
 package com.saveourtool.save.backend.utils
 
+import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
-import java.io.InputStream
-import java.io.SequenceInputStream
 import java.nio.ByteBuffer
 import java.util.Optional
 
@@ -64,12 +61,7 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
  * @return convert [Flux] of [ByteBuffer] to object of [T] from Json string using [ObjectMapper]
  */
 inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): Mono<T> = this
-    // take simple implementation from Jackson library
-    .map { ByteBufferBackedInputStream(it) }
-    .cast(InputStream::class.java)
-    .reduce { in1, in2 ->
-        SequenceInputStream(in1, in2)
-    }
+    .mapToInputStream()
     .map { objectMapper.readValue(it, T::class.java) }
 
 /**
@@ -93,18 +85,3 @@ fun <T : Any> T?.toMonoOrNotFound(message: String? = null) = toMono<T>().switchI
 fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchIfEmptyToNotFound {
     message
 }
-
-/**
- * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
- *
- * @param supplier blocking operation like JDBC
- * @return [Mono] from result of blocking operation [T]
- */
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
-
-/**
- * @param supplier blocking operation like JDBC
- * @return [Flux] from result of blocking operation [List] of [T]
- */
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }

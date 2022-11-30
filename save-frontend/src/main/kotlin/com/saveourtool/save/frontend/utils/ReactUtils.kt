@@ -13,27 +13,23 @@ import react.useState
  * @param action
  */
 fun useOnce(action: () -> Unit) {
-    val (isFirstRender, setFirstRender) = useState(true)
-    if (isFirstRender) {
+    val useOnceAction = useOnceAction()
+    useOnceAction {
         action()
-        setFirstRender(false)
     }
 }
 
 /**
- * @param updateNotificationMessage callback to show notification message
- * @return current value and callback for showGlobalRoleWarning
+ * @return action which will be run once per function component
  */
-fun useGlobalRoleWarningCallback(updateNotificationMessage: (String, String) -> Unit): Pair<Boolean, () -> Unit> {
-    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    val showGlobalRoleWarning = {
-        updateNotificationMessage(
-            "Super admin message",
-            "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-        )
-        setWasConfirmationModalShown(true)
+fun useOnceAction(): (() -> Unit) -> Unit {
+    val (isFirstRender, setFirstRender) = useState(true)
+    return { action ->
+        if (isFirstRender) {
+            action()
+            setFirstRender(false)
+        }
     }
-    return wasConfirmationModalShown to showGlobalRoleWarning
 }
 
 /**
@@ -42,7 +38,6 @@ fun useGlobalRoleWarningCallback(updateNotificationMessage: (String, String) -> 
 fun useTooltip() {
     useEffect {
         enableTooltip()
-        return@useEffect
     }
 }
 
@@ -62,12 +57,14 @@ fun useTooltipAndPopover() {
  * @return dynamic
  */
 // language=js
-fun enableTooltip() = js("""
+fun enableTooltip() {
+    js("""
     var jQuery = require("jquery")
     require("popper.js")
     require("bootstrap")
     jQuery('[data-toggle="tooltip"]').tooltip()
 """)
+}
 
 /**
  * JS code lines to enable tooltip and popover.

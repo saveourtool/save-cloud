@@ -6,10 +6,10 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.modal
-import com.saveourtool.save.frontend.externals.modal.transparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
@@ -90,7 +90,7 @@ fun ChildrenBuilder.showContestEnrollerModal(
 ) {
     modal { props ->
         props.isOpen = isModalOpen
-        props.style = transparentModalStyle
+        props.style = largeTransparentModalStyle
         div {
             className = ClassName("modal-dialog modal-dialog-centered")
             div {
@@ -223,6 +223,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-3")
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary d-flex justify-content-center")
                 +"Participate"
                 onClick = {

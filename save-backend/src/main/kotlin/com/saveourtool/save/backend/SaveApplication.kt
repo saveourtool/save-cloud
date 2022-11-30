@@ -4,16 +4,12 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import java.nio.ByteBuffer
 
-typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
-typealias EmptyResponse = ResponseEntity<Void>
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
-typealias ResourceResponse = ResponseEntity<Resource>
 
 /**
  * An entrypoint for spring for save-backend

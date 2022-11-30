@@ -10,13 +10,15 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
-import org.w3c.dom.HTMLButtonElement
+import dom.html.HTMLButtonElement
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
@@ -39,7 +41,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.js.jso
 
 /**
  * [Props] of the top bor component
@@ -70,9 +71,15 @@ private fun ChildrenBuilder.dropdownEntry(
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "ComplexMethod",
+    "TOO_MANY_LINES_IN_LAMBDA"
+)
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
+    val (isAriaExpanded, setIsAriaExpanded) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
     useEffect {
@@ -87,7 +94,7 @@ fun topBar() = FC<TopBarProps> { props ->
         className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         id = "navigation-top-bar"
 
-        // Topbar Navbar
+        // Top bar Navbar
         nav {
             className = ClassName("navbar-nav mr-auto w-100")
             ariaLabel = "breadcrumb"
@@ -109,29 +116,28 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-
-                            val currentLink = "$acc/$pathPart"
-
-                            li {
-                                className = ClassName("breadcrumb-item")
-                                ariaCurrent = "page".unsafeCast<AriaCurrent>()
-                                if (index == size - 1) {
-                                    a {
-                                        className = ClassName("text-warning")
-                                        +pathPart
-                                    }
-                                } else {
-                                    // small hack to redirect from history/execution to history
-                                    val resultingLink = currentLink.removeSuffix("/execution")
-                                    a {
-                                        href = resultingLink
-                                        className = ClassName("text-light")
-                                        +pathPart
+                        val url = TopBarUrl(location.pathname.substringBeforeLast("?"))
+                        forEachIndexed { index: Int, pathPart: String ->
+                            url.changeUrlBeforeButton(pathPart)
+                            if (url.isCreateButton(index)) {
+                                li {
+                                    className = ClassName("breadcrumb-item")
+                                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
+                                    if (index == size - 1) {
+                                        a {
+                                            className = ClassName("text-warning")
+                                            +pathPart
+                                        }
+                                    } else {
+                                        a {
+                                            href = url.currentPath
+                                            className = ClassName("text-light")
+                                            +pathPart
+                                        }
                                     }
                                 }
                             }
-                            currentLink
+                            url.changeUrlAfterButton(pathPart)
                         }
                     }
             }
@@ -154,12 +160,25 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
-                        width = 8.rem
+                        width = 3.5.rem
                     }
-                    href = "https://github.com/saveourtool/save-cli"
-                    +"SAVE format"
+                    href = "#/$hrefAnchor"
+                    +"CPG"
+                }
+            }
+            li {
+                className = ClassName("nav-item")
+                a {
+                    val hrefAnchor = FrontendRoutes.SANDBOX.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
+                    style = jso {
+                        width = 9.rem
+                    }
+                    href = "#/$hrefAnchor"
+                    +"Try SAVE format"
                 }
             }
             li {
@@ -200,13 +219,13 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = "about"
+                    val hrefAnchor = FrontendRoutes.ABOUT_US.path
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem
                     }
                     href = "#/$hrefAnchor"
-                    +"About"
+                    +"About us"
                 }
             }
         }
@@ -219,12 +238,17 @@ fun topBar() = FC<TopBarProps> { props ->
             // Nav Item - User Information
             li {
                 className = ClassName("nav-item dropdown no-arrow")
+                onClickCapture = {
+                    setIsAriaExpanded {
+                        !it
+                    }
+                }
                 a {
                     href = "#"
                     className = ClassName("nav-link dropdown-toggle")
                     id = "userDropdown"
                     role = "button".unsafeCast<AriaRole>()
-                    ariaExpanded = false
+                    ariaExpanded = isAriaExpanded
                     ariaHasPopup = true.unsafeCast<AriaHasPopup>()
                     asDynamic()["data-toggle"] = "dropdown"
 
@@ -259,7 +283,7 @@ fun topBar() = FC<TopBarProps> { props ->
                 }
                 // Dropdown - User Information
                 div {
-                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in")
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else "" }")
                     ariaLabelledBy = "userDropdown"
                     props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") { attrs ->
@@ -282,6 +306,7 @@ fun topBar() = FC<TopBarProps> { props ->
             }
         }
     }
+
     logoutModal {
         setIsLogoutModalOpen(false)
     }() {

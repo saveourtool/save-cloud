@@ -11,10 +11,7 @@ import org.ajoberstar.reckon.gradle.ReckonPlugin
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import java.net.URL
 import java.time.Duration
 import java.util.Properties
@@ -65,7 +62,7 @@ fun Project.configureVersioning() {
  * @return correctly formatted version
  */
 fun Project.versionForDockerImages(): String =
-        (project.findProperty("dockerTag") as String? ?: version.toString())
+        (project.findProperty("build.dockerTag") as String? ?: version.toString())
             .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
 
 /**
@@ -84,7 +81,7 @@ fun Project.registerSaveCliVersionCheckTask() {
             (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
         }
         doFirst {
-            val version = if (saveCoreVersion.endsWith("SNAPSHOT")) {
+            val version = if (saveCoreVersion.isSnapshot()) {
                 // try to get the required version of cli
                 findProperty("saveCliVersion") as String? ?: run {
                     // as fallback, use latest release to allow the project to build successfully
@@ -116,6 +113,9 @@ fun Project.readSaveCliVersion(): String {
  */
 fun Project.getSaveCliPath(): String {
     val saveCliVersion = readSaveCliVersion()
-    val saveCliPath = findProperty("saveCliPath") as String? ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
+    val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
+        ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
     return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
 }
+
+private fun String.isSnapshot() = endsWith("SNAPSHOT")

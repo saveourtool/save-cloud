@@ -2,29 +2,25 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
-import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
-import java.util.Optional
+import java.time.LocalDateTime
 
 /**
  * The repository of contest entities
  */
 @Repository
-interface ContestRepository : JpaRepository<Contest, Long>, QueryByExampleExecutor<Contest>,
-JpaSpecificationExecutor<Contest> {
+interface ContestRepository : BaseEntityRepository<Contest> {
     /**
      * @param name
      * @return contest by name
      */
-    fun findByName(name: String): Optional<Contest>
+    fun findByName(name: String): Contest?
 
     /**
      * @param contestIds

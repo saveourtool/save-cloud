@@ -19,14 +19,14 @@ spec:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
-              value: {{ .Values.backend.dbPasswordFile }}
+              value: {{ .Values.mysql.dbPasswordFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
@@ -34,7 +34,7 @@ spec:
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
-              mountPath: {{ .Values.backend.dbPasswordFile }}
+              mountPath: {{ .Values.mysql.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -62,7 +62,7 @@ spec:
             runAsUser: 1001
             runAsGroup: 1001
           args:
-            - --url=$(DB_URL)
+            - --url=$(DB_URL)?createDatabaseIfNotExist=true
             - --changeLogFile=db/db.changelog-master.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
@@ -82,7 +82,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: spring.datasource.url
+                  key: spring.datasource.backend-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -96,7 +96,7 @@ spec:
           volumeMounts:
             - mountPath: /liquibase/changelog
               name: migrations-data
-            - mountPath: {{ .Values.backend.dbPasswordFile }}
+            - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
       {{ end }}
       volumes:

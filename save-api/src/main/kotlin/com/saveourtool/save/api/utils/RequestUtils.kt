@@ -7,43 +7,46 @@ package com.saveourtool.save.api.utils
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestBase
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionType
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.LocalDateTimeSerializer
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.extractUserNameAndSource
+import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
-import io.ktor.client.plugins.json.*
-import io.ktor.client.plugins.kotlinx.serializer.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
+import io.ktor.client.plugins.auth.providers.basic
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.InternalAPI
 import okio.Path.Companion.toPath
 
 import java.io.File
-import java.time.LocalDateTime
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
 private val json = Json {
     serializersModule = SerializersModule {
-        contextual(LocalDateTime::class, LocalDateTimeSerializer)
+        supportJLocalDateTime()
     }
 }
 
@@ -61,17 +64,6 @@ private object UserInformation {
 }
 
 /**
- * @param projectName
- * @param organizationName
- * @return Project instance
- */
-suspend fun HttpClient.getProjectByNameAndOrganizationName(
-    projectName: String, organizationName: String
-): Project = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/projects/get/organization-name?name=$projectName&organizationName=$organizationName"
-).body()
-
-/**
  * @return list of available files from storage
  */
 suspend fun HttpClient.getAvailableFilesList(
@@ -86,7 +78,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): ShortFileInfo = this.post {
+): FileInfo = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -101,60 +93,17 @@ suspend fun HttpClient.uploadAdditionalFile(
 }.body()
 
 /**
- * @return list of existing standard test suites
- */
-suspend fun HttpClient.getStandardTestSuites(
-): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/allStandardTestSuites"
-).body()
-
-/**
- * Submit execution, according [executionType] with list of [additionalFiles]
+ * Submit execution
  *
- * @param executionType type of requested execution git/standard
- * @param executionRequest execution request
- * @param additionalFiles list of additional files for execution
+ * @param createExecutionRequest execution request
  * @return HttpResponse
  */
-@OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
-    val endpoint = if (executionType == ExecutionType.GIT) {
-        "/api/$v1/submitExecutionRequest"
-    } else {
-        "/api/$v1/executionRequestStandardTests"
-    }
-    return this.post {
-        url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", UserInformation.source)
-        val formDataHeaders = Headers.build {
-            append(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-        setBody(MultiPartFormDataContent(formData {
-            if (executionType == ExecutionType.GIT) {
-                append(
-                    "executionRequest",
-                    json.encodeToString(executionRequest as ExecutionRequest),
-                    formDataHeaders
-                )
-            } else {
-                append(
-                    "execution",
-                    json.encodeToString(executionRequest as ExecutionRequestForStandardSuites),
-                    formDataHeaders
-                )
-            }
-            additionalFiles?.forEach { shortFileInfo ->
-                append(
-                    "file",
-                    json.encodeToString(shortFileInfo),
-                    Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    }
-                )
-            }
-        }))
-    }
+suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
+    url("${Backend.url}/api/$v1/run/trigger")
+    header("X-Authorization-Source", UserInformation.source)
+    header(HttpHeaders.ContentType, ContentType.Application.Json)
+    setBody(createExecutionRequest)
 }
 
 /**
@@ -199,13 +148,13 @@ fun initializeHttpClient(
     UserInformation.username = name
     UserInformation.source = source
 
-    return HttpClient(Apache) {
+    return HttpClient {
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.NONE
         }
-        install(JsonPlugin) {
-            serializer = KotlinxSerializer(json)
+        install(ContentNegotiation) {
+            json(json)
         }
         install(Auth) {
             basic {

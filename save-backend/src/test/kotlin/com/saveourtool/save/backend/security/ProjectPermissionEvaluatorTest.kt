@@ -4,7 +4,8 @@ import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
@@ -27,13 +28,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class, MockitoExtension::class)
-@Import(ProjectPermissionEvaluator::class, LnkUserProjectService::class)
+@Import(ProjectPermissionEvaluator::class, LnkUserProjectService::class, LnkUserOrganizationService::class)
 class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockProject: Project
+
+    private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()
 
     @BeforeEach
     fun setUp() {
@@ -75,18 +79,17 @@ class ProjectPermissionEvaluatorTest {
 
     @Test
     fun `permissions for project owners`() {
-        mockProject.userId = 99
         userShouldHavePermissions(
             "super_admin", Role.SUPER_ADMIN, Role.OWNER, *Permission.values(), userId = 99
         )
         userShouldHavePermissions(
-            "admin", Role.ADMIN, Role.OWNER, *Permission.values(), userId = 99
+            "admin", Role.ADMIN, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "owner", Role.OWNER, Role.OWNER, *Permission.values(), userId = 99
+            "owner", Role.OWNER, Role.OWNER, *ownerPermissions, userId = 99
         )
         userShouldHavePermissions(
-            "viewer", Role.VIEWER, Role.OWNER, *Permission.values(), userId = 99
+            "viewer", Role.VIEWER, Role.OWNER, *ownerPermissions, userId = 99
         )
     }
 

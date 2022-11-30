@@ -2,14 +2,15 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.components.modal.loaderModalStyle
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.animations.ringLoader
-import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
-import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.topBarComponent
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import js.core.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
@@ -19,7 +20,6 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
-import kotlinx.js.jso
 
 /**
  * Loader animation
@@ -67,7 +67,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 status = response.status,
             )
             404.toShort() -> ErrorModalState(
-                isErrorModalOpen = false,
+                isErrorModalOpen = !redirectToFallbackView,
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,
@@ -170,7 +170,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
  */
 external interface RequestModalProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }
@@ -195,7 +195,7 @@ data class RequestStatusContext(
  * @property redirectToFallbackView
  */
 data class ErrorModalState(
-    val isErrorModalOpen: Boolean?,
+    val isErrorModalOpen: Boolean,
     val errorMessage: String,
     val errorLabel: String,
     val confirmationText: String = "Close",
@@ -207,5 +207,5 @@ data class ErrorModalState(
  * @property isLoadingModalOpen
  */
 data class LoadingModalState(
-    val isLoadingModalOpen: Boolean?,
+    val isLoadingModalOpen: Boolean,
 )

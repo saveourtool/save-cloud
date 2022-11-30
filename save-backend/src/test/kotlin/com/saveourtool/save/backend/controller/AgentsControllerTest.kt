@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -11,6 +10,7 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
+import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -27,8 +27,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
-import org.springframework.web.reactive.function.BodyInserters
-import java.time.LocalDateTime
 import java.time.Month
 import javax.persistence.EntityManager
 
@@ -65,12 +63,14 @@ class AgentsControllerTest {
     fun `should save agent statuses`() {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
-            ))
+            .bodyValue(
+                listOf(
+                    AgentStatusDto(AgentState.IDLE, "container-1")
+                )
+            )
             .exchange()
             .expectStatus()
             .isOk
@@ -80,25 +80,27 @@ class AgentsControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         updateAgentStatuses(
-            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
+            AgentStatusDto(AgentState.IDLE, "container-2")
         )
 
         val firstAgentIdle = getLastIdleForSecondContainer()
 
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+                listOf(
+                    AgentStatusDto(AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
+                )
             )
             .exchange()
             .expectStatus()
             .isOk
 
         updateAgentStatuses(
-            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
+            AgentStatusDto(AgentState.BUSY, "container-2")
         )
 
         assertTrue(
@@ -151,28 +153,13 @@ class AgentsControllerTest {
             }
     }
 
-    @Test
-    fun `check save agent version`() {
-        val agentVersion = AgentVersion("container-1", "0.0.1")
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/internal/saveAgentVersion")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(agentVersion))
-            .exchange()
-            .expectStatus()
-            .isOk
-        Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
-    }
-
     private fun updateAgentStatuses(body: AgentStatusDto) {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
+            .bodyValue(listOf(body))
             .exchange()
             .expectStatus()
             .isOk
