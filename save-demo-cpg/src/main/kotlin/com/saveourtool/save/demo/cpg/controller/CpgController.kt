@@ -3,6 +3,7 @@ package com.saveourtool.save.demo.cpg.controller
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
+import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
@@ -11,7 +12,6 @@ import com.saveourtool.save.utils.info
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.graph.Node
-import com.saveourtool.save.demo.cpg.utils.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.apache.commons.io.FileUtils
