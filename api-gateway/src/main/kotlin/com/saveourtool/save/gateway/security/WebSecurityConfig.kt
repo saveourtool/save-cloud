@@ -87,7 +87,6 @@ class WebSecurityConfig(
                 "/error",
                 "/demo/api/**",
                 "/neo4j/**",
-                "/grafana/**"
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
