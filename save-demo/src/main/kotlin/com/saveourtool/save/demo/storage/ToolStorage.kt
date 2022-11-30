@@ -2,10 +2,10 @@ package com.saveourtool.save.demo.storage
 
 import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.name
 
 private const val TOOLS_PATH = "tools"
 
@@ -16,14 +16,11 @@ private const val TOOLS_PATH = "tools"
 class ToolStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<ToolKey>(Path.of(configProperties.fileStorage.location) / TOOLS_PATH) {
-    @Suppress("COMPLEX_EXPRESSION")
-    override fun buildKey(rootDir: Path, pathToContent: Path): ToolKey = ToolKey(
-val (rootDir, ownerName, toolName, vcsTagName, executableName) = pathToContent.pathNamesTill(rootDir)
-return ToolKey(rootDir, ownerName, toolName, vcsTagName, executableName)
-        pathToContent.parent.parent.name,
-        pathToContent.parent.name,
-        pathToContent.name,
-    )
+    @Suppress("DestructuringDeclarationWithTooManyEntries")
+    override fun buildKey(rootDir: Path, pathToContent: Path): ToolKey {
+        val (_, ownerName, toolName, vcsTagName, executableName) = pathToContent.pathNamesTill(rootDir)
+        return ToolKey(ownerName, toolName, vcsTagName, executableName)
+    }
 
     override fun buildPathToContent(rootDir: Path, key: ToolKey): Path = rootDir / key.ownerName / key.toolName / key.vcsTagName / key.executableName
 }
