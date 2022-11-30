@@ -11,7 +11,7 @@ metadata:
   {{- end }}
 spec:
   {{- if .Values.ingress.https.enabled }}
-  # Since Helm doesn't allow references to eternal files (https://github.com/helm/helm/issues/3276)
+  # Since Helm doesn't allow references to external files (https://github.com/helm/helm/issues/3276)
   # the Secret needs to be created beforehand.
   tls:
   - secretName: {{ .Values.ingress.https.secretName }}
