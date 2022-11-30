@@ -9,7 +9,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
-import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.service.SandboxOrchestratorAgentService
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -303,7 +302,7 @@ class SandboxController(
     fun runExecution(
         @RequestParam sdk: String,
         authentication: Authentication,
-    ): Mono<BodilessResponseEntity> {
+    ): Mono<EmptyResponse> {
         val userId = authentication.userId()
         return validateNoRunningExecution(userId)
             .flatMap {

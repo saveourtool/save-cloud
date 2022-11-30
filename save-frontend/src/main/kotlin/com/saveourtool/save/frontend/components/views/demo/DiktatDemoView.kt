@@ -6,9 +6,9 @@ package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.diktatDemoComponent
-import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.utils.Languages
 
 import csstype.*
 import react.*
@@ -37,7 +37,7 @@ private fun diktatDemoView(): VFC = VFC {
                     }
                 }
                 diktatDemoComponent {
-                    this.selectedMode = AceModes.KOTLIN
+                    this.selectedMode = Languages.KOTLIN
                     this.selectedTheme = selectedTheme
                 }
             }
