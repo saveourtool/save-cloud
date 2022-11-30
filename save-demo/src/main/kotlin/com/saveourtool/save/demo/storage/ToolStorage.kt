@@ -18,7 +18,8 @@ class ToolStorage(
 ) : AbstractFileBasedStorage<ToolKey>(Path.of(configProperties.fileStorage.location) / TOOLS_PATH) {
     @Suppress("COMPLEX_EXPRESSION")
     override fun buildKey(rootDir: Path, pathToContent: Path): ToolKey = ToolKey(
-        pathToContent.parent.parent.parent.name,
+val (rootDir, ownerName, toolName, vcsTagName, executableName) = pathToContent.pathNamesTill(rootDir)
+return ToolKey(rootDir, ownerName, toolName, vcsTagName, executableName)
         pathToContent.parent.parent.name,
         pathToContent.parent.name,
         pathToContent.name,
