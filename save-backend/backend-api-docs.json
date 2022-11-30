@@ -2272,74 +2272,13 @@
         ]
       }
     },
-    "/api/v1/organizations/by-filters-with-rating": {
-      "post": {
-        "description": "Get filtered organizations with rating available for the current user.",
-        "operationId": "getFilteredOrganizationsWithRating",
-        "parameters": [
-          {
-            "description": "organization filters",
-            "in": "query",
-            "name": "organizationFilters",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationWithRating"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched non-deleted organizations."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OrganizationWithRating"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get organizations with rating matching filters.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/by-user-and-filters": {
+    "/api/v1/organizations/by-filters": {
       "post": {
         "description": "Get organizations by filters available for the current user.",
         "operationId": "getOrganizationWithRolesAndFilters",
         "parameters": [
           {
-            "description": "this type of organizations",
+            "description": "organization filters",
             "in": "query",
             "name": "filters",
             "required": true
@@ -2407,9 +2346,70 @@
             "basic": []
           }
         ],
-        "summary": "Get user\u0027s organizations by filters",
+        "summary": "Get the list of organizations available to the current user and matching the filters, if any",
         "tags": [
           "roles",
+          "organizations"
+        ]
+      }
+    },
+    "/api/v1/organizations/by-filters-with-rating": {
+      "post": {
+        "description": "Get filtered organizations with rating available for the current user.",
+        "operationId": "getFilteredOrganizationsWithRating",
+        "parameters": [
+          {
+            "description": "organization filters",
+            "in": "query",
+            "name": "organizationFilters",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithRating"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched non-deleted organizations."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationWithRating"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get organizations with rating matching filters.",
+        "tags": [
           "organizations"
         ]
       }
@@ -3954,7 +3954,7 @@
         "operationId": "getProjects",
         "parameters": [
           {
-            "description": "organization filters",
+            "description": "project filters",
             "in": "query",
             "name": "projectFilters",
             "required": true
@@ -8729,7 +8729,7 @@
             }
           }
         },
-        "description": "organization filters"
+        "description": "project filters"
       },
       "Sdk": {
         "required": [
