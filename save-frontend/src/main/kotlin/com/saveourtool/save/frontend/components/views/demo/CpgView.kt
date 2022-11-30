@@ -44,7 +44,7 @@ val cpgView: VFC = VFC {
 
     displayInfoModal(
         errorWindowOpenness,
-        "Error",
+        "Error log",
         errorMessage,
     )
 
