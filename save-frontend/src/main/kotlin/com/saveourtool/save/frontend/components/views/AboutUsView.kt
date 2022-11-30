@@ -191,11 +191,11 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
 
     companion object :
         RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
-        private const val DEFAULT_AVATAR_SIZE = "200"
-        private const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
-        private const val GITHUB_LINK = "https://github.com/"
-        private const val MAX_NICKNAME_LENGTH = 15
-        private const val NUMBER_OF_COLUMNS = 3
+        protected const val DEFAULT_AVATAR_SIZE = "200"
+        protected const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
+        protected const val GITHUB_LINK = "https://github.com/"
+        protected const val MAX_NICKNAME_LENGTH = 15
+        protected const val NUMBER_OF_COLUMNS = 3
         protected const val SAVEOURTOOL_EMAIL = "saveourtool@gmail.com"
         protected val saveourtoolDescription = """
             # Save Our Tool!
