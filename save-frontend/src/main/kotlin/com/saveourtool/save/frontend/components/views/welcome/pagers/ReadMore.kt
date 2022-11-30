@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
-import browser.window
 import csstype.*
 import js.core.jso
 import react.ChildrenBuilder

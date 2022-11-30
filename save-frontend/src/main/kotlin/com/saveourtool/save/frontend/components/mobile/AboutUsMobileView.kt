@@ -4,11 +4,7 @@
 
 package com.saveourtool.save.frontend.components.mobile
 
-import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AboutUsView
-import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.components.views.Developer
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -19,12 +15,8 @@ import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
-
 
 /**
  * A component representing "About us" page
@@ -35,7 +27,7 @@ class AboutUsMobileView : AboutUsView() {
     override fun ChildrenBuilder.render() {
         renderViewHeader()
         renderSaveourtoolInfo()
-        renderDevelopers(2)
+        renderDevelopers(NUMBER_OF_COLUMNS)
     }
 
     override fun ChildrenBuilder.renderSaveourtoolInfo() {
@@ -102,5 +94,9 @@ class AboutUsMobileView : AboutUsView() {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val NUMBER_OF_COLUMNS = 2
     }
 }

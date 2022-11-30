@@ -1,3 +1,7 @@
+/**
+ * Utility methods for beautiful titles/slogans on welcome view
+ */
+
 package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.faChevronDown
@@ -8,6 +12,10 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML
 
+/**
+ * @param textColor
+ * @param isDark
+ */
 fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
     ReactHTML.div {
         className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 $textColor")
@@ -27,6 +35,10 @@ fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = f
     }
 }
 
+/**
+ * @param str
+ * @param isDark
+ */
 fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
     ReactHTML.div {
         if (isDark) {
@@ -37,6 +49,24 @@ fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
         className = ClassName("mb-0 mt-0")
         h1Bold(str[0].toString())
         h1Normal(str.substring(1, str.length))
+    }
+}
+
+/**
+ * @param col
+ */
+@Suppress("MAGIC_NUMBER")
+fun ChildrenBuilder.chevron(col: String) {
+    ReactHTML.div {
+        className = ClassName("row justify-content-center")
+        ReactHTML.h1 {
+            className = ClassName("animate__animated animate__pulse animate__infinite")
+            style = jso {
+                fontSize = 5.rem
+                color = col.unsafeCast<Color>()
+            }
+            fontAwesomeIcon(faChevronDown)
+        }
     }
 }
 
@@ -53,19 +83,5 @@ private fun ChildrenBuilder.h1Normal(str: String) = ReactHTML.h1 {
     +str
     style = jso {
         display = Display.inline
-    }
-}
-
-fun ChildrenBuilder.chevron(col: String) {
-    ReactHTML.div {
-        className = ClassName("row justify-content-center")
-        ReactHTML.h1 {
-            className = ClassName("animate__animated animate__pulse animate__infinite")
-            style = jso {
-                fontSize = 5.rem
-                color = col.unsafeCast<Color>()
-            }
-            fontAwesomeIcon(faChevronDown)
-        }
     }
 }

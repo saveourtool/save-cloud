@@ -24,8 +24,6 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
-import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.main
@@ -322,5 +320,3 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 }
-
-

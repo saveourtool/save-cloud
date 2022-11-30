@@ -30,6 +30,7 @@ external interface CardProps : PropsWithChildren {
  * @param isBordered adds a border to the card
  * @param hasBg adds a white background
  * @param isPaddingBottomNull disables bottom padding (pb-0)
+ * @param isNoPadding is true - removes all remaining padding (pt-0 pr-0 pl-0)
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")

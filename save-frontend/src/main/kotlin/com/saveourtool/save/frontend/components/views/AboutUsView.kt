@@ -38,7 +38,7 @@ external interface AboutUsViewState : State
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
-    protected val developers = listOf(
+    private val developers = listOf(
         Developer("Vlad", "Frolov", "Cheshiriks", "Fullstack"),
         Developer("Peter", "Trifanov", "petertrr", "Arch"),
         Developer("Andrey", "Shcheglov", "0x6675636b796f75676974687562", "Backend"),
@@ -50,15 +50,25 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
         Developer("Dmitriy", "Morozovsky", "icemachined", "Sensei"),
     ).sortedBy { it.name }
 
+    /**
+     * padding is removed for this card, because of the responsive images (avatars)
+     */
     protected val devCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
+
+    /**
+     * card with an infor about SAVE with padding
+     */
     protected val infoCard = cardComponent(hasBg = true, isPaddingBottomNull = true, isNoPadding = false)
 
     override fun ChildrenBuilder.render() {
         renderViewHeader()
         renderSaveourtoolInfo()
-        renderDevelopers(3)
+        renderDevelopers(NUMBER_OF_COLUMNS)
     }
 
+    /**
+     * Simple title above the information card
+     */
     protected fun ChildrenBuilder.renderViewHeader() {
         h2 {
             className = ClassName("text-center mt-3")
@@ -69,6 +79,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
         }
     }
 
+    /**
+     * Info rendering
+     */
     protected open fun ChildrenBuilder.renderSaveourtoolInfo() {
         div {
             div {
@@ -105,6 +118,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
         }
     }
 
+    /**
+     * @param columns
+     */
     @Suppress("MAGIC_NUMBER")
     protected fun ChildrenBuilder.renderDevelopers(columns: Int) {
         div {
@@ -122,7 +138,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                             className = ClassName("row")
                             for (colIndex in 0 until columns) {
                                 div {
-                                    className = ClassName("col-${12/columns} p-2")
+                                    className = ClassName("col-${12 / columns} p-2")
                                     developers.getOrNull(columns * rowIndex + colIndex)?.let {
                                         renderDeveloperCard(it)
                                     }
@@ -135,6 +151,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
         }
     }
 
+    /**
+     * @param developer
+     */
     open fun ChildrenBuilder.renderDeveloperCard(developer: Developer) {
         devCard {
             div {
@@ -172,10 +191,11 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
 
     companion object :
         RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
-        protected const val DEFAULT_AVATAR_SIZE = "200"
-        protected const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
-        protected const val GITHUB_LINK = "https://github.com/"
-        protected const val MAX_NICKNAME_LENGTH = 15
+        private const val DEFAULT_AVATAR_SIZE = "200"
+        private const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
+        private const val GITHUB_LINK = "https://github.com/"
+        private const val MAX_NICKNAME_LENGTH = 15
+        private const val NUMBER_OF_COLUMNS = 3
         protected const val SAVEOURTOOL_EMAIL = "saveourtool@gmail.com"
         protected val saveourtoolDescription = """
             # Save Our Tool!
@@ -190,6 +210,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
             - [awesome-benchmarks](${GITHUB_LINK}saveourtool/awesome-benchmarks) - Curated list of benchmarks for different types of testing
     
         """.trimIndent()
+
         init {
             AboutUsView.contextType = requestStatusContext
         }
@@ -200,6 +221,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
  * @property name developer's name
  * @property githubNickname nickname of developer on GitHub
  * @property description brief developer description
+ * @property surname
  */
 data class Developer(
     val name: String,
