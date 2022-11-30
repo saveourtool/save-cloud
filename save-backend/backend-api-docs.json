@@ -2214,17 +2214,8 @@
     "/api/v1/organizations/all-by-filters": {
       "post": {
         "description": "Get organizations",
-        "operationId": "getAllOrganizations",
+        "operationId": "getAllOrganizationsByFilters",
         "parameters": [
-          {
-            "in": "query",
-            "name": "onlyActive",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
           {
             "description": "organization filters",
             "in": "query",
@@ -2232,6 +2223,16 @@
             "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -2332,25 +2333,16 @@
         ]
       }
     },
-    "/api/v1/organizations/by-user": {
-      "get": {
-        "description": "Get organizations by status available for the current user.",
-        "operationId": "getOrganizationWithRoles",
+    "/api/v1/organizations/by-user-and-filters": {
+      "post": {
+        "description": "Get organizations by filters available for the current user.",
+        "operationId": "getOrganizationWithRolesAndFilters",
         "parameters": [
           {
             "description": "this type of organizations",
             "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "CREATED",
-              "enum": [
-                "BANNED",
-                "CREATED",
-                "DELETED"
-              ]
-            }
+            "name": "filters",
+            "required": true
           },
           {
             "example": "basic",
@@ -2359,6 +2351,16 @@
             "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
@@ -2405,7 +2407,7 @@
             "basic": []
           }
         ],
-        "summary": "Get user\u0027s organizations by status",
+        "summary": "Get user\u0027s organizations by filters",
         "tags": [
           "roles",
           "organizations"
