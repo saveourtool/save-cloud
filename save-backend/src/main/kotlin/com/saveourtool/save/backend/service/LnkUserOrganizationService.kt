@@ -204,7 +204,7 @@ class LnkUserOrganizationService(
      */
     fun getOrganizationsAndRolesByUserAndFilters(user: User, filters: OrganizationFilters): List<LnkUserOrganization> =
             lnkUserOrganizationRepository.findByUserId(user.requiredId()).filter { lnkUserOrganization ->
-                lnkUserOrganization.organization.let { it.name.contains(filters.prefix) && it.status in filters.statuses }
+                lnkUserOrganization.organization.let { it.name.startsWith(filters.prefix) && it.status in filters.statuses }
             }
 
     /**
