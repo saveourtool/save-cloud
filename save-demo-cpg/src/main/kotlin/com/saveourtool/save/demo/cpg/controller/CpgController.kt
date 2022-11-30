@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.cpg.controller
 
+import arrow.core.right
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
@@ -13,6 +14,10 @@ import com.saveourtool.save.utils.info
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.graph.Node
+import arrow.core.Either
+import arrow.core.getOrHandle
+import com.saveourtool.save.demo.cpg.utils.tryConnect
+import com.saveourtool.save.demo.cpg.utils.use
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.apache.commons.io.FileUtils
@@ -34,12 +39,15 @@ import java.util.*
 
 import kotlin.io.path.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import java.lang.IllegalArgumentException
 
 const val FILE_NAME_SEPARATOR = "==="
 
 private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
+
+typealias SessionWithFactory = Pair<Session, SessionFactory>
 
 /**
  * A simple controller
@@ -116,14 +124,9 @@ class CpgController(
     )
 
     private fun getGraph(): CpgGraph {
-        val (session, factory) = connect()
-        session ?: run {
-            throw IllegalStateException("Cannot connect to a neo4j database")
+        val (nodes, edges) = connect().use { session ->
+            session.getNodes() to session.getEdges()
         }
-        val nodes = session.getNodes()
-        val edges = session.getEdges()
-        session.clear()
-        factory?.close()
         return CpgGraph(nodes = nodes.map { it.toCpgNode() }, edges = edges.map { it.toCpgEdge() })
     }
 
@@ -139,59 +142,54 @@ class CpgController(
         }
 
     private fun saveTranslationResult(result: TranslationResult) {
-        val (session, factory) = connect()
-        session ?: run {
-            logger.error("Cannot connect to a neo4j database")
-            return
-        }
+        val sessionWithFactory = connect()
 
         log.info { "Using import depth: $DEFAULT_SAVE_DEPTH" }
         log.info {
             "Count base nodes to save [components: ${result.components.size}, additionalNode: ${result.additionalNodes.size}]"
         }
 
-        session.beginTransaction().use {
-            // FixMe: for each user we should keep the data
-            session.purgeDatabase()
+        sessionWithFactory.use { session ->
+            session.beginTransaction().use {
+                // FixMe: for each user we should keep the data
+                session.purgeDatabase()
 
-            session.save(result.components, DEFAULT_SAVE_DEPTH)
-            session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
-            it?.commit()
-        }
-        session.clear()
-        factory?.close()
-    }
-
-    private fun connect(): Pair<Session?, SessionFactory?> {
-        var fails = 0
-        var sessionFactory: SessionFactory? = null
-        var session: Session? = null
-        while (session == null && fails < MAX_RETRIES) {
-            try {
-                val configuration =
-                        Configuration.Builder()
-                            .uri(configProperties.uri)
-                            .autoIndex("none")
-                            .credentials(configProperties.authentication.username, configProperties.authentication.password)
-                            .verifyConnection(true)
-                            .build()
-                sessionFactory = SessionFactory(configuration, "de.fraunhofer.aisec.cpg.graph")
-                session = sessionFactory.openSession()
-            } catch (ex: ConnectionException) {
-                sessionFactory = null
-                fails++
-                logger.error(
-                    "Unable to connect to ${configProperties.uri}, " +
-                            "ensure that the database is running and that " +
-                            "there is a working network connection to it."
-                )
-                Thread.sleep(TIME_BETWEEN_CONNECTION_TRIES)
-            } catch (ex: AuthenticationException) {
-                logger.error("Unable to connect to ${configProperties.uri}, wrong username/password of the database")
+                session.save(result.components, DEFAULT_SAVE_DEPTH)
+                session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
+                it?.commit()
             }
         }
-        session ?: logger.error("Unable to connect to ${configProperties.uri}")
-        return Pair(session, sessionFactory)
+    }
+
+    private fun connect(): SessionWithFactory {
+        var fails = 0
+        var sessionWithFactory: SessionWithFactory? = null
+        while (sessionWithFactory == null && fails < MAX_RETRIES) {
+            sessionWithFactory = tryConnect(
+                configProperties.uri,
+                configProperties.authentication.username,
+                configProperties.authentication.password,
+                "de.fraunhofer.aisec.cpg.graph"
+            )
+                .getOrHandle { ex ->
+                fails++
+                if (fails != MAX_RETRIES) {
+                    logger.error(
+                        "Unable to connect to ${configProperties.uri}, " +
+                                "ensure that the database is running and that " +
+                                "there is a working network connection to it.",
+                        ex
+                    )
+                    Thread.sleep(TIME_BETWEEN_CONNECTION_TRIES)
+                    return@getOrHandle null
+                } else {
+                    throw IllegalStateException("Cannot connect to a neo4j database", ex)
+                }
+            }
+        }
+        return requireNotNull(sessionWithFactory) {
+            "Invalid state"
+        }
     }
 
     private fun createFiles(request: DemoRunRequest, tmpFolder: Path) {
