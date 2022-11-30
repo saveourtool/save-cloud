@@ -81,7 +81,7 @@ fun Path.countPartsTill(stop: Path): Int = generateSequence(this, Path::getParen
 
 /**
  * @param stop
- * @return list of name of paths (folders + current file) till [stop]
+ * @return list of name of paths (folders + current file) till [stop] (including stop.name)
  */
 fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::getParent)
     .takeWhile { it != stop }
