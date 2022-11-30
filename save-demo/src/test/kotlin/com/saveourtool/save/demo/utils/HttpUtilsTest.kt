@@ -53,7 +53,7 @@ class HttpUtilsTest {
         assertThatThrownBy {
             buffersOrNone.block()
         }.isInstanceOf(RuntimeException::class.java)
-            .hasMessage("${IOException::class.qualifiedName}: Message")
+            .hasMessage("${IOException::class.qualifiedName}: $errorMessage")
             .hasCauseExactlyInstanceOf(IOException::class.java)
     }
 }
