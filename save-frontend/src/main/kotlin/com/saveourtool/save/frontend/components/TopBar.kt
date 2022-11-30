@@ -11,7 +11,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.TopBarUrl
-import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -36,6 +35,7 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useLocation
+import react.router.useNavigate
 import react.useState
 
 import kotlinx.browser.window
@@ -43,82 +43,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import react.router.useNavigate
 
 /**
- * [Props] of the top bor component
+ * Displays the url and its division by "/"
  */
-external interface TopBarProps : PropsWithChildren {
-    /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
-     * true if the device is mobile (screen is less 1000px)
-     */
-    var isMobileScreen: Boolean?
-}
-
-private fun ChildrenBuilder.dropdownEntry(
-    faIcon: dynamic,
-    text: String,
-    handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
-) = button {
-    type = ButtonType.button
-    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
-    fontAwesomeIcon(icon = faIcon) {
-        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-    }
-    +text
-    handler(this)
-}
-
-/**
- * A component for web page top bar
- *
- * @return a function component
- */
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "ComplexMethod",
-    "TOO_MANY_LINES_IN_LAMBDA"
-)
-fun topBar() = FC<TopBarProps> { props ->
-    val locationU = useLocation()
-    nav {
-        className =
-            ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
-        id = "navigation-top-bar"
-        topBarUrlSplits {
-            userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
-            location = locationU
-        }
-        topBarLinks {
-            userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
-            location = locationU
-        }
-        topBarUserField {
-            userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
-        }
-    }
-}
-
-
-/**
- * [Props] of the top bor component with [location]
- */
-external interface TopBarPropsWithLocation : TopBarProps {
-    /**
-     * Currently logged in user or null
-     */
-    var location: Location
-}
-
 private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
     nav {
         className = ClassName("navbar-nav mr-auto w-100")
@@ -169,6 +97,10 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
     }
 }
 
+/**
+ * Displays the static links that do not depend on the url
+ */
+@Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     ul {
         val navigate = useNavigate()
@@ -301,6 +233,10 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     }
 }
 
+/**
+ * Displays the user's field
+ */
+@Suppress("MAGIC_NUMBER")
 private val topBarUserField: FC<TopBarProps> = FC { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val (isAriaExpanded, setIsAriaExpanded) = useState(false)
@@ -353,8 +289,8 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                     props.userInfo?.avatar?.let {
                         img {
                             className =
-                                ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = "/api/${v1}/avatar$it"
+                                    ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
+                            src = "/api/$v1/avatar$it"
                             height = 45.0
                             width = 45.0
                         }
@@ -379,7 +315,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                     ) { attrs ->
                         attrs.onClick = {
                             window.location.href =
-                                "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                    "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                         }
                     }
                 }
@@ -399,5 +335,72 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
     }
 }
 
+/**
+ * [Props] of the top bor component
+ */
+external interface TopBarProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+
+    /**
+     * true if the device is mobile (screen is less 1000px)
+     */
+    var isMobileScreen: Boolean?
+}
+
+/**
+ * [Props] of the top bor component with [location]
+ */
+external interface TopBarPropsWithLocation : TopBarProps {
+    /**
+     * Currently logged in user or null
+     */
+    var location: Location
+}
+
+private fun ChildrenBuilder.dropdownEntry(
+    faIcon: dynamic,
+    text: String,
+    handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
+) = button {
+    type = ButtonType.button
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
+    fontAwesomeIcon(icon = faIcon) {
+        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    }
+    +text
+    handler(this)
+}
+
+/**
+ * A component for web page top bar
+ *
+ * @return a function component
+ */
+fun topBar() = FC<TopBarProps> { props ->
+    val thisLocation = useLocation()
+    nav {
+        className =
+                ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+        id = "navigation-top-bar"
+        topBarUrlSplits {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+            location = thisLocation
+        }
+        topBarLinks {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+            location = thisLocation
+        }
+        topBarUserField {
+            userInfo = props.userInfo
+            isMobileScreen = props.isMobileScreen
+        }
+    }
+}
+
 private fun textColor(hrefAnchor: String, location: Location) =
-    if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
+        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
