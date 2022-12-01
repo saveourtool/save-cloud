@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demoComponent
+import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.externals.sigma.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
@@ -38,6 +39,15 @@ val cpgView: VFC = VFC {
         }
     }
     val (queryId, setQueryId) = useState("")
+    val (errorMessage, setErrorMessage) = useState("")
+    val errorWindowOpenness = useWindowOpenness()
+
+    displaySimpleModal(
+        errorWindowOpenness,
+        "Error log",
+        errorMessage,
+    )
+
     div {
         className = ClassName("d-flex justify-content-center mb-2")
         div {
@@ -52,6 +62,8 @@ val cpgView: VFC = VFC {
                             loadingHandler = ::loadingHandler,
                         )
 
+                        setErrorMessage(response.unpackMessage())
+
                         if (response.ok) {
                             val newQueryId = response.text().await()
                             setQueryId(newQueryId)
@@ -63,6 +75,8 @@ val cpgView: VFC = VFC {
                             )
                                 .decodeFromJsonString()
                             setGraph(newGraph)
+                        } else {
+                            errorWindowOpenness.openWindow()
                         }
                     }
                     this.resultBuilder = { builder ->
