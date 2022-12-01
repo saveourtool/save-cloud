@@ -35,7 +35,6 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useLocation
-import react.router.useNavigate
 import react.useState
 
 import kotlinx.browser.window
