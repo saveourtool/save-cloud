@@ -10,7 +10,7 @@ gateway:
   sandbox:
     url: http://sandbox:5400
   demo:
-    url: http://demo:5401
+    url: http://demo:5421
   demo-cpg:
     url: http://demo-cpg:5500
   neo4j-browser:
