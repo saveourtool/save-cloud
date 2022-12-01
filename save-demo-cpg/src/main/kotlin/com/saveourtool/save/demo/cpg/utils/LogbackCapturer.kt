@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo.cpg.utils
 
+import arrow.core.Either
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -46,15 +47,10 @@ object LogbackCapturer {
     operator fun <R> invoke(loggerName: String, function: () -> R): ResultWithLogs<R> {
         val loggerConfig = context.getLogger(loggerName)
         loggerConfig.addAppender(appender)
-        try {
-            val result: R = function()
-            return ResultWithLogs(
-                result,
-                writer.toString().lines()
-            )
-        } finally {
-            loggerConfig.detachAppender(appender)
-            writer.builder.clear()
-        }
+        val result: Either<Throwable, R> = Either.catch { function() }
+        val logs = writer.toString().lines()
+        loggerConfig.detachAppender(appender)
+        writer.builder.clear()
+        return ResultWithLogs(result, logs)
     }
 }

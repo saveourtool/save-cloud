@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.cpg.controller
 
+import arrow.core.getOrElse
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
@@ -35,7 +36,7 @@ private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
 
-typealias CpgResultWithLogsResponse = ResponseEntity<ResultWithLogs<String>>
+typealias CpgResultWithLogsResponse = ResponseEntity<Pair<String?, List<String>>>
 
 /**
  * A simple controller
@@ -64,24 +65,26 @@ class CpgController(
             createFiles(request, tmpFolder)
 
             val resultWithLogs = LogbackCapturer(BASE_PACKAGE_NAME) {
-                try {
-                    // creating the CPG configuration instance, it will be used to configure the graph
-                    val translationConfiguration = createTranslationConfiguration(tmpFolder)
+                // creating the CPG configuration instance, it will be used to configure the graph
+                val translationConfiguration = createTranslationConfiguration(tmpFolder)
 
-                    // result - is the parsed Code Property Graph
-                    TranslationManager.builder()
-                        .config(translationConfiguration)
-                        .build()
-                        .analyze()
-                        .get()
-                } catch (ex: Exception) {
-                    null
+                // result - is the parsed Code Property Graph
+                TranslationManager.builder()
+                    .config(translationConfiguration)
+                    .build()
+                    .analyze()
+                    .get()
+            }
+            resultWithLogs.result
+                .tap {
+                    saveTranslationResult(it)
                 }
-            }
-            resultWithLogs.result?.let {
-                saveTranslationResult(it)
-            }
-            ResponseEntity.ok(ResultWithLogs(tmpFolder.fileName.name, resultWithLogs.logs))
+                .map { tmpFolder.fileName.name }
+                .getOrElse { null }
+                .let {
+                    it to resultWithLogs.logs
+                }
+                .let { ResponseEntity.ok(it) }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
