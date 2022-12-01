@@ -1,6 +1,5 @@
 package com.saveourtool.save.buildutils
 
-import com.saveourtool.save.buildutils.versionForDockerImages
 import org.gradle.kotlin.dsl.register
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 

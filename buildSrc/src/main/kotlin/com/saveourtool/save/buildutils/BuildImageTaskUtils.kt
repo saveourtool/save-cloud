@@ -1,3 +1,7 @@
+/**
+ * Utilities for spring-boot's `BootBuildImage` Gradle task and generally to configure paketo-buildpacks-based builds in Gradle.
+ */
+
 package com.saveourtool.save.buildutils
 
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
