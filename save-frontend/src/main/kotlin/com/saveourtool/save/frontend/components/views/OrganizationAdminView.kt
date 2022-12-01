@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -36,8 +35,8 @@ import kotlinx.serialization.json.Json
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
     private val comparator: Comparator<OrganizationDto> =
-        compareBy<OrganizationDto> { orderedOrganizationStatus[it.status] }
-            .thenBy { it.name }
+            compareBy<OrganizationDto> { orderedOrganizationStatus[it.status] }
+                .thenBy { it.name }
 
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(

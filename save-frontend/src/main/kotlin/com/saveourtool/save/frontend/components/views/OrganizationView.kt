@@ -199,8 +199,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<ProjectDto> =
-            compareBy<ProjectDto> { orderedProjectStatus[it.status] }
-                .thenBy { it.name }
+                compareBy<ProjectDto> { orderedProjectStatus[it.status] }
+                    .thenBy { it.name }
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)

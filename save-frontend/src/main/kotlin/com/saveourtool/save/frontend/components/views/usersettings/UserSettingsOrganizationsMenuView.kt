@@ -27,10 +27,9 @@ import react.dom.html.ReactHTML.ul
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
-
     private val comparator: Comparator<OrganizationWithUsers> =
-        compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
-            .thenBy { it.organization.name }
+            compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
+                .thenBy { it.organization.name }
 
     @Suppress("CyclomaticComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
@@ -66,7 +65,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     height = 60.0
                                     width = 60.0
                                 }
-                                when(organizationDto.status){
+                                when (organizationDto.status) {
                                     OrganizationStatus.CREATED -> a {
                                         href = "#/${organizationDto.name}"
                                         +organizationDto.name
@@ -85,7 +84,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    when (organizationDto.status){
+                                    when (organizationDto.status) {
                                         OrganizationStatus.CREATED -> actionButton {
                                             title = "WARNING: About to delete this organization..."
                                             errorTitle = "You cannot delete the organization ${organizationDto.name}"
@@ -98,7 +97,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             classes = actionButtonClasses.joinToString(" ")
                                             modalButtons = { action, closeWindow, childrenBuilder, _ ->
                                                 with(childrenBuilder) {
-                                                    buttonBuilder( label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
+                                                    buttonBuilder(label = "Yes, delete ${organizationDto.name}", style = "danger", classes = "mr-2") {
                                                         action()
                                                         closeWindow()
                                                     }

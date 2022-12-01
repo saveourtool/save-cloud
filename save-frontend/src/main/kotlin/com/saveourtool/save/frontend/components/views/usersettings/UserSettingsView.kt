@@ -5,7 +5,6 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationStatus.BANNED
 import com.saveourtool.save.entities.OrganizationStatus.CREATED
 import com.saveourtool.save.entities.OrganizationStatus.DELETED
@@ -45,7 +44,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val orderedOrganizationStatus = listOf(CREATED, DELETED, BANNED).withIndex().associate { it.value to it.index }
-
 
 /**
  * `Props` retrieved from router
@@ -120,8 +118,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<OrganizationWithUsers> =
-            compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
-                .thenBy { it.organization.name }
+                compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
+                    .thenBy { it.organization.name }
 
         scope.launch {
             val user = props.userName

@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.projects.responseChangeProjectStatus
@@ -13,7 +12,6 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.*
-import com.saveourtool.save.frontend.components.views.usersettings.orderedOrganizationStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -66,8 +64,8 @@ external interface OrganizationToolsMenuProps : Props {
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val (projects, setProjects) = useState(props.projects)
     val comparator: Comparator<ProjectDto> =
-        compareBy<ProjectDto> { orderedProjectStatus[it.status] }
-            .thenBy { it.name }
+            compareBy<ProjectDto> { orderedProjectStatus[it.status] }
+                .thenBy { it.name }
     @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
@@ -148,7 +146,8 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { isBanMode ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED)).sortedWith(comparator)
+                                            val newStatus = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                            val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
                                             setProjects(newProjects)
                                             props.updateProjects(newProjects.toMutableList())
                                         }
