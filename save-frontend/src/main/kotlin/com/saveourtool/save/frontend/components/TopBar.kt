@@ -18,6 +18,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import csstype.rem
 import dom.html.HTMLButtonElement
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
@@ -40,7 +41,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.js.jso
 
 /**
  * [Props] of the top bor component
@@ -50,6 +50,11 @@ external interface TopBarProps : PropsWithChildren {
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * true if the device is mobile (screen is less 1000px)
+     */
+    var isMobileScreen: Boolean?
 }
 
 private fun ChildrenBuilder.dropdownEntry(
@@ -155,6 +160,18 @@ fun topBar() = FC<TopBarProps> { props ->
                     }
                     href = "#/$hrefAnchor"
                     +"Awesome Benchmarks"
+                }
+            }
+            li {
+                className = ClassName("nav-item")
+                a {
+                    val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
+                    style = jso {
+                        width = 3.5.rem
+                    }
+                    href = "#/$hrefAnchor"
+                    +"CPG"
                 }
             }
             li {

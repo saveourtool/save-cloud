@@ -76,4 +76,10 @@
       onDelete="CASCADE"/>
   </changeSet>
 
+  <changeSet id="drop-test-suite-ids" author="kgevorkyan">
+    <dropColumn tableName="lnk_contest_project">
+      <column name="best_score"/>
+    </dropColumn>
+  </changeSet>
+
 </databaseChangeLog>

@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic.codeeditor
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.reactace.*
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import react.*
@@ -31,9 +32,9 @@ external interface CodeEditorComponentProps : Props {
     var selectedTheme: AceThemes
 
     /**
-     * Currently selected [AceModes]
+     * Currently selected [Languages]
      */
-    var selectedMode: AceModes
+    var selectedMode: Languages
 
     /**
      * Text that is considered to be saved

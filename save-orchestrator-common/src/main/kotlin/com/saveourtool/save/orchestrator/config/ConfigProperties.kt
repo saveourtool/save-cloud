@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property kubernetes configuration for setup in Kubernetes
  * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
+ * @property containerNamePrefix a prefix for container name
  * @property agentsCount a number of agents to start for every [Execution]
  * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
@@ -29,6 +30,7 @@ data class ConfigProperties(
     val docker: DockerSettings?,
     val kubernetes: KubernetesSettings?,
     val dockerResourcesLifetime: String = "720h",
+    val containerNamePrefix: String = "save-execution-",
     val agentsCount: Int,
     val shutdown: ShutdownSettings,
     val aptExtraFlags: String = "",
@@ -41,8 +43,8 @@ data class ConfigProperties(
 ) {
     /**
      * @property host hostname of docker daemon
+     * @property useLoki this flag enables loki logging
      * @property runtime OCI compliant runtime for docker
-     * @property loggingDriver logging driver for the container
      * @property registry docker registry to pull images for test executions from
      * @property testResourcesVolumeType Type of Docker volume (bind/volume). `bind` should only be used for local running and for tests.
      * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
@@ -50,7 +52,7 @@ data class ConfigProperties(
      */
     data class DockerSettings(
         val host: String,
-        val loggingDriver: String,
+        val useLoki: Boolean = true,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
         val testResourcesVolumeType: String = "volume",

@@ -63,10 +63,10 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                         }
                     }
                 }
-                column(id = "passed", header = "Description") {
+                column(id = "passed", header = "Description") { cellContext ->
                     Fragment.create {
                         td {
-                            +(it.value.description ?: "Description not provided")
+                            +(cellContext.value.description.ifEmpty { "Description not provided" })
                         }
                     }
                 }

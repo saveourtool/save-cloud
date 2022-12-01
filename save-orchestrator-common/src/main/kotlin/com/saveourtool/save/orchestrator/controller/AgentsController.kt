@@ -2,12 +2,11 @@ package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
@@ -43,7 +42,7 @@ class AgentsController(
      */
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
-    fun initialize(@RequestBody request: RunExecutionRequest): Mono<BodilessResponseEntity> {
+    fun initialize(@RequestBody request: RunExecutionRequest): Mono<EmptyResponse> {
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
@@ -115,15 +114,14 @@ class AgentsController(
      * @return empty response
      */
     @PostMapping("/cleanup")
-    fun cleanup(@RequestParam executionId: Long) = Mono.fromCallable {
+    fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         dockerService.cleanup(executionId)
     }
         .flatMap {
-            Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+            Mono.just(ResponseEntity.ok().build())
         }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
-        private val loggingContext = LoggingContextImpl(log)
     }
 }

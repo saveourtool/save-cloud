@@ -11,7 +11,7 @@ internal class GitUtilKtTest {
     fun test(@TempDir tmpDir: Path) {
         val gitDto = GitDto("https://github.com/saveourtool/save-cli.git")
 
-        gitDto.cloneTagToDirectory("v0.3.4", tmpDir / "tag")
+        gitDto.cloneTagToDirectory("v0.3.5", tmpDir / "tag")
         gitDto.cloneBranchToDirectory("infra/build-logic-includebuild", tmpDir / "branch")
         gitDto.cloneCommitToDirectory("8a8f164", tmpDir / "commit")
     }

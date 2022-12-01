@@ -15,7 +15,7 @@ import react.react
 
 import kotlin.js.Promise
 import kotlin.test.*
-import kotlinx.js.jso
+import js.core.jso
 
 class ProjectViewTest {
     private val testOrganization = OrganizationDto.empty

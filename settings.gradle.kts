@@ -25,5 +25,6 @@ include("save-api-cli")
 include("save-sandbox")
 include("authentication-service")
 include("save-demo")
+include("save-demo-cpg")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

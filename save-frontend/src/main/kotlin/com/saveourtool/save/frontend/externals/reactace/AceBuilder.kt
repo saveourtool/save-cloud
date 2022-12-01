@@ -3,13 +3,13 @@
 package com.saveourtool.save.frontend.externals.reactace
 
 import com.saveourtool.save.utils.DEBOUNCE_PERIOD_FOR_EDITORS
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import io.github.petertrr.diffutils.diff
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
-
-import kotlinx.js.jso
 
 /**
  * @param text displayed text
@@ -22,17 +22,19 @@ import kotlinx.js.jso
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.aceBuilder(
     text: String,
-    selectedMode: AceModes,
+    selectedMode: Languages,
     selectedTheme: AceThemes = AceThemes.CHROME,
     aceMarkers: Array<AceMarker> = emptyArray(),
     disabled: Boolean = false,
     onChangeFun: (String) -> Unit,
 ) {
     selectedTheme.require()
-    selectedMode.require()
+    kotlinext.js.require("ace-builds/src-min-noconflict/mode-${selectedMode.modeName}")
+
     div {
         className = ClassName("d-flex justify-content-center flex-fill")
         reactAce {
+            fontSize = "16px"
             className = "flex-fill"
             mode = selectedMode.modeName
             theme = selectedTheme.themeName
