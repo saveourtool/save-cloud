@@ -19,7 +19,7 @@ liquibase-core = "4.17.2"
 docker-java = "3.2.14"
 jgit = "6.3.0.202209071007-r"
 mockito-kotlin = "4.1.0"
-slf4j = "1.7.36"
+# only in save-cli
 log4j = "2.19.0"
 jpa = "1.0.2"
 mySql = "8.0.31"
@@ -150,7 +150,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.4" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-api = { module = "org.slf4j:slf4j-api" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 logback-core = { module = "ch.qos.logback:logback-core" }
