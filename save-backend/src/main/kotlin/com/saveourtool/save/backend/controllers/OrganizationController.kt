@@ -45,6 +45,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.EnumSet
 
 typealias OrganizationDtoList = List<OrganizationDto>
 
@@ -70,28 +71,20 @@ internal class OrganizationController(
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
-    @GetMapping("/all")
+    @PostMapping("/all-by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
+        method = "POST",
         summary = "Get all organizations",
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(
-            name = "onlyActive",
-            `in` = ParameterIn.QUERY,
-            description = "Whether deleted organizations should be excluded from the response. The default is false.",
-            required = false
-        ),
+        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations(
-        @RequestParam(required = false, defaultValue = "false") onlyActive: Boolean
-    ): Mono<OrganizationDtoList> = when {
-        onlyActive -> getFilteredOrganizationDtoList(OrganizationFilters.created).collectList()
-        else -> blockingToMono { organizationService.findAll().map(Organization::toDto) }
-    }
+    fun getAllOrganizationsByFilters(
+        @RequestBody organizationFilters: OrganizationFilters
+    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilters).map(Organization::toDto) }
 
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
@@ -105,7 +98,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizationsWithRating(
-        @RequestBody(required = true) organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilters: OrganizationFilters,
         authentication: Authentication?,
     ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilters)
         .flatMap { organizationDto ->
@@ -337,7 +330,7 @@ internal class OrganizationController(
         @RequestParam status: OrganizationStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        organizationService.findByNameAndCreatedStatus(organizationName)
+        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
