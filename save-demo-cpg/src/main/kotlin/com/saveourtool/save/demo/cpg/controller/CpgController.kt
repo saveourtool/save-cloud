@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.cpg.controller
 
-import arrow.core.getOrElse
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
@@ -10,6 +9,7 @@ import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 
+import arrow.core.getOrHandle
 import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import de.fraunhofer.aisec.cpg.graph.Node
@@ -64,7 +64,7 @@ class CpgController(
         try {
             createFiles(request, tmpFolder)
 
-            val resultWithLogs = LogbackCapturer(BASE_PACKAGE_NAME) {
+            val (result, logs) = LogbackCapturer(BASE_PACKAGE_NAME) {
                 // creating the CPG configuration instance, it will be used to configure the graph
                 val translationConfiguration = createTranslationConfiguration(tmpFolder)
 
@@ -75,15 +75,12 @@ class CpgController(
                     .analyze()
                     .get()
             }
-            resultWithLogs.result
+            result
                 .tap {
                     saveTranslationResult(it)
                 }
-                .map { tmpFolder.fileName.name }
-                .getOrElse { null }
-                .let {
-                    it to resultWithLogs.logs
-                }
+                .map { tmpFolder.fileName.name to logs }
+                .getOrHandle { null to logs + "Exception: ${it.message} ${it.stackTraceToString()}" }
                 .let { ResponseEntity.ok(it) }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
