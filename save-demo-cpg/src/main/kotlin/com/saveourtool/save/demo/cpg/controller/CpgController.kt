@@ -36,7 +36,7 @@ private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
 
-typealias CpgResultWithLogsResponse = ResponseEntity<Pair<String?, List<String>>>
+typealias CpgResultWithLogsResponse = ResponseEntity<CpgResult>
 
 /**
  * A simple controller
@@ -79,24 +79,25 @@ class CpgController(
                 .tap {
                     saveTranslationResult(it)
                 }
-                .map { tmpFolder.fileName.name to logs }
-                .getOrHandle { null to logs + "Exception: ${it.message} ${it.stackTraceToString()}" }
+                .map {
+                    CpgResult(
+                        getGraph(),
+                        tmpFolder.fileName.name,
+                        logs,
+                    )
+                }
+                .getOrHandle {
+                    CpgResult(
+                        getGraph(),
+                        "NONE",
+                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
+                    )
+                }
                 .let { ResponseEntity.ok(it) }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
-
-    /**
-     * @param uploadId
-     * @return result of translation
-     */
-    @GetMapping("/get-result")
-    fun getResult(
-        @RequestParam(required = false, defaultValue = "") uploadId: String,
-    ): ResponseEntity<CpgGraph> = ResponseEntity.ok(
-        getGraph()
-    )
 
     @OptIn(ExperimentalPython::class)
     private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()

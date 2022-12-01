@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.demo.cpg.CpgGraph
+import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demoComponent
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
@@ -21,24 +22,25 @@ import react.dom.html.ReactHTML.div
 import react.useEffect
 import react.useState
 
-import kotlinx.coroutines.await
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = true)
 
+@Suppress("COMPLEX_EXPRESSION")
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
-    val (graph, setGraph) = useState(CpgGraph.placeholder)
+    val cpgResultInit = CpgResult(CpgGraph.placeholder, "", emptyList())
+    val (cpgResult, setCpgResult) = useState(cpgResultInit)
+    val (isLogs, setIsLogs) = useState(false)
     val graphLoader = VFC {
         val loadGraph = useLoadGraph()
         val (_, assign) = useLayoutCircular()
         useEffect(assign, loadGraph) {
-            loadGraph(graph.removeMultiEdges().paintNodes().toJson())
+            loadGraph(cpgResult.cpgGraph.removeMultiEdges().paintNodes().toJson())
             assign()
         }
     }
-    val (queryId, setQueryId) = useState("")
     val (errorMessage, setErrorMessage) = useState("")
     val errorWindowOpenness = useWindowOpenness()
 
@@ -62,20 +64,14 @@ val cpgView: VFC = VFC {
                             loadingHandler = ::loadingHandler,
                         )
 
-                        setErrorMessage(response.unpackMessage())
-
                         if (response.ok) {
-                            val newQueryId = response.text().await()
-                            setQueryId(newQueryId)
-                            val newGraph: CpgGraph = get(
-                                "$cpgDemoApiUrl/get-result",
-                                headers = jsonHeaders,
-                                loadingHandler = ::loadingHandler,
-                                responseHandler = ::noopResponseHandler,
-                            )
-                                .decodeFromJsonString()
-                            setGraph(newGraph)
+                            val cpgResultNew: CpgResult = response.unsafeMap {
+                                it.decodeFromJsonString()
+                            }
+                            setCpgResult(cpgResultNew)
+                            setIsLogs(false)
                         } else {
+                            setErrorMessage(response.unpackMessage())
                             errorWindowOpenness.openWindow()
                         }
                     }
@@ -95,12 +91,19 @@ val cpgView: VFC = VFC {
                                 }
                             }
                             div {
-                                val alertStyle = if (queryId.isNotBlank()) "alert-primary" else ""
+                                val alertStyle = if (cpgResult.applicationName.isNotBlank()) "alert-primary" else ""
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
-                                +queryId
+                                +cpgResult.applicationName
+                            }
+                            if (isLogs && cpgResult.logs.isNotEmpty()) {
+                                div {
+                                    className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
+                                    +(cpgResult.logs.joinToString("\n"))
+                                }
                             }
                         }
                     }
+                    this.showLogs = { setIsLogs(it) }
                 }
             }
         }
