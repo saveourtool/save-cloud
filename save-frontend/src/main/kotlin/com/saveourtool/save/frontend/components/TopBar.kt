@@ -103,7 +103,6 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     ul {
-        val navigate = useNavigate()
         className = ClassName("navbar-nav mx-auto")
         li {
             className = ClassName("nav-item")
