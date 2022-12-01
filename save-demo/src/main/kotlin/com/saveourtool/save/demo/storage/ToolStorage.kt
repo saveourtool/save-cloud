@@ -18,7 +18,7 @@ class ToolStorage(
 ) : AbstractFileBasedStorage<ToolKey>(Path.of(configProperties.fileStorage.location) / TOOLS_PATH) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): ToolKey {
-        val (_, ownerName, toolName, vcsTagName, executableName) = pathToContent.pathNamesTill(rootDir)
+        val (executableName, vcsTagName, toolName, ownerName) = pathToContent.pathNamesTill(rootDir)
         return ToolKey(ownerName, toolName, vcsTagName, executableName)
     }
 
