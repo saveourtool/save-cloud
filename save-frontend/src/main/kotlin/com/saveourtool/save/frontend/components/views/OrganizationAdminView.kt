@@ -4,12 +4,14 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.views.usersettings.orderedOrganizationStatus
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -33,6 +35,10 @@ import kotlinx.serialization.json.Json
  * The list of all organizations, visible to super-users.
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
+    private val comparator: Comparator<OrganizationDto> =
+        compareBy<OrganizationDto> { orderedOrganizationStatus[it.status] }
+            .thenBy { it.name }
+
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
@@ -109,8 +115,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     onActionSuccess = { isBanned ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
                                         setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = newStatus)
+                                            organizations = organizations.minus(organization).plus(organization.copy(status = newStatus)).sortedWith(comparator)
                                         }
                                     }
                                     conditionClick = true
@@ -142,8 +147,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     onActionSuccess = { _ ->
                                         setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                            organizations = organizations.minus(organization).plus(organization.copy(status = OrganizationStatus.CREATED)).sortedWith(comparator)
                                         }
                                     }
                                     conditionClick = false
@@ -174,8 +178,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     onActionSuccess = { _ ->
                                         setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
+                                            organizations = organizations.minus(organization).plus(organization.copy(status = OrganizationStatus.CREATED)).sortedWith(comparator)
                                         }
                                     }
                                     conditionClick = false
@@ -214,7 +217,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             /*
              * Get the list of organizations and cache it forever.
              */
-            val organizations = getOrganizations()
+            val organizations = getOrganizations().sortedWith(comparator)
             setState {
                 this.organizations = organizations
             }
@@ -244,7 +247,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     /**
      * @return the list of all organizations, excluding the deleted ones.
      */
-    private suspend fun getOrganizations(): MutableList<OrganizationDto> {
+    private suspend fun getOrganizations(): List<OrganizationDto> {
         val response = post(
             url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
@@ -291,5 +294,5 @@ internal external interface OrganizationAdminState : State {
      * Allows avoiding to run an `HTTP GET` each time an organization is deleted
      * (re-rendering gets triggered by updating the state instead).
      */
-    var organizations: MutableList<OrganizationDto>
+    var organizations: List<OrganizationDto>
 }
