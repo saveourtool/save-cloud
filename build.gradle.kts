@@ -1,6 +1,7 @@
 import com.saveourtool.save.buildutils.*
 
 plugins {
+    id("com.saveourtool.save.buildutils.versioning-configuration")
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
     java

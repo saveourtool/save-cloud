@@ -9,20 +9,12 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
 import java.util.*
-import org.codehaus.groovy.runtime.ResourceGroovyMethods
-import org.gradle.accessors.dm.LibrariesForLibs
-import java.net.URL
-import java.time.Duration
 
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
 }
 
-/**
- * @return path to the file with save-cli version for current build
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
 val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
 
 /**
@@ -44,36 +36,6 @@ fun Project.getSaveCliPath(): String {
     val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
         ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
     return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
-}
-
-val libs = the<LibrariesForLibs>()
-val saveCoreVersion = libs.versions.save.core.get()
-tasks.register("getSaveCliVersion") {
-//    description = "Reads version of save-cli, either from project property, or from Versions, or latest"
-    inputs.property("save-cli version", findProperty("saveCliVersion") ?: saveCoreVersion)
-    val file = file(pathToSaveCliVersion)
-    outputs.file(file)
-    outputs.upToDateWhen {
-        // cache value of latest save-cli version for 10 minutes to keep request rate to Github reasonable
-        (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
-    }
-    doFirst {
-        val version = if (saveCoreVersion.isSnapshot()) {
-            // try to get the required version of cli
-            findProperty("saveCliVersion") as String? ?: run {
-                // as fallback, use latest release to allow the project to build successfully
-                val latestRelease = ResourceGroovyMethods.getText(
-                    URL("https://api.github.com/repos/saveourtool/save-cli/releases/latest")
-                )
-                (groovy.json.JsonSlurper().parseText(latestRelease) as Map<String, Any>)["tag_name"].let {
-                    (it as String).trim('v')
-                }
-            }
-        } else {
-            saveCoreVersion
-        }
-        file.writeText("""version=$version""")
-    }
 }
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
