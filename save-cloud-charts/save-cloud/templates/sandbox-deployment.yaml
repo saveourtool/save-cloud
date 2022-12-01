@@ -119,7 +119,7 @@ spec:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
         - name: fs-storage
           persistentVolumeClaim:
-            claimName: save-fs-storage
+            claimName: {{ .Values.sandbox.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets
