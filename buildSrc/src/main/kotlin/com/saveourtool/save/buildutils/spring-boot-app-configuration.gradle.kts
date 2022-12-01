@@ -35,7 +35,8 @@ tasks.withType<BootRun>().configureEach {
 }
 
 tasks.named<BootBuildImage>("bootBuildImage") {
-    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
+    commonConfigure()
+
     environment = mapOf(
         "BP_JVM_VERSION" to Versions.jdk,
         "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
@@ -45,20 +46,4 @@ tasks.named<BootBuildImage>("bootBuildImage") {
                         // Override default configuration. Intended to be used on a particular environment.
                         "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
     )
-    isVerboseLogging = true
-    docker {
-        host = findProperty("boot.build.docker.host") as? String?
-        setTlsVerify((findProperty("boot.build.docker.tls-verify") as? String?)?.toBoolean() ?: false)
-        certPath = findProperty("boot.build.docker.cert-path") as? String?
-    }
-    System.getenv("GHCR_PWD")?.let { registryPassword ->
-        isPublish = true
-        docker {
-            publishRegistry {
-                username = "saveourtool"
-                password = registryPassword
-                url = "https://ghcr.io"
-            }
-        }
-    }
 }
