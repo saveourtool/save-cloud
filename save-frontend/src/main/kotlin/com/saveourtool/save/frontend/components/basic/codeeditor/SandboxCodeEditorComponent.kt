@@ -7,9 +7,9 @@ import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SAVE_T
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SETUP_SH
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.TEST
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
-import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import react.FC
@@ -79,7 +79,7 @@ private suspend fun WithRequestStatusContext.getTextRequest(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> { props ->
-    val (selectedMode, setSelectedMode) = useState(AceModes.KOTLIN)
+    val (selectedMode, setSelectedMode) = useState(Languages.KOTLIN)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.CHROME)
     val (selectedFileType, setSelectedFileType) = useState<FileType?>(null)
 
@@ -144,7 +144,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
             selectedTheme,
             selectedFileType,
             hasUncommittedChanges,
-            { newModeName -> setSelectedMode(AceModes.values().find { it.modeName == newModeName }!!) },
+            { newModeName -> setSelectedMode(Languages.values().find { it.modeName == newModeName }!!) },
             { newThemeName -> setSelectedTheme(AceThemes.values().find { it.themeName == newThemeName }!!) },
             onUploadChanges = uploadText,
             onReloadChanges = fetchText,

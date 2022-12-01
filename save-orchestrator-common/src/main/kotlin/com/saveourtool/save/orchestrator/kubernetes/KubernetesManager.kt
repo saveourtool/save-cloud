@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
 @Profile("kubernetes")
 class KubernetesManager(
     private val kc: KubernetesClient,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
 ) : AgentRunner {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "orchestrator.kubernetes.* properties are required in this profile"
@@ -161,7 +161,7 @@ class KubernetesManager(
 
     override fun getContainerIdentifier(containerId: String): String = containerId
 
-    private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
+    private fun jobNameForExecution(executionId: Long) = "${configProperties.containerNamePrefix}$executionId"
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun agentContainerSpec(

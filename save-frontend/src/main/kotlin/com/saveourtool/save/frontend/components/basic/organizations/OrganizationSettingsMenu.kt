@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.*
@@ -21,8 +21,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.router.useNavigate
-
-import kotlinx.browser.window
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -64,7 +62,7 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Current organization
      */
-    var organization: Organization
+    var organization: OrganizationDto
 
     /**
      * Callback invoked in order to change canCreateContests flag
@@ -174,14 +172,15 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
-                        modalButtons = { action, window, childrenBuilder ->
+                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                            val actionName = if (isClickMode) "ban" else "delete"
                             with(childrenBuilder) {
-                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                buttonBuilder(label = "Yes, $actionName ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action()
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                                 buttonBuilder("Cancel") {
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                             }
                         }

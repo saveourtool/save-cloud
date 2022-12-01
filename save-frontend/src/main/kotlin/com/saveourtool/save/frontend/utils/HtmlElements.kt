@@ -4,30 +4,43 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.BorderRadius
 import csstype.ClassName
+import js.core.jso
 import react.ChildrenBuilder
 import react.StateInstance
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.span
 
-import kotlinx.js.jso
-
 /**
  * @param project
  */
-fun ChildrenBuilder.privacySpan(project: Project) {
+fun ChildrenBuilder.privacySpan(project: ProjectDto) {
     span {
         className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
         style = jso {
             borderRadius = "2em".unsafeCast<BorderRadius>()
         }
-        +if (project.public) "public" else "private"
+        +if (project.isPublic) "public" else "private"
+    }
+}
+
+/**
+ * @param classes
+ * @param text
+ */
+fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String) {
+    span {
+        className = ClassName("border ml-2 pr-1 pl-1 text-xs $classes")
+        style = jso {
+            borderRadius = "2em".unsafeCast<BorderRadius>()
+        }
+        +text
     }
 }
 

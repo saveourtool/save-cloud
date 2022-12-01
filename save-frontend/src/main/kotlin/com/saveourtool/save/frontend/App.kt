@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
+import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
@@ -24,12 +25,15 @@ import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsT
 import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.routing.mobileRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
+import browser.document
 import csstype.ClassName
 import dom.html.HTMLElement
+import js.core.get
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -39,11 +43,9 @@ import react.router.Routes
 import react.router.dom.HashRouter
 import web.url.URLSearchParams
 
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -173,7 +175,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             val user: UserInfo? = userName
                 ?.let { getUser(it) }
 
-            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let {
+                UserInfo(
+                    name = userName,
+                    globalRole = globalRole
+                )
+            }
 
             userInfoNew?.let {
                 setState {
@@ -190,6 +197,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         "ComplexMethod",
     )
     override fun ChildrenBuilder.render() {
+        val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
+
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
@@ -206,203 +215,229 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             replace = false
                         }
                     }
-                }()
+                }
 
                 div {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"
                     ErrorBoundary::class.react {
-                        topBarComponent {
-                            userInfo = state.userInfo
-                        }
+                        if (isMobile) {
+                            mobileRoutes()
+                        } else {
+                            topBarComponent {
+                                userInfo = state.userInfo
+                            }
+                            div {
+                                className = ClassName("container-fluid")
+                                id = "common-save-container"
 
-                        div {
-                            className = ClassName("container-fluid")
-                            id = "common-save-container"
-                            Routes {
-                                Route {
-                                    path = "/"
-                                    element = WelcomeView::class.react.create {
-                                        userInfo = state.userInfo
-                                    }
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.ABOUT_US.path}"
-                                    element = AboutUsView::class.react.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.DEMO.path}/diktat"
-                                    element = diktatDemoView.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.SANDBOX.path}"
-                                    element = SandboxView::class.react.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    element = awesomeBenchmarksView.create()
-                                }
-
-                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
-                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView
-                                )
-
-                                Route {
-                                    path = "/${FrontendRoutes.REGISTRATION.path}"
-                                    element = RegistrationView::class.react.create() {
-                                        userInfo = state.userInfo
-                                    }
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                                    element = contestGlobalRatingView.create()
-                                }
-
-                                createRoutersWithPathAndEachListItem<UserRatingTab>("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", contestGlobalRatingView)
-
-                                Route {
-                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
-                                    element = contestView.create()
-                                }
-
-                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView)
-
-                                Route {
-                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
-                                    element = contestExecutionView.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName"
-                                    element = Navigate.create { to = "/${FrontendRoutes.CONTESTS.path}" }
-                                }
-
-                                Route {
-                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
-                                    element = state.userInfo?.name?.let {
-                                        UserSettingsProfileMenuView::class.react.create {
-                                            userName = it
-                                        }
-                                    } ?: fallbackNode
-                                }
-
-                                Route {
-                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
-                                    element = state.userInfo?.name?.let {
-                                        UserSettingsEmailMenuView::class.react.create {
-                                            userName = it
-                                        }
-                                    } ?: fallbackNode
-                                }
-
-                                Route {
-                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_TOKEN.path}"
-                                    element = state.userInfo?.name?.let {
-                                        UserSettingsTokenMenuView::class.react.create {
-                                            userName = it
-                                        }
-                                    } ?: fallbackNode
-                                }
-
-                                Route {
-                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
-                                    element = state.userInfo?.name?.let {
-                                        UserSettingsOrganizationsMenuView::class.react.create {
-                                            userName = it
-                                        }
-                                    } ?: fallbackNode
-                                }
-
-                                state.userInfo?.name.run {
+                                Routes {
                                     Route {
-                                        path = "/$this"
-                                        element = Navigate.create { to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}" }
+                                        path = "/"
+                                        element = WelcomeView::class.react.create {
+                                            userInfo = state.userInfo
+                                        }
                                     }
-                                }
 
-                                Route {
-                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}"
-                                    element = CreationView::class.react.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
-                                    element = creationView.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
-                                    element = CreateOrganizationView::class.react.create()
-                                }
-
-                                Route {
-                                    path = "/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}"
-                                    element = when (state.userInfo.isSuperAdmin()) {
-                                        true -> OrganizationAdminView::class.react.create()
-                                        else -> fallbackNode
+                                    Route {
+                                        path = "/${FrontendRoutes.ABOUT_US.path}"
+                                        element = AboutUsView::class.react.create()
                                     }
-                                }
 
-                                Route {
-                                    path = "/${FrontendRoutes.PROJECTS.path}"
-                                    element = CollectionView::class.react.create {
-                                        currentUserInfo = state.userInfo
+                                    Route {
+                                        path = "/${FrontendRoutes.DEMO.path}/diktat"
+                                        element = diktatDemoView.create()
                                     }
-                                }
 
-                                Route {
-                                    path = "/${FrontendRoutes.CONTESTS.path}"
-                                    element = ContestListView::class.react.create {
-                                        currentUserInfo = state.userInfo
+                                    Route {
+                                        path = "/${FrontendRoutes.DEMO.path}/cpg"
+                                        element = cpgView.create()
                                     }
-                                }
 
-                                Route {
-                                    path = "/:owner"
-                                    element = organizationView.create()
-                                }
+                                    Route {
+                                        path = "/${FrontendRoutes.SANDBOX.path}"
+                                        element = SandboxView::class.react.create()
+                                    }
 
-                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView)
+                                    Route {
+                                        path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                                        element = awesomeBenchmarksView.create()
+                                    }
 
-                                Route {
-                                    path = "/:owner/:name/history"
-                                    element = historyView.create()
-                                }
+                                    createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
+                                        "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+                                        awesomeBenchmarksView
+                                    )
 
-                                Route {
-                                    path = "/:owner/:name"
-                                    element = projectView.create()
-                                }
+                                    Route {
+                                        path = "/${FrontendRoutes.REGISTRATION.path}"
+                                        element = RegistrationView::class.react.create {
+                                            userInfo = state.userInfo
+                                        }
+                                    }
 
-                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView)
+                                    Route {
+                                        path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                        element = contestGlobalRatingView.create()
+                                    }
 
-                                Route {
-                                    path = "/:owner/:name/history/execution/:executionId"
-                                    element = executionView.create()
-                                }
+                                    createRoutersWithPathAndEachListItem<UserRatingTab>(
+                                        "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
+                                        contestGlobalRatingView
+                                    )
 
-                                Route {
-                                    // Since testFilePath can represent the nested path, we catch it as *
-                                    path = "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
-                                    element = testExecutionDetailsView.create()
-                                }
+                                    Route {
+                                        path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
+                                        element = contestView.create()
+                                    }
 
-                                Route {
-                                    path = "*"
-                                    element = FallbackView::class.react.create {
-                                        bigText = "404"
-                                        smallText = "Page not found"
-                                        withRouterLink = true
+                                    createRoutersWithPathAndEachListItem<ContestMenuBar>(
+                                        "/${FrontendRoutes.CONTESTS.path}/:contestName",
+                                        contestView
+                                    )
+
+                                    Route {
+                                        path =
+                                                "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
+                                        element = contestExecutionView.create()
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName"
+                                        element = Navigate.create { to = "/${FrontendRoutes.CONTESTS.path}" }
+                                    }
+
+                                    Route {
+                                        path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
+                                        element = state.userInfo?.name?.let {
+                                            UserSettingsProfileMenuView::class.react.create {
+                                                userName = it
+                                            }
+                                        } ?: fallbackNode
+                                    }
+
+                                    Route {
+                                        path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
+                                        element = state.userInfo?.name?.let {
+                                            UserSettingsEmailMenuView::class.react.create {
+                                                userName = it
+                                            }
+                                        } ?: fallbackNode
+                                    }
+
+                                    Route {
+                                        path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_TOKEN.path}"
+                                        element = state.userInfo?.name?.let {
+                                            UserSettingsTokenMenuView::class.react.create {
+                                                userName = it
+                                            }
+                                        } ?: fallbackNode
+                                    }
+
+                                    Route {
+                                        path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                        element = state.userInfo?.name?.let {
+                                            UserSettingsOrganizationsMenuView::class.react.create {
+                                                userName = it
+                                            }
+                                        } ?: fallbackNode
+                                    }
+
+                                    state.userInfo?.name.run {
+                                        Route {
+                                            path = "/$this"
+                                            element = Navigate.create {
+                                                to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}"
+                                            }
+                                        }
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.CREATE_PROJECT.path}"
+                                        element = CreationView::class.react.create()
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
+                                        element = creationView.create()
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
+                                        element = CreateOrganizationView::class.react.create()
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}"
+                                        element = when (state.userInfo.isSuperAdmin()) {
+                                            true -> OrganizationAdminView::class.react.create()
+                                            else -> fallbackNode
+                                        }
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.PROJECTS.path}"
+                                        element = CollectionView::class.react.create {
+                                            currentUserInfo = state.userInfo
+                                        }
+                                    }
+
+                                    Route {
+                                        path = "/${FrontendRoutes.CONTESTS.path}"
+                                        element = ContestListView::class.react.create {
+                                            currentUserInfo = state.userInfo
+                                        }
+                                    }
+
+                                    Route {
+                                        path = "/:owner"
+                                        element = organizationView.create()
+                                    }
+
+                                    createRoutersWithPathAndEachListItem<OrganizationMenuBar>(
+                                        "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
+                                        organizationView
+                                    )
+
+                                    Route {
+                                        path = "/:owner/:name/history"
+                                        element = historyView.create()
+                                    }
+
+                                    Route {
+                                        path = "/:owner/:name"
+                                        element = projectView.create()
+                                    }
+
+                                    createRoutersWithPathAndEachListItem<ProjectMenuBar>(
+                                        "/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name",
+                                        projectView
+                                    )
+
+                                    Route {
+                                        path = "/:owner/:name/history/execution/:executionId"
+                                        element = executionView.create()
+                                    }
+
+                                    Route {
+                                        // Since testFilePath can represent the nested path, we catch it as *
+                                        path =
+                                                "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
+                                        element = testExecutionDetailsView.create()
+                                    }
+
+                                    Route {
+                                        path = "*"
+                                        element = FallbackView::class.react.create {
+                                            bigText = "404"
+                                            smallText = "Page not found"
+                                            withRouterLink = true
+                                        }
                                     }
                                 }
                             }
+                            Footer::class.react()
                         }
-                        Footer::class.react()
                     }
                 }
             }
@@ -417,7 +452,10 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
  * @param basePath
  * @param routeElement
  */
-inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(basePath: String, routeElement: FC<Props>) {
+inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachListItem(
+    basePath: String,
+    routeElement: FC<Props>
+) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
         Route {
             path = "$basePath/$item"

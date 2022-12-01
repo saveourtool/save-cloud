@@ -40,6 +40,7 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
             onClick = {
                 setDisplayTitle(props.title)
                 setDisplayMessage(props.message)
+                setClickMode(false)
                 windowOpenness.openWindow()
             }
         }
@@ -57,7 +58,7 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
                     setError(false)
                 }
             } else {
-                props.modalButtons(action, windowOpenness, this)
+                props.modalButtons(action, windowOpenness.closeWindowAction(), this, isClickMode)
             }
         },
         clickBuilder = {
@@ -120,8 +121,11 @@ external interface ButtonWithActionProps : Props {
 
     /**
      * If the action (request) is successful, this is done
+     *
+     * @param isClickMode is checkBox status
      */
-    var onActionSuccess: (Boolean) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var onActionSuccess: (isClickMode: Boolean) -> Unit
 
     /**
      * Button View
@@ -135,9 +139,20 @@ external interface ButtonWithActionProps : Props {
 
     /**
      * Modal buttons
+     *
+     * @param action is the main action of the buttons
+     * @param closeWindow is the action of closing the window and assigning the status false to the checkBox
+     * @param ChildrenBuilder
+     * @param isClickMode is checkBox status
+     * @return buttons
      */
     @Suppress("TYPE_ALIAS")
-    var modalButtons: (action: () -> Unit, WindowOpenness, ChildrenBuilder) -> Unit
+    var modalButtons: (
+        action: () -> Unit,
+        closeWindow: () -> Unit,
+        ChildrenBuilder,
+        isClickMode: Boolean,
+    ) -> Unit
 
     /**
      * Condition for click
@@ -145,8 +160,11 @@ external interface ButtonWithActionProps : Props {
     var conditionClick: Boolean
 
     /**
-     * Request
+     * function passes arguments to call the request
+     *
+     * @param isClickMode is checkBox status
+     * @return lazy response
      */
     @Suppress("TYPE_ALIAS")
-    var sendRequest: (Boolean) -> DeferredRequestAction<Response>
+    var sendRequest: (isClickMode: Boolean) -> DeferredRequestAction<Response>
 }

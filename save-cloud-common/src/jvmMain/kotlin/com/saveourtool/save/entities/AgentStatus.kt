@@ -6,6 +6,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.spring.entity.BaseEntity
+
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -13,6 +14,9 @@ import javax.persistence.Enumerated
 import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property startTime staring time of status
@@ -35,7 +39,7 @@ class AgentStatus(
     /**
      * @return this object converted to [AgentStatusDto]
      */
-    fun toDto() = AgentStatusDto(endTime, state, agent.containerId)
+    fun toDto() = AgentStatusDto(state, agent.containerId, endTime.toKotlinLocalDateTime())
 }
 
 /**
@@ -43,8 +47,8 @@ class AgentStatus(
  * @return [AgentStatus] built from [AgentStatusDto]
  */
 fun AgentStatusDto.toEntity(agentResolver: (String) -> Agent) = AgentStatus(
-    startTime = time,
-    endTime = time,
+    startTime = time.toJavaLocalDateTime(),
+    endTime = time.toJavaLocalDateTime(),
     state = state,
     agent = agentResolver(containerId)
 )

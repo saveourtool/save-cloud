@@ -5,8 +5,12 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationStatus.BANNED
+import com.saveourtool.save.entities.OrganizationStatus.CREATED
+import com.saveourtool.save.entities.OrganizationStatus.DELETED
+import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -19,9 +23,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
-import org.w3c.dom.asList
+import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
@@ -34,6 +38,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import web.http.FormData
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -76,9 +81,19 @@ external interface UserSettingsViewState : State {
     var token: String?
 
     /**
-     * Organizations connected to user
+     * A list of organization with users connected to user
      */
-    var selfOrganizationDtos: List<OrganizationDto>
+    var selfOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * A list of organization with users connected to user
+     */
+    var selfDeletedOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * A list of organization with users connected to user
+     */
+    var selfBannedOrganizationWithUserList: List<OrganizationWithUsers>
 
     /**
      * Conflict error message
@@ -93,7 +108,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
-        state.selfOrganizationDtos = emptyList()
+        state.selfOrganizationWithUserList = emptyList()
+        state.selfDeletedOrganizationWithUserList = emptyList()
+        state.selfBannedOrganizationWithUserList = emptyList()
     }
 
     /**
@@ -114,15 +131,22 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationDtos = getOrganizationDtos()
+            val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationDtos = organizationDtos
+                selfOrganizationWithUserList = organizationDtos.filterHasStatus(CREATED)
+                selfDeletedOrganizationWithUserList = organizationDtos.filterHasStatus(DELETED)
+                selfBannedOrganizationWithUserList = organizationDtos.filterHasStatus(BANNED)
             }
         }
     }
+
+    private fun List<OrganizationWithUsers>.filterHasStatus(status: OrganizationStatus): List<OrganizationWithUsers> =
+            filter {
+                it.organization.status == status
+            }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
         userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
@@ -150,7 +174,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary")
                     div {
                         className = ClassName("col mr-2 pr-0 pl-0")
-                        style = kotlinx.js.jso {
+                        style = jso {
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
                         div {
@@ -184,7 +208,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     }
                                     div {
                                         className = ClassName("col-md-6 pl-0")
-                                        style = kotlinx.js.jso {
+                                        style = jso {
                                             display = Display.flex
                                             alignItems = AlignItems.center
                                         }
@@ -357,10 +381,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
 
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user?status=${OrganizationStatus.CREATED}",
-        Headers(),
+    private suspend fun getOrganizationWithUsersList() = post(
+        url = "$apiUrl/organizations/by-filters",
+        headers = jsonHeaders,
+        body = Json.encodeToString(OrganizationFilters.all),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
 }

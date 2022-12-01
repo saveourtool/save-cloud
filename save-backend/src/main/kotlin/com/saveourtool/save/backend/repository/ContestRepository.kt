@@ -3,13 +3,13 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.LocalDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
  * The repository of contest entities

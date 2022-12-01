@@ -1,6 +1,8 @@
 # values specific to deployment into Minikube
 
 profile: dev
+ingress:
+  enabled: false
 backend:
   profile: dev,secure,kubernetes
 gateway:

@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
-import kotlin.random.Random
 
 /**
  * [AgentRunner] that uses Docker Daemon API to run save-agents
@@ -64,7 +63,7 @@ class DockerAgentRunner(
 
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration, containerName(executionId.toString())).also { agentId ->
+            createContainerFromImage(configuration, containerName(executionId, number)).also { agentId ->
                 logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
@@ -196,8 +195,8 @@ class DockerAgentRunner(
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
                     .withLogConfig(
-                        when (settings.loggingDriver) {
-                            "loki" -> LogConfig(
+                        when {
+                            settings.useLoki -> LogConfig(
                                 LogConfig.LoggingType.LOKI,
                                 mapOf(
                                     // similar to config in docker-compose.yaml
@@ -246,13 +245,9 @@ class DockerAgentRunner(
         }
     }
 
+    private fun containerName(executionId: Long, number: Int) = "${configProperties.containerNamePrefix}$executionId-$number"
+
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
     }
 }
-
-/**
- * @param id
- */
-@Suppress("MAGIC_NUMBER", "MagicNumber")
-private fun containerName(id: String) = "save-execution-$id-${Random.nextInt(100, 999)}"
