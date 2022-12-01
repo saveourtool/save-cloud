@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
