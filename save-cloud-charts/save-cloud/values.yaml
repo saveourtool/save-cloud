@@ -5,6 +5,8 @@ env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
 pullPolicy: IfNotPresent
+ingress:
+  enabled: false
 backend:
   name: backend
   profile: dev,secure,kubernetes
