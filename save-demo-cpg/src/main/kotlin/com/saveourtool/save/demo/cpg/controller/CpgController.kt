@@ -144,9 +144,6 @@ class CpgController(
 
         sessionWithFactory.use { session ->
             session.beginTransaction().use {
-                // FixMe: for each user we should keep the data
-                session.purgeDatabase()
-
                 session.save(result.components, DEFAULT_SAVE_DEPTH)
                 session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
                 it?.commit()
