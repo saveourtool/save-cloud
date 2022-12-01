@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tags
 import org.apache.commons.io.FileUtils
 import org.neo4j.ogm.response.model.RelationshipModel
 import org.neo4j.ogm.session.Session
-import org.neo4j.ogm.session.SessionFactory
 import org.slf4j.Logger
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -36,7 +35,7 @@ private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
 
-typealias SessionWithFactory = Pair<Session, SessionFactory>
+typealias CpgResultWithLogsResponse = ResponseEntity<ResultWithLogs<String>>
 
 /**
  * A simple controller
@@ -57,46 +56,35 @@ class CpgController(
      * @return result of uploading, it contains ID to request the result further
      */
     @PostMapping("/upload-code")
-    @OptIn(ExperimentalPython::class)
     fun uploadCode(
         @RequestBody request: DemoRunRequest,
-    ): Mono<StringResponse> = blockingToMono {
+    ): Mono<CpgResultWithLogsResponse> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         try {
             createFiles(request, tmpFolder)
 
-            // creating the CPG configuration instance, it will be used to configure the graph
-            val translationConfiguration =
-                    TranslationConfiguration.builder()
-                        .topLevel(null)
-                        // c++/java
-                        .defaultLanguages()
-                        // you can register non-default languages
-                        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
-                        .debugParser(true)
-                        // the directory with sources
-                        .sourceLocations(tmpFolder.toFile())
-                        .defaultPasses()
-                        .inferenceConfiguration(
-                            InferenceConfiguration.builder()
-                                .inferRecords(true)
-                                .build()
-                        )
-                        .build()
+            val resultWithLogs = LogbackCapturer(BASE_PACKAGE_NAME) {
+                try {
+                    // creating the CPG configuration instance, it will be used to configure the graph
+                    val translationConfiguration = createTranslationConfiguration(tmpFolder)
 
-            // result - is the parsed Code Property Graph
-            val result = TranslationManager.builder()
-                .config(translationConfiguration)
-                .build()
-                .analyze()
-                .get()
-            // commit the result to CPG
-            saveTranslationResult(result)
+                    // result - is the parsed Code Property Graph
+                    TranslationManager.builder()
+                        .config(translationConfiguration)
+                        .build()
+                        .analyze()
+                        .get()
+                } catch (ex: Exception) {
+                    null
+                }
+            }
+            resultWithLogs.result?.let {
+                saveTranslationResult(it)
+            }
+            ResponseEntity.ok(ResultWithLogs(tmpFolder.fileName.name, resultWithLogs.logs))
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
-
-        ResponseEntity.ok(tmpFolder.fileName.name)
     }
 
     /**
@@ -109,6 +97,24 @@ class CpgController(
     ): ResponseEntity<CpgGraph> = ResponseEntity.ok(
         getGraph()
     )
+
+    @OptIn(ExperimentalPython::class)
+    private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()
+        .topLevel(null)
+        // c++/java
+        .defaultLanguages()
+        // you can register non-default languages
+        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
+        .debugParser(true)
+        // the directory with sources
+        .sourceLocations(folder.toFile())
+        .defaultPasses()
+        .inferenceConfiguration(
+            InferenceConfiguration.builder()
+                .inferRecords(true)
+                .build()
+        )
+        .build()
 
     private fun getGraph(): CpgGraph {
         val (nodes, edges) = connect().use { session ->
@@ -153,7 +159,7 @@ class CpgController(
             configProperties.uri,
             configProperties.authentication.username,
             configProperties.authentication.password,
-            "de.fraunhofer.aisec.cpg.graph"
+            MODEL_PACKAGE_NAME,
         )
     }
 
@@ -200,5 +206,7 @@ class CpgController(
 
     companion object {
         private val log: Logger = getLogger<CpgController>()
+        private const val BASE_PACKAGE_NAME = "de.fraunhofer.aisec"
+        private const val MODEL_PACKAGE_NAME = "$BASE_PACKAGE_NAME.cpg.graph"
     }
 }

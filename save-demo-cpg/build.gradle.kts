@@ -26,7 +26,6 @@ dependencies {
     implementation("org.neo4j:neo4j-ogm-core:3.2.37")
     implementation(libs.spring.data.neo4j)
     api(libs.arrow.kt.core)
-    implementation(libs.log4j)
 
     implementation(libs.cpg.core) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
