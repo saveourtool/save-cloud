@@ -175,7 +175,7 @@ fun ChildrenBuilder.displayConfirmationModal(
  * @param message main text that will be shown in the center of modal
  * @param modalStyle [Styles] that will be applied to react modal
  */
-fun ChildrenBuilder.displayInfoModal(
+fun ChildrenBuilder.displaySimpleModal(
     windowOpenness: WindowOpenness,
     title: String,
     message: String,

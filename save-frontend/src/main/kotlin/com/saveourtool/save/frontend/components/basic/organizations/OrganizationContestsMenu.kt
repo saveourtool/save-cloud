@@ -11,7 +11,7 @@ import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
-import com.saveourtool.save.frontend.components.modal.displayInfoModal
+import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -218,7 +218,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         }
     }
 
-    displayInfoModal(
+    displaySimpleModal(
         windowErrorOpenness,
         title = "Error",
         "You have not selected contests to delete."
