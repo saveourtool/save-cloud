@@ -1,9 +1,9 @@
 package com.saveourtool.save.buildutils
 
-import org.gradle.kotlin.dsl.*
-import java.util.*
 import org.codehaus.groovy.runtime.ResourceGroovyMethods
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.*
+
 import java.net.URL
 import java.time.Duration
 
@@ -13,10 +13,13 @@ plugins {
 
 configureVersioning()
 
-val libs = the<LibrariesForLibs>()
-val saveCoreVersion = libs.versions.save.core.get()
+val saveCoreVersion = the<LibrariesForLibs>()
+    .versions
+    .save
+    .core
+    .get()
 tasks.register("getSaveCliVersion") {
-//    description = "Reads version of save-cli, either from project property, or from Versions, or latest"
+    // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
     inputs.property("save-cli version", findProperty("saveCliVersion") ?: saveCoreVersion)
     val file = file(pathToSaveCliVersion)
     outputs.file(file)

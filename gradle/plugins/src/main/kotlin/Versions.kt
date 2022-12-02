@@ -1,4 +1,4 @@
-@file:Suppress("CONSTANT_UPPERCASE")
+@file:Suppress("CONSTANT_UPPERCASE", "PACKAGE_NAME_MISSING")
 
 object Versions {
     /**

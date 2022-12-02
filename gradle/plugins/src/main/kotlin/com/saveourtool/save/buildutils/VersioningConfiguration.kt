@@ -12,6 +12,12 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 
 /**
+ * @return path to the file with save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+
+/**
  * Configures reckon plugin for [this] project, should be applied for root project only
  */
 fun Project.configureVersioning() {
@@ -44,13 +50,10 @@ fun Project.configureVersioning() {
     }
 }
 
-internal fun String.isSnapshot() = endsWith("SNAPSHOT")
-
 /**
- * @return path to the file with save-cli version for current build
+ * @return true if this string denotes a snapshot version
  */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+internal fun String.isSnapshot() = endsWith("SNAPSHOT")
 
 /**
  * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
@@ -60,5 +63,5 @@ internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-
  * @return correctly formatted version
  */
 internal fun Project.versionForDockerImages(): String =
-    (project.findProperty("build.dockerTag") as String? ?: version.toString())
-        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
+        (project.findProperty("build.dockerTag") as String? ?: version.toString())
+            .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
