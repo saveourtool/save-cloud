@@ -28,7 +28,10 @@ import kotlinx.serialization.json.Json
 
 private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = true)
 
-@Suppress("COMPLEX_EXPRESSION")
+@Suppress(
+    "COMPLEX_EXPRESSION",
+    "EMPTY_BLOCK_STRUCTURE_ERROR",
+)
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
     val cpgResultInit = CpgResult(CpgGraph.placeholder, "", emptyList())
@@ -106,8 +109,8 @@ val cpgView: VFC = VFC {
     if (isLogs && cpgResult.logs.isNotEmpty()) {
         div {
             className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
-            cpgResult.logs.forEach {
-                +it
+            cpgResult.logs.forEach { log ->
+                +log
                 br { }
             }
         }
