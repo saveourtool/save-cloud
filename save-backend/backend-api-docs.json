@@ -2226,7 +2226,7 @@
             }
           },
           {
-            "description": "start of requested time range",
+            "description": "start of requested time range in ISO format with default time zone",
             "in": "query",
             "name": "from",
             "required": true,
@@ -2236,7 +2236,7 @@
             }
           },
           {
-            "description": "end of requested time range",
+            "description": "end of requested time range in ISO format with default time zone",
             "in": "query",
             "name": "to",
             "required": true,
