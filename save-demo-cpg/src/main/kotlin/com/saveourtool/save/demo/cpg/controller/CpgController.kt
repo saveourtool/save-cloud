@@ -19,7 +19,6 @@ import org.apache.commons.io.FileUtils
 import org.neo4j.ogm.response.model.RelationshipModel
 import org.neo4j.ogm.session.Session
 import org.slf4j.Logger
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -35,8 +34,6 @@ const val FILE_NAME_SEPARATOR = "==="
 private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
-
-typealias CpgResultWithLogsResponse = ResponseEntity<Pair<String?, List<String>>>
 
 /**
  * A simple controller
@@ -59,7 +56,7 @@ class CpgController(
     @PostMapping("/upload-code")
     fun uploadCode(
         @RequestBody request: DemoRunRequest,
-    ): Mono<CpgResultWithLogsResponse> = blockingToMono {
+    ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         try {
             createFiles(request, tmpFolder)
@@ -79,24 +76,24 @@ class CpgController(
                 .tap {
                     saveTranslationResult(it)
                 }
-                .map { tmpFolder.fileName.name to logs }
-                .getOrHandle { null to logs + "Exception: ${it.message} ${it.stackTraceToString()}" }
-                .let { ResponseEntity.ok(it) }
+                .map {
+                    CpgResult(
+                        getGraph(),
+                        tmpFolder.fileName.name,
+                        logs,
+                    )
+                }
+                .getOrHandle {
+                    CpgResult(
+                        CpgGraph.placeholder,
+                        "NONE",
+                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
+                    )
+                }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
-
-    /**
-     * @param uploadId
-     * @return result of translation
-     */
-    @GetMapping("/get-result")
-    fun getResult(
-        @RequestParam(required = false, defaultValue = "") uploadId: String,
-    ): ResponseEntity<CpgGraph> = ResponseEntity.ok(
-        getGraph()
-    )
 
     @OptIn(ExperimentalPython::class)
     private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()
