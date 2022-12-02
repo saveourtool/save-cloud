@@ -4,12 +4,13 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
-import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demoComponent
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.externals.sigma.*
+import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
+import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 
@@ -31,18 +32,26 @@ private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = 
 @Suppress(
     "COMPLEX_EXPRESSION",
     "EMPTY_BLOCK_STRUCTURE_ERROR",
+    "MAGIC_NUMBER",
 )
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
-    val cpgResultInit = CpgResult(CpgGraph.placeholder, "", emptyList())
-    val (cpgResult, setCpgResult) = useState(cpgResultInit)
+    val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)
     val graphLoader = VFC {
         val loadGraph = useLoadGraph()
-        val (_, assign) = useLayoutCircular()
-        useEffect(assign, loadGraph) {
+        val (_, circularAssign) = useLayoutCircular()
+        val (_, atlasAssign) = useLayoutForceAtlas2(jso {
+            iterations = 150
+            settings = jso {
+                gravity = 5
+                barnesHutOptimize = true
+            }
+        })
+        useEffect(atlasAssign, circularAssign, loadGraph) {
             loadGraph(cpgResult.cpgGraph.removeMultiEdges().paintNodes().toJson())
-            assign()
+            circularAssign()
+            atlasAssign()
         }
     }
     val (errorMessage, setErrorMessage) = useState("")
@@ -101,22 +110,28 @@ val cpgView: VFC = VFC {
                             }
                         }
                     }
-                    this.showLogs = { setIsLogs(it) }
+                    this.changeLogsVisibility = {
+                        setIsLogs { !it }
+                    }
                 }
             }
         }
     }
     if (isLogs) {
         div {
-            className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
-            if (cpgResult.logs.isNotEmpty()) {
+            val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
                     +log
                     br { }
                 }
+
+                "alert-primary"
             } else {
                 +"No logs provided"
+
+                "alert-secondary"
             }
+            className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
         }
     }
 }
