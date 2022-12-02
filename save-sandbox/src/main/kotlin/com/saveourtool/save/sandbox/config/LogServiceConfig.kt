@@ -13,23 +13,11 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class LogServiceConfig {
     /**
-     * @param lokiServiceUrl
-     * @return [LokiLogService] when property [LOKI_SERVICE_URL] is set
+     * @param configProperties
+     * @return [LokiLogService] when properties *sandbox.loki.** are set
      */
     @Bean
-    @ConditionalOnProperty(LOKI_SERVICE_URL)
     fun logService(
-        @Value(LOKI_SERVICE_URL) lokiServiceUrl: String,
-    ): LogService = LokiLogService(lokiServiceUrl)
-
-    /**
-     * @return [LogService.stub] when property [LOKI_SERVICE_URL] is not set
-     */
-    @Bean
-    @ConditionalOnProperty(LOKI_SERVICE_URL, matchIfMissing = true)
-    fun stubLogService(): LogService = LogService.stub
-
-    companion object {
-        private const val LOKI_SERVICE_URL: String = "\${sandbox.loki-service-url}"
-    }
+        configProperties: ConfigProperties,
+    ): LogService = LokiLogService.createOrStub(configProperties.lokiConfig)
 }

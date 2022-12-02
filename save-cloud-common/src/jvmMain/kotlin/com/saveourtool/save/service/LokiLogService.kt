@@ -1,7 +1,6 @@
 package com.saveourtool.save.service
 
 import com.saveourtool.save.utils.StringList
-import com.saveourtool.save.utils.enableHuaweiProxy
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -19,26 +18,34 @@ import java.time.temporal.ChronoField
  * AgentLogService from Loki
  */
 class LokiLogService(
-    lokiServiceUrl: String,
+    private val config: LokiConfig,
 ) : LogService {
-    private val webClient = WebClient.create(lokiServiceUrl)
-        .let {
-            if (System.getenv("ENABLE_HUAWEI_PROXY").toBoolean()) {
-                it.enableHuaweiProxy()
-            } else {
-                it
-            }
-        }
+    private val webClient = WebClient.create(config.url)
 
-    override fun get(containerName: String, from: Instant, to: Instant): Mono<StringList> {
-        val query = "{container_name=\"$containerName\"}"
-        return doQueryRange(query, from, to, null)
-            .expand { previousLokiBatch ->
-                doQueryRange(query, from, to, previousLokiBatch)
-            }
-            .flatMapIterable { it.entries.map(LogEntry::toString) }
-            .collectList()
+    override fun getByContainerName(containerName: String, from: Instant, to: Instant): Mono<StringList> {
+        val query = "{${config.labels.agentContainerName}=\"$containerName\"}"
+        return doQueryRange(query, from, to)
     }
+
+    override fun getByApplicationName(applicationName: String, from: Instant, to: Instant): Mono<StringList> {
+        val query = with(config.labels) {
+            this.applicationName
+                ?.let { "{$it=\"$applicationName\"}" }
+                ?: "{${agentContainerName}=~\"$applicationName.*\"}"
+        }
+        return doQueryRange(query, from, to)
+    }
+
+    private fun doQueryRange(
+        query: String,
+        start: Instant,
+        end: Instant,
+    ): Mono<StringList> = doQueryRange(query, start, end, null)
+        .expand { previousLokiBatch ->
+            doQueryRange(query, start, end, previousLokiBatch)
+        }
+        .flatMapIterable { it.entries.map(LogEntry::toString) }
+        .collectList()
 
     private fun doQueryRange(
         query: String,
@@ -154,5 +161,12 @@ class LokiLogService(
             .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
             .appendFraction(ChronoField.NANO_OF_SECOND, 9, 9, true)
             .toFormatter()
+
+        /**
+         * @param lokiConfig config of loki service for logging
+         * @return [LokiLogService] or [LogService.stub] if config is not provided
+         */
+        fun createOrStub(lokiConfig: LokiConfig?): LogService =
+            lokiConfig?.let { LokiLogService(it) } ?: LogService.stub
     }
 }

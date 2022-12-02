@@ -359,7 +359,7 @@ class SandboxController(
             val endTime = sandboxAgentStatusRepository.findTopByAgentOrderByEndTimeDesc(agent)
                 ?.endTime
                 .orNotFound { "Not found latest agent status for execution ${execution.requiredId()}" }
-            logService.get(agent.containerName,
+            logService.getByContainerName(agent.containerName,
                 startTime.toInstantAtDefaultZone(),
                 endTime.toInstantAtDefaultZone(),
             )

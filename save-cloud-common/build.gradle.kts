@@ -54,8 +54,6 @@ kotlin {
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
-                compileOnly("io.projectreactor.netty:reactor-netty-core")
-                compileOnly("io.projectreactor.netty:reactor-netty-http")
             }
         }
         val jvmTest by getting {

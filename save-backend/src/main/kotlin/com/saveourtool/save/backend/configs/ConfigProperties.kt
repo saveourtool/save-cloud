@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.configs
 
+import com.saveourtool.save.service.LokiConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -12,7 +13,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property orchestratorUrl url of save-orchestrator
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
- * @property lokiServiceUrl URL of loki service for logging
+ * @property lokiConfig config of loki service for logging
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -23,7 +24,7 @@ data class ConfigProperties(
     val fileStorage: FileStorageConfig,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
-    val lokiServiceUrl: String? = null,
+    val lokiConfig: LokiConfig? = null,
 ) {
     /**
      * @property location location of file storage

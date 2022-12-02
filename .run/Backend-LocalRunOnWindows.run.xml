@@ -4,6 +4,8 @@
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev,secure,win" />
+      <env name="http.proxyHost" value="proxy.huawei.com" />
+      <env name="http.proxyPort" value="8080" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.backend.SaveApplicationKt" />
     <module name="save-cloud.save-backend.main" />

@@ -13,10 +13,11 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import java.time.Instant
+import java.time.LocalDateTime
 
 /**
  * Controller to fetch logs
@@ -39,15 +40,16 @@ class ContainerLogController(
     )
     @Parameters(
         Parameter(name = "containerName", `in` = ParameterIn.QUERY, description = "name of a container", required = true),
-        Parameter(name = "from", `in` = ParameterIn.QUERY, description = "start of requested time range", required = true),
-        Parameter(name = "to", `in` = ParameterIn.QUERY, description = "end of requested time range", required = true),
+        Parameter(name = "from", `in` = ParameterIn.QUERY, description = "start of requested time range in ISO format with default time zone", required = true),
+        Parameter(name = "to", `in` = ParameterIn.QUERY, description = "end of requested time range in ISO format with default time zone", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched logs for container.")
     fun getByContainerName(
         @RequestParam containerName: String,
-        @RequestParam from: Instant,
-        @RequestParam to: Instant,
-    ): Mono<StringListResponse> = logService.get(containerName, from, to).map { ResponseEntity.ok(it) }
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime,
+    ): Mono<StringListResponse> = logService.getByContainerName(containerName, from.toInstantAtDefaultZone(), to.toInstantAtDefaultZone())
+        .map { ResponseEntity.ok(it) }
 
     @GetMapping("/from-agent")
     @Operation(
@@ -68,7 +70,7 @@ class ContainerLogController(
             agentService.getAgentTimes(it)
         }
         .flatMap { (from, to) ->
-            logService.get(
+            logService.getByContainerName(
                 containerName,
                 from.toInstantAtDefaultZone(),
                 to.toInstantAtDefaultZone()

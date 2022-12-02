@@ -19,8 +19,8 @@ import org.springframework.web.reactive.config.EnableWebFlux
 class ApplicationConfiguration {
     /**
      * @param configProperties
-     * @return [LokiLogService] if [ConfigProperties.lokiServiceUrl] is provided, otherwise [LogService.stub]
+     * @return [LokiLogService] if [ConfigProperties.lokiConfig] is provided, otherwise [LogService.stub]
      */
     @Bean
-    fun logService(configProperties: ConfigProperties): LogService = configProperties.lokiServiceUrl?.let { LokiLogService(it) } ?: LogService.stub
+    fun logService(configProperties: ConfigProperties): LogService = LokiLogService.createOrStub(configProperties.lokiConfig)
 }
