@@ -95,17 +95,17 @@ val cpgView: VFC = VFC {
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
                                 +cpgResult.applicationName
                             }
-                            if (isLogs && cpgResult.logs.isNotEmpty()) {
-                                div {
-                                    className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
-                                    +(cpgResult.logs.joinToString("\n"))
-                                }
-                            }
                         }
                     }
                     this.showLogs = { setIsLogs(it) }
                 }
             }
+        }
+    }
+    if (isLogs && cpgResult.logs.isNotEmpty()) {
+        div {
+            className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
+            +(cpgResult.logs.joinToString("\n"))
         }
     }
 }
