@@ -202,3 +202,10 @@ demo_cpg:
   containerPort: 5500
   managementPort: 5501
   clusterIP: null
+demo:
+  name: demo
+  profile: dev
+  imageName: save-demo
+  containerPort: 5421
+  managementPort: 5422
+  clusterIP: null

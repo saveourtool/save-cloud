@@ -1,0 +1,29 @@
+spring:
+  cloud:
+    kubernetes:
+      enabled: false
+kubernetes:
+  # Dependency `io.kubernetes:client-java-spring-integration` doesn't respect `kubernetes` profile,
+  # so some things need to be disabled manually.
+  informer:
+    enabled: false
+  manifests:
+    enabled: false
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  cloud:
+    kubernetes:
+      enabled: true
+      config:
+        # don't look up any ConfigMaps
+        enabled: false
+      secrets:
+        enabled: false
+kubernetes:
+  informer:
+    enabled: true
+  manifests:
+    enabled: true
