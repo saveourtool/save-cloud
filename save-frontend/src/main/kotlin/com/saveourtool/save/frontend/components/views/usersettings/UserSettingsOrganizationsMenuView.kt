@@ -30,6 +30,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val comparator: Comparator<OrganizationWithUsers> =
             compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
                 .thenBy { it.organization.name }
+    private fun localButtonAction(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) {
+        setState {
+            selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
+                .plusElement(organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus)))
+                .sortedWith(comparator)
+        }
+    }
+
 
     @Suppress("CyclomaticComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
@@ -107,11 +115,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                setState {
-                                                    selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
-                                                        .plusElement(organizationWithUsers.copy(organizationDto.copy(status = OrganizationStatus.DELETED)))
-                                                        .sortedWith(comparator)
-                                                }
+                                                localButtonAction(organizationWithUsers, OrganizationStatus.DELETED)
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->
@@ -140,11 +144,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                setState {
-                                                    selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
-                                                        .plusElement(organizationWithUsers.copy(organizationDto.copy(status = OrganizationStatus.CREATED)))
-                                                        .sortedWith(comparator)
-                                                }
+                                                localButtonAction(organizationWithUsers, OrganizationStatus.CREATED)
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->

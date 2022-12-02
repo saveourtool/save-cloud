@@ -4,6 +4,8 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -37,6 +39,12 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     private val comparator: Comparator<OrganizationDto> =
             compareBy<OrganizationDto> { orderedOrganizationStatus[it.status] }
                 .thenBy { it.name }
+
+    private fun localButtonAction(organization: OrganizationDto, newStatus: OrganizationStatus) {
+        setState {
+            organizations = organizations.minus(organization).plus(organization.copy(status = newStatus)).sortedWith(comparator)
+        }
+    }
 
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
@@ -113,9 +121,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     onActionSuccess = { isBanned ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                        setState {
-                                            organizations = organizations.minus(organization).plus(organization.copy(status = newStatus)).sortedWith(comparator)
-                                        }
+                                        localButtonAction(organization, newStatus)
                                     }
                                     conditionClick = true
                                     sendRequest = { isBanned ->
@@ -145,9 +151,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        setState {
-                                            organizations = organizations.minus(organization).plus(organization.copy(status = OrganizationStatus.CREATED)).sortedWith(comparator)
-                                        }
+                                        localButtonAction(organization, OrganizationStatus.CREATED)
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -176,9 +180,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        setState {
-                                            organizations = organizations.minus(organization).plus(organization.copy(status = OrganizationStatus.CREATED)).sortedWith(comparator)
-                                        }
+                                        localButtonAction(organization, OrganizationStatus.CREATED)
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->

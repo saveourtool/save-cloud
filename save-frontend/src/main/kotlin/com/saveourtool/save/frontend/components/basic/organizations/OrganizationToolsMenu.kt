@@ -66,6 +66,13 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
     val comparator: Comparator<ProjectDto> =
             compareBy<ProjectDto> { orderedProjectStatus[it.status] }
                 .thenBy { it.name }
+
+    fun localButtonAction(project: ProjectDto, newStatus: ProjectStatus) {
+        val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
+        setProjects(newProjects)
+        props.updateProjects(newProjects.toMutableList())
+    }
+
     @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
@@ -147,9 +154,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                         onActionSuccess = { isBanMode ->
                                             val newStatus = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                            val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
+                                            localButtonAction(project, newStatus)
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
                                         sendRequest = { isBanned ->
@@ -179,44 +184,44 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED)).sortedWith(comparator)
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
+                                            localButtonAction(project, ProjectStatus.CREATED)
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
-                                    ProjectStatus.BANNED -> actionButton {
-                                        title = "WARNING: About to recover this BANNED project..."
-                                        errorTitle = "You cannot recover the project $projectName"
-                                        message = """Are you sure you want to recover the project "$projectName"?"""
-                                        buttonStyleBuilder = { childrenBuilder ->
-                                            with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
-                                            }
-                                        }
-                                        classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
-                                            with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
-                                                    action()
-                                                    closeWindow()
+                                    ProjectStatus.BANNED -> {
+                                        if (props.currentUserInfo.isSuperAdmin()) {
+                                            actionButton {
+                                                title = "WARNING: About to recover this BANNED project..."
+                                                errorTitle = "You cannot unban the project $projectName"
+                                                message = """Are you sure you want to recover the project "$projectName"?"""
+                                                buttonStyleBuilder = { childrenBuilder ->
+                                                    with(childrenBuilder) {
+                                                        fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                                    }
                                                 }
-                                                buttonBuilder("Cancel") {
-                                                    closeWindow()
+                                                classes = actionButtonClasses.joinToString(" ")
+                                                modalButtons = { action, closeWindow, childrenBuilder, _ ->
+                                                    with(childrenBuilder) {
+                                                        buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
+                                                            action()
+                                                            closeWindow()
+                                                        }
+                                                        buttonBuilder("Cancel") {
+                                                            closeWindow()
+                                                        }
+                                                    }
+                                                }
+                                                onActionSuccess = { _ ->
+                                                    localButtonAction(project, ProjectStatus.CREATED)
+                                                }
+                                                conditionClick = false
+                                                sendRequest = { _ ->
+                                                    responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                                 }
                                             }
-                                        }
-                                        onActionSuccess = { _ ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED)).sortedWith(comparator)
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
-                                        }
-                                        conditionClick = false
-                                        sendRequest = { _ ->
-                                            responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
                                 }
