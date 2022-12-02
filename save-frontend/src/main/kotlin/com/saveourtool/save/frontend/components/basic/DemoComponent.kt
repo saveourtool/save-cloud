@@ -89,8 +89,13 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                         }
                     }
                     div {
-                        buttonBuilder("Send run request") {
+                        buttonBuilder("Send run request", classes = "mr-1") {
                             sendRunRequest()
+                        }
+                    }
+                    div {
+                        buttonBuilder("Show logs") {
+                            props.showLogs(true)
                         }
                     }
                 }
@@ -131,4 +136,9 @@ external interface DemoComponentProps : Props {
      * Request to receive the result
      */
     var resultRequest: suspend WithRequestStatusContext.(DemoRunRequest) -> Unit
+
+    /**
+     * Callback to display the logs
+     */
+    var showLogs: (Boolean) -> Unit
 }
