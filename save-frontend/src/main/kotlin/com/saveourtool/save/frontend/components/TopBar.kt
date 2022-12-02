@@ -36,20 +36,18 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useLocation
+import react.router.useNavigate
 import react.useState
 
-import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import react.router.useNavigate
 
 /**
  * Displays the url and its division by "/"
  */
 private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
-    val navigate = useNavigate()
     nav {
         className = ClassName("navbar-nav mr-auto w-100")
         ariaLabel = "breadcrumb"
@@ -59,9 +57,7 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                 className = ClassName("breadcrumb-item")
                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                 a {
-                    onClick = {
-                        navigate(to = "/")
-                    }
+                    href = "#/"
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
@@ -120,7 +116,8 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
 
     ul {
         className = ClassName("navbar-nav mx-auto")
-        topBarlinksList.forEach { elem -> val isNotSaveCloudLink = elem.hrefAnchor != linkToSaveCloudOnGithub
+        topBarlinksList.forEach { elem ->
+            val isNotSaveCloudLink = elem.hrefAnchor != linkToSaveCloudOnGithub
             val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
             li {
                 className = ClassName("nav-item")
