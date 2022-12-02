@@ -18,6 +18,7 @@ import csstype.Display
 import csstype.Height
 import js.core.jso
 import react.VFC
+import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
 import react.useEffect
 import react.useState
@@ -105,7 +106,10 @@ val cpgView: VFC = VFC {
     if (isLogs && cpgResult.logs.isNotEmpty()) {
         div {
             className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
-            +(cpgResult.logs.joinToString("\n"))
+            cpgResult.logs.forEach {
+                +it
+                br { }
+            }
         }
     }
 }
