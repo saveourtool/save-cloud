@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
@@ -8,6 +7,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
+    id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -251,29 +251,6 @@ val distributionJarTask by tasks.registering(Jar::class) {
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
-}
-
-tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
-    inputs.property("project version", version.toString())
-    inputs.file("$projectDir/nginx.conf")
-
-    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
-    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
-    buildpacks = listOf("paketo-buildpacks/nginx")
-    environment = mapOf(
-        "BP_WEB_SERVER_ROOT" to "static",
-    )
-    isVerboseLogging = true
-    System.getenv("GHCR_PWD")?.let { registryPassword ->
-        isPublish = true
-        docker {
-            publishRegistry {
-                username = "saveourtool"
-                password = registryPassword
-                url = "https://ghcr.io"
-            }
-        }
-    }
 }
 
 detekt {
