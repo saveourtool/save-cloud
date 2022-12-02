@@ -16,9 +16,9 @@ plugins {
 }
 
 configure<SpringBootExtension> {
-    // todo: BuildProperties used to be injected into one of backend's controllers, but not anymore.
-    // todo: This can be changed to something like `if release` to omit these files in dev builds.
-    if (name == "save-backend") {
+    // Same condition, as we use to determine whether images need to be published.
+    // Essentially enables this setting for release builds only to spare time in dev builds.
+    if (System.getenv("GHCR_PWD") != null) {
         buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
     }
 }
