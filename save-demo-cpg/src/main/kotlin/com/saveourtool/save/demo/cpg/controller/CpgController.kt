@@ -19,7 +19,6 @@ import org.apache.commons.io.FileUtils
 import org.neo4j.ogm.response.model.RelationshipModel
 import org.neo4j.ogm.session.Session
 import org.slf4j.Logger
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 

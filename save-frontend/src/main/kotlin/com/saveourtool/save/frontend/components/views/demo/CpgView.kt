@@ -106,12 +106,16 @@ val cpgView: VFC = VFC {
             }
         }
     }
-    if (isLogs && cpgResult.logs.isNotEmpty()) {
+    if (isLogs) {
         div {
             className = ClassName("alert alert-primary text-sm mt-3 pb-2 pt-2 mb-0")
-            cpgResult.logs.forEach { log ->
-                +log
-                br { }
+            if (cpgResult.logs.isNotEmpty()) {
+                cpgResult.logs.forEach { log ->
+                    +log
+                    br { }
+                }
+            } else {
+                +"No logs provided"
             }
         }
     }
