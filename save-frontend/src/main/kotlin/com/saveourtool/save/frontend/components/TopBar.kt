@@ -16,6 +16,7 @@ import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import csstype.Width
 import csstype.rem
 import dom.html.HTMLButtonElement
 import history.Location
@@ -42,11 +43,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import react.router.useNavigate
 
 /**
  * Displays the url and its division by "/"
  */
 private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
+    val navigate = useNavigate()
     nav {
         className = ClassName("navbar-nav mr-auto w-100")
         ariaLabel = "breadcrumb"
@@ -56,7 +59,9 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                 className = ClassName("breadcrumb-item")
                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                 a {
-                    href = "#/"
+                    onClick = {
+                        navigate(to = "/")
+                    }
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
@@ -101,131 +106,30 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
  */
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
+    val navigate = useNavigate()
+    val linkToSaveCloudOnGithub = "https://github.com/saveourtool/save-cloud"
+    val topBarlinksList = listOf(
+        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, jsoWidth = 12.rem, text = "Awesome Benchmarks"),
+        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", jsoWidth = 3.5.rem, text = "CPG"),
+        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, jsoWidth = 9.rem, text = "Try SAVE format"),
+        TopBarLink(hrefAnchor = linkToSaveCloudOnGithub, jsoWidth = 9.rem, text = "SAVE on GitHub"),
+        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, jsoWidth = 8.rem, text = "Projects board"),
+        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, jsoWidth = 6.rem, text = "Contests"),
+        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, jsoWidth = 6.rem, text = "About us")
+    )
+
     ul {
         className = ClassName("navbar-nav mx-auto")
-        li {
-            className = ClassName("nav-item")
-            a {
-                val hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active"
-                )
-                style = jso {
-                    width = 12.rem
+        topBarlinksList.forEach { elem -> val isNotSaveCloudLink = elem.hrefAnchor != linkToSaveCloudOnGithub
+            val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 $elemClassName active")
+                    style = jso { width = elem.jsoWidth }
+                    href = if (isNotSaveCloudLink) "#/${elem.hrefAnchor}" else linkToSaveCloudOnGithub
+                    +elem.text
                 }
-                href = "#/$hrefAnchor"
-                +"Awesome Benchmarks"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            a {
-                val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active"
-                )
-                style = jso {
-                    width = 3.5.rem
-                }
-                href = "#/$hrefAnchor"
-                +"CPG"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            a {
-                val hrefAnchor = FrontendRoutes.SANDBOX.path
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active"
-                )
-                style = jso {
-                    width = 9.rem
-                }
-                href = "#/$hrefAnchor"
-                +"Try SAVE format"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            a {
-                className = ClassName("nav-link d-flex align-items-center me-2 active")
-                style = jso {
-                    width = 9.rem
-                }
-                href = "https://github.com/saveourtool/save-cloud"
-                +"SAVE on GitHub"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            a {
-                val hrefAnchor = FrontendRoutes.PROJECTS.path
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active "
-                )
-                style = jso {
-                    width = 8.rem
-                }
-                href = "#/$hrefAnchor"
-                +"Projects board"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            a {
-                val hrefAnchor = FrontendRoutes.CONTESTS.path
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active"
-                )
-                style = jso {
-                    width = 6.rem
-                }
-                href = "#/$hrefAnchor"
-                +"Contests"
-            }
-        }
-        li {
-            className = ClassName("nav-item")
-            react.dom.html.ReactHTML.a {
-                val hrefAnchor = com.saveourtool.save.validation.FrontendRoutes.ABOUT_US.path
-                className = ClassName(
-                    "nav-link d-flex align-items-center me-2 ${
-                        textColor(
-                            hrefAnchor,
-                            props.location
-                        )
-                    } active"
-                )
-                style = jso {
-                    width = 6.rem
-                }
-                href = "#/$hrefAnchor"
-                +"About us"
             }
         }
     }
@@ -239,6 +143,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val (isAriaExpanded, setIsAriaExpanded) = useState(false)
     val scope = CoroutineScope(Dispatchers.Default)
+    val navigate = useNavigate()
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -304,7 +209,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            window.location.href = "#/$name/${FrontendRoutes.SETTINGS_EMAIL.path}"
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL.path}")
                         }
                     }
                     dropdownEntry(
@@ -312,8 +217,7 @@ private val topBarUserField: FC<TopBarProps> = FC { props ->
                         "My organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            window.location.href =
-                                    "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}")
                         }
                     }
                 }
@@ -357,6 +261,17 @@ external interface TopBarPropsWithLocation : TopBarProps {
      */
     var location: Location
 }
+
+/**
+ * @property hrefAnchor
+ * @property jsoWidth
+ * @property text
+ */
+data class TopBarLink(
+    val hrefAnchor: String,
+    val jsoWidth: Width,
+    val text: String,
+)
 
 private fun ChildrenBuilder.dropdownEntry(
     faIcon: dynamic,
