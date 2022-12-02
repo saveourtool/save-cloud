@@ -51,7 +51,9 @@ val actionButton: FC<ButtonWithActionProps> = FC { props ->
         message = displayMessage,
         isOpen = windowOpenness.isOpen(),
         onCloseButtonPressed = {
-            if (isError) setError(false)
+            if (isError) {
+                setError(false)
+            }
             windowOpenness.closeWindow()
         },
         buttonBuilder = {

@@ -38,7 +38,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
 
-
     @Suppress("CyclomaticComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         organizationListCard {

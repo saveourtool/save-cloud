@@ -67,6 +67,10 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
             compareBy<ProjectDto> { orderedProjectStatus[it.status] }
                 .thenBy { it.name }
 
+    /**
+     * @param project
+     * @param newStatus
+     */
     fun localButtonAction(project: ProjectDto, newStatus: ProjectStatus) {
         val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
         setProjects(newProjects)
@@ -191,36 +195,34 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
-                                    ProjectStatus.BANNED -> {
-                                        if (props.currentUserInfo.isSuperAdmin()) {
-                                            actionButton {
-                                                title = "WARNING: About to recover this BANNED project..."
-                                                errorTitle = "You cannot unban the project $projectName"
-                                                message = """Are you sure you want to recover the project "$projectName"?"""
-                                                buttonStyleBuilder = { childrenBuilder ->
-                                                    with(childrenBuilder) {
-                                                        fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                    ProjectStatus.BANNED -> if (props.currentUserInfo.isSuperAdmin()) {
+                                        actionButton {
+                                            title = "WARNING: About to recover this BANNED project..."
+                                            errorTitle = "You cannot unban the project $projectName"
+                                            message = """Are you sure you want to recover the project "$projectName"?"""
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
+                                                }
+                                            }
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, closeWindow, childrenBuilder, _ ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
+                                                        action()
+                                                        closeWindow()
+                                                    }
+                                                    buttonBuilder("Cancel") {
+                                                        closeWindow()
                                                     }
                                                 }
-                                                classes = actionButtonClasses.joinToString(" ")
-                                                modalButtons = { action, closeWindow, childrenBuilder, _ ->
-                                                    with(childrenBuilder) {
-                                                        buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
-                                                            action()
-                                                            closeWindow()
-                                                        }
-                                                        buttonBuilder("Cancel") {
-                                                            closeWindow()
-                                                        }
-                                                    }
-                                                }
-                                                onActionSuccess = { _ ->
-                                                    localButtonAction(project, ProjectStatus.CREATED)
-                                                }
-                                                conditionClick = false
-                                                sendRequest = { _ ->
-                                                    responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
-                                                }
+                                            }
+                                            onActionSuccess = { _ ->
+                                                localButtonAction(project, ProjectStatus.CREATED)
+                                            }
+                                            conditionClick = false
+                                            sendRequest = { _ ->
+                                                responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                             }
                                         }
                                     }
