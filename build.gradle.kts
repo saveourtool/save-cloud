@@ -71,7 +71,6 @@ allprojects {
 configureSpotless()
 
 createStackDeployTask(profile)
-configureVersioning()
 configurePublishing()
 createDetektTask()
 installGitHooks()

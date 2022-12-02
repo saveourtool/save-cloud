@@ -62,8 +62,3 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         }
     }
 }
-
-// FixMe: temporarily copy-pasted
-fun Project.versionForDockerImages(): String =
-    (project.findProperty("build.dockerTag") as String? ?: version.toString())
-        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")

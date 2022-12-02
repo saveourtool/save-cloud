@@ -11,14 +11,7 @@ plugins {
     id("de.undercouch.download")
 }
 
-/**
- * @return path to the file with save-cli version for current build
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
-
-// FixMe: temporarily copy-pasted
-fun String.isSnapshot() = endsWith("SNAPSHOT")
+configureVersioning()
 
 val libs = the<LibrariesForLibs>()
 val saveCoreVersion = libs.versions.save.core.get()

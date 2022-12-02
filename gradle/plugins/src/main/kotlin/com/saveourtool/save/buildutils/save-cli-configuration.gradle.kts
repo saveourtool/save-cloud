@@ -15,8 +15,6 @@ plugins {
     id("de.undercouch.download")
 }
 
-val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
-
 /**
  * @return version of save-cli from properties file
  */
@@ -24,9 +22,6 @@ fun Project.readSaveCliVersion(): String {
     val file = file(pathToSaveCliVersion)
     return Properties().apply { load(file.reader()) }["version"] as String
 }
-
-// FixMe: temporarily copy-pasted
-fun String.isSnapshot() = endsWith("SNAPSHOT")
 
 /**
  * @return save-cli file path to copy

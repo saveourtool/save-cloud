@@ -8,10 +8,8 @@ import org.ajoberstar.grgit.gradle.GrgitServiceExtension
 import org.ajoberstar.grgit.gradle.GrgitServicePlugin
 import org.ajoberstar.reckon.gradle.ReckonExtension
 import org.ajoberstar.reckon.gradle.ReckonPlugin
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
-import java.util.Properties
 
 /**
  * Configures reckon plugin for [this] project, should be applied for root project only
@@ -46,14 +44,10 @@ fun Project.configureVersioning() {
     }
 }
 
-/**
- * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
- * only [a-z0-9][.][_][-].
- *
- * @return correctly formatted version
- */
-fun Project.versionForDockerImages(): String =
-        (project.findProperty("build.dockerTag") as String? ?: version.toString())
-            .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
+internal fun String.isSnapshot() = endsWith("SNAPSHOT")
 
-private fun String.isSnapshot() = endsWith("SNAPSHOT")
+/**
+ * @return path to the file with save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
