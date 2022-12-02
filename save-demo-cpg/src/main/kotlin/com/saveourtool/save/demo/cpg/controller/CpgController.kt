@@ -36,8 +36,6 @@ private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
 private const val MAX_RETRIES = 10
 private const val DEFAULT_SAVE_DEPTH = -1
 
-typealias CpgResultWithLogsResponse = ResponseEntity<CpgResult>
-
 /**
  * A simple controller
  * @property configProperties
@@ -59,7 +57,7 @@ class CpgController(
     @PostMapping("/upload-code")
     fun uploadCode(
         @RequestBody request: DemoRunRequest,
-    ): Mono<CpgResultWithLogsResponse> = blockingToMono {
+    ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         try {
             createFiles(request, tmpFolder)
@@ -88,12 +86,12 @@ class CpgController(
                 }
                 .getOrHandle {
                     CpgResult(
-                        getGraph(),
+                        CpgGraph.placeholder,
                         "NONE",
                         logs + "Exception: ${it.message} ${it.stackTraceToString()}",
                     )
                 }
-                .let { ResponseEntity.ok(it) }
+                .let { it }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
