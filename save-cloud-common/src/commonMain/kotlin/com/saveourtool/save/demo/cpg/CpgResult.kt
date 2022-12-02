@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 /**
  * @property cpgGraph
  * @property logs
- * @property applicationName
+ * @property applicationName query id SQL request to a NEO4
  */
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
