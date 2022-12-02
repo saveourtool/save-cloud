@@ -111,7 +111,7 @@ services:
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
-      - "5401:5401"
+      - "5421:5421"
     volumes:
       - /home/saveu/configs/demo:/home/cnb/config
     deploy:

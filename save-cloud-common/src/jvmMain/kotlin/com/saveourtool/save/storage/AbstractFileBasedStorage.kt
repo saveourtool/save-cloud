@@ -18,12 +18,16 @@ import kotlin.io.path.*
  * File based implementation of Storage
  *
  * @param rootDir root directory for storage
- * @param pathPartsCount count of parts in path for key, if it's null -- this validation is not applicable
+ * @param pathPartsCount amount of parts in path for key used for validation and filtering unexpected paths,
+ * if it's null -- this validation is not applicable
+ * @param storageIgnore list of filenames that should not be treated as files contained in storage (equivalent of .gitignore),
+ * by default .DS_Store is ignored.
  * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
     private val rootDir: Path,
     private val pathPartsCount: Int? = null,
+    private val storageIgnore: List<String> = listOf(".DS_Store"),
 ) : Storage<K> {
     init {
         rootDir.createDirectoriesIfRequired()
@@ -36,6 +40,7 @@ abstract class AbstractFileBasedStorage<K>(
         .filter { pathToContent ->
             pathPartsCount?.let { pathToContent.countPartsTill(rootDir) == it } ?: true
         }
+        .filter { it.name !in storageIgnore }
         .filter { isKey(rootDir, it) }
         .map { buildKey(rootDir, it) }
 
