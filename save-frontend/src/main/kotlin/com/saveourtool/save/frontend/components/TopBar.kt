@@ -102,7 +102,6 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
  */
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
-    val navigate = useNavigate()
     val linkToSaveCloudOnGithub = "https://github.com/saveourtool/save-cloud"
     val topBarlinksList = listOf(
         TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, jsoWidth = 12.rem, text = "Awesome Benchmarks"),
@@ -260,9 +259,9 @@ external interface TopBarPropsWithLocation : TopBarProps {
 }
 
 /**
- * @property hrefAnchor
- * @property jsoWidth
- * @property text
+ * @property hrefAnchor is link
+ * @property jsoWidth is width of the link text
+ * @property text is link text
  */
 data class TopBarLink(
     val hrefAnchor: String,
