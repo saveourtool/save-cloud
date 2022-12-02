@@ -74,7 +74,7 @@ class GithubDownloadToolService(
         .bodyAsChannel()
         .toByteBufferFlux()
 
-    private fun downloadFromGithubAndUploadToStorage(key: ToolKey) = getMetadata(key).assets
+    internal fun downloadFromGithubAndUploadToStorage(key: ToolKey) = getMetadata(key).assets
         .filterNot(ReleaseAsset::isDigest)
         .first()
         .let { asset ->
@@ -93,7 +93,7 @@ class GithubDownloadToolService(
         }
 
     @PostConstruct
-    private fun loadToStorage() = toolStorage.list()
+    internal fun loadToStorage() = toolStorage.list()
         .collectList()
         .flatMapIterable { availableFiles ->
             supportedTools.filter {
