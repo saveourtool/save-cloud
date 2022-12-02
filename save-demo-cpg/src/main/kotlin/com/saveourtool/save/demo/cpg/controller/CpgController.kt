@@ -90,7 +90,6 @@ class CpgController(
                         logs + "Exception: ${it.message} ${it.stackTraceToString()}",
                     )
                 }
-                .let { it }
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
