@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.kotlin.plugin.allopen)
     implementation(libs.gradle.plugin.spotless)
     implementation(libs.download.plugin)
+    implementation(libs.reckon.gradle.plugin)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

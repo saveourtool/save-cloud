@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.buildutils
 
-import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.springframework.boot.gradle.dsl.SpringBootExtension

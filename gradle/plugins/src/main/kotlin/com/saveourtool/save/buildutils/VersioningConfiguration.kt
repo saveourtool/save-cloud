@@ -50,4 +50,15 @@ internal fun String.isSnapshot() = endsWith("SNAPSHOT")
  * @return path to the file with save-cli version for current build
  */
 @Suppress("CUSTOM_GETTERS_SETTERS")
-val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
+
+/**
+ * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
+ * only [a-z0-9][.][_][-].
+ * FixMe: temporarily copy-pasted in here and in gradle/plugins
+ *
+ * @return correctly formatted version
+ */
+internal fun Project.versionForDockerImages(): String =
+    (project.findProperty("build.dockerTag") as String? ?: version.toString())
+        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")

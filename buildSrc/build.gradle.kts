@@ -15,7 +15,6 @@ dependencies {
     implementation(libs.spring.boot.gradle.plugin)
     implementation(libs.diktat.gradle.plugin)
     implementation(libs.detekt.gradle.plugin)
-    implementation(libs.reckon.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
     implementation(libs.gradle.plugin.spotless)
     implementation(libs.publish.gradle.plugin)
