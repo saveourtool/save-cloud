@@ -71,6 +71,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
      * @param project
      * @param newStatus
      */
+    @Suppress("AVOID_NESTED_FUNCTIONS")
     fun localButtonAction(project: ProjectDto, newStatus: ProjectStatus) {
         val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
         setProjects(newProjects)
