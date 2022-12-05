@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark)
  */
 enum class BenchmarkCategoryEnum {
+    // this enum should be synchronized with enum in awesome-benchmarks
     ALL,
     AI,
     AUDIT,
