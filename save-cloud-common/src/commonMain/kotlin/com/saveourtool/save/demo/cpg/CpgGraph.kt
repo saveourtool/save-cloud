@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo.cpg
 
+import kotlin.random.Random
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -60,6 +61,24 @@ data class CpgGraph(
             ),
             options = CpgGraphOptions(),
             attributes = CpgGraphAttributes()
+        )
+
+        /**
+         * Generate random graph with [numberOfNodes] nodes and [numberOfEdges] edges
+         *
+         * @param numberOfNodes requested amount of nodes in generated graph
+         * @param numberOfEdges requested amount of edges in generated graph
+         * @return generated graph with [numberOfNodes] nodes and [numberOfEdges] edges
+         */
+        fun randomGraph(numberOfNodes: Long, numberOfEdges: Long): CpgGraph = CpgGraph(
+            LongRange(0, numberOfNodes - 1).map { CpgNode("$it-node") },
+            LongRange(0, numberOfEdges - 1).map {
+                CpgEdge(
+                    "$it-edge",
+                    "${Random.nextLong(0, numberOfNodes - 1)}-node",
+                    "${Random.nextLong(0, numberOfNodes - 1)}-node",
+                )
+            },
         )
     }
 }
