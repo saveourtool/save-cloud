@@ -1,12 +1,12 @@
 package com.saveourtool.save.backend.configs
 
-import com.saveourtool.save.backend.utils.toInstant
+import com.saveourtool.save.backend.storage.AvatarKey
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.v1
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.CacheControl
 import org.springframework.web.reactive.function.server.RouterFunctionDsl
@@ -22,20 +22,18 @@ import kotlin.time.toJavaDuration
  */
 @Configuration
 class WebConfiguration(
-    private val configProperties: ConfigProperties,
+    private val avatarStorage: AvatarStorage,
 ) {
     /**
      * @return a router with routes for avatars that set `Cache-Control` header
      */
     @Bean
     fun staticStorageResourceRouter() = router {
-        cacheableFsResource(
+        cacheableAvatar(
             "/api/$v1/avatar/{*resourcePath}",
-            "${configProperties.fileStorage.location}/images/avatars",
         )
-        cacheableFsResource(
+        cacheableAvatar(
             "/api/$v1/avatar/users/{*resourcePath}",
-            "${configProperties.fileStorage.location}/images/avatars/users",
         )
     }
 
@@ -54,21 +52,25 @@ class WebConfiguration(
         }
     }
 
-    private fun RouterFunctionDsl.cacheableFsResource(
+    private fun RouterFunctionDsl.cacheableAvatar(
         pattern: String,
-        basePath: String
-    ) = cacheableResource(pattern, basePath) { FileSystemResource(it) }
+    ) = cacheableResource(pattern) { AvatarKey(it) }
 
     private fun RouterFunctionDsl.cacheableResource(
         pattern: String,
-        basePath: String,
-        resource: (path: String) -> Resource,
+        avatarKeyExtractor: (relativePath: String) -> AvatarKey,
     ) = GET(pattern) { request ->
         val resourcePath = request.pathVariable("resourcePath")
-        val newResource = resource("$basePath/$resourcePath")
-        ok().cacheControl(longExpirationTime) { cachePublic() }
-            .lastModified(newResource.lastModified().toInstant())
-            .bodyValue(newResource)
+        val avatarKey = avatarKeyExtractor(resourcePath)
+        avatarStorage.doesExist(avatarKey)
+            .flatMap {
+                avatarStorage.lastModified(avatarKey)
+            }
+            .flatMap { lastModified ->
+                ok().cacheControl(longExpirationTime) { cachePublic() }
+                    .lastModified(lastModified)
+                    .bodyValue(avatarStorage.download(avatarKey))
+            }
     }
 
     private fun ServerResponse.BodyBuilder.cacheControl(duration: kotlin.time.Duration,

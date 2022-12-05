@@ -79,4 +79,26 @@ data class AvatarKey(
         AvatarType.ORGANIZATION -> "/$objectName/$imageName"
         AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$objectName/$imageName"
     }
+
+    companion object {
+        /**
+         * @param relativePath [AvatarKey.getRelativePath]
+         * @return [AvatarKey] created from [relativePath]
+         */
+        operator fun invoke(relativePath: String): AvatarKey = relativePath.split("/")
+            .let {
+                if (it.size == 2) {
+                    AvatarType.USER to it
+                } else {
+                    AvatarType.ORGANIZATION to it.drop(1)
+                }
+            }
+            .let { (type, parts) ->
+                AvatarKey(
+                    type,
+                    parts[0],
+                    parts[1],
+                )
+            }
+    }
 }
