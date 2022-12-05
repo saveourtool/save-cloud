@@ -27,10 +27,10 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
-          {{- include "spring-boot.management" .Values.demo | nindent 10 }}
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
               - name: fs-storage
                 mountPath: /home/cnb/files
+          {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
               memory: 500M
