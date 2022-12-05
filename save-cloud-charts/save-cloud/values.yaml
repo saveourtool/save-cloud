@@ -178,6 +178,7 @@ loki:
   singleBinary:
 
 neo4j:
+  enabled: true
   svc:
     annotations: {}
     # Any additional options for Service `spec` block
