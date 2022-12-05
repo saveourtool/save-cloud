@@ -18,7 +18,7 @@ enum class BenchmarkCategoryEnum {
     AUDIT,
     CODING_STANDARD,
     PERFORMANCE,
-    STATIC_ANALYSIS,
+    CODE_ANALYSIS,
     ;
 
     companion object : TabMenuBar<BenchmarkCategoryEnum> {
