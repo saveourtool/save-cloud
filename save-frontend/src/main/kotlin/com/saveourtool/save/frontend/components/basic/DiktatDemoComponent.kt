@@ -61,7 +61,7 @@ external interface DiktatDemoComponentProps : Props {
 
 private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, flushWarnings: () -> Unit) {
     div {
-        val show = if (result.warnings.isEmpty()) {
+        val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
             ""
         } else {
             "show"
