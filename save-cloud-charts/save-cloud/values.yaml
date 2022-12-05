@@ -179,6 +179,8 @@ loki:
 
 neo4j:
   enabled: true
+  ingress:
+    enabled: false
   svc:
     annotations: {}
     # Any additional options for Service `spec` block
