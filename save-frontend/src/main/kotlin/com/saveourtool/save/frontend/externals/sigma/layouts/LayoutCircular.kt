@@ -2,7 +2,7 @@
 @file:JsModule("@react-sigma/layout-circular")
 @file:JsNonModule
 
-package com.saveourtool.save.frontend.externals.sigma
+package com.saveourtool.save.frontend.externals.sigma.layouts
 
 import react.*
 

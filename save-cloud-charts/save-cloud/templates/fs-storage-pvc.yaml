@@ -1,4 +1,4 @@
-{{- range tuple .Values.backend.name .Values.sandbox.name }}
+{{- range tuple .Values.backend.name .Values.sandbox.name .Values.demo.name }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

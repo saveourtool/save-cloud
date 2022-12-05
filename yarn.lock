@@ -381,6 +381,13 @@
   dependencies:
     "@react-sigma/core" "^3.1.0"
 
+"@react-sigma/layout-forceatlas2@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@react-sigma/layout-forceatlas2/-/layout-forceatlas2-3.1.0.tgz#0bd8b074efe3d5fd9ade5c14f2193e54e73744f9"
+  integrity sha512-sHHAdR/MtjgFNfyHpupPO80kPSFHOigt7m5ps3iCuQylLoLWadiibck56CX2HHAIOWHkb4qFqATg98uN5gi1RA==
+  dependencies:
+    "@react-sigma/layout-core" "^3.1.0"
+
 "@react-sigma/layout-random@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@react-sigma/layout-random/-/layout-random-3.1.0.tgz#25bc8b4c26727870ab2b3c628577923618696197"
@@ -2425,6 +2432,13 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, 
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
+graphology-layout-forceatlas2@^0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/graphology-layout-forceatlas2/-/graphology-layout-forceatlas2-0.10.1.tgz#741842135609d82d12db5a5fdf74672062c28205"
+  integrity sha512-ogzBeF1FvWzjkikrIFwxhlZXvD2+wlY54lqhsrWprcdPjopM2J9HoMweUmIgwaTvY4bUYVimpSsOdvDv1gPRFQ==
+  dependencies:
+    graphology-utils "^2.1.0"
+
 graphology-layout@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/graphology-layout/-/graphology-layout-0.6.1.tgz#e7c1d65c022e337b11c977e2d30abe4076a0327d"
@@ -2433,7 +2447,7 @@ graphology-layout@^0.6.1:
     graphology-utils "^2.3.0"
     pandemonium "^2.4.0"
 
-graphology-utils@^2.3.0, graphology-utils@^2.5.0:
+graphology-utils@^2.1.0, graphology-utils@^2.3.0, graphology-utils@^2.5.0:
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/graphology-utils/-/graphology-utils-2.5.2.tgz#4d30d6e567d27c01f105e1494af816742e8d2440"
   integrity sha512-ckHg8MXrXJkOARk56ZaSCM1g1Wihe2d6iTmz1enGOz4W/l831MBCKSayeFQfowgF8wd+PQ4rlch/56Vs/VZLDQ==
