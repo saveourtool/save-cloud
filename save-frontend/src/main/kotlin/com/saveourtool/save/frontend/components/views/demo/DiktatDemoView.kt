@@ -16,9 +16,7 @@ import react.dom.html.ReactHTML.div
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
-val diktatDemoView = diktatDemoView()
-
-private fun diktatDemoView(): VFC = VFC {
+val diktatDemoView = VFC {
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
     div {
         className = ClassName("d-flex justify-content-center mb-2")
