@@ -98,12 +98,10 @@ prometheus:
   enabled: false
   alertmanager:
     enabled: false
-  kubeStateMetrics:
+  kube-state-metrics:
     enabled: false
   configmapReload:
     prometheus:
-      enabled: false
-    alertmanager:
       enabled: false
   prometheus-node-exporter:
     enabled: false
