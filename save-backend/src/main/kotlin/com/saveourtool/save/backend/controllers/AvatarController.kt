@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
 
@@ -86,7 +87,8 @@ internal class AvatarController(
             "Not found avatar for organization $organizationName with name $imageName"
         }
 
-    private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = avatarStorage.doesExist(this)
+    private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = this.toMono()
+        .filterWhen(avatarStorage::doesExist)
         .flatMap {
             avatarStorage.lastModified(this)
                 .map { lastModified ->
