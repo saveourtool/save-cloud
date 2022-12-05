@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -58,7 +58,7 @@ internal class AvatarController(
         imageName = imageName
     )
         .toMonoResponse()
-        .orNotFound {
+        .switchIfEmptyToNotFound {
             "Not found avatar for user $userName with name $imageName"
         }
 
@@ -83,7 +83,7 @@ internal class AvatarController(
         imageName = imageName
     )
         .toMonoResponse()
-        .orNotFound {
+        .switchIfEmptyToNotFound {
             "Not found avatar for organization $organizationName with name $imageName"
         }
 
