@@ -1,3 +1,4 @@
+{{- if .Values.neo4j.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,8 +15,13 @@ spec:
       port: 7687
       targetPort: 7687
       protocol: TCP
+    - name: tcp-http
+      port: 7474
+      targetPort: 7474
+      protocol: TCP
   selector:
     app: {{ .Values.neo4j.neo4j.name }}
   {{- range $key, $value := .Values.neo4j.svc.spec }}
   {{ $key }}: {{ $value }}
   {{- end }}
+{{- end }}
