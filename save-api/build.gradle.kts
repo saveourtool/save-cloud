@@ -7,12 +7,6 @@ plugins {
     `maven-publish`
 }
 
-kotlin {
-    jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
-}
-
 java {
     withSourcesJar()
 }
