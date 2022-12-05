@@ -24,4 +24,32 @@ spec:
   {{- range $key, $value := .Values.neo4j.svc.spec }}
   {{ $key }}: {{ $value }}
   {{- end }}
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-tcp-bolt
+  {{- if .Values.neo4j.ingress.annotations }}
+  {{- with .Values.neo4j.ingress.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.https.enabled }}
+  tls:
+    - secretName: {{ .Values.ingress.https.secretName }}
+  {{- end }}
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Values.neo4j.neo4j.name }}
+                port:
+                  name: tcp-bolt
+            pathType: Prefix
+            path: '/'
 {{- end }}
