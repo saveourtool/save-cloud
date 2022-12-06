@@ -12,3 +12,4 @@ data:
     management.server.port={{ .Values.backend.managementPort }}
     spring.datasource.url=${spring.datasource.backend-url}
     logging.level.org.springframework=DEBUG
+    logging.level.com.saveourtool=DEBUG
