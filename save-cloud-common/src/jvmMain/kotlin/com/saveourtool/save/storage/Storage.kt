@@ -3,6 +3,7 @@ package com.saveourtool.save.storage
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
+import java.time.Instant
 
 /**
  * Base interface for Storage
@@ -22,10 +23,16 @@ interface Storage<K> {
     fun doesExist(key: K): Mono<Boolean>
 
     /**
-     * @param key a ket to be checked
+     * @param key a key to be checked
      * @return content size in bytes
      */
     fun contentSize(key: K): Mono<Long>
+
+    /**
+     * @param key a key to be checked
+     * @return when a key was modified last time
+     */
+    fun lastModified(key: K): Mono<Instant>
 
     /**
      * @param key a key to be deleted

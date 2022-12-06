@@ -95,7 +95,7 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                     }
                     div {
                         buttonBuilder("Show logs") {
-                            props.showLogs(true)
+                            props.changeLogsVisibility()
                         }
                     }
                 }
@@ -138,7 +138,7 @@ external interface DemoComponentProps : Props {
     var resultRequest: suspend WithRequestStatusContext.(DemoRunRequest) -> Unit
 
     /**
-     * Callback to display the logs
+     * Callback to display/hide the logs using Show logs button
      */
-    var showLogs: (Boolean) -> Unit
+    var changeLogsVisibility: () -> Unit
 }

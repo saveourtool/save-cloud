@@ -11,6 +11,344 @@
     }
   ],
   "paths": {
+    "/api/v1/avatar/users/{userName}/{imageName}": {
+      "get": {
+        "description": "Download an avatar for user.",
+        "operationId": "forUser",
+        "parameters": [
+          {
+            "description": "user name",
+            "in": "path",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "image name of avatar",
+            "in": "path",
+            "name": "imageName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns content of the file."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Execution with provided ID is not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download an avatar for user.",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
+    "/api/v1/avatar/{organizationName}/{imageName}": {
+      "get": {
+        "description": "Download an avatar for organization.",
+        "operationId": "forOrganization",
+        "parameters": [
+          {
+            "description": "organization name",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "image name of avatar",
+            "in": "path",
+            "name": "imageName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns content of the file."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Execution with provided ID is not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download an avatar for organization.",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
     "/api/v1/awesome-benchmarks": {
       "get": {
         "operationId": "getAllAwesomeBenchmarks",
@@ -7786,7 +8124,7 @@
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
-              "STATIC_ANALYSIS"
+              "CODE_ANALYSIS"
             ]
           },
           "description": {

@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Suppress("WRONG_DECLARATIONS_ORDER")
 /**
- * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark)
+ * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark).
+ * This enum should be synchronized with enum in awesome-benchmarks
  */
 enum class BenchmarkCategoryEnum {
     ALL,
@@ -18,7 +19,7 @@ enum class BenchmarkCategoryEnum {
     AUDIT,
     CODING_STANDARD,
     PERFORMANCE,
-    STATIC_ANALYSIS,
+    CODE_ANALYSIS,
     ;
 
     companion object : TabMenuBar<BenchmarkCategoryEnum> {
