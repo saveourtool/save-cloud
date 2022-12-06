@@ -2549,15 +2549,15 @@
         ]
       }
     },
-    "/api/v1/logs/by-container-name": {
+    "/api/v1/logs/by-application-name": {
       "get": {
         "description": "Get logs for containerName in provided time range.",
-        "operationId": "getByContainerName",
+        "operationId": "getByApplicationName",
         "parameters": [
           {
-            "description": "name of a container",
+            "description": "application name",
             "in": "query",
-            "name": "containerName",
+            "name": "applicationName",
             "required": true,
             "schema": {
               "type": "string"
@@ -2581,6 +2581,17 @@
             "schema": {
               "type": "string",
               "format": "date-time"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
             }
           }
         ],
@@ -2623,7 +2634,92 @@
         ]
       }
     },
-    "/api/v1/logs/from-agent": {
+    "/api/v1/logs/by-container-name": {
+      "get": {
+        "description": "Get logs for containerName in provided time range.",
+        "operationId": "getByContainerName",
+        "parameters": [
+          {
+            "description": "name of a container",
+            "in": "query",
+            "name": "containerName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "start of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "end of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get logs for containerName in provided time range.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/api/v1/logs/by-container-name/from-agent": {
       "get": {
         "description": "Get all logs from agent by container name.",
         "operationId": "logs",
@@ -2635,6 +2731,17 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
             }
           }
         ],
