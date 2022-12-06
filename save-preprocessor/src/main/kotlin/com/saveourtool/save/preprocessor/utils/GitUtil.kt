@@ -116,13 +116,11 @@ private fun GitDto.doCloneToDirectory(
     .setRemote(Constants.DEFAULT_REMOTE_NAME)
     .let { command ->
         branchWithPrefix?.let { (branch, branchToClonePrefix) ->
-            command.setNoCheckout(false)
-                .setBranch(branch)
+            command.setBranch(branch)
                 .setCloneAllBranches(false)
                 .setTagOption(TagOpt.AUTO_FOLLOW)
                 .setBranchesToClone(listOf("$branchToClonePrefix$branch"))
-        } ?: command.setNoCheckout(true)
-            .setNoTags()
+        } ?: command.setNoTags()
             .setBranch(Constants.HEAD)
     }
     .callWithRethrow()

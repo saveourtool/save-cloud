@@ -9,6 +9,9 @@ spec:
     matchLabels:
       io.kompose.service: sandbox
   replicas: 1
+  strategy:
+    # Because of shared volume with multi-attach problem
+    type: Recreate
   template:
     metadata:
       labels:

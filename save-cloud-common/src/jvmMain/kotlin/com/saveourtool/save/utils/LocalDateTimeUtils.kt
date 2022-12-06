@@ -29,6 +29,7 @@ import kotlinx.serialization.modules.SerializersModuleBuilder
 
 typealias KLocalDateTime = kotlinx.datetime.LocalDateTime
 typealias JLocalDateTime = java.time.LocalDateTime
+typealias JInstant = java.time.Instant
 
 private object JLocalDateTimeKSerializer : KSerializer<JLocalDateTime> {
     override val descriptor = PrimitiveSerialDescriptor("timestamp", PrimitiveKind.LONG)
@@ -73,3 +74,8 @@ fun SerializersModuleBuilder.supportJLocalDateTime() {
 fun Jackson2ObjectMapperBuilder.supportKLocalDateTime(): Jackson2ObjectMapperBuilder = this
     .serializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonSerializer)
     .deserializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonDeserializer)
+
+/**
+ * @return [java.time.Instant] from [java.time.LocalDateTime] at default [java.time.ZoneId]
+ */
+fun JLocalDateTime.toInstantAtDefaultZone(): JInstant = atZone(java.time.ZoneId.systemDefault()).toInstant()

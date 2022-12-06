@@ -37,5 +37,7 @@ class DiktatDemoService(
 
 private fun DiktatDemoResult.formatWarnings() = DiktatDemoResult(
     warnings.map { "[${it.substringAfter("[")}" },
-    outputText
+    outputText,
+    logs,
+    terminationCode,
 )

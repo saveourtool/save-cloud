@@ -14,4 +14,10 @@ interface SandboxExecutionRepository : BaseEntityRepository<SandboxExecution> {
      * @return list of [SandboxExecution] for requested [userId]
      */
     fun findByUserId(userId: Long): List<SandboxExecution>
+
+    /**
+     * @param userId
+     * @return latest [SandboxExecution] for requested [userId]
+     */
+    fun findTopByUserIdOrderByStartTimeDesc(userId: Long): SandboxExecution?
 }
