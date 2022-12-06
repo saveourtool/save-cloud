@@ -15,7 +15,12 @@ interface LogService {
      * @param limit limit for result
      * @return logs as [Mono] of [String]s
      */
-    fun getByContainerName(containerName: String, from: Instant, to: Instant, limit: Int): Mono<StringList>
+    fun getByContainerName(
+        containerName: String,
+        from: Instant,
+        to: Instant,
+        limit: Int,
+    ): Mono<StringList>
 
     /**
      * @param applicationName name of application
@@ -24,18 +29,33 @@ interface LogService {
      * @param limit limit for result
      * @return logs as [Mono] of [String]s
      */
-    fun getByApplicationName(applicationName: String, from: Instant, to: Instant, limit: Int): Mono<StringList>
+    fun getByApplicationName(
+        applicationName: String,
+        from: Instant,
+        to: Instant,
+        limit: Int,
+    ): Mono<StringList>
 
     companion object {
         /**
          * Stub implementation of [LogService]
          */
         val stub: LogService = object : LogService {
-            override fun getByContainerName(containerName: String, from: Instant, to: Instant, limit: Int): Mono<StringList> = Mono.just(
+            override fun getByContainerName(
+                containerName: String,
+                from: Instant,
+                to: Instant,
+                limit: Int,
+            ): Mono<StringList> = Mono.just(
                 listOf("Stub implementation: requested logs by container name for $containerName from $from to $to with limit $limit")
             )
 
-            override fun getByApplicationName(applicationName: String, from: Instant, to: Instant, limit: Int): Mono<StringList> = Mono.just(
+            override fun getByApplicationName(
+                applicationName: String,
+                from: Instant,
+                to: Instant,
+                limit: Int,
+            ): Mono<StringList> = Mono.just(
                 listOf("Stub implementation: requested logs by application name for $applicationName from $from to $to with limit $limit")
             )
         }
