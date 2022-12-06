@@ -46,7 +46,8 @@ class DiktatCliRunner(
         if (params.tool == DiktatDemoTool.DIKTAT) {
             val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
             append(" -R $diktatExecutable ")
-            append(" --disabled_rules=standard")
+            // disabling package-naming as far as it is useless in demo because there is no folder hierarchy
+            append(" --disabled_rules=diktat-ruleset:package-naming,standard")
         }
         append(" --reporter=plain,output=$outputPath ")
         if (params.mode == DiktatDemoMode.FIX) {
@@ -95,7 +96,7 @@ class DiktatCliRunner(
         }
 
         logger.debug("Running command [$command].")
-        processBuilder.start().waitFor()
+        val terminationCode = processBuilder.start().waitFor()
 
         val logs = launchLogPath.readLines()
 
@@ -114,6 +115,8 @@ class DiktatCliRunner(
         return DiktatDemoResult(
             outputPath.readLines(),
             testPath.readText(),
+            logs,
+            terminationCode,
         )
     }
 
