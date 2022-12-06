@@ -337,11 +337,13 @@ class SandboxController(
     }
 
     /**
+     * @param limit
      * @param authentication
      * @return logs from agent sandbox
      */
     @GetMapping("/logs-from-agent")
     fun getAgentLogs(
+        @RequestParam(required = false, defaultValue = "1000") limit: Int,
         authentication: Authentication,
     ): Mono<StringList> = blockingToMono {
         sandboxExecutionRepository.findTopByUserIdOrderByStartTimeDesc(authentication.userId())
@@ -362,6 +364,7 @@ class SandboxController(
             logService.getByContainerName(agent.containerName,
                 startTime.toInstantAtDefaultZone(),
                 endTime.toInstantAtDefaultZone(),
+                limit,
             )
         }
 
