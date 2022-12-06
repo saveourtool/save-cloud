@@ -29,3 +29,5 @@ fun BootBuildImage.commonConfigure() {
         }
     }
 }
+
+internal val isRelease get() = System.getenv("GHCR_PWD") != null

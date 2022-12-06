@@ -18,8 +18,10 @@ plugins {
 configure<SpringBootExtension> {
     // Same condition, as we use to determine whether images need to be published.
     // Essentially enables this setting for release builds only to spare time in dev builds.
-    if (System.getenv("GHCR_PWD") != null) {
-        buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+    // Configures `bootBuildInfo` task, which creates META-INF/build-info.properties file,
+    // which contains timestamps so its inputs change every single build.
+    if (isRelease) {
+        buildInfo()
     }
 }
 
