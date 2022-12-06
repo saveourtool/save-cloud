@@ -11,4 +11,4 @@ data:
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.backend.managementPort }}
     spring.datasource.url=${spring.datasource.backend-url}
-    logging.level.org.springframework.cloud=DEBUG
+    logging.level.org.springframework=DEBUG
