@@ -5,6 +5,7 @@ import com.saveourtool.save.utils.StringList
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.saveourtool.save.core.utils.runIf
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
@@ -22,27 +23,32 @@ class LokiLogService(
 ) : LogService {
     private val webClient = WebClient.create(config.url)
 
-    override fun getByContainerName(containerName: String, from: Instant, to: Instant): Mono<StringList> {
+    override fun getByContainerName(containerName: String, from: Instant, to: Instant, limit: Int): Mono<StringList> {
         val query = "{${config.labels.agentContainerName}=\"$containerName\"}"
-        return doQueryRange(query, from, to)
+        return doQueryRange(query, from, to, limit)
     }
 
-    override fun getByApplicationName(applicationName: String, from: Instant, to: Instant): Mono<StringList> {
+    override fun getByApplicationName(applicationName: String, from: Instant, to: Instant, limit: Int): Mono<StringList> {
         val query = with(config.labels) {
             this.applicationName
                 ?.let { "{$it=\"$applicationName\"}" }
                 ?: "{$agentContainerName=~\"$applicationName.*\"}"
         }
-        return doQueryRange(query, from, to)
+        return doQueryRange(query, from, to, limit)
     }
 
     private fun doQueryRange(
         query: String,
         start: Instant,
         end: Instant,
-    ): Mono<StringList> = doQueryRange(query, start, end, null)
+        limit: Int,
+    ): Mono<StringList> = doQueryRange(query, start, end, limit, null)
         .expand { previousLokiBatch ->
-            doQueryRange(query, start, end, previousLokiBatch)
+            if (previousLokiBatch.doesNeedNextRequest()) {
+                doQueryRange(query, start, end, limit, previousLokiBatch)
+            } else {
+                Mono.empty()
+            }
         }
         .flatMapIterable { it.entries.map(LogEntry::toString) }
         .collectList()
@@ -51,6 +57,7 @@ class LokiLogService(
         query: String,
         originalStart: Instant,
         end: Instant,
+        originalLimit: Int,
         previousLokiBatch: LokiBatch?,
     ): Mono<LokiBatch> = webClient.get()
         .uri(
@@ -58,14 +65,14 @@ class LokiLogService(
             query,
             (previousLokiBatch?.lastEntries?.firstOrNull()?.timestamp ?: originalStart).toEpochNanoStr(),
             end.toEpochNanoStr(),
-            LOKI_LIMIT,
+            Integer.min(LOKI_LIMIT, originalLimit),
         )
         .retrieve()
         .bodyToMono<ObjectNode>()
-        .map { it.extractResult(previousLokiBatch?.lastEntries.orEmpty()) }
-        .filter(LokiBatch::isEmpty)
+        .map { it.extractResult(previousLokiBatch?.lastEntries.orEmpty(), previousLokiBatch?.leftToFetch ?: originalLimit) }
+        .filter(LokiBatch::isNotEmpty)
 
-    private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>): LokiBatch = this
+    private fun ObjectNode.extractResult(logEntriesToSkip: Set<LogEntry>, leftToFetch: Int): LokiBatch = this
         .validateFieldValue("status", "success")
         .get("data")
         .validateFieldValue("resultType", "streams")
@@ -86,7 +93,7 @@ class LokiLogService(
         .filterNot(logEntriesToSkip::contains)
         .sorted()  // it's not clear why loki/logcli sorts output -- so we will sort too
         .toList()
-        .let { LokiBatch(it) }
+        .let { LokiBatch(it, leftToFetch) }
 
     private fun JsonNode.validateFieldValue(fieldName: String, expectedValue: String): JsonNode = also { jsonNode ->
         val actualValue = jsonNode[fieldName].asText()
@@ -109,9 +116,42 @@ class LokiLogService(
     }
 
     /**
+     * @property query
+     * @property start
+     * @property end
+     * @property limit
+     */
+    private data class LokiRequest(
+        val query: String,
+        val start: Instant,
+        val end: Instant,
+        val limit: Int,
+    ) {
+        /**
+         * @return batch size for current request
+         */
+        fun batchSize(): Int = Integer.min(limit, LOKI_LIMIT)
+
+        /**
+         * @return next request if it's required
+         */
+        fun next(response: LokiResponse): LokiRequest? = response
+            .takeIf { it.entries.isNotEmpty() }
+            ?.let {
+                this.copy(
+                    start = response.lastEntries.first().timestamp,
+                    limit = (limit - response.entries.size).takeIf { it > 0 } ?: 0
+                )
+            }
+            ?.takeIf { it.limit > 0 }
+    }
+
+    /**
+     * @property request
      * @property entries
      */
-    private data class LokiBatch(
+    private data class LokiResponse(
+        val request: LokiRequest,
         val entries: List<LogEntry>,
     ) {
         val lastEntries: Set<LogEntry> = entries
@@ -124,11 +164,37 @@ class LokiLogService(
                 }
             }
             .orEmpty()
+    }
+
+    /**
+     * @property entries
+     */
+    private data class LokiBatch(
+        val entries: List<LogEntry>,
+        private val limit: Int,
+    ) {
+        val lastEntries: Set<LogEntry> = entries
+            .lastOrNull()
+            ?.timestamp
+            ?.let { lastTimestamp -> entries.filterTo(HashSet()) { it.timestamp == lastTimestamp } }
+            ?.also { result ->
+                require(result.size < LOKI_LIMIT) {
+                    "Need to increase limit in request to loki"
+                }
+            }
+            .orEmpty()
+
+        val leftToFetch: Int = (limit - entries.size).let { if (it < 0) 0 else it }
 
         /**
-         * @return true if there are no [entries]
+         * @return true if there are [entries]
          */
-        fun isEmpty(): Boolean = entries.isEmpty()
+        fun isNotEmpty(): Boolean = entries.isNotEmpty()
+
+        /**
+         * @return true if it needs to make a new request
+         */
+        fun doesNeedNextRequest(): Boolean = leftToFetch > 0
     }
 
     /**
