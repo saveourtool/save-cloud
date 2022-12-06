@@ -6,6 +6,9 @@ data:
   application.properties: |
     backend.preprocessor-url=http://preprocessor
     backend.orchestrator-url=http://orchestrator
+    backend.loki.url=http://loki:3100
+    backend.loki.labels.agent-container-name=pod
+    backend.loki.labels.application-name=app
     backend.agent-settings.backend-url=http://{{ .Values.backend.name }}
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*

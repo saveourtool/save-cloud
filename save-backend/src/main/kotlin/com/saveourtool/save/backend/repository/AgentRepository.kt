@@ -19,6 +19,14 @@ interface AgentRepository : BaseEntityRepository<Agent> {
     fun findByContainerId(agentId: String): Agent?
 
     /**
+     * Find agent by its container name
+     *
+     * @param containerName
+     * @return [Agent]
+     */
+    fun findByContainerName(containerName: String): Agent?
+
+    /**
      * Find all agents with [executionId]
      *
      * @param executionId id of execution
