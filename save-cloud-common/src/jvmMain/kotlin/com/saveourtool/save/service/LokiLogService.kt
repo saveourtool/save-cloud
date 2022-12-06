@@ -31,7 +31,7 @@ class LokiLogService(
         val query = with(config.labels) {
             this.applicationName
                 ?.let { "{$it=\"$applicationName\"}" }
-                ?: "{${agentContainerName}=~\"$applicationName.*\"}"
+                ?: "{$agentContainerName=~\"$applicationName.*\"}"
         }
         return doQueryRange(query, from, to)
     }
@@ -167,6 +167,6 @@ class LokiLogService(
          * @return [LokiLogService] or [LogService.stub] if config is not provided
          */
         fun createOrStub(lokiConfig: LokiConfig?): LogService =
-            lokiConfig?.let { LokiLogService(it) } ?: LogService.stub
+                lokiConfig?.let { LokiLogService(it) } ?: LogService.stub
     }
 }

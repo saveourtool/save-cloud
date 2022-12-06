@@ -2,8 +2,6 @@ package com.saveourtool.save.sandbox.config
 
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.service.LokiLogService
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
