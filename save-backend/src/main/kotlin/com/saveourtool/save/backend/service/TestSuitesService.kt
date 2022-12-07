@@ -210,7 +210,6 @@ class TestSuitesService(
                 testRepository.deleteById(testId)
             }
             log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
-
             testSuiteRepository.deleteById(testSuite.requiredId())
         }
 
