@@ -7,7 +7,7 @@ import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.storage.toToolKey
-import com.saveourtool.save.demo.utils.prependPath
+import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.getLogger
 
@@ -79,9 +79,9 @@ class DiktatCliRunner(
 
     override fun run(testPath: Path, params: DemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent
-        val outputPath = workingDir / "report"
-        val configPath = prepareFile(workingDir / "config", params.config)
-        val launchLogPath = workingDir / "log"
+        val outputPath = workingDir / REPORT_FILE_NAME
+        val configPath = prepareFile(workingDir / DIKTAT_CONFIG_NAME, params.config.joinToString("\n"))
+        val launchLogPath = workingDir / LOG_FILE_NAME
         val command = getRunCommand(workingDir, testPath, outputPath, configPath, params)
         val processBuilder = createProcessBuilder(command).apply {
             redirectErrorStream(true)
@@ -92,6 +92,12 @@ class DiktatCliRunner(
              */
             val javaHome = System.getProperty("java.home")
             environment()["JAVA_HOME"] = javaHome
+            /*
+             * Need to remove JAVA_TOOL_OPTIONS (and _JAVA_OPTIONS just in case) because JAVA_TOOL_OPTIONS is set by spring,
+             * so it breaks ktlint's "java -version" parsing (for ktlint 0.46.1, fixed in ktlint 0.47.1)
+             */
+            environment().remove("JAVA_TOOL_OPTIONS")
+            environment().remove("_JAVA_OPTIONS")
             prependPath(Path(javaHome) / "bin")
         }
 
@@ -113,8 +119,8 @@ class DiktatCliRunner(
         logger.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
         return DiktatDemoResult(
-            outputPath.readLines(),
-            testPath.readText(),
+            outputPath.readLines().map { it.replace(testPath.absolutePathString(), testPath.name) },
+            testPath.readLines(),
             logs,
             terminationCode,
         )

@@ -67,12 +67,16 @@ interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DemoResult
      * @param testLines code that will be consumed by the tool
      * @param params additional params of type [DemoAdditionalParams]
      * @param tempRootDir path to root of temp directories (somewhere in storage)
+     * @param testFileName test file name that should be
+     * @param additionalDirectoryTree additional directory names that should be in directory hierarchy to working dir (below randomly generated dir)
      * @return result as [DemoResult]
      */
     fun runInTempDir(
         testLines: String,
         params: P,
         tempRootDir: Path,
+        testFileName: String,
+        additionalDirectoryTree: List<String> = emptyList(),
     ) = run {
         if (!tempRootDir.exists()) {
             tempRootDir.createDirectory()
@@ -81,12 +85,18 @@ interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DemoResult
         .let {
             createTempDirectory(tempRootDir)
         }
-        .let { tmpDir ->
+        .let { currentTempRootPath ->
+            currentTempRootPath to additionalDirectoryTree.fold(currentTempRootPath) { tempRootPath, pathItem ->
+                tempRootPath / pathItem
+            }
+                .also { tempRootPath -> tempRootPath.createDirectories() }
+        }
+        .let { (createdTempDir, workingDir) ->
             try {
-                val testPath = requireNotNull(prepareFile(tmpDir / "Test.kt", testLines))
+                val testPath = requireNotNull(prepareFile(workingDir / testFileName, testLines))
                 run(testPath, params)
             } finally {
-                tmpDir.toFile().deleteRecursively()
+                createdTempDir.toFile().deleteRecursively()
             }
         }
 }
