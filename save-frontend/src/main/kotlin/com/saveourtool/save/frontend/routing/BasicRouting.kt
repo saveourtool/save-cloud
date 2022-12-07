@@ -118,25 +118,26 @@ val basicRouting = FC<AppProps> { props ->
     Routes {
         listOf(
             WelcomeView::class.react.create { userInfo = props.userInfo } to "/",
-            AboutUsView::class.react.create() to "/$ABOUT_US",
-            diktatDemoView.create() to "/$DEMO/diktat",
-            cpgView.create() to "/$DEMO/cpg",
             SandboxView::class.react.create() to "/$SANDBOX",
-            awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
+            AboutUsView::class.react.create() to "/$ABOUT_US",
+            CreationView::class.react.create() to "/$CREATE_PROJECT",
+            CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
             RegistrationView::class.react.create { userInfo = props.userInfo } to "/$REGISTRATION",
+            CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
+            ContestListView::class.react.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+
             contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
             contestView.create() to "/$CONTESTS/:contestName",
             contestExecutionView.create() to "/$CONTESTS/:contestName/:organizationName/:projectName",
-            CreationView::class.react.create() to "/$CREATE_PROJECT",
-            CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
-            CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
-            ContestListView::class.react.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+            awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
             creationView.create() to "/$CREATE_PROJECT/:owner",
             organizationView.create() to "/:owner",
             organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to "/:owner/:name/history",
             projectView.create() to "/:owner/:name",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
+            diktatDemoView.create() to "/$DEMO/diktat",
+            cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
         ).forEach {
             Route {
