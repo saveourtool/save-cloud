@@ -6,6 +6,7 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("gradle/plugins")
 include("api-gateway")
 include("save-backend")
 include("save-orchestrator-common")
