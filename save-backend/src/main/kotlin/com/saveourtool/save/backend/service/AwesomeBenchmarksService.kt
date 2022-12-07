@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.benchmarks.AwesomeBenchmarks
 import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.entities.benchmarks.toEntity
 import org.slf4j.LoggerFactory
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,10 +20,13 @@ class AwesomeBenchmarksService(val awesomeBenchmarksRepository: AwesomeBenchmark
      * @param benchmarks
      */
     @Transactional
+    @Query(
+        value = "delete * from ${AwesomeBenchmarks.TABLE_NAME}",
+        nativeQuery = true,
+    )
+    // as we plan to override everything, we can simply delete all records in the table
     internal fun saveBenchmarksToDb(benchmarks: List<BenchmarkEntity>) {
         log.debug("Saving Awesome Benchmarks to 'awesome_benchmarks' table in DB: $benchmarks")
-        // as we plan to override everything, we can simple delete all records in the table
-        awesomeBenchmarksRepository.deleteAll()
         // flush is always needed after the deletion
         awesomeBenchmarksRepository.flush()
         awesomeBenchmarksRepository.saveAll(benchmarks.map { it.toEntity() })
