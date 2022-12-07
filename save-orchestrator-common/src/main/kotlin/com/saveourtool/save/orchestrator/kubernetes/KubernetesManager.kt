@@ -4,8 +4,9 @@ import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -36,7 +37,7 @@ class KubernetesManager(
         "ComplexMethod",
     )
     override fun create(executionId: Long,
-                        configuration: DockerService.RunConfiguration,
+                        configuration: ContainerService.RunConfiguration,
                         replicas: Int,
     ): List<String> {
         val baseImageTag = configuration.imageTag
@@ -114,19 +115,11 @@ class KubernetesManager(
     }
 
     override fun stopByAgentId(agentId: String): Boolean {
-        val pod: Pod? = kc.pods().withName(agentId).get()
-        pod ?: run {
-            logger.debug("Agent id=$agentId is already stopped or not yet created")
-            return true
+        logger.warn {
+            "${this::class.simpleName}#stopByAgentId is called, but it's no-op, " +
+                    "because we don't directly delete pods in kubernetes"
         }
-        val deletedResources = kc.pods().withName(agentId).delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete pod with name $agentId: response is $deletedResources")
-        } else {
-            logger.debug("Deleted pod with name=$agentId")
-            return true
-        }
+        return false
     }
 
     override fun cleanup(executionId: Long) {

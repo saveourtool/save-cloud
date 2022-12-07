@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.runner
 
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -13,13 +13,13 @@ interface AgentRunner {
      * Create a [replicas] number of agents for an execution with id [executionId].
      *
      * @param executionId and ID of execution for which agents will run tests
-     * @param configuration [DockerService.RunConfiguration] for the created containers
+     * @param configuration [ContainerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
      * @return unique identifier of created instances that can be used to manipulate them later
      */
     fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration,
+        configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ): List<String>
 

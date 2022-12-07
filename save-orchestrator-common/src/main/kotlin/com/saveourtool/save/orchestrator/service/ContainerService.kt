@@ -24,12 +24,13 @@ import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
+import kotlin.jvm.Throws
 
 /**
  * A service that builds and starts containers for test execution.
  */
 @Service
-class DockerService(
+class ContainerService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
     private val agentService: AgentService,
@@ -44,6 +45,7 @@ class DockerService(
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
+    @Throws(ContainerException::class)
     fun prepareConfiguration(request: RunExecutionRequest): RunConfiguration {
         val buildResult = prepareConfigurationForExecution(request)
         log.info("For execution.id=${request.executionId} using base image [${buildResult.imageTag}]")
@@ -57,6 +59,7 @@ class DockerService(
      * @param configuration configuration for containers to be created
      * @return list of IDs of created containers
      */
+    @Throws(ContainerException::class)
     fun createContainers(
         executionId: Long,
         configuration: RunConfiguration,
@@ -76,7 +79,7 @@ class DockerService(
     fun startContainersAndUpdateExecution(executionId: Long, agentIds: List<String>): Flux<Long> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         return agentService
-            .updateExecution(executionId, ExecutionStatus.RUNNING)
+            .updateExecution(executionId, ExecutionStatus.INITIALIZATION)
             .map {
                 agentRunner.start(executionId)
                 log.info("Made request to start containers for execution.id=$executionId")
@@ -185,7 +188,7 @@ class DockerService(
     )
 
     companion object {
-        private val log = LoggerFactory.getLogger(DockerService::class.java)
+        private val log = LoggerFactory.getLogger(ContainerService::class.java)
         internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

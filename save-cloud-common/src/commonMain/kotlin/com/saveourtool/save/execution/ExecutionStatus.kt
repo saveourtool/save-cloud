@@ -31,5 +31,10 @@ enum class ExecutionStatus {
      * Status running
      */
     RUNNING,
+
+    /**
+     * Status initialization
+     */
+    INITIALIZATION,
     ;
 }

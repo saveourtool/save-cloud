@@ -56,6 +56,15 @@ class AgentService(
                 .defaultIfEmpty(WaitResponse)
 
     /**
+     * Save new agent to the DB and insert their status. This logic is performed in two consecutive requests.
+     *
+     * @param agent [AgentDto] to save in the DB
+     * @return Mono with response body
+     * @throws WebClientResponseException if any of the requests fails
+     */
+    fun saveAgentWithInitialStatus(agent: AgentDto): Mono<EmptyResponse> = saveAgentsWithInitialStatuses(listOf(agent))
+
+    /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
      * @param agents list of [AgentDto]s to save in the DB

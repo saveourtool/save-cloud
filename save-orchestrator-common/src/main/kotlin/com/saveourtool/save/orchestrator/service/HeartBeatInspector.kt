@@ -25,7 +25,7 @@ typealias AgentStateWithTimeStamp = Pair<String, Instant>
 @Component
 class HeartBeatInspector(
     private val configProperties: ConfigProperties,
-    private val dockerService: DockerService,
+    private val containerService: ContainerService,
     private val agentService: AgentService,
 ) {
     private val agentsLatestHeartBeatsMap: ConcurrentMap<String, AgentStateWithTimeStamp> = ConcurrentHashMap()
@@ -41,7 +41,7 @@ class HeartBeatInspector(
      * @param heartbeat
      */
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
-        agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp
+        agentsLatestHeartBeatsMap[heartbeat.containerId] = heartbeat.state.name to heartbeat.timestamp
     }
 
     /**
@@ -82,10 +82,10 @@ class HeartBeatInspector(
         }
 
         crashedAgents.removeIf { agentId ->
-            dockerService.isAgentStopped(agentId)
+            containerService.isAgentStopped(agentId)
         }
         agentsLatestHeartBeatsMap.filterKeys { agentId ->
-            dockerService.isAgentStopped(agentId)
+            containerService.isAgentStopped(agentId)
         }.forEach { (agentId, _) ->
             logger.debug("Agent $agentId is already stopped, will stop watching it")
             agentsLatestHeartBeatsMap.remove(agentId)
@@ -101,7 +101,7 @@ class HeartBeatInspector(
         }
         logger.debug("Stopping crashed agents: $crashedAgents")
 
-        val areAgentsStopped = dockerService.stopAgents(crashedAgents)
+        val areAgentsStopped = containerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
             Flux.fromIterable(crashedAgents).flatMap { agentId ->
                 agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, agentId))

@@ -4,7 +4,7 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
@@ -30,7 +30,7 @@ import reactor.kotlin.core.publisher.doOnError
 @RestController
 class AgentsController(
     private val agentService: AgentService,
-    private val dockerService: DockerService,
+    private val containerService: ContainerService,
     private val agentRunner: AgentRunner,
 ) {
     /**
@@ -50,8 +50,7 @@ class AgentsController(
                 "Starting preparations for launching execution id=${request.executionId}"
             }
             Mono.fromCallable {
-                // todo: pass SDK via request body
-                dockerService.prepareConfiguration(request)
+                containerService.prepareConfiguration(request)
             }
                 .subscribeOn(agentService.scheduler)
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
@@ -59,7 +58,7 @@ class AgentsController(
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(request.executionId, configuration)
+                    containerService.createContainers(request.executionId, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(request.executionId, "Unable to create containers", ex)
@@ -78,12 +77,12 @@ class AgentsController(
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                            dockerService.cleanup(request.executionId)
+                            containerService.cleanup(request.executionId)
                         }
                         .thenReturn(containerIds)
                 }
                 .flatMapMany { agentIds ->
-                    dockerService.startContainersAndUpdateExecution(request.executionId, agentIds)
+                    containerService.startContainersAndUpdateExecution(request.executionId, agentIds)
                 }
                 .subscribe()
         }
@@ -104,7 +103,7 @@ class AgentsController(
      */
     @PostMapping("/stopAgents")
     fun stopAgents(@RequestBody agentIds: List<String>) {
-        dockerService.stopAgents(agentIds)
+        containerService.stopAgents(agentIds)
     }
 
     /**
@@ -115,7 +114,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        dockerService.cleanup(executionId)
+        containerService.cleanup(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())

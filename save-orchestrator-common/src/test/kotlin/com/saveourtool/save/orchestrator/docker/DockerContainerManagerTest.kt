@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
@@ -54,7 +54,7 @@ class DockerContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = dockerAgentRunner.create(
             executionId = 42,
-            configuration = DockerService.RunConfiguration(
+            configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
                 workingDir = "/",

@@ -11,7 +11,7 @@ import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
@@ -52,7 +52,7 @@ class DockerAgentRunner(
 
     override fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration,
+        configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ): List<String> {
         logger.debug { "Pulling image ${configuration.imageTag}" }
@@ -162,7 +162,7 @@ class DockerAgentRunner(
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(configuration: DockerService.RunConfiguration,
+    private fun createContainerFromImage(configuration: ContainerService.RunConfiguration,
                                          containerName: String,
     ): String {
         val baseImageTag = configuration.imageTag

@@ -6,10 +6,11 @@ package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
@@ -26,6 +27,9 @@ import reactor.kotlin.core.util.function.component2
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
+import org.slf4j.Logger
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.kotlin.core.publisher.doOnError
 
 /**
  * Controller for heartbeat
@@ -34,10 +38,11 @@ import kotlinx.serialization.json.Json
  * @property configProperties
  */
 @RestController
-class HeartbeatController(private val agentService: AgentService,
-                          private val dockerService: DockerService,
-                          private val configProperties: ConfigProperties,
-                          private val heartBeatInspector: HeartBeatInspector,
+class HeartbeatController(
+    private val agentService: AgentService,
+    private val containerService: ContainerService,
+    private val configProperties: ConfigProperties,
+    private val heartBeatInspector: HeartBeatInspector,
 ) {
     private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
 
@@ -55,33 +60,33 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         val executionId = heartbeat.executionProgress.executionId
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} under execution id=$executionId")
+        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.containerId} under execution id=$executionId")
         return {
-            dockerService.markAgentForExecutionAsStarted(executionId)
+            containerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatusesWithDto(
-                    AgentStatusDto(heartbeat.state, heartbeat.agentId)
+                    AgentStatusDto(heartbeat.state, heartbeat.containerId)
                 )
             }
             .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleNewAgent(heartbeat.agentId)
+                    STARTING -> handleNewAgent(heartbeat.executionProgress.executionId, heartbeat.containerId, heartbeat.containerName, heartbeat.version)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    IDLE -> handleVacantAgent(heartbeat.agentId)
+                    IDLE -> handleVacantAgent(heartbeat.containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
-                    FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
-                        handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
+                    FINISHED -> agentService.checkSavedData(heartbeat.containerId).flatMap { isSavingSuccessful ->
+                        handleFinishedAgent(heartbeat.containerId, isSavingSuccessful)
                     }
 
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
-                        handleIllegallyOnlineAgent(heartbeat.agentId, heartbeat.state)
+                        handleIllegallyOnlineAgent(heartbeat.containerId, heartbeat.state)
                         WaitResponse
                     }
                 }
@@ -93,8 +98,24 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun handleNewAgent(agentId: String): Mono<HeartbeatResponse> =
-            agentService.getInitConfig(agentId)
+    private fun handleNewAgent(
+        executionId: Long,
+        agentContainerName: String,
+        agentContainerId: String,
+        agentVersion: String,
+    ): Mono<HeartbeatResponse> = agentService.saveAgentWithInitialStatus(
+            AgentDto(
+                containerId = agentContainerId,
+                containerName = agentContainerName,
+                executionId = executionId,
+                version = agentVersion,
+            )
+    )
+        .doOnError(WebClientResponseException::class) { exception ->
+            log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
+            containerService.cleanup(executionId)
+        }
+        .then(agentService.getInitConfig(agentContainerId))
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(agentId)
@@ -146,7 +167,7 @@ class HeartbeatController(private val agentService: AgentService,
         Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {
-                dockerService.isAgentStopped(agentId)
+                containerService.isAgentStopped(agentId)
             }
             .takeUntil { it }
             // check whether we have got `true` or Flux has completed with only `false`
@@ -167,5 +188,9 @@ class HeartbeatController(private val agentService: AgentService,
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
+    }
+
+    companion object {
+        private val log: Logger = getLogger<HeartbeatController>()
     }
 }

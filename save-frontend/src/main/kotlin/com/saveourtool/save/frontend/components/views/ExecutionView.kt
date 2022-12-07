@@ -208,7 +208,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 column(id = "agentId", header = "Agent ID") {
                     Fragment.create {
                         td {
-                            +"${it.value.agentContainerId}".takeLast(12)
+                            +"${it.value.agentContainerId}"
                         }
                     }
                 }
