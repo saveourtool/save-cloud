@@ -2,8 +2,10 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.benchmarks.AwesomeBenchmarks
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import javax.transaction.Transactional
 
 /**
  * Repository of tests
@@ -18,5 +20,7 @@ interface AwesomeBenchmarksRepository : BaseEntityRepository<AwesomeBenchmarks> 
         value = "delete * from save_cloud.${AwesomeBenchmarks.TABLE_NAME}",
         nativeQuery = true,
     )
+    @Modifying
+    @Transactional
     fun deleteAllBenchmarks()
 }
