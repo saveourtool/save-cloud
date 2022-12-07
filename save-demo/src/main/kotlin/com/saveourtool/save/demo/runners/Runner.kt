@@ -13,7 +13,7 @@ import java.nio.file.Path
  */
 interface Runner<in P : DemoAdditionalParams, in K : Any, out R : DemoResult> {
     /**
-     * @param testPath name of the test file
+     * @param testPath path to the test file
      * @param params additional params of type [DemoAdditionalParams]
      * @return tool's report as [DemoResult]
      */
