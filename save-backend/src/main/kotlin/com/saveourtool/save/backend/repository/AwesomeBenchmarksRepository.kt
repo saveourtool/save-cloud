@@ -15,7 +15,7 @@ interface AwesomeBenchmarksRepository : BaseEntityRepository<AwesomeBenchmarks> 
      * We can't use deleteAll in AwesomeBenchmarks, because it won't work in case of corrupted schema
      */
     @Query(
-        value = "delete * from ${AwesomeBenchmarks.TABLE_NAME}",
+        value = "delete * from save_cloud.${AwesomeBenchmarks.TABLE_NAME}",
         nativeQuery = true,
     )
     fun deleteAllBenchmarks()
