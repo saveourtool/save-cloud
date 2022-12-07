@@ -1,8 +1,8 @@
 package com.saveourtool.save.sandbox.storage
 
+import com.saveourtool.save.sandbox.config.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.pathNamesTill
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import java.nio.file.Path
@@ -13,8 +13,8 @@ import kotlin.io.path.div
  */
 @Component
 class SandboxStorage(
-    @Value("\${sandbox.file-storage-location}") fileStorageLocation: String,
-) : AbstractFileBasedStorage<SandboxStorageKey>(Path.of(fileStorageLocation) / "sandbox", PATH_PARTS_COUNT) {
+    configProperties: ConfigProperties,
+) : AbstractFileBasedStorage<SandboxStorageKey>(Path.of(configProperties.fileStorage.location) / "sandbox", PATH_PARTS_COUNT) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): SandboxStorageKey {
         val (filename, typeName, userId) = pathToContent.pathNamesTill(rootDir)

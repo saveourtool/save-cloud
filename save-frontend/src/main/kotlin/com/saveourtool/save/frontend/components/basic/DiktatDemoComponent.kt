@@ -20,6 +20,7 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
+import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
@@ -58,14 +59,14 @@ external interface DiktatDemoComponentProps : Props {
     var selectedMode: Languages
 }
 
-private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flushWarnings: () -> Unit) {
+private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, flushWarnings: () -> Unit) {
     div {
-        val show = if (warnings.isEmpty()) {
+        val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
             ""
         } else {
             "show"
         }
-        val isError = warnings.singleOrNull()?.startsWith("Internal") == true
+        val isError = result.terminationCode != 0 && result.warnings.isEmpty()
         val alertStyle = if (isError) {
             "alert-danger"
         } else {
@@ -85,19 +86,24 @@ private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flu
         if (isError) {
             h4 {
                 className = ClassName("alert-heading")
-                +warnings.single()
+                +"Something went wrong... See the logs below:"
+                result.logs.forEach { logLine ->
+                    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                    br { }
+                    +logLine
+                }
             }
         } else {
             h4 {
                 className = ClassName("alert-heading")
-                val warningWord = if (warnings.size == 1) {
+                val warningWord = if (result.warnings.size == 1) {
                     "warning"
                 } else {
                     "warnings"
                 }
-                +"Detected ${warnings.size} $warningWord:"
+                +"Detected ${result.warnings.size} $warningWord:"
             }
-            warnings.forEach { warning ->
+            result.warnings.forEach { warning ->
                 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                 hr { }
                 p {
@@ -117,7 +123,7 @@ private fun ChildrenBuilder.displayAlertWithWarnings(warnings: List<String>, flu
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
     val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest(emptyList(), DemoAdditionalParams()))
-    val (diktatResult, setDiktatResult) = useState(DiktatDemoResult(emptyList(), ""))
+    val (diktatResult, setDiktatResult) = useState(DiktatDemoResult.empty)
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
     val sendRunRequest = useDeferredRequest {
@@ -128,13 +134,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
             ::loadingHandler,
             ::noopResponseHandler,
         )
-            .let {
-                if (it.ok) {
-                    it.decodeFromJsonString()
-                } else {
-                    DiktatDemoResult(listOf("Internal server error."), "")
-                }
-            }
+            .decodeFromJsonString()
         setDiktatResult(result)
     }
 
@@ -251,7 +251,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
         }
         div {
             className = ClassName("ml-1 mr-1")
-            displayAlertWithWarnings(diktatResult.warnings) {
+            displayAlertWithWarnings(diktatResult) {
                 setDiktatResult { result ->
                     result.copy(warnings = emptyList())
                 }

@@ -211,16 +211,6 @@ class AgentsController(
     }
 
     /**
-     * Returns containerIds for all agents for [executionId]
-     *
-     * @param executionId id of execution
-     * @return list of container ids
-     */
-    @GetMapping("/getAgentsIdsForExecution")
-    fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
-        .map(Agent::containerId)
-
-    /**
      * Get agent by containerId.
      *
      * @param containerId containerId of an agent.
