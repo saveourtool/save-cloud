@@ -18,6 +18,7 @@ data class DemoAdditionalParams(
     val language: Languages = Languages.KOTLIN,
 ) : DemoAdditionalParams {
     companion object {
+        @Language("YAML")
         val defaultDiktatConfig = """
             |- name: DIKTAT_COMMON
             |  enabled: true
