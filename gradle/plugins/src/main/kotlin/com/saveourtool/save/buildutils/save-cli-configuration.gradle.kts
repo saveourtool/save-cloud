@@ -9,9 +9,28 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
 import java.util.*
+
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
+}
+
+/**
+ * @return version of save-cli from properties file
+ */
+fun Project.readSaveCliVersion(): String {
+    val file = file(pathToSaveCliVersion)
+    return Properties().apply { load(file.reader()) }["version"] as String
+}
+
+/**
+ * @return save-cli file path to copy
+ */
+fun Project.getSaveCliPath(): String {
+    val saveCliVersion = readSaveCliVersion()
+    val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
+        ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
+    return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
 }
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
@@ -32,7 +51,7 @@ dependencies {
     )
 }
 
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
