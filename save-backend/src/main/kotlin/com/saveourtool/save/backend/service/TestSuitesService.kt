@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
@@ -23,8 +22,6 @@ import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
 
-typealias TestSuiteDtoList = List<TestSuiteDto>
-
 /**
  * Service for test suites
  */
@@ -35,8 +32,8 @@ class TestSuitesService(
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
+    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
     private val agentStatusService: AgentStatusService,
     private val agentService: AgentService,
@@ -103,17 +100,6 @@ class TestSuitesService(
     fun findTestSuitesByIds(ids: List<Long>): List<TestSuite> = ids.mapNotNull { id ->
         testSuiteRepository.findByIdOrNull(id)
     }
-
-    /**
-     * @param organizationName
-     * @return [List] of [TestSuite]s by [organizationName]
-     */
-    fun findTestSuitesByOrganizationName(organizationName: String): List<TestSuite> = testSuiteRepository.findBySourceOrganizationName(organizationName)
-
-    /**
-     * @return [List] of ALL [TestSuite]s
-     */
-    fun findAllTestSuites(): List<TestSuite> = testSuiteRepository.findAll()
 
     /**
      * @param filters
@@ -193,6 +179,22 @@ class TestSuitesService(
     }
 
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
+        val executionIds = testSuites.flatMap { testSuite ->
+            executionService.getExecutionsByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
+        }.distinct()
+        val allTestSuiteIdsByExecutions = executionIds.flatMap { lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(it) }
+            .distinct()
+            .size
+        require(
+            allTestSuiteIdsByExecutions == testSuites.size
+        ) {
+            "Expected that we remove all test suites related to a single execution at once"
+        }
+        executionIds.forEach { executionId ->
+            log.debug { "Delete link between execution $executionId and test suites" }
+            lnkExecutionTestSuiteService.deleteByExecution(executionId)
+        }
+
         testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
@@ -208,14 +210,11 @@ class TestSuitesService(
                 testRepository.deleteById(testId)
             }
             log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
+
             testSuiteRepository.deleteById(testSuite.requiredId())
         }
 
         // Delete agents, which related to the test suites
-        val executionIds = testSuites.flatMap { testSuite ->
-            executionService.getExecutionsByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
-        }.distinct()
-
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
 
