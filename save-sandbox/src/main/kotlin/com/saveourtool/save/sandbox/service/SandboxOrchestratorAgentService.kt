@@ -3,9 +3,7 @@ package com.saveourtool.save.sandbox.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.SaveCliOverrides
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
@@ -13,12 +11,11 @@ import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.sandbox.entity.SandboxAgent
 import com.saveourtool.save.sandbox.entity.SandboxExecution
-import com.saveourtool.save.sandbox.entity.toEntity
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxLnkExecutionAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
@@ -40,6 +37,7 @@ import java.util.stream.Collectors
 class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
+    private val sandboxLnkExecutionAgentRepository: SandboxLnkExecutionAgentRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
     configProperties: ConfigProperties,
@@ -87,7 +85,7 @@ class SandboxOrchestratorAgentService(
 
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
         agents
-            .map { it.toEntity(this::getExecution) }
+            .map { it.toEntity() }
             .let { sandboxAgentRepository.saveAll(it) }
             .map { it.requiredId() }
     }
@@ -129,7 +127,8 @@ class SandboxOrchestratorAgentService(
 
     override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = getExecutionAsMonoByContainerId(containerId)
         .map { execution ->
-            sandboxAgentRepository.findByExecutionId(execution.requiredId())
+            sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
+                .map { it.agent }
                 .map { agent ->
                     sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
                         .orNotFound {
@@ -166,13 +165,17 @@ class SandboxOrchestratorAgentService(
         getExecution(executionId)
     }
 
-    private fun getAgent(containerId: String): SandboxAgent = sandboxAgentRepository
+    private fun getAgent(containerId: String): Agent = sandboxAgentRepository
         .findByContainerId(containerId)
         .orNotFound {
             "No agent with containerId $containerId"
         }
 
     private fun getExecutionAsMonoByContainerId(containerId: String): Mono<SandboxExecution> = blockingToMono {
-        getAgent(containerId).execution
+        sandboxLnkExecutionAgentRepository.findByAgentId(getAgent(containerId).requiredId())
+            .orNotFound {
+                "No linked execution to agent with containerId $containerId"
+            }
+            .execution
     }
 }

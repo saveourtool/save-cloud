@@ -4,6 +4,8 @@ import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
+import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
@@ -36,6 +38,8 @@ import kotlinx.datetime.toJavaLocalDateTime
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
+    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
     private val testService: TestService,
@@ -50,7 +54,7 @@ class AgentsController(
         @RequestParam containerId: String,
     ): Mono<AgentInitConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
-            it.execution
+            agentService.getExecution(it)
         }
         .map { execution ->
             val backendUrl = configProperties.agentSettings.backendUrl
@@ -93,7 +97,7 @@ class AgentsController(
         @RequestParam containerId: String,
     ): Mono<AgentRunConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
-            it.execution
+            agentService.getExecution(it)
         }
         .zipWhen { execution ->
             testService.getTestBatches(execution)
@@ -125,10 +129,7 @@ class AgentsController(
         log.debug("Saving agents $agents")
         return agents
             .map { agent ->
-                agent.toEntity {
-                    executionService.findExecution(it)
-                        .orNotFound()
-                }
+                agent.toEntity()
             }
             .let { agentRepository.saveAll(it) }
             .map { it.requiredId() }
@@ -162,16 +163,16 @@ class AgentsController(
     /**
      * Get statuses of all agents in the same execution with provided agent (including itself).
      *
-     * @param agentId containerId of an agent.
+     * @param containerId containerId of an agent.
      * @return list of agent statuses
-     * @throws IllegalStateException if provided [agentId] is invalid.
+     * @throws IllegalStateException if provided [containerId] is invalid.
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
-    fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
-        val execution = getAgentByContainerId(agentId).execution
-        val agentStatuses = agentRepository.findByExecutionId(execution.requiredId()).map { agent ->
+    fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
+        val executionId = agentService.getExecutionByContainerId(containerId).requiredId()
+        val agentStatuses = agentService.getAgentsByExecutionId(executionId).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
@@ -179,26 +180,24 @@ class AgentsController(
             }
             latestStatus.toDto()
         }
-        return AgentStatusesForExecution(execution.requiredId(), agentStatuses)
+        return AgentStatusesForExecution(executionId, agentStatuses)
     }
 
     /**
-     * Get statuses of agents identified by [agentIds].
+     * Get statuses of agents identified by [containerIds].
      *
-     * @param agentIds a list of containerIds agents.
+     * @param containerIds a list of containerIds agents.
      * @return list of agent statuses
      */
     @GetMapping("/agents/statuses")
     @Transactional
-    fun findAgentStatuses(@RequestParam(name = "ids") agentIds: List<String>): List<AgentStatusDto> {
-        val agents = agentIds.map { agentId ->
-            val agent = agentRepository.findByContainerId(agentId)
-            requireNotNull(agent) {
-                "Agent in the DB not found for containerId=$agentId"
-            }
+    fun findAgentStatuses(@RequestParam(name = "ids") containerIds: List<String>): List<AgentStatusDto> {
+        val agents = containerIds.map {
+            agentService.getAgentByContainerId(it)
         }
-        check(agents.distinctBy { it.execution.id }.size == 1) {
-            "Statuses are requested for agents from different executions: agentIds=$agentIds, execution IDs are ${agents.map { it.execution.id }}"
+        val executionIds = agents.map { agentService.getExecution(it).requiredId() }.distinct()
+        check(executionIds.size == 1) {
+            "Statuses are requested for agents from different executions: agentIds=$containerIds, execution IDs are $executionIds"
         }
         return agents.map { agent ->
             val latestStatus = requireNotNull(

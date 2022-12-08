@@ -2,10 +2,14 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.utils.orNotFound
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
@@ -15,28 +19,34 @@ import java.time.LocalDateTime
 class AgentService(
     private val agentRepository: AgentRepository,
     private val agentStatusRepository: AgentStatusRepository,
+    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
 ) {
-    /**
-     * @param projectId
-     * @return Unit
-     */
-    internal fun deleteAgentWithProjectId(projectId: Long) =
-            agentRepository.findByExecutionProjectId(projectId).forEach {
-                agentRepository.delete(it)
-            }
-
     /**
      * @param executionIds list of ids
      * @return Unit
      */
-    internal fun deleteAgentByExecutionIds(executionIds: List<Long>) =
-            agentRepository.deleteByExecutionIdIn(executionIds)
+    @Transactional
+    internal fun deleteAgentByExecutionIds(executionIds: List<Long>) = lnkExecutionAgentRepository.findByExecutionIdIn(executionIds)
+        .map { it.agent }
+        .let {
+            agentRepository.deleteAll(it)
+        }
 
     /**
      * @param executionId
      * @return list of [Agent]
      */
-    internal fun getAgentsByExecutionId(executionId: Long): List<Agent> = agentRepository.findByExecutionId(executionId)
+    internal fun getAgentsByExecutionId(executionId: Long): List<Agent> = lnkExecutionAgentRepository.findByExecutionId(executionId)
+        .map { it.agent }
+
+    /**
+     * @param containerId
+     * @return [Agent]
+     */
+    internal fun getAgentByContainerId(containerId: String): Agent = agentRepository.findByContainerId(containerId)
+        .orNotFound {
+            "Not found agent with container id $containerId"
+        }
 
     /**
      * @param containerName
@@ -62,4 +72,34 @@ class AgentService(
             }
         return startTime to endTime
     }
+
+    /**
+     * @param agent
+     * @return [Execution] to which provided [Agent] assigned
+     */
+    internal fun getExecution(agent: Agent): Execution = agent.requiredId()
+        .let {
+            lnkExecutionAgentRepository.findByAgentId(it)
+                .orNotFound { "Not found link to execution for agent $it" }
+        }
+        .execution
+
+    /**
+     * @param agentId
+     * @return [Execution] to which [Agent] with [agentId] is assigned
+     */
+    internal fun getExecution(agentId: Long): Execution = agentRepository.findByIdOrNull(agentId)
+        .orNotFound {
+            "Not found agent with id $agentId"
+        }
+        .let {
+            getExecution(it)
+        }
+
+    /**
+     * @param containerId
+     * @return [Execution] to which [Agent] with [containerId] is assigned
+     */
+    internal fun getExecutionByContainerId(containerId: String): Execution = getExecution(getAgentByContainerId(containerId))
+
 }

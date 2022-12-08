@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap
 class TestService(
     private val testRepository: TestRepository,
     private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesService: TestSuitesService,
@@ -95,7 +96,7 @@ class TestService(
         }
         .flatMap { agent ->
             log.debug("Agent found, id=${agent.id}")
-            getTestBatches(agent.execution)
+            getTestBatches(agentService.getExecution(agent))
         }
 
     /**

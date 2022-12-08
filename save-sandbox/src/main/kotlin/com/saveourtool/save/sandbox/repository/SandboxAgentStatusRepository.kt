@@ -1,36 +1,36 @@
 package com.saveourtool.save.sandbox.repository
 
-import com.saveourtool.save.sandbox.entity.SandboxAgent
-import com.saveourtool.save.sandbox.entity.SandboxAgentStatus
+import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
- * Repository for [SandboxAgentStatus]
+ * Repository for [AgentStatus] in sandbox
  */
 @Repository
-interface SandboxAgentStatusRepository : BaseEntityRepository<SandboxAgentStatus> {
+interface SandboxAgentStatusRepository : BaseEntityRepository<AgentStatus> {
     /**
-     * Find latest [SandboxAgentStatus] for agent with provided [containerId]
+     * Find latest [AgentStatus] for agent with provided [containerId]
      *
      * @param containerId id of an agent
-     * @return [SandboxAgentStatus] of an agent
+     * @return [AgentStatus] of an agent
      */
-    fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): SandboxAgentStatus?
+    fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): AgentStatus?
 
     /**
-     * Find [SandboxAgentStatus] by [SandboxAgent] which is first by [SandboxAgentStatus.startTime]
+     * Find [AgentStatus] by [Agent] which is first by [AgentStatus.startTime]
      *
      * @param agent
-     * @return [SandboxAgentStatus] which fits to query
+     * @return [AgentStatus] which fits to query
      */
-    fun findTopByAgentOrderByStartTimeAsc(agent: SandboxAgent): SandboxAgentStatus?
+    fun findTopByAgentOrderByStartTimeAsc(agent: Agent): AgentStatus?
 
     /**
-     * Find [SandboxAgentStatus] by [SandboxAgent] which is last by [SandboxAgentStatus.endTime]
+     * Find [AgentStatus] by [Agent] which is last by [AgentStatus.endTime]
      *
      * @param agent
-     * @return [SandboxAgentStatus] which fits to query
+     * @return [AgentStatus] which fits to query
      */
-    fun findTopByAgentOrderByEndTimeDesc(agent: SandboxAgent): SandboxAgentStatus?
+    fun findTopByAgentOrderByEndTimeDesc(agent: Agent): AgentStatus?
 }

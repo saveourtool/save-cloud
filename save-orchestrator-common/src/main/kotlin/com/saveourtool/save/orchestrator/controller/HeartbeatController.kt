@@ -107,7 +107,6 @@ class HeartbeatController(
             AgentDto(
                 containerId = agentContainerId,
                 containerName = agentContainerName,
-                executionId = executionId,
                 version = agentVersion,
             )
     )

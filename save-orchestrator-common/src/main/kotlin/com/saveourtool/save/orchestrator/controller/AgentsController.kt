@@ -70,8 +70,7 @@ class AgentsController(
                             AgentDto(
                                 containerId = containerId,
                                 containerName = containerName,
-                                executionId = request.executionId,
-                                version = request.saveAgentVersion
+                                version = request.saveAgentVersion,
                             )
                         }
                     )

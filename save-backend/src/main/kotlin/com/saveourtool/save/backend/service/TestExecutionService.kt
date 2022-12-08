@@ -32,10 +32,12 @@ import kotlin.io.path.pathString
  * Service for test result
  */
 @Service
-class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
-                           private val agentRepository: AgentRepository,
-                           private val executionRepository: ExecutionRepository,
-                           transactionManager: PlatformTransactionManager,
+class TestExecutionService(
+    private val testExecutionRepository: TestExecutionRepository,
+    private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
+    private val executionRepository: ExecutionRepository,
+    transactionManager: PlatformTransactionManager,
 ) {
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -168,7 +170,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
 
-        val executionId = agent.execution.id!!
+        val executionId = agentService.getExecution(agent).requiredId()
         val lostTests: MutableList<TestExecutionDto> = mutableListOf()
         val counters = Counters()
         testExecutionsDtos.forEach { testExecDto ->
@@ -287,7 +289,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
-        val executionId = agent.execution.id!!
+        val executionId = agentService.getExecution(agent).requiredId()
         testDtos.forEach { test ->
             val testExecution = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
@@ -315,8 +317,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
                 "Agent with containerId=[$agentContainerId] was not found in the DB"
             }
-            val agentId = agent.id!!
-            val executionId = agent.execution.id!!
+            val agentId = agent.requiredId()
+            val executionId = agentService.getExecution(agent).requiredId()
 
             val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
                 executionId,
