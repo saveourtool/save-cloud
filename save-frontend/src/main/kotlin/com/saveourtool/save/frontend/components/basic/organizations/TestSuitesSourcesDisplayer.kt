@@ -33,13 +33,19 @@ import react.dom.html.ReactHTML.ul
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
+ * @param refreshHandler callback invoked on refresh button pressed
  */
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "TOO_MANY_PARAMETERS",
+)
 fun ChildrenBuilder.showTestSuitesSourceAsListElement(
     testSuitesSourceDtoWithId: TestSuitesSourceDtoWithId,
     isSelected: Boolean,
     selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
     editHandler: (TestSuitesSourceDtoWithId) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
+    refreshHandler: () -> Unit,
 ) {
     val active = if (isSelected) "list-group-item-secondary" else ""
     li {
@@ -83,6 +89,14 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
                     fetchHandler(testSuitesSourceDtoWithId.content)
                 }
             }
+            if (isSelected) {
+                div {
+                    className = ClassName("float-left")
+                    buttonBuilder("Refresh", "info", isOutline = false, classes = "btn-sm mr-2") {
+                        refreshHandler()
+                    }
+                }
+            }
             span {
                 className = ClassName("float-right align-bottom")
                 asDynamic()["data-toggle"] = "tooltip"
@@ -101,17 +115,19 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
+ * @param refreshHandler
  */
 fun ChildrenBuilder.showTestSuitesSources(
     testSuitesSources: TestSuitesSourceDtoWithIdList,
     selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    refreshHandler: () -> Unit,
 ) {
     div {
         className = ClassName("list-group")
         testSuitesSources.forEach {
-            showTestSuitesSourceAsListElement(it, false, selectHandler, editHandler, fetchHandler)
+            showTestSuitesSourceAsListElement(it, false, selectHandler, editHandler, fetchHandler, refreshHandler)
         }
     }
 }
@@ -125,6 +141,7 @@ fun ChildrenBuilder.showTestSuitesSources(
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
  * @param deleteHandler callback invoked on [TestSuitesSourceSnapshotKey] deletion
+ * @param refreshHandler
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
@@ -134,10 +151,11 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
     editHandler: (TestSuitesSourceDtoWithId) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit,
+    refreshHandler: () -> Unit,
 ) {
     ul {
         className = ClassName("list-group")
-        showTestSuitesSourceAsListElement(selectedTestSuiteSource, true, selectHandler, editHandler, fetchHandler)
+        showTestSuitesSourceAsListElement(selectedTestSuiteSource, true, selectHandler, editHandler, fetchHandler, refreshHandler)
         if (testSuitesSourcesSnapshotKeys.isEmpty()) {
             li {
                 className = ClassName("list-group-item list-group-item-light")
@@ -154,7 +172,7 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
                     }
                     div {
                         className = ClassName("float-right")
-                        +"Upload time"
+                        +"Git commit time"
                     }
                 }
             }

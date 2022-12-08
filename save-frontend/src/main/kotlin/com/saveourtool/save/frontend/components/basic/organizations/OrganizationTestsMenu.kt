@@ -123,6 +123,22 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
         }
     }
+    val refreshTestSuitesSourcesSnapshotKey = useDeferredRequest {
+        val response = get(
+            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+        } else {
+            setTestSuitesSourcesWithId(emptyList())
+        }
+    }
+    val refreshHandler: () -> Unit = {
+        refreshTestSuitesSourcesSnapshotKey()
+        fetchTestSuitesSourcesSnapshotKeys()
+    }
     val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {
         organizationName = props.organizationName
@@ -154,7 +170,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     div {
         className = ClassName("mb-2")
         when (selectedTestSuitesSourceWithId) {
-            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler)
+            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler, refreshHandler)
             else -> showTestSuitesSourceSnapshotKeys(
                 selectedTestSuitesSourceWithId,
                 testSuitesSourceSnapshotKeys,
@@ -162,6 +178,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 editHandler,
                 fetchHandler,
                 deleteHandler,
+                refreshHandler,
             )
         }
     }
