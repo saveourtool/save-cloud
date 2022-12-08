@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -20,6 +21,7 @@ import csstype.Width
 import csstype.rem
 import dom.html.HTMLButtonElement
 import history.Location
+import react.router.dom.Link
 import js.core.jso
 import react.*
 import react.dom.aria.*
@@ -39,10 +41,12 @@ import react.router.useLocation
 import react.router.useNavigate
 import react.useState
 
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+
 
 /**
  * Displays the url and its division by "/"
@@ -56,8 +60,8 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
             li {
                 className = ClassName("breadcrumb-item")
                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
-                a {
-                    href = "#/"
+                Link {
+                    to = "#/"
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
@@ -77,13 +81,13 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                                 if (index == size - 1) {
-                                    a {
+                                    Link {
                                         className = ClassName("text-warning")
                                         +pathPart
                                     }
                                 } else {
-                                    a {
-                                        href = url.currentPath
+                                    Link {
+                                        to = url.currentPath
                                         className = ClassName("text-light")
                                         +pathPart
                                     }
@@ -103,12 +107,11 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
-    val linkToSaveCloudOnGithub = "https://github.com/saveourtool/save-cloud"
     val topBarlinksList = listOf(
         TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
         TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.5.rem, text = "CPG"),
         TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
-        TopBarLink(hrefAnchor = linkToSaveCloudOnGithub, width = 9.rem, text = "SAVE on GitHub"),
+        TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB, width = 9.rem, text = "SAVE on GitHub"),
         TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
         TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
         TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us")
@@ -116,50 +119,51 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
 
     ul {
         className = ClassName("navbar-nav mx-auto")
-        topBarlinksList.forEach { elem ->
-            val isNotSaveCloudLink = elem.hrefAnchor != linkToSaveCloudOnGithub
-            val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
-            li {
-                className = ClassName("nav-item dropdown no-arrow")
-                style = jso {
-                    width = 5.rem
+        li {
+            className = ClassName("nav-item dropdown no-arrow")
+            style = jso {
+                width = 5.rem
+            }
+            a {
+                className = ClassName("nav-link dropdown-toggle text-light")
+                asDynamic()["data-toggle"] = "dropdown"
+                ariaExpanded = false
+                id = "demoDropdown"
+                role = "button".unsafeCast<AriaRole>()
+                +"Demo"
+                onClickCapture = { _ ->
+                    setIsDemoDropdownActive { !it }
                 }
-                a {
-                    className = ClassName("nav-link dropdown-toggle text-light")
-                    asDynamic()["data-toggle"] = "dropdown"
-                    ariaExpanded = false
-                    id = "demoDropdown"
-                    role = "button".unsafeCast<AriaRole>()
-                    +"Demo"
-                    onClickCapture = { _ ->
-                        setIsDemoDropdownActive { !it }
+            }
+            div {
+                className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
+                ariaLabelledBy = "demoDropdown"
+                val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
+                dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
+                    attrs.onClick = {
+                        setIsDemoDropdownActive(false)
+                        window.location.href = diktatDemoHref
                     }
                 }
-                div {
-                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
-                    ariaLabelledBy = "demoDropdown"
-                    val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
-                    dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
-                        attrs.onClick = {
-                            setIsDemoDropdownActive(false)
-                            window.location.href = diktatDemoHref
-                        }
-                    }
-                    val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
-                    dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
-                        attrs.onClick = {
-                            setIsDemoDropdownActive(false)
-                            window.location.href = cpgDemoHref
-                        }
+                val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
+                dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
+                    attrs.onClick = {
+                        setIsDemoDropdownActive(false)
+                        window.location.href = cpgDemoHref
                     }
                 }
             }
+        }
+        topBarlinksList.forEach { elem ->
+            val isNotSaveCloudLink = elem.hrefAnchor != SAVE_CLOUD_GITHUB
+            val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
             li {
                 className = ClassName("nav-item")
-                a {
+                Link {
                     className = ClassName("nav-link d-flex align-items-center me-2 $elemClassName active")
                     style = jso { width = elem.width }
-                    href = if (isNotSaveCloudLink) "#/${elem.hrefAnchor}" else linkToSaveCloudOnGithub
+                    to = elem.hrefAnchor
+                    // href = if (isNotSaveCloudLink) "#/${elem.hrefAnchor}" else linkToSaveCloudOnGithub
                     +elem.text
                 }
             }
@@ -331,8 +335,7 @@ private fun ChildrenBuilder.dropdownEntry(
 fun topBar() = FC<TopBarProps> { props ->
     val location = useLocation()
     nav {
-        className =
-                ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+        className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         id = "navigation-top-bar"
         topBarUrlSplits {
             userInfo = props.userInfo

@@ -5,6 +5,11 @@
 package com.saveourtool.save.utils
 
 /**
+ * Is link to save cloud on GitHub
+ */
+const val SAVE_CLOUD_GITHUB = "https://github.com/saveourtool/save-cloud"
+
+/**
  * Delimiter used in database
  */
 const val DATABASE_DELIMITER = ","
