@@ -6,8 +6,8 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.demo.diktat.DemoAdditionalParams
-import com.saveourtool.save.demo.diktat.DemoRunRequest
+import com.saveourtool.save.demo.cpg.CpgAdditionalParams
+import com.saveourtool.save.demo.cpg.CpgRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
@@ -30,16 +30,16 @@ import react.useState
     "TYPE_ALIAS"
 )
 val demoComponent: FC<DemoComponentProps> = FC { props ->
-    val (selectedLanguage, setSelectedLanguage) = useState(Languages.KOTLIN)
-    val (codeLines, setCodeLines) = useState("")
+    val (selectedLanguage, setSelectedLanguage) = useState(props.preselectedLanguage)
+    val (codeLines, setCodeLines) = useState(props.placeholderText)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
 
     val sendRunRequest = useDeferredRequest {
         props.resultRequest(
             this,
-            DemoRunRequest(
+            CpgRunRequest(
                 codeLines.split("\n"),
-                DemoAdditionalParams(language = selectedLanguage),
+                CpgAdditionalParams(language = selectedLanguage),
             )
         )
     }
@@ -135,10 +135,20 @@ external interface DemoComponentProps : Props {
     /**
      * Request to receive the result
      */
-    var resultRequest: suspend WithRequestStatusContext.(DemoRunRequest) -> Unit
+    var resultRequest: suspend WithRequestStatusContext.(CpgRunRequest) -> Unit
 
     /**
      * Callback to display/hide the logs using Show logs button
      */
     var changeLogsVisibility: () -> Unit
+
+    /**
+     * Peace of code that is used to be put into "Input code" editor
+     */
+    var placeholderText: String
+
+    /**
+     * Language that will be preselected
+     */
+    var preselectedLanguage: Languages
 }
