@@ -23,7 +23,7 @@ class DiktatDemoController(
     private val diktatDemoService: DiktatDemoService,
 ) {
     /**
-     * @param demoRunRequest request with all required additional info
+     * @param demoRunRequest request data class with all required additional info
      * @return [DiktatDemoResult]
      */
     @PostMapping("/run")

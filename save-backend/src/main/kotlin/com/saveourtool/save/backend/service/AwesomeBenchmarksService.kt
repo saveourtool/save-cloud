@@ -21,8 +21,8 @@ class AwesomeBenchmarksService(val awesomeBenchmarksRepository: AwesomeBenchmark
     @Transactional
     internal fun saveBenchmarksToDb(benchmarks: List<BenchmarkEntity>) {
         log.debug("Saving Awesome Benchmarks to 'awesome_benchmarks' table in DB: $benchmarks")
-        // as we plan to override everything, we can simple delete all records in the table
-        awesomeBenchmarksRepository.deleteAll()
+        // as we plan to override everything, we can simply delete all records in the table
+        awesomeBenchmarksRepository.deleteAllBenchmarks()
         // flush is always needed after the deletion
         awesomeBenchmarksRepository.flush()
         awesomeBenchmarksRepository.saveAll(benchmarks.map { it.toEntity() })
