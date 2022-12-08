@@ -107,6 +107,7 @@ spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web" }
 spring-webflux = { module = "org.springframework:spring-webflux" }
+spring-jdbc = { module = "org.springframework:spring-jdbc" }
 spring-jdbc-starter = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 

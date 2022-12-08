@@ -28,13 +28,20 @@ import kotlin.io.path.readText
  * A configuration class that can be used to import all related [WebClientCustomizer] beans.
  */
 @Configuration
-open class SecurityWebClientCustomizers {
+class SecurityWebClientCustomizers {
     @Bean
     @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-    @Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_CLASS_ELEMENTS")
-    open fun serviceAccountTokenHeaderWebClientCustomizer(
-        @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") expirationTimeMinutes: Long
-    ) = ServiceAccountTokenHeaderWebClientCustomizer(expirationTimeMinutes)
+    @Suppress("")
+    /**
+     * @param expirationTimeMinutes
+     * Service account token will be cached in memory for this number of minutes and re-read after it passes.
+     * See also [docs](https://kubernetes.io/docs/concepts/storage/projected-volumes/#serviceaccounttoken).
+     * @param tokenPath mount path for SA token as specified in Pod spec
+     */
+    fun serviceAccountTokenHeaderWebClientCustomizer(
+        @Value("\${com.saveourtool.cloud.kubernetes.sa-token.expiration.minutes:5}") expirationTimeMinutes: Long,
+        @Value("\${com.saveourtool.cloud.kubernetes.sa-token.path:/var/run/secrets/tokens/service-account-projected-token}") tokenPath: String,
+    ) = ServiceAccountTokenHeaderWebClientCustomizer(expirationTimeMinutes, tokenPath)
 }
 
 /**
@@ -44,11 +51,12 @@ open class SecurityWebClientCustomizers {
  */
 class ServiceAccountTokenHeaderWebClientCustomizer(
     expirationTimeMinutes: Long,
+    tokenPath: String,
 ) : WebClientCustomizer {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountTokenHeaderWebClientCustomizer>()
     private val wrapper = ExpiringValueWrapper(Duration.ofMinutes(expirationTimeMinutes)) {
-        val token = Path.of("/var/run/secrets/tokens/service-account-projected-token").readText()
+        val token = Path.of(tokenPath).readText()
         token
     }
 

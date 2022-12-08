@@ -23,9 +23,8 @@ kotlin {
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.spring.boot.starter.security)
-    implementation("org.springframework:spring-jdbc")
+    implementation(libs.spring.jdbc)
     implementation(libs.spring.security.core)
-    implementation("org.springframework:spring-jdbc")
     implementation(libs.spring.security.config)
     implementation(libs.spring.security.web)
     implementation(libs.spring.boot.autoconfigure) {
