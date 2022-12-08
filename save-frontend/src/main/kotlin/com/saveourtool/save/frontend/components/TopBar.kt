@@ -109,7 +109,6 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
     val topBarlinksList = listOf(
         TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
-        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.5.rem, text = "CPG"),
         TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
         TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB, width = 9.rem, text = "SAVE on GitHub"),
         TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
