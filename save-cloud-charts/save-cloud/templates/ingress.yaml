@@ -1,0 +1,43 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-main
+  {{- if .Values.ingress.annotations }}
+  {{- with .Values.ingress.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.https.enabled }}
+  # Since Helm doesn't allow references to external files (https://github.com/helm/helm/issues/3276)
+  # the Secret needs to be created beforehand.
+  tls:
+  - secretName: {{ .Values.ingress.https.secretName }}
+  {{- end }}
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+    - http:
+        paths:
+          # @see https://kubernetes.io/docs/concepts/services-networking/ingress/#examples
+          - backend:
+              service:
+                name: {{ .Values.gateway.name }}
+                port:
+                  name: http
+            pathType: Prefix
+            path: '/'
+    - http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Release.Name }}-grafana
+                port:
+                  name: {{ .Values.grafana.service.portName }}
+            pathType: Prefix
+            path: '/grafana'
+
+{{- end }}

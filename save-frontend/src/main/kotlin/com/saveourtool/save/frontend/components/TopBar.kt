@@ -18,6 +18,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import csstype.rem
 import dom.html.HTMLButtonElement
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
@@ -40,7 +41,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.js.jso
 
 /**
  * [Props] of the top bor component
@@ -50,17 +50,24 @@ external interface TopBarProps : PropsWithChildren {
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * true if the device is mobile (screen is less 1000px)
+     */
+    var isMobileScreen: Boolean?
 }
 
 private fun ChildrenBuilder.dropdownEntry(
-    faIcon: dynamic,
+    faIcon: FontAwesomeIconModule?,
     text: String,
     handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
 ) = button {
     type = ButtonType.button
     className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
-    fontAwesomeIcon(icon = faIcon) {
-        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    faIcon?.let {
+        fontAwesomeIcon(icon = faIcon) {
+            it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+        }
     }
     +text
     handler(this)
@@ -80,6 +87,7 @@ private fun ChildrenBuilder.dropdownEntry(
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val (isAriaExpanded, setIsAriaExpanded) = useState(false)
+    val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
     useEffect {
@@ -158,6 +166,38 @@ fun topBar() = FC<TopBarProps> { props ->
                 }
             }
             li {
+                className = ClassName("nav-item dropdown no-arrow")
+                style = jso {
+                    width = 5.rem
+                }
+                a {
+                    className = ClassName("nav-link dropdown-toggle text-light")
+                    asDynamic()["data-toggle"] = "dropdown"
+                    ariaExpanded = false
+                    id = "demoDropdown"
+                    +"Demo"
+                    onClickCapture = { _ ->
+                        setIsDemoDropdownActive { !it }
+                    }
+                }
+                div {
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
+                    ariaLabelledBy = "demoDropdown"
+                    dropdownEntry(null, "Diktat") { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = "#/${FrontendRoutes.DEMO.path}/diktat"
+                        }
+                    }
+                    dropdownEntry(null, "CPG") { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = "#/${FrontendRoutes.DEMO.path}/cpg"
+                        }
+                    }
+                }
+            }
+            li {
                 className = ClassName("nav-item")
                 a {
                     val hrefAnchor = FrontendRoutes.SANDBOX.path
@@ -172,7 +212,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
                     style = jso {
                         width = 9.rem
                     }

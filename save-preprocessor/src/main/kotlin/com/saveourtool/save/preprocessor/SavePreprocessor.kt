@@ -13,10 +13,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.reactive.config.EnableWebFlux
 
-typealias TextResponse = ResponseEntity<String>
-typealias EmptyResponse = ResponseEntity<Void>
-typealias StatusResponse = ResponseEntity<HttpStatus>
-
 /**
  * An entrypoint for spring for save-preprocessor
  */

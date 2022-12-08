@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
-    id("org.gradle.test-retry") version "1.4.1"
+    id("org.gradle.test-retry") version "1.5.0"
 }
 
 configureJacoco()

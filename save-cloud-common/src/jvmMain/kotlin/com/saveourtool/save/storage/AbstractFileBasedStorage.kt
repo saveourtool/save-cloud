@@ -11,6 +11,7 @@ import reactor.kotlin.core.publisher.toFlux
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Instant
 
 import kotlin.io.path.*
 
@@ -18,12 +19,16 @@ import kotlin.io.path.*
  * File based implementation of Storage
  *
  * @param rootDir root directory for storage
- * @param pathPartsCount count of parts in path for key, if it's null -- this validation is not applicable
+ * @param pathPartsCount amount of parts in path for key used for validation and filtering unexpected paths,
+ * if it's null -- this validation is not applicable
+ * @param storageIgnore list of filenames that should not be treated as files contained in storage (equivalent of .gitignore),
+ * by default .DS_Store is ignored.
  * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
     private val rootDir: Path,
     private val pathPartsCount: Int? = null,
+    private val storageIgnore: Set<String> = setOf(".DS_Store"),
 ) : Storage<K> {
     init {
         rootDir.createDirectoriesIfRequired()
@@ -32,16 +37,19 @@ abstract class AbstractFileBasedStorage<K>(
     @Suppress("BlockingMethodInNonBlockingContext")
     override fun list(): Flux<K> = Files.walk(rootDir)
         .toFlux()
-        .filter { it.isRegularFile() }
         .filter { pathToContent ->
-            pathPartsCount?.let { pathToContent.countPartsTill(rootDir) == it } ?: true
+            pathToContent.isRegularFile() &&
+                    pathPartsCount?.let { pathToContent.countPartsTill(rootDir) == it } ?: true &&
+                    pathToContent.name !in storageIgnore &&
+                    isKey(rootDir, pathToContent)
         }
-        .filter { isKey(rootDir, it) }
         .map { buildKey(rootDir, it) }
 
     override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
 
     override fun contentSize(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
+
+    override fun lastModified(key: K): Mono<Instant> = Mono.fromCallable { buildPathToContent(key).getLastModifiedTime().toInstant() }
 
     override fun delete(key: K): Mono<Boolean> {
         val contentPath = buildPathToContent(key)

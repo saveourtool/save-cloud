@@ -5,6 +5,10 @@ env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
 pullPolicy: IfNotPresent
+ingress:
+  enabled: false
+  https:
+    enabled: false
 backend:
   name: backend
   profile: dev,secure,kubernetes
@@ -81,7 +85,7 @@ grafana:
   enabled: false
   image:
     repository: grafana/grafana
-    tag: 9.2.5
+    tag: 9.3.1
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
@@ -96,23 +100,21 @@ prometheus:
   enabled: false
   alertmanager:
     enabled: false
-  kubeStateMetrics:
+  kube-state-metrics:
     enabled: false
   configmapReload:
     prometheus:
-      enabled: false
-    alertmanager:
       enabled: false
   prometheus-node-exporter:
     enabled: false
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.40.2
+      tag: v2.40.5
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
-  pushgateway:
+  prometheus-pushgateway:
     enabled: false
 
 promtail:
@@ -176,3 +178,37 @@ loki:
       storage:
         type: 'local'
   singleBinary:
+
+neo4j:
+  enabled: true
+  ingress:
+    enabled: false
+  svc:
+    annotations: {}
+    # Any additional options for Service `spec` block
+    spec: {}
+  neo4j:
+    edition: community
+    name: simple-neo4j
+    resources:
+      cpu: "500m"
+      memory: "2Gi"
+  volumes:
+    data:
+      mode: selector
+      selector:
+
+demo_cpg:
+  name: demo-cpg
+  profile: dev
+  imageName: save-demo-cpg
+  containerPort: 5500
+  managementPort: 5501
+  clusterIP: null
+demo:
+  name: demo
+  profile: dev
+  imageName: save-demo
+  containerPort: 5421
+  managementPort: 5422
+  clusterIP: null

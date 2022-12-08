@@ -48,6 +48,11 @@ on:
         default: true
         description: Build new image of save-demo
         required: false
+      demo-cpg:
+        type: boolean
+        default: true
+        description: Build new image of save-demo-cpg
+        required: false
 
 jobs:
   deploy_images:
@@ -67,7 +72,7 @@ jobs:
         name: Prepare to build
         working-directory: save-cloud
         run: |
-          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage :save-demo:bootBuildImage >> $GITHUB_ENV
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage :save-demo:bootBuildImage :save-demo-cpg:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
@@ -82,6 +87,7 @@ jobs:
           if ${{ inputs.sandbox }} == 'true'; then GRADLE_TASKS+=":save-sandbox:bootBuildImage "; fi
           if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
           if ${{ inputs.demo }} == 'true'; then GRADLE_TASKS+=":save-demo:bootBuildImage "; fi
+          if ${{ inputs.demo-cpg }} == 'true'; then GRADLE_TASKS+=":save-demo-cpg:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
       - name: checkout save-core
         uses: actions/checkout@v3
@@ -119,7 +125,7 @@ jobs:
           build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
-            -Porg.gradle.caching=true
+            --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
@@ -137,7 +143,7 @@ jobs:
           arguments: |
             ${{ env.GRADLE_TASKS }}
             --stacktrace
-            -Porg.gradle.caching=true
+            --build-cache
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
             -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable

@@ -10,7 +10,6 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectRunMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
@@ -30,6 +29,7 @@ import com.saveourtool.save.utils.getHighestRole
 import csstype.ClassName
 import csstype.Cursor
 import history.Location
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
@@ -39,7 +39,6 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

@@ -1,13 +1,13 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.diktat.DiktatDemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DemoAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoMode
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
-import com.saveourtool.save.demo.utils.isWindows
-import com.saveourtool.save.demo.utils.prependPath
+import com.saveourtool.save.demo.storage.toToolKey
+import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.getLogger
 
@@ -32,71 +32,56 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     private val toolStorage: ToolStorage,
-) : CliRunner<DiktatDemoAdditionalParams, DiktatDemoResult> {
-    override fun getExecutable(workingDir: Path, params: DiktatDemoAdditionalParams): Path {
-        val toolName = params.tool.name.lowercase()
-        val version = if (params.tool == DiktatDemoTool.DIKTAT) {
-            DIKTAT_VERSION
-        } else {
-            KTLINT_VERSION
-        }
-        val fileName = buildString {
-            append(toolName)
-            if (params.tool == DiktatDemoTool.KTLINT) {
-                append("-cli")
-            }
-            if (isWindows()) {
-                append(".cmd")
-            }
-        }
-        val key = ToolKey(toolName, version, fileName)
-
-        return Mono.zip(
-            key.toMono(),
-            toolStorage.doesExist(key)
-        )
-            .filter { (_, doesExist) ->
-                doesExist
-            }
-            .switchIfEmpty {
-                throw FileNotFoundException("Could not find file with key $key")
-            }
-            .flatMapMany { (key, _) ->
-                toolStorage.download(key)
-            }
-            .collectToFile(workingDir / key.executableName)
-            .thenReturn(workingDir / key.executableName)
-            .block()
-            .let { requireNotNull(it) }
-            .apply {
-                toFile().setExecutable(true, false)
-            }
-    }
-
+) : CliRunner<DemoAdditionalParams, ToolKey, DiktatDemoResult> {
     override fun getRunCommand(
         workingDir: Path,
         testPath: Path,
         outputPath: Path,
         configPath: Path?,
-        params: DiktatDemoAdditionalParams
+        params: DemoAdditionalParams,
     ): String = buildString {
-        val executable = getExecutable(workingDir, params)
-        append(executable)
-        append(" -o $outputPath ")
-        configPath?.let {
-            append(" --config=$it ")
+        // TODO: this information should not be hardcoded but stored in database
+        val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
+        append(ktlintExecutable)
+        if (params.tool == DiktatDemoTool.DIKTAT) {
+            val diktatExecutable = getExecutable(workingDir, DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+            append(" -R $diktatExecutable ")
+            // disabling package-naming as far as it is useless in demo because there is no folder hierarchy
+            append(" --disabled_rules=diktat-ruleset:package-naming,standard")
         }
+        append(" --reporter=plain,output=$outputPath ")
         if (params.mode == DiktatDemoMode.FIX) {
             append(" --format ")
         }
         append(testPath)
     }
 
-    override fun run(testPath: Path, params: DiktatDemoAdditionalParams): DiktatDemoResult {
+    override fun getExecutable(workingDir: Path, key: ToolKey): Path = Mono.zip(
+        key.toMono(),
+        toolStorage.doesExist(key),
+    )
+        .filter { (_, doesExist) ->
+            doesExist
+        }
+        .switchIfEmpty {
+            throw FileNotFoundException("Could not find file with key $key")
+        }
+        .flatMapMany { (key, _) ->
+            toolStorage.download(key)
+        }
+        .collectToFile(workingDir / key.executableName)
+        .thenReturn(workingDir / key.executableName)
+        .block()
+        .let { requireNotNull(it) }
+        .apply {
+            toFile().setExecutable(true, false)
+        }
+
+    override fun run(testPath: Path, params: DemoAdditionalParams): DiktatDemoResult {
         val workingDir = testPath.parent
-        val outputPath = workingDir / "report"
-        val configPath = prepareFile(workingDir / "config", params.config)
-        val launchLogPath = workingDir / "log"
+        val outputPath = workingDir / REPORT_FILE_NAME
+        val configPath = prepareFile(workingDir / DIKTAT_CONFIG_NAME, params.config.joinToString("\n"))
+        val launchLogPath = workingDir / LOG_FILE_NAME
         val command = getRunCommand(workingDir, testPath, outputPath, configPath, params)
         val processBuilder = createProcessBuilder(command).apply {
             redirectErrorStream(true)
@@ -107,11 +92,17 @@ class DiktatCliRunner(
              */
             val javaHome = System.getProperty("java.home")
             environment()["JAVA_HOME"] = javaHome
+            /*
+             * Need to remove JAVA_TOOL_OPTIONS (and _JAVA_OPTIONS just in case) because JAVA_TOOL_OPTIONS is set by spring,
+             * so it breaks ktlint's "java -version" parsing (for ktlint 0.46.1, fixed in ktlint 0.47.1)
+             */
+            environment().remove("JAVA_TOOL_OPTIONS")
+            environment().remove("_JAVA_OPTIONS")
             prependPath(Path(javaHome) / "bin")
         }
 
         logger.debug("Running command [$command].")
-        processBuilder.start().waitFor()
+        val terminationCode = processBuilder.start().waitFor()
 
         val logs = launchLogPath.readLines()
 
@@ -128,15 +119,15 @@ class DiktatCliRunner(
         logger.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
         return DiktatDemoResult(
-            outputPath.readLines(),
-            testPath.readText(),
+            outputPath.readLines().map { it.replace(testPath.absolutePathString(), testPath.name) },
+            testPath.readLines(),
+            logs,
+            terminationCode,
         )
     }
 
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DiktatCliRunner>()
-        private const val DIKTAT_VERSION = "1.2.3"
-        private const val KTLINT_VERSION = "0.47.1"
     }
 }

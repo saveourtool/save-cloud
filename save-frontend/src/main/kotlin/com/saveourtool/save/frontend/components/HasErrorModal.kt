@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.topBarComponent
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import js.core.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
@@ -19,7 +20,6 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
-import kotlinx.js.jso
 
 /**
  * Loader animation

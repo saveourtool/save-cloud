@@ -56,7 +56,7 @@ class AwesomeBenchmarksDownloadController(
                 .doOnSuccess {
                     Mono.fromCallable { gitDto.detectDefaultBranchName() }
                         .flatMap { branch ->
-                            log.debug("Starting to download awesome-benchmarks")
+                            log.info("Starting to download awesome-benchmarks")
                             gitPreprocessorService.cloneBranchAndProcessDirectory(
                                 gitDto,
                                 branch

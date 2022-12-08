@@ -109,7 +109,7 @@ class WebSecurityConfig(
             // Agents should communicate with sandbox without authorization
             "/heartbeat",
             // `CollectionView` is a public page
-            "/api/$v1/projects/not-deleted",
+            "/api/$v1/projects/by-filters",
             "/api/$v1/awesome-benchmarks",
             "/api/$v1/check-git-connectivity-adaptor",
             // `OrganizationView` is a public page

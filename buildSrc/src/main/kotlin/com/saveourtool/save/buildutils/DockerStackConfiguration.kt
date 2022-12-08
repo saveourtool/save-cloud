@@ -17,6 +17,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+@Suppress("CONSTANT_UPPERCASE")
+const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 /**
@@ -54,6 +56,16 @@ fun Project.createStackDeployTask(profile: String) {
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |    command: ["--log_bin_trust_function_creators=1"]
+                           |
+                           |  neo4j:
+                           |    image: neo4j:5.1.0-community
+                           |    container_name: neo4j
+                           |    ports:
+                           |        - "7474:7474"
+                           |        - "7687:7687"
+                           |    environment:
+                           |        - "NEO4J_AUTH=neo4j/123"
+                           |
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -61,7 +73,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      ZOOKEEPER_TICK_TIME: 2000
                            |    ports:
                            |      - 22181:2181
-                           |  
+                           |
                            |  kafka:
                            |    image: confluentinc/cp-kafka:latest
                            |    depends_on:
@@ -193,6 +205,22 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn("startMysqlDbService")
     }
 
+    tasks.register<Exec>("startNeo4jService") {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d neo4j]")
+        }
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "neo4j")
+        errorOutput = ByteArrayOutputStream()
+        doLast {
+            logger.lifecycle("Waiting $NEO4J_STARTUP_DELAY_MILLIS millis for neo4j to start")
+            Thread.sleep(NEO4J_STARTUP_DELAY_MILLIS)
+        }
+    }
+    tasks.register("startNeo4jDb") {
+        dependsOn("startNeo4jService")
+    }
+
     tasks.register<Exec>("startKafka") {
         dependsOn("generateComposeFile")
         doFirst {
@@ -267,3 +295,14 @@ private fun Project.declareDexService() =
             |  volumes:
             |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
         """.trimMargin()
+
+/**
+ * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
+ * only [a-z0-9][.][_][-].
+ * FixMe: temporarily copy-pasted in here and in gradle/plugins
+ *
+ * @return correctly formatted version
+ */
+fun Project.versionForDockerImages(): String =
+    (project.findProperty("build.dockerTag") as String? ?: version.toString())
+        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")

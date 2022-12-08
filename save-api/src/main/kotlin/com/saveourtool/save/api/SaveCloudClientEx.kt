@@ -8,8 +8,10 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectStatus.CREATED
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import arrow.core.Either
@@ -35,17 +37,17 @@ interface SaveCloudClientEx {
     suspend fun listOrganizations(): Either<SaveCloudError, List<Organization>>
 
     /**
-     * Lists projects within the organization.
+     * Lists the existing (i.e. [non-deleted][CREATED]) projects within the organization.
      *
      * @param organizationName the organization name.
      * @return either the list of projects, or the error if an error has
      *  occurred.
      * @see Organization.listProjects
      */
-    suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<Project>>
+    suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>>
 
     /**
-     * Lists test suites within the organization.
+     * Lists test suites within the organization, [readable][READ] for the current user.
      *
      * @param organizationName the organization name.
      * @return either the list of test suites, or the error if an error has
@@ -89,13 +91,15 @@ interface SaveCloudClientEx {
     /**
      * @param organizationName the organization name.
      * @param projectName the name of the project.
+     * @param contestName the optional name of the contest.
      * @return either the list of executions, or the error if an error has
      *  occurred.
      * @see Organization.listExecutions
      */
     suspend fun listExecutions(
         organizationName: String,
-        projectName: String
+        projectName: String,
+        contestName: String? = null
     ): Either<SaveCloudError, List<ExecutionDto>>
 
     /**
@@ -155,7 +159,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listProjects
      */
-    suspend fun Organization.listProjects(): Either<SaveCloudError, List<Project>> =
+    suspend fun Organization.listProjects(): Either<SaveCloudError, List<ProjectDto>> =
             listProjects(organizationName = name)
 
     /**

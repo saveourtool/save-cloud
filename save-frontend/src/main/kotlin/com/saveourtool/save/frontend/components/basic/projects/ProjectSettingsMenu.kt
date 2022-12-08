@@ -270,14 +270,15 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             classes = "btn btn-sm btn-danger"
-                            modalButtons = { action, window, childrenBuilder ->
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                val actionName = if (isClickMode) "ban" else "delete"
                                 with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
+                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
                                         action()
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                     buttonBuilder("Cancel") {
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                 }
                             }
