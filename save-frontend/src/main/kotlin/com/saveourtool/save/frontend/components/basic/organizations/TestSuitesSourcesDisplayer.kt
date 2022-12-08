@@ -38,6 +38,8 @@ import react.dom.html.ReactHTML.ul
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "LongMethod",
 )
 fun ChildrenBuilder.showTestSuitesSourceAsListElement(
     testSuitesSourceDtoWithId: TestSuitesSourceDtoWithId,
