@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.runner
 
+import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
+import kotlin.jvm.Throws
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -17,7 +19,8 @@ interface AgentRunner {
      * @param replicas number of agents acting in parallel
      * @return unique identifier of created instances that can be used to manipulate them later
      */
-    fun create(
+    @Throws(ContainerException::class)
+    fun createAndStart(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
@@ -63,6 +66,12 @@ interface AgentRunner {
     fun discover(executionId: Long) {
         TODO("Not yet implemented")
     }
+
+    /**
+     * @param executionId
+     * @return list of container id which are run for [executionId]
+     */
+    fun listContainerIds(executionId: Long): List<String>
 
     /**
      * Check whether the agent [agentId] is stopped

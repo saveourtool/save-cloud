@@ -139,7 +139,7 @@ class AgentService(
     /**
      * Updates status of execution [executionId] based on statues of agents [agentIds]
      *
-     * @param executionId id of an [Execution]
+     * @param executionId id of an execution
      * @param agentIds ids of agents
      * @return Mono with response from backend
      */
@@ -162,7 +162,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(agentIds, false))
+                    ).then(markTestExecutionsAsFailed(executionId, false))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -221,14 +221,14 @@ class AgentService(
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, corresponding test executions should be marked as failed
+     * @param executionId execution ID, for which, corresponding test executions should be marked as failed
      * @param onlyReadyForTesting
      * @return a bodiless response entity
      */
     fun markTestExecutionsAsFailed(
-        agentsList: Collection<String>,
+        executionId: Long,
         onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(executionId, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

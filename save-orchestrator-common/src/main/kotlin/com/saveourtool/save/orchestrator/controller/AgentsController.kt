@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.controller
 
-import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -9,9 +9,7 @@ import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
 
-import com.github.dockerjava.api.exception.DockerClientException
-import com.github.dockerjava.api.exception.DockerException
-import io.fabric8.kubernetes.client.KubernetesClientException
+import com.saveourtool.save.orchestrator.service.ContainerException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,19 +17,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.doOnError
 
 /**
  * Controller used to start agents with needed information
  */
 @RestController
 class AgentsController(
+    private val configProperties: ConfigProperties,
     private val agentService: AgentService,
     private val containerService: ContainerService,
-    private val agentRunner: AgentRunner,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -53,35 +49,14 @@ class AgentsController(
                 containerService.prepareConfiguration(request)
             }
                 .subscribeOn(agentService.scheduler)
-                .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
-                    reportExecutionError(request.executionId, "Unable to build image and containers", dex)
-                }
-                .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    containerService.createContainers(request.executionId, configuration)
+                    containerService.createAndStartContainers(request.executionId, configuration)
                 }
-                .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    reportExecutionError(request.executionId, "Unable to create containers", ex)
+                .onErrorResume(ContainerException::class.java) { ex ->
+                    reportExecutionError(request.executionId, ex.message, ex.cause)
                 }
-                .flatMap { containerIds ->
-                    agentService.saveAgentsWithInitialStatuses(
-                        containerIds.map { containerId ->
-                            val containerName = agentRunner.getContainerIdentifier(containerId)
-                            AgentDto(
-                                containerId = containerId,
-                                containerName = containerName,
-                                version = request.saveAgentVersion,
-                            )
-                        }
-                    )
-                        .doOnError(WebClientResponseException::class) { exception ->
-                            log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                            containerService.cleanup(request.executionId)
-                        }
-                        .thenReturn(containerIds)
-                }
-                .flatMapMany { agentIds ->
-                    containerService.startContainersAndUpdateExecution(request.executionId, agentIds)
+                .flatMapMany {
+                    containerService.validateContainersAreStarted(request.executionId, configProperties.agentsCount)
                 }
                 .subscribe()
         }

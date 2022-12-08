@@ -76,7 +76,7 @@ class ContainerServiceTest {
                 saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
             )
         )
-        testContainerId = containerService.createContainers(
+        testContainerId = containerService.createAndStartContainers(
             testExecution.id!!,
             configuration
         ).single()
@@ -90,7 +90,7 @@ class ContainerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        containerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
+        containerService.validateContainersAreStarted(testExecution.requiredId(), listOf(testContainerId))
             .subscribe()
 
         // assertions

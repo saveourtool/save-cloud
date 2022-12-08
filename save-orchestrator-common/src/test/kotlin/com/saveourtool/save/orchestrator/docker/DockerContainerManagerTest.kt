@@ -52,7 +52,7 @@ class DockerContainerManagerTest {
     fun `should create a container with specified cmd and then copy resources into it`() {
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
-        testContainerId = dockerAgentRunner.create(
+        testContainerId = dockerAgentRunner.createAndStart(
             executionId = 42,
             configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),

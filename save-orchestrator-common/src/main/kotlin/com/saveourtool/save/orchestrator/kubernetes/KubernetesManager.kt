@@ -36,9 +36,9 @@ class KubernetesManager(
         "NestedBlockDepth",
         "ComplexMethod",
     )
-    override fun create(executionId: Long,
-                        configuration: ContainerService.RunConfiguration,
-                        replicas: Int,
+    override fun createAndStart(executionId: Long,
+                                configuration: ContainerService.RunConfiguration,
+                                replicas: Int,
     ): List<String> {
         val baseImageTag = configuration.imageTag
         val agentRunCmd = configuration.runCmd

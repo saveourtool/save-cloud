@@ -20,6 +20,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
+import com.saveourtool.save.orchestrator.service.ContainerException
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -47,41 +48,37 @@ class DockerAgentRunner(
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
 
-    @Suppress("TYPE_ALIAS")
-    private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
-
-    override fun create(
+    override fun createAndStart(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ): List<String> {
         logger.debug { "Pulling image ${configuration.imageTag}" }
-        dockerClient.pullImageCmd(configuration.imageTag)
-            .withRegistry("https://ghcr.io")
-            .exec(PullImageResultCallback())
-            .awaitCompletion()
+        try {
+            dockerClient.pullImageCmd(configuration.imageTag)
+                .withRegistry("https://ghcr.io")
+                .exec(PullImageResultCallback())
+                .awaitCompletion()
 
-        return (1..replicas).map { number ->
-            logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration, containerName(executionId, number)).also { agentId ->
-                logger.info("Created a container id=$agentId for execution.id=$executionId")
-                agentIdsByExecution
-                    .getOrPut(executionId) { mutableListOf() }
-                    .add(agentId)
+            val containerIds = (1..replicas).map { number ->
+                logger.info("Creating a container #$number for execution.id=$executionId")
+                createContainerFromImage(configuration, containerName(executionId, number))
+                    .also { containerId ->
+                        logger.info("Created a container id=$containerId for execution.id=$executionId")
+                    }
             }
+            containerIds.forEach { agentId ->
+                logger.info("Starting container id=$agentId")
+                dockerClient.startContainerCmd(agentId).exec()
+            }
+            return containerIds
+        } catch (dex: DockerException) {
+            throw ContainerException("Unable to create and start containers", dex)
         }
+
     }
 
     override fun start(executionId: Long) {
-        val agentIds = agentIdsByExecution.computeIfAbsent(executionId) {
-            // For executions started by the running instance of orchestrator, this key should be already present in the map.
-            // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
-            TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
-        }
-        agentIds.forEach { agentId ->
-            logger.info("Starting container id=$agentId")
-            dockerClient.startContainerCmd(agentId).exec()
-        }
     }
 
     override fun stop(executionId: Long) {
@@ -150,6 +147,12 @@ class DockerAgentRunner(
         }
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
+
+    override fun listContainerIds(executionId: Long): List<String> = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-$executionId-"))
+            .exec()
+            .map { it.id }
+            .filterNot { isAgentStopped(it) }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 

@@ -91,9 +91,9 @@ interface OrchestratorAgentService {
     /**
      * Mark agent's test executions as failed
      *
-     * @param containerIds the list of agent IDs, for which, corresponding test executions should be marked as failed
+     * @param executionId the execution ID, for which, corresponding test executions should be marked as failed
      * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
      * @return a Mono without body
      */
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
+    fun markTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
 }

@@ -314,8 +314,8 @@ class SaveAgent(private val config: AgentConfiguration,
                     debugInfo to TestExecutionDto(
                         tr.resources.test.toString(),
                         pluginExecution.plugin,
-                        config.id,
-                        config.name,
+                        config.info.containerId,
+                        config.info.containerName,
                         testResultStatus,
                         executionStartSeconds.get(),
                         currentTime.epochSeconds,
@@ -385,9 +385,7 @@ class SaveAgent(private val config: AgentConfiguration,
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             setBody(Heartbeat(
-                containerId = config.id,
-                containerName = config.name,
-                version = config.version,
+                agentInfo = config.info,
                 state = state.get(),
                 executionProgress = executionProgress,
                 timestamp = Clock.System.now()

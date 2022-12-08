@@ -1,3 +1,12 @@
 package com.saveourtool.save.orchestrator.service
 
-class ContainerException(message: String, cause: Throwable) : RuntimeException(message, cause)
+/**
+ * Wrapper for exception from Docker or Kubernetes
+ *
+ * @property message
+ * @property cause
+ */
+class ContainerException(
+    override val message: String,
+    cause: Throwable
+) : RuntimeException(message, cause)
