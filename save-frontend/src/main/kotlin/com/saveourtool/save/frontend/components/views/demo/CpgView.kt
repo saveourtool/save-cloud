@@ -2,8 +2,11 @@
  * View for cpg
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.demo
 
+import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demoComponent
@@ -13,47 +16,63 @@ import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
+import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName
 import csstype.Display
 import csstype.Height
 import js.core.jso
-import react.VFC
+import react.*
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
-import react.useEffect
-import react.useState
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private const val CPG_PLACEHOLDER_TEXT = """#include <iostream>
+
+int main() {
+    int a;
+    std::cin >> a;
+    std::cout << (a + a) << std::endl;
+    return 0;    
+}
+"""
+
 private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = true)
 
+/**
+ * Component that is used to load the graph into sigma
+ */
 @Suppress(
     "COMPLEX_EXPRESSION",
-    "EMPTY_BLOCK_STRUCTURE_ERROR",
     "MAGIC_NUMBER",
+)
+val graphLoader: FC<GraphLoaderProps> = FC { props ->
+    val loadGraph = useLoadGraph()
+    val (_, circularAssign) = useLayoutCircular()
+    val (_, atlasAssign) = useLayoutForceAtlas2(jso {
+        iterations = 150
+        settings = jso {
+            gravity = 10
+            barnesHutOptimize = true
+        }
+    })
+    useEffect(props.cpgGraph) {
+        loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
+        circularAssign()
+        atlasAssign()
+    }
+}
+
+@Suppress(
+    "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
     val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)
-    val graphLoader = VFC {
-        val loadGraph = useLoadGraph()
-        val (_, circularAssign) = useLayoutCircular()
-        val (_, atlasAssign) = useLayoutForceAtlas2(jso {
-            iterations = 150
-            settings = jso {
-                gravity = 5
-                barnesHutOptimize = true
-            }
-        })
-        useEffect(atlasAssign, circularAssign, loadGraph) {
-            loadGraph(cpgResult.cpgGraph.removeMultiEdges().paintNodes().toJson())
-            circularAssign()
-            atlasAssign()
-        }
-    }
+
     val (errorMessage, setErrorMessage) = useState("")
     val errorWindowOpenness = useWindowOpenness()
 
@@ -69,6 +88,8 @@ val cpgView: VFC = VFC {
             className = ClassName("col-12")
             backgroundCard {
                 demoComponent {
+                    this.placeholderText = CPG_PLACEHOLDER_TEXT
+                    this.preselectedLanguage = Languages.CPP
                     this.resultRequest = { demoRequest ->
                         val response = post(
                             "$cpgDemoApiUrl/upload-code",
@@ -100,7 +121,9 @@ val cpgView: VFC = VFC {
                                 sigmaContainer {
                                     settings = getSigmaContainerSettings()
                                     this.graph = graphology.MultiDirectedGraph
-                                    graphLoader()
+                                    graphLoader {
+                                        cpgGraph = cpgResult.cpgGraph
+                                    }
                                 }
                             }
                             div {
@@ -134,4 +157,14 @@ val cpgView: VFC = VFC {
             className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
         }
     }
+}
+
+/**
+ * [Props] for [graphLoader] functional component
+ */
+external interface GraphLoaderProps : Props {
+    /**
+     * The graph to be processed and displayed using sigma
+     */
+    var cpgGraph: CpgGraph
 }

@@ -1,7 +1,7 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.demo.diktat.DemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DiktatAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 
 import com.saveourtool.save.demo.runners.cli.DiktatCliRunner
@@ -18,19 +18,19 @@ import kotlin.io.path.div
 class DiktatDemoService(
     private val diktatCliRunner: DiktatCliRunner,
     configProperties: ConfigProperties,
-) : AbstractDemoService<DemoAdditionalParams, ToolKey, DiktatDemoResult>(diktatCliRunner) {
+) : AbstractDemoService<DiktatAdditionalParams, ToolKey, DiktatDemoResult>(diktatCliRunner) {
     private val tmpDir = Path.of(configProperties.fileStorage.location) / "tmp"
 
     /**
      * @param demoFileLines kotlin file to be checked
-     * @param demoAdditionalParams instance of [DemoAdditionalParams]
+     * @param diktatAdditionalParams instance of [DiktatAdditionalParams]
      */
     override fun launch(
         demoFileLines: List<String>,
-        demoAdditionalParams: DemoAdditionalParams?,
+        diktatAdditionalParams: DiktatAdditionalParams?,
     ): DiktatDemoResult = diktatCliRunner.runInTempDir(
         demoFileLines.joinToString("\n"),
-        demoAdditionalParams ?: DemoAdditionalParams(),
+        diktatAdditionalParams ?: DiktatAdditionalParams(),
         tmpDir,
         testFileName = KOTLIN_TEST_NAME,
         additionalDirectoryTree = listOf("src"),
