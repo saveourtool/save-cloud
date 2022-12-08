@@ -78,9 +78,9 @@ class AgentService(
      * @return [Execution] to which provided [Agent] assigned
      */
     internal fun getExecution(agent: Agent): Execution = agent.requiredId()
-        .let {
-            lnkExecutionAgentRepository.findByAgentId(it)
-                .orNotFound { "Not found link to execution for agent $it" }
+        .let { agentId ->
+            lnkExecutionAgentRepository.findByAgentId(agentId)
+                .orNotFound { "Not found link to execution for agent $agentId" }
         }
         .execution
 
@@ -101,5 +101,4 @@ class AgentService(
      * @return [Execution] to which [Agent] with [containerId] is assigned
      */
     internal fun getExecutionByContainerId(containerId: String): Execution = getExecution(getAgentByContainerId(containerId))
-
 }

@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
+import kotlin.jvm.Throws
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
-import kotlin.jvm.Throws
 
 /**
  * A service that builds and starts containers for test execution.

@@ -33,7 +33,7 @@ data class ExecutionProgress(
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
  * @property timestamp the time of heartbeat posting
-
+ * @property containerName
  */
 @Serializable
 data class Heartbeat(

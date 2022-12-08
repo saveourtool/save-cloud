@@ -14,12 +14,15 @@ import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -27,9 +30,6 @@ import reactor.kotlin.core.util.function.component2
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
-import org.slf4j.Logger
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import reactor.kotlin.core.publisher.doOnError
 
 /**
  * Controller for heartbeat
@@ -104,11 +104,11 @@ class HeartbeatController(
         agentContainerId: String,
         agentVersion: String,
     ): Mono<HeartbeatResponse> = agentService.saveAgentWithInitialStatus(
-            AgentDto(
-                containerId = agentContainerId,
-                containerName = agentContainerName,
-                version = agentVersion,
-            )
+        AgentDto(
+            containerId = agentContainerId,
+            containerName = agentContainerName,
+            version = agentVersion,
+        )
     )
         .doOnError(WebClientResponseException::class) { exception ->
             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
