@@ -77,6 +77,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
     pageCount: Int,
 ) =
         div {
+            println("PAGE INDEX: ${pageIndex}")
             className = ClassName("row")
             // First page
             button {

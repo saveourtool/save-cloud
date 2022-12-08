@@ -273,8 +273,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 }
             }
         },
-//        useServerPaging = true,
-//        usePageSelection = true,
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
@@ -393,8 +391,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 executionsTable {
                     filters = state.filters
                     tableHeader = "Executions details"
-                    getData = {page, size ->
-                        println("PAGEEE $page $size")
+                    getData = {_, _ ->
                         post(
                             url = "$apiUrl/executionDtoList?projectName=${props.name}&organizationName=${props.organizationName}",
                             headers = jsonHeaders,
