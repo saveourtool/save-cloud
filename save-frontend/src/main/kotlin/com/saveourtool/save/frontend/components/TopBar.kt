@@ -60,10 +60,12 @@ external interface TopBarProps : PropsWithChildren {
 private fun ChildrenBuilder.dropdownEntry(
     faIcon: FontAwesomeIconModule?,
     text: String,
+    isSelected: Boolean = false,
     handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
 ) = button {
     type = ButtonType.button
-    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
+    val active = if (isSelected) "active" else ""
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none $active")
     faIcon?.let {
         fontAwesomeIcon(icon = faIcon) {
             it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
@@ -175,6 +177,7 @@ fun topBar() = FC<TopBarProps> { props ->
                     asDynamic()["data-toggle"] = "dropdown"
                     ariaExpanded = false
                     id = "demoDropdown"
+                    role = "button".unsafeCast<AriaRole>()
                     +"Demo"
                     onClickCapture = { _ ->
                         setIsDemoDropdownActive { !it }
@@ -183,16 +186,18 @@ fun topBar() = FC<TopBarProps> { props ->
                 div {
                     className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
                     ariaLabelledBy = "demoDropdown"
-                    dropdownEntry(null, "Diktat") { attrs ->
+                    val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
+                    dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
                         attrs.onClick = {
                             setIsDemoDropdownActive(false)
-                            window.location.href = "#/${FrontendRoutes.DEMO.path}/diktat"
+                            window.location.href = diktatDemoHref
                         }
                     }
-                    dropdownEntry(null, "CPG") { attrs ->
+                    val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
+                    dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
                         attrs.onClick = {
                             setIsDemoDropdownActive(false)
-                            window.location.href = "#/${FrontendRoutes.DEMO.path}/cpg"
+                            window.location.href = cpgDemoHref
                         }
                     }
                 }

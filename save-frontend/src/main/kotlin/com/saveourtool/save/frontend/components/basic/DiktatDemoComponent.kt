@@ -122,7 +122,7 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, f
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest(emptyList(), DemoAdditionalParams()))
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatRunRequest(emptyList(), DiktatAdditionalParams()))
     val (diktatResult, setDiktatResult) = useState(DiktatDemoResult.empty)
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
