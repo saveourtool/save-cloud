@@ -105,13 +105,13 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
     val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
     val linkToSaveCloudOnGithub = "https://github.com/saveourtool/save-cloud"
     val topBarlinksList = listOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, jsoWidth = 12.rem, text = "Awesome Benchmarks"),
-        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", jsoWidth = 3.5.rem, text = "CPG"),
-        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, jsoWidth = 9.rem, text = "Try SAVE format"),
-        TopBarLink(hrefAnchor = linkToSaveCloudOnGithub, jsoWidth = 9.rem, text = "SAVE on GitHub"),
-        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, jsoWidth = 8.rem, text = "Projects board"),
-        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, jsoWidth = 6.rem, text = "Contests"),
-        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, jsoWidth = 6.rem, text = "About us")
+        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
+        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.5.rem, text = "CPG"),
+        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
+        TopBarLink(hrefAnchor = linkToSaveCloudOnGithub, width = 9.rem, text = "SAVE on GitHub"),
+        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
+        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
+        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us")
     )
 
     ul {
@@ -158,7 +158,7 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
                 className = ClassName("nav-item")
                 a {
                     className = ClassName("nav-link d-flex align-items-center me-2 $elemClassName active")
-                    style = jso { width = elem.jsoWidth }
+                    style = jso { width = elem.width }
                     href = if (isNotSaveCloudLink) "#/${elem.hrefAnchor}" else linkToSaveCloudOnGithub
                     +elem.text
                 }
@@ -289,19 +289,19 @@ external interface TopBarProps : PropsWithChildren {
  */
 external interface TopBarPropsWithLocation : TopBarProps {
     /**
-     * Currently logged in user or null
+     * Is user location
      */
     var location: Location
 }
 
 /**
  * @property hrefAnchor is link
- * @property jsoWidth is width of the link text
+ * @property width is width of the link text
  * @property text is link text
  */
 data class TopBarLink(
     val hrefAnchor: String,
-    val jsoWidth: Width,
+    val width: Width,
     val text: String,
 )
 
@@ -329,7 +329,7 @@ private fun ChildrenBuilder.dropdownEntry(
  * @return a function component
  */
 fun topBar() = FC<TopBarProps> { props ->
-    val thisLocation = useLocation()
+    val location = useLocation()
     nav {
         className =
                 ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
@@ -337,12 +337,12 @@ fun topBar() = FC<TopBarProps> { props ->
         topBarUrlSplits {
             userInfo = props.userInfo
             isMobileScreen = props.isMobileScreen
-            location = thisLocation
+            this.location = location
         }
         topBarLinks {
             userInfo = props.userInfo
             isMobileScreen = props.isMobileScreen
-            location = thisLocation
+            this.location = location
         }
         topBarUserField {
             userInfo = props.userInfo
