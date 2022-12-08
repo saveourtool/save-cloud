@@ -162,20 +162,20 @@ class AgentsController(
     /**
      * Get statuses of all agents in the same execution with provided agent (including itself).
      *
-     * @param agentId containerId of an agent.
+     * @param containerId containerId of an agent.
      * @return list of agent statuses
-     * @throws IllegalStateException if provided [agentId] is invalid.
+     * @throws IllegalStateException if provided [containerId] is invalid.
      */
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
-    fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
-        val execution = getAgentByContainerId(agentId).execution
+    fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
+        val execution = getAgentByContainerId(containerId).execution
         val agentStatuses = agentRepository.findByExecutionId(execution.requiredId()).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
@@ -183,28 +183,28 @@ class AgentsController(
     }
 
     /**
-     * Get statuses of agents identified by [agentIds].
+     * Get statuses of agents identified by [containerIds].
      *
-     * @param agentIds a list of containerIds agents.
+     * @param containerIds a list of containerIds agents.
      * @return list of agent statuses
      */
     @GetMapping("/agents/statuses")
     @Transactional
-    fun findAgentStatuses(@RequestParam(name = "ids") agentIds: List<String>): List<AgentStatusDto> {
-        val agents = agentIds.map { agentId ->
-            val agent = agentRepository.findByContainerId(agentId)
+    fun findAgentStatuses(@RequestParam(name = "ids") containerIds: List<String>): List<AgentStatusDto> {
+        val agents = containerIds.map { containerId ->
+            val agent = agentRepository.findByContainerId(containerId)
             requireNotNull(agent) {
-                "Agent in the DB not found for containerId=$agentId"
+                "Agent in the DB not found for containerId=$containerId"
             }
         }
         check(agents.distinctBy { it.execution.id }.size == 1) {
-            "Statuses are requested for agents from different executions: agentIds=$agentIds, execution IDs are ${agents.map { it.execution.id }}"
+            "Statuses are requested for agents from different executions: containerIds=$containerIds, execution IDs are ${agents.map { it.execution.id }}"
         }
         return agents.map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
