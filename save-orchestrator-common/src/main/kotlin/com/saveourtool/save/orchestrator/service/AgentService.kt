@@ -39,7 +39,7 @@ class AgentService(
      * @param containerId
      * @return [Mono] of [InitResponse]
      */
-    internal fun getInitConfig(agent: AgentDto, containerId: String): Mono<HeartbeatResponse> =
+    internal fun getInitConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getInitConfig(containerId)
                 .map { InitResponse(it) }
 
