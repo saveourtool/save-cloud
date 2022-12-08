@@ -12,6 +12,7 @@ import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.sandbox.config.ConfigProperties
 import com.saveourtool.save.sandbox.entity.SandboxAgent
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.entity.toEntity
@@ -23,7 +24,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -42,8 +42,10 @@ class SandboxOrchestratorAgentService(
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
-    @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
+    configProperties: ConfigProperties,
 ) : OrchestratorAgentService {
+    private val sandboxUrlForAgent = "${configProperties.agentSettings.sandboxUrl}/sandbox/internal"
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)

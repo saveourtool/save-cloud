@@ -102,6 +102,7 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
  */
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
+    val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
     val linkToSaveCloudOnGithub = "https://github.com/saveourtool/save-cloud"
     val topBarlinksList = listOf(
         TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, jsoWidth = 12.rem, text = "Awesome Benchmarks"),
@@ -118,6 +119,41 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
         topBarlinksList.forEach { elem ->
             val isNotSaveCloudLink = elem.hrefAnchor != linkToSaveCloudOnGithub
             val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
+            li {
+                className = ClassName("nav-item dropdown no-arrow")
+                style = jso {
+                    width = 5.rem
+                }
+                a {
+                    className = ClassName("nav-link dropdown-toggle text-light")
+                    asDynamic()["data-toggle"] = "dropdown"
+                    ariaExpanded = false
+                    id = "demoDropdown"
+                    role = "button".unsafeCast<AriaRole>()
+                    +"Demo"
+                    onClickCapture = { _ ->
+                        setIsDemoDropdownActive { !it }
+                    }
+                }
+                div {
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
+                    ariaLabelledBy = "demoDropdown"
+                    val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
+                    dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = diktatDemoHref
+                        }
+                    }
+                    val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
+                    dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = cpgDemoHref
+                        }
+                    }
+                }
+            }
             li {
                 className = ClassName("nav-item")
                 a {
@@ -270,14 +306,18 @@ data class TopBarLink(
 )
 
 private fun ChildrenBuilder.dropdownEntry(
-    faIcon: dynamic,
+    faIcon: FontAwesomeIconModule?,
     text: String,
+    isSelected: Boolean = false,
     handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
 ) = button {
     type = ButtonType.button
-    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
-    fontAwesomeIcon(icon = faIcon) {
-        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    val active = if (isSelected) "active" else ""
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none $active")
+    faIcon?.let {
+        fontAwesomeIcon(icon = faIcon) {
+            it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+        }
     }
     +text
     handler(this)

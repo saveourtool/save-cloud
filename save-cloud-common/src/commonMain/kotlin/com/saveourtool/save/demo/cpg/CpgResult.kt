@@ -15,4 +15,8 @@ data class CpgResult(
     val cpgGraph: CpgGraph,
     val applicationName: String,
     val logs: List<String>,
-) : DemoResult
+) : DemoResult {
+    companion object {
+        val empty = CpgResult(CpgGraph.placeholder, "", emptyList())
+    }
+}

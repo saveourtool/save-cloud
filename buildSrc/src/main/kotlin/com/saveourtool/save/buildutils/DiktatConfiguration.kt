@@ -26,8 +26,8 @@ fun Project.configureDiktat() {
         inputs {
             // using `Project#path` here, because it must be unique in gradle's project hierarchy
             if (path == rootProject.path) {
-                include("buildSrc/src/**/*.kt", "*.kts", "buildSrc/**/*.kts")
-                exclude("buildSrc/build/**")
+                include("gradle/plugins/src/**/*.kt", "*.kts", "gradle/plugins/**/*.kts")
+                exclude("gradle/plugins/build/**")
             } else {
                 include("src/**/*.kt", "**/*.kts")
                 exclude("src/test/**/*.kt", "src/*Test/**/*.kt")
@@ -50,7 +50,7 @@ fun Project.configureSpotless() {
             diktat(diktatVersion).configFile(rootProject.file("diktat-analysis.yml"))
             target("src/**/*.kt")
             if (path == rootProject.path) {
-                target("buildSrc/**/*.kt")
+                target("gradle/plugins/**/*.kt")
             }
         }
         kotlinGradle {
@@ -58,7 +58,7 @@ fun Project.configureSpotless() {
 
             // using `Project#path` here, because it must be unique in gradle's project hierarchy
             if (path == rootProject.path) {
-                target("$rootDir/*.kts", "$rootDir/buildSrc/**/*.kts")
+                target("$rootDir/*.kts", "$rootDir/gradle/plugins/**/*.kts")
             } else {
                 target("**/*.kts")
             }
