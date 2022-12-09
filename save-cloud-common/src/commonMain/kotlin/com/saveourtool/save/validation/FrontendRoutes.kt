@@ -29,9 +29,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_TOKEN("settings/token"),
     ;
 
-    override fun toString(): String {
-        return path
-    }
+    override fun toString(): String = path
 
     companion object {
         /**

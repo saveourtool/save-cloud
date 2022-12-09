@@ -2,6 +2,8 @@
  * All routs for the mobile version of the frontend
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS", "EXTENSION_FUNCTION_WITH_CLASS")
+
 package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.TestResultStatus
@@ -12,48 +14,32 @@ import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRati
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
-import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
-import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
+import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
 import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
-import com.saveourtool.save.frontend.utils.OrganizationMenuBar
-import com.saveourtool.save.frontend.utils.ProjectMenuBar
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
-import com.saveourtool.save.frontend.utils.withRouter
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
+
 import js.core.get
 import org.w3c.dom.url.URLSearchParams
 import react.*
+import react.router.Navigate
 import react.router.Route
 import react.router.Routes
-import react.router.Navigate
-
-
-external interface AppProps : PropsWithChildren {
-    /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-}
 
 val testExecutionDetailsView = testExecutionDetailsView()
-
 
 /**
  * Just put a map: View -> Route URL to this list
  */
-val basicRouting = FC<AppProps> { props ->
-    val fallbackNode = FallbackView::class.react.create {
-        bigText = "404"
-        smallText = "Page not found"
-        withRouterLink = false
-    }
-
+val basicRouting: FC<AppProps> = FC { props ->
     val contestView: FC<Props> = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
@@ -115,6 +101,20 @@ val basicRouting = FC<AppProps> { props ->
         }
     }
 
+    val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+        AwesomeBenchmarksView::class.react {
+            this.location = location
+        }
+    }
+
+    val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+        ContestGlobalRatingView::class.react {
+            organizationName = URLSearchParams(location.search).get("organizationName")
+            projectName = URLSearchParams(location.search).get("projectName")
+            this.location = location
+        }
+    }
+
     Routes {
         listOf(
             WelcomeView::class.react.create { userInfo = props.userInfo } to "/",
@@ -138,48 +138,29 @@ val basicRouting = FC<AppProps> { props ->
             executionView.create() to "/:owner/:name/history/execution/:executionId",
             diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
-            testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*"
+            testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
+
+            props.viewWithFallBack(
+                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
+            ) to "/${props.userInfo?.name}/$SETTINGS_PROFILE",
+
+            props.viewWithFallBack(
+                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
+            ) to "/${props.userInfo?.name}/$SETTINGS_EMAIL",
+
+            props.viewWithFallBack(
+                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
+            ) to "/${props.userInfo?.name}/$SETTINGS_TOKEN",
+
+            props.viewWithFallBack(
+                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
+            ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
+
         ).forEach {
             Route {
                 this.element = it.first
                 this.path = "/${it.second}"
             }
-        }
-
-        Route {
-            path = "/${props.userInfo?.name}/$SETTINGS_PROFILE"
-            element = props.userInfo?.name?.let {
-                UserSettingsProfileMenuView::class.react.create {
-                    userName = it
-                }
-            } ?: fallbackNode
-        }
-
-        Route {
-            path = "/${props.userInfo?.name}/$SETTINGS_EMAIL"
-            element = props.userInfo?.name?.let {
-                UserSettingsEmailMenuView::class.react.create {
-                    userName = it
-                }
-            } ?: fallbackNode
-        }
-
-        Route {
-            path = "/${props.userInfo?.name}/$SETTINGS_TOKEN"
-            element = props.userInfo?.name?.let {
-                UserSettingsTokenMenuView::class.react.create {
-                    userName = it
-                }
-            } ?: fallbackNode
-        }
-
-        Route {
-            path = "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS"
-            element = props.userInfo?.name?.let {
-                UserSettingsOrganizationsMenuView::class.react.create {
-                    userName = it
-                }
-            } ?: fallbackNode
         }
 
         props.userInfo?.name.run {
@@ -233,21 +214,29 @@ val basicRouting = FC<AppProps> { props ->
             }
         }
     }
-
-
 }
 
-val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
-    AwesomeBenchmarksView::class.react {
-        this.location = location
-    }
+private val fallbackNode = FallbackView::class.react.create {
+    bigText = "404"
+    smallText = "Page not found"
+    withRouterLink = false
 }
 
-val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
-    ContestGlobalRatingView::class.react {
-        organizationName = URLSearchParams(location.search).get("organizationName")
-        projectName = URLSearchParams(location.search).get("projectName")
-        this.location = location
-    }
+/**
+ * Property to propagate user info from App
+ */
+external interface AppProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
 }
 
+/**
+ * @param view
+ * @return a view or a fallback of user info is null
+ */
+fun AppProps.viewWithFallBack(view: ReactElement<*>) =
+        this.userInfo?.name?.let {
+            view
+        } ?: fallbackNode

@@ -6,54 +6,35 @@ package com.saveourtool.save.frontend
 
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
-import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
-import com.saveourtool.save.frontend.components.views.contests.ContestListView
-import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
-import com.saveourtool.save.frontend.components.views.demo.cpgView
-import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
-import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.routing.mobileRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import browser.document
-import com.saveourtool.save.frontend.routing.awesomeBenchmarksView
-import com.saveourtool.save.frontend.routing.basicRouting
-import com.saveourtool.save.frontend.routing.contestGlobalRatingView
 import csstype.ClassName
 import dom.html.HTMLElement
 import js.core.get
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.Navigate
 import react.router.Route
-import react.router.Routes
 import react.router.dom.HashRouter
-import web.url.URLSearchParams
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import react.router.Navigate
 
 internal val topBarComponent = topBar()
-
 
 /**
  * Top-level state of the whole App
