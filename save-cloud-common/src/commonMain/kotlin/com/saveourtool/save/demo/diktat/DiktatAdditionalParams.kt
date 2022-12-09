@@ -1,23 +1,24 @@
 package com.saveourtool.save.demo.diktat
 
 import com.saveourtool.save.demo.DemoAdditionalParams
-import com.saveourtool.save.utils.Languages
 import kotlinx.serialization.Serializable
 
 /**
- * @property mode
- * @property tool
- * @property config
- * @property language
+ * @property mode to tell if the analysis should be performed in [DiktatDemoMode.WARN] or in [DiktatDemoMode.FIX]
+ * @property tool to tell if the analysis should be performed by [DiktatDemoTool.DIKTAT] or [DiktatDemoTool.KTLINT]
+ * @property config additional configuration file for [DiktatDemoTool.DIKTAT]
  */
 @Serializable
-data class DemoAdditionalParams(
+data class DiktatAdditionalParams(
     val mode: DiktatDemoMode = DiktatDemoMode.WARN,
     val tool: DiktatDemoTool = DiktatDemoTool.DIKTAT,
     val config: List<String> = defaultDiktatConfig,
-    val language: Languages = Languages.KOTLIN,
 ) : DemoAdditionalParams {
     companion object {
+        /**
+         * Default config for [DiktatDemoTool.DIKTAT]
+         * // TODO: move me to storage
+         */
         val defaultDiktatConfig = """
             |- name: DIKTAT_COMMON
             |  enabled: true
