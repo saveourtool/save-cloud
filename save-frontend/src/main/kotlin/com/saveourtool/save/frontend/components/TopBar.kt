@@ -75,7 +75,7 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                     val url = TopBarUrl(props.location.pathname.substringBeforeLast("?"))
                     forEachIndexed { index: Int, pathPart: String ->
                         url.changeUrlBeforeButton(pathPart)
-                        if (url.isCreateButton(index)) {
+                        if (url.shouldDisplayPathFragment(index)) {
                             li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
