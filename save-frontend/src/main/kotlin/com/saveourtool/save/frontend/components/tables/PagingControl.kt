@@ -17,6 +17,7 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.dom.html.ReactHTML.table
 import tanstack.table.core.RowData
 import tanstack.table.core.Table
 import tanstack.table.core.Updater
@@ -77,7 +78,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
     pageCount: Int,
 ) =
         div {
-            println("PAGE INDEX: ${pageIndex}")
+            println("PAGE INDEX: ${pageIndex} pageind ${tableInstance.getState().pagination.pageIndex} pagesize ${tableInstance.getState().pagination.pageSize} ${tableInstance.getPageCount()}")
             className = ClassName("row")
             // First page
             button {
@@ -244,6 +245,8 @@ private fun <D : RowData> setPageIndexAndGoToPage(
     setPageIndex: StateSetter<Int>,
     index: Int
 ) {
+    println("TABLE INDEX $index BEFORE ${tableInstance.getState().pagination.pageIndex}")
     setPageIndex(index)
     tableInstance.setPageIndex(Updater(index))
+    println("TABLE INDEX $index AFTER ${tableInstance.getState().pagination.pageIndex}")
 }

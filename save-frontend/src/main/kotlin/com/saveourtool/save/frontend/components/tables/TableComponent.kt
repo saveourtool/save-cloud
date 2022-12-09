@@ -134,6 +134,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     val (sorting, setSorting) = useState<SortingState>(emptyArray())
     val tableInstance: Table<D> = useReactTable(options = jso<TableOptions<D>> {
         this.autoResetPageIndex = false
+        this.debugAll = true
         this.columns = useMemo { columns(props) }
         this.data = data
         this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
