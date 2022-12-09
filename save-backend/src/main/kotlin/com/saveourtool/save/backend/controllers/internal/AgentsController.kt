@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -36,7 +35,6 @@ import kotlinx.datetime.toJavaLocalDateTime
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentService: AgentService,
-    private val agentRepository: AgentRepository,
     private val configProperties: ConfigProperties,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
@@ -117,17 +115,19 @@ class AgentsController(
         .map { (_, runConfig) -> runConfig }
 
     /**
+     * @param executionId ID of [Execution]
      * @param agents list of [AgentDto]s to save into the DB
      * @return a list of IDs, assigned to the agents
      */
     @PostMapping("/agents/insert")
-    fun addAgents(@RequestBody agents: List<AgentDto>): List<Long> {
+    fun addAgents(
+        @RequestParam executionId: Long,
+        @RequestBody agents: List<AgentDto>,
+    ): List<Long> {
         log.debug("Saving agents $agents")
         return agents
-            .map { agent ->
-                agent.toEntity()
-            }
-            .let { agentRepository.saveAll(it) }
+            .map { it.toEntity() }
+            .let { agentService.saveAll(executionId, it) }
             .map { it.requiredId() }
     }
 
@@ -211,15 +211,11 @@ class AgentsController(
      * @param containerId containerId of an agent.
      * @return [Agent]
      */
-    private fun getAgentByContainerId(containerId: String): Agent = agentRepository.findByContainerId(containerId)
-        .orNotFound { "Agent with containerId=$containerId not found in the DB" }
+    private fun getAgentByContainerId(containerId: String): Agent = agentService.getAgentByContainerId(containerId)
 
     private fun getAgentByContainerIdAsMono(containerId: String): Mono<Agent> = blockingToMono {
-        agentRepository.findByContainerId(containerId)
+        getAgentByContainerId(containerId)
     }
-        .switchIfEmptyToNotFound {
-            "Not found agent with container id $containerId"
-        }
 
     private fun List<TestDto>.constructCliCommand() = joinToString(" ") { it.filePath }
         .also {
