@@ -6,14 +6,13 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
-import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
+import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.externals.sigma.*
-import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
-import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.utils.Languages
@@ -40,30 +39,6 @@ int main() {
 """
 
 private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = true)
-
-/**
- * Component that is used to load the graph into sigma
- */
-@Suppress(
-    "COMPLEX_EXPRESSION",
-    "MAGIC_NUMBER",
-)
-val graphLoader: FC<GraphLoaderProps> = FC { props ->
-    val loadGraph = useLoadGraph()
-    val (_, circularAssign) = useLayoutCircular()
-    val (_, atlasAssign) = useLayoutForceAtlas2(jso {
-        iterations = 150
-        settings = jso {
-            gravity = 10
-            barnesHutOptimize = true
-        }
-    })
-    useEffect(props.cpgGraph) {
-        loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
-        circularAssign()
-        atlasAssign()
-    }
-}
 
 @Suppress(
     "EMPTY_BLOCK_STRUCTURE_ERROR",
@@ -121,6 +96,9 @@ val cpgView: VFC = VFC {
                                 sigmaContainer {
                                     settings = getSigmaContainerSettings()
                                     this.graph = graphology.MultiDirectedGraph
+                                    graphEvents {
+                                        shouldHideUnfocusedNodes = true
+                                    }
                                     graphLoader {
                                         cpgGraph = cpgResult.cpgGraph
                                     }
@@ -157,14 +135,4 @@ val cpgView: VFC = VFC {
             className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
         }
     }
-}
-
-/**
- * [Props] for [graphLoader] functional component
- */
-external interface GraphLoaderProps : Props {
-    /**
-     * The graph to be processed and displayed using sigma
-     */
-    var cpgGraph: CpgGraph
 }

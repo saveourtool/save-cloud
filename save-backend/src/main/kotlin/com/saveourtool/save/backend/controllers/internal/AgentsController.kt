@@ -166,13 +166,13 @@ class AgentsController(
     @GetMapping("/getAgentsStatusesForSameExecution")
     @Transactional
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
-    fun findAllAgentStatusesForSameExecution(@RequestParam("agentId") containerId: String): AgentStatusesForExecution {
+    fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
         val executionId = agentService.getExecutionByContainerId(containerId).requiredId()
         val agentStatuses = agentService.getAgentsByExecutionId(executionId).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
@@ -193,13 +193,13 @@ class AgentsController(
         }
         val executionIds = agents.map { agentService.getExecution(it).requiredId() }.distinct()
         check(executionIds.size == 1) {
-            "Statuses are requested for agents from different executions: agentIds=$containerIds, execution IDs are $executionIds"
+            "Statuses are requested for agents from different executions: containerIds=$containerIds, execution IDs are $executionIds"
         }
         return agents.map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
