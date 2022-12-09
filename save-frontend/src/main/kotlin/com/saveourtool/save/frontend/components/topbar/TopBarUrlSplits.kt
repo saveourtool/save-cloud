@@ -9,7 +9,6 @@ import csstype.ClassName
 import history.Location
 import react.FC
 import react.Props
-import react.PropsWithChildren
 import react.dom.aria.AriaCurrent
 import react.dom.aria.ariaCurrent
 import react.dom.aria.ariaLabel

@@ -12,7 +12,6 @@ import history.Location
 import js.core.jso
 import react.FC
 import react.Props
-import react.PropsWithChildren
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaExpanded
 import react.dom.aria.ariaLabelledBy
