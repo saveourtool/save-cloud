@@ -5,7 +5,7 @@
 package com.saveourtool.save.utils
 
 /**
- * Is link to save cloud on GitHub
+ * Link to save-cloud on GitHub
  */
 const val SAVE_CLOUD_GITHUB = "https://github.com/saveourtool/save-cloud"
 
