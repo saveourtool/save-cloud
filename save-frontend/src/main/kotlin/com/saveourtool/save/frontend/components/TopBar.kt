@@ -344,18 +344,13 @@ fun topBar() = FC<TopBarProps> { props ->
         className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         id = "navigation-top-bar"
         topBarUrlSplits {
-            userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
             this.location = location
         }
         topBarLinks {
-            userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
             this.location = location
         }
         topBarUserField {
             userInfo = props.userInfo
-            isMobileScreen = props.isMobileScreen
         }
     }
 }
