@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
@@ -47,6 +48,8 @@ class TestExecutionControllerTest {
 
     @Autowired
     private lateinit var agentRepository: AgentRepository
+    @Autowired
+    private lateinit var lnkExecutionAgentRepository: LnkExecutionAgentRepository
     private lateinit var transactionTemplate: TransactionTemplate
 
     @Autowired
@@ -222,11 +225,17 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     private fun getExecutionsTestsResultByAgentContainerId(id: String, isPassed: Boolean) =
             transactionTemplate.execute {
-                if (isPassed) {
-                    agentRepository.findByContainerId(id)!!.execution.passedTests
-                } else {
-                    agentRepository.findByContainerId(id)!!.execution.failedTests
-                }
+                agentRepository.findByContainerId(id)
+                    ?.requiredId()
+                    ?.let { lnkExecutionAgentRepository.findByAgentId(it) }
+                    ?.execution
+                    ?.let {
+                        if (isPassed) {
+                            it.passedTests
+                        } else {
+                            it.failedTests
+                        }
+                    }!!
             }!!
 
     companion object {

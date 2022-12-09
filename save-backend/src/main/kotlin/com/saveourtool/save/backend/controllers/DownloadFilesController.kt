@@ -4,6 +4,7 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -54,6 +55,7 @@ class DownloadFilesController(
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val agentRepository: AgentRepository,
+    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
@@ -318,13 +320,18 @@ class DownloadFilesController(
         testExecutionDto.executionId?.let { return it }
 
         val agentContainerId = testExecutionDto.agentContainerId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
-        val execution = agentRepository.findByContainerId(agentContainerId)?.execution
-        return execution?.id
-            ?: throw ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Execution for agent $agentContainerId not found"
-            )
+            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
+                "Request body should contain agentContainerId"
+            }
+        val executionId = agentRepository.findByContainerId(agentContainerId)
+            ?.requiredId()
+            ?.let {
+                lnkExecutionAgentRepository.findByAgentId(it)
+            }
+            ?.execution
+            ?.requiredId()
+
+        return executionId.orNotFound { "Execution for agent $agentContainerId not found" }
     }
 
     /**
