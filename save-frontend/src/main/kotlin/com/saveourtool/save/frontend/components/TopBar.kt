@@ -155,14 +155,22 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
             TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
         ).forEach { elem ->
             val isNotSaveCloudLink = elem.hrefAnchor != SAVE_CLOUD_GITHUB
-            val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
             li {
                 className = ClassName("nav-item")
-                Link {
-                    className = ClassName("nav-link d-flex align-items-center me-2 $elemClassName active")
-                    style = jso { width = elem.width }
-                    to = elem.hrefAnchor
-                    +elem.text
+                if (isNotSaveCloudLink) {
+                    Link {
+                        className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
+                        style = jso { width = elem.width }
+                        to = elem.hrefAnchor
+                        +elem.text
+                    }
+                } else {
+                    a {
+                        className = ClassName("nav-link d-flex align-items-center me-2 active")
+                        style = jso { width = elem.width }
+                        href = SAVE_CLOUD_GITHUB
+                        +elem.text
+                    }
                 }
             }
         }
