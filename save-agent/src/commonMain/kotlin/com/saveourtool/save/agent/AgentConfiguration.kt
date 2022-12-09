@@ -47,8 +47,8 @@ data class AgentConfiguration(
          * @return [AgentConfiguration] with required fields initialized from env
          */
         internal fun initializeFromEnv() = AgentConfiguration(
-            id = requiredEnv(AgentEnvName.AGENT_ID),
-            name = requiredEnv(AgentEnvName.AGENT_NAME),
+            id = requiredEnv(AgentEnvName.CONTAINER_ID),
+            name = requiredEnv(AgentEnvName.CONTAINER_NAME),
             version = requiredEnv(AgentEnvName.AGENT_VERSION),
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL),

@@ -123,7 +123,7 @@ class AgentsControllerTest {
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
-            .uri("/internal/getAgentsStatusesForSameExecution?agentId=container-1")
+            .uri("/internal/getAgentsStatusesForSameExecution?containerId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
