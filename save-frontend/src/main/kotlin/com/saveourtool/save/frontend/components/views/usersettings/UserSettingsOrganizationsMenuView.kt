@@ -30,7 +30,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val comparator: Comparator<OrganizationWithUsers> =
             compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
                 .thenBy { it.organization.name }
-    private fun localButtonAction(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) {
+
+    /**
+     * This function delete [organizationWithUsers] by [selfOrganizationWithUserList], add [organizationWithUsers] with [newStatus] in [selfOrganizationWithUserList] and sorted its by comparator
+     *
+     * @param organizationWithUsers
+     * @param newStatus
+     */
+    private fun updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) {
         setState {
             selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
                 .plusElement(organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus)))
@@ -114,7 +121,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                localButtonAction(organizationWithUsers, OrganizationStatus.DELETED)
+                                                updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers, OrganizationStatus.DELETED)
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->
@@ -143,7 +150,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                localButtonAction(organizationWithUsers, OrganizationStatus.CREATED)
+                                                updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers, OrganizationStatus.CREATED)
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->

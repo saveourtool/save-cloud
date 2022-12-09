@@ -68,11 +68,13 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 .thenBy { it.name }
 
     /**
+     * This function delete [project] by [projects], add [project] with [newStatus] in [projects] and sorted its by comparator
+     *
      * @param project
      * @param newStatus
      */
     @Suppress("AVOID_NESTED_FUNCTIONS")
-    fun localButtonAction(project: ProjectDto, newStatus: ProjectStatus) {
+    fun updateProjectStatusInProjectsDtoList(project: ProjectDto, newStatus: ProjectStatus) {
         val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
         setProjects(newProjects)
         props.updateProjects(newProjects.toMutableList())
@@ -159,7 +161,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                         onActionSuccess = { isBanMode ->
                                             val newStatus = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                            localButtonAction(project, newStatus)
+                                            updateProjectStatusInProjectsDtoList(project, newStatus)
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
                                         sendRequest = { isBanned ->
@@ -189,7 +191,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            localButtonAction(project, ProjectStatus.CREATED)
+                                            updateProjectStatusInProjectsDtoList(project, ProjectStatus.CREATED)
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
@@ -219,7 +221,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                localButtonAction(project, ProjectStatus.CREATED)
+                                                updateProjectStatusInProjectsDtoList(project, ProjectStatus.CREATED)
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->

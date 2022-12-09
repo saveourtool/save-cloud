@@ -113,7 +113,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                     onActionSuccess = { isBanned ->
                                         val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                        localButtonAction(organization, newStatus)
+                                        updateOrganizationStatusInOrganizationDtoList(organization, newStatus)
                                     }
                                     conditionClick = true
                                     sendRequest = { isBanned ->
@@ -143,7 +143,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        localButtonAction(organization, OrganizationStatus.CREATED)
+                                        updateOrganizationStatusInOrganizationDtoList(organization, OrganizationStatus.CREATED)
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -172,7 +172,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        localButtonAction(organization, OrganizationStatus.CREATED)
+                                        updateOrganizationStatusInOrganizationDtoList(organization, OrganizationStatus.CREATED)
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -203,7 +203,13 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
         state.organizations = mutableListOf()
     }
 
-    private fun localButtonAction(organization: OrganizationDto, newStatus: OrganizationStatus) {
+    /**
+     * This function delete [organization] by [organizations], add [organization] with [newStatus] in [organizations] and sorted its by comparator
+     *
+     * @param organization
+     * @param newStatus
+     */
+    private fun updateOrganizationStatusInOrganizationDtoList(organization: OrganizationDto, newStatus: OrganizationStatus) {
         setState {
             organizations = organizations.minus(organization).plus(organization.copy(status = newStatus)).sortedWith(comparator)
         }
