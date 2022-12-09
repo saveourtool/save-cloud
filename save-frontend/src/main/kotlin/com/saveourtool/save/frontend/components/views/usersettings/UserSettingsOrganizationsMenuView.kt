@@ -32,7 +32,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                 .thenBy { it.organization.name }
 
     /**
-     * This function delete [organizationWithUsers] by [selfOrganizationWithUserList], add [organizationWithUsers] with [newStatus] in [selfOrganizationWithUserList] and sorted its by comparator
+     * This function delete [organizationWithUsers] by [selfOrganizationWithUserList],
+     * Add [organizationWithUsers] with [newStatus] in [selfOrganizationWithUserList]
+     * And sorted its by comparator
      *
      * @param organizationWithUsers
      * @param newStatus
