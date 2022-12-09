@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -128,17 +127,6 @@ class TestExecutionController(
                 }
 
     /**
-     * @param agentContainerId id of agent's container
-     * @param status status for test executions
-     * @return a list of test executions
-     */
-    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
-    fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
-                                            @PathVariable status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(agentContainerId, status)
-        .map { it.toDto() }
-
-    /**
      * Finds TestExecution by test location, returns 404 if not found
      *
      * @param executionId under this executionId test has been executed
@@ -191,28 +179,6 @@ class TestExecutionController(
                 .map {
                     testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
                 }
-
-    /**
-     * @param status
-     * @param agentIds the list of agents, for which, according the [status] test executions should be updated
-     * @throws ResponseStatusException
-     */
-    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
-    fun setStatusByAgentIds(
-        @RequestParam("status") status: String,
-        @RequestBody agentIds: Collection<String>
-    ) {
-        when (status) {
-            AgentState.CRASHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds)
-            AgentState.FINISHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            }
-            else -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "For now only CRASHED and FINISHED statuses are supported"
-            )
-        }
-    }
 
     /**
      * @param onlyReadyForTesting

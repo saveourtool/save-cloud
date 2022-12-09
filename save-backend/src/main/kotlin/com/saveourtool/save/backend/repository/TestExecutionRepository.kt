@@ -164,15 +164,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     ): List<TestExecution>
 
     /**
-     * Returns test executions for agent [agentContainerId] and status [status]
-     *
-     * @param agentContainerId
-     * @param status
-     * @return a list of test executions
-     */
-    fun findByAgentContainerIdAndStatus(agentContainerId: String, status: TestResultStatus): List<TestExecution>
-
-    /**
      * Returns a TestExecution matched by a set of fields
      *
      * @param executionId if of execution
@@ -222,12 +213,4 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      */
     @Transactional
     fun deleteByExecutionIdIn(executionIds: List<Long>)
-
-    /**
-     * Delete a TestExecution with execution Ids
-     *
-     * @param id project id
-     */
-    @Transactional
-    fun deleteByExecutionProjectId(id: Long)
 }
