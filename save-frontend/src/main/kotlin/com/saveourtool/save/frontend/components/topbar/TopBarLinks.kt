@@ -31,7 +31,7 @@ val topBarLinks = topBarLinks()
 /**
  * [Props] of the top bor links component
  */
-external interface TopBarLinksProps : PropsWithChildren {
+external interface TopBarLinksProps : Props {
     /**
      * Is location
      */

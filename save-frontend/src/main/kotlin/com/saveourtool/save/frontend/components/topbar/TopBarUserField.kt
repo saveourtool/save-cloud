@@ -31,7 +31,7 @@ val topBarUserField = topBarUserField()
 /**
  * [Props] of the top bar user field component
  */
-external interface TopBarUserFieldProps : PropsWithChildren {
+external interface TopBarUserFieldProps : Props {
     /**
      * Currently logged in user or null
      */

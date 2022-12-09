@@ -24,7 +24,7 @@ val topBarUrlSplits = topBarUrlSplits()
 /**
  * [Props] of the top bor url splits component
  */
-external interface TopBarUrlSplitsProps : PropsWithChildren {
+external interface TopBarUrlSplitsProps : Props {
     /**
      * Is location
      */
