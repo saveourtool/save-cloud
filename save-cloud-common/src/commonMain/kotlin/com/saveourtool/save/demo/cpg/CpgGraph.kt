@@ -25,9 +25,13 @@ data class CpgGraph(
     @EncodeDefault(ALWAYS) val options: CpgGraphOptions = CpgGraphOptions(),
 ) {
     /**
+     * Returns graph with parallel edges combined into one (fixes labels issue)
+     *
      * @return Cpg graph with removed parallel edges
      */
-    fun removeMultiEdges(): CpgGraph = edges.groupBy { it.source to it.target }
+    fun removeMultiEdges(): CpgGraph = combineCoDirectedEdges().combineAntiDirectedEdges()
+
+    private fun combineCoDirectedEdges() = edges.groupBy { it.source to it.target }
         .map { (coordinates, parallelEdges) ->
             val newLabel = parallelEdges.joinToString(", ") { it.attributes.label ?: "" }
             val newId = parallelEdges.joinToString(", ") { it.key }
@@ -40,6 +44,43 @@ data class CpgGraph(
                 CpgEdgeAttributes(newLabel, paintColor, newSize)
             )
         }
+        .let { newEdges ->
+            copy(edges = newEdges)
+        }
+
+    private fun combineAntiDirectedEdges() = edges.groupBy {
+        maxOf(it.source, it.target) to minOf(it.source, it.target)
+    }
+        .map { (coordinates, parallelEdges) ->
+            require(parallelEdges.size <= 2)
+            val newLabel = parallelEdges.joinToString(" | ") { it.attributes.label ?: "" }
+            val newId = parallelEdges.joinToString(" | ") { it.key }
+            val newSize = parallelEdges.first().attributes.size
+            val paintColor = if (parallelEdges.size != 1) {
+                "#FA90FA"
+            } else {
+                parallelEdges[0].attributes.color ?: if (parallelEdges.size == 2) {
+                    parallelEdges[1].attributes.color
+                } else {
+                    null
+                }
+            }
+            listOf(
+                CpgEdge(
+                    newId,
+                    coordinates.first,
+                    coordinates.second,
+                    CpgEdgeAttributes(newLabel, paintColor, newSize)
+                ),
+                CpgEdge(
+                    "$newId-reversed",
+                    coordinates.second,
+                    coordinates.first,
+                    CpgEdgeAttributes("", paintColor, newSize)
+                )
+            )
+        }
+        .flatten()
         .let { newEdges ->
             copy(edges = newEdges)
         }

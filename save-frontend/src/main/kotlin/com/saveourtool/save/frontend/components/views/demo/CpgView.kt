@@ -96,7 +96,9 @@ val cpgView: VFC = VFC {
                                 sigmaContainer {
                                     settings = getSigmaContainerSettings()
                                     this.graph = graphology.MultiDirectedGraph
-                                    graphEvents()
+                                    graphEvents {
+                                        shouldHideUnfocusedNodes = true
+                                    }
                                     graphLoader {
                                         cpgGraph = cpgResult.cpgGraph
                                     }
