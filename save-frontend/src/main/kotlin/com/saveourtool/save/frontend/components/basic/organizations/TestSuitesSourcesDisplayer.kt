@@ -94,7 +94,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             if (isSelected) {
                 div {
                     className = ClassName("float-left")
-                    buttonBuilder("Refresh", "info", isOutline = false, classes = "btn-sm mr-2") {
+                    buttonBuilder(faSyncAlt, "info", isOutline = false, classes = "btn-sm mr-2") {
                         refreshHandler()
                     }
                 }
@@ -127,7 +127,7 @@ fun ChildrenBuilder.showTestSuitesSources(
     refreshHandler: () -> Unit,
 ) {
     div {
-        className = ClassName("list-group")
+        className = ClassName("list-group col-8")
         testSuitesSources.forEach {
             showTestSuitesSourceAsListElement(it, false, selectHandler, editHandler, fetchHandler, refreshHandler)
         }
@@ -156,7 +156,7 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
     refreshHandler: () -> Unit,
 ) {
     ul {
-        className = ClassName("list-group")
+        className = ClassName("list-group col-8")
         showTestSuitesSourceAsListElement(selectedTestSuiteSource, true, selectHandler, editHandler, fetchHandler, refreshHandler)
         if (testSuitesSourcesSnapshotKeys.isEmpty()) {
             li {
