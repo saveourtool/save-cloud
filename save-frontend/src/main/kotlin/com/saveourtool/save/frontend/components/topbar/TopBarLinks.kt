@@ -29,7 +29,7 @@ import kotlinx.browser.window
 val topBarLinks = topBarLinks()
 
 /**
- * [Props] of the top bor links component
+ * [Props] of the top bar links component
  */
 external interface TopBarLinksProps : Props {
     /**

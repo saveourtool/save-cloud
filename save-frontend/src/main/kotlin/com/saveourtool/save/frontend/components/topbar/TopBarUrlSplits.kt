@@ -22,7 +22,7 @@ import react.router.dom.Link
 val topBarUrlSplits = topBarUrlSplits()
 
 /**
- * [Props] of the top bor url splits component
+ * [Props] of the top bar url splits component
  */
 external interface TopBarUrlSplitsProps : Props {
     /**
