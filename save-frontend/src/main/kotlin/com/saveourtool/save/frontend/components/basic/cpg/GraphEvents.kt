@@ -2,22 +2,24 @@
  * File with component that is used to define the events connected with sigma graph
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.cpg
 
 import com.saveourtool.save.frontend.externals.sigma.*
 import js.core.jso
 import react.*
 
-val graphEvents: VFC = VFC {
+val graphEvents: FC<GraphEventsProps> = FC { props ->
     val sigma = useSigma()
     val (hoveredNode, setHoveredNode) = useState<dynamic>(undefined)
 
+    val setSettings = useSetSettings()
     val registerEvents = useRegisterEvents()
 
-    /**
+    /*
      * effect that makes all the nodes except hoveredNode and its neighbours to be grey
      */
-    val setSettings = useSetSettings()
     useEffect(hoveredNode, sigma) {
         setSettings(jso {
             nodeReducer = { node: dynamic, data: dynamic ->
@@ -28,6 +30,9 @@ val graphEvents: VFC = VFC {
                     } else {
                         data["color"] = "#E2E2E2"
                         data["highlighted"] = false
+                        if (props.shouldHideUnfocusedNodes) {
+                            data["hidden"] = true
+                        }
                     }
                 }
                 data
@@ -57,4 +62,14 @@ val graphEvents: VFC = VFC {
             }
         })
     }
+}
+
+/**
+ * [Props] for [graphEvents] functional component
+ */
+external interface GraphEventsProps : Props {
+    /**
+     * Flag that defines whether unfocused nodes should disappear or not
+     */
+    var shouldHideUnfocusedNodes: Boolean
 }
