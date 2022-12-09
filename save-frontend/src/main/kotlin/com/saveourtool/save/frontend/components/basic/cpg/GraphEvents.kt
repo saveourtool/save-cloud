@@ -17,7 +17,7 @@ val graphEvents: FC<GraphEventsProps> = FC { props ->
     val setSettings = useSetSettings()
     val registerEvents = useRegisterEvents()
 
-    /**
+    /*
      * effect that makes all the nodes except hoveredNode and its neighbours to be grey
      */
     useEffect(hoveredNode, sigma) {
