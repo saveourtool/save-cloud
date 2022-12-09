@@ -17,8 +17,8 @@
                 <constraints foreignKeyName="fk_lnk_execution_agent_agent" references="agent(id)" nullable="false" deleteCascade="true"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="lnk_execution_agent" columnNames="execution_id, agent_id"/>
-        <addUniqueConstraint tableName="lnk_execution_agent_agent_id" columnNames="agent_id"/>
+        <addUniqueConstraint tableName="lnk_execution_agent" columnNames="execution_id, agent_id" constraintName="uq_lnk_execution_agent"/>
+        <addUniqueConstraint tableName="lnk_execution_agent" columnNames="agent_id" constraintName="lnk_execution_agent_agent_id"/>
         <sql>
             insert into lnk_execution_agent(execution_id, agent_id)
             select execution_id, id
