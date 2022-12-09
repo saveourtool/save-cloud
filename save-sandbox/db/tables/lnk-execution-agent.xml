@@ -28,7 +28,4 @@
         <dropColumn tableName="agent" columnName="execution_id"/>
     </changeSet>
 
-    <changeSet id="lnk-execution-test-suite-2" author="nulls">
-    </changeSet>
-
 </databaseChangeLog>
