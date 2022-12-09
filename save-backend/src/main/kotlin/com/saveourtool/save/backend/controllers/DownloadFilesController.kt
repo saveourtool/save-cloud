@@ -3,8 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
+import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -54,8 +53,7 @@ class DownloadFilesController(
     private val avatarStorage: AvatarStorage,
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
-    private val agentRepository: AgentRepository,
-    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
+    private val agentService: AgentService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
@@ -323,15 +321,7 @@ class DownloadFilesController(
             .orResponseStatusException(HttpStatus.BAD_REQUEST) {
                 "Request body should contain agentContainerId"
             }
-        val executionId = agentRepository.findByContainerId(agentContainerId)
-            ?.requiredId()
-            ?.let {
-                lnkExecutionAgentRepository.findByAgentId(it)
-            }
-            ?.execution
-            ?.requiredId()
-
-        return executionId.orNotFound { "Execution for agent $agentContainerId not found" }
+        return agentService.getExecutionByContainerId(agentContainerId).requiredId()
     }
 
     /**
