@@ -150,7 +150,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 responseChangeOrganizationStatus(organizationDto.name, OrganizationStatus.CREATED)
                                             }
                                         }
-                                        OrganizationStatus.BANNED -> {}
+                                        OrganizationStatus.BANNED -> Unit
                                     }
                                 }
                                 div {
