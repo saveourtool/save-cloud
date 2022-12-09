@@ -21,7 +21,6 @@ import csstype.Width
 import csstype.rem
 import dom.html.HTMLButtonElement
 import history.Location
-import react.router.dom.Link
 import js.core.jso
 import react.*
 import react.dom.aria.*
@@ -37,6 +36,7 @@ import react.dom.html.ReactHTML.ol
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import react.router.useLocation
 import react.router.useNavigate
 import react.useState
@@ -46,7 +46,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-
 
 /**
  * Displays the url and its division by "/"
@@ -61,7 +60,7 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                 className = ClassName("breadcrumb-item")
                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                 Link {
-                    to = "#/"
+                    to = "/"
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
@@ -81,13 +80,14 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                                 if (index == size - 1) {
-                                    Link {
+                                    a {
                                         className = ClassName("text-warning")
                                         +pathPart
                                     }
                                 } else {
                                     Link {
-                                        to = url.currentPath
+                                        // removePrefix - to remove the # at the beginning and not rewrite the logic with the construction of the url
+                                        to = url.currentPath.removePrefix("#")
                                         className = ClassName("text-light")
                                         +pathPart
                                     }
@@ -106,15 +106,8 @@ private val topBarUrlSplits: FC<TopBarPropsWithLocation> = FC { props ->
  */
 @Suppress("MAGIC_NUMBER")
 private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
+    val navigate = useNavigate()
     val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
-    val topBarlinksList = listOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
-        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
-        TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB, width = 9.rem, text = "SAVE on GitHub"),
-        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
-        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
-        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us")
-    )
 
     ul {
         className = ClassName("navbar-nav mx-auto")
@@ -137,23 +130,30 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
             div {
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
                 ariaLabelledBy = "demoDropdown"
-                val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
+                val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
                 dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
                     attrs.onClick = {
                         setIsDemoDropdownActive(false)
-                        window.location.href = diktatDemoHref
+                        navigate(to = diktatDemoHref)
                     }
                 }
-                val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
+                val cpgDemoHref = "/${FrontendRoutes.DEMO.path}/cpg"
                 dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
                     attrs.onClick = {
                         setIsDemoDropdownActive(false)
-                        window.location.href = cpgDemoHref
+                        navigate(to = cpgDemoHref)
                     }
                 }
             }
         }
-        topBarlinksList.forEach { elem ->
+        listOf(
+            TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
+            TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
+            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB, width = 9.rem, text = "SAVE on GitHub"),
+            TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
+            TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
+            TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
+        ).forEach { elem ->
             val isNotSaveCloudLink = elem.hrefAnchor != SAVE_CLOUD_GITHUB
             val elemClassName = if (isNotSaveCloudLink) textColor(elem.hrefAnchor, props.location) else ""
             li {
@@ -162,7 +162,6 @@ private val topBarLinks: FC<TopBarPropsWithLocation> = FC { props ->
                     className = ClassName("nav-link d-flex align-items-center me-2 $elemClassName active")
                     style = jso { width = elem.width }
                     to = elem.hrefAnchor
-                    // href = if (isNotSaveCloudLink) "#/${elem.hrefAnchor}" else linkToSaveCloudOnGithub
                     +elem.text
                 }
             }
@@ -292,7 +291,7 @@ external interface TopBarProps : PropsWithChildren {
  */
 external interface TopBarPropsWithLocation : TopBarProps {
     /**
-     * Is user location
+     * Is location
      */
     var location: Location
 }
