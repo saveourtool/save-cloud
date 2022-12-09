@@ -4,7 +4,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerRunner
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -42,7 +42,7 @@ import java.net.InetSocketAddress
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
 @Import(
     Beans::class,
-    DockerAgentRunner::class,
+    DockerContainerRunner::class,
     ContainerService::class,
     AgentService::class,
 )

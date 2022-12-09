@@ -6,8 +6,8 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.info
@@ -33,7 +33,7 @@ import kotlinx.datetime.Clock
 @Service
 class ContainerService(
     private val configProperties: ConfigProperties,
-    private val agentRunner: AgentRunner,
+    private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
 ) {
     private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
@@ -64,7 +64,7 @@ class ContainerService(
     fun createAndStartContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = agentRunner.createAndStart(
+    ) = containerRunner.createAndStart(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -72,7 +72,7 @@ class ContainerService(
 
     /**
      * @param executionId ID of [Execution] for which containers are being started
-     * @param agentIds list of IDs of agents (==containers) for this execution
+     * @param containerIds list of IDs of agents (==containers) for this execution
      * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
@@ -108,17 +108,17 @@ class ContainerService(
     }
 
     /**
-     * @param agentIds list of IDs of agents to stop
+     * @param containerIds list of container IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(agentIds: Collection<String>) =
+    fun stopAgents(containerIds: Collection<String>) =
             try {
-                agentIds.all { agentId ->
-                    agentRunner.stopByAgentId(agentId)
+                containerIds.all { containerId ->
+                    containerRunner.stopByContainerId(containerId)
                 }
-            } catch (e: AgentRunnerException) {
-                log.error("Error while stopping agents $agentIds", e)
+            } catch (e: ContainerRunnerException) {
+                log.error("Error while stopping agents $containerIds", e)
                 false
             }
 
@@ -132,18 +132,18 @@ class ContainerService(
     }
 
     /**
-     * Check whether the agent agentId is stopped
+     * Check whether the agent with [containerId] is stopped
      *
-     * @param agentId id of an agent
+     * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
+    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
 
     /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
-        agentRunner.cleanup(executionId)
+        containerRunner.cleanup(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {

@@ -73,16 +73,6 @@ class TestExecutionService(
     }
 
     /**
-     * Get test executions by [agentContainerId] and [status]
-     *
-     * @param agentContainerId
-     * @param status
-     * @return a list of test executions
-     */
-    internal fun getTestExecutions(agentContainerId: String, status: TestResultStatus) = testExecutionRepository
-        .findByAgentContainerIdAndStatus(agentContainerId, status)
-
-    /**
      * @param executionId
      * @return a list of test executions
      */
@@ -129,15 +119,6 @@ class TestExecutionService(
     @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
     internal fun getTestExecutionsCount(executionId: Long, status: TestResultStatus?, testSuite: String?) =
             testExecutionRepository.countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite)
-
-    /**
-     * @param projectId
-     */
-    internal fun deleteTestExecutionWithProjectId(projectId: Long?) {
-        projectId?.let {
-            testExecutionRepository.deleteByExecutionProjectId(projectId)
-        }
-    }
 
     /**
      * @param executionIds list of ids
@@ -307,15 +288,15 @@ class TestExecutionService(
     }
 
     /**
-     * @param agentsList the list of agents, for which corresponding test executions should be marked as failed
+     * @param containerIds the list of agents, for which corresponding test executions should be marked as failed
      * @param condition
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(agentsList: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
-        agentsList.forEach { agentContainerId ->
-            val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
-                "Agent with containerId=[$agentContainerId] was not found in the DB"
+    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
+        containerIds.forEach { containerId ->
+            val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
+                "Agent with containerId=[$containerId] was not found in the DB"
             }
             val agentId = agent.requiredId()
             val executionId = agentService.getExecution(agent).requiredId()

@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
@@ -50,7 +50,7 @@ import java.time.Month
     HeartBeatInspector::class,
     JsonConfig::class,
 )
-@MockBeans(MockBean(AgentRunner::class))
+@MockBeans(MockBean(ContainerRunner::class))
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
@@ -153,7 +153,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(containerService.isAgentStopped(any())).thenReturn(true)
+        whenever(containerService.isStoppedByContainerId(any())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),

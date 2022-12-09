@@ -45,50 +45,50 @@ class HeartBeatInspector(
     }
 
     /**
-     * @param agentId
+     * @param containerId
      */
-    fun unwatchAgent(agentId: String) {
-        agentsLatestHeartBeatsMap.remove(agentId)
-        crashedAgents.remove(agentId)
+    fun unwatchAgent(containerId: String) {
+        agentsLatestHeartBeatsMap.remove(containerId)
+        crashedAgents.remove(containerId)
     }
 
     /**
-     * @param agentId
+     * @param containerId
      */
-    fun watchCrashedAgent(agentId: String) {
-        crashedAgents.add(agentId)
+    fun watchCrashedAgent(containerId: String) {
+        crashedAgents.add(containerId)
     }
 
     /**
-     * @param agentId
+     * @param containerId
      */
-    fun unwatchCrashedAgent(agentId: String) {
-        crashedAgents.remove(agentId)
+    fun unwatchCrashedAgent(containerId: String) {
+        crashedAgents.remove(containerId)
     }
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
-            currentAgentId !in crashedAgents
-        }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
+        agentsLatestHeartBeatsMap.filter { (currentContainerId, _) ->
+            currentContainerId !in crashedAgents
+        }.forEach { (currentContainerId, stateToLatestHeartBeatPair) ->
             val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
-            logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
+            logger.debug("Latest heartbeat from $currentContainerId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
-                logger.debug("Adding $currentAgentId to list crashed agents")
-                crashedAgents.add(currentAgentId)
+                logger.debug("Adding $currentContainerId to list crashed agents")
+                crashedAgents.add(currentContainerId)
             }
         }
 
-        crashedAgents.removeIf { agentId ->
-            containerService.isAgentStopped(agentId)
+        crashedAgents.removeIf { containerId ->
+            containerService.isStoppedByContainerId(containerId)
         }
-        agentsLatestHeartBeatsMap.filterKeys { agentId ->
-            containerService.isAgentStopped(agentId)
-        }.forEach { (agentId, _) ->
-            logger.debug("Agent $agentId is already stopped, will stop watching it")
-            agentsLatestHeartBeatsMap.remove(agentId)
+        agentsLatestHeartBeatsMap.filterKeys { containerId ->
+            containerService.isStoppedByContainerId(containerId)
+        }.forEach { (containerId, _) ->
+            logger.debug("Agent $containerId is already stopped, will stop watching it")
+            agentsLatestHeartBeatsMap.remove(containerId)
         }
     }
 
@@ -103,16 +103,16 @@ class HeartBeatInspector(
 
         val areAgentsStopped = containerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
-            Flux.fromIterable(crashedAgents).flatMap { agentId ->
-                agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, agentId))
+            Flux.fromIterable(crashedAgents).flatMap { containerId ->
+                agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
             }.blockLast()
             if (agentsLatestHeartBeatsMap.keys.toList() == crashedAgents.toList()) {
                 logger.warn("All agents are crashed, initialize shutdown sequence. Crashed agents: $crashedAgents")
                 // fixme: should be cleared only for execution
-                val agentId = crashedAgents.first()
+                val containerId = crashedAgents.first()
                 agentsLatestHeartBeatsMap.clear()
                 crashedAgents.clear()
-                agentService.finalizeExecution(agentId)
+                agentService.finalizeExecution(containerId)
             }
         } else {
             logger.warn("Crashed agents $crashedAgents are not stopped after stop command")

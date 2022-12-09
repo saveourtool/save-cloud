@@ -44,8 +44,8 @@ data class AgentConfiguration(
          */
         internal fun initializeFromEnv() = AgentConfiguration(
             info = AgentInfo(
-                containerId = requiredEnv(AgentEnvName.AGENT_ID),
-                containerName = requiredEnv(AgentEnvName.AGENT_NAME),
+                containerId = requiredEnv(AgentEnvName.CONTAINER_ID),
+                containerName = requiredEnv(AgentEnvName.CONTAINER_NAME),
                 version = requiredEnv(AgentEnvName.AGENT_VERSION),
             ),
             heartbeat = HeartbeatConfig(

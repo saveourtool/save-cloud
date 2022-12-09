@@ -23,11 +23,11 @@ import org.springframework.test.context.TestPropertySource
 import kotlin.io.path.createTempFile
 
 @SpringBootTest
-@Import(Beans::class, DockerAgentRunner::class)
+@Import(Beans::class, DockerContainerRunner::class)
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
-    @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
+    @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String

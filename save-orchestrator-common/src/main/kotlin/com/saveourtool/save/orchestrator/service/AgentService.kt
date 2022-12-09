@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -25,7 +25,7 @@ import java.time.Duration
 @Service
 class AgentService(
     private val configProperties: ConfigProperties,
-    private val agentRunner: AgentRunner,
+    private val containerRunner: ContainerRunner,
     private val orchestratorAgentService: OrchestratorAgentService,
 ) {
     /**
@@ -46,11 +46,11 @@ class AgentService(
     /**
      * Sets new tests ids
      *
-     * @param agentId
+     * @param containerId
      * @return [Mono] of [NewJobResponse] or [WaitResponse]
      */
-    internal fun getNextRunConfig(agentId: String): Mono<HeartbeatResponse> =
-            orchestratorAgentService.getNextRunConfig(agentId)
+    internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
+            orchestratorAgentService.getNextRunConfig(containerId)
                 .map { NewJobResponse(it) }
                 .cast(HeartbeatResponse::class.java)
                 .defaultIfEmpty(WaitResponse)
@@ -92,44 +92,44 @@ class AgentService(
                 }
 
     /**
-     * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
+     * Check that no TestExecution for agent [containerId] have status READY_FOR_TESTING
      *
-     * @param agentId agent for which data is checked
+     * @param containerId agent for which data is checked
      * @return true if all executions have status other than `READY_FOR_TESTING`
      */
-    fun checkSavedData(agentId: String): Mono<Boolean> = orchestratorAgentService
-        .getReadyForTestingTestExecutions(agentId)
+    fun checkSavedData(containerId: String): Mono<Boolean> = orchestratorAgentService
+        .getReadyForTestingTestExecutions(containerId)
         .map { it.isEmpty() }
 
     /**
      * This method should be called when all agents are done and execution status can be updated and cleanup can be performed
      *
-     * @param agentId an ID of the agent from the execution, that will be checked.
+     * @param containerId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    internal fun finalizeExecution(agentId: String) {
+    internal fun finalizeExecution(containerId: String) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getFinishedOrStoppedAgentsForSameExecution(agentId)
-            .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
+        getFinishedOrStoppedAgentsForSameExecution(containerId)
+            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
             .flatMap { (_, _) ->
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
+                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for containerId=$containerId")
                 Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getFinishedOrStoppedAgentsForSameExecution(agentId)
+                    getFinishedOrStoppedAgentsForSameExecution(containerId)
                 )
             }
-            .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
-            .flatMap { (executionId, finishedAgentIds) ->
+            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
+            .flatMap { (executionId, finishedContainerIds) ->
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
-                markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
+                markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
                     .thenReturn(
-                        agentRunner.cleanup(executionId)
+                        containerRunner.cleanup(executionId)
                     )
             }
             .doOnSuccess {
                 if (it == null) {
-                    log.debug("Agents other than $agentId are still running, so won't try to stop them")
+                    log.debug("Agents other than $containerId are still running, so won't try to stop them")
                 }
             }
             .subscribeOn(scheduler)
@@ -137,20 +137,20 @@ class AgentService(
     }
 
     /**
-     * Updates status of execution [executionId] based on statues of agents [agentIds]
+     * Updates status of execution [executionId] based on statues of agents [finishedContainerIds]
      *
      * @param executionId id of an execution
-     * @param agentIds ids of agents
+     * @param finishedContainerIds ids of agents
      * @return Mono with response from backend
      */
     private fun markExecutionBasedOnAgentStates(
         executionId: Long,
-        agentIds: List<String>,
+        finishedContainerIds: List<String>,
     ): Mono<EmptyResponse> {
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return orchestratorAgentService
-            .getAgentsStatuses(agentIds)
+            .getAgentsStatuses(finishedContainerIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
@@ -162,7 +162,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(executionId, false))
+                    ).then(markTestExecutionsAsFailed(finishedContainerIds, false))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -188,12 +188,12 @@ class AgentService(
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
      * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
      *
-     * @param agentId containerId of an agent
+     * @param containerId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = orchestratorAgentService
-        .getAgentsStatusesForSameExecution(agentId)
+    private fun getFinishedOrStoppedAgentsForSameExecution(containerId: String): Mono<Pair<Long, List<String>>> = orchestratorAgentService
+        .getAgentsStatusesForSameExecution(containerId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
             // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
@@ -208,11 +208,11 @@ class AgentService(
     /**
      * Checks whether all agent under one execution have completed their jobs.
      *
-     * @param agentId containerId of an agent
+     * @param containerId containerId of an agent
      * @return true if all agents match [areIdleOrFinished]
      */
-    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = orchestratorAgentService
-        .getAgentsStatusesForSameExecution(agentId)
+    fun areAllAgentsIdleOrFinished(containerId: String): Mono<Boolean> = orchestratorAgentService
+        .getAgentsStatusesForSameExecution(containerId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
             agentStatuses.areIdleOrFinished()
@@ -221,14 +221,26 @@ class AgentService(
     /**
      * Mark agent's test executions as failed
      *
-     * @param executionId execution ID, for which, corresponding test executions should be marked as failed
+     * @param containerIds the list of agents, for which, corresponding test executions should be marked as failed
      * @param onlyReadyForTesting
      * @return a bodiless response entity
      */
     fun markTestExecutionsAsFailed(
+        containerIds: Collection<String>,
+        onlyReadyForTesting: Boolean
+    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(containerIds, onlyReadyForTesting)
+
+    /**
+     * Mark agent's test executions as failed
+     *
+     * @param executionId execution ID, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting
+     * @return a bodiless response entity
+     */
+    fun markAllTestExecutionsAsFailed(
         executionId: Long,
         onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(executionId, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfAgentsAsFailed(executionId, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

@@ -6,7 +6,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -34,7 +34,7 @@ import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
-@MockBeans(MockBean(AgentRunner::class))
+@MockBeans(MockBean(ContainerRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
     @Autowired
@@ -42,7 +42,7 @@ class AgentsControllerTest {
 
     @MockBean private lateinit var containerService: ContainerService
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
-    @MockBean private lateinit var agentRunner: AgentRunner
+    @MockBean private lateinit var containerRunner: ContainerRunner
 
     @Test
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
@@ -64,7 +64,7 @@ class AgentsControllerTest {
         whenever(containerService.createAndStartContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
-        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+        whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
         whenever(containerService.validateContainersAreStarted(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))

@@ -40,7 +40,7 @@ private val diktatDemoDefaultCode = """
     |package com.test
     |
     |fun main() {
-    |    val SAVEOUR = "tools"
+    |    val SAVEOUR = "tool"
     |}
 """.trimMargin()
 
@@ -122,7 +122,7 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, f
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest(emptyList(), DemoAdditionalParams()))
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatRunRequest(emptyList(), DiktatAdditionalParams()))
     val (diktatResult, setDiktatResult) = useState(DiktatDemoResult.empty)
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
@@ -163,8 +163,8 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                     editorTitle = "Output code"
                     selectedTheme = props.selectedTheme
                     selectedMode = props.selectedMode
-                    savedText = diktatResult.outputText
-                    draftText = diktatResult.outputText
+                    savedText = diktatResult.outputText.joinToString("\n")
+                    draftText = diktatResult.outputText.joinToString("\n")
                     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                     onDraftTextUpdate = { }
                     isDisabled = true
@@ -213,11 +213,13 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                 val reader = FileReader().apply {
                     onload = { event ->
                         setDiktatRunRequest { runRequest ->
-                            runRequest.copy(
-                                params = runRequest.params.copy(
-                                    config = (event.target.asDynamic()["result"] as String?)
+                            (event.target.asDynamic()["result"] as String?)?.let {
+                                runRequest.copy(
+                                    params = runRequest.params.copy(
+                                        config = (it.split("\n"))
+                                    )
                                 )
-                            )
+                            } ?: runRequest
                         }
                     }
                 }
@@ -252,9 +254,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
         div {
             className = ClassName("ml-1 mr-1")
             displayAlertWithWarnings(diktatResult) {
-                setDiktatResult { result ->
-                    result.copy(warnings = emptyList())
-                }
+                setDiktatResult(DiktatDemoResult.empty)
             }
         }
     }

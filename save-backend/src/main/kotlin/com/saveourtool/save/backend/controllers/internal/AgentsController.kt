@@ -176,7 +176,7 @@ class AgentsController(
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
@@ -197,13 +197,13 @@ class AgentsController(
         }
         val executionIds = agents.map { agentService.getExecution(it).requiredId() }.distinct()
         check(executionIds.size == 1) {
-            "Statuses are requested for agents from different executions: agentIds=$containerIds, execution IDs are $executionIds"
+            "Statuses are requested for agents from different executions: containerIds=$containerIds, execution IDs are $executionIds"
         }
         return agents.map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
-                "AgentStatus not found for agent id=${agent.containerId}"
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
             }
             latestStatus.toDto()
         }
