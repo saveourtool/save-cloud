@@ -42,3 +42,27 @@ external interface SigmaContainerProps : PropsWithChildren {
  */
 @JsName("useLoadGraph")
 external fun useLoadGraph(): (graph: dynamic) -> Unit
+
+/**
+ * Hook to configure the graph
+ *
+ * @return callback that receives json with graph settings
+ */
+@JsName("useSetSettings")
+external fun useSetSettings(): (dynamic) -> Unit
+
+/**
+ * Hook to configure event handlers
+ *
+ * @return callback that receives the json with event handlers
+ */
+@JsName("useRegisterEvents")
+external fun useRegisterEvents(): (dynamic) -> Unit
+
+/**
+ * Hook to get Sigma object, required to get current graph for example
+ *
+ * @return sigma object
+ */
+@JsName("useSigma")
+external fun useSigma(): dynamic
