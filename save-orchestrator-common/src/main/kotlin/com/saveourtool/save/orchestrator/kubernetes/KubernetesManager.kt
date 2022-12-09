@@ -6,6 +6,7 @@ import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -35,10 +36,10 @@ class KubernetesManager(
         "NestedBlockDepth",
         "ComplexMethod",
     )
-    override fun create(executionId: Long,
-                        configuration: DockerService.RunConfiguration,
-                        replicas: Int,
-    ): List<String> {
+    override fun createAndStart(executionId: Long,
+                                configuration: DockerService.RunConfiguration,
+                                replicas: Int,
+    ) {
         val baseImageTag = configuration.imageTag
         val agentRunCmd = configuration.runCmd
         val workingDir = configuration.workingDir
@@ -65,7 +66,7 @@ class KubernetesManager(
                         }
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
-                                "executionId" to executionId.toString(),
+                                EXECUTION_ID_LABEL to executionId.toString(),
                                 // "baseImageName" to baseImageName
                                 "io.kompose.service" to "save-agent",
                                 // todo: should be set to version of agent that is stored in backend...
@@ -85,21 +86,6 @@ class KubernetesManager(
         kc.resource(job)
             .create()
         logger.info("Created Job for execution id=$executionId")
-        // fixme: wait for pods to be created
-        return generateSequence<List<String>> {
-            Thread.sleep(1_000)
-            kc.pods().withLabel("executionId", executionId.toString())
-                .list()
-                .items
-                .map { it.metadata.name }
-        }
-            .take(10)
-            .firstOrNull { it.isNotEmpty() }
-            .orEmpty()
-    }
-
-    override fun start(executionId: Long) {
-        logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
     }
 
     override fun stop(executionId: Long) {
@@ -114,19 +100,11 @@ class KubernetesManager(
     }
 
     override fun stopByAgentId(agentId: String): Boolean {
-        val pod: Pod? = kc.pods().withName(agentId).get()
-        pod ?: run {
-            logger.debug("Agent id=$agentId is already stopped or not yet created")
-            return true
+        logger.warn {
+            "${this::class.simpleName}#stopByAgentId is called, but it's no-op, " +
+                    "because we don't directly delete pods in kubernetes"
         }
-        val deletedResources = kc.pods().withName(agentId).delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete pod with name $agentId: response is $deletedResources")
-        } else {
-            logger.debug("Deleted pod with name=$agentId")
-            return true
-        }
+        return false
     }
 
     override fun cleanup(executionId: Long) {
@@ -141,6 +119,12 @@ class KubernetesManager(
         logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
                 "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
     }
+
+    override fun listContainerIds(executionId: Long): List<String> = kc.pods()
+        .withLabel(EXECUTION_ID_LABEL, executionId.toString())
+        .list()
+        .items
+        .map { it.metadata.name }
 
     override fun isAgentStopped(agentId: String): Boolean {
         val pod = kc.pods().withName(agentId).get()
@@ -222,5 +206,6 @@ class KubernetesManager(
                     }
                 }
             }
+        private const val EXECUTION_ID_LABEL = "executionId"
     }
 }

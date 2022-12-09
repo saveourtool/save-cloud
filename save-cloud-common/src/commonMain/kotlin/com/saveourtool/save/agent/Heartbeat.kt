@@ -27,14 +27,14 @@ data class ExecutionProgress(
 /**
  * A heartbeat sent from Agent to Orchestrator.
  *
- * @property agentId unique ID of the agent which sent the heartbeat
+ * @property agentInfo info about agent
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
  * @property timestamp the time of heartbeat posting
  */
 @Serializable
 data class Heartbeat(
-    val agentId: String,
+    val agentInfo: AgentInfo,
     val state: AgentState,
     val executionProgress: ExecutionProgress,
     val timestamp: Instant,

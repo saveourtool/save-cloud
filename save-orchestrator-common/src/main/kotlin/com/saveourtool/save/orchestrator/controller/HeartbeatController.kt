@@ -6,6 +6,7 @@ package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -26,6 +27,9 @@ import reactor.kotlin.core.util.function.component2
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
+import org.slf4j.Logger
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.kotlin.core.publisher.doOnError
 
 /**
  * Controller for heartbeat
@@ -55,7 +59,8 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         val executionId = heartbeat.executionProgress.executionId
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} under execution id=$executionId")
+        val containerId = heartbeat.agentInfo.containerId
+        logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
             dockerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
@@ -64,24 +69,24 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatusesWithDto(
-                    AgentStatusDto(heartbeat.state, heartbeat.agentId)
+                    AgentStatusDto(heartbeat.state, containerId)
                 )
             }
             .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleNewAgent(heartbeat.agentId)
+                    STARTING -> handleNewAgent(executionId, heartbeat.agentInfo)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    IDLE -> handleVacantAgent(heartbeat.agentId)
+                    IDLE -> handleVacantAgent(containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
-                    FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
-                        handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
+                    FINISHED -> agentService.checkSavedData(containerId).flatMap { isSavingSuccessful ->
+                        handleFinishedAgent(containerId, isSavingSuccessful)
                     }
 
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
-                        handleIllegallyOnlineAgent(heartbeat.agentId, heartbeat.state)
+                        handleIllegallyOnlineAgent(containerId, heartbeat.state)
                         WaitResponse
                     }
                 }
@@ -93,8 +98,22 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun handleNewAgent(agentId: String): Mono<HeartbeatResponse> =
-            agentService.getInitConfig(agentId)
+    private fun handleNewAgent(
+        executionId: Long,
+        agentInfo: AgentInfo,
+    ): Mono<HeartbeatResponse> = agentService.saveAgentWithInitialStatus(
+        AgentDto(
+            containerId = agentInfo.containerId,
+            containerName = agentInfo.containerName,
+            executionId = executionId,
+            version = agentInfo.version,
+        )
+    )
+        .doOnError(WebClientResponseException::class) { exception ->
+            log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
+            dockerService.cleanup(executionId)
+        }
+        .then(agentService.getInitConfig(agentInfo.containerId))
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(agentId)
@@ -167,5 +186,9 @@ class HeartbeatController(private val agentService: AgentService,
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
+    }
+
+    companion object {
+        private val log: Logger = getLogger<HeartbeatController>()
     }
 }

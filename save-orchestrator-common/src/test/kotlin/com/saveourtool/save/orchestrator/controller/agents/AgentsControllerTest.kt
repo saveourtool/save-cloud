@@ -61,12 +61,12 @@ class AgentsControllerTest {
                 env = emptyMap(),
             )
         )
-        whenever(dockerService.createContainers(any(), any()))
+        whenever(dockerService.createAndStartContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
         whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
-        whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
+        whenever(dockerService.validateContainersAreStarted(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         whenever(orchestratorAgentService.addAgents(anyList()))
             .thenReturn(listOf<Long>(1, 2).toMono())
@@ -83,8 +83,8 @@ class AgentsControllerTest {
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(dockerService).prepareConfiguration(any())
-        verify(dockerService).createContainers(any(), any())
-        verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
+        verify(dockerService).createAndStartContainers(any(), any())
+        verify(dockerService).validateContainersAreStarted(any(), anyList())
     }
 
     @Test

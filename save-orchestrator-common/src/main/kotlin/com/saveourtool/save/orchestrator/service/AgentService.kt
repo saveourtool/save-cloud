@@ -56,6 +56,15 @@ class AgentService(
                 .defaultIfEmpty(WaitResponse)
 
     /**
+     * Save new agent to the DB and insert its status. This logic is performed in two consecutive requests.
+     *
+     * @param agent [AgentDto] to save in the DB
+     * @return Mono with response body
+     * @throws WebClientResponseException if any of the requests fails
+     */
+    fun saveAgentWithInitialStatus(agent: AgentDto): Mono<EmptyResponse> = saveAgentsWithInitialStatuses(listOf(agent))
+
+    /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
      * @param agents list of [AgentDto]s to save in the DB
@@ -153,7 +162,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(agentIds, false))
+                    ).then(markAllTestExecutionsAsFailed(executionId, false))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -212,14 +221,26 @@ class AgentService(
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, corresponding test executions should be marked as failed
+     * @param containerIds the list of agent container IDs, for which, corresponding test executions should be marked as failed
      * @param onlyReadyForTesting
      * @return a bodiless response entity
      */
     fun markTestExecutionsAsFailed(
-        agentsList: Collection<String>,
+        containerIds: List<String>,
         onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(containerIds, onlyReadyForTesting)
+
+    /**
+     * Mark agent's test executions as failed
+     *
+     * @param executionId the ID of execution, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting
+     * @return a bodiless response entity
+     */
+    fun markAllTestExecutionsAsFailed(
+        executionId: Long,
+        onlyReadyForTesting: Boolean
+    ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfAgentsAsFailed(executionId, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

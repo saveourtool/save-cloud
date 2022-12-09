@@ -193,37 +193,15 @@ class TestExecutionController(
                 }
 
     /**
-     * @param status
-     * @param agentIds the list of agents, for which, according the [status] test executions should be updated
-     * @throws ResponseStatusException
-     */
-    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
-    fun setStatusByAgentIds(
-        @RequestParam("status") status: String,
-        @RequestBody agentIds: Collection<String>
-    ) {
-        when (status) {
-            AgentState.CRASHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds)
-            AgentState.FINISHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            }
-            else -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "For now only CRASHED and FINISHED statuses are supported"
-            )
-        }
-    }
-
-    /**
+     * @param executionId
      * @param onlyReadyForTesting
-     * @param containerIds
      */
-    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
+    @PostMapping("/internal/test-executions/mark-as-failed-by-execution-id")
     fun markTestExecutionsOfAgentsAsFailed(
+        @RequestParam executionId: Long,
         @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
-        @RequestBody containerIds: Collection<String>,
     ) {
-        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
+        testExecutionService.markTestExecutionsOfAgentsAsFailed(executionId) {
             if (onlyReadyForTesting) {
                 it.status == TestResultStatus.READY_FOR_TESTING
             } else {

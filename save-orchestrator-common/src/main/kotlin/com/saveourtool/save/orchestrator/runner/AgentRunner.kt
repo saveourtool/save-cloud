@@ -15,18 +15,12 @@ interface AgentRunner {
      * @param executionId and ID of execution for which agents will run tests
      * @param configuration [DockerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
-     * @return unique identifier of created instances that can be used to manipulate them later
      */
-    fun create(
+    fun createAndStart(
         executionId: Long,
         configuration: DockerService.RunConfiguration,
         replicas: Int,
-    ): List<String>
-
-    /**
-     * @param executionId
-     */
-    fun start(executionId: Long)
+    )
 
     /**
      * Stop all agents in an execution. Currently, not used.
@@ -63,6 +57,12 @@ interface AgentRunner {
     fun discover(executionId: Long) {
         TODO("Not yet implemented")
     }
+
+    /**
+     * @param executionId
+     * @return list of container id which are run for [executionId]
+     */
+    fun listContainerIds(executionId: Long): List<String>
 
     /**
      * Check whether the agent [agentId] is stopped

@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.EmptyResponse
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -24,6 +25,7 @@ import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
+import reactor.core.publisher.Mono
 
 /**
  * A service that builds and starts containers for test execution.
@@ -57,10 +59,10 @@ class DockerService(
      * @param configuration configuration for containers to be created
      * @return list of IDs of created containers
      */
-    fun createContainers(
+    fun createAndStartContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = agentRunner.create(
+    ) = agentRunner.createAndStart(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -68,44 +70,36 @@ class DockerService(
 
     /**
      * @param executionId ID of [Execution] for which containers are being started
-     * @param agentIds list of IDs of agents (==containers) for this execution
-     * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
+     * @return Mono of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(executionId: Long, agentIds: List<String>): Flux<Long> {
+    fun validateContainersAreStarted(executionId: Long): Mono<EmptyResponse> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
-        return agentService
-            .updateExecution(executionId, ExecutionStatus.RUNNING)
-            .map {
-                agentRunner.start(executionId)
-                log.info("Made request to start containers for execution.id=$executionId")
+        // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
+        // if no, mark execution as failed with internal error here
+        val now = Clock.System.now()
+        val duration = AtomicLong(0)
+        return Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
+            .takeWhile {
+                val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+                duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
             }
-            .flatMapMany {
-                // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
-                // if no, mark execution as failed with internal error here
-                val now = Clock.System.now()
-                val duration = AtomicLong(0)
-                Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
-                    .takeWhile {
-                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
-                    }
-                    .doOnNext {
-                        duration.set((Clock.System.now() - now).inWholeMilliseconds)
-                    }
-                    .doOnComplete {
-                        if (areAgentsHaveStarted[executionId]?.get() != true) {
-                            log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
-                            agentRunner.stop(executionId)
-                            agentService.updateExecution(executionId, ExecutionStatus.ERROR,
-                                "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                            ).then(agentService.markTestExecutionsAsFailed(agentIds, false))
-                                .subscribe()
-                        }
-                        areAgentsHaveStarted.remove(executionId)
-                    }
+            .doOnNext {
+                duration.set((Clock.System.now() - now).inWholeMilliseconds)
             }
+            .doOnComplete {
+                if (areAgentsHaveStarted[executionId]?.get() != true) {
+                    log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
+                    agentRunner.stop(executionId)
+                    agentService.updateExecution(executionId, ExecutionStatus.ERROR,
+                        "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
+                    ).then(agentService.markAllTestExecutionsAsFailed(executionId, false))
+                        .subscribe()
+                }
+                areAgentsHaveStarted.remove(executionId)
+            }
+            .then(agentService.updateExecution(executionId, ExecutionStatus.RUNNING))
     }
 
     /**
