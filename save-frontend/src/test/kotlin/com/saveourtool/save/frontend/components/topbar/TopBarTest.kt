@@ -1,6 +1,5 @@
-package com.saveourtool.save.frontend.components
+package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.components.topbar.topBar
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.info.UserInfo
 

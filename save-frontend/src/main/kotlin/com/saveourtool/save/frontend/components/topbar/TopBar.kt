@@ -10,9 +10,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import csstype.Width
 import dom.html.HTMLButtonElement
-import history.Location
 import react.*
 import react.dom.html.ButtonHTMLAttributes
 import react.dom.html.ButtonType
@@ -34,27 +32,6 @@ external interface TopBarProps : PropsWithChildren {
      */
     var isMobileScreen: Boolean?
 }
-
-/**
- * [Props] of the top bor component with [location]
- */
-external interface TopBarPropsWithLocation : TopBarProps {
-    /**
-     * Is location
-     */
-    var location: Location
-}
-
-/**
- * @property hrefAnchor is link
- * @property width is width of the link text
- * @property text is link text
- */
-data class TopBarLink(
-    val hrefAnchor: String,
-    val width: Width,
-    val text: String,
-)
 
 /**
  * @param faIcon

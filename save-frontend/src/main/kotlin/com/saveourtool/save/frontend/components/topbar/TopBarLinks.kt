@@ -6,14 +6,20 @@ import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import csstype.Width
 import csstype.rem
 import history.Location
 import js.core.jso
 import react.FC
+import react.Props
+import react.PropsWithChildren
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaExpanded
 import react.dom.aria.ariaLabelledBy
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import react.router.useNavigate
 import react.useState
@@ -23,21 +29,42 @@ import kotlinx.browser.window
 val topBarLinks = topBarLinks()
 
 /**
+ * [Props] of the top bor links component
+ */
+external interface TopBarLinksProps : PropsWithChildren {
+    /**
+     * Is location
+     */
+    var location: Location
+}
+
+/**
+ * @property hrefAnchor is link
+ * @property width is width of the link text
+ * @property text is link text
+ */
+data class TopBarLink(
+    val hrefAnchor: String,
+    val width: Width,
+    val text: String,
+)
+
+/**
  * Displays the static links that do not depend on the url
  */
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
-private fun topBarLinks() = FC<TopBarPropsWithLocation> { props ->
+private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
     val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
 
-    ReactHTML.ul {
+    ul {
         className = ClassName("navbar-nav mx-auto")
-        ReactHTML.li {
+        li {
             className = ClassName("nav-item dropdown no-arrow")
             style = jso {
                 width = 5.rem
             }
-            ReactHTML.a {
+            a {
                 className = ClassName("nav-link dropdown-toggle text-light")
                 asDynamic()["data-toggle"] = "dropdown"
                 ariaExpanded = false
@@ -48,7 +75,7 @@ private fun topBarLinks() = FC<TopBarPropsWithLocation> { props ->
                     setIsDemoDropdownActive { !it }
                 }
             }
-            ReactHTML.div {
+            div {
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
                 ariaLabelledBy = "demoDropdown"
                 val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
@@ -76,7 +103,7 @@ private fun topBarLinks() = FC<TopBarPropsWithLocation> { props ->
             TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
         ).forEach { elem ->
             val isNotSaveCloudLink = elem.hrefAnchor != SAVE_CLOUD_GITHUB
-            ReactHTML.li {
+            li {
                 className = ClassName("nav-item")
                 if (isNotSaveCloudLink) {
                     Link {
@@ -86,7 +113,7 @@ private fun topBarLinks() = FC<TopBarPropsWithLocation> { props ->
                         +elem.text
                     }
                 } else {
-                    ReactHTML.a {
+                    a {
                         className = ClassName("nav-link d-flex align-items-center me-2 active")
                         style = jso { width = elem.width }
                         href = SAVE_CLOUD_GITHUB

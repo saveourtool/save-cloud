@@ -1,29 +1,46 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
+
 import csstype.ClassName
+import history.Location
 import react.FC
+import react.Props
+import react.PropsWithChildren
 import react.dom.aria.AriaCurrent
 import react.dom.aria.ariaCurrent
 import react.dom.aria.ariaLabel
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.ol
 import react.router.dom.Link
 
 val topBarUrlSplits = topBarUrlSplits()
 
 /**
+ * [Props] of the top bor url splits component
+ */
+external interface TopBarUrlSplitsProps : PropsWithChildren {
+    /**
+     * Is location
+     */
+    var location: Location
+}
+
+/**
  * Displays the url and its division by "/"
  */
-private fun topBarUrlSplits() = FC<TopBarPropsWithLocation> { props ->
-    ReactHTML.nav {
+private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
+    nav {
         className = ClassName("navbar-nav mr-auto w-100")
         ariaLabel = "breadcrumb"
-        ReactHTML.ol {
+        ol {
             className = ClassName("breadcrumb mb-0")
-            ReactHTML.li {
+            li {
                 className = ClassName("breadcrumb-item")
                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                 Link {
@@ -43,11 +60,11 @@ private fun topBarUrlSplits() = FC<TopBarPropsWithLocation> { props ->
                     forEachIndexed { index: Int, pathPart: String ->
                         url.changeUrlBeforeButton(pathPart)
                         if (url.shouldDisplayPathFragment(index)) {
-                            ReactHTML.li {
+                            li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
                                 if (index == size - 1) {
-                                    ReactHTML.a {
+                                    a {
                                         className = ClassName("text-warning")
                                         +pathPart
                                     }
