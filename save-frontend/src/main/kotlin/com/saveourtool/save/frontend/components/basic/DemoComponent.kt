@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
 import com.saveourtool.save.demo.cpg.CpgRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faCaretSquareRight
+import com.saveourtool.save.frontend.externals.fontawesome.faInfoCircle
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
@@ -88,13 +90,15 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                             }
                         }
                     }
+                    useTooltip()
                     div {
-                        buttonBuilder("Send run request", classes = "mr-1") {
+                        className = ClassName("mr-1")
+                        buttonBuilder(faCaretSquareRight, title = "Send run request") {
                             sendRunRequest()
                         }
                     }
                     div {
-                        buttonBuilder("Show logs") {
+                        buttonBuilder(faInfoCircle, title = "Show logs") {
                             props.changeLogsVisibility()
                         }
                     }
