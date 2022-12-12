@@ -17,8 +17,8 @@ internal const val TEST_SUITES_DIR_NAME = "test-suites"
 internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
-        id = optionalEnv(AgentEnvName.AGENT_ID) ?: id,
-        name = optionalEnv(AgentEnvName.AGENT_NAME) ?: name,
+        id = optionalEnv(AgentEnvName.CONTAINER_ID) ?: id,
+        name = optionalEnv(AgentEnvName.CONTAINER_NAME) ?: name,
         version = optionalEnv(AgentEnvName.AGENT_VERSION) ?: version,
         heartbeat = heartbeat.copy(
             url = optionalEnv(AgentEnvName.HEARTBEAT_URL) ?: heartbeat.url,

@@ -4,7 +4,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerContainerRunner
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -42,13 +42,13 @@ import java.net.InetSocketAddress
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
 @Import(
     Beans::class,
-    DockerAgentRunner::class,
-    DockerService::class,
+    DockerContainerRunner::class,
+    ContainerService::class,
     AgentService::class,
 )
-class DockerServiceTest {
+class ContainerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
-    @Autowired private lateinit var dockerService: DockerService
+    @Autowired private lateinit var containerService: ContainerService
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var testContainerId: String
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
@@ -70,13 +70,13 @@ class DockerServiceTest {
             status = ExecutionStatus.PENDING
         }
         val url = "/internal/files/download-save-agent"
-        val configuration = dockerService.prepareConfiguration(
+        val configuration = containerService.prepareConfiguration(
             testExecution.toRunRequest(
                 saveAgentVersion = SAVE_AGENT_VERSION,
                 saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
             )
         )
-        testContainerId = dockerService.createContainers(
+        testContainerId = containerService.createContainers(
             testExecution.id!!,
             configuration
         ).single()
@@ -90,7 +90,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        dockerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
+        containerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
             .subscribe()
 
         // assertions
@@ -110,7 +110,7 @@ class DockerServiceTest {
         }
 
         // tear down
-        dockerService.stopAgents(listOf(testContainerId))
+        containerService.stopAgents(listOf(testContainerId))
         verify(orchestratorAgentService).updateExecutionByDto(any(), any(), anyOrNull())
         verifyNoMoreInteractions(orchestratorAgentService)
     }
@@ -125,7 +125,7 @@ class DockerServiceTest {
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DockerServiceTest::class.java)
+        private val logger = LoggerFactory.getLogger(ContainerServiceTest::class.java)
 
         @JvmStatic
         private val mockServer = createMockWebServer()
@@ -152,7 +152,7 @@ class DockerServiceTest {
 
 @EnabledOnOs(OS.WINDOWS)
 @TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
-class DockerServiceTestOnWindows : DockerServiceTest() {
+class ContainerServiceTestOnWindows : ContainerServiceTest() {
     init {
         System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
     }

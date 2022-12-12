@@ -113,7 +113,7 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            "testPath63",
+            "testPath29",
             "WarnPlugin",
             "container-3",
             "save-container-3",
@@ -126,7 +126,7 @@ class TestExecutionControllerTest {
             unexpected = 0,
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            "testPath42",
+            "testPath30",
             "WarnPlugin",
             "container-3",
             "save-container-3",
