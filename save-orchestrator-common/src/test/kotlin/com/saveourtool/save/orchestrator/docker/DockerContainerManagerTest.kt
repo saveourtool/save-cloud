@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
@@ -23,11 +23,11 @@ import org.springframework.test.context.TestPropertySource
 import kotlin.io.path.createTempFile
 
 @SpringBootTest
-@Import(Beans::class, DockerAgentRunner::class)
+@Import(Beans::class, DockerContainerRunner::class)
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
-    @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
+    @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String
@@ -54,7 +54,7 @@ class DockerContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = dockerAgentRunner.create(
             executionId = 42,
-            configuration = DockerService.RunConfiguration(
+            configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
                 workingDir = "/",

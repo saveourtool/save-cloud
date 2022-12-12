@@ -23,13 +23,13 @@ class DiktatDemoController(
     private val diktatDemoService: DiktatDemoService,
 ) {
     /**
-     * @param demoRunRequest request data class with all required additional info
+     * @param diktatRunRequest request data class with all required additional info
      * @return [DiktatDemoResult]
      */
     @PostMapping("/run")
     fun runCheckDemo(
-        @RequestBody demoRunRequest: DemoRunRequest,
+        @RequestBody diktatRunRequest: DiktatRunRequest,
     ): Mono<DiktatDemoResult> = blockingToMono {
-        diktatDemoService.launch(demoRunRequest.codeLines, demoRunRequest.params)
+        diktatDemoService.launch(diktatRunRequest.codeLines, diktatRunRequest.params)
     }
 }
