@@ -1,6 +1,7 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.fs
+import com.saveourtool.save.agent.utils.setenv
 import com.saveourtool.save.agent.utils.updateFromEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.logType
@@ -24,7 +25,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @Suppress("WRONG_ORDER_IN_CLASS_LIKE_STRUCTURES")
-open class AbstractSaveAgentTest {
+open class SaveAgentTest {
+    init {
+        setenv(AgentEnvName.CONTAINER_ID.name, "agent-for-test")
+        setenv(AgentEnvName.CONTAINER_NAME.name, "save-agent-for-test")
+        setenv(AgentEnvName.AGENT_VERSION.name, "save-agent-version")
+        setenv(AgentEnvName.HEARTBEAT_URL.name, "http://localhost/$HEARTBEAT_ENDPOINT")
+        setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode")
+        setenv(AgentEnvName.EXECUTION_ID.name, "1")
+    }
+
     @Suppress("MAGIC_NUMBER", "MagicNumber")
     private val tmpDir: okio.Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY
         .resolve("save-agent-test-${Random.nextInt(100, 999)}")
@@ -52,10 +62,18 @@ open class AbstractSaveAgentTest {
             engine {
                 addHandler { request ->
                     when (request.url.encodedPath) {
-                        "/heartbeat" -> respond(
+                        HEARTBEAT_ENDPOINT -> respond(
                             json.encodeToString(PolymorphicSerializer(HeartbeatResponse::class), ContinueResponse),
                             HttpStatusCode.OK,
-                            headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
+                        EXECUTION_DATA_ENDPOINT -> respond(
+                            "executionData",
+                            HttpStatusCode.OK,
+                        )
+                        DEBUG_INFO_ENDPOINT -> respond(
+                            "-1",
+                            HttpStatusCode.OK,
                         )
                         else -> error("Unhandled ${request.url}")
                     }
@@ -94,9 +112,19 @@ open class AbstractSaveAgentTest {
         assertEquals(AgentState.BUSY, saveAgentForTest.state.get())
         runBlocking {
             saveAgentForTest.run {
-                startSaveProcess(AgentRunConfig("", "N/A", "N/A"))
+                startSaveProcess(AgentRunConfig(
+                    cliArgs = "",
+                    executionDataUploadUrl = "http://localhost$EXECUTION_DATA_ENDPOINT",
+                    debugInfoUploadUrl = "http://localhost$DEBUG_INFO_ENDPOINT"
+                ))
             }
         }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.get())
+    }
+
+    companion object {
+        private const val HEARTBEAT_ENDPOINT = "/heartbeat"
+        private const val EXECUTION_DATA_ENDPOINT = "/executionData"
+        private const val DEBUG_INFO_ENDPOINT = "/debugInfo"
     }
 }

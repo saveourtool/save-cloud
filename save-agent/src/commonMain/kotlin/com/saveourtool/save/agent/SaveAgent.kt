@@ -28,6 +28,7 @@ import io.ktor.utils.io.core.*
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
+import okio.use
 
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
@@ -258,9 +259,9 @@ class SaveAgent(private val config: AgentConfiguration,
         val saveCliLogFilePath = config.logFilePath
         val saveCliLogData = fs.source(saveCliLogFilePath.toPath())
             .buffer()
-            .readByteArray()
-            .let { String(it) }
-            .split("\n")
+            .use { source ->
+                String(source.readByteArray()).split("\n")
+            }
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")

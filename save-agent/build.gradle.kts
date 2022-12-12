@@ -126,11 +126,6 @@ kotlin {
     }
 }
 
-tasks.withType<Test> {
-    filter {
-        excludeTestsMatching("*Abstract*")
-    }
-}
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
