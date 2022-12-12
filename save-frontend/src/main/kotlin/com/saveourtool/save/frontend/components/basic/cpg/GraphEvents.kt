@@ -10,6 +10,9 @@ import com.saveourtool.save.frontend.externals.sigma.*
 import js.core.jso
 import react.*
 
+/**
+ * Component that defines event handlers for CPG graph
+ */
 val graphEvents: FC<GraphEventsProps> = FC { props ->
     val sigma = useSigma()
     val (hoveredNode, setHoveredNode) = useState<dynamic>(undefined)
@@ -50,15 +53,16 @@ val graphEvents: FC<GraphEventsProps> = FC { props ->
     /*
      * effect that sets the node that is focused by the cursor pointer
      */
-    useEffect(hoveredNode, sigma, registerEvents) {
+    useEffect(registerEvents, hoveredNode, sigma) {
         registerEvents(jso {
             enterNode = { event: dynamic ->
                 setHoveredNode(event.node)
-                // sigma.getGraph().setNodeAttribute(event.node, "highlighted", true)
             }
             leaveNode = { event: dynamic ->
                 setHoveredNode(undefined)
-                // sigma.getGraph().removeNodeAttribute(event.node, "highlighted")
+            }
+            clickNode = { event: dynamic ->
+                props.setSelectedNode(event.node)
             }
         })
     }
@@ -72,4 +76,9 @@ external interface GraphEventsProps : Props {
      * Flag that defines whether unfocused nodes should disappear or not
      */
     var shouldHideUnfocusedNodes: Boolean
+
+    /**
+     * Callback to update the node that was selected by user
+     */
+    var setSelectedNode: (String) -> Unit
 }
