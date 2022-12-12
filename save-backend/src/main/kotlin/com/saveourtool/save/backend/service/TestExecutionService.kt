@@ -19,7 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,7 +34,6 @@ import kotlin.io.path.pathString
 class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
                            private val agentRepository: AgentRepository,
                            private val executionRepository: ExecutionRepository,
-                           transactionManager: PlatformTransactionManager,
 ) {
     /**
      * Returns a page of [TestExecution]s with [executionId]
@@ -287,41 +285,35 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     /**
      * @param containerIds the list of agents, for which corresponding test executions should be marked as failed
-     * @param condition
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
-        containerIds.forEach { containerId ->
-            val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
-                "Agent with containerId=[$containerId] was not found in the DB"
-            }
-            val agentId = agent.requiredId()
-            val executionId = agent.execution.requiredId()
-
-            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
-                executionId,
-                agentId
-            ).filter(condition)
-
-            if (testExecutionList.isEmpty()) {
-                // Crashed agent could be not assigned with tests, so just warn and return
-                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
-                return@forEach
-            }
-            doMarkTestExecutionOfAgentsAsFailed(testExecutionList)
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String) {
+        val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
+            "Agent with containerId=[$containerId] was not found in the DB"
         }
+        val agentId = agent.requiredId()
+        val executionId = agent.execution.requiredId()
+
+        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
+            executionId,
+            agentId
+        ).filter { it.status == TestResultStatus.READY_FOR_TESTING }
+
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+            return
+        }
+        doMarkTestExecutionOfAgentsAsFailed(testExecutionList)
     }
 
     /**
      * @param executionId the ID of an execution, for which corresponding test executions should be marked as failed
-     * @param condition
      */
     @Transactional
-    @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(executionId: Long, condition: (TestExecution) -> Boolean = { true }) {
-        val testExecutionList = testExecutionRepository.findByExecutionId(executionId).filter(condition)
-
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long) {
+        val testExecutionList = testExecutionRepository.findByExecutionId(executionId)
         if (testExecutionList.isEmpty()) {
             // Crashed agent could be not assigned with tests, so just warn and return
             log.warn("Can't find `test_execution`s for executionId=$executionId")

@@ -44,12 +44,27 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
+    override fun addAgent(agent: AgentDto): Mono<EmptyResponse> = webClientBackend
+        .post()
+        .uri("/agents/insert")
+        .bodyValue(listOf(agent))
+        .retrieve()
+        .toBodilessEntity()
+
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = webClientBackend
         .post()
         .uri("/agents/insert")
         .bodyValue(agents)
         .retrieve()
         .bodyToMono()
+
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
+        webClientBackend
+            .post()
+            .uri("/updateAgentStatusesWithDto")
+            .bodyValue(listOf(agentStatus))
+            .retrieve()
+            .toBodilessEntity()
 
     override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
             webClientBackend
@@ -89,21 +104,20 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun markTestExecutionsOfAgentsAsFailed(
-        containerIds: List<String>,
-        onlyReadyForTesting: Boolean
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        containerId: String,
     ): Mono<EmptyResponse> {
-        log.debug("Attempt to mark test executions of containerIds=$containerIds as failed with internal error")
+        log.debug("Attempt to mark test executions of containerId=$containerId as failed with internal error")
         return webClientBackend.post()
-            .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting&containerIds=$containerIds")
+            .uri("/test-executions/mark-ready-for-testing-as-failed-by-container-id?containerId=$containerId")
             .retrieve()
             .toBodilessEntity()
     }
 
-    override fun markAllTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse> {
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> {
         log.debug("Attempt to mark test executions of execution=$executionId as failed with internal error")
         return webClientBackend.post()
-            .uri("/test-executions/mark-as-failed-by-execution-id?onlyReadyForTesting=$onlyReadyForTesting&executionId=$executionId")
+            .uri("/test-executions/mark-all-as-failed-by-execution-id?executionId=$executionId")
             .retrieve()
             .toBodilessEntity()
     }

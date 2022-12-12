@@ -85,6 +85,20 @@ class SandboxOrchestratorAgentService(
             )
         }
 
+    override fun addAgent(agent: AgentDto): Mono<EmptyResponse> = blockingToMono {
+        sandboxAgentRepository.save(agent.toEntity(this::getExecution))
+            .let {
+                ResponseEntity.ok().build()
+            }
+    }
+
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> = blockingToMono {
+        sandboxAgentStatusRepository.save(agentStatus.toEntity(this::getAgent))
+            .let {
+                ResponseEntity.ok().build()
+            }
+    }
+
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
         agents
             .map { it.toEntity(this::getExecution) }
@@ -144,12 +158,12 @@ class SandboxOrchestratorAgentService(
                 }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: List<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }
 
-    override fun markAllTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }

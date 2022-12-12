@@ -36,6 +36,20 @@ interface OrchestratorAgentService {
     fun getNextRunConfig(containerId: String): Mono<AgentRunConfig>
 
     /**
+     * Save new agents to the DB and insert their statuses
+     *
+     * @param agent [AgentDto] to save in the DB
+     * @return a Mono without body
+     */
+    fun addAgent(agent: AgentDto): Mono<EmptyResponse>
+
+    /**
+     * @param agentStatus [AgentStatusDto] to update/insert in the DB
+     * @return a Mono without body
+     */
+    fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse>
+
+    /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
      * @param agents list of [AgentDto]s to save in the DB
@@ -91,18 +105,16 @@ interface OrchestratorAgentService {
     /**
      * Mark agent's test executions as failed
      *
-     * @param containerIds the list of agent container IDs, for which, corresponding test executions should be marked as failed
-     * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
+     * @param containerId the agent container ID, for which, corresponding test executions should be marked as failed
      * @return a Mono without body
      */
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: List<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse>
 
     /**
      * Mark agent's test executions as failed
      *
      * @param executionId the ID of an execution, for which, corresponding test executions should be marked as failed
-     * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
      * @return a Mono without body
      */
-    fun markAllTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse>
 }

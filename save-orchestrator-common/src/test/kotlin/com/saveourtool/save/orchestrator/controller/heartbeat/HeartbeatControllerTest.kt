@@ -402,7 +402,7 @@ class HeartbeatControllerTest {
             .whenever(orchestratorAgentService)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(orchestratorAgentService.markAllTestExecutionsOfAgentsAsFailed(any(), any()))
+        whenever(orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(any(), any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
@@ -422,7 +422,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
-            verify(orchestratorAgentService).markAllTestExecutionsOfAgentsAsFailed(any(), any())
+            verify(orchestratorAgentService).markAllTestExecutionsOfExecutionAsFailed(any(), any())
         }
     }
 
