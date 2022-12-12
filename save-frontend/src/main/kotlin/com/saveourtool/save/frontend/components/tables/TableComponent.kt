@@ -156,6 +156,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             setSorting.invoke(updater)
         }
         this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
+        this.getPaginationRowModel = tanstack.table.core.getPaginationRowModel()
         additionalOptions()
     }.also { tableOptionsCustomizer(it) })
 
