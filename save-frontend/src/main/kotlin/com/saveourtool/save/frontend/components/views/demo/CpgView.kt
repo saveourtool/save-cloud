@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
+import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
@@ -17,13 +18,19 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
-import csstype.Display
-import csstype.Height
+import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -38,6 +45,8 @@ int main() {
 }
 """
 
+private const val NOT_PROVIDED = "NOT_PROVIDED"
+
 private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = true)
 
 @Suppress(
@@ -50,6 +59,8 @@ val cpgView: VFC = VFC {
 
     val (errorMessage, setErrorMessage) = useState("")
     val errorWindowOpenness = useWindowOpenness()
+
+    val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
 
     displaySimpleModal(
         errorWindowOpenness,
@@ -98,9 +109,29 @@ val cpgView: VFC = VFC {
                                     this.graph = graphology.MultiDirectedGraph
                                     graphEvents {
                                         shouldHideUnfocusedNodes = true
+                                        setSelectedNode = { newSelectedNodeName ->
+                                            setSelectedNodeName(
+                                                newSelectedNodeName.takeIf { it != selectedNodeName }
+                                            )
+                                        }
                                     }
                                     graphLoader {
                                         cpgGraph = cpgResult.cpgGraph
+                                    }
+                                }
+                                div {
+                                    id = "collapse"
+                                    val show = selectedNodeName?.let { nodeName ->
+                                        cpgResult.cpgGraph.nodes.find { node -> node.key == nodeName }?.let { node ->
+                                            displayCpgNodeAdditionalInfo(node.attributes.label, cpgResult.applicationName, node.attributes.additionalInfo)
+                                        }
+                                        "show"
+                                    } ?: ""
+                                    className = ClassName("col-6 pr-0 position-absolute collapse width overflow-auto $show")
+                                    style = jso {
+                                        top = "0px".unsafeCast<Top>()
+                                        right = "0px".unsafeCast<Right>()
+                                        height = "100%".unsafeCast<Height>()
                                     }
                                 }
                             }
@@ -136,3 +167,65 @@ val cpgView: VFC = VFC {
         }
     }
 }
+
+private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
+    nodeName: String?,
+    applicationName: String,
+    additionalInfo: CpgNodeAdditionalInfo?,
+) {
+    div {
+        className = ClassName("card card-body p-0")
+        table {
+            thead {
+                tr {
+                    className = ClassName("bg-dark text-light")
+                    th {
+                        scope = "col"
+                        +"Name"
+                    }
+                    th {
+                        scope = "col"
+                        +(nodeName ?: NOT_PROVIDED).formatPathToFile(applicationName)
+                    }
+                }
+            }
+            tbody {
+                listOf(
+                    "Code" to additionalInfo?.code,
+                    "File" to additionalInfo?.file?.formatPathToFile(applicationName),
+                    "Comment" to additionalInfo?.comment,
+                    "Argument index" to additionalInfo?.argumentIndex,
+                    "isImplicit" to additionalInfo?.isImplicit,
+                    "isInferred" to additionalInfo?.isInferred,
+                    "Location" to additionalInfo?.location,
+                )
+                    .map { (label, value) ->
+                        label to (value?.toString() ?: NOT_PROVIDED)
+                    }
+                    .forEachIndexed { index, (lbl, value) ->
+                        tr {
+                            if (index % 2 == 1) {
+                                className = ClassName("bg-light")
+                            }
+                            td {
+                                small {
+                                    +lbl
+                                }
+                            }
+                            td {
+                                pre {
+                                    className = ClassName("m-0")
+                                    style = jso {
+                                        fontSize = FontSize.small
+                                    }
+                                    +value
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
+private fun String.formatPathToFile(applicationName: String) = substringAfterLast("$applicationName/", "demo")
