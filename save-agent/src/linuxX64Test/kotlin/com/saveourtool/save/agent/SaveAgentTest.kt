@@ -23,8 +23,8 @@ import kotlinx.serialization.PolymorphicSerializer
 @Suppress("WRONG_ORDER_IN_CLASS_LIKE_STRUCTURES")
 class SaveAgentTest {
     init {
-        setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
-        setenv(AgentEnvName.AGENT_NAME.name, "save-agent-for-test", 1)
+        setenv(AgentEnvName.CONTAINER_ID.name, "agent-for-test", 1)
+        setenv(AgentEnvName.CONTAINER_NAME.name, "save-agent-for-test", 1)
         setenv(AgentEnvName.AGENT_VERSION.name, "save-agent-version", 1)
         setenv(AgentEnvName.HEARTBEAT_URL.name, "http://localhost:5100/heartbeat", 1)
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
