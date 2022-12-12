@@ -13,6 +13,8 @@ import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.sigma.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
@@ -21,7 +23,9 @@ import com.saveourtool.save.utils.Languages
 import csstype.*
 import js.core.jso
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.small
@@ -123,15 +127,21 @@ val cpgView: VFC = VFC {
                                     id = "collapse"
                                     val show = selectedNodeName?.let { nodeName ->
                                         cpgResult.cpgGraph.nodes.find { node -> node.key == nodeName }?.let { node ->
-                                            displayCpgNodeAdditionalInfo(node.attributes.label, cpgResult.applicationName, node.attributes.additionalInfo)
+                                            displayCpgNodeAdditionalInfo(
+                                                node.attributes.label,
+                                                cpgResult.applicationName,
+                                                node.attributes.additionalInfo,
+                                            ) {
+                                                setSelectedNodeName(it)
+                                            }
                                         }
                                         "show"
                                     } ?: ""
-                                    className = ClassName("col-6 pr-0 position-absolute collapse width overflow-auto $show")
+                                    className = ClassName("col-6 p-0 position-absolute collapse width overflow-auto $show")
                                     style = jso {
                                         top = "0px".unsafeCast<Top>()
                                         right = "0px".unsafeCast<Right>()
-                                        height = "100%".unsafeCast<Height>()
+                                        maxHeight = "100%".unsafeCast<MaxHeight>()
                                     }
                                 }
                             }
@@ -168,10 +178,12 @@ val cpgView: VFC = VFC {
     }
 }
 
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
     nodeName: String?,
     applicationName: String,
     additionalInfo: CpgNodeAdditionalInfo?,
+    setSelectedNodeName: (String?) -> Unit,
 ) {
     div {
         className = ClassName("card card-body p-0")
@@ -187,12 +199,22 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
                         scope = "col"
                         +(nodeName ?: NOT_PROVIDED).formatPathToFile(applicationName)
                     }
+                    button {
+                        className = ClassName("btn p-0 position-absolute")
+                        fontAwesomeIcon(faTimesCircle)
+                        type = "button".unsafeCast<ButtonType>()
+                        onClick = { setSelectedNodeName(null) }
+                        style = jso {
+                            top = "1%".unsafeCast<Top>()
+                            right = "1%".unsafeCast<Right>()
+                        }
+                    }
                 }
             }
             tbody {
                 listOf(
                     "Code" to additionalInfo?.code,
-                    "File" to additionalInfo?.file?.formatPathToFile(applicationName),
+                    "File" to additionalInfo?.file?.formatPathToFile(applicationName, "demo"),
                     "Comment" to additionalInfo?.comment,
                     "Argument index" to additionalInfo?.argumentIndex,
                     "isImplicit" to additionalInfo?.isImplicit,
@@ -228,4 +250,9 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
     }
 }
 
-private fun String.formatPathToFile(applicationName: String) = substringAfterLast("$applicationName/", "demo")
+private fun String.formatPathToFile(
+    applicationName: String,
+    missingDelimiterValue: String? = null,
+) = missingDelimiterValue?.let {
+    substringAfterLast("$applicationName/", missingDelimiterValue)
+} ?: substringAfterLast("$applicationName/")
