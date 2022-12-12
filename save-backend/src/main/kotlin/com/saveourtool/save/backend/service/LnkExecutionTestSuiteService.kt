@@ -43,6 +43,13 @@ class LnkExecutionTestSuiteService(
         }
 
     /**
+     * @param executionId ID of manageable execution
+     */
+    fun deleteByExecution(executionId: Long) {
+        lnkExecutionTestSuiteRepository.deleteAll(lnkExecutionTestSuiteRepository.findByExecutionId(executionId))
+    }
+
+    /**
      * @param [lnkExecutionTestSuite] link execution to testSuites
      */
     fun save(lnkExecutionTestSuite: LnkExecutionTestSuite): LnkExecutionTestSuite = lnkExecutionTestSuiteRepository.save(lnkExecutionTestSuite)

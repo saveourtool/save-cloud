@@ -4,7 +4,6 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.utils.*
-import com.saveourtool.save.demo.diktat.DemoRunRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
@@ -55,7 +54,7 @@ class CpgController(
      */
     @PostMapping("/upload-code")
     fun uploadCode(
-        @RequestBody request: DemoRunRequest,
+        @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         try {
@@ -157,7 +156,7 @@ class CpgController(
         )
     }
 
-    private fun createFiles(request: DemoRunRequest, tmpFolder: Path) {
+    private fun createFiles(request: CpgRunRequest, tmpFolder: Path) {
         val files: MutableList<SourceCodeFile> = mutableListOf()
         request.codeLines.filterNot { it.isBlank() }.forEachIndexed { index, line ->
             if (line.startsWith(FILE_NAME_SEPARATOR) && line.endsWith(FILE_NAME_SEPARATOR)) {

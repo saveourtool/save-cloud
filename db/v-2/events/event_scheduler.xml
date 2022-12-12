@@ -20,4 +20,19 @@
         </sql>
     </changeSet>
 
+    <changeSet id="event-delete-test-1" author="nulls" context="prod">
+        <sql>
+            DROP EVENT IF EXISTS delete_test;
+        </sql>
+    </changeSet>
+
+    <changeSet id="event-delete-test-2" author="nulls" context="prod">
+        <sql>
+            CREATE EVENT delete_test
+            ON SCHEDULE EVERY 1 DAY
+            STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 HOUR)
+            DO DELETE FROM TEST WHERE DATEDIFF(NOW(), DATE_ADDED) >= 30;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
