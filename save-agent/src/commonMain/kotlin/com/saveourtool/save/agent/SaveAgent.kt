@@ -259,8 +259,8 @@ class SaveAgent(private val config: AgentConfiguration,
         val saveCliLogFilePath = config.logFilePath
         val saveCliLogData = fs.source(saveCliLogFilePath.toPath())
             .buffer()
-            .use { source ->
-                String(source.readByteArray()).split("\n")
+            .use {
+                String(it.readByteArray()).split("\n")
             }
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
