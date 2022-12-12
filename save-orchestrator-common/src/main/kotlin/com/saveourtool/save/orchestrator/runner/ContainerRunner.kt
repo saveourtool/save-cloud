@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.runner
 
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -8,17 +8,17 @@ internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
 /**
  * Describes operations that should be supported with a specific engine for running save-agents.
  */
-interface AgentRunner {
+interface ContainerRunner {
     /**
      * Create a [replicas] number of agents for an execution with id [executionId].
      *
      * @param executionId and ID of execution for which agents will run tests
-     * @param configuration [DockerService.RunConfiguration] for the created containers
+     * @param configuration [ContainerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
      */
     fun createAndStart(
         executionId: Long,
-        configuration: DockerService.RunConfiguration,
+        configuration: ContainerService.RunConfiguration,
         replicas: Int,
     )
 
@@ -31,12 +31,12 @@ interface AgentRunner {
     fun stop(executionId: Long)
 
     /**
-     * @param agentId ID of agent that should be stopped
+     * @param containerId ID of container that should be stopped
      * @return true if agent has been stopped successfully
      * todo: distinguish stopped / not stopped / error / already stopped
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stopByAgentId(agentId: String): Boolean
+    fun stopByContainerId(containerId: String): Boolean
 
     /**
      * @param executionId
@@ -65,12 +65,12 @@ interface AgentRunner {
     fun listContainerIds(executionId: Long): List<String>
 
     /**
-     * Check whether the agent [agentId] is stopped
+     * Check whether the agent [containerId] is stopped
      *
-     * @param agentId id of the agent
+     * @param containerId id of the agent
      * @return true if agent is not running
      */
-    fun isAgentStopped(agentId: String): Boolean
+    fun isStoppedByContainerId(containerId: String): Boolean
 
     /**
      * Get container identifier: container name for docker agent runner and container id for kubernetes

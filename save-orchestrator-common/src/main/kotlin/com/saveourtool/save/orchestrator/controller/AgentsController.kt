@@ -3,9 +3,9 @@ package com.saveourtool.save.orchestrator.controller
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
@@ -31,8 +31,8 @@ import reactor.kotlin.core.publisher.doOnError
 class AgentsController(
     private val configProperties: ConfigProperties,
     private val agentService: AgentService,
-    private val dockerService: DockerService,
-    private val agentRunner: AgentRunner,
+    private val containerService: ContainerService,
+    private val containerRunner: ContainerRunner,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -55,7 +55,7 @@ class AgentsController(
             }
                 .subscribeOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createAndStartContainers(request.executionId, configuration)
+                    containerService.createAndStartContainers(request.executionId, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(request.executionId, "Unable to create containers", ex)
@@ -78,11 +78,11 @@ class AgentsController(
     }
 
     /**
-     * @param agentIds list of IDs of agents to stop
+     * @param containerIds list of container IDs of agents to stop
      */
     @PostMapping("/stopAgents")
-    fun stopAgents(@RequestBody agentIds: List<String>) {
-        dockerService.stopAgents(agentIds)
+    fun stopAgents(@RequestBody containerIds: List<String>) {
+        containerService.stopAgents(containerIds)
     }
 
     /**
@@ -93,7 +93,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        dockerService.cleanup(executionId)
+        containerService.cleanup(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())

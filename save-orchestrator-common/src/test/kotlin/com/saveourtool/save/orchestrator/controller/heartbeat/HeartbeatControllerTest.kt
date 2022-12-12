@@ -5,9 +5,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
@@ -50,14 +50,14 @@ import java.time.Month
     HeartBeatInspector::class,
     JsonConfig::class,
 )
-@MockBeans(MockBean(AgentRunner::class))
+@MockBeans(MockBean(ContainerRunner::class))
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
-    @MockBean private lateinit var dockerService: DockerService
+    @MockBean private lateinit var containerService: ContainerService
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
@@ -125,7 +125,7 @@ class HeartbeatControllerTest {
             mockUpdateAgentStatusesCount = 1,
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -146,14 +146,14 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 2,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(dockerService.isAgentStopped(any())).thenReturn(true)
+        whenever(containerService.isStoppedByContainerId(any())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),
@@ -169,7 +169,7 @@ class HeartbeatControllerTest {
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
             verify(
-                dockerService,
+                containerService,
                 times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
             ).stopAgents(any())
         }
@@ -195,7 +195,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 3,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -203,8 +203,8 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
+        whenever(containerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
+        whenever(containerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -281,7 +281,7 @@ class HeartbeatControllerTest {
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
             verify(
-                dockerService,
+                containerService,
                 times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
             ).stopAgents(any())
         }

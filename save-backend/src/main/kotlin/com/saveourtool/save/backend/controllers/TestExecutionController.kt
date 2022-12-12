@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -128,17 +127,6 @@ class TestExecutionController(
                 }
 
     /**
-     * @param agentContainerId id of agent's container
-     * @param status status for test executions
-     * @return a list of test executions
-     */
-    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
-    fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
-                                            @PathVariable status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(agentContainerId, status)
-        .map { it.toDto() }
-
-    /**
      * Finds TestExecution by test location, returns 404 if not found
      *
      * @param executionId under this executionId test has been executed
@@ -202,6 +190,24 @@ class TestExecutionController(
         @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
     ) {
         testExecutionService.markTestExecutionsOfAgentsAsFailed(executionId) {
+            if (onlyReadyForTesting) {
+                it.status == TestResultStatus.READY_FOR_TESTING
+            } else {
+                true
+            }
+        }
+    }
+
+    /**
+     * @param onlyReadyForTesting
+     * @param containerIds
+     */
+    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
+    fun markTestExecutionsOfAgentsAsFailed(
+        @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
+        @RequestBody containerIds: Collection<String>,
+    ) {
+        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
             if (onlyReadyForTesting) {
                 it.status == TestResultStatus.READY_FOR_TESTING
             } else {

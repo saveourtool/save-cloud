@@ -7,11 +7,11 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
@@ -34,25 +34,25 @@ import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 
 /**
- * [AgentRunner] that uses Docker Daemon API to run save-agents
+ * [ContainerRunner] that uses Docker Daemon API to run save-agents
  */
 @Component
 @Profile("!kubernetes")
-class DockerAgentRunner(
+class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : AgentRunner {
+) : ContainerRunner {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
 
     @Suppress("TYPE_ALIAS")
-    private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
+    private val containerIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
 
     override fun createAndStart(
         executionId: Long,
-        configuration: DockerService.RunConfiguration,
+        configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ) {
         logger.debug { "Pulling image ${configuration.imageTag}" }
@@ -61,6 +61,7 @@ class DockerAgentRunner(
             .exec(PullImageResultCallback())
             .awaitCompletion()
 
+        // TODO: try repeat
         (1..replicas)
             .map { number ->
                 logger.info("Creating a container #$number for execution.id=$executionId")
@@ -79,34 +80,34 @@ class DockerAgentRunner(
             .withStatusFilter(listOf("running"))
             .exec()
             .filter { container -> container.names.any { it.contains("-$executionId-") } }
-        runningContainersForExecution.map { it.id }.forEach { agentId ->
-            dockerClient.stopContainerCmd(agentId).exec()
+        runningContainersForExecution.map { it.id }.forEach { containerId ->
+            dockerClient.stopContainerCmd(containerId).exec()
         }
     }
 
-    override fun stopByAgentId(agentId: String): Boolean {
-        logger.info("Stopping agent with id=$agentId")
-        val state = dockerClient.inspectContainerCmd(agentId).exec().state
+    override fun stopByContainerId(containerId: String): Boolean {
+        logger.info("Stopping agent with id=$containerId")
+        val state = dockerClient.inspectContainerCmd(containerId).exec().state
         return if (state.status == "running") {
             try {
-                dockerClient.stopContainerCmd(agentId).exec()
+                dockerClient.stopContainerCmd(containerId).exec()
             } catch (dex: DockerException) {
-                throw AgentRunnerException("Exception when stopping agent id=$agentId", dex)
+                throw ContainerRunnerException("Exception when stopping agent id=$containerId", dex)
             }
-            logger.info("Agent with id=$agentId has been stopped")
+            logger.info("Agent with id=$containerId has been stopped")
             true
         } else {
             if (state.status != "exited") {
-                logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
+                logger.warn("Agent with id=$containerId was requested to be stopped, but it actual state=$state")
             }
             state.status == "exited"
         }
     }
 
-    override fun isAgentStopped(agentId: String): Boolean = dockerClient.inspectContainerCmd(agentId)
+    override fun isStoppedByContainerId(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
-        .also { logger.debug("Container $agentId has state $it") }
+        .also { logger.debug("Container $containerId has state $it") }
         .status != "running"
 
     override fun cleanup(executionId: Long) {
@@ -158,7 +159,7 @@ class DockerAgentRunner(
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(configuration: DockerService.RunConfiguration,
+    private fun createContainerFromImage(configuration: ContainerService.RunConfiguration,
                                          containerName: String,
     ): String {
         val baseImageTag = configuration.imageTag
@@ -166,7 +167,7 @@ class DockerAgentRunner(
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         val envVariables = configuration.env.map { (key, value) ->
             "$key=$value"
-        } + "${AgentEnvName.AGENT_NAME.name}=$containerName"
+        } + "${AgentEnvName.CONTAINER_NAME.name}=$containerName"
 
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
@@ -210,7 +211,7 @@ class DockerAgentRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
-                ${AgentEnvName.AGENT_ID.name}=$containerId
+                ${AgentEnvName.CONTAINER_ID.name}=$containerId
                 """.trimIndent()
             )
         }
@@ -244,6 +245,6 @@ class DockerAgentRunner(
     private fun containerName(executionId: Long, number: Int) = "${configProperties.containerNamePrefix}$executionId-$number"
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
+        private val logger = LoggerFactory.getLogger(DockerContainerRunner::class.java)
     }
 }

@@ -10,7 +10,7 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
@@ -39,7 +39,7 @@ import reactor.kotlin.core.publisher.doOnError
  */
 @RestController
 class HeartbeatController(private val agentService: AgentService,
-                          private val dockerService: DockerService,
+                          private val containerService: ContainerService,
                           private val configProperties: ConfigProperties,
                           private val heartBeatInspector: HeartBeatInspector,
 ) {
@@ -62,7 +62,7 @@ class HeartbeatController(private val agentService: AgentService,
         val containerId = heartbeat.agentInfo.containerId
         logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
-            dockerService.markAgentForExecutionAsStarted(executionId)
+            containerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
@@ -115,57 +115,57 @@ class HeartbeatController(private val agentService: AgentService,
         }
         .then(agentService.getInitConfig(agentInfo.containerId))
 
-    private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
-            agentService.getNextRunConfig(agentId)
+    private fun handleVacantAgent(containerId: String): Mono<HeartbeatResponse> =
+            agentService.getNextRunConfig(containerId)
                 .asyncEffectIf({ this is NewJobResponse }) {
-                    agentService.updateAgentStatusesWithDto(AgentStatusDto(BUSY, agentId))
+                    agentService.updateAgentStatusesWithDto(AgentStatusDto(BUSY, containerId))
                 }
                 .zipWhen {
-                    // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
+                    // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
                     if (it is WaitResponse) {
-                        agentService.areAllAgentsIdleOrFinished(agentId)
+                        agentService.areAllAgentsIdleOrFinished(containerId)
                     } else {
                         Mono.just(false)
                     }
                 }
                 .flatMap { (response, shouldStop) ->
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(AgentStatusDto(TERMINATED, agentId))
+                        agentService.updateAgentStatusesWithDto(AgentStatusDto(TERMINATED, containerId))
                             .thenReturn<HeartbeatResponse>(TerminateResponse)
                             .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {
-                                logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                ensureGracefulShutdown(agentId)
+                                logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
+                                ensureGracefulShutdown(containerId)
                             }
                     } else {
                         Mono.just(response)
                     }
                 }
 
-    private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
-        handleVacantAgent(agentId)
+    private fun handleFinishedAgent(containerId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
+        handleVacantAgent(containerId)
     } else {
         // Agent finished its work, however only part of results were received, other should be marked as failed
-        agentService.markTestExecutionsAsFailed(listOf(agentId), true)
+        agentService.markTestExecutionsAsFailed(listOf(containerId), true)
             .subscribeOn(agentService.scheduler)
             .subscribe()
         Mono.just(WaitResponse)
     }
 
-    private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
-        logger.warn("Agent id=$agentId sent $state status, but should be offline in that case!")
-        heartBeatInspector.watchCrashedAgent(agentId)
+    private fun handleIllegallyOnlineAgent(containerId: String, state: AgentState) {
+        logger.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
+        heartBeatInspector.watchCrashedAgent(containerId)
     }
 
-    private fun ensureGracefulShutdown(agentId: String) {
+    private fun ensureGracefulShutdown(containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks: Int = configProperties.shutdown.gracefulNumChecks
         Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {
-                dockerService.isAgentStopped(agentId)
+                containerService.isStoppedByContainerId(containerId)
             }
             .takeUntil { it }
             // check whether we have got `true` or Flux has completed with only `false`
@@ -173,16 +173,16 @@ class HeartbeatController(private val agentService: AgentService,
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     logger.warn {
-                        "Agent id=$agentId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
+                        "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
                                 " will add it to crashed list"
                     }
-                    heartBeatInspector.watchCrashedAgent(agentId)
+                    heartBeatInspector.watchCrashedAgent(containerId)
                 } else {
-                    logger.debug { "Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal" }
-                    heartBeatInspector.unwatchAgent(agentId)
+                    logger.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(agentId)
+                agentService.finalizeExecution(containerId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
