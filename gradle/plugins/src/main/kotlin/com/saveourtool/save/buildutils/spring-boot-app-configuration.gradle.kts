@@ -16,7 +16,13 @@ plugins {
 }
 
 configure<SpringBootExtension> {
-    buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+    // Same condition, as we use to determine whether images need to be published.
+    // Essentially enables this setting for release builds only to spare time in dev builds.
+    // Configures `bootBuildInfo` task, which creates META-INF/build-info.properties file,
+    // which contains timestamps so its inputs change every single build.
+    if (isRelease) {
+        buildInfo()
+    }
 }
 
 tasks.withType<BootRun>().configureEach {

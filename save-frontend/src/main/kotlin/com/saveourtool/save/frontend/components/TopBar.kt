@@ -58,14 +58,18 @@ external interface TopBarProps : PropsWithChildren {
 }
 
 private fun ChildrenBuilder.dropdownEntry(
-    faIcon: dynamic,
+    faIcon: FontAwesomeIconModule?,
     text: String,
+    isSelected: Boolean = false,
     handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
 ) = button {
     type = ButtonType.button
-    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
-    fontAwesomeIcon(icon = faIcon) {
-        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    val active = if (isSelected) "active" else ""
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none $active")
+    faIcon?.let {
+        fontAwesomeIcon(icon = faIcon) {
+            it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+        }
     }
     +text
     handler(this)
@@ -85,6 +89,7 @@ private fun ChildrenBuilder.dropdownEntry(
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val (isAriaExpanded, setIsAriaExpanded) = useState(false)
+    val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
     useEffect {
@@ -163,15 +168,38 @@ fun topBar() = FC<TopBarProps> { props ->
                 }
             }
             li {
-                className = ClassName("nav-item")
+                className = ClassName("nav-item dropdown no-arrow")
+                style = jso {
+                    width = 5.rem
+                }
                 a {
-                    val hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg"
-                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
-                    style = jso {
-                        width = 3.5.rem
+                    className = ClassName("nav-link dropdown-toggle text-light")
+                    asDynamic()["data-toggle"] = "dropdown"
+                    ariaExpanded = false
+                    id = "demoDropdown"
+                    role = "button".unsafeCast<AriaRole>()
+                    +"Demo"
+                    onClickCapture = { _ ->
+                        setIsDemoDropdownActive { !it }
                     }
-                    href = "#/$hrefAnchor"
-                    +"CPG"
+                }
+                div {
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
+                    ariaLabelledBy = "demoDropdown"
+                    val diktatDemoHref = "#/${FrontendRoutes.DEMO.path}/diktat"
+                    dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = diktatDemoHref
+                        }
+                    }
+                    val cpgDemoHref = "#/${FrontendRoutes.DEMO.path}/cpg"
+                    dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
+                        attrs.onClick = {
+                            setIsDemoDropdownActive(false)
+                            window.location.href = cpgDemoHref
+                        }
+                    }
                 }
             }
             li {
@@ -189,7 +217,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
                     style = jso {
                         width = 9.rem
                     }

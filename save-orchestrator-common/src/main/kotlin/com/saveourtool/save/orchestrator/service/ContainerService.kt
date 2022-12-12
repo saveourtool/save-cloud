@@ -6,8 +6,8 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
 
@@ -29,9 +29,9 @@ import kotlinx.datetime.Clock
  * A service that builds and starts containers for test execution.
  */
 @Service
-class DockerService(
+class ContainerService(
     private val configProperties: ConfigProperties,
-    private val agentRunner: AgentRunner,
+    private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
 ) {
     private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
@@ -60,7 +60,7 @@ class DockerService(
     fun createContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = agentRunner.create(
+    ) = containerRunner.create(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -68,17 +68,17 @@ class DockerService(
 
     /**
      * @param executionId ID of [Execution] for which containers are being started
-     * @param agentIds list of IDs of agents (==containers) for this execution
+     * @param containerIds list of IDs of agents (==containers) for this execution
      * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(executionId: Long, agentIds: List<String>): Flux<Long> {
+    fun startContainersAndUpdateExecution(executionId: Long, containerIds: List<String>): Flux<Long> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         return agentService
             .updateExecution(executionId, ExecutionStatus.RUNNING)
             .map {
-                agentRunner.start(executionId)
+                containerRunner.start(executionId)
                 log.info("Made request to start containers for execution.id=$executionId")
             }
             .flatMapMany {
@@ -96,11 +96,11 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (areAgentsHaveStarted[executionId]?.get() != true) {
-                            log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
-                            agentRunner.stop(executionId)
+                            log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
+                            containerRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                            ).then(agentService.markTestExecutionsAsFailed(agentIds, false))
+                            ).then(agentService.markTestExecutionsAsFailed(containerIds, false))
                                 .subscribe()
                         }
                         areAgentsHaveStarted.remove(executionId)
@@ -109,17 +109,17 @@ class DockerService(
     }
 
     /**
-     * @param agentIds list of IDs of agents to stop
+     * @param containerIds list of container IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(agentIds: Collection<String>) =
+    fun stopAgents(containerIds: Collection<String>) =
             try {
-                agentIds.all { agentId ->
-                    agentRunner.stopByAgentId(agentId)
+                containerIds.all { containerId ->
+                    containerRunner.stopByContainerId(containerId)
                 }
-            } catch (e: AgentRunnerException) {
-                log.error("Error while stopping agents $agentIds", e)
+            } catch (e: ContainerRunnerException) {
+                log.error("Error while stopping agents $containerIds", e)
                 false
             }
 
@@ -133,18 +133,18 @@ class DockerService(
     }
 
     /**
-     * Check whether the agent agentId is stopped
+     * Check whether the agent with [containerId] is stopped
      *
-     * @param agentId id of an agent
+     * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
+    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
 
     /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
-        agentRunner.cleanup(executionId)
+        containerRunner.cleanup(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
@@ -185,7 +185,7 @@ class DockerService(
     )
 
     companion object {
-        private val log = LoggerFactory.getLogger(DockerService::class.java)
+        private val log = LoggerFactory.getLogger(ContainerService::class.java)
         internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

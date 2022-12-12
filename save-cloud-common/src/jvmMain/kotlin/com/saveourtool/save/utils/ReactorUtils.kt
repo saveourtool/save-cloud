@@ -18,6 +18,7 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
+import java.util.Comparator
 
 /**
  * @param status
@@ -114,6 +115,12 @@ fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
 fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
     .map { ByteBuffer.wrap(it) }
     .toFlux()
+
+/**
+ * @param keyExtractor the function used to extract the [Comparable] sort key
+ * @return sorted original [Flux]
+ */
+fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking

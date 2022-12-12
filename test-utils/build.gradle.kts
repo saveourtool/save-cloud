@@ -4,12 +4,6 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
 }
 
-kotlin {
-    jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
-}
-
 dependencies {
     implementation(project.dependencies.platform(libs.spring.boot.dependencies))
     implementation(libs.okhttp.mockwebserver)
