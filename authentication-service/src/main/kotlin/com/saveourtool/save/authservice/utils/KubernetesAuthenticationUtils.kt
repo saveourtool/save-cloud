@@ -74,6 +74,15 @@ class KubernetesAuthenticationUtils {
             // all requests to `/actuator` should be sent only from inside the cluster
             // access to this port should be controlled by a NetworkPolicy
             .permitAll()
+            .pathMatchers(
+                // FixMe: https://github.com/saveourtool/save-cloud/pull/1247
+                "/internal/files/download-save-agent",
+                "/internal/files/download-save-cli",
+                "/internal/files/download",
+                "/internal/test-suites-sources/download-snapshot-by-execution-id",
+                "/heartbeat",
+            )
+            .permitAll()
             .and()
             .authorizeExchange()
             .pathMatchers("/**")
