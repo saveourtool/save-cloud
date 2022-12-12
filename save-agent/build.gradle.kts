@@ -52,11 +52,6 @@ kotlin {
             }
         }
         val commonTest by getting {
-            tasks.withType<Test> {
-                filter {
-                    excludeTestsMatching("*Abstract*")
-                }
-            }
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.ktor.client.mock)
@@ -131,6 +126,11 @@ kotlin {
     }
 }
 
+tasks.withType<Test> {
+    filter {
+        excludeTestsMatching("*Abstract*")
+    }
+}
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
