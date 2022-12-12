@@ -99,7 +99,7 @@ class KubernetesManager(
         logger.debug("Deleted Job for execution id=$executionId")
     }
 
-    override fun stopByAgentId(agentId: String): Boolean {
+    override fun stopByContainerId(containerId: String): Boolean {
         logger.warn {
             "${this::class.simpleName}#stopByAgentId is called, but it's no-op, " +
                     "because we don't directly delete pods in kubernetes"
@@ -194,6 +194,7 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
+        private const val EXECUTION_ID_LABEL = "executionId"
         private val containerIdEnv = setOf(AgentEnvName.CONTAINER_ID, AgentEnvName.CONTAINER_NAME)
             .map { it.name }
             .map { envName ->
@@ -206,6 +207,5 @@ class KubernetesManager(
                     }
                 }
             }
-        private const val EXECUTION_ID_LABEL = "executionId"
     }
 }

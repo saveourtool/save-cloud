@@ -15,6 +15,7 @@ import com.saveourtool.save.utils.EmptyResponse
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -25,7 +26,6 @@ import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
-import reactor.core.publisher.Mono
 
 /**
  * A service that builds and starts containers for test execution.
@@ -91,7 +91,7 @@ class ContainerService(
             .doOnComplete {
                 if (areAgentsHaveStarted[executionId]?.get() != true) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
-                    agentRunner.stop(executionId)
+                    containerRunner.stop(executionId)
                     agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                         "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
                     ).then(agentService.markAllTestExecutionsAsFailed(executionId, false))

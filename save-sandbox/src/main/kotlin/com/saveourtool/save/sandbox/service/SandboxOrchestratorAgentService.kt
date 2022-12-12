@@ -144,6 +144,11 @@ class SandboxOrchestratorAgentService(
                 }
         }
 
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: List<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+        // sandbox doesn't have TestExecution
+        ResponseEntity.ok().build()
+    }
+
     override fun markAllTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()

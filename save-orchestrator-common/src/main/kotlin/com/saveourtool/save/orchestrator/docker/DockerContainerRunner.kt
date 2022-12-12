@@ -146,7 +146,7 @@ class DockerContainerRunner(
         .withNameFilter(listOf("-$executionId-"))
         .exec()
         .map { it.id }
-        .filterNot { isAgentStopped(it) }
+        .filterNot { isStoppedByContainerId(it) }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 

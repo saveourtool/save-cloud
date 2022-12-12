@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.controller
 
-import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
@@ -19,10 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.doOnError
 
 /**
  * Controller used to start agents with needed information
@@ -51,7 +48,7 @@ class AgentsController(
                 "Starting preparations for launching execution id=${request.executionId}"
             }
             Mono.fromCallable {
-                dockerService.prepareConfiguration(request)
+                containerService.prepareConfiguration(request)
             }
                 .subscribeOn(agentService.scheduler)
                 .map { configuration ->
@@ -61,7 +58,7 @@ class AgentsController(
                     reportExecutionError(request.executionId, "Unable to create containers", ex)
                 }
                 .flatMapMany {
-                    dockerService.validateContainersAreStarted(request.executionId)
+                    containerService.validateContainersAreStarted(request.executionId)
                 }
                 .subscribe()
         }
