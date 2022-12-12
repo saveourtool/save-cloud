@@ -2,10 +2,7 @@
 
 package com.saveourtool.save.demo.cpg.utils
 
-import com.saveourtool.save.demo.cpg.CpgEdge
-import com.saveourtool.save.demo.cpg.CpgEdgeAttributes
-import com.saveourtool.save.demo.cpg.CpgNode
-import com.saveourtool.save.demo.cpg.CpgNodeAttributes
+import com.saveourtool.save.demo.cpg.*
 
 import de.fraunhofer.aisec.cpg.graph.Node
 import org.neo4j.ogm.response.model.RelationshipModel
@@ -20,6 +17,15 @@ fun Node.toCpgNode() = CpgNode(
     id.toString(),
     CpgNodeAttributes(
         name,
+        additionalInfo = CpgNodeAdditionalInfo(
+            code = code,
+            comment = comment,
+            location = location?.toString(),
+            file = file,
+            isInferred = isInferred,
+            isImplicit = isImplicit,
+            argumentIndex = argumentIndex,
+        )
     ),
 )
 
