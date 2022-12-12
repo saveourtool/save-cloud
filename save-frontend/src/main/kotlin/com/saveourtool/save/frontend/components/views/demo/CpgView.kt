@@ -178,6 +178,17 @@ val cpgView: VFC = VFC {
     }
 }
 
+@Suppress("TYPE_ALIAS")
+private val additionalInfoMapping: Map<String, (String, CpgNodeAdditionalInfo?) -> String?> = mapOf(
+    "Code" to { _, info -> info?.code },
+    "File" to { applicationName, info -> info?.file?.formatPathToFile(applicationName, "demo") },
+    "Comment" to { _, info -> info?.comment },
+    "Argument index" to { _, info -> info?.argumentIndex?.toString() },
+    "isImplicit" to { _, info -> info?.isImplicit?.toString() },
+    "isInferred" to { _, info -> info?.isInferred?.toString() },
+    "Location" to { _, info -> info?.location },
+)
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
     nodeName: String?,
@@ -212,26 +223,17 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
                 }
             }
             tbody {
-                listOf(
-                    "Code" to additionalInfo?.code,
-                    "File" to additionalInfo?.file?.formatPathToFile(applicationName, "demo"),
-                    "Comment" to additionalInfo?.comment,
-                    "Argument index" to additionalInfo?.argumentIndex,
-                    "isImplicit" to additionalInfo?.isImplicit,
-                    "isInferred" to additionalInfo?.isInferred,
-                    "Location" to additionalInfo?.location,
-                )
-                    .map { (label, value) ->
-                        label to (value?.toString() ?: NOT_PROVIDED)
-                    }
-                    .forEachIndexed { index, (lbl, value) ->
+                additionalInfoMapping.map { (label, valueGetter) ->
+                    label to (valueGetter(applicationName, additionalInfo) ?: NOT_PROVIDED)
+                }
+                    .forEachIndexed { index, (label, value) ->
                         tr {
                             if (index % 2 == 1) {
                                 className = ClassName("bg-light")
                             }
                             td {
                                 small {
-                                    +lbl
+                                    +label
                                 }
                             }
                             td {
