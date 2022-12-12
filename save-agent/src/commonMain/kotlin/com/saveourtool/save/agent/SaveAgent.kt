@@ -36,6 +36,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import okio.use
 
 /**
  * A main class for SAVE Agent
@@ -258,9 +259,9 @@ class SaveAgent(private val config: AgentConfiguration,
         val saveCliLogFilePath = config.logFilePath
         val saveCliLogData = fs.source(saveCliLogFilePath.toPath())
             .buffer()
-            .readByteArray()
-            .let { String(it) }
-            .split("\n")
+            .use {
+                String(it.readByteArray()).split("\n")
+            }
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
