@@ -30,7 +30,7 @@ open class SaveAgentTest {
         setenv(AgentEnvName.CONTAINER_ID.name, "agent-for-test")
         setenv(AgentEnvName.CONTAINER_NAME.name, "save-agent-for-test")
         setenv(AgentEnvName.AGENT_VERSION.name, "save-agent-version")
-        setenv(AgentEnvName.HEARTBEAT_URL.name, "http://localhost/$HEARTBEAT_ENDPOINT")
+        setenv(AgentEnvName.HEARTBEAT_URL.name, HEARTBEAT_ENDPOINT.toLocalhostUrl())
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode")
         setenv(AgentEnvName.EXECUTION_ID.name, "1")
     }
@@ -114,13 +114,15 @@ open class SaveAgentTest {
             saveAgentForTest.run {
                 startSaveProcess(AgentRunConfig(
                     cliArgs = "",
-                    executionDataUploadUrl = "http://localhost$EXECUTION_DATA_ENDPOINT",
-                    debugInfoUploadUrl = "http://localhost$DEBUG_INFO_ENDPOINT"
+                    executionDataUploadUrl = EXECUTION_DATA_ENDPOINT.toLocalhostUrl(),
+                    debugInfoUploadUrl = DEBUG_INFO_ENDPOINT.toLocalhostUrl()
                 ))
             }
         }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.get())
     }
+
+    private fun String.toLocalhostUrl() = "http://localhost$this"
 
     companion object {
         private const val HEARTBEAT_ENDPOINT = "/heartbeat"
