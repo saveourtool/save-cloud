@@ -6,7 +6,9 @@ package com.saveourtool.save.frontend.components.tables
 
 import csstype.ClassName
 import react.ChildrenBuilder
+import react.Fragment
 import react.StateSetter
+import react.create
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
 import react.dom.html.InputType
@@ -78,7 +80,6 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
     pageCount: Int,
 ) =
         div {
-            println("PAGE INDEX: ${pageIndex} pageind ${tableInstance.getState().pagination.pageIndex} pagesize ${tableInstance.getState().pagination.pageSize} ${tableInstance.getPageCount()}")
             className = ClassName("row")
             // First page
             button {
@@ -249,4 +250,5 @@ private fun <D : RowData> setPageIndexAndGoToPage(
     setPageIndex(index)
     tableInstance.setPageIndex(Updater(index))
     println("TABLE INDEX $index AFTER ${tableInstance.getState().pagination.pageIndex}")
+
 }
