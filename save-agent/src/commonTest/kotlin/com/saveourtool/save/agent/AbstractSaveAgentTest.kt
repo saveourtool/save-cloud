@@ -29,12 +29,14 @@ open class AbstractSaveAgentTest {
     private val tmpDir: okio.Path = FileSystem.SYSTEM_TEMPORARY_DIRECTORY
         .resolve("save-agent-test-${Random.nextInt(100, 999)}")
     private val reportFile = tmpDir / "save.out.json"
+    private val logsFile = tmpDir / "logs.txt"
 
     private val configuration: AgentConfiguration by lazy {
         AgentConfiguration.initializeFromEnv()
             .updateFromEnv()
             .let {
                 it.copy(
+                    logFilePath = logsFile.toString(),
                     save = it.save.copy(
                         reportDir = tmpDir.toString()
                     )
