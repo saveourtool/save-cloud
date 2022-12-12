@@ -14,8 +14,6 @@ import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyl
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.pageIndex
-import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.calendar.calendar
@@ -146,7 +144,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                                 href =
                                         getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                                 fontAwesomeIcon(result.resIcon, classes = result.resColor)
-                                //+"${cellProps.row.index + 1 + cellProps.pageIndex * cellProps.pageSize}"
                             }
                         }
                     }
@@ -391,7 +388,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 executionsTable {
                     filters = state.filters
                     tableHeader = "Executions details"
-                    getData = {_, _ ->
+                    getData = { _, _ ->
                         post(
                             url = "$apiUrl/executionDtoList?projectName=${props.name}&organizationName=${props.organizationName}",
                             headers = jsonHeaders,

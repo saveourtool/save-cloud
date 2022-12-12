@@ -6,9 +6,7 @@ package com.saveourtool.save.frontend.components.tables
 
 import csstype.ClassName
 import react.ChildrenBuilder
-import react.Fragment
 import react.StateSetter
-import react.create
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
 import react.dom.html.InputType
@@ -19,7 +17,6 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.dom.html.ReactHTML.table
 import tanstack.table.core.RowData
 import tanstack.table.core.Table
 import tanstack.table.core.Updater
@@ -246,9 +243,6 @@ private fun <D : RowData> setPageIndexAndGoToPage(
     setPageIndex: StateSetter<Int>,
     index: Int
 ) {
-    println("TABLE INDEX $index BEFORE ${tableInstance.getState().pagination.pageIndex}")
     setPageIndex(index)
     tableInstance.setPageIndex(Updater(index))
-    println("TABLE INDEX $index AFTER ${tableInstance.getState().pagination.pageIndex}")
-
 }
