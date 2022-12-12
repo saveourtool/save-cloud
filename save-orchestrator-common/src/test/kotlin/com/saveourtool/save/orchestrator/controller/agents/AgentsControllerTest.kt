@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
 import org.springframework.http.ResponseEntity
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(controllers = [AgentsController::class])
@@ -61,13 +61,11 @@ class AgentsControllerTest {
                 env = emptyMap(),
             )
         )
-        whenever(containerService.createAndStartContainers(any(), any()))
-            .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
-        whenever(containerService.validateContainersAreStarted(any(), anyList()))
-            .thenReturn(Flux.just(1L, 2L, 3L))
+        whenever(containerService.validateContainersAreStarted(any()))
+            .thenReturn(Mono.just(ResponseEntity.ok().build()))
         whenever(orchestratorAgentService.addAgents(anyList()))
             .thenReturn(listOf<Long>(1, 2).toMono())
         whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
@@ -84,7 +82,7 @@ class AgentsControllerTest {
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(containerService).prepareConfiguration(any())
         verify(containerService).createAndStartContainers(any(), any())
-        verify(containerService).validateContainersAreStarted(any(), anyList())
+        verify(containerService).validateContainersAreStarted(any())
     }
 
     @Test

@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -83,9 +84,13 @@ class KubernetesManager(
             }
         }
         logger.debug { "Attempt to create Job from the following spec: $job" }
-        kc.resource(job)
-            .create()
-        logger.info("Created Job for execution id=$executionId")
+        try {
+            kc.resource(job)
+                .create()
+            logger.info("Created Job for execution id=$executionId")
+        } catch (kex: KubernetesClientException) {
+            throw ContainerRunnerException("Unable to create a job for execution $executionId", kex)
+        }
     }
 
     override fun stop(executionId: Long) {

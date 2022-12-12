@@ -61,18 +61,20 @@ class DockerContainerRunner(
             .exec(PullImageResultCallback())
             .awaitCompletion()
 
-        // TODO: try repeat
-        (1..replicas)
-            .map { number ->
-                logger.info("Creating a container #$number for execution.id=$executionId")
-                createContainerFromImage(configuration, containerName(executionId, number)).also { containerId ->
-                    logger.info("Created a container id=$containerId for execution.id=$executionId")
-                }
+        repeat(replicas) { number ->
+            logger.info("Creating a container #$number for execution.id=$executionId")
+            val containerId = try {
+                createContainerFromImage(configuration, containerName(executionId, number))
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to create containers", dex)
             }
-            .forEach { containerId ->
-                logger.info("Starting container id=$containerId")
+            logger.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
+            try {
                 dockerClient.startContainerCmd(containerId).exec()
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to start container $containerId", dex)
             }
+        }
     }
 
     override fun stop(executionId: Long) {

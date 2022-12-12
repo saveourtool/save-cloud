@@ -10,6 +10,7 @@ import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -54,8 +55,8 @@ class AgentsController(
                 .map { configuration ->
                     containerService.createAndStartContainers(request.executionId, configuration)
                 }
-                .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    reportExecutionError(request.executionId, "Unable to create containers", ex)
+                .onErrorResume(ContainerRunnerException::class.java) { ex ->
+                    reportExecutionError(request.executionId, ex)
                 }
                 .flatMapMany {
                     containerService.validateContainersAreStarted(request.executionId)
@@ -66,11 +67,10 @@ class AgentsController(
 
     private fun <T> reportExecutionError(
         executionId: Long,
-        failReason: String,
-        ex: Throwable?
+        ex: ContainerRunnerException,
     ): Mono<T> {
-        log.error("$failReason for executionId=$executionId, will mark it as ERROR", ex)
-        return agentService.updateExecution(executionId, ExecutionStatus.ERROR, failReason)
+        log.error("${ex.message} for executionId=$executionId, will mark it as ERROR", ex)
+        return agentService.updateExecution(executionId, ExecutionStatus.ERROR, ex.message)
             .then(Mono.empty())
     }
 

@@ -9,39 +9,37 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-
-import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
-import java.time.Duration
-
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import org.mockito.kotlin.*
-import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.time.Duration
 import java.time.Month
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 @WebFluxTest(controllers = [HeartbeatController::class])
@@ -77,7 +75,12 @@ class HeartbeatControllerTest {
 
     @Test
     fun checkAcceptingHeartbeat() {
-        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
+        val heartBeatBusy = Heartbeat(
+            agentInfo = "test".toAgentInfo(),
+            state = AgentState.BUSY,
+            executionProgress = ExecutionProgress(0, -1L),
+            timestamp = Clock.System.now() + 30.seconds
+        )
 
         whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
@@ -119,7 +122,12 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.IDLE, "test-1"),
                 AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat(
+                agentInfo = "test-1".toAgentInfo(),
+                state = AgentState.IDLE,
+                executionProgress = ExecutionProgress(100, -1L),
+                timestamp = Clock.System.now() + 30.seconds
+            )),
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 1,
@@ -137,7 +145,12 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.IDLE, "test-1"),
                 AgentStatusDto(AgentState.IDLE, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat(
+                agentInfo = "test-1".toAgentInfo(),
+                state = AgentState.IDLE,
+                executionProgress = ExecutionProgress(100, -1L),
+                timestamp = Clock.System.now() + 30.seconds
+            )),
             initConfigs = emptyList(),
             testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -160,7 +173,12 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat(
+                agentInfo = "test-1".toAgentInfo(),
+                state = AgentState.IDLE,
+                executionProgress = ExecutionProgress(100, -1L),
+                timestamp = Clock.System.now() + 30.seconds
+            )),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
@@ -177,6 +195,8 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should not shutdown any agents when they are STARTING`() {
+        whenever(orchestratorAgentService.addAgents(anyList()))
+            .thenReturn(Mono.just(listOf(1, 2)))
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -184,8 +204,18 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.STARTING, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime + 1.seconds),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 2.seconds)
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.STARTING,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 1.seconds
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.IDLE,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 2.seconds
+                )
             ),
             initConfigs = listOf(initConfig),
             testBatchNullable = listOf(
@@ -212,14 +242,49 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 1.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 2.seconds),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 3.seconds),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.STARTING,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.IDLE,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 1.seconds
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 2.seconds
+                ),
+                Heartbeat(
+                    agentInfo = "test-2".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 3.seconds
+                ),
                 // 3 absent heartbeats from test-2
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 4.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 5.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 10.seconds),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 4.seconds
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 5.seconds
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = currTime + 10.seconds
+                ),
             ),
             heartBeatInterval = 1_000,
             initConfigs = listOf(initConfig),
@@ -245,9 +310,24 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
                 // heartbeats were sent long time ago
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.STARTING,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = Clock.System.now() - 1.minutes
+                ),
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.IDLE,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = Clock.System.now() - 1.minutes
+                ),
+                Heartbeat(
+                    agentInfo = "test-2".toAgentInfo(),
+                    state = AgentState.BUSY,
+                    executionProgress = ExecutionProgress(0, -1L),
+                    timestamp = Clock.System.now() - 1.minutes
+                ),
             ),
             heartBeatInterval = 0,
             initConfigs = listOf(initConfig),
@@ -272,7 +352,12 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat(
+                agentInfo = "test-1".toAgentInfo(),
+                state = AgentState.IDLE,
+                executionProgress = ExecutionProgress(100, -1L),
+                timestamp = Clock.System.now() + 30.seconds
+            )),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
@@ -323,7 +408,12 @@ class HeartbeatControllerTest {
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)
+                Heartbeat(
+                    agentInfo = "test-1".toAgentInfo(),
+                    state = AgentState.FINISHED,
+                    executionProgress = ExecutionProgress(100, -1L),
+                    timestamp = Clock.System.now() + 30.seconds
+                )
             ),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
@@ -431,6 +521,11 @@ class HeartbeatControllerTest {
             testSuitesSourceSnapshotUrl = "stub",
             additionalFileNameToUrl = mapOf("file" to "stub"),
             saveCliOverrides = SaveCliOverrides(),
+        )
+        private fun String.toAgentInfo(): AgentInfo = AgentInfo(
+            containerId = this,
+            containerName = this,
+            version = "1.0",
         )
     }
 }
