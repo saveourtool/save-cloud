@@ -33,7 +33,7 @@ spec:
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
-              mountPath: /home/cnb/files
+              mountPath: {{ include "backend.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}

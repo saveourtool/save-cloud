@@ -47,7 +47,7 @@ command line using `--set` flag.
   Add the following properties (actual values may be different) into `gradle.properties`:
   ```properties
   build.docker.host=https://127.0.0.1:49156
-  build.docker.tsl-verify=true
+  build.docker.tls-verify=true
   build.docker.cert-path=<path-to-user-home>/.minikube/certs
   ```
 * (Required only once) Install Helm chart using `values-minikube.yaml`: 

@@ -29,7 +29,7 @@ spec:
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
-              mountPath: /home/cnb/files
+              mountPath: {{ include "demo.constants.storage" . }}
           {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
