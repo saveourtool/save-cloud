@@ -58,12 +58,16 @@ class AgentService(
     /**
      * Save new agent to the DB and insert its status. This logic is performed in two consecutive requests.
      *
+     * @param executionId ID of an execution
      * @param agent [AgentDto] to save in the DB
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentWithInitialStatus(agent: AgentDto): Mono<EmptyResponse> = orchestratorAgentService
-        .addAgent(agent)
+    fun saveAgentWithInitialStatus(
+        executionId: Long,
+        agent: AgentDto,
+    ): Mono<EmptyResponse> = orchestratorAgentService
+        .addAgent(executionId, agent)
         .flatMap {
             orchestratorAgentService.updateAgentStatus(AgentStatusDto(STARTING, agent.containerId))
         }

@@ -52,11 +52,12 @@ interface OrchestratorAgentService {
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
+     * @param executionId ID of an execution
      * @param agents list of [AgentDto]s to save in the DB
      * @return Mono with IDs of saved [Agent]s
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun addAgents(agents: List<AgentDto>): Mono<IdList>
+    fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList>
 
     /**
      * @param agentStates list of [AgentStatusDto] to update/insert in the DB
