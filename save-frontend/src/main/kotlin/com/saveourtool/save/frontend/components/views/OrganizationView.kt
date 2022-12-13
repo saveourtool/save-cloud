@@ -75,8 +75,6 @@ val actionButtonClasses: List<String> = listOf("btn", "btn-small")
  */
 val actionIconClasses: List<String> = listOf("trash-alt")
 
-val orderedProjectStatus = listOf(ProjectStatus.CREATED, ProjectStatus.DELETED, ProjectStatus.BANNED).withIndex().associate { it.value to it.index }
-
 /**
  * `Props` retrieved from router
  */
@@ -199,7 +197,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<ProjectDto> =
-                compareBy<ProjectDto> { orderedProjectStatus[it.status] }
+                compareBy<ProjectDto> { it.status.ordinal }
                     .thenBy { it.name }
 
         scope.launch {

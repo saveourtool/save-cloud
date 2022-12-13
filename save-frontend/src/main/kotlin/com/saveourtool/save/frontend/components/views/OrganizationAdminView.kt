@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.components.views.usersettings.orderedOrganizationStatus
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -35,7 +34,7 @@ import kotlinx.serialization.json.Json
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
     private val comparator: Comparator<OrganizationDto> =
-            compareBy<OrganizationDto> { orderedOrganizationStatus[it.status] }
+            compareBy<OrganizationDto> { it.status.ordinal }
                 .thenBy { it.name }
 
     @Suppress("TYPE_ALIAS")
@@ -112,8 +111,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { isBanned ->
-                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                        updateOrganizationStatusInOrganizationDtoList(organization, newStatus)
+                                        updateOrganizationStatusInOrganizationDtoList(
+                                            organization,
+                                            changeOrganizationDtoStatus(organization, if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED),
+                                        )
                                     }
                                     conditionClick = true
                                     sendRequest = { isBanned ->
@@ -143,7 +144,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        updateOrganizationStatusInOrganizationDtoList(organization, OrganizationStatus.CREATED)
+                                        updateOrganizationStatusInOrganizationDtoList(organization, changeOrganizationDtoStatus(organization, OrganizationStatus.CREATED))
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -172,7 +173,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        updateOrganizationStatusInOrganizationDtoList(organization, OrganizationStatus.CREATED)
+                                        updateOrganizationStatusInOrganizationDtoList(organization, changeOrganizationDtoStatus(organization, OrganizationStatus.CREATED))
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -204,16 +205,22 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     }
 
     /**
-     * This function delete [organization] by [organizations], add [organization] with [newStatus] in [organizations] and sorted its by comparator
+     * Removes [oldOrganization] by [organizations], adds [newOrganization] in [organizations] and sorts the resulting list by their status and then by name
      *
-     * @param organization
-     * @param newStatus
+     * @param oldOrganization
+     * @param newOrganization
      */
-    private fun updateOrganizationStatusInOrganizationDtoList(organization: OrganizationDto, newStatus: OrganizationStatus) {
+    private fun updateOrganizationStatusInOrganizationDtoList(oldOrganization: OrganizationDto, newOrganization: OrganizationDto) {
         setState {
-            organizations = organizations.minus(organization).plus(organization.copy(status = newStatus)).sortedWith(comparator)
+            organizations = organizations.minus(oldOrganization).plus(newOrganization).sortedWith(comparator)
         }
     }
+
+    /**
+     * Returned the [organizationDto] with the updated [OrganizationStatus] field to the [newStatus]
+     */
+    private fun changeOrganizationDtoStatus(organizationDto: OrganizationDto, newStatus: OrganizationStatus) =
+        organizationDto.copy(status = newStatus)
 
     override fun componentDidMount() {
         super.componentDidMount()

@@ -28,24 +28,31 @@ import react.dom.html.ReactHTML.ul
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
     private val comparator: Comparator<OrganizationWithUsers> =
-            compareBy<OrganizationWithUsers> { orderedOrganizationStatus[it.organization.status] }
+            compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
                 .thenBy { it.organization.name }
 
     /**
-     * This function delete [organizationWithUsers] by [selfOrganizationWithUserList],
-     * Add [organizationWithUsers] with [newStatus] in [selfOrganizationWithUserList]
-     * And sorted its by comparator
+     * Removes [oldOrganizationWithUsers] by [selfOrganizationWithUserList], adds [newOrganizationWithUsers] in [selfOrganizationWithUserList]
+     * and sorts the resulting list by their status and then by name
      *
      * @param organizationWithUsers
      * @param newStatus
      */
-    private fun updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) {
+    private fun updateOrganizationWithUserInOrganizationWithUsersList(oldOrganizationWithUsers: OrganizationWithUsers, newOrganizationWithUsers: OrganizationWithUsers) {
         setState {
-            selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(organizationWithUsers)
-                .plusElement(organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus)))
+            selfOrganizationWithUserList = selfOrganizationWithUserList.minusElement(oldOrganizationWithUsers)
+                .plusElement(newOrganizationWithUsers)
                 .sortedWith(comparator)
         }
     }
+
+    /**
+     * Returned the [organizationWithUsers] with the updated [OrganizationStatus] field to the [newStatus] in the organization field
+     */
+    private fun changeOrganizationWithUserStatus(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) =
+        organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
+
+
 
     @Suppress("CyclomaticComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
@@ -123,7 +130,10 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers, OrganizationStatus.DELETED)
+                                                updateOrganizationWithUserInOrganizationWithUsersList(
+                                                    organizationWithUsers,
+                                                    changeOrganizationWithUserStatus(organizationWithUsers, OrganizationStatus.DELETED),
+                                                )
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->
@@ -152,7 +162,10 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                updateOrganizationStatusInOrganizationWithUsersList(organizationWithUsers, OrganizationStatus.CREATED)
+                                                updateOrganizationWithUserInOrganizationWithUsersList(
+                                                    organizationWithUsers,
+                                                    changeOrganizationWithUserStatus(organizationWithUsers, OrganizationStatus.CREATED),
+                                                )
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->

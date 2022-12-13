@@ -61,8 +61,8 @@ external interface OrganizationToolsMenuProps : Props {
 }
 
 /**
- * This function delete [projects] by [projects], add [oldProject] in [projects] and sorted its by comparator
- * After that, projects and props are updated
+ * Removes the projects specified by [oldProjects], adds projects specified by [newProjects],
+ * and sorts the resulting list by their status and then by name.
  *
  * @param projects is list of the projects
  * @param oldProject is an old project, it needs to be removed from the list
@@ -76,20 +76,18 @@ private fun updateOneProjectInProjects(
     oldProject: ProjectDto,
     newProject: ProjectDto,
     setProjects: StateSetter<List<ProjectDto>>,
-    updateProjects: (List<ProjectDto>) -> Unit
+    updateProjects: (List<ProjectDto>) -> Unit,
 ) {
     val comparator: Comparator<ProjectDto> =
-            compareBy<ProjectDto> { orderedProjectStatus[it.status] }
+            compareBy<ProjectDto> { it.status.ordinal }
                 .thenBy { it.name }
     projects
         .minus(oldProject)
         .plus(newProject)
         .sortedWith(comparator)
-        .also {
-            setProjects(it)
-        }
-        .also {
-            updateProjects(it)
+        .also { sortedProjects ->
+            setProjects(sortedProjects)
+            updateProjects(sortedProjects)
         }
 }
 
@@ -225,9 +223,9 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                     }
                                     ProjectStatus.BANNED -> if (props.currentUserInfo.isSuperAdmin()) {
                                         actionButton {
-                                            title = "WARNING: About to recover this BANNED project..."
+                                            title = "WARNING: About to unban this BANNED project..."
                                             errorTitle = "You cannot unban the project $projectName"
-                                            message = """Are you sure you want to recover the project "$projectName"?"""
+                                            message = """Are you sure you want to unban the project "$projectName"?"""
                                             buttonStyleBuilder = { childrenBuilder ->
                                                 with(childrenBuilder) {
                                                     fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
