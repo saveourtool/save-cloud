@@ -73,12 +73,12 @@ class AgentService(
         }
 
     /**
-     * @param agentState [AgentStatus] to update in the DB
+     * @param agentStatus [AgentStatus] to update in the DB
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
+    fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
             orchestratorAgentService
-                .updateAgentStatusesWithDto(listOf(agentState))
+                .updateAgentStatus(agentStatus)
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
                     Mono.empty()

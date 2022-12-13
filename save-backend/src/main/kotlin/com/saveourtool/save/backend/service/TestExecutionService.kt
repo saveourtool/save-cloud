@@ -286,7 +286,7 @@ class TestExecutionService(
     }
 
     /**
-     * @param containerIds the list of agents, for which corresponding test executions should be marked as failed
+     * @param containerId the container ID of agent, for which corresponding test executions should be marked as failed
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")

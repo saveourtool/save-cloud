@@ -104,7 +104,7 @@ class HeartBeatInspector(
         val areAgentsStopped = containerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
             Flux.fromIterable(crashedAgents).flatMap { containerId ->
-                agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
+                agentService.updateAgentStatus(AgentStatusDto(AgentState.CRASHED, containerId))
             }.blockLast()
             if (agentsLatestHeartBeatsMap.keys.toList() == crashedAgents.toList()) {
                 logger.warn("All agents are crashed, initialize shutdown sequence. Crashed agents: $crashedAgents")

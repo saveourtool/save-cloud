@@ -68,7 +68,7 @@ class HeartbeatController(private val agentService: AgentService,
             .toMono()
             .flatMap {
                 // store new state into DB
-                agentService.updateAgentStatusesWithDto(
+                agentService.updateAgentStatus(
                     AgentStatusDto(heartbeat.state, containerId)
                 )
             }
@@ -102,10 +102,10 @@ class HeartbeatController(private val agentService: AgentService,
         executionId: Long,
         agentInfo: AgentInfo,
     ): Mono<HeartbeatResponse> = agentService.saveAgentWithInitialStatus(
-        AgentDto(
+        executionId = executionId,
+        agent = AgentDto(
             containerId = agentInfo.containerId,
             containerName = agentInfo.containerName,
-            executionId = executionId,
             version = agentInfo.version,
         )
     )
@@ -118,7 +118,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleVacantAgent(containerId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(containerId)
                 .asyncEffectIf({ this is NewJobResponse }) {
-                    agentService.updateAgentStatusesWithDto(AgentStatusDto(BUSY, containerId))
+                    agentService.updateAgentStatus(AgentStatusDto(BUSY, containerId))
                 }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
@@ -132,7 +132,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
                 .flatMap { (response, shouldStop) ->
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(AgentStatusDto(TERMINATED, containerId))
+                        agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
                             .thenReturn<HeartbeatResponse>(TerminateResponse)
                             .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {

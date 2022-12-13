@@ -8,7 +8,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.EmptyResponse
 
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 
 typealias IdList = List<Long>
@@ -38,32 +37,17 @@ interface OrchestratorAgentService {
     /**
      * Save new agents to the DB and insert their statuses
      *
+     * @param executionId ID of an execution
      * @param agent [AgentDto] to save in the DB
      * @return a Mono without body
      */
-    fun addAgent(agent: AgentDto): Mono<EmptyResponse>
+    fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse>
 
     /**
      * @param agentStatus [AgentStatusDto] to update/insert in the DB
      * @return a Mono without body
      */
     fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse>
-
-    /**
-     * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
-     *
-     * @param executionId ID of an execution
-     * @param agents list of [AgentDto]s to save in the DB
-     * @return Mono with IDs of saved [Agent]s
-     * @throws WebClientResponseException if any of the requests fails
-     */
-    fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList>
-
-    /**
-     * @param agentStates list of [AgentStatusDto] to update/insert in the DB
-     * @return a Mono without body
-     */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse>
 
     /**
      * Get List of [TestExecutionDto] for agent [containerId] have status READY_FOR_TESTING

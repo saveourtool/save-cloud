@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -82,7 +83,7 @@ class HeartbeatControllerTest {
             timestamp = Clock.System.now() + 30.seconds
         )
 
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         webClient.post()
             .uri("/heartbeat")
@@ -92,7 +93,7 @@ class HeartbeatControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-        verify(orchestratorAgentService).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService).updateAgentStatus(any())
     }
 
     @Test
@@ -195,8 +196,13 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should not shutdown any agents when they are STARTING`() {
-        whenever(orchestratorAgentService.addAgents(anyList()))
-            .thenReturn(Mono.just(listOf(1, 2)))
+        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+            .thenAnswer { invocation ->
+                (invocation.arguments[1] as? AgentDto)
+                    ?.containerId
+                    ?.removePrefix("test-")
+                    ?.toLong()
+            }
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -402,7 +408,7 @@ class HeartbeatControllerTest {
             .whenever(orchestratorAgentService)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(any(), any()))
+        whenever(orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
@@ -422,7 +428,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
-            verify(orchestratorAgentService).markAllTestExecutionsOfExecutionAsFailed(any(), any())
+            verify(orchestratorAgentService).markAllTestExecutionsOfExecutionAsFailed(any())
         }
     }
 
@@ -470,7 +476,7 @@ class HeartbeatControllerTest {
         }
 
         repeat(mockUpdateAgentStatusesCount) {
-            whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+            whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         }
         if (mockAgentStatusesForSameExecution) {
@@ -508,7 +514,7 @@ class HeartbeatControllerTest {
         testBatchNullable?.let {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
-        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
         if (mockAgentStatusesForSameExecution) {
             verify(orchestratorAgentService).getAgentsStatusesForSameExecution(any())
         }
