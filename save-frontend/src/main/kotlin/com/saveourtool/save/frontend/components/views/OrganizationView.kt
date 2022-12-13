@@ -107,7 +107,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     /**
      * List of projects for `this` organization
      */
-    var projects: MutableList<ProjectDto>
+    var projects: List<ProjectDto>
 
     /**
      * Message of error
@@ -196,10 +196,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     override fun componentDidMount() {
         super.componentDidMount()
+        val comparator: Comparator<ProjectDto> =
+                compareBy<ProjectDto> { it.status.ordinal }
+                    .thenBy { it.name }
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
-            val projectsLoaded = getProjectsForOrganizationAndStatus(enumValues<ProjectStatus>().toSet())
+            val projectsLoaded = getProjectsForOrganizationAndStatus(enumValues<ProjectStatus>().toSet()).sortedWith(comparator)
             val role = getRoleInOrganization()
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
@@ -435,7 +438,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): MutableList<ProjectDto> = post(
+    private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): List<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
         body = Json.encodeToString(ProjectFilters("", props.organizationName, statuses)),
