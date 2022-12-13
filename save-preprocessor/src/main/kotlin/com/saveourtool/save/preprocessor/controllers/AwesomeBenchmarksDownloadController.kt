@@ -32,7 +32,6 @@ import kotlinx.serialization.serializer
  *
  * @property configProperties config properties
  */
-@OptIn(ExperimentalPathApi::class)
 @RestController
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
