@@ -60,26 +60,42 @@ external interface OrganizationToolsMenuProps : Props {
     var updateProjects: (List<ProjectDto>) -> Unit
 }
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "CyclomaticComplexMethod")
-private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
-    val (projects, setProjects) = useState(props.projects)
+/**
+ * This function delete [projects] by [projects], add [oldProject] in [projects] and sorted its by comparator
+ * After that, projects and props are updated
+ *
+ * @param projects is list of the projects
+ * @param oldProject is an old project, it needs to be removed from the list
+ * @param newProject is a new project, it needs to be added to the list
+ * @param setProjects is setter to update projects
+ * @param updateProjects method from props, for changing props
+ */
+@Suppress("TYPE_ALIAS")
+private fun updateProjects(
+    projects: List<ProjectDto>,
+    oldProject: ProjectDto,
+    newProject: ProjectDto,
+    setProjects: StateSetter<List<ProjectDto>>,
+    updateProjects: (List<ProjectDto>) -> Unit
+) {
     val comparator: Comparator<ProjectDto> =
             compareBy<ProjectDto> { orderedProjectStatus[it.status] }
                 .thenBy { it.name }
+    projects
+        .minus(oldProject)
+        .plus(newProject)
+        .sortedWith(comparator)
+        .also {
+            setProjects(it)
+        }
+        .also {
+            updateProjects(it)
+        }
+}
 
-    /**
-     * This function delete [project] by [projects], add [project] with [newStatus] in [projects] and sorted its by comparator
-     *
-     * @param project
-     * @param newStatus
-     */
-    @Suppress("AVOID_NESTED_FUNCTIONS")
-    fun updateProjectStatusInProjectsDtoList(project: ProjectDto, newStatus: ProjectStatus) {
-        val newProjects = projects.minus(project).plus(project.copy(status = newStatus)).sortedWith(comparator)
-        setProjects(newProjects)
-        props.updateProjects(newProjects.toMutableList())
-    }
-
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "CyclomaticComplexMethod")
+private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
+    val (projects, setProjects) = useState(props.projects)
     @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
@@ -160,8 +176,12 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { isBanMode ->
-                                            val newStatus = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                            updateProjectStatusInProjectsDtoList(project, newStatus)
+                                            updateProjects(projects,
+                                                project,
+                                                project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED),
+                                                setProjects,
+                                                props.updateProjects,
+                                            )
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
                                         sendRequest = { isBanned ->
@@ -191,7 +211,12 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            updateProjectStatusInProjectsDtoList(project, ProjectStatus.CREATED)
+                                            updateProjects(projects,
+                                                project,
+                                                project.copy(status = ProjectStatus.CREATED),
+                                                setProjects,
+                                                props.updateProjects,
+                                            )
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
@@ -221,7 +246,12 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                updateProjectStatusInProjectsDtoList(project, ProjectStatus.CREATED)
+                                                updateProjects(projects,
+                                                    project,
+                                                    project.copy(status = ProjectStatus.CREATED),
+                                                    setProjects,
+                                                    props.updateProjects,
+                                                )
                                             }
                                             conditionClick = false
                                             sendRequest = { _ ->
