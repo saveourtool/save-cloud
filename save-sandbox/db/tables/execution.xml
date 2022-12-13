@@ -31,4 +31,9 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="modify-data-type-3" author="frolov">
+        <modifyDataType tableName="execution" columnName="start_time" newDataType="DATETIME(3)"/>
+        <modifyDataType tableName="execution" columnName="end_time" newDataType="DATETIME(3)"/>
+    </changeSet>
+
 </databaseChangeLog>

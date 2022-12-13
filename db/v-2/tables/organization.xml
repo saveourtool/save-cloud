@@ -68,4 +68,9 @@
       referencedTableName="user"
       onDelete="CASCADE"/>
   </changeSet>
+
+  <changeSet id="modify-data-type-4" author="frolov">
+    <modifyDataType tableName="organization" columnName="date_created" newDataType="DATETIME(3)"/>
+  </changeSet>
+
 </databaseChangeLog>

@@ -15,7 +15,7 @@ orchestrator:
   profile: dev,kubernetes,minikube
   dockerHost: tcp://${HOST_IP}:2376
   applicationProperties: |
-    orchestrator.docker.host=tcp://localhost:2376
+    orchestrator.agents-count=1
     logging.level.com.saveourtool=DEBUG
     orchestrator.kubernetes.useGvisor=false
 sandbox:
