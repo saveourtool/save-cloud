@@ -75,7 +75,6 @@ private fun updateOneProjectInProjects(
     projects: List<ProjectDto>,
     oldProject: ProjectDto,
     newProject: ProjectDto,
-    setProjects: StateSetter<List<ProjectDto>>,
     updateProjects: (List<ProjectDto>) -> Unit,
 ) {
     val comparator: Comparator<ProjectDto> =
@@ -86,14 +85,12 @@ private fun updateOneProjectInProjects(
         .plus(newProject)
         .sortedWith(comparator)
         .also { sortedProjects ->
-            setProjects(sortedProjects)
             updateProjects(sortedProjects)
         }
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "CyclomaticComplexMethod")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
-    val (projects, setProjects) = useState(props.projects)
     @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
@@ -174,10 +171,9 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { isBanMode ->
-                                            updateOneProjectInProjects(projects,
+                                            updateOneProjectInProjects(props.projects,
                                                 project,
                                                 project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED),
-                                                setProjects,
                                                 props.updateProjects,
                                             )
                                         }
@@ -209,10 +205,10 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            updateOneProjectInProjects(projects,
+                                            updateOneProjectInProjects(
+                                                props.projects,
                                                 project,
                                                 project.copy(status = ProjectStatus.CREATED),
-                                                setProjects,
                                                 props.updateProjects,
                                             )
                                         }
@@ -244,10 +240,10 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                updateOneProjectInProjects(projects,
+                                                updateOneProjectInProjects(
+                                                    props.projects,
                                                     project,
                                                     project.copy(status = ProjectStatus.CREATED),
-                                                    setProjects,
                                                     props.updateProjects,
                                                 )
                                             }
@@ -297,7 +293,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
 
             tableWithProjects {
                 getData = { _, _ ->
-                    projects.toTypedArray()
+                    props.projects.toTypedArray()
                 }
                 getPageCount = null
             }
