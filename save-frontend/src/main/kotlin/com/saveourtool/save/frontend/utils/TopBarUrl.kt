@@ -49,7 +49,7 @@ class TopBarUrl(val href: String) {
      *
      * @param index
      */
-    fun isCreateButton(index: Int) = when (circumstance) {
+    fun shouldDisplayPathFragment(index: Int) = when (circumstance) {
         SituationUrlClassification.KEYWORD_PROCESS_LAST_SEGMENTS -> index >= sizeUrlSegments - 1 - processLastSegments
         SituationUrlClassification.KEYWORD_NOT_PROCESS -> false
         else -> true
