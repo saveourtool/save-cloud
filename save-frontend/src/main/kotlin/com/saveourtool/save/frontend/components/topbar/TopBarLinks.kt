@@ -101,10 +101,9 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
             TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
         ).forEach { elem ->
-            val isNotSaveCloudLink = elem.hrefAnchor != SAVE_CLOUD_GITHUB
             li {
                 className = ClassName("nav-item")
-                if (isNotSaveCloudLink) {
+                if (elem.hrefAnchor != SAVE_CLOUD_GITHUB) {
                     Link {
                         className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
                         style = jso { width = elem.width }
