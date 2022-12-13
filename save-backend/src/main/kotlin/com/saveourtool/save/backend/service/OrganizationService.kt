@@ -1,10 +1,12 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.BanOrganizationRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
+import com.saveourtool.save.entities.makeBanned
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
@@ -22,6 +24,7 @@ import kotlin.NoSuchElementException
 class OrganizationService(
     private val projectService: ProjectService,
     private val organizationRepository: OrganizationRepository,
+    private val banOrganizationRepository: BanOrganizationRepository,
 ) {
     /**
      * Store [organization] in the database
@@ -82,6 +85,7 @@ class OrganizationService(
                 it.status = DELETED
                 projectService.updateProject(it)
             }
+            banOrganizationRepository.deleteBannedOrganizationByName(organization.name)
         }
         return changeOrganizationStatus(organization, OrganizationStatus.CREATED)
     }
@@ -98,6 +102,7 @@ class OrganizationService(
             it.status = BANNED
             projectService.updateProject(it)
         }
+        banOrganizationRepository.save(organization.makeBanned("", ""))
         return changeOrganizationStatus(organization, OrganizationStatus.BANNED)
     }
 

@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.BanProjectRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -28,7 +29,7 @@ import java.util.*
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-
+    private val banProjectRepository: BanProjectRepository,
     private val userRepository: UserRepository
 ) {
     /**
@@ -65,6 +66,17 @@ class ProjectService(
         .let {
             projectRepository.save(it)
         }
+
+    fun banProject(project: Project) {
+        banProjectRepository.saveBannedProject(project.name, "A", "B")
+        changeProjectStatus(project, ProjectStatus.BANNED)
+    }
+
+    fun recoverProject(project: Project, newProjectStatus: ProjectStatus){
+        if (newProjectStatus == ProjectStatus.BANNED)
+            banProjectRepository.deleteBannedProjectByName(project.name)
+        changeProjectStatus(project, newProjectStatus)
+    }
 
     /**
      * @param project [Project] to be updated
