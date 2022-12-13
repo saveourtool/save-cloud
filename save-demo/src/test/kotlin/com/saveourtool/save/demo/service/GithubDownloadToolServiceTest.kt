@@ -10,14 +10,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class GithubDownloadToolServiceTest(
-//    private val githubDownloadToolService: GithubDownloadToolService,
-//    private val toolStorage: ToolStorage,
+    private val githubDownloadToolService: GithubDownloadToolService,
+    private val toolStorage: ToolStorage,
 )
 {
     @Test
     fun `test correct download from gitHub, upload to and download from storage`() {
-        val elem = DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar")
-//        githubDownloadToolService.downloadFromGithubAndUploadToStorage(elem)
-//        val content = toolStorage.download(elem)
+        val supportedTools = listOf(
+            DiktatDemoTool.KTLINT.toToolKey("ktlint"),
+            DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"),
+        ).forEach {elem ->
+            githubDownloadToolService.downloadFromGithubAndUploadToStorage(elem)
+        }
     }
 }
