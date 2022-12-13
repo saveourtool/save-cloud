@@ -50,6 +50,16 @@ class ExecutionService(
     fun findExecution(id: Long): Execution? = executionRepository.findByIdOrNull(id)
 
     /**
+     * Get execution by id
+     *
+     * @param id id of [Execution]
+     * @return [Execution] or exception
+     */
+    fun getExecution(id: Long): Execution = findExecution(id).orNotFound {
+        "Not found execution with id $id"
+    }
+
+    /**
      * @param execution execution that is connected to testSuite
      * @param testSuites manageable test suite
      */

@@ -66,12 +66,12 @@ class AgentsController(
                 }
                 .flatMap { containerIds ->
                     agentService.saveAgentsWithInitialStatuses(
+                        request.executionId,
                         containerIds.map { containerId ->
                             val containerName = containerRunner.getContainerIdentifier(containerId)
                             AgentDto(
                                 containerId = containerId,
                                 containerName = containerName,
-                                executionId = request.executionId,
                                 version = request.saveAgentVersion
                             )
                         }

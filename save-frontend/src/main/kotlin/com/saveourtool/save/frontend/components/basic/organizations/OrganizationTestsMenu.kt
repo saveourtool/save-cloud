@@ -42,6 +42,14 @@ external interface OrganizationTestsMenuProps : Props {
     var selfRole: Role
 }
 
+private suspend fun WithRequestStatusContext.getTestSuitesSourcesWithId(
+    organizationName: String,
+) = get(
+    url = "$apiUrl/test-suites-sources/$organizationName/list-with-ids",
+    headers = jsonHeaders,
+    loadingHandler = ::loadingHandler,
+)
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     useTooltip()
@@ -49,11 +57,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
-        val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
+        val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
             setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
         } else {
@@ -123,6 +127,18 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
         }
     }
+    val refreshTestSuitesSourcesSnapshotKey = useDeferredRequest {
+        val response = getTestSuitesSourcesWithId(props.organizationName)
+        if (response.ok) {
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+        } else {
+            setTestSuitesSourcesWithId(emptyList())
+        }
+    }
+    val refreshHandler: () -> Unit = {
+        refreshTestSuitesSourcesSnapshotKey()
+        fetchTestSuitesSourcesSnapshotKeys()
+    }
     val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {
         organizationName = props.organizationName
@@ -152,9 +168,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
 
     div {
-        className = ClassName("mb-2")
+        className = ClassName("mb-2 d-flex justify-content-center")
         when (selectedTestSuitesSourceWithId) {
-            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler)
+            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler, refreshHandler)
             else -> showTestSuitesSourceSnapshotKeys(
                 selectedTestSuitesSourceWithId,
                 testSuitesSourceSnapshotKeys,
@@ -162,6 +178,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 editHandler,
                 fetchHandler,
                 deleteHandler,
+                refreshHandler,
             )
         }
     }
