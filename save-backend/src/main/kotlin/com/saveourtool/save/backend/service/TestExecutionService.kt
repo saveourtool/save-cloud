@@ -291,23 +291,22 @@ class TestExecutionService(
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
     fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String) {
-        val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
-            "Agent with containerId=[$containerId] was not found in the DB"
-        }
+        val agent = agentService.getAgentByContainerId(containerId)
         val agentId = agent.requiredId()
         val executionId = agentService.getExecution(agent).requiredId()
 
-        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
+        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentIdAndStatus(
             executionId,
-            agentId
-        ).filter { it.status == TestResultStatus.READY_FOR_TESTING }
+            agentId,
+            TestResultStatus.READY_FOR_TESTING,
+        )
 
         if (testExecutionList.isEmpty()) {
             // Crashed agent could be not assigned with tests, so just warn and return
             log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
             return
         }
-        doMarkTestExecutionOfAgentsAsFailed(testExecutionList)
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
     }
 
     /**
@@ -321,23 +320,22 @@ class TestExecutionService(
             log.warn("Can't find `test_execution`s for executionId=$executionId")
             return
         }
-        doMarkTestExecutionOfAgentsAsFailed(testExecutionList)
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
     }
 
-    private fun doMarkTestExecutionOfAgentsAsFailed(testExecutionList: List<TestExecution>) {
-        testExecutionList.map { testExecution ->
-            testExecutionRepository.save(testExecution.apply {
+    private fun List<TestExecution>.doMarkTestExecutionOfAgentsAsFailed() = this
+        .map { testExecution ->
+            testExecution.apply {
                 this.status = TestResultStatus.INTERNAL_ERROR
                 // In case of execution without errors all information about test execution we take from
                 // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
                 this.endTime = LocalDateTime.now()
-            })
-        }.also { testExecutions ->
-            if (testExecutions.isNotEmpty()) {
-                log.info("Test executions with ids ${testExecutions.map { it.id }} were failed with internal error")
             }
         }
-    }
+        .let { testExecutionRepository.saveAll(it) }
+        .also {
+            log.info("Test executions with ids ${this.map { it.requiredId() }} were failed with internal error")
+        }
 
     private fun Long?.orZeroIfNotApplicable() = this?.takeUnless { CountWarnings.isNotApplicable(it.toInt()) } ?: 0
 

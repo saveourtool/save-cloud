@@ -91,7 +91,7 @@ class ContainerService(
             .doOnComplete {
                 if (areAgentsHaveStarted[executionId]?.get() != true) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
-                    containerRunner.stop(executionId)
+                    containerRunner.cleanupByExecution(executionId)
                     agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                         "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
                     ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
@@ -110,7 +110,7 @@ class ContainerService(
     fun stopAgents(containerIds: Collection<String>) =
             try {
                 containerIds.all { containerId ->
-                    containerRunner.stopByContainerId(containerId)
+                    containerRunner.stop(containerId)
                 }
             } catch (e: ContainerRunnerException) {
                 log.error("Error while stopping agents $containerIds", e)
@@ -132,13 +132,13 @@ class ContainerService(
      * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
+    fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
      * @param executionId ID of execution
      */
-    fun cleanup(executionId: Long) {
-        containerRunner.cleanup(executionId)
+    fun cleanupByExecutionId(executionId: Long) {
+        containerRunner.cleanupByExecution(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {

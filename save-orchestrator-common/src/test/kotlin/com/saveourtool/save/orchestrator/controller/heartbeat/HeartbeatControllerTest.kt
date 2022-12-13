@@ -20,7 +20,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyList
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -167,7 +166,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(containerService.isStoppedByContainerId(any())).thenReturn(true)
+        whenever(containerService.isStopped(any())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),

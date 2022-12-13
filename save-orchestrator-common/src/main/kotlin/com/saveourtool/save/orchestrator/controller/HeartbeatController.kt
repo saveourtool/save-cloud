@@ -48,10 +48,11 @@ class HeartbeatController(private val agentService: AgentService,
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
      *
-     * 1. Response has IDLE state. Then orchestrator should send new jobs.
-     * 2. Response has FINISHED state. Then orchestrator should send new jobs and validate that data has actually been saved successfully.
-     * 3. Response has BUSY state. Then orchestrator sends an Empty response.
-     * 4. Response has ERROR state. Then orchestrator sends Terminating response.
+     * 1. Response has STARTING state. Then orchestrator should register a new agent and send a configuration for new job.
+     * 2. Response has IDLE state. Then orchestrator should send new jobs.
+     * 3. Response has FINISHED state. Then orchestrator should send new jobs and validate that data has actually been saved successfully.
+     * 4. Response has BUSY state. Then orchestrator sends an Empty response.
+     * 5. Response has ERROR state. Then orchestrator sends a Wait response to assign another jobs
      *
      * @param heartbeat
      * @return Answer for agent
@@ -111,7 +112,7 @@ class HeartbeatController(private val agentService: AgentService,
     )
         .doOnError(WebClientResponseException::class) { exception ->
             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-            containerService.cleanup(executionId)
+            containerService.cleanupByExecutionId(executionId)
         }
         .then(agentService.getInitConfig(agentInfo.containerId))
 
@@ -165,7 +166,7 @@ class HeartbeatController(private val agentService: AgentService,
         Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {
-                containerService.isStoppedByContainerId(containerId)
+                containerService.isStopped(containerId)
             }
             .takeUntil { it }
             // check whether we have got `true` or Flux has completed with only `false`

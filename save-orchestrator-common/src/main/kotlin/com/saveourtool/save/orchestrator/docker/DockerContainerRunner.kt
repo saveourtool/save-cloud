@@ -77,20 +77,10 @@ class DockerContainerRunner(
         }
     }
 
-    override fun stop(executionId: Long) {
-        val runningContainersForExecution = dockerClient.listContainersCmd()
-            .withStatusFilter(listOf("running"))
-            .exec()
-            .filter { container -> container.names.any { it.contains("-$executionId-") } }
-        runningContainersForExecution.map { it.id }.forEach { containerId ->
-            dockerClient.stopContainerCmd(containerId).exec()
-        }
-    }
-
-    override fun stopByContainerId(containerId: String): Boolean {
+    override fun stop(containerId: String): Boolean {
         logger.info("Stopping agent with id=$containerId")
         val state = dockerClient.inspectContainerCmd(containerId).exec().state
-        return if (state.status == "running") {
+        return if (state.status == RUNNING_STATUS) {
             try {
                 dockerClient.stopContainerCmd(containerId).exec()
             } catch (dex: DockerException) {
@@ -106,14 +96,17 @@ class DockerContainerRunner(
         }
     }
 
-    override fun isStoppedByContainerId(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
+    override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
         .also { logger.debug("Container $containerId has state $it") }
-        .status != "running"
+        .status != RUNNING_STATUS
 
-    override fun cleanup(executionId: Long) {
-        val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
+    override fun cleanupByExecution(executionId: Long) {
+        val containersForExecution = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-$executionId-"))
+            .withShowAll(true)
+            .exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
             logger.info("Removing container $containerId")
@@ -148,7 +141,7 @@ class DockerContainerRunner(
         .withNameFilter(listOf("-$executionId-"))
         .exec()
         .map { it.id }
-        .filterNot { isStoppedByContainerId(it) }
+        .filterNot { isStopped(it) }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 
@@ -248,5 +241,6 @@ class DockerContainerRunner(
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerContainerRunner::class.java)
+        private const val RUNNING_STATUS = "running"
     }
 }

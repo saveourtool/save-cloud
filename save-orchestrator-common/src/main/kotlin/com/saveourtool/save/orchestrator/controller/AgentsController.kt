@@ -88,7 +88,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        containerService.cleanup(executionId)
+        containerService.cleanupByExecutionId(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())
