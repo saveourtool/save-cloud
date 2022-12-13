@@ -50,9 +50,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
      * Returned the [organizationWithUsers] with the updated [OrganizationStatus] field to the [newStatus] in the organization field
      */
     private fun changeOrganizationWithUserStatus(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) =
-        organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
-
-
+            organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
 
     @Suppress("CyclomaticComplexMethod")
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->

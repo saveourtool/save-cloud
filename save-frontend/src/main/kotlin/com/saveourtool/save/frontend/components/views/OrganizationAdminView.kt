@@ -220,7 +220,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      * Returned the [organizationDto] with the updated [OrganizationStatus] field to the [newStatus]
      */
     private fun changeOrganizationDtoStatus(organizationDto: OrganizationDto, newStatus: OrganizationStatus) =
-        organizationDto.copy(status = newStatus)
+            organizationDto.copy(status = newStatus)
 
     override fun componentDidMount() {
         super.componentDidMount()
