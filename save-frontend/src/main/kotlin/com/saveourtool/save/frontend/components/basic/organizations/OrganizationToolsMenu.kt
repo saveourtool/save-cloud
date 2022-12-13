@@ -71,7 +71,7 @@ external interface OrganizationToolsMenuProps : Props {
  * @param updateProjects method from props, for changing props
  */
 @Suppress("TYPE_ALIAS")
-private fun updateProjects(
+private fun updateOneProjectInProjects(
     projects: List<ProjectDto>,
     oldProject: ProjectDto,
     newProject: ProjectDto,
@@ -176,7 +176,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { isBanMode ->
-                                            updateProjects(projects,
+                                            updateOneProjectInProjects(projects,
                                                 project,
                                                 project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED),
                                                 setProjects,
@@ -211,7 +211,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            updateProjects(projects,
+                                            updateOneProjectInProjects(projects,
                                                 project,
                                                 project.copy(status = ProjectStatus.CREATED),
                                                 setProjects,
@@ -246,7 +246,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                                 }
                                             }
                                             onActionSuccess = { _ ->
-                                                updateProjects(projects,
+                                                updateOneProjectInProjects(projects,
                                                     project,
                                                     project.copy(status = ProjectStatus.CREATED),
                                                     setProjects,
