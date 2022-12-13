@@ -19,7 +19,6 @@ import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
@@ -36,8 +35,9 @@ class TestExecutionService(
     private val testExecutionRepository: TestExecutionRepository,
     private val agentRepository: AgentRepository,
     private val agentService: AgentService,
-    private val executionRepository: ExecutionRepository,
-    transactionManager: PlatformTransactionManager,
+    private val agentService: AgentService,
+    private valexecutionRepository: ExecutionRepository,
+
 ) {
     /**
      * Returns a page of [TestExecution]s with [executionId]

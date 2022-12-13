@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.LnkExecutionAgent
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -20,6 +21,7 @@ class AgentService(
     private val agentRepository: AgentRepository,
     private val agentStatusRepository: AgentStatusRepository,
     private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
+    private val executionService: ExecutionService,
 ) {
     /**
      * @param executionIds list of ids
@@ -101,4 +103,17 @@ class AgentService(
      * @return [Execution] to which [Agent] with [containerId] is assigned
      */
     internal fun getExecutionByContainerId(containerId: String): Execution = getExecution(getAgentByContainerId(containerId))
+
+    /**
+     * @param executionId ID of [Execution]
+     * @param agents list of [Agent] to assign to provided [Execution]
+     * @return list of saved [Agent]
+     */
+    internal fun saveAll(executionId: Long, agents: Collection<Agent>): Collection<Agent> {
+        val execution = executionService.getExecution(executionId)
+        val savedAgents = agentRepository.saveAll(agents)
+        savedAgents.map { LnkExecutionAgent(execution, it) }
+            .let { lnkExecutionAgentRepository.saveAll(it) }
+        return savedAgents
+    }
 }

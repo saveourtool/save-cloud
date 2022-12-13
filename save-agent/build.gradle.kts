@@ -51,7 +51,12 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-        val commonTest by getting
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.ktor.client.mock)
+            }
+        }
 
         val jvmMain by getting {
             dependencies {
@@ -61,9 +66,12 @@ kotlin {
         }
 
         val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+                implementation(libs.junit.jupiter.engine)
             }
         }
 
@@ -73,11 +81,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
-        val linuxX64Test by getting {
-            dependencies {
-                implementation(libs.ktor.client.mock)
-            }
-        }
+        val linuxX64Test by getting
     }
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")

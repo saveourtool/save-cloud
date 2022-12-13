@@ -3,7 +3,11 @@ package com.saveourtool.save.sandbox.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.SaveCliOverrides
-import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentDto
+import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.toEntity
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
@@ -12,6 +16,7 @@ import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.sandbox.config.ConfigProperties
 import com.saveourtool.save.sandbox.entity.SandboxExecution
+import com.saveourtool.save.sandbox.entity.SandboxLnkExecutionAgent
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
@@ -83,11 +88,22 @@ class SandboxOrchestratorAgentService(
             )
         }
 
-    override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
+    override fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList> = blockingToMono {
+        val execution = sandboxExecutionRepository.findByIdOrNull(executionId)
+            .orNotFound {
+                "Not found execution by id $executionId"
+            }
         agents
             .map { it.toEntity() }
             .let { sandboxAgentRepository.saveAll(it) }
-            .map { it.requiredId() }
+            .map {
+                SandboxLnkExecutionAgent(
+                    execution = execution,
+                    agent = it
+                )
+            }
+            .let { sandboxLnkExecutionAgentRepository.saveAll(it) }
+            .map { it.agent.requiredId() }
     }
 
     override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {

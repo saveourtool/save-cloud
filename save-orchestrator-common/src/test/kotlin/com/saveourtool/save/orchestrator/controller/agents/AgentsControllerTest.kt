@@ -68,7 +68,7 @@ class AgentsControllerTest {
 
         whenever(containerService.validateContainersAreStarted(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(orchestratorAgentService.addAgents(anyList()))
+        whenever(orchestratorAgentService.addAgents(anyLong(), anyList()))
             .thenReturn(listOf<Long>(1, 2).toMono())
         whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())

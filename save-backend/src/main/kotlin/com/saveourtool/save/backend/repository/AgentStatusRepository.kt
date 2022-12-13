@@ -36,16 +36,8 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
     fun findTopByAgentOrderByEndTimeDesc(agent: Agent): AgentStatus?
 
     /**
-     * Find all agent statuses with [projectId] in execution
-     *
-     * @param projectId id of project
-     * @return [AgentStatus] of an agent
-     */
-    fun findByAgentExecutionProjectId(projectId: Long): List<AgentStatus>
-
-    /**
-     * @param ids list of executions id
+     * @param ids list of agent id
      */
     @Transactional
-    fun deleteByAgentExecutionIdIn(ids: List<Long>)
+    fun deleteByAgentIdIn(ids: List<Long>)
 }

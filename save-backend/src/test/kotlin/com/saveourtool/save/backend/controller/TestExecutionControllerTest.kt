@@ -235,7 +235,7 @@ class TestExecutionControllerTest {
                         } else {
                             it.failedTests
                         }
-                    }
+                    }!!
             }!!
 
     companion object {
