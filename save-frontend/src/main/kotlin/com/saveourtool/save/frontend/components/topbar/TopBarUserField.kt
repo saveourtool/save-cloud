@@ -41,12 +41,17 @@ external interface TopBarUserFieldProps : Props {
 /**
  * Displays the user's field.
  */
-@Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
+@Suppress(
+    "MAGIC_NUMBER",
+    "LongMethod",
+    "TOO_LONG_FUNCTION",
+    "LOCAL_VARIABLE_EARLY_DECLARATION"
+)
 private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
-    val (isLogoutModalOpen, setLogoutModalOpen) = useState(false)
-    val (isAriaExpanded, setAriaExpanded) = useState(false)
     val scope = CoroutineScope(Dispatchers.Default)
     val navigate = useNavigate()
+    var isLogoutModalOpen by useState(false)
+    var isAriaExpanded by useState(false)
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -63,9 +68,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
         li {
             className = ClassName("nav-item dropdown no-arrow")
             onClickCapture = {
-                setAriaExpanded {
-                    !it
-                }
+                isAriaExpanded = !isAriaExpanded
             }
             a {
                 href = "#"
@@ -126,7 +129,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                 }
                 dropdownEntry(faSignOutAlt, "Log out") { attrs ->
                     attrs.onClick = {
-                        setLogoutModalOpen(true)
+                        isLogoutModalOpen = true
                     }
                 }
             }
@@ -134,7 +137,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     }
 
     logoutModal {
-        setLogoutModalOpen(false)
+        isLogoutModalOpen = false
     }() {
         isOpen = isLogoutModalOpen
     }

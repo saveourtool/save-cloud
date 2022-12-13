@@ -56,7 +56,7 @@ data class TopBarLink(
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
-    val (isDemoDropdownActive, setDemoDropdownActive) = useState(false)
+    var isDemoDropdownActive by useState(false)
 
     ul {
         className = ClassName("navbar-nav mx-auto")
@@ -73,7 +73,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 role = "button".unsafeCast<AriaRole>()
                 +"Demo"
                 onClickCapture = { _ ->
-                    setDemoDropdownActive { !it }
+                    isDemoDropdownActive = !isDemoDropdownActive
                 }
             }
             div {
@@ -82,14 +82,14 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
                 dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
                     attrs.onClick = {
-                        setDemoDropdownActive(false)
+                        isDemoDropdownActive = false
                         navigate(to = diktatDemoHref)
                     }
                 }
                 val cpgDemoHref = "/${FrontendRoutes.DEMO.path}/cpg"
                 dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
                     attrs.onClick = {
-                        setDemoDropdownActive(false)
+                        isDemoDropdownActive = false
                         navigate(to = cpgDemoHref)
                     }
                 }
