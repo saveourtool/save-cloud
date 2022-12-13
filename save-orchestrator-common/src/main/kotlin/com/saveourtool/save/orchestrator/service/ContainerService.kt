@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
-import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -109,24 +108,21 @@ class ContainerService(
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>): Boolean {
-        return (containerRunner as? ContainerRunner.Stoppable)
-            ?.let { runner ->
-                try {
-                    containerIds.all { containerId ->
-                        runner.stop(containerId)
-                    }
-                } catch (e: ContainerRunnerException) {
-                    log.error("Error while stopping agents $containerIds", e)
-                    false
+    fun stopAgents(containerIds: Collection<String>): Boolean = (containerRunner as? ContainerRunner.Stoppable)
+        ?.let { runner ->
+            try {
+                containerIds.all { containerId ->
+                    runner.stop(containerId)
                 }
-            }
-            ?: run {
-                log.warn { "${containerRunner::class.simpleName} doesn't support stopping of containers" }
+            } catch (e: ContainerRunnerException) {
+                log.error("Error while stopping agents $containerIds", e)
                 false
             }
-
-    }
+        }
+        ?: run {
+            log.warn { "${containerRunner::class.simpleName} doesn't support stopping of containers" }
+            false
+        }
 
     /**
      * @param executionId

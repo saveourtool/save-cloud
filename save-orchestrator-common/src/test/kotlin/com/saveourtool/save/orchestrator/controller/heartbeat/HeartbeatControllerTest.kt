@@ -231,7 +231,7 @@ class HeartbeatControllerTest {
     }
 
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
         whenever(containerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
         whenever(containerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
@@ -532,11 +532,11 @@ class HeartbeatControllerTest {
             additionalFileNameToUrl = mapOf("file" to "stub"),
             saveCliOverrides = SaveCliOverrides(),
         )
+        private val emptyResponse: Mono<EmptyResponse> = Mono.just(ResponseEntity.ok().build())
         private fun String.toAgentInfo(): AgentInfo = AgentInfo(
             containerId = this,
             containerName = this,
             version = "1.0",
         )
-        private val emptyResponse: Mono<EmptyResponse> = Mono.just(ResponseEntity.ok().build())
     }
 }

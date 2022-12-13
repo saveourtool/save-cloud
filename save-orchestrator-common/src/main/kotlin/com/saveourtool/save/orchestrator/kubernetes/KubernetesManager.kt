@@ -97,7 +97,7 @@ class KubernetesManager(
         logger.debug("Removing a job for execution id=$executionId")
         val jobName = jobNameForExecution(executionId)
         val job = kcJobsWithName(jobName)
-        if (job.get() == null) {
+        job.get() ?: run {
             logger.warn { "Failed to delete job with name $jobName: there is no such job" }
             return
         }
