@@ -2,7 +2,9 @@ package com.saveourtool.save.demo.service
 
 import org.junit.jupiter.api.Test
 
-class DiktatDemoServiceTest {
+class DiktatDemoServiceTest(
+    private val diktatDemoService: DiktatDemoService,
+) {
     @Test
     fun `aa`() {
 
