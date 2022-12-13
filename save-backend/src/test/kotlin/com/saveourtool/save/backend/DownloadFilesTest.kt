@@ -6,10 +6,7 @@ import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
@@ -77,6 +74,7 @@ import kotlin.io.path.*
     MockBean(OrganizationService::class),
     MockBean(UserDetailsService::class),
     MockBean(ExecutionService::class),
+    MockBean(AgentService::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {
@@ -104,9 +102,6 @@ class DownloadFilesTest {
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
-
-    @MockBean
-    private lateinit var agentRepository: AgentRepository
 
     @MockBean
     private lateinit var projectService: ProjectService
