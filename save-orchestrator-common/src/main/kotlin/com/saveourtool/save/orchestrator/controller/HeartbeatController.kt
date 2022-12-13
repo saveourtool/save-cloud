@@ -71,7 +71,7 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatus(
-                    AgentStatusDto(heartbeat.state, containerId, heartbeat.timestamp.toLocalDateTimeAtUtc())
+                    AgentStatusDto(heartbeat.state, containerId)
                 )
             }
             .flatMap {
