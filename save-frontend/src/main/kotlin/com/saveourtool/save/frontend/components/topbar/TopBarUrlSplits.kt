@@ -25,7 +25,7 @@ val topBarUrlSplits = topBarUrlSplits()
  */
 external interface TopBarUrlSplitsProps : Props {
     /**
-     * Is location
+     * User location for url analysis.
      */
     var location: Location
 }

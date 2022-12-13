@@ -19,16 +19,16 @@ import react.dom.html.ReactHTML.nav
 import react.router.useLocation
 
 /**
- * [Props] of the top bor component
+ * [Props] of the top bar component
  */
 external interface TopBarProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged in user, or `null`.
      */
     var userInfo: UserInfo?
 
     /**
-     * true if the device is mobile (screen is less 1000px)
+     * `true`, if the device is mobile (screen is less 1000px).
      */
     var isMobileScreen: Boolean?
 }

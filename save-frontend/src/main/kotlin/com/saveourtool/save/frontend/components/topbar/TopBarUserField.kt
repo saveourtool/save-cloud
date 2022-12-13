@@ -33,7 +33,7 @@ val topBarUserField = topBarUserField()
  */
 external interface TopBarUserFieldProps : Props {
     /**
-     * Currently logged in user or null
+     * Currently logged in user or `null`.
      */
     var userInfo: UserInfo?
 }

@@ -7,7 +7,7 @@ package com.saveourtool.save.utils
 /**
  * Link to save-cloud on GitHub
  */
-const val SAVE_CLOUD_GITHUB = "https://github.com/saveourtool/save-cloud"
+const val SAVE_CLOUD_GITHUB_URL = "https://github.com/saveourtool/save-cloud"
 
 /**
  * Delimiter used in database

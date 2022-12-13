@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB
+import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
@@ -32,15 +32,15 @@ val topBarLinks = topBarLinks()
  */
 external interface TopBarLinksProps : Props {
     /**
-     * Is location
+     * The location is needed to change the color of the text.
      */
     var location: Location
 }
 
 /**
- * @property hrefAnchor is link
- * @property width is width of the link text
- * @property text is link text
+ * @property hrefAnchor the link
+ * @property width the width of the link text
+ * @property text the link text
  */
 data class TopBarLink(
     val hrefAnchor: String,
@@ -96,14 +96,14 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
         listOf(
             TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
-            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB, width = 9.rem, text = "SAVE on GitHub"),
+            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub"),
             TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
             TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
             TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
         ).forEach { elem ->
             li {
                 className = ClassName("nav-item")
-                if (elem.hrefAnchor != SAVE_CLOUD_GITHUB) {
+                if (elem.hrefAnchor != SAVE_CLOUD_GITHUB_URL) {
                     Link {
                         className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
                         style = jso { width = elem.width }
@@ -114,7 +114,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                     a {
                         className = ClassName("nav-link d-flex align-items-center me-2 active")
                         style = jso { width = elem.width }
-                        href = SAVE_CLOUD_GITHUB
+                        href = SAVE_CLOUD_GITHUB_URL
                         +elem.text
                     }
                 }
