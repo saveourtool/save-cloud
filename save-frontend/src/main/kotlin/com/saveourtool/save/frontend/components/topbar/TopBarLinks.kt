@@ -41,6 +41,7 @@ external interface TopBarLinksProps : Props {
  * @property hrefAnchor the link
  * @property width the width of the link text
  * @property text the link text
+ * @property isExternalLink
  */
 data class TopBarLink(
     val hrefAnchor: String,
@@ -104,7 +105,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
         ).forEach { elem ->
             li {
                 className = ClassName("nav-item")
-                if (elem.isExternalLink){
+                if (elem.isExternalLink) {
                     a {
                         className = ClassName("nav-link d-flex align-items-center me-2 active")
                         style = jso { width = elem.width }
