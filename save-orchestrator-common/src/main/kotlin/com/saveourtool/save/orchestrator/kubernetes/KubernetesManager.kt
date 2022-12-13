@@ -93,14 +93,6 @@ class KubernetesManager(
         }
     }
 
-    override fun stop(containerId: String): Boolean {
-        logger.warn {
-            "${this::class.simpleName}#stopByAgentId is called, but it's no-op, " +
-                    "because we don't directly delete pods in kubernetes"
-        }
-        return false
-    }
-
     override fun cleanupByExecution(executionId: Long) {
         logger.debug("Removing a job for execution id=$executionId")
         val jobName = jobNameForExecution(executionId)
@@ -115,17 +107,6 @@ class KubernetesManager(
         }
         logger.debug("Cleanup job for execution id=$executionId")
     }
-
-    override fun prune() {
-        logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
-                "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
-    }
-
-    override fun listContainerIds(executionId: Long): List<String> = kc.pods()
-        .withLabel(EXECUTION_ID_LABEL, executionId.toString())
-        .list()
-        .items
-        .map { it.metadata.name }
 
     override fun isStopped(containerId: String): Boolean {
         val pod = kc.pods().withName(containerId).get()

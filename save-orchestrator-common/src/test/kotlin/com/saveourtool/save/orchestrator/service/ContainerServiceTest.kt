@@ -82,7 +82,11 @@ class ContainerServiceTest {
             testExecution.id!!,
             configuration
         )
-        testContainerId = containerRunner.listContainerIds(testExecution.requiredId()).single()
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-${testExecution.requiredId()}-"))
+            .exec()
+            .map { it.id }
+            .single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend

@@ -26,28 +26,9 @@ interface ContainerRunner {
     )
 
     /**
-     * @param containerId ID of container that should be stopped
-     * @return true if agent has been stopped successfully
-     * todo: distinguish stopped / not stopped / error / already stopped
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stop(containerId: String): Boolean
-
-    /**
      * @param executionId
      */
     fun cleanupByExecution(executionId: Long)
-
-    /**
-     * Prune old docker data
-     */
-    fun prune()
-
-    /**
-     * @param executionId
-     * @return list of container id which are run for [executionId]
-     */
-    fun listContainerIds(executionId: Long): List<String>
 
     /**
      * Check whether the agent [containerId] is stopped
@@ -64,4 +45,27 @@ interface ContainerRunner {
      * @return container identifier
      */
     fun getContainerIdentifier(containerId: String): String
+
+    /**
+     * [ContainerRunner] which implements this interface allows to stop containers
+     */
+    interface Stoppable {
+        /**
+         * @param containerId ID of container that should be stopped
+         * @return true if agent has been stopped successfully
+         * todo: distinguish stopped / not stopped / error / already stopped
+         */
+        @Suppress("FUNCTION_BOOLEAN_PREFIX")
+        fun stop(containerId: String): Boolean
+    }
+
+    /**
+     * [ContainerRunner] which implements this interface requires prune old data
+     */
+    interface Prunable {
+        /**
+         * Prune old docker data
+         */
+        fun prune()
+    }
 }

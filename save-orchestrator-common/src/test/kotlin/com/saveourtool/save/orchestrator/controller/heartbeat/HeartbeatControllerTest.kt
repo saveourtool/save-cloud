@@ -12,6 +12,7 @@ import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.EmptyResponse
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import kotlinx.datetime.Clock
@@ -83,7 +84,7 @@ class HeartbeatControllerTest {
         )
 
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponse)
         webClient.post()
             .uri("/heartbeat")
             .contentType(MediaType.APPLICATION_JSON)
@@ -195,13 +196,6 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should not shutdown any agents when they are STARTING`() {
-        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
-            .thenAnswer { invocation ->
-                (invocation.arguments[1] as? AgentDto)
-                    ?.containerId
-                    ?.removePrefix("test-")
-                    ?.toLong()
-            }
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -229,6 +223,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 3,
+            mockAddAgentCount = 1,
         ) { heartbeatResponses ->
             verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
@@ -299,6 +294,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 8,
+            mockAddAgentCount = 1,
         ) {
             heartBeatInspector.crashedAgents.shouldContainExactly(
                 setOf("test-2")
@@ -342,6 +338,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 4,
+            mockAddAgentCount = 1,
         ) {
             heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
         }
@@ -407,8 +404,8 @@ class HeartbeatControllerTest {
             .whenever(orchestratorAgentService)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(any()))
-            .thenReturn(Mono.just(ResponseEntity.ok().build()))
+        whenever(orchestratorAgentService.markReadyForTestingTestExecutionsOfAgentAsFailed(any()))
+            .thenReturn(emptyResponse)
 
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -427,7 +424,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
-            verify(orchestratorAgentService).markAllTestExecutionsOfExecutionAsFailed(any())
+            verify(orchestratorAgentService).markReadyForTestingTestExecutionsOfAgentAsFailed(any())
         }
     }
 
@@ -454,8 +451,13 @@ class HeartbeatControllerTest {
         testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
         mockAgentStatusesForSameExecution: Boolean = false,
+        mockAddAgentCount: Int = 0,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
+        if (mockAddAgentCount > 0) {
+            whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+                .thenReturn(emptyResponse)
+        }
         initConfigs.forEach {
             whenever(orchestratorAgentService.getInitConfig(any()))
                 .thenReturn(Mono.just(it))
@@ -476,7 +478,7 @@ class HeartbeatControllerTest {
 
         repeat(mockUpdateAgentStatusesCount) {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
-                .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+                .thenReturn(emptyResponse)
         }
         if (mockAgentStatusesForSameExecution) {
             whenever(orchestratorAgentService.getAgentsStatusesForSameExecution(any()))
@@ -517,6 +519,9 @@ class HeartbeatControllerTest {
         if (mockAgentStatusesForSameExecution) {
             verify(orchestratorAgentService).getAgentsStatusesForSameExecution(any())
         }
+        repeat(mockAddAgentCount) {
+            verify(orchestratorAgentService).addAgent(anyLong(), any())
+        }
         verification.invoke(heartbeatResponses)
     }
 
@@ -532,5 +537,6 @@ class HeartbeatControllerTest {
             containerName = this,
             version = "1.0",
         )
+        private val emptyResponse: Mono<EmptyResponse> = Mono.just(ResponseEntity.ok().build())
     }
 }

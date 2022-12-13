@@ -30,6 +30,7 @@ import reactor.kotlin.core.util.function.component2
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Controller for heartbeat
@@ -70,7 +71,7 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatus(
-                    AgentStatusDto(heartbeat.state, containerId)
+                    AgentStatusDto(heartbeat.state, containerId, heartbeat.timestamp.toLocalDateTimeAtUtc())
                 )
             }
             .flatMap {
@@ -102,7 +103,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleNewAgent(
         executionId: Long,
         agentInfo: AgentInfo,
-    ): Mono<HeartbeatResponse> = agentService.saveAgentWithInitialStatus(
+    ): Mono<HeartbeatResponse> = agentService.addAgent(
         executionId = executionId,
         agent = AgentDto(
             containerId = agentInfo.containerId,
@@ -118,31 +119,25 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleVacantAgent(containerId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(containerId)
-                .asyncEffectIf({ this is NewJobResponse }) {
+                .asyncEffect {
                     agentService.updateAgentStatus(AgentStatusDto(BUSY, containerId))
                 }
-                .zipWhen {
+                .switchIfEmpty {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
-                    if (it is WaitResponse) {
-                        agentService.areAllAgentsIdleOrFinished(containerId)
-                    } else {
-                        Mono.just(false)
-                    }
-                }
-                .flatMap { (response, shouldStop) ->
-                    if (shouldStop) {
-                        agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
-                            .thenReturn<HeartbeatResponse>(TerminateResponse)
-                            .defaultIfEmpty(ContinueResponse)
-                            .doOnSuccess {
-                                logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                ensureGracefulShutdown(containerId)
-                            }
-                    } else {
-                        Mono.just(response)
-                    }
+                    agentService.areAllAgentsIdleOrFinished(containerId)
+                        .filter { it }
+                        .flatMap {
+                            agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
+                                .thenReturn<HeartbeatResponse>(TerminateResponse)
+                                .defaultIfEmpty(ContinueResponse)
+                                .doOnSuccess {
+                                    logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
+                                    ensureGracefulShutdown(containerId)
+                                }
+                        }
+                        .defaultIfEmpty(WaitResponse)
                 }
 
     private fun handleFinishedAgent(containerId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {

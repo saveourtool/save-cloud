@@ -62,7 +62,11 @@ class DockerContainerManagerTest {
             ),
             replicas = 1,
         )
-        testContainerId = dockerAgentRunner.listContainerIds(42).single()
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-42-"))
+            .exec()
+            .map { it.id }
+            .single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()

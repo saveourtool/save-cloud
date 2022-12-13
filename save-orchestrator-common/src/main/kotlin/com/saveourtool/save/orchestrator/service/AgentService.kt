@@ -47,30 +47,24 @@ class AgentService(
      * Sets new tests ids
      *
      * @param containerId
-     * @return [Mono] of [NewJobResponse] or [WaitResponse]
+     * @return [Mono] of [NewJobResponse] if there is some job to do
      */
     internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getNextRunConfig(containerId)
                 .map { NewJobResponse(it) }
                 .cast(HeartbeatResponse::class.java)
-                .defaultIfEmpty(WaitResponse)
 
     /**
-     * Save new agent to the DB and insert its status. This logic is performed in two consecutive requests.
+     * Save new agent to the DB
      *
      * @param executionId ID of an execution
      * @param agent [AgentDto] to save in the DB
      * @return Mono with response body
-     * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentWithInitialStatus(
+    fun addAgent(
         executionId: Long,
         agent: AgentDto,
-    ): Mono<EmptyResponse> = orchestratorAgentService
-        .addAgent(executionId, agent)
-        .flatMap {
-            orchestratorAgentService.updateAgentStatus(AgentStatusDto(STARTING, agent.containerId))
-        }
+    ): Mono<EmptyResponse> = orchestratorAgentService.addAgent(executionId, agent)
 
     /**
      * @param agentStatus [AgentStatus] to update in the DB

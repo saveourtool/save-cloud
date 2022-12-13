@@ -4,7 +4,7 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
+import com.saveourtool.save.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
@@ -14,6 +14,7 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
+import kotlinx.datetime.toJavaLocalDateTime
 
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
@@ -169,8 +170,8 @@ class TestExecutionService(
                     it.status == TestResultStatus.RUNNING
                 }
                 .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
+                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()?.toJavaLocalDateTime()
+                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()?.toJavaLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++

@@ -12,6 +12,13 @@ import kotlinx.datetime.*
 fun Long.secondsToInstant(): Instant = Instant.fromEpochMilliseconds(this)
 
 /**
+ * Function to convert long number of seconds to LocalDateTime
+ *
+ * @return an instance of [LocalDateTime]
+ */
+fun Long.secondsToLocalDateTime(): LocalDateTime = secondsToInstant().toLocalDateTimeAtUtc()
+
+/**
  * @return pretty string representation of [Instant]
  */
 fun Instant.prettyPrint() = this.toString()
@@ -23,3 +30,8 @@ fun Instant.prettyPrint() = this.toString()
  * @return current local date-time in UTC timezone
  */
 fun getCurrentLocalDateTime(): LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+
+/**
+ * @return [LocalDateTime] in UTC timezone
+ */
+fun Instant.toLocalDateTimeAtUtc(): LocalDateTime = toLocalDateTime(TimeZone.UTC)

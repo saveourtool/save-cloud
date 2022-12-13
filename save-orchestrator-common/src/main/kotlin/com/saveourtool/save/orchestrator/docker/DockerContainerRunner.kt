@@ -42,7 +42,7 @@ class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : ContainerRunner {
+) : ContainerRunner, ContainerRunner.Stoppable, ContainerRunner.Prunable {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
@@ -136,12 +136,6 @@ class DockerContainerRunner(
         }
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
-
-    override fun listContainerIds(executionId: Long): List<String> = dockerClient.listContainersCmd()
-        .withNameFilter(listOf("-$executionId-"))
-        .exec()
-        .map { it.id }
-        .filterNot { isStopped(it) }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 
