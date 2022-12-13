@@ -46,15 +46,16 @@ data class TopBarLink(
     val hrefAnchor: String,
     val width: Width,
     val text: String,
+    val isExternalLink: Boolean = false,
 )
 
 /**
- * Displays the static links that do not depend on the url
+ * Displays the static links that do not depend on the url.
  */
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
-    val (isDemoDropdownActive, setIsDemoDropdownActive) = useState(false)
+    val (isDemoDropdownActive, setDemoDropdownActive) = useState(false)
 
     ul {
         className = ClassName("navbar-nav mx-auto")
@@ -71,7 +72,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 role = "button".unsafeCast<AriaRole>()
                 +"Demo"
                 onClickCapture = { _ ->
-                    setIsDemoDropdownActive { !it }
+                    setDemoDropdownActive { !it }
                 }
             }
             div {
@@ -80,41 +81,41 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
                 dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
                     attrs.onClick = {
-                        setIsDemoDropdownActive(false)
+                        setDemoDropdownActive(false)
                         navigate(to = diktatDemoHref)
                     }
                 }
                 val cpgDemoHref = "/${FrontendRoutes.DEMO.path}/cpg"
                 dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
                     attrs.onClick = {
-                        setIsDemoDropdownActive(false)
+                        setDemoDropdownActive(false)
                         navigate(to = cpgDemoHref)
                     }
                 }
             }
         }
-        listOf(
+        sequenceOf(
             TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
-            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub"),
+            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub", isExternalLink = true),
             TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
             TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
             TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
         ).forEach { elem ->
             li {
                 className = ClassName("nav-item")
-                if (elem.hrefAnchor != SAVE_CLOUD_GITHUB_URL) {
+                if (elem.isExternalLink){
+                    a {
+                        className = ClassName("nav-link d-flex align-items-center me-2 active")
+                        style = jso { width = elem.width }
+                        href = elem.hrefAnchor
+                        +elem.text
+                    }
+                } else {
                     Link {
                         className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
                         style = jso { width = elem.width }
                         to = elem.hrefAnchor
-                        +elem.text
-                    }
-                } else {
-                    a {
-                        className = ClassName("nav-link d-flex align-items-center me-2 active")
-                        style = jso { width = elem.width }
-                        href = SAVE_CLOUD_GITHUB_URL
                         +elem.text
                     }
                 }

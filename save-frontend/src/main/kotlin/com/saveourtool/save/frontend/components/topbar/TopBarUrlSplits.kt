@@ -31,7 +31,7 @@ external interface TopBarUrlSplitsProps : Props {
 }
 
 /**
- * Displays the url and its division by "/"
+ * Displays the URL split with "/".
  */
 private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
     nav {

@@ -59,7 +59,7 @@ fun ChildrenBuilder.dropdownEntry(
 }
 
 /**
- * A component for web page top bar
+ * A component for web page top bar.
  *
  * @return a function component
  */

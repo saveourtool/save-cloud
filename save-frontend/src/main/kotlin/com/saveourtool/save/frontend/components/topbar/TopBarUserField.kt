@@ -39,12 +39,12 @@ external interface TopBarUserFieldProps : Props {
 }
 
 /**
- * Displays the user's field
+ * Displays the user's field.
  */
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
-    val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
-    val (isAriaExpanded, setIsAriaExpanded) = useState(false)
+    val (isLogoutModalOpen, setLogoutModalOpen) = useState(false)
+    val (isAriaExpanded, setAriaExpanded) = useState(false)
     val scope = CoroutineScope(Dispatchers.Default)
     val navigate = useNavigate()
     useEffect {
@@ -63,7 +63,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
         li {
             className = ClassName("nav-item dropdown no-arrow")
             onClickCapture = {
-                setIsAriaExpanded {
+                setAriaExpanded {
                     !it
                 }
             }
@@ -82,7 +82,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                         className = ClassName("d-flex flex-column")
                         span {
                             className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
-                            +(props.userInfo?.name ?: "")
+                            +(props.userInfo?.name.orEmpty())
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
                         if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
@@ -126,7 +126,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                 }
                 dropdownEntry(faSignOutAlt, "Log out") { attrs ->
                     attrs.onClick = {
-                        setIsLogoutModalOpen(true)
+                        setLogoutModalOpen(true)
                     }
                 }
             }
@@ -134,7 +134,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     }
 
     logoutModal {
-        setIsLogoutModalOpen(false)
+        setLogoutModalOpen(false)
     }() {
         isOpen = isLogoutModalOpen
     }
