@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.basic.cpg
 import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
+import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutRandom
 import com.saveourtool.save.frontend.externals.sigma.paintNodes
 import com.saveourtool.save.frontend.externals.sigma.toJson
 import com.saveourtool.save.frontend.externals.sigma.useLoadGraph
@@ -24,6 +25,7 @@ import react.useEffect
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
     val loadGraph = useLoadGraph()
     val (_, circularAssign) = useLayoutCircular()
+    val (_, randomAssign) = useLayoutRandom()
     val (_, atlasAssign) = useLayoutForceAtlas2(jso {
         iterations = 150
         settings = jso {
@@ -32,10 +34,41 @@ val graphLoader: FC<GraphLoaderProps> = FC { props ->
         }
     })
 
-    useEffect(props.cpgGraph.nodes) {
+    useEffect(props.cpgGraph.nodes, props.selectedLayout) {
         loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
-        circularAssign()
-        atlasAssign()
+        when (props.selectedLayout) {
+            SigmaLayout.ATLAS -> {
+                circularAssign()
+                atlasAssign()
+            }
+            SigmaLayout.CIRCULAR -> circularAssign()
+            SigmaLayout.RANDOM -> randomAssign()
+        }
+    }
+}
+
+/**
+ * Enum class that represents available layouts
+ * @property layoutName
+ */
+enum class SigmaLayout(val layoutName: String) {
+    /**
+     * ForceAtlas2 layout, iterative algorithm
+     */
+    ATLAS("ForceAtlas2"),
+
+    /**
+     * Circular layout, all the nodes are placed to be on the came circle
+     */
+    CIRCULAR("Circular"),
+
+    /**
+     * Random layout, all the nodes are placed randomly
+     */
+    RANDOM("Random"),
+    ;
+    companion object {
+        val preferredLayout = CIRCULAR
     }
 }
 
@@ -47,4 +80,9 @@ external interface GraphLoaderProps : Props {
      * The graph to be processed and displayed using sigma
      */
     var cpgGraph: CpgGraph
+
+    /**
+     * Layout that should be applied to the graph
+     */
+    var selectedLayout: SigmaLayout
 }

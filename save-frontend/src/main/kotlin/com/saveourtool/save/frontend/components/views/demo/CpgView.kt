@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
@@ -67,6 +68,8 @@ val cpgView: VFC = VFC {
 
     val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
 
+    val (selectedLayout, setSelectedLayout) = useState(SigmaLayout.preferredLayout)
+
     displaySimpleModal(
         errorWindowOpenness,
         "Error log",
@@ -79,6 +82,8 @@ val cpgView: VFC = VFC {
             className = ClassName("col-12")
             backgroundCard {
                 demoComponent {
+                    this.selectedLayout = selectedLayout
+                    this.setSelectedLayout = { setSelectedLayout(it) }
                     this.placeholderText = CPG_PLACEHOLDER_TEXT
                     this.preselectedLanguage = Languages.CPP
                     this.resultRequest = { demoRequest ->
@@ -121,7 +126,8 @@ val cpgView: VFC = VFC {
                                         }
                                     }
                                     graphLoader {
-                                        cpgGraph = cpgResult.cpgGraph
+                                        this.cpgGraph = cpgResult.cpgGraph
+                                        this.selectedLayout = selectedLayout
                                     }
                                 }
                                 div {
