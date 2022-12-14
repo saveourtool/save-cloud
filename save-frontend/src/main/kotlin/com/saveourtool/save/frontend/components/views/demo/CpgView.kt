@@ -167,13 +167,16 @@ val cpgView: VFC = VFC {
                 cpgResult.logs.forEach { log ->
                     when {
                         log.contains("ERROR") -> p {
-                            className = ClassName("text-warn")
+                            className = ClassName("text-danger")
                             +log
                         }
-                        else -> +log
+                        else -> {
+                            +log
+                            br { }
+                        }
                     }
 
-                    br { }
+
                 }
 
                 "alert-primary"
