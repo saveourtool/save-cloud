@@ -115,9 +115,9 @@ val cpgView: VFC = VFC {
                                     graphEvents {
                                         shouldHideUnfocusedNodes = true
                                         setSelectedNode = { newSelectedNodeName ->
-                                            setSelectedNodeName(
-                                                newSelectedNodeName.takeIf { it != selectedNodeName }
-                                            )
+                                            setSelectedNodeName { previousSelectedNodeName ->
+                                                newSelectedNodeName.takeIf { it != previousSelectedNodeName }
+                                            }
                                         }
                                     }
                                     graphLoader {
@@ -137,8 +137,8 @@ val cpgView: VFC = VFC {
                                             }
                                         }
                                         "show"
-                                    } ?: ""
-                                    className = ClassName("col-6 p-0 position-absolute collapse width overflow-auto $show")
+                                    } ?: "hide"
+                                    className = ClassName("col-6 p-0 position-absolute width overflow-auto $show")
                                     style = jso {
                                         top = "0px".unsafeCast<Top>()
                                         right = "0px".unsafeCast<Right>()
@@ -199,6 +199,16 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
 ) {
     div {
         className = ClassName("card card-body p-0")
+        button {
+            className = ClassName("btn p-0 position-absolute")
+            fontAwesomeIcon(faTimesCircle)
+            type = "button".unsafeCast<ButtonType>()
+            onClick = { setSelectedNodeName(null) }
+            style = jso {
+                top = "0%".unsafeCast<Top>()
+                right = "1%".unsafeCast<Right>()
+            }
+        }
         table {
             thead {
                 tr {
@@ -210,16 +220,6 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
                     th {
                         scope = "col"
                         +(nodeName ?: NOT_PROVIDED).formatPathToFile(applicationName)
-                    }
-                    button {
-                        className = ClassName("btn p-0 position-absolute")
-                        fontAwesomeIcon(faTimesCircle)
-                        type = "button".unsafeCast<ButtonType>()
-                        onClick = { setSelectedNodeName(null) }
-                        style = jso {
-                            top = "1%".unsafeCast<Top>()
-                            right = "1%".unsafeCast<Right>()
-                        }
                     }
                 }
             }
