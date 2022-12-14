@@ -168,10 +168,9 @@ class DownloadFilesController(
         }
         .map {
             logger.info("Sending file ${fileKey.name} to a client")
-            val content = fileStorage.download(fileKey)
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(content)
+                .body(fileStorage.download(fileKey))
         }
 
     @Operation(
