@@ -180,7 +180,7 @@ class TestExecutionController(
                     testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
                 }
 
-    /**    
+    /**
      * @param containerId id of agent's container
      * @param status status for test executions
      * @return a list of test executions
