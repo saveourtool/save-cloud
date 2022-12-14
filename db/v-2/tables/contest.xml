@@ -86,4 +86,9 @@
     </dropColumn>
   </changeSet>
 
+  <changeSet id="modify-data-type-1" author="frolov">
+    <modifyDataType tableName="contest" columnName="start_time" newDataType="DATETIME(3)"/>
+    <modifyDataType tableName="contest" columnName="end_time" newDataType="DATETIME(3)"/>
+  </changeSet>
+
 </databaseChangeLog>

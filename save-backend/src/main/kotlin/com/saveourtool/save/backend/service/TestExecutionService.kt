@@ -94,6 +94,16 @@ class TestExecutionService(
             testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status.name, PageRequest.of(page, pageSize))
 
     /**
+     * Get test executions by [containerId] and [status]
+     *
+     * @param containerId
+     * @param status
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
+        .findByAgentContainerIdAndStatus(containerId, status)
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
