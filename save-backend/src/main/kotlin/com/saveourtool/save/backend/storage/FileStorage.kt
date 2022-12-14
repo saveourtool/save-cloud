@@ -6,10 +6,8 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.pathNamesTill
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.nio.file.Path
 import kotlin.io.path.div
 
@@ -66,31 +64,6 @@ class FileStorage(
                 )
             }
         }
-
-    /**
-     * @param partMono file part
-     * @param projectCoordinates
-     * @return Mono with number of bytes saved
-     * @throws FileAlreadyExistsException if file with this name already exists
-     */
-    fun uploadFilePart(
-        partMono: Mono<FilePart>,
-        projectCoordinates: ProjectCoordinates,
-    ): Mono<FileInfo> = partMono.flatMap { part ->
-        val uploadedMillis = System.currentTimeMillis()
-        val fileKey = FileKey(
-            projectCoordinates,
-            part.filename(),
-            uploadedMillis
-        )
-        upload(fileKey, part.content().map { it.asByteBuffer() })
-            .map {
-                FileInfo(
-                    fileKey,
-                    it
-                )
-            }
-    }
 
     companion object {
         private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
