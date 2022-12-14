@@ -65,6 +65,7 @@ data class CpgGraph(
                     null
                 }
             }
+            // fixme: each and every edge is printed to be two-directed
             listOf(
                 CpgEdge(
                     newId,
