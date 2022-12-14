@@ -204,7 +204,7 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
             type = "button".unsafeCast<ButtonType>()
             onClick = { setSelectedNodeName(null) }
             style = jso {
-                top = "1%".unsafeCast<Top>()
+                top = "0%".unsafeCast<Top>()
                 right = "1%".unsafeCast<Right>()
             }
         }
