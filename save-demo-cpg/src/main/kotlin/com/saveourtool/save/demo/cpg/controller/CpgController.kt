@@ -67,17 +67,17 @@ class CpgController(
                 .map {
                     CpgResult(
                         cpgRepository.getGraph(it),
-                        tmpFolder.fileName.name,
+                        "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
                         logs,
                     )
                 }
                 .getOrHandle {
                     logs += "Exception: ${it.message} ${it.stackTraceToString()}"
-                    logs.stubCpgResult( "Error happened during the parsing of code to CPG")
+                    logs.stubCpgResult(errorParsing)
                 }
         } catch (e: Exception) {
             logs += "Exception: ${e.message} ${e.stackTraceToString()}"
-            logs.stubCpgResult("Error happened on read/write from/to a graph database")
+            logs.stubCpgResult(errorDb)
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
@@ -133,5 +133,7 @@ class CpgController(
 
     companion object {
         private val log: Logger = getLogger<CpgController>()
+        private const val errorParsing = "Error happened during the parsing of code to CPG"
+        private const val errorDb = "Error happened on read/write from/to a graph database"
     }
 }
