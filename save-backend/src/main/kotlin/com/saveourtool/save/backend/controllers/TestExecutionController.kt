@@ -181,6 +181,17 @@ class TestExecutionController(
                 }
 
     /**
+     * @param containerId id of agent's container
+     * @param status status for test executions
+     * @return a list of test executions
+     */
+    @GetMapping("/internal/test-executions/get-by-container-id")
+    fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
+                                            @RequestParam status: TestResultStatus
+    ) = testExecutionService.getTestExecutions(containerId, status)
+        .map { it.toDto() }
+
+    /**
      * @param onlyReadyForTesting
      * @param containerIds
      */
