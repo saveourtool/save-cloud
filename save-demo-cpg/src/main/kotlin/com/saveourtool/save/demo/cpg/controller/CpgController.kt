@@ -57,10 +57,11 @@ class CpgController(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
+        var logs = mutableListOf<String>()
         try {
+            // creating temporary folder for the input
             createFiles(request, tmpFolder)
-
-            val (result, logs) = LogbackCapturer(BASE_PACKAGE_NAME) {
+            val (result, logsFromLogback) = LogbackCapturer(BASE_PACKAGE_NAME) {
                 // creating the CPG configuration instance, it will be used to configure the graph
                 val translationConfiguration = createTranslationConfiguration(tmpFolder)
 
@@ -71,6 +72,8 @@ class CpgController(
                     .analyze()
                     .get()
             }
+
+            logs = logsFromLogback.toMutableList()
             result
                 .tap {
                     saveTranslationResult(it)
@@ -83,34 +86,46 @@ class CpgController(
                     )
                 }
                 .getOrHandle {
+                    logs += "Exception: ${it.message} ${it.stackTraceToString()}"
                     CpgResult(
                         CpgGraph.placeholder,
-                        "NONE",
-                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
+                        "Error happened during the parsing of code to CPG",
+                        logs,
                     )
                 }
+        } catch (e: Exception) {
+            logs += "Exception: ${e.message} ${e.stackTraceToString()}"
+            logs.stubCpgResult("Error happened on read/write from/to a graph database")
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
 
-    @OptIn(ExperimentalPython::class)
-    private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()
-        .topLevel(null)
-        // c++/java
-        .defaultLanguages()
-        // you can register non-default languages
-        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
-        .debugParser(true)
-        // the directory with sources
-        .sourceLocations(folder.toFile())
-        .defaultPasses()
-        .inferenceConfiguration(
-            InferenceConfiguration.builder()
-                .inferRecords(true)
-                .build()
+    private fun List<String>.stubCpgResult(error: String) =
+        CpgResult(
+            CpgGraph.placeholder,
+            error,
+            this,
         )
-        .build()
+
+    @OptIn(ExperimentalPython::class)
+    private fun createTranslationConfiguration(folder: Path): TranslationConfiguration =
+        TranslationConfiguration.builder()
+            .topLevel(null)
+            // c++/java
+            .defaultLanguages()
+            // you can register non-default languages
+            .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
+            .debugParser(true)
+            // the directory with sources
+            .sourceLocations(folder.toFile())
+            .defaultPasses()
+            .inferenceConfiguration(
+                InferenceConfiguration.builder()
+                    .inferRecords(true)
+                    .build()
+            )
+            .build()
 
     private fun getGraph(): CpgGraph {
         val (nodes, edges) = connect().use { session ->
@@ -174,10 +189,10 @@ class CpgController(
     }
 
     private fun String.getFileName() =
-            this.trim()
-                .drop(FILE_NAME_SEPARATOR.length)
-                .dropLast(FILE_NAME_SEPARATOR.length)
-                .trim()
+        this.trim()
+            .drop(FILE_NAME_SEPARATOR.length)
+            .dropLast(FILE_NAME_SEPARATOR.length)
+            .trim()
 
     /**
      * @property name
