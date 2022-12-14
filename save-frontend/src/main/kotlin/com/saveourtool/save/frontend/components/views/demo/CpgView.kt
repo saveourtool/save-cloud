@@ -58,6 +58,7 @@ private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = 
 )
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
+    useBackground(Style.WHITE)
     val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)
 
