@@ -58,13 +58,37 @@ internal suspend fun SaveAgent.processRequestToBackendWrapped(
  * @param body
  * @return result wrapping [HttpResponse]
  */
-internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpResponse> = runCatching {
-    post {
+internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): Result<HttpResponse> = runCatching {
+    preparePost {
         url(url)
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         body?.let { setBody(it) }
     }
+        .execute { httpResponse ->
+            if (httpResponse.status.isSuccess()) {
+                val channel: ByteReadChannel = httpResponse.body()
+                while (!channel.isClosedForRead) {
+                    val packet = channel.readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+                    while (!packet.isEmpty) {
+                        val bytes = packet.readBytes()
+                        fs.appendingSink(file, mustExist = false)
+                            .buffer()
+                            .use {
+                                it.write(bytes)
+                            }
+                        logDebugCustom("Received ${bytes.size} bytes from ${httpResponse.contentLength()}")
+                    }
+                    //  fixme:
+//                        .readByteArrayOrThrowIfEmpty {
+//                            error("Downloaded $fileLabel from $url but content is empty")
+//                        }
+                }
+            } else {
+                logWarn("Skipping downloading as request is not a success")
+            }
+            httpResponse
+        }
 }
 
 /**
