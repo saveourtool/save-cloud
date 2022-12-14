@@ -13,6 +13,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.request
 import io.ktor.client.utils.DEFAULT_HTTP_BUFFER_SIZE
 import io.ktor.http.*
 import io.ktor.utils.io.ByteReadChannel
@@ -77,6 +78,7 @@ internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): R
         .execute { httpResponse ->
             if (httpResponse.status.isSuccess()) {
                 val channel: ByteReadChannel = httpResponse.body()
+                val totalBytes = AtomicLong(0L)
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
                     while (!packet.isEmpty) {
@@ -86,12 +88,12 @@ internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): R
                             .use {
                                 it.write(bytes)
                             }
-                        logDebugCustom("Received ${bytes.size} bytes from ${httpResponse.contentLength()}")
+                        totalBytes.addAndGet(bytes.size.toLong())
+                        logDebugCustom("Received ${bytes.size} bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
                     }
-                    //  fixme:
-//                        .readByteArrayOrThrowIfEmpty {
-//                            error("Downloaded $fileLabel from $url but content is empty")
-//                        }
+                }
+                if (totalBytes.get() == 0L) {
+                    error("Downloaded a file from $url but content is empty")
                 }
             } else {
                 logWarn("Skipping downloading as request is not a success")
