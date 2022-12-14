@@ -39,7 +39,7 @@ class CpgRepository(
 
         return connect().use { session ->
             session.beginTransaction().use { transaction ->
-                val nodeIds = mutableSetOf<Long>()
+                val nodeIds: MutableSet<Long> = mutableSetOf()
                 val eventListener = createEventListener(nodeIds)
                 session.register(eventListener)
                 session.save(result.components, DEFAULT_SAVE_DEPTH)
@@ -113,13 +113,13 @@ class CpgRepository(
             requireNotNull(event?.`object`) {
                 "Missed event or object in ${EventListenerAdapter::class.simpleName}"
             }
-                .let {
-                    when (it) {
-                        is Node -> nodeIds.add(requireNotNull(it.id) {
-                            "Object (${it.javaClass.simpleName}) $it doesn't have ID"
+                .let { entity ->
+                    when (entity) {
+                        is Node -> nodeIds.add(requireNotNull(entity.id) {
+                            "Object (${entity.javaClass.simpleName}) $entity doesn't have ID"
                         })
-                        is PropertyEdge<*> -> log.debug("Skip for now ${it.javaClass.simpleName}")
-                        else -> log.error("Object type ${it.javaClass.simpleName} is not supported")
+                        is PropertyEdge<*> -> log.debug("Skip for now ${entity.javaClass.simpleName}")
+                        else -> log.error("Object type ${entity.javaClass.simpleName} is not supported")
                     }
                 }
         }
