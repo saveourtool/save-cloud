@@ -8,10 +8,10 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
+
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
-
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.request
 import io.ktor.client.utils.DEFAULT_HTTP_BUFFER_SIZE
@@ -19,10 +19,11 @@ import io.ktor.http.*
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
-import kotlinx.coroutines.CancellationException
 import okio.Path
 import okio.buffer
 import okio.use
+
+import kotlinx.coroutines.CancellationException
 
 /**
  * Attempt to send execution data to backend.
@@ -66,6 +67,7 @@ internal suspend fun SaveAgent.processRequestToBackendWrapped(
  *
  * @param url
  * @param body
+ * @param file
  * @return result wrapping [HttpResponse]
  */
 internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): Result<HttpResponse> = runCatching {
@@ -83,7 +85,8 @@ internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): R
                     val packet = channel.readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
                     while (!packet.isEmpty) {
                         val bytes = packet.readBytes()
-                        fs.appendingSink(file, mustExist = false)
+                        val hasAlreadyAnyData = totalBytes.get() > 0
+                        fs.appendingSink(file, mustExist = hasAlreadyAnyData)
                             .buffer()
                             .use {
                                 it.write(bytes)
