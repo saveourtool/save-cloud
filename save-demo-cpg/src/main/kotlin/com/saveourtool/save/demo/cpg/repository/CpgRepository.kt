@@ -86,18 +86,16 @@ class CpgRepository(
           RETURN q.nodeIds AS nodeIds
         }
         WITH nodeIds
-        MATCH (n1) -[r]-> (n2)
+        MATCH (n1)-[r]-(n2)
         WHERE ID(n1) IN nodeIds OR ID(n2) IN nodeIds
-        RETURN r
+        RETURN r, n1, n2
     """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     )
         .map {
             it.values
         }
         .flatten()
-        .map {
-            it as RelationshipModel
-        }
+        .filterIsInstance<RelationshipModel>()
 
     private fun connect(): SessionWithFactory = retry(MAX_RETRIES, TIME_BETWEEN_CONNECTION_TRIES) {
         tryConnect(
