@@ -4,14 +4,12 @@ import kotlinx.serialization.Serializable
 
 /**
  * Enum of project status
+ *
+ * The order of the elements is used for sorting
  */
 @Serializable
+@Suppress("WRONG_DECLARATIONS_ORDER")
 enum class ProjectStatus {
-    /**
-     * Project deleted
-     */
-    BANNED,
-
     /**
      * Project created
      */
@@ -21,5 +19,10 @@ enum class ProjectStatus {
      * Project deleted
      */
     DELETED,
+
+    /**
+     * Project deleted
+     */
+    BANNED,
     ;
 }

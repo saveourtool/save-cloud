@@ -605,12 +605,6 @@ class TestSuitesSourceController(
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(testSuitesSourceSnapshotStorage.download(it))
         }
-        .onErrorReturn(
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .build()
-        )
 
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()
