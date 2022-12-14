@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
+import react.dom.html.ReactHTML.p
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
@@ -164,7 +165,14 @@ val cpgView: VFC = VFC {
         div {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
-                    +log
+                    when {
+                        log.contains("ERROR") -> p {
+                            className = ClassName("text-warn")
+                            +log
+                        }
+                        else -> +log
+                    }
+
                     br { }
                 }
 
