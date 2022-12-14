@@ -245,7 +245,7 @@ class DownloadFilesController(
                     .map { fileInfo ->
                         ResponseEntity.ok(fileInfo)
                     }
-                }
+            }
         }
 
     /**
