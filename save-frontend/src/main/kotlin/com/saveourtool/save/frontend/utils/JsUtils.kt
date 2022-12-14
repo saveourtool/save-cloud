@@ -2,14 +2,48 @@
  * Utilities for kotlin-js interop
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.utils
 
 import js.core.Object
 import react.ChildrenBuilder
 
+import kotlinx.browser.document
 import kotlinx.browser.window
 
 private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
+
+/**
+ * @property globalBackground
+ * @property topBarBgColor
+ * @property topBarTransparency
+ * @property borderForContainer
+ * @property marginBottomForTopBar
+ */
+enum class Style(
+    val globalBackground: String,
+    val topBarBgColor: String,
+    val topBarTransparency: String,
+    val borderForContainer: String,
+    val marginBottomForTopBar: String,
+) {
+    BLUE(
+        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
+        "",
+        "transparent",
+        "px-0",
+        ""
+    ),
+    WHITE (
+        "bg-light",
+        "bg-dark",
+        "bg-dark",
+        "",
+        "mb-3"
+    ),
+    ;
+}
 
 /**
  * Shortcut for
@@ -75,3 +109,65 @@ external fun encodeURIComponent(str: String): String
  * @return [Unit]
  */
 fun showGlobalRoleConfirmation() = window.alert(SUPER_ADMIN_MESSAGE)
+
+/**
+ * JS code lines to enable tooltip.
+ *
+ * @return dynamic
+ */
+// language=js
+fun enableTooltip() {
+    js("""
+    var jQuery = require("jquery")
+    require("popper.js")
+    require("bootstrap")
+    jQuery('[data-toggle="tooltip"]').tooltip()
+""")
+}
+
+/**
+ * JS code lines to enable tooltip and popover.
+ *
+ * @return dynamic
+ */
+// language=JS
+fun enableTooltipAndPopover() = js("""
+    var jQuery = require("jquery")
+    require("popper.js")
+    require("bootstrap")
+    jQuery('.popover').each(function() {
+        jQuery(this).popover({
+            placement: jQuery(this).attr("popover-placement"),
+            title: jQuery(this).attr("popover-title"),
+            content: jQuery(this).attr("popover-content"),
+            html: true
+        }).on('show.bs.popover', function() {
+            jQuery(this).tooltip('hide')
+        }).on('hide.bs.popover', function() {
+            jQuery(this).tooltip('show')
+        })
+    })
+""")
+
+/**
+ * @param style
+ */
+internal fun configureTopBar(style: Style) {
+    val topBar = document.getElementById("navigation-top-bar")
+    topBar?.setAttribute(
+        "class",
+        "navbar navbar-expand ${style.topBarBgColor} navbar-dark topbar ${style.marginBottomForTopBar} " +
+                "static-top shadow mr-1 ml-1 rounded"
+    )
+
+    topBar?.setAttribute(
+        "style",
+        "background: ${style.topBarTransparency}"
+    )
+
+    val container = document.getElementById("common-save-container")
+    container?.setAttribute(
+        "class",
+        "container-fluid ${style.borderForContainer}"
+    )
+}
