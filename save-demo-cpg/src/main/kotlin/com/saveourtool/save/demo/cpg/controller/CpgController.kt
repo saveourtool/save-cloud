@@ -54,10 +54,12 @@ class CpgController(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
+        var logs = mutableListOf<String>()
         try {
             createFiles(request, tmpFolder)
+            val (result, logsFromLogback) = cpgService.translate(tmpFolder)
+            logs = logsFromLogback.toMutableList()
 
-            val (result, logs) = cpgService.translate(tmpFolder)
             result
                 .map {
                     cpgRepository.save(it)
@@ -70,16 +72,23 @@ class CpgController(
                     )
                 }
                 .getOrHandle {
-                    CpgResult(
-                        CpgGraph.placeholder,
-                        "NONE",
-                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
-                    )
+                    logs += "Exception: ${it.message} ${it.stackTraceToString()}"
+                    logs.stubCpgResult( "Error happened during the parsing of code to CPG")
                 }
+        } catch (e: Exception) {
+            logs += "Exception: ${e.message} ${e.stackTraceToString()}"
+            logs.stubCpgResult("Error happened on read/write from/to a graph database")
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
+
+    private fun List<String>.stubCpgResult(error: String) =
+        CpgResult(
+            CpgGraph.placeholder,
+            error,
+            this,
+        )
 
     private fun createFiles(request: CpgRunRequest, tmpFolder: Path) {
         val files: MutableList<SourceCodeFile> = mutableListOf()

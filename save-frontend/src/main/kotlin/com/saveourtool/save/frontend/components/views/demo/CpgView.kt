@@ -103,7 +103,7 @@ val cpgView: VFC = VFC {
                     this.resultBuilder = { builder ->
                         with(builder) {
                             div {
-                                className = ClassName("card card-body")
+                                className = ClassName("card card-body px-0 py-0")
                                 style = jso {
                                     height = "83%".unsafeCast<Height>()
                                     display = Display.block
