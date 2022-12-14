@@ -77,18 +77,14 @@ private suspend fun SaveAgent.download(fileLabel: String, url: String, target: P
         httpClient.download(
             url = url,
             body = null,
+            file = target,
         )
     }
     if (result.failureOrNotOk()) {
         throw IllegalStateException("Couldn't download $fileLabel from $url")
     }
 
-    val bytes = result.getOrThrow()
-        .readByteArrayOrThrowIfEmpty {
-            error("Downloaded $fileLabel from $url but content is empty")
-        }
-    bytes.writeToFile(target)
-    logInfoCustom("Downloaded $fileLabel (bytes = ${bytes.size}) from $url into $target")
+    logInfoCustom("Downloaded $fileLabel (resulting size = ${fs.metadata(target).size} bytes) from $url into $target")
 }
 
 private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
