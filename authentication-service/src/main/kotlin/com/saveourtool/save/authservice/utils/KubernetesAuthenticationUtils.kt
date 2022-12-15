@@ -79,7 +79,9 @@ class KubernetesAuthenticationUtils {
                 "/internal/files/download-save-agent",
                 "/internal/files/download-save-cli",
                 "/internal/files/download",
+                "/internal/files/debug-info",
                 "/internal/test-suites-sources/download-snapshot-by-execution-id",
+                "/internal/saveTestResult",
                 "/heartbeat",
             )
             .permitAll()
