@@ -6,6 +6,7 @@ import de.fraunhofer.aisec.cpg.*
 import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
 import org.springframework.stereotype.Service
 import java.nio.file.Path
+import kotlin.io.path.name
 
 /**
  * Service which communicates with CPG
@@ -20,7 +21,7 @@ class CpgService {
      */
     fun translate(folder: Path): ResultWithLogs<TranslationResult> = LogbackCapturer(BASE_PACKAGE_NAME) {
         // creating the CPG configuration instance, it will be used to configure the graph
-        val translationConfiguration = createTranslationConfiguration(folder)
+        val translationConfiguration = createTranslationConfiguration(folder, folder.fileName.name)
 
         // result - is the parsed Code Property Graph
         TranslationManager.builder()
@@ -31,7 +32,7 @@ class CpgService {
     }
 
     @OptIn(ExperimentalPython::class)
-    private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()
+    private fun createTranslationConfiguration(folder: Path, applicationName: String): TranslationConfiguration = TranslationConfiguration.builder()
         .topLevel(null)
         // c++/java
         .defaultLanguages()
@@ -39,7 +40,7 @@ class CpgService {
         .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
         .debugParser(true)
         // the directory with sources
-        .sourceLocations(folder.toFile())
+        .softwareComponents(mutableMapOf(applicationName to listOf(folder.toFile())))
         .defaultPasses()
         .inferenceConfiguration(
             InferenceConfiguration.builder()
