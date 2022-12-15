@@ -13,6 +13,7 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+@Suppress("RUN_IN_SCRIPT")
 if (path == rootProject.path) {
     tasks.register("detektAll") {
         allprojects {
@@ -25,6 +26,7 @@ if (path == rootProject.path) {
     }
 }
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val reportMerge: TaskProvider<ReportMergeTask> = rootProject.tasks.named<ReportMergeTask>("mergeDetektReports") {
     input.from(
         tasks.withType<Detekt>().map { it.sarifReportFile }
