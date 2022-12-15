@@ -1,13 +1,7 @@
 package com.saveourtool.save.buildutils
 
-import org.cqfn.diktat.plugin.gradle.DiktatExtension
-import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
+import Versions
 import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
-import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.api.Project
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
-import org.gradle.kotlin.dsl.*
 
 plugins {
     id("org.cqfn.diktat.diktat-gradle-plugin")
