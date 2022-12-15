@@ -1,0 +1,4 @@
+numpy>=1.7
+jep
+# --global-option="build_ext" --global-option="-I/usr/include/python3.8"
+# --global-option="-I/layers/paketo-buildpacks_pip-install/packages/lib/python3.11/site-packages/jep"
