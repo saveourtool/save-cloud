@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
@@ -67,6 +68,8 @@ val cpgView: VFC = VFC {
 
     val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
 
+    val (selectedLayout, setSelectedLayout) = useState(SigmaLayout.preferredLayout)
+
     displaySimpleModal(
         errorWindowOpenness,
         "Error log",
@@ -79,6 +82,8 @@ val cpgView: VFC = VFC {
             className = ClassName("col-12")
             backgroundCard {
                 demoComponent {
+                    this.selectedLayout = selectedLayout
+                    this.setSelectedLayout = { setSelectedLayout(it) }
                     this.placeholderText = CPG_PLACEHOLDER_TEXT
                     this.preselectedLanguage = Languages.CPP
                     this.resultRequest = { demoRequest ->
@@ -115,13 +120,14 @@ val cpgView: VFC = VFC {
                                     graphEvents {
                                         shouldHideUnfocusedNodes = true
                                         setSelectedNode = { newSelectedNodeName ->
-                                            setSelectedNodeName(
-                                                newSelectedNodeName.takeIf { it != selectedNodeName }
-                                            )
+                                            setSelectedNodeName { previousSelectedNodeName ->
+                                                newSelectedNodeName.takeIf { it != previousSelectedNodeName }
+                                            }
                                         }
                                     }
                                     graphLoader {
-                                        cpgGraph = cpgResult.cpgGraph
+                                        this.cpgGraph = cpgResult.cpgGraph
+                                        this.selectedLayout = selectedLayout
                                     }
                                 }
                                 div {
@@ -137,8 +143,8 @@ val cpgView: VFC = VFC {
                                             }
                                         }
                                         "show"
-                                    } ?: ""
-                                    className = ClassName("col-6 p-0 position-absolute collapse width overflow-auto $show")
+                                    } ?: "hide"
+                                    className = ClassName("col-6 p-0 position-absolute width overflow-auto $show")
                                     style = jso {
                                         top = "0px".unsafeCast<Top>()
                                         right = "0px".unsafeCast<Right>()
@@ -199,6 +205,16 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
 ) {
     div {
         className = ClassName("card card-body p-0")
+        button {
+            className = ClassName("btn p-0 position-absolute")
+            fontAwesomeIcon(faTimesCircle)
+            type = "button".unsafeCast<ButtonType>()
+            onClick = { setSelectedNodeName(null) }
+            style = jso {
+                top = "0%".unsafeCast<Top>()
+                right = "1%".unsafeCast<Right>()
+            }
+        }
         table {
             thead {
                 tr {
@@ -210,16 +226,6 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
                     th {
                         scope = "col"
                         +(nodeName ?: NOT_PROVIDED).formatPathToFile(applicationName)
-                    }
-                    button {
-                        className = ClassName("btn p-0 position-absolute")
-                        fontAwesomeIcon(faTimesCircle)
-                        type = "button".unsafeCast<ButtonType>()
-                        onClick = { setSelectedNodeName(null) }
-                        style = jso {
-                            top = "1%".unsafeCast<Top>()
-                            right = "1%".unsafeCast<Right>()
-                        }
                     }
                 }
             }

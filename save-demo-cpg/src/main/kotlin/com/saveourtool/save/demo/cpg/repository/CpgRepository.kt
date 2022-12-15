@@ -86,8 +86,8 @@ class CpgRepository(
           RETURN q.nodeIds AS nodeIds
         }
         WITH nodeIds
-        MATCH (n1)-[r]-(n2)
-        WHERE ID(n1) IN nodeIds OR ID(n2) IN nodeIds
+        MATCH (n1)-[r]->(n2)
+        WHERE ID(n1) IN nodeIds AND ID(n2) IN nodeIds
         RETURN r, n1, n2
     """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     )
