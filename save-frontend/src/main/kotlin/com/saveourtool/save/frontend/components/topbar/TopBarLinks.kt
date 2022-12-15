@@ -107,10 +107,13 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 className = ClassName("nav-item")
                 if (elem.isExternalLink) {
                     a {
-                        className = ClassName("nav-link d-flex align-items-center me-2 active")
+                        className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
                         style = jso { width = elem.width }
-                        href = elem.hrefAnchor
+//                        href = elem.hrefAnchor
                         +elem.text
+                        onClick = {
+                            window.open(elem.hrefAnchor)
+                        }
                     }
                 } else {
                     Link {
