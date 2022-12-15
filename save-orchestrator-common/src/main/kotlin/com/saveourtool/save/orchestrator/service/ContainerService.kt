@@ -75,7 +75,7 @@ class ContainerService(
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun validateContainersAreStarted(executionId: Long): Mono<EmptyResponse> {
+    fun validateContainersAreStarted(executionId: Long): Mono<Void> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
         // if no, mark execution as failed with internal error here
@@ -100,7 +100,7 @@ class ContainerService(
                 }
                 areAgentsHaveStarted.remove(executionId)
             }
-            .then(agentService.updateExecution(executionId, ExecutionStatus.RUNNING))
+            .then()
     }
 
     /**

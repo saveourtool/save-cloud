@@ -1,8 +1,6 @@
 package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -25,10 +23,8 @@ import reactor.core.publisher.Mono
  */
 @RestController
 class AgentsController(
-    private val configProperties: ConfigProperties,
     private val agentService: AgentService,
     private val containerService: ContainerService,
-    private val containerRunner: ContainerRunner,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -56,7 +52,10 @@ class AgentsController(
                 .onErrorResume(ContainerRunnerException::class.java) { ex ->
                     reportExecutionError(request.executionId, ex)
                 }
-                .flatMapMany {
+                .flatMap {
+                    agentService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
+                }
+                .flatMap {
                     containerService.validateContainersAreStarted(request.executionId)
                 }
                 .subscribe()
