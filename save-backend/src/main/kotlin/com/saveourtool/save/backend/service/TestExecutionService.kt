@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
@@ -179,8 +178,8 @@ class TestExecutionService(
                     it.status == TestResultStatus.RUNNING
                 }
                 .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
+                    it.startTime = testExecDto.startTimeSeconds?.secondsToJLocalDateTime()
+                    it.endTime = testExecDto.endTimeSeconds?.secondsToJLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
