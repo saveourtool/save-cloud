@@ -65,9 +65,6 @@ allprojects {
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
 }
-allprojects {
-    configureDiktat()
-}
 configureSpotless()
 
 createStackDeployTask(profile)

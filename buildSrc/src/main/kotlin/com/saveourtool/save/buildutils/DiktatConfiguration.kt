@@ -6,36 +6,11 @@ package com.saveourtool.save.buildutils
 
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
-import org.cqfn.diktat.plugin.gradle.DiktatExtension
-import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
-import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
-
-/**
- * Applies diktat gradle plugin and configures diktat for [this] project
- */
-fun Project.configureDiktat() {
-    apply<DiktatGradlePlugin>()
-    configure<DiktatExtension> {
-        diktatConfigFile = rootProject.file("diktat-analysis.yml")
-        githubActions = findProperty("diktat.githubActions")?.toString()?.toBoolean() ?: false
-        inputs {
-            // using `Project#path` here, because it must be unique in gradle's project hierarchy
-            if (path == rootProject.path) {
-                include("gradle/plugins/src/**/*.kt", "*.kts", "gradle/plugins/**/*.kts")
-                exclude("gradle/plugins/build/**")
-            } else {
-                include("src/**/*.kt", "**/*.kts")
-                exclude("src/test/**/*.kt", "src/*Test/**/*.kt")
-            }
-        }
-    }
-    fixDiktatTasks()
-}
 
 /**
  * Applies spotless to [this] project and configures diktat step
@@ -66,10 +41,3 @@ fun Project.configureSpotless() {
     }
 }
 
-private fun Project.fixDiktatTasks() {
-    tasks.withType<DiktatJavaExecTaskBase>().configureEach {
-        javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-        })
-    }
-}

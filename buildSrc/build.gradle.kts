@@ -12,7 +12,6 @@ dependencies {
     implementation(files(project.libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.spring.boot.gradle.plugin)
-    implementation(libs.diktat.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
     implementation(libs.gradle.plugin.spotless)
     implementation(libs.publish.gradle.plugin)
