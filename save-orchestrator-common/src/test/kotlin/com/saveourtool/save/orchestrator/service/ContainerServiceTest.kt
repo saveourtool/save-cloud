@@ -118,8 +118,7 @@ class ContainerServiceTest {
 
         // tear down
         containerService.stopAgents(listOf(testContainerId))
-        verify(orchestratorAgentService).updateExecutionByDto(any(), any(), anyOrNull())
-        verifyNoMoreInteractions(orchestratorAgentService)
+        verifyNoInteractions(orchestratorAgentService)
     }
 
     @AfterEach

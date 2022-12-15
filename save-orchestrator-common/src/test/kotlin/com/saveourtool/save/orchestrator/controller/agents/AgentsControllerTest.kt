@@ -11,11 +11,13 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.utils.EmptyResponse
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -67,9 +69,11 @@ class AgentsControllerTest {
         whenever(containerService.validateContainersAreStarted(any()))
             .thenReturn(Mono.just(Unit).then())
         whenever(orchestratorAgentService.addAgent(anyLong(), any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponse.toMono())
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponse.toMono())
+        whenever(orchestratorAgentService.updateExecutionByDto(anyLong(), any(), anyOrNull()))
+            .thenReturn(emptyResponse.toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         webClient
@@ -117,5 +121,9 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(containerService, times(1)).cleanupByExecutionId(anyLong())
+    }
+
+    companion object {
+        private val emptyResponse: EmptyResponse = ResponseEntity.ok().build()
     }
 }
