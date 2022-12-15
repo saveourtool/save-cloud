@@ -6,6 +6,7 @@ plugins {
     id("com.diffplug.spotless")
 }
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val libs = the<LibrariesForLibs>()
 val diktatVersion: String = libs.versions.diktat.get()
 spotless {
