@@ -73,7 +73,7 @@ tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().
             "paketo-buildpacks/pip",
         )
     )
-    environment["BPE_CPG_JEP_LIBRARY"] = "/layers/paketo-buildpacks_pip-install/packages/lib/python3.8/site-packages/jep/libjep.so"
-    environment["BP_CPYTHON_VERSION"] = "3.8"
+    environment["BPE_CPG_JEP_LIBRARY"] = "/layers/paketo-buildpacks_pip-install/packages/lib/python3.10/site-packages/jep/libjep.so"
+    environment["BP_CPYTHON_VERSION"] = "3.10"
     environment["BP_JVM_TYPE"] = "JDK"
 }
