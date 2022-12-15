@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     alias(libs.plugins.kotlin.plugin.serialization)
     `maven-publish`
 }

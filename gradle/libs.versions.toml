@@ -48,6 +48,7 @@ kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kot
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "1.5.3" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 download = { id = "de.undercouch.download", version.ref = "download" }
 

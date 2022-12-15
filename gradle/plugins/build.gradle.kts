@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.gradle.plugin.spotless)
     implementation(libs.download.plugin)
     implementation(libs.reckon.gradle.plugin)
+    implementation(libs.detekt.gradle.plugin)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

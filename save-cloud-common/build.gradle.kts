@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     `maven-publish`
 }
 kotlin {

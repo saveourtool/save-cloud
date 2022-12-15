@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 kotlin {

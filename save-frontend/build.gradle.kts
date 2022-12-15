@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {

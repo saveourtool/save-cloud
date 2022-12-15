@@ -12,6 +12,7 @@ plugins {
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.5.0"

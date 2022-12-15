@@ -5,6 +5,7 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 dependencies {
