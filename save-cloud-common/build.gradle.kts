@@ -17,12 +17,12 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget = Versions.jdk
+                jvmTarget = "11"
             }
         }
     }
     jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of("11"))
     }
     js(BOTH).browser()
 
