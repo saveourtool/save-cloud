@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
@@ -27,6 +28,7 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
@@ -67,6 +69,8 @@ val cpgView: VFC = VFC {
 
     val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
 
+    val (selectedLayout, setSelectedLayout) = useState(SigmaLayout.preferredLayout)
+
     displaySimpleModal(
         errorWindowOpenness,
         "Error log",
@@ -79,6 +83,8 @@ val cpgView: VFC = VFC {
             className = ClassName("col-12")
             backgroundCard {
                 demoComponent {
+                    this.selectedLayout = selectedLayout
+                    this.setSelectedLayout = { setSelectedLayout(it) }
                     this.placeholderText = CPG_PLACEHOLDER_TEXT
                     this.preselectedLanguage = Languages.CPP
                     this.resultRequest = { demoRequest ->
@@ -103,7 +109,7 @@ val cpgView: VFC = VFC {
                     this.resultBuilder = { builder ->
                         with(builder) {
                             div {
-                                className = ClassName("card card-body")
+                                className = ClassName("card card-body px-0 py-0")
                                 style = jso {
                                     height = "83%".unsafeCast<Height>()
                                     display = Display.block
@@ -121,7 +127,8 @@ val cpgView: VFC = VFC {
                                         }
                                     }
                                     graphLoader {
-                                        cpgGraph = cpgResult.cpgGraph
+                                        this.cpgGraph = cpgResult.cpgGraph
+                                        this.selectedLayout = selectedLayout
                                     }
                                 }
                                 div {
@@ -147,7 +154,11 @@ val cpgView: VFC = VFC {
                                 }
                             }
                             div {
-                                val alertStyle = if (cpgResult.applicationName.isNotBlank()) "alert-primary" else ""
+                                val alertStyle = when {
+                                    cpgResult.applicationName.isBlank() -> ""
+                                    cpgResult.applicationName.startsWith("Error") -> "alert-warning"
+                                    else -> "alert-primary"
+                                }
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
                                 +cpgResult.applicationName
                             }
@@ -164,8 +175,16 @@ val cpgView: VFC = VFC {
         div {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
-                    +log
-                    br { }
+                    when {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> p {
+                            className = ClassName("text-danger")
+                            +log
+                        }
+                        else -> {
+                            +log
+                            br { }
+                        }
+                    }
                 }
 
                 "alert-primary"
