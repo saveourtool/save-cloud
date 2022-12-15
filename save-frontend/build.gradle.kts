@@ -1,5 +1,3 @@
-import com.saveourtool.save.buildutils.configureSpotless
-
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
@@ -259,4 +257,3 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
-configureSpotless()

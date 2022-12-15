@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.diktat.gradle.plugin)
+    implementation(libs.gradle.plugin.spotless)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

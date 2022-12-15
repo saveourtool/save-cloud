@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.configurePublishing
-import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
     kotlin("multiplatform")
@@ -68,5 +67,4 @@ kotlin {
     }
 }
 
-configureSpotless()
 configurePublishing()

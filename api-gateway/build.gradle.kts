@@ -1,5 +1,4 @@
 import com.saveourtool.save.buildutils.configureJacoco
-import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
@@ -18,4 +17,3 @@ dependencies {
 }
 
 configureJacoco()
-configureSpotless()

@@ -95,4 +95,3 @@ tasks.withType<Test> {
         excludes = listOf("**/CorsFilter.kt")
     }
 }
-configureSpotless()

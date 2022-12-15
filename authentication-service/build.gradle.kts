@@ -31,4 +31,3 @@ dependencies {
 }
 
 configureJacoco()
-configureSpotless()

@@ -65,7 +65,6 @@ allprojects {
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
 }
-configureSpotless()
 
 createStackDeployTask(profile)
 configurePublishing()

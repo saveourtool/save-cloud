@@ -21,7 +21,6 @@ kotlin {
 }
 
 configureJacoco()
-configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

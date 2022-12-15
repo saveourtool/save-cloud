@@ -37,7 +37,6 @@ dependencies {
 }
 
 configureJacoco()
-configureSpotless()
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 val os = System.getProperty("os.name")
