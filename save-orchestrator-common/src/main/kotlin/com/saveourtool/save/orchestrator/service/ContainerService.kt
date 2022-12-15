@@ -10,7 +10,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory

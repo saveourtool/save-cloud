@@ -29,6 +29,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import org.springframework.http.ResponseEntity
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(controllers = [AgentsController::class])
@@ -64,7 +65,7 @@ class AgentsControllerTest {
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
         whenever(containerService.validateContainersAreStarted(any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(Mono.just(Unit).then())
         whenever(orchestratorAgentService.addAgent(anyLong(), any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         whenever(orchestratorAgentService.updateAgentStatus(any()))
