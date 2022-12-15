@@ -91,16 +91,8 @@ data class CpgGraph(
          * Placeholder of a graph
          */
         val placeholder = CpgGraph(
-            nodes = listOf(
-                CpgNode("1", CpgNodeAttributes("Alisson", "#FF0000")),
-                CpgNode("2", CpgNodeAttributes("John", "#00FF00")),
-                CpgNode("3", CpgNodeAttributes("Sam", "#0000FF")),
-            ),
-            edges = listOf(
-                CpgEdge("1->2", "1", "2", CpgEdgeAttributes("KNOWS")),
-                CpgEdge("2->3", "2", "3", CpgEdgeAttributes("LIKES")),
-                CpgEdge("3->1", "3", "1", CpgEdgeAttributes("HATES")),
-            ),
+            nodes = emptyList(),
+            edges = emptyList(),
             options = CpgGraphOptions(),
             attributes = CpgGraphAttributes()
         )
