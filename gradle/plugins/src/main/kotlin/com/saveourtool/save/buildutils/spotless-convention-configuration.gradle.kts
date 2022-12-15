@@ -12,6 +12,7 @@ spotless {
     kotlin {
         diktat(diktatVersion).configFile(rootProject.file("diktat-analysis.yml"))
         target("src/**/*.kt")
+        targetExclude("src/test/**/*.kt", "src/*Test/**/*.kt")
         if (path == rootProject.path) {
             target("gradle/plugins/src/**/*.kt")
         }
