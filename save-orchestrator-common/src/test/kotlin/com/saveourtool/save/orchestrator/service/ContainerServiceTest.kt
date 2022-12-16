@@ -57,7 +57,7 @@ class ContainerServiceTest {
 
     @BeforeEach
     fun setUp() {
-        whenever(orchestratorAgentService.updateExecutionByDto(any(), any(), anyOrNull()))
+        whenever(orchestratorAgentService.updateExecutionStatus(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
 

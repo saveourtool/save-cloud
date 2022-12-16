@@ -115,7 +115,7 @@ class SandboxOrchestratorAgentService(
             .map { it.toDto() }
     }
 
-    override fun updateExecutionByDto(
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?

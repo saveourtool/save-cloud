@@ -75,7 +75,7 @@ interface OrchestratorAgentService {
      * @param failReason to show to user in case of error status
      * @return a Mono without body
      */
-    fun updateExecutionByDto(
+    fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,

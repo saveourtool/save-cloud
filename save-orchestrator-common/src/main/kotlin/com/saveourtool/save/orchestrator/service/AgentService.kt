@@ -164,7 +164,7 @@ class AgentService(
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<EmptyResponse> =
-            orchestratorAgentService.updateExecutionByDto(executionId, executionStatus, failReason)
+            orchestratorAgentService.updateExecutionStatus(executionId, executionStatus, failReason)
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.

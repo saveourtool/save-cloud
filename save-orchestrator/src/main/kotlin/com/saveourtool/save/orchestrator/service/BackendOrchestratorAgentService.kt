@@ -72,7 +72,7 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun updateExecutionByDto(
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
