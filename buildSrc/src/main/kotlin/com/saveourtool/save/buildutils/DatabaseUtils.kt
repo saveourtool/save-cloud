@@ -37,6 +37,12 @@ fun Project.getBackendDatabaseCredentials(profile: String): DatabaseCredentials 
  */
 fun Project.getSandboxDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-sandbox", profile)
 
+/**
+ * @param profile a profile to get credentials for
+ * @return an instance of [DatabaseCredentials] for [profile] in demo
+ */
+fun Project.getDemoDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-demo", profile)
+
 private fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
     val props = java.util.Properties()
     // Branch for other environments, e.g. local deployment or server deployment

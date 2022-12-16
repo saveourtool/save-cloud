@@ -55,7 +55,7 @@ class ContainerServiceTest {
 
     @BeforeEach
     fun setUp() {
-        whenever(orchestratorAgentService.updateExecutionByDto(any(), any(), anyOrNull()))
+        whenever(orchestratorAgentService.updateExecutionStatus(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
 
@@ -111,7 +111,7 @@ class ContainerServiceTest {
 
         // tear down
         containerService.stopAgents(listOf(testContainerId))
-        verify(orchestratorAgentService).updateExecutionByDto(any(), any(), anyOrNull())
+        verify(orchestratorAgentService).updateExecutionStatus(any(), any(), anyOrNull())
         verifyNoMoreInteractions(orchestratorAgentService)
     }
 
