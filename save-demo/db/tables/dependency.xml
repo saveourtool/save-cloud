@@ -13,7 +13,7 @@
             <column name="master_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="slave_id" type="bigint">
+            <column name="worker_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -25,9 +25,9 @@
                                  referencedTableName="tool"
                                  onDelete="CASCADE"/>
 
-        <addForeignKeyConstraint baseColumnNames="slave_id"
+        <addForeignKeyConstraint baseColumnNames="worker_id"
                                  baseTableName="dependency"
-                                 constraintName="fk_dependency_slave"
+                                 constraintName="fk_dependency_worker"
                                  referencedColumnNames="id"
                                  referencedTableName="tool"
                                  onDelete="CASCADE"/>
