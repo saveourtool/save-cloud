@@ -72,7 +72,7 @@ class AgentsControllerTest {
             .thenReturn(emptyResponse.toMono())
         whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(emptyResponse.toMono())
-        whenever(orchestratorAgentService.updateExecutionByDto(anyLong(), any(), anyOrNull()))
+        whenever(orchestratorAgentService.updateExecutionStatus(anyLong(), any(), anyOrNull()))
             .thenReturn(emptyResponse.toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
