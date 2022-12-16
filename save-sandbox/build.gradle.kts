@@ -8,6 +8,7 @@ plugins {
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     id("org.gradle.test-retry") version "1.5.0"
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
@@ -20,7 +21,6 @@ kotlin {
 }
 
 configureJacoco()
-configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
