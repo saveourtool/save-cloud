@@ -41,7 +41,7 @@ class HeartBeatInspector(
      * @param heartbeat
      */
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
-        agentsLatestHeartBeatsMap[heartbeat.containerId] = heartbeat.state.name to heartbeat.timestamp
+        agentsLatestHeartBeatsMap[heartbeat.agentInfo.containerId] = heartbeat.state.name to heartbeat.timestamp
     }
 
     /**

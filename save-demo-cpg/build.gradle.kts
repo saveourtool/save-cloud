@@ -4,6 +4,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
@@ -36,7 +37,6 @@ dependencies {
 }
 
 configureJacoco()
-configureSpotless()
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 val os = System.getProperty("os.name")
