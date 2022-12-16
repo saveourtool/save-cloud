@@ -8,16 +8,15 @@ package com.saveourtool.save.frontend.components.tables
 
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
+import com.saveourtool.save.frontend.utils.useRequestStatusContext
 
 import csstype.ClassName
 import csstype.Cursor
 import js.core.jso
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
@@ -156,6 +155,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             setSorting.invoke(updater)
         }
         this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
+        this.getPaginationRowModel = tanstack.table.core.getPaginationRowModel()
         additionalOptions()
     }.also { tableOptionsCustomizer(it) })
 
@@ -178,15 +178,8 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
         }
     }
 
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
+    val context = useRequestStatusContext()
+
     useEffect(*dependencies) {
         scope.launch {
             try {

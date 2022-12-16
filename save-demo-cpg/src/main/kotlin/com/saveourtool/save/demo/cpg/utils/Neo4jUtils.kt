@@ -39,7 +39,7 @@ fun <R> SessionWithFactory.use(function: (Session) -> R): R {
  * @param uri
  * @param username
  * @param password
- * @param packageName
+ * @param packageNames
  * @return a result with type [SessionWithFactory] or an exception [ConnectionException]
  */
 @Throws(IllegalArgumentException::class)
@@ -47,7 +47,7 @@ fun tryConnect(
     uri: String,
     username: String,
     password: String,
-    packageName: String
+    vararg packageNames: String
 ): Either<ConnectionException, SessionWithFactory> = try {
     val configuration =
             Configuration.Builder()
@@ -56,7 +56,7 @@ fun tryConnect(
                 .credentials(username, password)
                 .verifyConnection(true)
                 .build()
-    val sessionFactory = SessionFactory(configuration, packageName)
+    val sessionFactory = SessionFactory(configuration, *packageNames)
     val session = requireNotNull(sessionFactory.openSession()) {
         "Failed to open session"
     }

@@ -11,6 +11,7 @@ import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxLnkExecutionAgentRepository
 import com.saveourtool.save.sandbox.service.SandboxOrchestratorAgentService
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -47,6 +48,7 @@ import javax.transaction.Transactional
  * @property sandboxExecutionRepository
  * @property sandboxAgentRepository
  * @property sandboxAgentStatusRepository
+ * @property sandboxLnkExecutionAgentRepository
  * @property agentsController
  * @property orchestratorAgentService
  * @property logService
@@ -64,6 +66,7 @@ class SandboxController(
     val sandboxExecutionRepository: SandboxExecutionRepository,
     val sandboxAgentRepository: SandboxAgentRepository,
     val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
+    val sandboxLnkExecutionAgentRepository: SandboxLnkExecutionAgentRepository,
     val agentsController: AgentsController,
     val orchestratorAgentService: SandboxOrchestratorAgentService,
     val logService: LogService,
@@ -352,9 +355,10 @@ class SandboxController(
             "There is no run for ${authentication.username()} yet"
         }
         .flatMap { execution ->
-            val agent = sandboxAgentRepository.findByExecutionId(execution.requiredId())
+            val agent = sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
                 .singleOrNull()
                 .orConflict { "Only a single agent expected for execution ${execution.requiredId()}" }
+                .agent
             val startTime = sandboxAgentStatusRepository.findTopByAgentOrderByStartTimeAsc(agent)
                 ?.startTime
                 .orNotFound { "Not found first agent status for execution ${execution.requiredId()}" }

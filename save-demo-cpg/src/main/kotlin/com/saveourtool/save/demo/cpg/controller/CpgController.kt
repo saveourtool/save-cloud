@@ -3,20 +3,17 @@ package com.saveourtool.save.demo.cpg.controller
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
+import com.saveourtool.save.demo.cpg.repository.CpgRepository
+import com.saveourtool.save.demo.cpg.service.CpgService
 import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
 
 import arrow.core.getOrHandle
 import de.fraunhofer.aisec.cpg.*
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
-import de.fraunhofer.aisec.cpg.graph.Node
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.apache.commons.io.FileUtils
-import org.neo4j.ogm.response.model.RelationshipModel
-import org.neo4j.ogm.session.Session
 import org.slf4j.Logger
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -30,13 +27,11 @@ import kotlinx.serialization.ExperimentalSerializationApi
 
 const val FILE_NAME_SEPARATOR = "==="
 
-private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
-private const val MAX_RETRIES = 10
-private const val DEFAULT_SAVE_DEPTH = -1
-
 /**
  * A simple controller
  * @property configProperties
+ * @property cpgService
+ * @property cpgRepository
  */
 @ApiSwaggerSupport
 @Tags(
@@ -47,114 +42,55 @@ private const val DEFAULT_SAVE_DEPTH = -1
 @ExperimentalSerializationApi
 class CpgController(
     val configProperties: ConfigProperties,
+    val cpgService: CpgService,
+    val cpgRepository: CpgRepository,
 ) {
     /**
      * @param request
      * @return result of uploading, it contains ID to request the result further
      */
     @PostMapping("/upload-code")
+    @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")
     fun uploadCode(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
+        var logs: MutableList<String> = mutableListOf()
         try {
             createFiles(request, tmpFolder)
+            val (result, logsFromLogback) = cpgService.translate(tmpFolder)
+            logs = logsFromLogback.toMutableList()
 
-            val (result, logs) = LogbackCapturer(BASE_PACKAGE_NAME) {
-                // creating the CPG configuration instance, it will be used to configure the graph
-                val translationConfiguration = createTranslationConfiguration(tmpFolder)
-
-                // result - is the parsed Code Property Graph
-                TranslationManager.builder()
-                    .config(translationConfiguration)
-                    .build()
-                    .analyze()
-                    .get()
-            }
             result
-                .tap {
-                    saveTranslationResult(it)
+                .map {
+                    cpgRepository.save(it)
                 }
                 .map {
                     CpgResult(
-                        getGraph(),
-                        tmpFolder.fileName.name,
+                        cpgRepository.getGraph(it),
+                        "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
                         logs,
                     )
                 }
                 .getOrHandle {
-                    CpgResult(
-                        CpgGraph.placeholder,
-                        "NONE",
-                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
-                    )
+                    logs += "Exception: ${it.message} ${it.stackTraceToString()}"
+                    logs.stubCpgResult(ERROR_PARSING)
                 }
+        } catch (e: Exception) {
+            // this is a very generic exception, but unfortunately we cannot let users get any stacktrace on the FE
+            logs += "Exception: ${e.message} ${e.stackTraceToString()}"
+            logs.stubCpgResult(ERROR_DB)
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
 
-    @OptIn(ExperimentalPython::class)
-    private fun createTranslationConfiguration(folder: Path): TranslationConfiguration = TranslationConfiguration.builder()
-        .topLevel(null)
-        // c++/java
-        .defaultLanguages()
-        // you can register non-default languages
-        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
-        .debugParser(true)
-        // the directory with sources
-        .sourceLocations(folder.toFile())
-        .defaultPasses()
-        .inferenceConfiguration(
-            InferenceConfiguration.builder()
-                .inferRecords(true)
-                .build()
-        )
-        .build()
-
-    private fun getGraph(): CpgGraph {
-        val (nodes, edges) = connect().use { session ->
-            session.getNodes() to session.getEdges()
-        }
-        return CpgGraph(nodes = nodes.map { it.toCpgNode() }, edges = edges.map { it.toCpgEdge() })
-    }
-
-    private fun Session.getNodes() = query(Node::class.java, "MATCH (n: Node) return n", mapOf("" to "")).toList()
-
-    private fun Session.getEdges() = query("MATCH () -[r]-> () return r", mapOf("" to ""))
-        .map {
-            it.values
-        }
-        .flatten()
-        .map {
-            it as RelationshipModel
-        }
-
-    private fun saveTranslationResult(result: TranslationResult) {
-        val sessionWithFactory = connect()
-
-        log.info { "Using import depth: $DEFAULT_SAVE_DEPTH" }
-        log.info {
-            "Count base nodes to save [components: ${result.components.size}, additionalNode: ${result.additionalNodes.size}]"
-        }
-
-        sessionWithFactory.use { session ->
-            session.beginTransaction().use {
-                session.save(result.components, DEFAULT_SAVE_DEPTH)
-                session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
-                it?.commit()
-            }
-        }
-    }
-
-    private fun connect(): SessionWithFactory = retry(MAX_RETRIES, TIME_BETWEEN_CONNECTION_TRIES) {
-        tryConnect(
-            configProperties.uri,
-            configProperties.authentication.username,
-            configProperties.authentication.password,
-            MODEL_PACKAGE_NAME,
-        )
-    }
+    private fun List<String>.stubCpgResult(error: String) =
+            CpgResult(
+                CpgGraph.placeholder,
+                error,
+                this,
+            )
 
     private fun createFiles(request: CpgRunRequest, tmpFolder: Path) {
         val files: MutableList<SourceCodeFile> = mutableListOf()
@@ -199,7 +135,7 @@ class CpgController(
 
     companion object {
         private val log: Logger = getLogger<CpgController>()
-        private const val BASE_PACKAGE_NAME = "de.fraunhofer.aisec"
-        private const val MODEL_PACKAGE_NAME = "$BASE_PACKAGE_NAME.cpg.graph"
+        private const val ERROR_DB = "Error happened on read/write from/to a graph database, check logs for more details"
+        private const val ERROR_PARSING = "Error happened during the parsing of code to CPG, check logs for more details"
     }
 }

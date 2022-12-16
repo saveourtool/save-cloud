@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -36,7 +36,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 
-import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 
 /**
@@ -53,7 +52,7 @@ class DownloadFilesController(
     private val avatarStorage: AvatarStorage,
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
-    private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
@@ -162,23 +161,17 @@ class DownloadFilesController(
         )
     )
 
-    private fun doDownload(fileKey: FileKey): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
-        logger.info("Sending file ${fileKey.name} to a client")
-        val content = fileStorage.download(fileKey)
-        ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(content)
-    }
-        .doOnError(FileNotFoundException::class.java) {
-            logger.warn("File with key $fileKey is not found", it)
+    private fun doDownload(fileKey: FileKey): Mono<ByteBufferFluxResponse> = fileStorage.doesExist(fileKey)
+        .filter { it }
+        .switchIfEmptyToNotFound {
+            "File with key $fileKey is not found"
         }
-        .onErrorReturn(
-            FileNotFoundException::class.java,
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+        .map {
+            logger.info("Sending file ${fileKey.name} to a client")
+            ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .build()
-        )
+                .body(fileStorage.download(fileKey))
+        }
 
     @Operation(
         method = "POST",
@@ -234,18 +227,26 @@ class DownloadFilesController(
         authentication, projectName, organizationName, Permission.WRITE
     )
         .flatMap {
-            fileStorage.uploadFilePart(file, ProjectCoordinates(organizationName, projectName))
+            file.flatMap { part ->
+                val fileKey = FileKey(
+                    ProjectCoordinates(organizationName, projectName),
+                    part.filename(),
+                    System.currentTimeMillis(),
+                )
+                fileStorage.doesExist(fileKey)
+                    .filter { !it }
+                    .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
+                    .flatMap {
+                        fileStorage.upload(fileKey, part.content().map { it.asByteBuffer() })
+                            .map { FileInfo(fileKey, it) }
+                    }
+                    .filter { it.sizeBytes > 0 }
+                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .map { fileInfo ->
+                        ResponseEntity.ok(fileInfo)
+                    }
+            }
         }
-        .map { fileInfo ->
-            ResponseEntity.status(
-                if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
-            )
-                .body(fileInfo)
-        }
-        .onErrorReturn(
-            FileAlreadyExistsException::class.java,
-            ResponseEntity.status(HttpStatus.CONFLICT).build()
-        )
 
     /**
      * @param partMono image to be uploaded
@@ -284,10 +285,6 @@ class DownloadFilesController(
         )
             .body(imageInfo)
     }
-        .onErrorReturn(
-            FileAlreadyExistsException::class.java,
-            ResponseEntity.status(HttpStatus.CONFLICT).build()
-        )
 
     /**
      * @param testExecutionDto
@@ -318,13 +315,10 @@ class DownloadFilesController(
         testExecutionDto.executionId?.let { return it }
 
         val agentContainerId = testExecutionDto.agentContainerId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
-        val execution = agentRepository.findByContainerId(agentContainerId)?.execution
-        return execution?.id
-            ?: throw ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Execution for agent $agentContainerId not found"
-            )
+            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
+                "Request body should contain agentContainerId"
+            }
+        return agentService.getExecutionByContainerId(agentContainerId).requiredId()
     }
 
     /**

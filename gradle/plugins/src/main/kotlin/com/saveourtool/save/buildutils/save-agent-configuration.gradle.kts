@@ -32,9 +32,7 @@ dependencies {
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
-        add("runtimeOnly", fileTree("$buildDir/agentDistro").apply {
-            builtBy(downloadSaveAgentDistroTaskProvider)
-        })
+        addProvider("runtimeOnly", downloadSaveAgentDistroTaskProvider.map { it.outputs.files })
     } else {
         add("runtimeOnly", project(":save-agent", "distribution"))
     }

@@ -8,6 +8,7 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
+import com.saveourtool.save.frontend.components.topbar.topBar
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser

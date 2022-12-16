@@ -1,5 +1,5 @@
 imageRegistry: ghcr.io/saveourtool
-dockerTag: latest  # this should be set explicitly during chart installation
+# dockerTag: <TDB>  # this should be set explicitly during chart installation
 
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.

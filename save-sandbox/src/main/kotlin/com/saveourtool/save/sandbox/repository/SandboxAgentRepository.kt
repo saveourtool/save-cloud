@@ -1,27 +1,19 @@
 package com.saveourtool.save.sandbox.repository
 
-import com.saveourtool.save.sandbox.entity.SandboxAgent
+import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
- * Repository for [SandboxAgent]
+ * Repository for [Agent]
  */
 @Repository
-interface SandboxAgentRepository : BaseEntityRepository<SandboxAgent> {
+interface SandboxAgentRepository : BaseEntityRepository<Agent> {
     /**
      * Find agent by its container id
      *
      * @param containerId
-     * @return [SandboxAgent]
+     * @return [Agent]
      */
-    fun findByContainerId(containerId: String): SandboxAgent?
-
-    /**
-     * Find all agents with [executionId]
-     *
-     * @param executionId id of execution
-     * @return list of [SandboxAgent]
-     */
-    fun findByExecutionId(executionId: Long): List<SandboxAgent>
+    fun findByContainerId(containerId: String): Agent?
 }

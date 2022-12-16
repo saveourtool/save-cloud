@@ -9,6 +9,9 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
 import com.saveourtool.save.demo.cpg.CpgRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
+import com.saveourtool.save.frontend.externals.fontawesome.faCaretSquareRight
+import com.saveourtool.save.frontend.externals.fontawesome.faInfoCircle
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
@@ -61,40 +64,42 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                     }
                     isDisabled = false
                 }
-
+                useTooltip()
                 div {
-                    className = ClassName("card-body row d-flex justify-content-center")
-                    div {
-                        className = ClassName("mr-1")
-                        selectorBuilder(
-                            selectedTheme.themeName,
-                            AceThemes.values().map { it.themeName },
-                            "custom-select",
-                        ) { event ->
-                            setSelectedTheme {
-                                AceThemes.values().find { it.themeName == event.target.value }!!
-                            }
+                    className = ClassName("card-body input-group pl-0 pr-0")
+                    selectorBuilder(
+                        props.selectedLayout.layoutName,
+                        SigmaLayout.values().map { it.layoutName },
+                        "form-control custom-select",
+                    ) { event ->
+                        props.setSelectedLayout(
+                            SigmaLayout.values().find { it.layoutName == event.target.value }!!
+                        )
+                    }
+                    selectorBuilder(
+                        selectedTheme.themeName,
+                        AceThemes.values().map { it.themeName },
+                        "form-control custom-select",
+                    ) { event ->
+                        setSelectedTheme {
+                            AceThemes.values().find { it.themeName == event.target.value }!!
+                        }
+                    }
+                    selectorBuilder(
+                        selectedLanguage.prettyName,
+                        Languages.values().map { it.prettyName },
+                        "form-control custom-select"
+                    ) { event ->
+                        setSelectedLanguage {
+                            Languages.values().find { it.prettyName == event.target.value }!!
                         }
                     }
                     div {
-                        className = ClassName("mr-1")
-                        selectorBuilder(
-                            selectedLanguage.prettyName,
-                            Languages.values().map { it.prettyName },
-                            "custom-select"
-                        ) { event ->
-                            setSelectedLanguage {
-                                Languages.values().find { it.prettyName == event.target.value }!!
-                            }
-                        }
-                    }
-                    div {
-                        buttonBuilder("Send run request", classes = "mr-1") {
+                        className = ClassName("input-group-append")
+                        buttonBuilder(faCaretSquareRight, title = "Send run request", isOutline = true) {
                             sendRunRequest()
                         }
-                    }
-                    div {
-                        buttonBuilder("Show logs") {
+                        buttonBuilder(faInfoCircle, title = "Show logs", isOutline = true) {
                             props.changeLogsVisibility()
                         }
                     }
@@ -151,4 +156,14 @@ external interface DemoComponentProps : Props {
      * Language that will be preselected
      */
     var preselectedLanguage: Languages
+
+    /**
+     * Currently selected layout that should be applied in order to place nodes
+     */
+    var selectedLayout: SigmaLayout
+
+    /**
+     * Callback to update [selectedLayout]
+     */
+    var setSelectedLayout: (SigmaLayout) -> Unit
 }
