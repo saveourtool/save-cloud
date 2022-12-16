@@ -5,8 +5,16 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.spring-data-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
+    alias(libs.plugins.kotlin.plugin.jpa)
+}
+
+kotlin {
+    allOpen {
+        annotation("javax.persistence.Entity")
+    }
 }
 
 configureJacoco()

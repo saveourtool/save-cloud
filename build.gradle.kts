@@ -34,6 +34,15 @@ liquibase {
                     getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
                     commonArguments
         }
+        register("demo") {
+            arguments = mapOf(
+                "changeLogFile" to "save-demo/db/db.changelog-demo.xml",
+                "liquibaseSchemaName" to "save_demo",
+                "defaultSchemaName" to "save_demo",
+            ) +
+                    getDemoDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
+        }
     }
 }
 
