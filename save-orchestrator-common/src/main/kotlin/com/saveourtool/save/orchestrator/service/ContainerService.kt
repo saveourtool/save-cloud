@@ -18,6 +18,7 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
@@ -25,11 +26,10 @@ import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.springframework.scheduling.annotation.Scheduled
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * A service that builds and starts containers for test execution.
@@ -40,6 +40,9 @@ class ContainerService(
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
 ) {
+    /**
+     * It's internal for testing purpose only
+     */
     internal val containers: ContainersCollection = ContainersCollection(configProperties.agentsHeartBeatTimeoutMillis)
 
     /**
@@ -135,16 +138,21 @@ class ContainerService(
 
     /**
      * @param executionId
+     * @param containerId
+     * @param timestamp
      */
     fun touchContainer(
         executionId: Long,
         containerId: String,
         timestamp: Instant,
-    ) = containers.upsert(containerId, executionId, timestamp)
+    ): Unit = containers.upsert(containerId, executionId, timestamp)
 
+    /**
+     * @param containerId
+     */
     fun markContainerAsCrashed(
         containerId: String,
-    ) = containers.markAsCrashed(containerId)
+    ): Unit = containers.markAsCrashed(containerId)
 
     /**
      * Check whether the agent with [containerId] is stopped
@@ -154,6 +162,9 @@ class ContainerService(
      */
     fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
 
+    /**
+     * @param containerId
+     */
     fun ensureGracefullyStopped(containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks: Int = configProperties.shutdown.gracefulNumChecks
@@ -174,6 +185,7 @@ class ContainerService(
                     containers.markAsCrashed(containerId)
                 } else {
                     log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    containers.delete(containerId)
                 }
 
                 // Update final execution status, perform cleanup etc.
@@ -182,6 +194,7 @@ class ContainerService(
             .subscribeOn(agentService.scheduler)
             .subscribe()
     }
+
     /**
      * @param executionId ID of execution
      */
@@ -215,7 +228,6 @@ class ContainerService(
         determineCrashedAgents()
         processCrashedAgents()
     }
-
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time

@@ -4,17 +4,15 @@
 
 package com.saveourtool.save.orchestrator.controller
 
-import ch.qos.logback.classic.joran.action.LoggerAction
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.orchestrator.utils.ContainersCollection
 import com.saveourtool.save.utils.*
 
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -24,7 +22,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import kotlinx.serialization.json.Json
-import org.slf4j.Logger
 
 /**
  * Controller for heartbeat

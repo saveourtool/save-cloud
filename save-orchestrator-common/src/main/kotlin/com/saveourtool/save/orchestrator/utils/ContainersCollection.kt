@@ -1,15 +1,18 @@
 package com.saveourtool.save.orchestrator.utils
 
 import com.saveourtool.save.utils.debug
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+
 import org.slf4j.LoggerFactory
+
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
+
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 /**
  * Collection that stores information about containers:
@@ -18,12 +21,14 @@ import kotlin.collections.HashSet
  * 3. Crashed containers
  *
  * Collection is thread safe
+ *
+ * @property crashedThresholdInMillis threshold in millis to detect crashed containers
  */
 class ContainersCollection(
-    private val crashedThreshold: Long,
+    private val crashedThresholdInMillis: Long,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
-
+    @Suppress("TYPE_ALIAS")
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
     private val containerToLatestState: MutableMap<String, Instant> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
@@ -82,6 +87,16 @@ class ContainersCollection(
         containerToLatestState.keys.removeAll(assignedContainerIds)
         crashedContainers.removeAll(assignedContainerIds)
     }
+
+    /**
+     * Delete provided container from collections.
+     * It doesn't remove execution if all containers are assigned to it are removed.
+     *
+     * @param containerId container's ID
+     */
+    fun delete(
+        containerId: String,
+    ): Unit = deleteAll(setOf(containerId))
 
     /**
      * Delete provided containers from collections.
@@ -154,7 +169,7 @@ class ContainersCollection(
             log.debug {
                 "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
             }
-            if (duration >= crashedThreshold) {
+            if (duration >= crashedThresholdInMillis) {
                 log.debug("Adding $currentContainerId to list crashed agents")
                 crashedContainers.add(currentContainerId)
             }
