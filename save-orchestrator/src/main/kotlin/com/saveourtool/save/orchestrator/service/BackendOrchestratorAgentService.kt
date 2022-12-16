@@ -72,7 +72,7 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun updateExecutionByDto(
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
@@ -95,11 +95,20 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> {
-        log.debug("Attempt to mark test executions of agents=$containerIds as failed with internal error")
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        containerId: String,
+    ): Mono<EmptyResponse> {
+        log.debug("Attempt to mark test executions of containerId=$containerId as failed with internal error")
         return webClientBackend.post()
-            .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting")
-            .bodyValue(containerIds)
+            .uri("/test-executions/mark-ready-for-testing-as-failed-by-container-id?containerId=$containerId")
+            .retrieve()
+            .toBodilessEntity()
+    }
+
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> {
+        log.debug("Attempt to mark test executions of execution=$executionId as failed with internal error")
+        return webClientBackend.post()
+            .uri("/test-executions/mark-all-as-failed-by-execution-id?executionId=$executionId")
             .retrieve()
             .toBodilessEntity()
     }

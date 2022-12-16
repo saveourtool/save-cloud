@@ -126,7 +126,7 @@ class ContainerService(
                             containerRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                            ).then(agentService.markTestExecutionsAsFailed(containerIds, false))
+                            ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                                 .subscribe()
                         }
                         activeContainers.remove(executionId)
