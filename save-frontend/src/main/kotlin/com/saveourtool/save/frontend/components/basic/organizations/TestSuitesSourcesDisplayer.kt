@@ -10,8 +10,8 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.millisToInstant
 import com.saveourtool.save.utils.prettyPrint
-import com.saveourtool.save.utils.secondsToInstant
 
 import csstype.ClassName
 import csstype.Cursor
@@ -192,7 +192,7 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
                         }
                         div {
                             className = ClassName("float-right")
-                            +testSuitesSourceSnapshotKey.creationTimeInMills.secondsToInstant().prettyPrint()
+                            +testSuitesSourceSnapshotKey.creationTimeInMills.millisToInstant().prettyPrint()
                         }
                     }
                 }
