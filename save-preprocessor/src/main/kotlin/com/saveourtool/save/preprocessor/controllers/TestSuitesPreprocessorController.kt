@@ -169,7 +169,7 @@ class TestSuitesPreprocessorController(
             }
         }
         .doOnError(Exception::class.java) { ex ->
-            log.error(ex) { "Failed to fetch from $cloneObject" }
+            log.error(ex) { "Failed to fetch from $cloneObject" } //-----------------------------------
         }
         .onErrorReturn(Unit)
 

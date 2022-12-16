@@ -188,7 +188,7 @@ class TestSuitesService(
         require(
             allTestSuiteIdsByExecutions == testSuites.size
         ) {
-            "Expected that we remove all test suites related to a single execution at once"
+            "Expected that we remove all test suites related to a single execution at once" // ----------------------------
         }
         executionIds.forEach { executionId ->
             log.debug { "Delete link between execution $executionId and test suites" }

@@ -102,7 +102,7 @@ class GitPreprocessorService(
             val creationTime = try {
                 gitDto.doCloneToDirectory(tmpDir)
             } catch (ex: Exception) {
-                log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
+                log.error(ex) { "Failed to clone git repository ${gitDto.url}" }  //-------------------------------
                 tmpDir.deleteRecursivelySafely()
                 throw ex
             }
