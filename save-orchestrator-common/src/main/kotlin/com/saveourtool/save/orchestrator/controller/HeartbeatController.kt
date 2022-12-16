@@ -72,10 +72,10 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
-                    CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
+                    CRASHED, TERMINATED -> Mono.fromCallable {
                         log.warn("Agent with containerId=$containerId sent ${heartbeat.state} status, but should be offline in that case!")
                         containerService.markContainerAsCrashed(containerId)
-                    }.thenReturn(WaitResponse)
+                    }.thenReturn(TERMINATED)
                 }
             }
             // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.

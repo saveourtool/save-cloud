@@ -178,14 +178,14 @@ class AgentService(
         executionId: Long,
         finishedContainerIds: List<String>,
     ): Mono<EmptyResponse> {
-        // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
+        // all { TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return orchestratorAgentService
             .getAgentsStatuses(finishedContainerIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
-                    it == STOPPED_BY_ORCH || it == TERMINATED
+                    it == TERMINATED
                 }) {
                     updateExecution(executionId, ExecutionStatus.FINISHED)
                 } else if (agentStatuses.map { it.state }.all {
@@ -288,14 +288,13 @@ class AgentService(
     ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(executionId)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
+        it.state == IDLE || it.state in finishedOrStoppedStates
     }
 
-    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all {
-        it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
-    }
+    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all { it.state in finishedOrStoppedStates }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentService::class.java)
+        private val finishedOrStoppedStates = setOf(FINISHED, CRASHED, TERMINATED)
     }
 }
