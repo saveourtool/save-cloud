@@ -157,7 +157,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(finishedContainerIds, false))
+                    ).then(markAllTestExecutionsOfExecutionAsFailed(executionId))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -173,7 +173,7 @@ class AgentService(
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<EmptyResponse> =
-            orchestratorAgentService.updateExecutionByDto(executionId, executionStatus, failReason)
+            orchestratorAgentService.updateExecutionStatus(executionId, executionStatus, failReason)
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
@@ -216,14 +216,22 @@ class AgentService(
     /**
      * Mark agent's test executions as failed
      *
-     * @param containerIds the list of agents, for which, corresponding test executions should be marked as failed
-     * @param onlyReadyForTesting
+     * @param containerId the agent container IDs, for which, corresponding test executions should be marked as failed
      * @return a bodiless response entity
      */
-    fun markTestExecutionsAsFailed(
-        containerIds: Collection<String>,
-        onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(containerIds, onlyReadyForTesting)
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        containerId: String,
+    ): Mono<EmptyResponse> = orchestratorAgentService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
+
+    /**
+     * Mark agent's test executions as failed
+     *
+     * @param executionId the ID of execution, for which, corresponding test executions should be marked as failed
+     * @return a bodiless response entity
+     */
+    fun markAllTestExecutionsOfExecutionAsFailed(
+        executionId: Long,
+    ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(executionId)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
