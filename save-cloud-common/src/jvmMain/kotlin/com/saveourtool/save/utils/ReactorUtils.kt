@@ -19,6 +19,10 @@ import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
 import java.util.Comparator
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 /**
  * @param status
@@ -136,3 +140,18 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @return [Flux] from result of blocking operation [List] of [T]
  */
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+
+fun waitReactively(till: Duration, times: Int, checking: () -> Boolean): Mono<Boolean> {
+    return Flux.interval((till / times).toJavaDuration())
+        .take(times.toLong())
+        .map {
+            checking()
+        }
+        .takeUntil { it }
+        // check whether we have got `true` or Flux has completed with only `false`
+        .any { it }
+}
+
+fun waitReactively(interval: Duration, till: Duration, checking: () -> Boolean): Mono<Boolean> {
+    return waitReactively(interval, (till / interval).roundToInt(), checking)
+}

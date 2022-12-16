@@ -57,7 +57,7 @@ class HeartbeatController(private val agentService: AgentService,
         val executionId = heartbeat.executionProgress.executionId
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.containerId} under execution id=$executionId")
         return {
-            containerService.markAgentForExecutionAsStarted(executionId)
+            containerService.touchContainer(executionId, heartbeat.containerId, heartbeat.timestamp, heartbeat.state)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
@@ -77,13 +77,8 @@ class HeartbeatController(private val agentService: AgentService,
                     FINISHED -> agentService.checkSavedData(heartbeat.containerId).flatMap { isSavingSuccessful ->
                         handleFinishedAgent(heartbeat.containerId, isSavingSuccessful)
                     }
-
                     BUSY -> Mono.just(ContinueResponse)
-                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
-                    CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
-                        handleIllegallyOnlineAgent(heartbeat.containerId, heartbeat.state)
-                        WaitResponse
-                    }
+                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED, CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.just(WaitResponse)
                 }
             }
             // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.
@@ -118,7 +113,7 @@ class HeartbeatController(private val agentService: AgentService,
                             .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {
                                 logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                ensureGracefulShutdown(containerId)
+                                containerService.ensureGracefullyStopped(containerId)
                             }
                     } else {
                         Mono.just(response)
@@ -133,39 +128,5 @@ class HeartbeatController(private val agentService: AgentService,
             .subscribeOn(agentService.scheduler)
             .subscribe()
         Mono.just(WaitResponse)
-    }
-
-    private fun handleIllegallyOnlineAgent(containerId: String, state: AgentState) {
-        logger.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
-        heartBeatInspector.watchCrashedAgent(containerId)
-    }
-
-    private fun ensureGracefulShutdown(containerId: String) {
-        val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
-        val numChecks: Int = configProperties.shutdown.gracefulNumChecks
-        Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
-            .take(numChecks.toLong())
-            .map {
-                containerService.isStoppedByContainerId(containerId)
-            }
-            .takeUntil { it }
-            // check whether we have got `true` or Flux has completed with only `false`
-            .any { it }
-            .doOnNext { successfullyStopped ->
-                if (!successfullyStopped) {
-                    logger.warn {
-                        "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
-                                " will add it to crashed list"
-                    }
-                    heartBeatInspector.watchCrashedAgent(containerId)
-                } else {
-                    logger.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
-                    heartBeatInspector.unwatchAgent(containerId)
-                }
-                // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(containerId)
-            }
-            .subscribeOn(agentService.scheduler)
-            .subscribe()
     }
 }

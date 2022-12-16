@@ -157,6 +157,28 @@ class AgentsController(
     }
 
     /**
+     * Get statuses of all agents assigned to execution with provided ID.
+     *
+     * @param executionId ID of an execution.
+     * @return list of agent statuses
+     * @throws IllegalStateException if provided [executionId] is invalid.
+     */
+    @GetMapping("/getAgentsStatusesForSameExecution")
+    @Transactional
+    @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
+    fun findAllAgentStatusesByExecutionId(@RequestParam executionId: Long): AgentStatusesForExecution {
+        val agentStatuses = agentService.getAgentsByExecutionId(executionId).map { agent ->
+            val latestStatus = requireNotNull(
+                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
+            ) {
+                "AgentStatus not found for agent with containerId=${agent.containerId}"
+            }
+            latestStatus.toDto()
+        }
+        return AgentStatusesForExecution(executionId, agentStatuses)
+    }
+
+    /**
      * Get statuses of all agents in the same execution with provided agent (including itself).
      *
      * @param containerId containerId of an agent.
@@ -168,15 +190,7 @@ class AgentsController(
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
         val executionId = agentService.getExecutionByContainerId(containerId).requiredId()
-        val agentStatuses = agentService.getAgentsByExecutionId(executionId).map { agent ->
-            val latestStatus = requireNotNull(
-                agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
-            ) {
-                "AgentStatus not found for agent with containerId=${agent.containerId}"
-            }
-            latestStatus.toDto()
-        }
-        return AgentStatusesForExecution(executionId, agentStatuses)
+        return findAllAgentStatusesByExecutionId(executionId)
     }
 
     /**

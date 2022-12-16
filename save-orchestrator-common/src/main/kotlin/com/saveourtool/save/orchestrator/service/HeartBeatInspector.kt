@@ -16,8 +16,6 @@ import java.util.concurrent.ConcurrentMap
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-typealias AgentStateWithTimeStamp = Pair<String, Instant>
-
 /**
  * Background inspector, which detect crashed agents
  * TODO: can be used to store data about existing agents on orchestrator startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))

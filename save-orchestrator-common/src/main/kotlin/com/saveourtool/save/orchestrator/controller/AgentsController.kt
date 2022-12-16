@@ -103,7 +103,7 @@ class AgentsController(
      * @param containerIds list of container IDs of agents to stop
      */
     @PostMapping("/stopAgents")
-    fun stopAgents(@RequestBody containerIds: List<String>) {
+    fun stopAgents(@RequestBody containerIds: Set<String>) {
         containerService.stopAgents(containerIds)
     }
 

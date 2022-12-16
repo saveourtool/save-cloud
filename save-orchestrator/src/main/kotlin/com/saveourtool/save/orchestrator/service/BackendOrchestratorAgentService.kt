@@ -83,7 +83,13 @@ class BackendOrchestratorAgentService(
                 .retrieve()
                 .toBodilessEntity()
 
-    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = webClientBackend
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution> = webClientBackend
+        .get()
+        .uri("/getAgentStatusesByExecutionId?executionId=$executionId")
+        .retrieve()
+        .bodyToMono()
+
+    override fun getAgentStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = webClientBackend
         .get()
         .uri("/getAgentsStatusesForSameExecution?containerId=$containerId")
         .retrieve()

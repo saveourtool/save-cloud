@@ -1,7 +1,10 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.TerminateResponse
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -9,7 +12,10 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.utils.ContainersCollection
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -17,13 +23,19 @@ import reactor.core.publisher.Flux
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.time.Duration.Companion.seconds
+
+typealias AgentStateWithTimeStamp = Pair<String, Instant>
 
 /**
  * A service that builds and starts containers for test execution.
@@ -34,7 +46,22 @@ class ContainerService(
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
 ) {
-    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
+    private val containers: ContainersCollection = ContainersCollection(configProperties.agentsHeartBeatTimeoutMillis)
+    private val lock: ReadWriteLock = ReentrantReadWriteLock()
+
+    /**
+     * Collection that stores active containers using execution ID as group key for them
+     */
+    private val activeContainers: ConcurrentMap<Long, Set<String>> = ConcurrentHashMap()
+
+    /**
+     * Collection that stores the latest timestamp and state for each container
+     */
+    private val containerToLatestState: ConcurrentMap<String, AgentStateWithTimeStamp> = ConcurrentHashMap()
+    /**
+     * Collection that stores containers that are acting abnormally and will probably be terminated forcefully
+     */
+    private val crashedContainers: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     /**
      * Function that builds a base image with test resources
@@ -88,14 +115,13 @@ class ContainerService(
                 val duration = AtomicLong(0)
                 Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyContainerStartedForExecution(executionId)
                     }
                     .doOnNext {
                         duration.set((Clock.System.now() - now).inWholeMilliseconds)
                     }
                     .doOnComplete {
-                        if (areAgentsHaveStarted[executionId]?.get() != true) {
+                        if (isAnyContainerStartedForExecution(executionId)) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -103,9 +129,18 @@ class ContainerService(
                             ).then(agentService.markTestExecutionsAsFailed(containerIds, false))
                                 .subscribe()
                         }
-                        areAgentsHaveStarted.remove(executionId)
+                        activeContainers.remove(executionId)
                     }
             }
+    }
+
+    private fun isAnyContainerStartedForExecution(executionId: Long): Boolean {
+        lock.readLock().lock()
+        try {
+            return activeContainers.getOrDefault(executionId, emptySet()).isNotEmpty()
+        } finally {
+            lock.readLock().unlock()
+        }
     }
 
     /**
@@ -113,8 +148,16 @@ class ContainerService(
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>) =
-            try {
+    fun stopAgents(containerIds: Set<String>): Boolean {
+        lock.writeLock().lock()
+        try {
+            activeContainers.keys.forEach { executionId ->
+                activeContainers[executionId] = activeContainers[executionId]?.let {
+                    it - containerIds
+                }
+            }
+            containerToLatestState.keys.removeAll(containerIds)
+            return try {
                 containerIds.all { containerId ->
                     containerRunner.stopByContainerId(containerId)
                 }
@@ -122,14 +165,21 @@ class ContainerService(
                 log.error("Error while stopping agents $containerIds", e)
                 false
             }
+        } finally {
+            lock.writeLock().unlock()
+        }
+    }
 
     /**
      * @param executionId
      */
-    fun markAgentForExecutionAsStarted(executionId: Long) {
-        areAgentsHaveStarted
-            .computeIfAbsent(executionId) { AtomicBoolean(false) }
-            .compareAndSet(false, true)
+    fun touchContainer(
+        executionId: Long,
+        containerId: String,
+        timestamp: Instant,
+        state: AgentState,
+    ) {
+        containers.upsert(containerId, executionId, timestamp, state)
     }
 
     /**
@@ -140,11 +190,42 @@ class ContainerService(
      */
     fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
 
+    fun ensureGracefullyStopped(containerId: String) {
+        val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
+        val numChecks: Int = configProperties.shutdown.gracefulNumChecks
+        Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
+            .take(numChecks.toLong())
+            .map {
+                isStoppedByContainerId(containerId)
+            }
+            .takeUntil { it }
+            // check whether we have got `true` or Flux has completed with only `false`
+            .any { it }
+            .doOnNext { successfullyStopped ->
+                lock.writeLock().use {
+                    if (!successfullyStopped) {
+                        log.warn {
+                            "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
+                                    " will add it to crashed list"
+                        }
+                        crashedContainers.add(containerId)
+                    } else {
+                        log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                        crashedContainers.remove(containerId)
+                    }
+                }
+
+                // Update final execution status, perform cleanup etc.
+                agentService.finalizeExecution(containerId)
+            }
+            .subscribeOn(agentService.scheduler)
+            .subscribe()
+    }
     /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
-        containerRunner.cleanup(executionId)
+        containers.deleteAllByExecutionId(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
@@ -168,6 +249,70 @@ class ContainerService(
         )
     }
 
+
+    /**
+     * Consider agent as crashed, if it didn't send heartbeats for some time
+     */
+    fun determineCrashedAgents() {
+        containers.recalculateCrashed()
+        lock.writeLock().use {
+            containerToLatestState.filter { (currentContainerId, _) ->
+                currentContainerId !in crashedContainers
+            }.forEach { (currentContainerId, stateToLatestHeartBeatPair) ->
+                val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
+                log.debug {
+                    "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
+                }
+                if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
+                    log.debug("Adding $currentContainerId to list crashed agents")
+                    crashedContainers.add(currentContainerId)
+                }
+            }
+
+            crashedContainers.removeIf { containerId ->
+                isStoppedByContainerId(containerId)
+            }
+            containerToLatestState.filterKeys { containerId ->
+                isStoppedByContainerId(containerId)
+            }.forEach { (containerId, _) ->
+                log.debug {
+                    "Agent $containerId is already stopped, will stop watching it"
+                }
+                containerToLatestState.remove(containerId)
+            }
+        }
+    }
+
+    /**
+     * Stop crashed agents and mark corresponding test executions as failed with internal error
+     */
+    fun processCrashedAgents() {
+        if (crashedContainers.isEmpty()) {
+            return
+        }
+        log.debug {
+            "Stopping crashed agents: $crashedContainers"
+        }
+
+        val areAgentsStopped = stopAgents(crashedContainers)
+        if (areAgentsStopped) {
+            Flux.fromIterable(crashedContainers)
+                .flatMap { containerId ->
+                    agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
+                }
+                .blockLast()
+            activeContainers
+                .filter { (_, containerIds) -> containerIds.isEmpty() }
+                .forEach { (executionId, _) ->
+                    log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
+                    cleanup(executionId)
+                    agentService.finalizeExecution(executionId)
+                }
+        } else {
+            log.warn("Crashed agents $crashedContainers are not stopped after stop command")
+        }
+    }
+
     /**
      * Information required to start containers with save-agent
      *
@@ -186,7 +331,17 @@ class ContainerService(
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerService::class.java)
+        private val ILLEGAL_AGENT_STATES = setOf(AgentState.CRASHED, AgentState.TERMINATED, AgentState.STOPPED_BY_ORCH)
         internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+    }
+}
+
+private fun <R> Lock.use(action: () -> R): R {
+    lock()
+    try {
+        return action()
+    } finally {
+        unlock()
     }
 }
 
