@@ -13,7 +13,6 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.secondsToLocalDateTime
 
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
@@ -26,7 +25,6 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 
 import kotlin.io.path.pathString
-import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Service for test result

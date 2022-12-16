@@ -25,11 +25,6 @@ fun Instant.prettyPrint() = this.toString()
     .replace("-", ".")
 
 /**
- * @return [LocalDateTime] in UTC timezone
- */
-fun Instant.toLocalDateTimeAtUtc(): LocalDateTime = toLocalDateTime(TimeZone.UTC)
-
-/**
  * @return current local date-time in UTC timezone
  */
 fun getCurrentLocalDateTime(): LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)

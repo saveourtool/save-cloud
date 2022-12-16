@@ -13,7 +13,6 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.utils.secondsToJLocalDateTime
 import com.saveourtool.save.v1
-import kotlinx.datetime.toJavaLocalDateTime
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
