@@ -1,5 +1,3 @@
-import com.saveourtool.save.buildutils.configureSpotless
-
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
@@ -8,6 +6,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -258,4 +257,3 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
-configureSpotless()

@@ -126,7 +126,7 @@ class SandboxOrchestratorAgentService(
             .map { it.toDto() }
     }
 
-    override fun updateExecutionByDto(
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
@@ -159,7 +159,12 @@ class SandboxOrchestratorAgentService(
                 }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse> = Mono.fromCallable {
+        // sandbox doesn't have TestExecution
+        ResponseEntity.ok().build()
+    }
+
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }

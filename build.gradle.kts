@@ -2,6 +2,7 @@ import com.saveourtool.save.buildutils.*
 
 plugins {
     id("com.saveourtool.save.buildutils.versioning-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
     java
@@ -67,19 +68,13 @@ talaiot {
 }
 
 allprojects {
-    configureDetekt()
     configurations.all {
         // if SNAPSHOT dependencies are used, refresh them periodically
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
 }
-allprojects {
-    configureDiktat()
-}
-configureSpotless()
 
 createStackDeployTask(profile)
 configurePublishing()
-createDetektTask()
 installGitHooks()
