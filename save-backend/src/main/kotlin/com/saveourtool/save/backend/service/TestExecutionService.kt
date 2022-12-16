@@ -180,8 +180,8 @@ class TestExecutionService(
                     it.status == TestResultStatus.RUNNING
                 }
                 .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()?.toJavaLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()?.toJavaLocalDateTime()
+                    it.startTime = testExecDto.startTimeSeconds?.secondsToJLocalDateTime()
+                    it.endTime = testExecDto.endTimeSeconds?.secondsToJLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++

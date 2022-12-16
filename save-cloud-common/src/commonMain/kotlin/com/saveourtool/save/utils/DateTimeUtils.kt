@@ -17,13 +17,6 @@ fun Long.millisToInstant(): Instant = Instant.fromEpochMilliseconds(this)
 fun Long.secondsToInstant(): Instant = Instant.fromEpochSeconds(this)
 
 /**
- * Function to convert long number of seconds to LocalDateTime
- *
- * @return an instance of [LocalDateTime]
- */
-fun Long.secondsToLocalDateTime(): LocalDateTime = secondsToInstant().toLocalDateTimeAtUtc()
-
-/**
  * @return pretty string representation of [Instant]
  */
 fun Instant.prettyPrint() = this.toString()
