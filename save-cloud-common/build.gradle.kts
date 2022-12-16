@@ -1,11 +1,11 @@
 import com.saveourtool.save.buildutils.configurePublishing
-import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     `maven-publish`
 }
 kotlin {
@@ -67,5 +67,4 @@ kotlin {
     }
 }
 
-configureSpotless()
 configurePublishing()

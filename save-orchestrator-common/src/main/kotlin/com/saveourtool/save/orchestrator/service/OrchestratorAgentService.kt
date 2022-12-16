@@ -77,7 +77,7 @@ interface OrchestratorAgentService {
      * @param failReason to show to user in case of error status
      * @return a Mono without body
      */
-    fun updateExecutionByDto(
+    fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
@@ -92,9 +92,16 @@ interface OrchestratorAgentService {
     /**
      * Mark agent's test executions as failed
      *
-     * @param containerIds the list of agent IDs, for which, corresponding test executions should be marked as failed
-     * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
+     * @param containerId the agent container ID, for which, corresponding test executions should be marked as failed
      * @return a Mono without body
      */
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse>
+
+    /**
+     * Mark agent's test executions as failed
+     *
+     * @param executionId the ID of an execution, for which, corresponding test executions should be marked as failed
+     * @return a Mono without body
+     */
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse>
 }

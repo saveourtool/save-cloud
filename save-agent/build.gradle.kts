@@ -1,4 +1,3 @@
-import com.saveourtool.save.buildutils.configureSpotless
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
@@ -6,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 kotlin {
@@ -129,7 +129,6 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
-configureSpotless()
 
 /*
  * On Windows, it's impossible to link a Linux executable against
