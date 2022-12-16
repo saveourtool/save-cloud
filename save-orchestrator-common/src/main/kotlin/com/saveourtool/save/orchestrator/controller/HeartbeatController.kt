@@ -55,7 +55,8 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         val executionId = heartbeat.executionProgress.executionId
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.containerId} under execution id=$executionId")
+        val containerId = heartbeat.agentInfo.containerId
+        logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
             containerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
@@ -64,24 +65,24 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatusesWithDto(
-                    AgentStatusDto(heartbeat.state, heartbeat.containerId)
+                    AgentStatusDto(heartbeat.state, heartbeat.agentInfo.containerId)
                 )
             }
             .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleNewAgent(heartbeat.containerId)
+                    STARTING -> handleNewAgent(containerId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    IDLE -> handleVacantAgent(heartbeat.containerId)
+                    IDLE -> handleVacantAgent(containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
-                    FINISHED -> agentService.checkSavedData(heartbeat.containerId).flatMap { isSavingSuccessful ->
-                        handleFinishedAgent(heartbeat.containerId, isSavingSuccessful)
+                    FINISHED -> agentService.checkSavedData(containerId).flatMap { isSavingSuccessful ->
+                        handleFinishedAgent(containerId, isSavingSuccessful)
                     }
 
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
-                        handleIllegallyOnlineAgent(heartbeat.containerId, heartbeat.state)
+                        handleIllegallyOnlineAgent(containerId, heartbeat.state)
                         WaitResponse
                     }
                 }
