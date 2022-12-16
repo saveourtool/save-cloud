@@ -240,12 +240,13 @@ class ContainerService(
                         agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
                     }
                     .blockLast()
-                containers.getExecutionWithoutContainers()
-                    .forEach { executionId ->
+                containers.processExecutionWithoutContainers { executionIds ->
+                    executionIds.forEach { executionId ->
                         log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
                         containers.deleteAllByExecutionId(executionId)
                         agentService.finalizeExecution(executionId)
                     }
+                }
             } else {
                 log.warn("Crashed agents $crashedContainers are not stopped after stop command")
             }
