@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
@@ -47,7 +46,7 @@ import java.time.Month
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
     AgentService::class,
-    HeartBeatInspector::class,
+//    HeartBeatInspector::class,
     JsonConfig::class,
 )
 @MockBeans(MockBean(ContainerRunner::class))
@@ -58,7 +57,7 @@ class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var containerService: ContainerService
-    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
+//    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -72,7 +71,6 @@ class HeartbeatControllerTest {
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        heartBeatInspector.clear()
     }
 
     @Test
@@ -203,8 +201,8 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        whenever(containerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(containerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
+        whenever(containerService.stopAgents(setOf(eq("test-1")))).thenReturn(true)
+        whenever(containerService.stopAgents(setOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -230,9 +228,9 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            heartBeatInspector.crashedAgents.shouldContainExactly(
-                setOf("test-2")
-            )
+            containerService.containers.processCrashed { crashedAgents ->
+                crashedAgents shouldContainExactly setOf("test-2")
+            }
         }
     }
 
@@ -258,7 +256,9 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 4,
         ) {
-            heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            containerService.containers.processCrashed { crashedAgents ->
+                crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            }
         }
     }
 

@@ -217,7 +217,7 @@ class AgentService(
      *
      * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
-     * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
+     * it, are not handled. Anyway, such agents should be eventually stopped by [ContainerService].
      *
      * @param containerId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
@@ -233,7 +233,7 @@ class AgentService(
      *
      * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
-     * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
+     * it, are not handled. Anyway, such agents should be eventually stopped by [ContainerService].
      *
      * @param executionId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down for an executionId

@@ -19,30 +19,35 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * Collection is thread safe
  */
 class ContainersCollection(
-    private val agentsHeartBeatTimeoutMillis: Long,
+    private val crashedThreshold: Long,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
 
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
-    private val containerToLatestState: MutableMap<String, AgentStateWithTimeStamp> = HashMap()
+    private val containerToLatestState: MutableMap<String, Instant> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
 
     fun upsert(
         containerId: String,
         executionId: Long,
         timestamp: Instant,
-        state: AgentState,
     ) {
         useWriteLock {
             executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + containerId
-            containerToLatestState[containerId] = state.toString() to timestamp
-            if (state in ILLEGAL_AGENT_STATES) {
-                log.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
-                crashedContainers.add(containerId)
-            }
+            containerToLatestState[containerId] = timestamp
         }
     }
 
+    fun markAsCrashed(
+        containerId: String,
+    ) {
+        useWriteLock {
+            require(executionToContainers.any { (_, containerIds) -> containerIds.contains(containerId) }) {
+                "Invalid containerId $containerId: it's not assigned to any execution"
+            }
+            crashedContainers.add(containerId)
+        }
+    }
     fun deleteAllByExecutionId(
         executionId: Long,
     ) {
@@ -55,32 +60,58 @@ class ContainersCollection(
         }
     }
 
+    fun deleteAll(
+        containerIds: Set<String>
+    ) {
+        useWriteLock {
+            executionToContainers.keys.forEach { executionId ->
+                executionToContainers.computeIfPresent(executionId) { _, currentContainerIds ->
+                    currentContainerIds - containerIds
+                }
+            }
+            containerToLatestState.keys.removeAll(containerIds)
+            crashedContainers.removeAll(containerIds)
+        }
+    }
+
     fun containsAnyByExecutionId(
         executionId: Long,
     ) = useReadLock {
         !executionToContainers[executionId].isNullOrEmpty()
     }
 
-    fun recalculateCrashed() {
-        useWriteLock {
-            containerToLatestState.filter { (currentContainerId, _) ->
-                currentContainerId !in crashedContainers
-            }.forEach { (currentContainerId, stateToLatestHeartBeatPair) ->
-                val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
-                log.debug {
-                    "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
-                }
-                if (duration >= agentsHeartBeatTimeoutMillis) {
-                    log.debug("Adding $currentContainerId to list crashed agents")
-                    crashedContainers.add(currentContainerId)
-                }
+    fun processCrashed(process: (Set<String>) -> Unit) {
+        useReadLock {
+            if (crashedContainers.isNotEmpty()) {
+                process(crashedContainers.toSet())
             }
         }
     }
 
-    fun processCrashed(process: (Set<String>) -> Unit) {
-        useReadLock {
-            process(crashedContainers.toSet())
+    fun getExecutionWithoutContainers(): Set<Long> = useReadLock {
+        executionToContainers.filterValues { it.isEmpty() }.keys
+    }
+
+    fun updateByStatus(isStoppedFunction: (String) -> Boolean) {
+        useWriteLock {
+            containerToLatestState.filter { (currentContainerId, _) ->
+                currentContainerId !in crashedContainers
+            }.forEach { (currentContainerId, timestamp) ->
+                val duration = (Clock.System.now() - timestamp).inWholeMilliseconds
+                log.debug {
+                    "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
+                }
+                if (duration >= crashedThreshold) {
+                    log.debug("Adding $currentContainerId to list crashed agents")
+                    crashedContainers.add(currentContainerId)
+                }
+            }
+            executionToContainers.forEach { (executionId, containerIds) ->
+                val stoppedContainersIds = containerIds.filterTo(HashSet(), isStoppedFunction)
+                executionToContainers[executionId] = containerIds - stoppedContainersIds
+                containerToLatestState.keys.removeAll(containerIds)
+                crashedContainers.removeAll(containerIds)
+            }
         }
     }
 
