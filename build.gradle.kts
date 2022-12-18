@@ -3,6 +3,7 @@ import com.saveourtool.save.buildutils.*
 plugins {
     id("com.saveourtool.save.buildutils.versioning-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.publishing-configuration")
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
     java
@@ -76,4 +77,3 @@ allprojects {
 }
 
 createStackDeployTask(profile)
-configurePublishing()
