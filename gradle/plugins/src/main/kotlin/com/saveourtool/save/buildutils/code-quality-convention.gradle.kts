@@ -6,6 +6,5 @@ plugins {
     id("com.saveourtool.save.buildutils.spotless-convention-configuration")
 }
 
-configureJacoco()
 // FixMe: only registers the task, doesn't actually install them
 installGitHooks()
