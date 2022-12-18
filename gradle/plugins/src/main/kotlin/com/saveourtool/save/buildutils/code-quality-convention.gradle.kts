@@ -7,3 +7,5 @@ plugins {
 }
 
 configureJacoco()
+// FixMe: only registers the task, doesn't actually install them
+installGitHooks()

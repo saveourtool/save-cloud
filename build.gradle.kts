@@ -77,4 +77,3 @@ allprojects {
 
 createStackDeployTask(profile)
 configurePublishing()
-installGitHooks()
