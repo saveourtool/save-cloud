@@ -1,8 +1,8 @@
 package com.saveourtool.save.buildutils
 
+import io.github.gradlenexus.publishplugin.NexusPublishPlugin
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.extra
-import io.github.gradlenexus.publishplugin.NexusPublishPlugin
 
 plugins {
     `maven-publish`

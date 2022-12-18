@@ -1,3 +1,8 @@
+@file:Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "MISSING_KDOC_ON_FUNCTION",
+)
+
 /**
  * Publishing configuration file.
  */
