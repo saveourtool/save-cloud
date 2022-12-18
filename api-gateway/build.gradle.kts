@@ -15,5 +15,3 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(projects.authenticationService)
 }
-
-configureJacoco()

@@ -5,3 +5,5 @@ plugins {
     id("com.saveourtool.save.buildutils.diktat-convention-configuration")
     id("com.saveourtool.save.buildutils.spotless-convention-configuration")
 }
+
+configureJacoco()

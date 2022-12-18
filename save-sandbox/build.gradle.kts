@@ -20,8 +20,6 @@ kotlin {
     }
 }
 
-configureJacoco()
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
