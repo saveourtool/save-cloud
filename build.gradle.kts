@@ -63,6 +63,11 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
 }
 
 talaiot {
+    metrics {
+        // disabling due to problems with OSHI on some platforms
+        performanceMetrics = false
+        environmentMetrics = false
+    }
     publishers {
         timelinePublisher = true
     }
