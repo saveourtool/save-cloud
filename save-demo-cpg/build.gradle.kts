@@ -21,18 +21,6 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-
-kotlin {
-    jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of("11"))
-    }
-}
-
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.38")
@@ -87,6 +75,5 @@ tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().
     )
     environment["BPE_CPG_JEP_LIBRARY"] = "/layers/paketo-buildpacks_pip-install/packages/lib/python3.10/site-packages/jep/libjep.so"
     environment["BP_CPYTHON_VERSION"] = "3.10"
-    environment["BP_JVM_VERSION"] = "11"
     environment["BP_JVM_TYPE"] = "JDK"
 }
