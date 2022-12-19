@@ -141,7 +141,7 @@ class AgentsController(
         agentStates.forEach { agentState ->
             val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
             when (val latestState = agentStatus?.state) {
-                AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED ->
+                AgentState.TERMINATED ->
                     throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
                 agentState.state -> {
                     // updating time

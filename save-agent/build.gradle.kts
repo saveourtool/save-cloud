@@ -35,7 +35,7 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
@@ -51,7 +51,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.ktor.client.mock)
