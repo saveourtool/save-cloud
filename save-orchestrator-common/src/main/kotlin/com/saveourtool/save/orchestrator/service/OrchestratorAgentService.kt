@@ -84,6 +84,12 @@ interface OrchestratorAgentService {
     ): Mono<EmptyResponse>
 
     /**
+     * @param executionId ID of an execution
+     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
+     */
+    fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution>
+
+    /**
      * @param containerId containerId of an agent
      * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
      */

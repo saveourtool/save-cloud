@@ -141,7 +141,16 @@ class SandboxOrchestratorAgentService(
         }
         .thenReturn(ResponseEntity.ok().build())
 
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution> = getExecutionAsMono(executionId)
+        .mapToAgentStatuses()
+
     override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = getExecutionAsMonoByContainerId(containerId)
+        .mapToAgentStatuses()
+
+    /**
+     * @return [AgentStatusesForExecution] which is calculated from [SandboxExecution]
+     */
+    fun Mono<SandboxExecution>.mapToAgentStatuses(): Mono<AgentStatusesForExecution> = this
         .map { execution ->
             sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
                 .map { it.agent }

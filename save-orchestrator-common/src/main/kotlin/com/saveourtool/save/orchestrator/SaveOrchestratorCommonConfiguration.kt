@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.utils.ContainersCollection
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -15,4 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableConfigurationProperties(ConfigProperties::class)
 @EnableScheduling
 @PropertySource("classpath:META-INF/save-orchestrator-common/application.properties")
-class SaveOrchestratorCommonConfiguration
+class SaveOrchestratorCommonConfiguration {
+    fun containersCollection(configProperties: ConfigProperties): ContainersCollection {
+        return ContainersCollection(configProperties.agentsHeartBeatTimeoutMillis)
+    }
+}

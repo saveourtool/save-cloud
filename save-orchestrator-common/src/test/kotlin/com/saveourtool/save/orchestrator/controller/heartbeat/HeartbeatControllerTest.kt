@@ -72,7 +72,7 @@ class HeartbeatControllerTest {
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        heartBeatInspector.clear()
+        heartBeatInspector.containersCollection.clear()
     }
 
     @Test
@@ -230,9 +230,9 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            heartBeatInspector.crashedAgents.shouldContainExactly(
-                setOf("test-2")
-            )
+            heartBeatInspector.containersCollection.processCrashed {
+                it shouldContainExactly setOf("test-2")
+            }
         }
     }
 
@@ -258,7 +258,9 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 4,
         ) {
-            heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            heartBeatInspector.containersCollection.processCrashed {
+                it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            }
         }
     }
 
