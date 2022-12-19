@@ -75,7 +75,7 @@ class HeartbeatController(private val agentService: AgentService,
                     CRASHED, TERMINATED -> Mono.fromCallable {
                         log.warn("Agent with containerId=$containerId sent ${heartbeat.state} status, but should be offline in that case!")
                         containerService.markContainerAsCrashed(containerId)
-                    }.thenReturn(TERMINATED)
+                    }.thenReturn(TerminateResponse)
                 }
             }
             // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.
