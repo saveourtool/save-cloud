@@ -15,7 +15,7 @@ plugins {
     id("com.saveourtool.save.buildutils.code-quality-convention")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
-    id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
 }
 
 openApi {
