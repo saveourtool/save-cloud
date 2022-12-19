@@ -24,7 +24,6 @@ import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
 import react.dom.html.InputType
@@ -183,6 +182,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     )
     private fun ChildrenBuilder.renderAvatar() {
         label {
+            className = ClassName("btn")
+            title = "Change user's avatar"
             input {
                 type = InputType.file
                 hidden = true
@@ -190,7 +191,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                     postImageUpload(event.target)
                 }
             }
-            ariaLabel = "Change user's avatar"
             img {
                 className =
                         ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")

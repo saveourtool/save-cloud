@@ -32,7 +32,6 @@ import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
@@ -49,6 +48,7 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
 import web.http.FormData
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -508,6 +508,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 setState {
                     isUploading = false
+                    window.location.reload()
                 }
             }
 
@@ -535,6 +536,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     alignItems = AlignItems.center
                 }
                 label {
+                    className = ClassName("btn")
+                    title = "Change organization's avatar"
                     input {
                         type = InputType.file
                         hidden = true
@@ -542,7 +545,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             postImageUpload(event.target)
                         }
                     }
-                    ariaLabel = "Change organization's avatar"
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                         src = state.image?.path?.let {

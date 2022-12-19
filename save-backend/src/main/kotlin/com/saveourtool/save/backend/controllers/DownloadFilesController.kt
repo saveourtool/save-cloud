@@ -264,7 +264,6 @@ class DownloadFilesController(
         val avatarKey = AvatarKey(
             type,
             owner,
-            part.filename()
         )
         val content = part.content().map { it.asByteBuffer() }
         avatarStorage.upsert(avatarKey, content).map {
@@ -276,6 +275,7 @@ class DownloadFilesController(
             when (type) {
                 AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
                 AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
+                else -> ""
             }
         }
         ResponseEntity.status(

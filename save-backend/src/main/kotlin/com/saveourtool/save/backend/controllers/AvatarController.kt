@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import kotlin.time.Duration.Companion.days
-import kotlin.time.toJavaDuration
 
 /**
  * Controller for working with avatars.
@@ -48,18 +46,16 @@ internal class AvatarController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    @GetMapping("/users/{userName}/{imageName}")
+    @GetMapping("/users/{userName}")
     fun forUser(
         @PathVariable userName: String,
-        @PathVariable imageName: String,
     ): Mono<ByteBufferFluxResponse> = AvatarKey(
         type = AvatarType.USER,
         objectName = userName,
-        imageName = imageName
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for user $userName with name $imageName"
+            "Not found avatar for user $userName with name $userName"
         }
 
     @Operation(
@@ -73,30 +69,23 @@ internal class AvatarController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    @GetMapping("/{organizationName}/{imageName}")
+    @GetMapping("/organizations/{organizationName}")
     fun forOrganization(
         @PathVariable organizationName: String,
-        @PathVariable imageName: String,
     ): Mono<ByteBufferFluxResponse> = AvatarKey(
         type = AvatarType.ORGANIZATION,
         objectName = organizationName,
-        imageName = imageName
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for organization $organizationName with name $imageName"
+            "Not found avatar for organization $organizationName with name $organizationName"
         }
 
     private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = this.toMono()
         .filterWhen(avatarStorage::doesExist)
-        .flatMap {
-            avatarStorage.lastModified(this)
-                .map { lastModified ->
-                    ResponseEntity.ok()
-                        .cacheControl(CacheControl.maxAge(longExpirationTime.toJavaDuration()).cachePublic())
-                        .lastModified(lastModified)
-                        .body(avatarStorage.download(this))
-                }
+        .map {
+            ResponseEntity.ok()
+                .body(avatarStorage.download(this))
         }
 
     companion object {
