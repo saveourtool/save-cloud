@@ -6,6 +6,7 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("gradle/plugins-common")
 includeBuild("gradle/plugins")
 include("api-gateway")
 include("save-backend")

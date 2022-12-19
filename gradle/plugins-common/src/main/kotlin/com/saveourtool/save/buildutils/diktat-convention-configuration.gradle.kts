@@ -1,6 +1,5 @@
 package com.saveourtool.save.buildutils
 
-import Versions
 import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
 
 plugins {
