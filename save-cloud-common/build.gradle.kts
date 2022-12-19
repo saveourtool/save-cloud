@@ -36,11 +36,11 @@ kotlin {
                 implementation(libs.save.common)
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.datetime)
+                implementation(project.dependencies.platform(libs.spring.boot.dependencies))
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)

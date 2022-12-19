@@ -18,7 +18,7 @@ plugins {
 val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
     enabled = findProperty("saveAgentDistroFilepath") != null
 
-    val saveAgentDistroFilepath = findProperty("saveAgentDistroFilepath")?.toString() ?: "file:\\\\"
+    val saveAgentDistroFilepath = findProperty("saveAgentDistroFilepath")?.toString() ?: "file:\\\\disabled"
     src { saveAgentDistroFilepath }
     dest { "$buildDir/agentDistro/${File(saveAgentDistroFilepath).name}" }
 
