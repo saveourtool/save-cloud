@@ -11,8 +11,16 @@ java {
     withSourcesJar()
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                api(projects.saveCloudCommon)
+            }
+        }
+    }
+}
 dependencies {
-    api(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.log4j)
     implementation(libs.log4j.slf4j.impl)

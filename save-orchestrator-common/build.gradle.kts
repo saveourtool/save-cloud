@@ -25,8 +25,23 @@ tasks.withType<Test> {
     }
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                api(projects.saveCloudCommon)
+                implementation(libs.kotlinx.serialization.json)
+            }
+        }
+        val commonTest by creating {
+            dependencies {
+                implementation(projects.testUtils)
+            }
+        }
+    }
+}
+
 dependencies {
-    api(projects.saveCloudCommon)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)
@@ -35,6 +50,5 @@ dependencies {
     implementation(libs.zip4j)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.spring.kafka)
-    testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
 }

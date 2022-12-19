@@ -21,8 +21,17 @@ repositories {
     mavenCentral()
 }
 
+kotlin {
+    sourceSets {
+        val commoMain by creating {
+            dependencies {
+                implementation(projects.saveCloudCommon)
+            }
+        }
+    }
+}
+
 dependencies {
-    implementation(projects.saveCloudCommon)
     implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.38")
     implementation("org.neo4j:neo4j-ogm-core:3.2.38")
     implementation(libs.spring.data.neo4j)

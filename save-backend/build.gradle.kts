@@ -74,9 +74,22 @@ tasks.register<Exec>("cleanupDbAndStorage") {
     commandLine(*args, storagePath)
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                implementation(projects.saveCloudCommon)
+                implementation(projects.authenticationService)
+            }
+        }
+        val commonTest by creating {
+            dependencies {
+                implementation(projects.testUtils)
+            }
+        }
+    }
+}
 dependencies {
-    implementation(projects.saveCloudCommon)
-    implementation(projects.authenticationService)
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)
@@ -85,7 +98,6 @@ dependencies {
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.reactor.extra)
     testImplementation(libs.spring.security.test)
-    testImplementation(projects.testUtils)
 }
 
 tasks.withType<Test> {

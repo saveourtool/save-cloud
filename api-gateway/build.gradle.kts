@@ -4,8 +4,16 @@ plugins {
     id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                api(projects.saveCloudCommon)
+            }
+        }
+    }
+}
 dependencies {
-    api(projects.saveCloudCommon)
     implementation(libs.spring.cloud.starter.gateway)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.oauth2.client)

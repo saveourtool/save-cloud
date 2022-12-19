@@ -26,9 +26,17 @@ tasks.withType<Test> {
     }
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                api(projects.saveCloudCommon)
+                implementation(projects.saveOrchestratorCommon)
+            }
+        }
+    }
+}
 dependencies {
-    api(projects.saveCloudCommon)
-    implementation(projects.saveOrchestratorCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)

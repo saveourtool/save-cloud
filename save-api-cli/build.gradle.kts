@@ -9,9 +9,18 @@ application {
     mainClass.set("com.saveourtool.save.apicli.MainKt")
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                implementation(projects.saveApi)
+                implementation(projects.saveCloudCommon)
+            }
+        }
+    }
+}
+
 dependencies {
-    implementation(projects.saveApi)
-    implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.kotlinx.cli)
     implementation(libs.log4j)

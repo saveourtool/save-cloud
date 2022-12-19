@@ -18,11 +18,15 @@ kotlin {
         sourceSets.all {
             languageSettings.optIn("kotlin.RequiresOptIn")
         }
+        val commonMain by creating {
+            dependencies {
+                api(projects.saveCloudCommon)
+            }
+        }
     }
 }
 
 dependencies {
-    implementation(projects.saveCloudCommon)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation("org.springframework:spring-jdbc")

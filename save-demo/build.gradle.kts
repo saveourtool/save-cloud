@@ -16,6 +16,13 @@ kotlin {
     allOpen {
         annotation("javax.persistence.Entity")
     }
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                implementation(projects.saveCloudCommon)
+            }
+        }
+    }
 }
 
 tasks.withType<KotlinCompile> {
@@ -27,7 +34,6 @@ tasks.withType<KotlinCompile> {
 val diktatVersion: String = libs.versions.diktat.get()
 
 dependencies {
-    implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
 
     implementation(libs.ktor.client.apache)

@@ -5,9 +5,22 @@ plugins {
     id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
+kotlin {
+    sourceSets {
+        val commonMain by creating {
+            dependencies {
+                implementation(projects.saveCloudCommon)
+            }
+        }
+        val commonTest by creating {
+            dependencies {
+                implementation(projects.testUtils)
+            }
+        }
+    }
+}
+
 dependencies {
-    implementation(projects.saveCloudCommon)
-    testImplementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm)
     implementation(libs.save.plugins.warn.jvm)
