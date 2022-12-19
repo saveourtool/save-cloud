@@ -55,7 +55,7 @@ internal class AvatarController(
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for user $userName with name $userName"
+            "Not found avatar for user $userName"
         }
 
     @Operation(
@@ -78,7 +78,7 @@ internal class AvatarController(
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for organization $organizationName with name $organizationName"
+            "Not found avatar for organization $organizationName"
         }
 
     private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = this.toMono()
