@@ -1,5 +1,3 @@
-import com.saveourtool.save.buildutils.configureJacoco
-
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
