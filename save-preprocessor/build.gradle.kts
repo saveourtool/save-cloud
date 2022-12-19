@@ -12,15 +12,11 @@ kotlin {
                 implementation(projects.saveCloudCommon)
             }
         }
-        val commonTest by creating {
-            dependencies {
-                implementation(projects.testUtils)
-            }
-        }
     }
 }
 
 dependencies {
+    testImplementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm)
     implementation(libs.save.plugins.warn.jvm)
