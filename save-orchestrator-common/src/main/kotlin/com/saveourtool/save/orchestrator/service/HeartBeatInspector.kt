@@ -4,7 +4,9 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.utils.ContainersCollection
+import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -24,7 +26,7 @@ class HeartBeatInspector(
     /**
      * Collection that stores information about containers
      */
-    internal val containersCollection = ContainersCollection(configProperties.agentsHeartBeatTimeoutMillis)
+    internal val orchestratorAgentStatusService = OrchestratorAgentStatusService(configProperties.agentsHeartBeatTimeoutMillis)
 
     /**
      * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
@@ -32,10 +34,13 @@ class HeartBeatInspector(
      * @param heartbeat
      */
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
-        containersCollection.upsert(
-            containerId = heartbeat.agentInfo.containerId,
+        orchestratorAgentStatusService.upsert(
+            AgentStatusDto(
+                containerId = heartbeat.agentInfo.containerId,
+                state = heartbeat.state,
+                time = heartbeat.timestamp.toLocalDateTime(TimeZone.UTC)
+            ),
             executionId = heartbeat.executionProgress.executionId,
-            timestamp = heartbeat.timestamp,
         )
     }
 
@@ -43,28 +48,28 @@ class HeartBeatInspector(
      * @param containerId
      */
     fun unwatchAgent(containerId: String) {
-        containersCollection.delete(containerId)
+        orchestratorAgentStatusService.delete(containerId)
     }
 
     /**
      * @param containerId
      */
     fun watchCrashedAgent(containerId: String) {
-        containersCollection.markAsCrashed(containerId)
+        orchestratorAgentStatusService.markAsCrashed(containerId)
     }
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        containersCollection.updateByStatus { containerId -> containerService.isStoppedByContainerId(containerId) }
+        orchestratorAgentStatusService.updateByStatus { containerId -> containerService.isStoppedByContainerId(containerId) }
     }
 
     /**
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     fun processCrashedAgents() {
-        containersCollection.processCrashed { crashedAgents ->
+        orchestratorAgentStatusService.processCrashed { crashedAgents ->
             logger.debug("Stopping crashed agents: $crashedAgents")
 
             val areAgentsStopped = containerService.stopAgents(crashedAgents)
@@ -72,10 +77,10 @@ class HeartBeatInspector(
                 Flux.fromIterable(crashedAgents).flatMap { containerId ->
                     agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
                 }.blockLast()
-                containersCollection.processExecutionWithoutNotCrashedContainers { executionIds ->
+                orchestratorAgentStatusService.processExecutionWithoutNotCrashedContainers { executionIds ->
                     executionIds.forEach { executionId ->
                         logger.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
-                        containersCollection.deleteAllByExecutionId(executionId)
+                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
                         agentService.finalizeExecution(executionId)
                     }
                 }

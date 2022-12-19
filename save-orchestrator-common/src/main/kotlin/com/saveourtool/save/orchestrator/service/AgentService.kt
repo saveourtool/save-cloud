@@ -133,41 +133,6 @@ class AgentService(
     }
 
     /**
-     * This method should be called when all agents are done and execution status can be updated and cleanup can be performed
-     *
-     * @param containerId an ID of the agent from the execution, that will be checked.
-     */
-    @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    internal fun finalizeExecution(containerId: String) {
-        // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
-        // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getFinishedOrStoppedAgentsForSameExecution(containerId)
-            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
-            .flatMap { (_, _) ->
-                // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for containerId=$containerId")
-                Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getFinishedOrStoppedAgentsForSameExecution(containerId)
-                )
-            }
-            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
-            .flatMap { (executionId, finishedContainerIds) ->
-                log.info { "For execution id=$executionId all agents have completed their lifecycle" }
-                markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
-                    .thenReturn(
-                        containerRunner.cleanup(executionId)
-                    )
-            }
-            .doOnSuccess {
-                if (it == null) {
-                    log.debug("Agents other than $containerId are still running, so won't try to stop them")
-                }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
-
-    /**
      * Updates status of execution [executionId] based on statues of agents [finishedContainerIds]
      *
      * @param executionId id of an [Execution]
@@ -217,23 +182,7 @@ class AgentService(
      *
      * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
-     * it, are not handled. Anyway, such agents should be eventually stopped by [ContainerService].
-     *
-     * @param containerId containerId of an agent
-     * @return Mono with list of agent ids for agents that can be shut down for an executionId
-     */
-    @Suppress("TYPE_ALIAS")
-    private fun getFinishedOrStoppedAgentsForSameExecution(containerId: String): Mono<Pair<Long, List<String>>> = orchestratorAgentService
-        .getAgentsStatusesForSameExecution(containerId)
-        .map { it.filterFinishedOrStopped() }
-
-    /**
-     * Get list of agent ids (containerIds) for agents that have completed their jobs.
-     * If we call this method, then there are no unfinished TestExecutions. So we check other agents' status.
-     *
-     * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
-     * Situations when agent gets stuck with a different status and for whatever reason is unable to update
-     * it, are not handled. Anyway, such agents should be eventually stopped by [ContainerService].
+     * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
      *
      * @param executionId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
@@ -241,28 +190,26 @@ class AgentService(
     @Suppress("TYPE_ALIAS")
     private fun getFinishedOrStoppedAgentsByExecutionId(executionId: Long): Mono<Pair<Long, List<String>>> = orchestratorAgentService
         .getAgentStatusesByExecutionId(executionId)
-        .map { it.filterFinishedOrStopped() }
-
-    private fun AgentStatusesForExecution.filterFinishedOrStopped(): Pair<Long, List<String>> {
-        log.debug { "For executionId=$executionId agent statuses are $agentStatuses" }
-        // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
-        return executionId to if (agentStatuses.areFinishedOrStopped()) {
-            log.debug("For execution id=$executionId there are finished or stopped agents")
-            agentStatuses.map { it.containerId }
-        } else {
-            emptyList()
+        .map { (_, agentStatuses) ->
+            log.debug { "For executionId=$executionId agent statuses are $agentStatuses" }
+            // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
+            executionId to if (agentStatuses.areFinishedOrStopped()) {
+                log.debug("For execution id=$executionId there are finished or stopped agents")
+                agentStatuses.map { it.containerId }
+            } else {
+                emptyList()
+            }
         }
-    }
 
     /**
      * Checks whether all agent under one execution have completed their jobs.
      *
-     * @param containerId containerId of an agent
+     * @param executionId ID of an execution
      * @return true if all agents match [areIdleOrFinished]
      */
-    fun areAllAgentsIdleOrFinished(containerId: String): Mono<Boolean> = orchestratorAgentService
-        .getAgentsStatusesForSameExecution(containerId)
-        .map { (executionId, agentStatuses) ->
+    fun areAllAgentsIdleOrFinished(executionId: Long): Mono<Boolean> = orchestratorAgentService
+        .getAgentStatusesByExecutionId(executionId)
+        .map { (_, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
             agentStatuses.areIdleOrFinished()
         }

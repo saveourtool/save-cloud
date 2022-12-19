@@ -1,5 +1,7 @@
 package com.saveourtool.save.orchestrator.utils
 
+import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.utils.debug
 
 import org.slf4j.Logger
@@ -14,6 +16,8 @@ import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 
 /**
  * Collection that stores information about containers:
@@ -25,7 +29,7 @@ import kotlinx.datetime.Instant
  *
  * @property crashedThresholdInMillis threshold in millis to detect crashed containers
  */
-class ContainersCollection(
+class OrchestratorAgentStatusService(
     private val crashedThresholdInMillis: Long,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
@@ -39,24 +43,22 @@ class ContainersCollection(
      * Adds or updates information about container.
      * It checks that new information about container contains the original execution id.
      *
-     * @param containerId ID of the container
+     * @param agentStatus status of agent
      * @param executionId ID of an execution to which this container is assigned to
-     * @param timestamp when **orchestrator** received the latest heartbeat from this container
      */
     fun upsert(
-        containerId: String,
+        agentStatus: AgentStatusDto,
         executionId: Long,
-        timestamp: Instant,
     ): Unit = useWriteLock {
         val anotherExecutionIds = executionToContainers
-            .filterValues { it.contains(containerId) }
+            .filterValues { it.contains(agentStatus.containerId) }
             .filterKeys { it != executionId }
             .keys
         require(anotherExecutionIds.isEmpty()) {
-            "Invalid containerId $containerId: it's already assigned to another execution $anotherExecutionIds"
+            "Invalid containerId ${agentStatus.containerId}: it's already assigned to another execution $anotherExecutionIds"
         }
-        executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + containerId
-        containerToLatestState[containerId] = timestamp
+        executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + agentStatus.containerId
+        containerToLatestState[agentStatus.containerId] = agentStatus.time.toInstant(TimeZone.UTC)
     }
 
     /**
@@ -197,7 +199,7 @@ class ContainersCollection(
     private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().use(action)
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(ContainersCollection::class.java)
+        private val log: Logger = LoggerFactory.getLogger(OrchestratorAgentStatusService::class.java)
 
         private fun <R> Lock.use(action: () -> R): R {
             lock()
