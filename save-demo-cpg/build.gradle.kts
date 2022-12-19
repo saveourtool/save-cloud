@@ -53,18 +53,6 @@ tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar>().configu
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().configureEach {
-    doFirst {
-        exec {
-            commandLine(
-                "docker", "build",
-                "-f", "$projectDir/builder/Dockerfile",
-                "-t", "ghcr.io/saveourtool/builder:base-plus-gcc",
-                "builder"
-            )
-        }
-    }
-
-    pullPolicy = org.springframework.boot.buildpack.platform.build.PullPolicy.IF_NOT_PRESENT
     builder = "ghcr.io/saveourtool/builder:base-plus-gcc"
     buildpacks(
         listOf(
