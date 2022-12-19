@@ -66,6 +66,9 @@ kotlin {
         }
 
         val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.junit.jupiter.engine)
