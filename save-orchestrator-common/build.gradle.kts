@@ -9,8 +9,6 @@ plugins {
     id("org.gradle.test-retry") version "1.5.0"
 }
 
-configureJacoco()
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"

@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.diktat.gradle.plugin)
     implementation(libs.gradle.plugin.spotless)
+    implementation(libs.publish.gradle.plugin)
 }
 
 tasks.withType<KotlinCompile> {

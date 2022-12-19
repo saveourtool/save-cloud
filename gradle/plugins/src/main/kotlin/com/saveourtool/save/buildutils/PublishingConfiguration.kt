@@ -2,62 +2,26 @@
  * Publishing configuration file.
  */
 
+@file:Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "MISSING_KDOC_ON_FUNCTION",
+)
+
 package com.saveourtool.save.buildutils
 
 import io.github.gradlenexus.publishplugin.NexusPublishExtension
-import io.github.gradlenexus.publishplugin.NexusPublishPlugin
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
-import org.gradle.plugins.signing.SigningPlugin
-
-@Suppress(
-    "MISSING_KDOC_ON_FUNCTION",
-    "MISSING_KDOC_TOP_LEVEL",
-    "TOO_LONG_FUNCTION")
-fun Project.configurePublishing() {
-    // If present, set properties from env variables. If any are absent, release will fail.
-    System.getenv("OSSRH_USERNAME")?.let {
-        extra.set("sonatypeUsername", it)
-    }
-    System.getenv("OSSRH_PASSWORD")?.let {
-        extra.set("sonatypePassword", it)
-    }
-    System.getenv("GPG_SEC")?.let {
-        extra.set("signingKey", it)
-    }
-    System.getenv("GPG_PASSWORD")?.let {
-        extra.set("signingPassword", it)
-    }
-
-    if (this == rootProject) {
-        apply<NexusPublishPlugin>()
-        if (hasProperty("sonatypeUsername")) {
-            configureNexusPublishing()
-        }
-    }
-
-    apply<MavenPublishPlugin>()
-    apply<SigningPlugin>()
-
-    configurePublications()
-
-    if (hasProperty("signingKey")) {
-        configureSigning()
-    }
-}
 
 @Suppress("TOO_LONG_FUNCTION")
-private fun Project.configurePublications() {
+internal fun Project.configurePublications() {
     val dokkaJar: Jar = tasks.create<Jar>("dokkaJar") {
         group = "documentation"
         archiveClassifier.set("javadoc")
@@ -84,7 +48,7 @@ private fun Project.configurePublications() {
                     developer {
                         id.set("petertrr")
                         name.set("Petr Trifanov")
-                        email.set("peter.trifanov@mail.ru")
+                        email.set("peter.trifanov@gmail.com")
                     }
                     developer {
                         id.set("akuleshov7")
@@ -101,7 +65,7 @@ private fun Project.configurePublications() {
     }
 }
 
-private fun Project.configureSigning() {
+internal fun Project.configureSigning() {
     configure<SigningExtension> {
         useInMemoryPgpKeys(property("signingKey") as String?, property("signingPassword") as String?)
         logger.lifecycle("The following publications are getting signed: ${extensions.getByType<PublishingExtension>().publications.map { it.name }}")
@@ -109,7 +73,7 @@ private fun Project.configureSigning() {
     }
 }
 
-private fun Project.configureNexusPublishing() {
+internal fun Project.configureNexusPublishing() {
     configure<NexusPublishExtension> {
         repositories {
             sonatype {

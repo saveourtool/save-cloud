@@ -88,7 +88,6 @@ dependencies {
     testImplementation(projects.testUtils)
 }
 
-configureJacoco()
 tasks.withType<Test> {
     extensions.configure(JacocoTaskExtension::class) {
         // this file is only used in dev profile for debugging, no need to calculate test coverage
