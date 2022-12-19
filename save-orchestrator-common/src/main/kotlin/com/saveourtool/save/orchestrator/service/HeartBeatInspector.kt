@@ -72,7 +72,7 @@ class HeartBeatInspector(
                 Flux.fromIterable(crashedAgents).flatMap { containerId ->
                     agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
                 }.blockLast()
-                containersCollection.processExecutionWithoutContainers { executionIds ->
+                containersCollection.processExecutionWithoutNotCrashedContainers { executionIds ->
                     executionIds.forEach { executionId ->
                         logger.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
                         containersCollection.deleteAllByExecutionId(executionId)

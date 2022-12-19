@@ -2,6 +2,7 @@ package com.saveourtool.save.orchestrator.utils
 
 import com.saveourtool.save.utils.debug
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.*
@@ -13,7 +14,6 @@ import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.slf4j.Logger
 
 /**
  * Collection that stores information about containers:
@@ -148,10 +148,10 @@ class ContainersCollection(
      *
      * @param process action on execution ids
      */
-    fun processExecutionWithoutContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
+    fun processExecutionWithoutNotCrashedContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf { values.isEmpty() }
+                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)
