@@ -11,14 +11,14 @@ import org.springframework.stereotype.Repository
 interface SnapshotRepository : BaseEntityRepository<Snapshot> {
     /**
      * @param versionTag
-     * @return
+     * @return list of [Snapshot] by [versionTag]
      */
     fun findByVersion(versionTag: String): List<Snapshot>
 
     /**
      * @param versionTag
      * @param executableName
-     * @return
+     * @return [Snapshot] if such entity with [versionTag] and [executableName] was found, null otherwise
      */
     fun findByVersionAndExecutableName(versionTag: String, executableName: String): Snapshot?
 }

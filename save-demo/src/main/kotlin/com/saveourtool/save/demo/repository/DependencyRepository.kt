@@ -15,4 +15,11 @@ interface DependencyRepository : BaseEntityRepository<Dependency> {
      * @return list of [coreTool]'s [Dependency]s
      */
     fun findByCoreTool(coreTool: Tool): List<Dependency>
+
+    /**
+     * @param coreTool
+     * @param dependencyTool
+     * @return [Dependency] entity if such record was found in database, null otherwise
+     */
+    fun findByCoreToolAndDependencyTool(coreTool: Tool, dependencyTool: Tool): Dependency?
 }

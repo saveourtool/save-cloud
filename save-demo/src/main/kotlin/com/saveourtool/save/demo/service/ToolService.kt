@@ -7,6 +7,9 @@ import com.saveourtool.save.demo.repository.ToolRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * [Service] for [ToolService] entity
+ */
 @Service
 class ToolService(
     private val toolRepository: ToolRepository,
@@ -18,6 +21,7 @@ class ToolService(
     /**
      * @param gitRepo
      * @param snapshot
+     * @return [Tool] entity saved to database
      */
     @Transactional
     fun saveIfNotPresent(gitRepo: GitRepo, snapshot: Snapshot): Tool {
@@ -29,7 +33,7 @@ class ToolService(
     /**
      * @param gitRepo
      * @param version
-     * @return
+     * @return [Tool] fetched from [gitRepo] that matches requested [version]
      */
     fun findByGitRepoAndVersion(gitRepo: GitRepo, version: String) = toolRepository.findByGitRepoAndSnapshotVersion(gitRepo, version)
 }

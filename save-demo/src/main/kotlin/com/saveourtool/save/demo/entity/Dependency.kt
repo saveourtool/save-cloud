@@ -7,8 +7,8 @@ import javax.persistence.ManyToOne
 import javax.persistence.Table
 
 /**
- * @property coreTool
- * @property dependantTool
+ * @property coreTool dependant tool
+ * @property dependencyTool the tool that [coreTool] depends on
  */
 @Entity
 @Table(name = "dependency")
@@ -18,5 +18,5 @@ class Dependency(
     var coreTool: Tool,
     @ManyToOne
     @JoinColumn(name = "worker_id")
-    var dependantTool: Tool,
+    var dependencyTool: Tool,
 ) : BaseEntity()
