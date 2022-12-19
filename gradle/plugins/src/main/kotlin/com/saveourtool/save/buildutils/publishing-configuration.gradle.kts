@@ -32,8 +32,10 @@ run {
     }
 }
 
-configurePublications()
+run {
+    configurePublications()
 
-if (hasProperty("signingKey")) {
-    configureSigning()
+    if (hasProperty("signingKey")) {
+        configureSigning()
+    }
 }

@@ -1,11 +1,11 @@
+/**
+ * Publishing configuration file.
+ */
+
 @file:Suppress(
     "MISSING_KDOC_TOP_LEVEL",
     "MISSING_KDOC_ON_FUNCTION",
 )
-
-/**
- * Publishing configuration file.
- */
 
 package com.saveourtool.save.buildutils
 
