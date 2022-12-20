@@ -28,7 +28,7 @@ class RegressionDetection(
     @Suppress("NestedBlockDepth")
     override fun invoke(runs: TestRuns, metrics: RegularTestMetrics): IrregularTest? {
         require(runs.size == metrics.runCount) {
-            "${runs.size} != ${metrics.runCount}"
+            "Runs and metrics report different run count: ${runs.size} != ${metrics.runCount}"
         }
 
         return when {
