@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -91,25 +90,6 @@ class DockerContainerRunner(
             .filter { container -> container.names.any { it.contains("-$executionId-") } }
         runningContainersForExecution.map { it.id }.forEach { containerId ->
             dockerClient.stopContainerCmd(containerId).exec()
-        }
-    }
-
-    override fun stopByContainerId(containerId: String): Boolean {
-        logger.info("Stopping agent with id=$containerId")
-        val state = dockerClient.inspectContainerCmd(containerId).exec().state
-        return if (state.status == "running") {
-            try {
-                dockerClient.stopContainerCmd(containerId).exec()
-            } catch (dex: DockerException) {
-                throw ContainerRunnerException("Exception when stopping agent id=$containerId", dex)
-            }
-            logger.info("Agent with id=$containerId has been stopped")
-            true
-        } else {
-            if (state.status != "exited") {
-                logger.warn("Agent with id=$containerId was requested to be stopped, but it actual state=$state")
-            }
-            state.status == "exited"
         }
     }
 

@@ -113,22 +113,6 @@ class KubernetesManager(
         logger.debug("Deleted Job for execution id=$executionId")
     }
 
-    override fun stopByContainerId(containerId: String): Boolean {
-        val pod: Pod? = kc.pods().withName(containerId).get()
-        pod ?: run {
-            logger.debug("Agent id=$containerId is already stopped or not yet created")
-            return true
-        }
-        val deletedResources = kc.pods().withName(containerId).delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw ContainerRunnerException("Failed to delete pod with name $containerId: response is $deletedResources")
-        } else {
-            logger.debug("Deleted pod with name=$containerId")
-            return true
-        }
-    }
-
     override fun cleanup(executionId: Long) {
         logger.debug("Removing a Job for execution id=$executionId")
         val job = kcJobsWithName(jobNameForExecution(executionId))

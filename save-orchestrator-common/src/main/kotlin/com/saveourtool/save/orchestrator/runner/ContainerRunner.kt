@@ -37,14 +37,6 @@ interface ContainerRunner {
     fun stop(executionId: Long)
 
     /**
-     * @param containerId ID of container that should be stopped
-     * @return true if agent has been stopped successfully
-     * todo: distinguish stopped / not stopped / error / already stopped
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stopByContainerId(containerId: String): Boolean
-
-    /**
      * @param executionId
      */
     fun cleanup(executionId: Long)

@@ -118,26 +118,6 @@ class ContainerService(
     }
 
     /**
-     * @param containerIds list of container IDs of agents to stop
-     * @return true if agents have been stopped, false if another thread is already stopping them
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Set<String>): Boolean {
-        val removed = try {
-            containerIds.all { containerId ->
-                containerRunner.stopByContainerId(containerId)
-            }
-        } catch (e: ContainerRunnerException) {
-            log.error("Error while stopping agents $containerIds", e)
-            false
-        }
-        if (removed) {
-            containers.deleteAll(containerIds)
-        }
-        return removed
-    }
-
-    /**
      * @param executionId
      * @param containerId
      * @param timestamp
