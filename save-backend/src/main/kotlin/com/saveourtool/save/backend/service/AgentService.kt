@@ -106,6 +106,18 @@ class AgentService(
 
     /**
      * @param executionId ID of [Execution]
+     * @param agent [Agent] to assign to provided [Execution]
+     * @return saved [Agent]
+     */
+    internal fun save(executionId: Long, agent: Agent): Agent {
+        val execution = executionService.getExecution(executionId)
+        val savedAgent = agentRepository.save(agent)
+        lnkExecutionAgentRepository.save(LnkExecutionAgent(execution, savedAgent))
+        return savedAgent
+    }
+
+    /**
+     * @param executionId ID of [Execution]
      * @param agents list of [Agent] to assign to provided [Execution]
      * @return list of saved [Agent]
      */
