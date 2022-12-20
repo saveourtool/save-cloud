@@ -90,12 +90,6 @@ interface OrchestratorAgentService {
     fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution>
 
     /**
-     * @param containerId containerId of an agent
-     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
-     */
-    fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution>
-
-    /**
      * Mark agent's test executions as failed
      *
      * @param containerId the agent container ID, for which, corresponding test executions should be marked as failed

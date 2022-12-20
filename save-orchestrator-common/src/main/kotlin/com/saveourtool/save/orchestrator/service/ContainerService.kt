@@ -16,9 +16,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
@@ -36,8 +33,6 @@ class ContainerService(
     private val agentService: AgentService,
     private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
 ) {
-    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
-
     /**
      * Function that builds a base image with test resources
      *
@@ -104,7 +99,7 @@ class ContainerService(
                             ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                                 .subscribe()
                         }
-                        areAgentsHaveStarted.remove(executionId)
+                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
                     }
             }
     }
