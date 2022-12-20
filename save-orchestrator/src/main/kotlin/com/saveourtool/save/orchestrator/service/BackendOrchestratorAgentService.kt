@@ -44,20 +44,20 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList> = webClientBackend
+    override fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse> = webClientBackend
         .post()
         .uri("/agents/insert?executionId=$executionId")
-        .bodyValue(agents)
+        .bodyValue(agent)
         .retrieve()
-        .bodyToMono()
+        .toBodilessEntity()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
-            webClientBackend
-                .post()
-                .uri("/updateAgentStatusesWithDto")
-                .bodyValue(agentStates)
-                .retrieve()
-                .toBodilessEntity()
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
+        webClientBackend
+            .post()
+            .uri("/updateAgentStatus")
+            .bodyValue(listOf(agentStatus))
+            .retrieve()
+            .toBodilessEntity()
 
     override fun getReadyForTestingTestExecutions(containerId: String): Mono<TestExecutionList> = webClientBackend.get()
         .uri("/test-executions/get-by-container-id?containerId=$containerId&status=${TestResultStatus.READY_FOR_TESTING}")
