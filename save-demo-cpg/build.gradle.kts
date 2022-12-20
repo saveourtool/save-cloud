@@ -36,8 +36,6 @@ dependencies {
     }
 }
 
-configureJacoco()
-
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 val os = System.getProperty("os.name")
 run {
@@ -46,4 +44,22 @@ run {
             environment("CPG_JEP_LIBRARY", "/opt/homebrew/lib/python3.10/site-packages/jep/libjep.jnilib")
         }
     }
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar>().configureEach {
+    from("requirements.txt")
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().configureEach {
+    builder = "ghcr.io/saveourtool/builder:base-plus-gcc"
+    buildpacks(
+        listOf(
+            "paketo-buildpacks/java",
+            "paketo-buildpacks/python",
+            "paketo-buildpacks/pip",
+        )
+    )
+    environment["BPE_CPG_JEP_LIBRARY"] = "/layers/paketo-buildpacks_pip-install/packages/lib/python3.10/site-packages/jep/libjep.so"
+    environment["BP_CPYTHON_VERSION"] = "3.10"
+    environment["BP_JVM_TYPE"] = "JDK"
 }

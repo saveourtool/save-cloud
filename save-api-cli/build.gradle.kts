@@ -9,12 +9,6 @@ application {
     mainClass.set("com.saveourtool.save.apicli.MainKt")
 }
 
-kotlin {
-    jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
-}
-
 dependencies {
     implementation(projects.saveApi)
     implementation(projects.saveCloudCommon)
