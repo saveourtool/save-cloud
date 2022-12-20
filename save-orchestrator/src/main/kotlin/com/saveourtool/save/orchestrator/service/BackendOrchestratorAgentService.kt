@@ -44,18 +44,18 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList> = webClientBackend
+    override fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse> = webClientBackend
         .post()
         .uri("/agents/insert?executionId=$executionId")
-        .bodyValue(agents)
+        .bodyValue(agent)
         .retrieve()
-        .bodyToMono()
+        .toBodilessEntity()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
             webClientBackend
                 .post()
-                .uri("/updateAgentStatusesWithDto")
-                .bodyValue(agentStates)
+                .uri("/updateAgentStatus")
+                .bodyValue(listOf(agentStatus))
                 .retrieve()
                 .toBodilessEntity()
 
