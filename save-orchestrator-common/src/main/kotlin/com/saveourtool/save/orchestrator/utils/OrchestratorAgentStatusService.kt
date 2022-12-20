@@ -170,7 +170,7 @@ class OrchestratorAgentStatusService(
         containerToLatestState.filter { (currentContainerId, _) ->
             currentContainerId !in crashedContainers
         }.forEach { (currentContainerId, latestHeartbeat) ->
-            val duration = ChronoUnit.MILLIS.between(getCurrentLocalDateTime().toJavaLocalDateTime(), latestHeartbeat.toJavaLocalDateTime())
+            val duration = ChronoUnit.MILLIS.between(latestHeartbeat.toJavaLocalDateTime(), getCurrentLocalDateTime().toJavaLocalDateTime())
             log.debug {
                 "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
             }
