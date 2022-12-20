@@ -37,11 +37,6 @@ class ContainersCollection(
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
     private val containerToLatestState: MutableMap<String, Instant> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
-    private val executionStartTime: MutableMap<Long, LocalDateTime> = HashMap()
-
-    fun markExecutionAsStarted(executionId: Long): Unit = useWriteLock {
-        executionStartTime[executionId] = getCurrentLocalDateTime()
-    }
 
     /**
      * Adds or updates information about container.
@@ -96,7 +91,6 @@ class ContainersCollection(
         }
         containerToLatestState.keys.removeAll(assignedContainerIds)
         crashedContainers.removeAll(assignedContainerIds)
-        executionStartTime.remove(executionId)
     }
 
     /**
@@ -157,17 +151,10 @@ class ContainersCollection(
      *
      * @param process action on execution ids
      */
-    fun processExecutionWithoutContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
+    fun processStartedExecutionWithoutActiveContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf {
-                    (values.isEmpty() || crashedContainers.containsAll(values)) &&
-                            requireNotNull(executionStartTime[key]) {
-                                "There is no startTime for executionId $key"
-                            }
-                                .toInstant(TimeZone.UTC)
-                                .isStale()
-                }
+                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)

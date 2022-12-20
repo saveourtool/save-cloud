@@ -160,7 +160,7 @@ class AgentService(
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
                     .thenReturn(
-                        containerRunner.cleanup(executionId)
+                        containerRunner.cleanupAllByExecution(executionId)
                     )
             }
             .doOnSuccess {

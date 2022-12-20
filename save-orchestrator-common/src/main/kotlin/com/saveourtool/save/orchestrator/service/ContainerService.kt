@@ -8,7 +8,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.ContainersCollection
 import com.saveourtool.save.request.RunExecutionRequest
@@ -67,14 +66,11 @@ class ContainerService(
     fun createContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ): List<String> {
-        containers.markExecutionAsStarted(executionId)
-        return containerRunner.create(
-            executionId = executionId,
-            configuration = configuration,
-            replicas = configProperties.agentsCount,
-        )
-    }
+    ): List<String> = containerRunner.create(
+        executionId = executionId,
+        configuration = configuration,
+        replicas = configProperties.agentsCount,
+    )
 
     /**
      * @param executionId ID of [Execution] for which containers are being started
@@ -222,16 +218,11 @@ class ContainerService(
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     private fun cleanupExecutionWithoutContainers() {
-        containers.processCrashed { crashedContainers ->
-            log.debug {
-                "Stopping crashed agents: $crashedContainers"
-            }
-            containers.processExecutionWithoutContainers { executionIds ->
-                executionIds.forEach { executionId ->
-                    log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
-                    containers.deleteAllByExecutionId(executionId)
-                    agentService.finalizeExecution(executionId)
-                }
+        containers.processStartedExecutionWithoutActiveContainers { executionIds ->
+            executionIds.forEach { executionId ->
+                log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
+                containers.deleteAllByExecutionId(executionId)
+                agentService.finalizeExecution(executionId)
             }
         }
     }
