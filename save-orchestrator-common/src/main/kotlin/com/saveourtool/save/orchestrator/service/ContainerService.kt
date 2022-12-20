@@ -98,7 +98,6 @@ class ContainerService(
                     .doOnComplete {
                         if (areAgentsHaveStarted[executionId]?.get() != true) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
-                            cleanup(executionId)
                             containerRunner.cleanupAllByExecution(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
