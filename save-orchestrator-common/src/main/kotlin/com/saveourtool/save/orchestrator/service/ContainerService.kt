@@ -220,7 +220,7 @@ class ContainerService(
     private fun cleanupExecutionWithoutContainers() {
         containers.processStartedExecutionWithoutActiveContainers { executionIds ->
             executionIds.forEach { executionId ->
-                log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
+                log.warn("All agents for execution $executionId are crashed or not started, initialize cleanup for it.")
                 containers.deleteAllByExecutionId(executionId)
                 agentService.finalizeExecution(executionId)
             }

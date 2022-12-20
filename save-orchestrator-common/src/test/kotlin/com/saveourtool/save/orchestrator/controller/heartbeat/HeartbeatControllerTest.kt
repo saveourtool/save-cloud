@@ -371,7 +371,7 @@ class HeartbeatControllerTest {
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         }
         if (mockAgentStatusesForSameExecution) {
-            whenever(orchestratorAgentService.getAgentStatusesForSameExecution(any()))
+            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
                 .thenReturn(Mono.just(AgentStatusesForExecution(0, agentStatusDtos)))
         }
 
@@ -407,7 +407,7 @@ class HeartbeatControllerTest {
         }
         verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
         if (mockAgentStatusesForSameExecution) {
-            verify(orchestratorAgentService).getAgentStatusesForSameExecution(any())
+            verify(orchestratorAgentService).getAgentStatusesByExecutionId(any())
         }
         verification.invoke(heartbeatResponses)
     }

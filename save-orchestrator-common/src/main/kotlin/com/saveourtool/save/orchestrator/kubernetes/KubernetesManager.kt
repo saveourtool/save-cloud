@@ -105,13 +105,15 @@ class KubernetesManager(
     override fun cleanupAllByExecution(executionId: Long) {
         logger.debug { "Removing a Job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
-        val deletedResources = kcJobsWithName(jobName)
-            .delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+        val job = kcJobsWithName(jobName)
+        job.get()?.let {
+            val deletedResources = job.delete()
+            val isDeleted = deletedResources.size == 1
+            if (!isDeleted) {
+                throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+            }
+            logger.debug { "Deleted Job for execution id=$executionId" }
         }
-        logger.debug("Deleted Job for execution id=$executionId")
     }
 
     override fun isStopped(containerId: String): Boolean {
