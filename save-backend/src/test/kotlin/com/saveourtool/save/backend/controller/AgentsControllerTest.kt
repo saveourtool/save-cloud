@@ -155,7 +155,7 @@ class AgentsControllerTest {
             .uri("/internal/updateAgentStatus")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(listOf(body))
+            .bodyValue(body)
             .exchange()
             .expectStatus()
             .isOk
