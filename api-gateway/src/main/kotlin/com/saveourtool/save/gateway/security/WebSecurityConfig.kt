@@ -81,6 +81,7 @@ class WebSecurityConfig(
             // this is default data that is required by FE to operate properly
             authorizeExchangeSpec.pathMatchers(
                 // FixMe: Extract into properties
+                "/",
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
