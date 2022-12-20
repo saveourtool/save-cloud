@@ -42,7 +42,7 @@ class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : ContainerRunner {
+) : ContainerRunner, ContainerRunner.Stoppable, ContainerRunner.Prunable {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
@@ -72,7 +72,7 @@ class DockerContainerRunner(
         }
     }
 
-    override fun start(executionId: Long) {
+    override fun startAllByExecution(executionId: Long) {
         val containerIds = containerIdsByExecution.computeIfAbsent(executionId) {
             // For executions started by the running instance of orchestrator, this key should be already present in the map.
             // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
@@ -84,17 +84,7 @@ class DockerContainerRunner(
         }
     }
 
-    override fun stop(executionId: Long) {
-        val runningContainersForExecution = dockerClient.listContainersCmd()
-            .withStatusFilter(listOf("running"))
-            .exec()
-            .filter { container -> container.names.any { it.contains("-$executionId-") } }
-        runningContainersForExecution.map { it.id }.forEach { containerId ->
-            dockerClient.stopContainerCmd(containerId).exec()
-        }
-    }
-
-    override fun stopByContainerId(containerId: String): Boolean {
+    override fun stop(containerId: String): Boolean {
         logger.info("Stopping agent with id=$containerId")
         val state = dockerClient.inspectContainerCmd(containerId).exec().state
         return if (state.status == "running") {
@@ -113,13 +103,13 @@ class DockerContainerRunner(
         }
     }
 
-    override fun isStoppedByContainerId(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
+    override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
         .also { logger.debug("Container $containerId has state $it") }
         .status != "running"
 
-    override fun cleanup(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
