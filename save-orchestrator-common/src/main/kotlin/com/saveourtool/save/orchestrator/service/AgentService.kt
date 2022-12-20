@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.onErrorResume
+import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 /**
@@ -110,7 +111,7 @@ class AgentService(
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
                     .thenReturn(
-                        containerRunner.cleanupByExecution(executionId)
+                        containerRunner.cleanupAllByExecution(executionId)
                     )
             }
             .doOnSuccess {
@@ -140,7 +141,7 @@ class AgentService(
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
-                    it == STOPPED_BY_ORCH || it == TERMINATED
+                    it == TERMINATED
                 }) {
                     updateExecution(executionId, ExecutionStatus.FINISHED)
                 } else if (agentStatuses.map { it.state }.all {
@@ -225,11 +226,11 @@ class AgentService(
     ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(executionId)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
+        it.state == IDLE || it.state == FINISHED || it.state == CRASHED || it.state == TERMINATED
     }
 
     private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all {
-        it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
+        it.state == FINISHED || it.state == CRASHED || it.state == TERMINATED
     }
 
     companion object {

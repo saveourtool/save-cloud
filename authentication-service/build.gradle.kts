@@ -29,5 +29,3 @@ dependencies {
     testImplementation(libs.spring.security.test)
     testImplementation(libs.junit.jupiter.api)
 }
-
-configureJacoco()

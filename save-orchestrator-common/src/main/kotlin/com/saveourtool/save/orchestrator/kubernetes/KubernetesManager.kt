@@ -93,17 +93,20 @@ class KubernetesManager(
         }
     }
 
-    override fun cleanupByExecution(executionId: Long) {
-        logger.debug("Removing a job for execution id=$executionId")
+    override fun cleanupAllByExecution(executionId: Long) {
+        logger.debug { "Removing a job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
         val job = kcJobsWithName(jobName)
-        job.get() ?: run {
+        job.get()?.let {
+            val deletedResources = job.delete()
+            val isDeleted = deletedResources.size == 1
+            if (!isDeleted) {
+                throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+            }
+            logger.debug { "Deleted Job for execution id=$executionId" }
+        } ?: run {
             logger.warn { "Failed to delete job with name $jobName: there is no such job" }
             return
-        }
-        val deletedResources = job.delete()
-        if (deletedResources.size != 1) {
-            throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
         }
         logger.debug("Cleanup job for execution id=$executionId")
     }

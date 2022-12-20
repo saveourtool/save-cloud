@@ -60,7 +60,7 @@ class KubernetesManagerTest {
             }
             .subscribe()
 
-        kubernetesManager.cleanupByExecution(1)
+        kubernetesManager.cleanupAllByExecution(1)
 
         Assertions.assertTrue(disposable.isDisposed)
     }

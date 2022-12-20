@@ -22,6 +22,8 @@ spec:
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: demo-cpg
+          # FixMe: set correct command when building image
+          command: ["/cnb/process/executable-jar"]
           {{- include "spring-boot.common" (merge (dict "service" .Values.demo_cpg) .) | nindent 10 }}
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.demo_cpg) .) | nindent 12 }}

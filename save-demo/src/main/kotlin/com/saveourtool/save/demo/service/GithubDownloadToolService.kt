@@ -1,8 +1,8 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
-import com.saveourtool.save.demo.entities.ReleaseAsset
-import com.saveourtool.save.demo.entities.ReleaseMetadata
+import com.saveourtool.save.demo.entity.ReleaseAsset
+import com.saveourtool.save.demo.entity.ReleaseMetadata
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.storage.toToolKey

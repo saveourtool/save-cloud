@@ -87,7 +87,7 @@ class HeartbeatController(private val agentService: AgentService,
 
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
-                    CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
+                    CRASHED, TERMINATED -> Mono.fromCallable {
                         handleIllegallyOnlineAgent(containerId, heartbeat.state)
                         WaitResponse
                     }

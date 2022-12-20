@@ -10,7 +10,6 @@ import com.saveourtool.save.utils.EmptyResponse
 
 import reactor.core.publisher.Mono
 
-typealias IdList = List<Long>
 typealias AgentStatusList = List<AgentStatusDto>
 typealias TestExecutionList = List<TestExecutionDto>
 

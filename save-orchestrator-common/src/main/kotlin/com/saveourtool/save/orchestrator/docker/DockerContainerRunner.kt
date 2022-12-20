@@ -102,7 +102,7 @@ class DockerContainerRunner(
         .also { logger.debug("Container $containerId has state $it") }
         .status != RUNNING_STATUS
 
-    override fun cleanupByExecution(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd()
             .withNameFilter(listOf("-$executionId-"))
             .withShowAll(true)

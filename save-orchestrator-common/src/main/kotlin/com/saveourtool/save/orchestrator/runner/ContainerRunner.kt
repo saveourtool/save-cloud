@@ -28,7 +28,7 @@ interface ContainerRunner {
     /**
      * @param executionId
      */
-    fun cleanupByExecution(executionId: Long)
+    fun cleanupAllByExecution(executionId: Long)
 
     /**
      * Check whether the agent [containerId] is stopped

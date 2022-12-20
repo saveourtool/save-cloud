@@ -54,8 +54,8 @@ class BackendOrchestratorAgentService(
     override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
             webClientBackend
                 .post()
-                .uri("/updateAgentStatusesWithDto")
-                .bodyValue(listOf(agentStatus))
+                .uri("/updateAgentStatus")
+                .bodyValue(agentStatus)
                 .retrieve()
                 .toBodilessEntity()
 

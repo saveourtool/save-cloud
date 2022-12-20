@@ -1,4 +1,4 @@
-package com.saveourtool.save.demo.entities
+package com.saveourtool.save.demo.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
