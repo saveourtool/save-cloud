@@ -389,7 +389,7 @@ class HeartbeatControllerTest {
         }
         if (mockAgentStatusesByExecutionId) {
             whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
-                .thenReturn(Mono.just(AgentStatusesForExecution(0, agentStatusDtos)))
+                .thenReturn(Mono.just(agentStatusDtos))
         }
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
