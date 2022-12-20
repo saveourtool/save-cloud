@@ -1,12 +1,15 @@
 package com.saveourtool.save.orchestrator.utils
 
-import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
+import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
@@ -14,10 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
+import kotlinx.datetime.*
 
 /**
  * Collection that stores information about containers:
@@ -27,16 +27,17 @@ import kotlinx.datetime.toInstant
  *
  * Collection is thread safe
  *
- * @property crashedThresholdInMillis threshold in millis to detect crashed containers
+ * @property configProperties it needs [ConfigProperties.agentsHeartBeatTimeoutMillis] as a threshold in millis to detect crashed containers
  */
+@Service
 class OrchestratorAgentStatusService(
-    private val crashedThresholdInMillis: Long,
+    private val configProperties: ConfigProperties,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
 
     @Suppress("TYPE_ALIAS")
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
-    private val containerToLatestState: MutableMap<String, Instant> = HashMap()
+    private val containerToLatestState: MutableMap<String, LocalDateTime> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
 
     /**
@@ -58,7 +59,7 @@ class OrchestratorAgentStatusService(
             "Invalid containerId ${agentStatus.containerId}: it's already assigned to another execution $anotherExecutionIds"
         }
         executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + agentStatus.containerId
-        containerToLatestState[agentStatus.containerId] = agentStatus.time.toInstant(TimeZone.UTC)
+        containerToLatestState[agentStatus.containerId] = agentStatus.time
     }
 
     /**
@@ -168,12 +169,12 @@ class OrchestratorAgentStatusService(
     fun updateByStatus(isStoppedFunction: (String) -> Boolean): Unit = useWriteLock {
         containerToLatestState.filter { (currentContainerId, _) ->
             currentContainerId !in crashedContainers
-        }.forEach { (currentContainerId, timestamp) ->
-            val duration = (Clock.System.now() - timestamp).inWholeMilliseconds
+        }.forEach { (currentContainerId, latestHeartbeat) ->
+            val duration = ChronoUnit.MILLIS.between(getCurrentLocalDateTime().toJavaLocalDateTime(), latestHeartbeat.toJavaLocalDateTime())
             log.debug {
                 "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
             }
-            if (duration >= crashedThresholdInMillis) {
+            if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 log.debug("Adding $currentContainerId to list crashed agents")
                 crashedContainers.add(currentContainerId)
             }

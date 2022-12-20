@@ -9,6 +9,7 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 import com.saveourtool.save.request.RunExecutionRequest
 
 import org.slf4j.LoggerFactory
@@ -33,6 +34,7 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
+    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
 ) {
     private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
 
@@ -88,14 +90,13 @@ class ContainerService(
                 val duration = AtomicLong(0)
                 Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !orchestratorAgentStatusService.containsAnyByExecutionId(executionId)
                     }
                     .doOnNext {
                         duration.set((Clock.System.now() - now).inWholeMilliseconds)
                     }
                     .doOnComplete {
-                        if (areAgentsHaveStarted[executionId]?.get() != true) {
+                        if (!orchestratorAgentStatusService.containsAnyByExecutionId(executionId)) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -122,15 +123,6 @@ class ContainerService(
                 log.error("Error while stopping agents $containerIds", e)
                 false
             }
-
-    /**
-     * @param executionId
-     */
-    fun markAgentForExecutionAsStarted(executionId: Long) {
-        areAgentsHaveStarted
-            .computeIfAbsent(executionId) { AtomicBoolean(false) }
-            .compareAndSet(false, true)
-    }
 
     /**
      * Check whether the agent with [containerId] is stopped

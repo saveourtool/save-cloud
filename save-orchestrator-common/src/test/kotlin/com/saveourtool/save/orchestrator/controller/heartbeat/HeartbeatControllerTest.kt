@@ -13,6 +13,7 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -48,6 +49,7 @@ import java.time.Month
 @Import(
     AgentService::class,
     HeartBeatInspector::class,
+    OrchestratorAgentStatusService::class,
     JsonConfig::class,
 )
 @MockBeans(MockBean(ContainerRunner::class))
@@ -59,6 +61,7 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var containerService: ContainerService
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
+    @Autowired private lateinit var orchestratorAgentStatusService: OrchestratorAgentStatusService
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -72,7 +75,7 @@ class HeartbeatControllerTest {
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        heartBeatInspector.orchestratorAgentStatusService.clear()
+        orchestratorAgentStatusService.clear()
     }
 
     @Test
@@ -230,7 +233,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            heartBeatInspector.orchestratorAgentStatusService.processCrashed {
+            orchestratorAgentStatusService.processCrashed {
                 it shouldContainExactly setOf("test-2")
             }
         }
@@ -258,7 +261,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 4,
         ) {
-            heartBeatInspector.orchestratorAgentStatusService.processCrashed {
+            orchestratorAgentStatusService.processCrashed {
                 it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
             }
         }

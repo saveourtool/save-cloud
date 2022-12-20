@@ -58,7 +58,6 @@ class HeartbeatController(private val agentService: AgentService,
         val containerId = heartbeat.agentInfo.containerId
         logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
-            containerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()

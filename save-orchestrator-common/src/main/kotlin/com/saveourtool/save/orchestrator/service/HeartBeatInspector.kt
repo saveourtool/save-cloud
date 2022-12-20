@@ -3,15 +3,15 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Background inspector, which detect crashed agents
@@ -19,15 +19,10 @@ import reactor.core.publisher.Flux
  */
 @Component
 class HeartBeatInspector(
-    configProperties: ConfigProperties,
     private val containerService: ContainerService,
     private val agentService: AgentService,
+    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
 ) {
-    /**
-     * Collection that stores information about containers
-     */
-    internal val orchestratorAgentStatusService = OrchestratorAgentStatusService(configProperties.agentsHeartBeatTimeoutMillis)
-
     /**
      * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
      *
