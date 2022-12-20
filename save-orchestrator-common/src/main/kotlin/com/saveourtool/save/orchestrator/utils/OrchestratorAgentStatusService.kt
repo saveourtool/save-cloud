@@ -181,9 +181,14 @@ class OrchestratorAgentStatusService(
         }
         executionToContainers.forEach { (executionId, containerIds) ->
             val stoppedContainersIds = containerIds.filterTo(HashSet(), isStoppedFunction)
-            executionToContainers[executionId] = containerIds - stoppedContainersIds
-            containerToLatestState.keys.removeAll(containerIds)
-            crashedContainers.removeAll(containerIds)
+            if (stoppedContainersIds.isNotEmpty()) {
+                log.debug {
+                    "Agents with ids $stoppedContainersIds are already stopped, will stop watching it"
+                }
+                executionToContainers[executionId] = containerIds - stoppedContainersIds
+                containerToLatestState.keys.removeAll(containerIds)
+                crashedContainers.removeAll(containerIds)
+            }
         }
     }
 
