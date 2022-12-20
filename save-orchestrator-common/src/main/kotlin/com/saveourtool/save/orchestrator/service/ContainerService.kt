@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -78,7 +79,7 @@ class ContainerService(
         return agentService
             .updateExecution(executionId, ExecutionStatus.RUNNING)
             .map {
-                containerRunner.start(executionId)
+                containerRunner.startAllByExecution(executionId)
                 log.info("Made request to start containers for execution.id=$executionId")
             }
             .flatMapMany {
@@ -97,7 +98,8 @@ class ContainerService(
                     .doOnComplete {
                         if (areAgentsHaveStarted[executionId]?.get() != true) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
-                            containerRunner.stop(executionId)
+                            cleanup(executionId)
+                            containerRunner.cleanupAllByExecution(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
                             ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
@@ -113,15 +115,21 @@ class ContainerService(
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>) =
+    fun stopAgents(containerIds: Collection<String>): Boolean = (containerRunner as? ContainerRunner.Stoppable)
+        ?.let { runner ->
             try {
                 containerIds.all { containerId ->
-                    containerRunner.stopByContainerId(containerId)
+                    runner.stop(containerId)
                 }
             } catch (e: ContainerRunnerException) {
                 log.error("Error while stopping agents $containerIds", e)
                 false
             }
+        }
+        ?: run {
+            log.warn { "${containerRunner::class.simpleName} doesn't support stopping of containers" }
+            false
+        }
 
     /**
      * @param executionId
@@ -138,13 +146,13 @@ class ContainerService(
      * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
+    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
-        containerRunner.cleanup(executionId)
+        containerRunner.cleanupAllByExecution(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
