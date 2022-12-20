@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.entity.GitRepo
+import com.saveourtool.save.demo.entity.GithubRepo
 import com.saveourtool.save.demo.entity.Snapshot
 import com.saveourtool.save.demo.entity.Tool
 import com.saveourtool.save.demo.repository.ToolRepository
@@ -13,27 +13,27 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ToolService(
     private val toolRepository: ToolRepository,
-    private val gitRepoService: GitRepoService,
+    private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
 ) {
-    private fun save(gitRepo: GitRepo, snapshot: Snapshot) = toolRepository.save(Tool(gitRepo, snapshot))
+    private fun save(githubRepo: GithubRepo, snapshot: Snapshot) = toolRepository.save(Tool(githubRepo, snapshot))
 
     /**
-     * @param gitRepo
+     * @param githubRepo
      * @param snapshot
      * @return [Tool] entity saved to database
      */
     @Transactional
-    fun saveIfNotPresent(gitRepo: GitRepo, snapshot: Snapshot): Tool {
-        val gitRepoFromDb = gitRepoService.saveIfNotPresent(gitRepo)
+    fun saveIfNotPresent(githubRepo: GithubRepo, snapshot: Snapshot): Tool {
+        val githubRepoFromDb = githubRepoService.saveIfNotPresent(githubRepo)
         val snapshotFromDb = snapshotService.saveIfNotPresent(snapshot)
-        return toolRepository.findByGitRepoAndSnapshot(gitRepoFromDb, snapshotFromDb) ?: save(gitRepoFromDb, snapshotFromDb)
+        return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb) ?: save(githubRepoFromDb, snapshotFromDb)
     }
 
     /**
-     * @param gitRepo
+     * @param githubRepo
      * @param version
-     * @return [Tool] fetched from [gitRepo] that matches requested [version]
+     * @return [Tool] fetched from [githubRepo] that matches requested [version]
      */
-    fun findByGitRepoAndVersion(gitRepo: GitRepo, version: String) = toolRepository.findByGitRepoAndSnapshotVersion(gitRepo, version)
+    fun findByGithubRepoAndVersion(githubRepo: GithubRepo, version: String) = toolRepository.findByGithubRepoAndSnapshotVersion(githubRepo, version)
 }

@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.repository
 
-import com.saveourtool.save.demo.entity.GitRepo
+import com.saveourtool.save.demo.entity.GithubRepo
 import com.saveourtool.save.demo.entity.Snapshot
 import com.saveourtool.save.demo.entity.Tool
 import com.saveourtool.save.spring.repository.BaseEntityRepository
@@ -12,25 +12,25 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ToolRepository : BaseEntityRepository<Tool> {
     /**
-     * @param gitRepo
-     * @return list of [Tool]s corresponding to [gitRepo]
+     * @param githubRepo
+     * @return list of [Tool]s corresponding to [githubRepo]
      */
-    fun findByGitRepo(gitRepo: GitRepo): List<Tool>
+    fun findByGithubRepo(githubRepo: GithubRepo): List<Tool>
 
     /**
-     * @param gitRepo
+     * @param githubRepo
      * @param snapshot
-     * @return [Tool] from [gitRepo] repository corresponding [snapshot].
+     * @return [Tool] from [githubRepo] repository corresponding [snapshot].
      */
-    fun findByGitRepoAndSnapshot(gitRepo: GitRepo, snapshot: Snapshot): Tool?
+    fun findByGithubRepoAndSnapshot(githubRepo: GithubRepo, snapshot: Snapshot): Tool?
 
     /**
-     * @param gitRepo
+     * @param githubRepo
      * @param versionTag version control system tag name
-     * @return list of [Tool]s from [gitRepo] repository that match [versionTag] version
+     * @return list of [Tool]s from [githubRepo] repository that match [versionTag] version
      */
-    fun findByGitRepoAndSnapshotVersion(
-        gitRepo: GitRepo,
+    fun findByGithubRepoAndSnapshotVersion(
+        githubRepo: GithubRepo,
         versionTag: String,
     ): List<Tool>
 }

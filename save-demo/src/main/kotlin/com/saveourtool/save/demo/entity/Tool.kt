@@ -5,15 +5,14 @@ import com.saveourtool.save.spring.entity.BaseEntity
 import javax.persistence.*
 
 /**
- * @property gitRepo
+ * @property githubRepo
  * @property snapshot
  */
 @Entity
-@Table(name = "tool")
 class Tool(
     @ManyToOne
     @JoinColumn(name = "git_repo_id")
-    var gitRepo: GitRepo,
+    var githubRepo: GithubRepo,
     @ManyToOne
     @JoinColumn(name = "snapshot_id")
     var snapshot: Snapshot,
@@ -22,8 +21,8 @@ class Tool(
      * @return [ToolKey] from [Tool] entity
      */
     fun toToolKey() = ToolKey(
-        gitRepo.organizationName,
-        gitRepo.toolName,
+        githubRepo.organizationName,
+        githubRepo.toolName,
         snapshot.version,
         snapshot.executableName,
     )

@@ -1,6 +1,7 @@
 package com.saveourtool.save.demo.entity
 
 import com.saveourtool.save.spring.entity.BaseEntity
+import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Table
 
@@ -10,7 +11,8 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "git_repo")
-class GitRepo(
+class GithubRepo(
     var organizationName: String,
+    @Column(name = "project_name")
     var toolName: String,
 ) : BaseEntity()
