@@ -165,8 +165,8 @@ class AgentsController(
      */
     @GetMapping("/getAgentStatusesByExecutionId")
     @Transactional
-    fun findAllAgentStatusesByExecutionId(@RequestParam executionId: Long): AgentStatusesForExecution {
-        val agentStatuses = agentService.getAgentsByExecutionId(executionId).map { agent ->
+    fun findAllAgentStatusesByExecutionId(@RequestParam executionId: Long): List<AgentStatusDto> {
+        return agentService.getAgentsByExecutionId(executionId).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
@@ -174,7 +174,6 @@ class AgentsController(
             }
             latestStatus.toDto()
         }
-        return AgentStatusesForExecution(executionId, agentStatuses)
     }
 
     /**

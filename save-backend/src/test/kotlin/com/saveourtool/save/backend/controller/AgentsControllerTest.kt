@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
 import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -127,9 +126,9 @@ class AgentsControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectBody<AgentStatusesForExecution>()
+            .expectBody<List<AgentStatusDto>>()
             .consumeWith {
-                val statuses = requireNotNull(it.responseBody).agentStatuses
+                val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)

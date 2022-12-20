@@ -3,13 +3,8 @@ package com.saveourtool.save.sandbox.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.SaveCliOverrides
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.toEntity
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
@@ -120,7 +115,7 @@ class SandboxOrchestratorAgentService(
         emptyList()
     }
 
-    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusList> = blockingToMono {
+    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusDtoList> = blockingToMono {
         containerIds
             .mapNotNull { sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(it) }
             .map { it.toDto() }
@@ -141,7 +136,7 @@ class SandboxOrchestratorAgentService(
         }
         .thenReturn(ResponseEntity.ok().build())
 
-    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution> = getExecutionAsMono(executionId)
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList> = getExecutionAsMono(executionId)
         .map { execution ->
             sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
                 .map { it.agent }
@@ -153,9 +148,6 @@ class SandboxOrchestratorAgentService(
                 }
                 .map {
                     it.toDto()
-                }
-                .let {
-                    AgentStatusesForExecution(execution.requiredId(), it)
                 }
         }
 

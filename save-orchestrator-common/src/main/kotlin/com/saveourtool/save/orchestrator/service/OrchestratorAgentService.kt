@@ -12,7 +12,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono
 
 typealias IdList = List<Long>
-typealias AgentStatusList = List<AgentStatusDto>
 typealias TestExecutionList = List<TestExecutionDto>
 
 /**
@@ -67,7 +66,7 @@ interface OrchestratorAgentService {
      */
     fun getAgentsStatuses(
         containerIds: List<String>,
-    ): Mono<AgentStatusList>
+    ): Mono<AgentStatusDtoList>
 
     /**
      * Marks the execution to specified state
@@ -85,9 +84,9 @@ interface OrchestratorAgentService {
 
     /**
      * @param executionId ID of an execution
-     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
+     * @return Mono with [AgentStatusDtoList]: agent statuses belonged to a [com.saveourtool.save.entities.Execution] with provided ID
      */
-    fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution>
+    fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList>
 
     /**
      * Mark agent's test executions as failed
