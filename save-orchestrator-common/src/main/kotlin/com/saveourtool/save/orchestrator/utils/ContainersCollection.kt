@@ -149,7 +149,7 @@ class ContainersCollection(
     fun processExecutionWithoutContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf { values.isEmpty() }
+                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)

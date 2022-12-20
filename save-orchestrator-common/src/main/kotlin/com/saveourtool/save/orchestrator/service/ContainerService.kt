@@ -1,10 +1,8 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TerminateResponse
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -226,7 +224,7 @@ class ContainerService(
     @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
     private fun run() {
         determineCrashedAgents()
-        processCrashedAgents()
+        cleanupExecutionWithoutContainers()
     }
 
     /**
@@ -239,28 +237,17 @@ class ContainerService(
     /**
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
-    private fun processCrashedAgents() {
+    private fun cleanupExecutionWithoutContainers() {
         containers.processCrashed { crashedContainers ->
             log.debug {
                 "Stopping crashed agents: $crashedContainers"
             }
-
-            val areAgentsStopped = stopAgents(crashedContainers)
-            if (areAgentsStopped) {
-                Flux.fromIterable(crashedContainers)
-                    .flatMap { containerId ->
-                        agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
-                    }
-                    .blockLast()
-                containers.processExecutionWithoutContainers { executionIds ->
-                    executionIds.forEach { executionId ->
-                        log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
-                        containers.deleteAllByExecutionId(executionId)
-                        agentService.finalizeExecution(executionId)
-                    }
+            containers.processExecutionWithoutContainers { executionIds ->
+                executionIds.forEach { executionId ->
+                    log.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
+                    containers.deleteAllByExecutionId(executionId)
+                    agentService.finalizeExecution(executionId)
                 }
-            } else {
-                log.warn("Crashed agents $crashedContainers are not stopped after stop command")
             }
         }
     }
