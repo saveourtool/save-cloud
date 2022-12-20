@@ -1,11 +1,9 @@
-import com.saveourtool.save.buildutils.configureJacoco
-import com.saveourtool.save.buildutils.configurePublishing
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
-    `maven-publish`
+    id("com.saveourtool.save.buildutils.publishing-configuration")
 }
 
 java {
@@ -53,6 +51,3 @@ publishing {
         }
     }
 }
-
-configureJacoco()
-configurePublishing()
