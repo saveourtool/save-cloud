@@ -33,4 +33,8 @@
                                  onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="drop-dependency-table" author="sanyavertolet">
+        <dropTable tableName="dependency"/>
+    </changeSet>
+
 </databaseChangeLog>

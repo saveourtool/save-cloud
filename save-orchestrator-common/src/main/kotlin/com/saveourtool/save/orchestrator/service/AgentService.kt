@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.onErrorResume
+import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 /**
@@ -66,13 +67,17 @@ class AgentService(
     fun saveAgentsWithInitialStatuses(
         executionId: Long,
         agents: List<AgentDto>,
-    ): Mono<EmptyResponse> = orchestratorAgentService
-        .addAgents(executionId, agents)
-        .flatMap {
-            orchestratorAgentService.updateAgentStatusesWithDto(agents.map { agent ->
-                AgentStatusDto(STARTING, agent.containerId)
-            })
+    ): Mono<EmptyResponse> = agents.toFlux()
+        .flatMap { agent ->
+            orchestratorAgentService
+                .addAgent(executionId, agent)
+                .flatMap {
+                    orchestratorAgentService.updateAgentStatus(
+                        AgentStatusDto(STARTING, agent.containerId)
+                    )
+                }
         }
+        .last()
 
     /**
      * @param agentState [AgentStatus] to update in the DB
@@ -80,7 +85,7 @@ class AgentService(
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
             orchestratorAgentService
-                .updateAgentStatusesWithDto(listOf(agentState))
+                .updateAgentStatus(agentState)
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
                     Mono.empty()
@@ -119,7 +124,7 @@ class AgentService(
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
                     .thenReturn(
-                        containerRunner.cleanup(executionId)
+                        containerRunner.cleanupAllByExecution(executionId)
                     )
             }
             .doOnSuccess {
