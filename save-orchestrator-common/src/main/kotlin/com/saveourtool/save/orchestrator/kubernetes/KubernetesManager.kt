@@ -98,51 +98,25 @@ class KubernetesManager(
             .orEmpty()
     }
 
-    override fun start(executionId: Long) {
+    override fun startAllByExecution(executionId: Long) {
         logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
     }
 
-    override fun stop(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
+        logger.debug { "Removing a Job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
-        val deletedResources = kcJobsWithName(jobName)
-            .delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
-        }
-        logger.debug("Deleted Job for execution id=$executionId")
-    }
-
-    override fun stopByContainerId(containerId: String): Boolean {
-        val pod: Pod? = kc.pods().withName(containerId).get()
-        pod ?: run {
-            logger.debug("Agent id=$containerId is already stopped or not yet created")
-            return true
-        }
-        val deletedResources = kc.pods().withName(containerId).delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw ContainerRunnerException("Failed to delete pod with name $containerId: response is $deletedResources")
-        } else {
-            logger.debug("Deleted pod with name=$containerId")
-            return true
-        }
-    }
-
-    override fun cleanup(executionId: Long) {
-        logger.debug("Removing a Job for execution id=$executionId")
-        val job = kcJobsWithName(jobNameForExecution(executionId))
+        val job = kcJobsWithName(jobName)
         job.get()?.let {
-            job.delete()
+            val deletedResources = job.delete()
+            val isDeleted = deletedResources.size == 1
+            if (!isDeleted) {
+                throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+            }
+            logger.debug { "Deleted Job for execution id=$executionId" }
         }
     }
 
-    override fun prune() {
-        logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
-                "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
-    }
-
-    override fun isStoppedByContainerId(containerId: String): Boolean {
+    override fun isStopped(containerId: String): Boolean {
         val pod = kc.pods().withName(containerId).get()
         return pod == null || run {
             // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839
