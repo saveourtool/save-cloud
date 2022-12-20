@@ -33,6 +33,9 @@ data class RegularTestMetrics(
         get() = successCount + failureCount + ignoredCount
 
     /**
+     * The ratio (between 0% and 100%) of the failure count to the
+     * [run count][runCount], within the _sliding window_.
+     *
      * @see failureRate
      */
     val failureRatePercentage: Int
@@ -46,12 +49,22 @@ data class RegularTestMetrics(
         }
 
     /**
+     * The ratio (between 0.0 and 1.0) of the failure count to the
+     * [run count][runCount], within the _sliding window_.
+     *
      * @see failureRatePercentage
      */
     val failureRate: Double
         get() = failureRatePercentage / 100.0
 
     /**
+     * The ratio (between 0% and 100%) of the actual flip count to the maximum
+     * possible flip count (i.e. [run count][runCount] minus one), within the
+     * _sliding window_.
+     *
+     * A test _flip_ is a status change (either from _successful_ to a _failed_
+     * or vice versa) over two consecutive test runs.
+     *
      * @see flipRate
      */
     val flipRatePercentage: Int
@@ -72,6 +85,13 @@ data class RegularTestMetrics(
         }
 
     /**
+     * The ratio (between 0.0 and 1.0) of the actual flip count to the maximum
+     * possible flip count (i.e. [run count][runCount] minus one), within the
+     * _sliding window_.
+     *
+     * A test _flip_ is a status change (either from _successful_ to a _failed_
+     * or vice versa) over two consecutive test runs.
+     *
      * @see flipRatePercentage
      */
     val flipRate: Double

@@ -8,10 +8,30 @@ import com.saveourtool.save.test.analysis.api.results.IrregularTest
 /**
  * _Flip-rate_ based flaky test detection algorithm.
  *
+ * A test _flip_ is a status change (either from _successful_ to a _failed_ or
+ * vice versa) over two consecutive test runs.
+ *
+ * A _flip rate_ is the ratio of the actual flip number to the maximum possible
+ * flip number (i.e. run count minus one, see
+ * [RegularTestMetrics.flipRate] and [RegularTestMetrics.flipRatePercentage]):
+ *
+ * ```
+ *         N          + N
+ *          pass➔fail    fail➔pass
+ * R     = ────────────────────────
+ *  flip          N    - 1
+ *                 run
+ * ```
+ *
+ * If the _flip rate_ exceeds a certain [threshold][flipRateThreshold], the test
+ * is considered _flaky_.
+ *
  * @param minimumRunCount the minimum run count a sample should have to be
  *   representative.
  * @param flipRateThreshold the _flip rate_ threshold.
  *   If the threshold is exceeded, the test is considered _flaky_.
+ * @see RegularTestMetrics.flipRate
+ * @see RegularTestMetrics.flipRatePercentage
  */
 @Suppress("FLOAT_IN_ACCURATE_CALCULATIONS")
 class FlipRateAnalysis(
