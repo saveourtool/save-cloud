@@ -67,11 +67,14 @@ class ContainerService(
     fun createContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = containerRunner.create(
-        executionId = executionId,
-        configuration = configuration,
-        replicas = configProperties.agentsCount,
-    )
+    ): List<String> {
+        containers.markExecutionAsStarted(executionId)
+        return containerRunner.create(
+            executionId = executionId,
+            configuration = configuration,
+            replicas = configProperties.agentsCount,
+        )
+    }
 
     /**
      * @param executionId ID of [Execution] for which containers are being started

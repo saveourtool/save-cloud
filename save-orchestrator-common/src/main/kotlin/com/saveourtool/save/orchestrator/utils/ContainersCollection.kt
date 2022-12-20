@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.utils
 
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import org.slf4j.LoggerFactory
 
@@ -13,6 +14,9 @@ import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 
 /**
  * Collection that stores information about containers:
@@ -28,10 +32,16 @@ class ContainersCollection(
     private val crashedThresholdInMillis: Long,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
+
     @Suppress("TYPE_ALIAS")
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
     private val containerToLatestState: MutableMap<String, Instant> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
+    private val executionStartTime: MutableMap<Long, LocalDateTime> = HashMap()
+
+    fun markExecutionAsStarted(executionId: Long): Unit = useWriteLock {
+        executionStartTime[executionId] = getCurrentLocalDateTime()
+    }
 
     /**
      * Adds or updates information about container.
@@ -86,6 +96,7 @@ class ContainersCollection(
         }
         containerToLatestState.keys.removeAll(assignedContainerIds)
         crashedContainers.removeAll(assignedContainerIds)
+        executionStartTime.remove(executionId)
     }
 
     /**
@@ -149,7 +160,14 @@ class ContainersCollection(
     fun processExecutionWithoutContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
+                key.takeIf {
+                    (values.isEmpty() || crashedContainers.containsAll(values)) &&
+                            requireNotNull(executionStartTime[key]) {
+                                "There is no startTime for executionId $key"
+                            }
+                                .toInstant(TimeZone.UTC)
+                                .isStale()
+                }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)
@@ -165,12 +183,11 @@ class ContainersCollection(
         containerToLatestState.filter { (currentContainerId, _) ->
             currentContainerId !in crashedContainers
         }.forEach { (currentContainerId, timestamp) ->
-            val duration = (Clock.System.now() - timestamp).inWholeMilliseconds
             log.debug {
-                "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
+                "Latest heartbeat from $currentContainerId was sent: $timestamp"
             }
-            if (duration >= crashedThresholdInMillis) {
-                log.debug("Adding $currentContainerId to list crashed agents")
+            if (timestamp.isStale()) {
+                log.debug { "Adding $currentContainerId to list crashed agents" }
                 crashedContainers.add(currentContainerId)
             }
         }
@@ -181,6 +198,8 @@ class ContainersCollection(
             crashedContainers.removeAll(containerIds)
         }
     }
+
+    private fun Instant.isStale(): Boolean = (Clock.System.now() - this).inWholeMilliseconds >= crashedThresholdInMillis
 
     private fun <R> useReadLock(action: () -> R): R = lock.readLock().use(action)
     private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().use(action)
