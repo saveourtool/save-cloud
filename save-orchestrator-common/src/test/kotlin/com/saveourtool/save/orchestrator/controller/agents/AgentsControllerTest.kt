@@ -68,9 +68,9 @@ class AgentsControllerTest {
 
         whenever(containerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(orchestratorAgentService.addAgents(anyLong(), anyList()))
-            .thenReturn(listOf<Long>(1, 2).toMono())
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
+        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 

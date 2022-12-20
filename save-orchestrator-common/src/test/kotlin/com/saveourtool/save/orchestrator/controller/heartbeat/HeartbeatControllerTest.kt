@@ -77,7 +77,7 @@ class HeartbeatControllerTest {
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
 
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         webClient.post()
             .uri("/heartbeat")
@@ -87,7 +87,7 @@ class HeartbeatControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-        verify(orchestratorAgentService).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService).updateAgentStatus(any())
     }
 
     @Test
@@ -367,7 +367,7 @@ class HeartbeatControllerTest {
         }
 
         repeat(mockUpdateAgentStatusesCount) {
-            whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+            whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         }
         if (mockAgentStatusesForSameExecution) {
@@ -405,7 +405,7 @@ class HeartbeatControllerTest {
         testBatchNullable?.let {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
-        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
         if (mockAgentStatusesForSameExecution) {
             verify(orchestratorAgentService).getAgentStatusesForSameExecution(any())
         }

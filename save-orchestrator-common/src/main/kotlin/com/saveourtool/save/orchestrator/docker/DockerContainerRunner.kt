@@ -19,6 +19,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -41,7 +42,7 @@ class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : ContainerRunner {
+) : ContainerRunner, ContainerRunner.Stoppable, ContainerRunner.Prunable {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
@@ -71,7 +72,7 @@ class DockerContainerRunner(
         }
     }
 
-    override fun start(executionId: Long) {
+    override fun startAllByExecution(executionId: Long) {
         val containerIds = containerIdsByExecution.computeIfAbsent(executionId) {
             // For executions started by the running instance of orchestrator, this key should be already present in the map.
             // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
@@ -83,23 +84,32 @@ class DockerContainerRunner(
         }
     }
 
-    override fun stop(executionId: Long) {
-        val runningContainersForExecution = dockerClient.listContainersCmd()
-            .withStatusFilter(listOf("running"))
-            .exec()
-            .filter { container -> container.names.any { it.contains("-$executionId-") } }
-        runningContainersForExecution.map { it.id }.forEach { containerId ->
-            dockerClient.stopContainerCmd(containerId).exec()
+    override fun stop(containerId: String): Boolean {
+        logger.info("Stopping agent with id=$containerId")
+        val state = dockerClient.inspectContainerCmd(containerId).exec().state
+        return if (state.status == "running") {
+            try {
+                dockerClient.stopContainerCmd(containerId).exec()
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Exception when stopping agent id=$containerId", dex)
+            }
+            logger.info("Agent with id=$containerId has been stopped")
+            true
+        } else {
+            if (state.status != "exited") {
+                logger.warn("Agent with id=$containerId was requested to be stopped, but it actual state=$state")
+            }
+            state.status == "exited"
         }
     }
 
-    override fun isStoppedByContainerId(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
+    override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
         .also { logger.debug("Container $containerId has state $it") }
         .status != "running"
 
-    override fun cleanup(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
