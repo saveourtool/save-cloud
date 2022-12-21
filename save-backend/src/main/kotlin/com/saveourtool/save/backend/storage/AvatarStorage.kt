@@ -31,7 +31,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
         when (pathToContent.parent.name) {
             USERS_DIRECTORY -> AvatarType.USER
             ORGANIZATIONS_DIRECTORY -> AvatarType.ORGANIZATION
-            else -> AvatarType.NONE
+            else -> throw IllegalStateException("Not supported type for path: ${pathToContent.parent.name}")
         },
         pathToContent.name,
     )

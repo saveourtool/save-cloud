@@ -8,11 +8,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class AvatarType {
     /**
-     * default
-     */
-    NONE,
-
-    /**
      * Organization avatar
      */
     ORGANIZATION,
