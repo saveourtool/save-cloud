@@ -275,7 +275,7 @@ class DownloadFilesController(
             when (type) {
                 AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
                 AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
-                else -> ""
+                else -> throw IllegalStateException("Not supported type: $type")
             }
         }
         ResponseEntity.status(

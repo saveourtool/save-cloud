@@ -58,7 +58,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
             when (key.type) {
                 AvatarType.USER -> it.resolve(USERS_DIRECTORY)
                 AvatarType.ORGANIZATION -> it.resolve(ORGANIZATIONS_DIRECTORY)
-                else -> it
+                else -> throw IllegalStateException("Not supported type: ${key.type}")
             }
         }
         .resolve(key.objectName)
@@ -85,6 +85,6 @@ data class AvatarKey(
     fun getRelativePath(): String = when (type) {
         AvatarType.ORGANIZATION -> "/${AvatarStorage.ORGANIZATIONS_DIRECTORY}/$objectName"
         AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$objectName"
-        else -> ""
+        else -> throw IllegalStateException("Not supported type: $type")
     }
 }
