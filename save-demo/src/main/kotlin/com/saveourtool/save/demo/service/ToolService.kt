@@ -19,6 +19,11 @@ class ToolService(
     private fun save(githubRepo: GithubRepo, snapshot: Snapshot) = toolRepository.save(Tool(githubRepo, snapshot))
 
     /**
+     * @return list of tools that are stored in database
+     */
+    fun getSupportedTools(): List<Tool> = toolRepository.findAll()
+
+    /**
      * @param githubRepo
      * @param snapshot
      * @return [Tool] entity saved to database

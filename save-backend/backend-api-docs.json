@@ -1763,6 +1763,55 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
+      "post": {
+        "description": "Add demo for a tool.",
+        "operationId": "addDemo",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "vcsTagName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully change status of a project."
+          }
+        },
+        "summary": "Add demo for a tool.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "operationId": "getExecution",
