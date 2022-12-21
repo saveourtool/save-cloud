@@ -12,19 +12,17 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.ContainersCollection
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.warn
 import com.saveourtool.save.utils.waitReactivelyUntil
+import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import reactor.core.publisher.Flux
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 import kotlinx.datetime.Instant
 
 /**
@@ -141,14 +139,12 @@ class ContainerService(
     fun ensureGracefullyStopped(containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks: Int = configProperties.shutdown.gracefulNumChecks
-        Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
-            .take(numChecks.toLong())
-            .map {
-                isStoppedByContainerId(containerId)
-            }
-            .takeUntil { it }
-            // check whether we have got `true` or Flux has completed with only `false`
-            .any { it }
+        waitReactivelyUntil(
+            interval = shutdownTimeoutSeconds / numChecks,
+            numberOfChecks = numChecks.toLong(),
+        ) {
+            isStoppedByContainerId(containerId)
+        }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     log.warn {

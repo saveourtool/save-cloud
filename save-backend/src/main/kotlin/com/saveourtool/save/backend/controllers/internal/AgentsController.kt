@@ -153,6 +153,20 @@ class AgentsController(
     }
 
     /**
+     * Get statuses of all agents in the same execution with provided agent (including itself).
+     *
+     * @param containerId containerId of an agent.
+     * @return list of agent statuses
+     * @throws IllegalStateException if provided [containerId] is invalid.
+     */
+    @GetMapping("/getAgentsStatusesForSameExecution")
+    @Transactional
+    fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
+        val executionId = agentService.getExecutionByContainerId(containerId).requiredId()
+        return findAllAgentStatusesByExecutionId(executionId)
+    }
+
+    /**
      * Get statuses of all agents assigned to execution with provided ID.
      *
      * @param executionId ID of an execution.
@@ -171,20 +185,6 @@ class AgentsController(
             latestStatus.toDto()
         }
         return AgentStatusesForExecution(executionId, agentStatuses)
-    }
-
-    /**
-     * Get statuses of all agents in the same execution with provided agent (including itself).
-     *
-     * @param containerId containerId of an agent.
-     * @return list of agent statuses
-     * @throws IllegalStateException if provided [containerId] is invalid.
-     */
-    @GetMapping("/getAgentsStatusesForSameExecution")
-    @Transactional
-    fun findAllAgentStatusesForSameExecution(@RequestParam containerId: String): AgentStatusesForExecution {
-        val executionId = agentService.getExecutionByContainerId(containerId).requiredId()
-        return findAllAgentStatusesByExecutionId(executionId)
     }
 
     /**
