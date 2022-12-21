@@ -9,20 +9,18 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.waitReactivelyUntil
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
-import kotlinx.datetime.Clock
 
 /**
  * A service that builds and starts containers for test execution.
@@ -72,7 +70,7 @@ class ContainerService(
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(executionId: Long, containerIds: List<String>): Flux<Long> {
+    fun startContainersAndUpdateExecution(executionId: Long, containerIds: List<String>): Mono<Boolean> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         return agentService
             .updateExecution(executionId, ExecutionStatus.RUNNING)
@@ -80,20 +78,16 @@ class ContainerService(
                 containerRunner.startAllByExecution(executionId)
                 log.info("Made request to start containers for execution.id=$executionId")
             }
-            .flatMapMany {
+            .flatMap {
                 // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
                 // if no, mark execution as failed with internal error here
-                val now = Clock.System.now()
-                val duration = AtomicLong(0)
-                Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
-                    .takeWhile {
-                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
-                    }
-                    .doOnNext {
-                        duration.set((Clock.System.now() - now).inWholeMilliseconds)
-                    }
-                    .doOnComplete {
+                waitReactivelyUntil(
+                    interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
+                    numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
+                ) {
+                    areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+                }
+                    .doOnSuccess {
                         if (areAgentsHaveStarted[executionId]?.get() != true) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.cleanupAllByExecution(executionId)
