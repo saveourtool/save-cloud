@@ -74,6 +74,7 @@ mysql:
   # Name of the database schema that will be used by save-cloud deployment
   backend_schema: save_cloud
   sandbox_schema: save_sandbox
+  demo_schema: save_demo
   root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application
