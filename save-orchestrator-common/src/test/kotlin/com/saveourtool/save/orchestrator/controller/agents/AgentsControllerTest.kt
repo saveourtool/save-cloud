@@ -26,8 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
 import org.springframework.http.ResponseEntity
 import reactor.kotlin.core.publisher.toMono
@@ -67,7 +65,7 @@ class AgentsControllerTest {
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
         whenever(containerService.startContainersAndUpdateExecution(any(), anyList()))
-            .thenReturn(Flux.just(1L, 2L, 3L))
+            .thenReturn(true.toMono())
         whenever(orchestratorAgentService.addAgent(anyLong(), any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         whenever(orchestratorAgentService.updateAgentStatus(any()))
