@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.Heartbeat
+import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 
 import org.slf4j.LoggerFactory
@@ -60,11 +61,10 @@ class HeartBeatInspector(
     /**
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
-    fun processCrashedAgents() {
-        orchestratorAgentStatusService.processExecutionWithoutNotCrashedContainers { executionIds ->
+    fun processExecutionWithCrashedAgents() {
+        orchestratorAgentStatusService.processExecutionWithAllCrashedContainers { executionIds ->
             executionIds.forEach { executionId ->
-                logger.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
-                orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                logger.warn("All agents for execution $executionId are crashed, initialize finalization of it.")
                 agentService.finalizeExecution(executionId)
             }
         }
@@ -73,7 +73,7 @@ class HeartBeatInspector(
     @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
     private fun run() {
         determineCrashedAgents()
-        processCrashedAgents()
+        processExecutionWithCrashedAgents()
     }
 
     companion object {

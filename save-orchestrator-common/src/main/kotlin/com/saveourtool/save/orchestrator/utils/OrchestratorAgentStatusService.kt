@@ -151,10 +151,10 @@ class OrchestratorAgentStatusService(
      *
      * @param process action on execution ids
      */
-    fun processExecutionWithoutNotCrashedContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
+    fun processExecutionWithAllCrashedContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
+                key.takeIf { values.isNotEmpty() && crashedContainers.containsAll(values) }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)
