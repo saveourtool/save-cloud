@@ -125,7 +125,6 @@ class HeartbeatControllerTest {
             mockUpdateAgentStatusesCount = 1,
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -146,7 +145,6 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 2,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -168,10 +166,6 @@ class HeartbeatControllerTest {
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                containerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 
@@ -195,7 +189,6 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 3,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -203,8 +196,6 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        whenever(containerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(containerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -280,10 +271,6 @@ class HeartbeatControllerTest {
             mockAgentStatusesForSameExecution = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                containerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 

@@ -110,7 +110,6 @@ class ContainerServiceTest {
         }
 
         // tear down
-        containerService.stopAgents(listOf(testContainerId))
         verify(orchestratorAgentService).updateExecutionStatus(any(), any(), anyOrNull())
         verifyNoMoreInteractions(orchestratorAgentService)
     }
