@@ -15,4 +15,9 @@ class GithubRepo(
     var organizationName: String,
     @Column(name = "project_name")
     var toolName: String,
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return pretty string that defines [GithubRepo]
+     */
+    fun toPrettyString() = "$organizationName/$toolName"
+}

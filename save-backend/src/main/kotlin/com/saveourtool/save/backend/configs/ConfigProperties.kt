@@ -8,9 +8,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * Class for properties
  *
  * @property preprocessorUrl url of preprocessor
+ * @property orchestratorUrl url of save-orchestrator
+ * @property demoUrl url of save-demo
  * @property initialBatchSize initial size of tests batch (for further scaling)
  * @property fileStorage configuration of file storage
- * @property orchestratorUrl url of save-orchestrator
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
  * @property loki config of loki service for logging
@@ -20,6 +21,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val preprocessorUrl: String,
     val orchestratorUrl: String,
+    val demoUrl: String,
     val initialBatchSize: Int,
     val fileStorage: FileStorageConfig,
     val scheduling: Scheduling = Scheduling(),
