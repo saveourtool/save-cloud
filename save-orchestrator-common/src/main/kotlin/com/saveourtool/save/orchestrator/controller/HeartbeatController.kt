@@ -17,14 +17,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
 
 /**
@@ -143,15 +141,13 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun ensureGracefulShutdown(containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
-        val numChecks: Int = configProperties.shutdown.gracefulNumChecks
-        Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
-            .take(numChecks.toLong())
-            .map {
-                containerService.isStoppedByContainerId(containerId)
-            }
-            .takeUntil { it }
-            // check whether we have got `true` or Flux has completed with only `false`
-            .any { it }
+        val numChecks = configProperties.shutdown.gracefulNumChecks
+        waitReactivelyUntil(
+            interval = shutdownTimeoutSeconds / numChecks,
+            numberOfChecks = numChecks.toLong(),
+        ) {
+            containerService.isStoppedByContainerId(containerId)
+        }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     logger.warn {
