@@ -2459,7 +2459,6 @@
             "schema": {
               "type": "string",
               "enum": [
-                "NONE",
                 "ORGANIZATION",
                 "USER"
               ]
