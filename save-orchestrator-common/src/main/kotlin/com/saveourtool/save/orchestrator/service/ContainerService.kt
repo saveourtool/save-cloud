@@ -7,25 +7,20 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.warn
+import com.saveourtool.save.utils.waitReactivelyUntil
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
-import kotlinx.datetime.Clock
 
 /**
  * A service that builds and starts containers for test execution.
@@ -78,17 +73,13 @@ class ContainerService(
         log.info("Sending request to make execution.id=$executionId RUNNING")
         // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
         // if no, mark execution as failed with internal error here
-        val now = Clock.System.now()
-        val duration = AtomicLong(0)
-        return Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
-            .takeWhile {
-                val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
-            }
-            .doOnNext {
-                duration.set((Clock.System.now() - now).inWholeMilliseconds)
-            }
-            .doOnComplete {
+        return waitReactivelyUntil(
+            interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
+            numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
+        ) {
+            areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+        }
+            .doOnSuccess {
                 if (areAgentsHaveStarted[executionId]?.get() != true) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
                     containerRunner.cleanupAllByExecution(executionId)
@@ -101,27 +92,6 @@ class ContainerService(
             }
             .then()
     }
-
-    /**
-     * @param containerIds list of container IDs of agents to stop
-     * @return true if agents have been stopped, false if another thread is already stopping them
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>): Boolean = (containerRunner as? ContainerRunner.Stoppable)
-        ?.let { runner ->
-            try {
-                containerIds.all { containerId ->
-                    runner.stop(containerId)
-                }
-            } catch (e: ContainerRunnerException) {
-                log.error("Error while stopping agents $containerIds", e)
-                false
-            }
-        }
-        ?: run {
-            log.warn { "${containerRunner::class.simpleName} doesn't support stopping of containers" }
-            false
-        }
 
     /**
      * @param executionId

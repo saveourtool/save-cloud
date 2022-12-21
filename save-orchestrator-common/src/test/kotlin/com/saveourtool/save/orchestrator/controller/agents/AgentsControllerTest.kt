@@ -28,7 +28,6 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.web.reactive.function.BodyInserters
 
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
@@ -97,18 +96,6 @@ class AgentsControllerTest {
         assertThrows<IllegalArgumentException> {
             execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl")
         }
-    }
-
-    @Test
-    fun `should stop agents by id`() {
-        webClient
-            .post()
-            .uri("/stopAgents")
-            .body(BodyInserters.fromValue(listOf("id-of-agent")))
-            .exchange()
-            .expectStatus()
-            .isOk
-        verify(containerService).stopAgents(anyList())
     }
 
     @Test

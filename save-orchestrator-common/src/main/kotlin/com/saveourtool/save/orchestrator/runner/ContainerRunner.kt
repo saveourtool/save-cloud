@@ -47,19 +47,6 @@ interface ContainerRunner {
     fun getContainerIdentifier(containerId: String): String
 
     /**
-     * [ContainerRunner] which implements this interface allows to stop containers
-     */
-    interface Stoppable {
-        /**
-         * @param containerId ID of container that should be stopped
-         * @return true if agent has been stopped successfully
-         * todo: distinguish stopped / not stopped / error / already stopped
-         */
-        @Suppress("FUNCTION_BOOLEAN_PREFIX")
-        fun stop(containerId: String): Boolean
-    }
-
-    /**
      * [ContainerRunner] which implements this interface requires prune old data
      */
     interface Prunable {
