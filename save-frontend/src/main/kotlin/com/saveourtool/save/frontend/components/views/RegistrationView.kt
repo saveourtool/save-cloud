@@ -183,7 +183,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     private fun ChildrenBuilder.renderAvatar() {
         label {
             className = ClassName("btn")
-            title = "Change user's avatar"
+            title = "Change the user's avatar"
             input {
                 type = InputType.file
                 hidden = true
