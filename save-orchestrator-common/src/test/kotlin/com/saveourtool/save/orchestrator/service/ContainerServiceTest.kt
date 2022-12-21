@@ -109,17 +109,12 @@ class ContainerServiceTest {
             "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
         }
 
-        // tear down
-        containerService.stopAgents(listOf(testContainerId))
         verify(orchestratorAgentService).updateExecutionStatus(any(), any(), anyOrNull())
         verifyNoMoreInteractions(orchestratorAgentService)
     }
 
     @AfterEach
     fun tearDown() {
-        if (::testContainerId.isInitialized) {
-            dockerClient.removeContainerCmd(testContainerId).exec()
-        }
         mockServer.checkQueues()
         mockServer.cleanup()
     }

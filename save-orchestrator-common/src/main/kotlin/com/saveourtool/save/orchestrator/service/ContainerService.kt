@@ -7,10 +7,8 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -108,27 +106,6 @@ class ContainerService(
                     }
             }
     }
-
-    /**
-     * @param containerIds list of container IDs of agents to stop
-     * @return true if agents have been stopped, false if another thread is already stopping them
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>): Boolean = (containerRunner as? ContainerRunner.Stoppable)
-        ?.let { runner ->
-            try {
-                containerIds.all { containerId ->
-                    runner.stop(containerId)
-                }
-            } catch (e: ContainerRunnerException) {
-                log.error("Error while stopping agents $containerIds", e)
-                false
-            }
-        }
-        ?: run {
-            log.warn { "${containerRunner::class.simpleName} doesn't support stopping of containers" }
-            false
-        }
 
     /**
      * @param executionId

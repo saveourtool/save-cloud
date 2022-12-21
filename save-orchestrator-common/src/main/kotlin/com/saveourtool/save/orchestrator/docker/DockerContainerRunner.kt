@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -42,7 +41,7 @@ class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : ContainerRunner, ContainerRunner.Stoppable, ContainerRunner.Prunable {
+) : ContainerRunner, ContainerRunner.Prunable {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
@@ -84,25 +83,6 @@ class DockerContainerRunner(
         }
     }
 
-    override fun stop(containerId: String): Boolean {
-        logger.info("Stopping agent with id=$containerId")
-        val state = dockerClient.inspectContainerCmd(containerId).exec().state
-        return if (state.status == "running") {
-            try {
-                dockerClient.stopContainerCmd(containerId).exec()
-            } catch (dex: DockerException) {
-                throw ContainerRunnerException("Exception when stopping agent id=$containerId", dex)
-            }
-            logger.info("Agent with id=$containerId has been stopped")
-            true
-        } else {
-            if (state.status != "exited") {
-                logger.warn("Agent with id=$containerId was requested to be stopped, but it actual state=$state")
-            }
-            state.status == "exited"
-        }
-    }
-
     override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
@@ -119,7 +99,7 @@ class DockerContainerRunner(
                     it.id
                 }
             if (containerId in existingContainerIds) {
-                dockerClient.removeContainerCmd(containerId).exec()
+                dockerClient.removeContainerCmd(containerId).withForce(true).exec()
             } else {
                 logger.info("Container $containerId is not present, so won't attempt to remove")
             }
