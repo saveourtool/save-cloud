@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.api
 
+import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
 import com.saveourtool.save.domain.FileInfo
@@ -153,6 +154,18 @@ interface SaveCloudClientEx {
     ): Either<SaveCloudError, List<ContestDto>>
 
     /**
+     * Lists test runs (along with their results) for the batch execution
+     * specified by [executionId].
+     *
+     * @param executionId the identifier which uniquely identifies the batch
+     *   execution.
+     * @return either the list of test runs, or the error if an error has
+     *   occurred.
+     * @see ExecutionDto.listTestRuns
+     */
+    suspend fun listTestRuns(executionId: Long): Either<SaveCloudError, List<TestExecutionDto>>
+
+    /**
      * Lists projects within this organization.
      *
      * @return either the list of projects, or the error if an error has
@@ -211,12 +224,20 @@ interface SaveCloudClientEx {
 
     /**
      * @param projectName the name of the project.
+     * @param contestName the optional name of the contest.
      * @return either the list of executions, or the error if an error has
      *  occurred.
      * @see SaveCloudClientEx.listExecutions
      */
-    suspend fun Organization.listExecutions(projectName: String): Either<SaveCloudError, List<ExecutionDto>> =
-            listExecutions(organizationName = name, projectName)
+    suspend fun Organization.listExecutions(
+        projectName: String,
+        contestName: String? = null,
+    ): Either<SaveCloudError, List<ExecutionDto>> =
+            listExecutions(
+                organizationName = name,
+                projectName,
+                contestName,
+            )
 
     /**
      * @param projectName the name of the project.
@@ -254,6 +275,16 @@ interface SaveCloudClientEx {
                 projectName,
                 limit
             )
+
+    /**
+     * Lists test runs (along with their results) for this batch execution.
+     *
+     * @return either the list of test runs, or the error if an error has
+     *   occurred.
+     * @see SaveCloudClientEx.listTestRuns
+     */
+    suspend fun ExecutionDto.listTestRuns(): Either<SaveCloudError, List<TestExecutionDto>> =
+            listTestRuns(id)
 
     /**
      * The factory object.
