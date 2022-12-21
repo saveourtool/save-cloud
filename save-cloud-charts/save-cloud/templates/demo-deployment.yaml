@@ -41,6 +41,19 @@ spec:
             requests:
               memory: 800M
       initContainers:
+        - name: git-cloner
+          image: alpine/git
+          args:
+            - clone
+            - --single-branch
+            - --branch
+            - {{ .Values.mysql.migrations.branch | default "master" }}
+            - --
+            - https://github.com/saveourtool/save-cloud.git
+            - /data
+          volumeMounts:
+            - mountPath: /data
+              name: migrations-data
         - name: liquibase-runner
           image: liquibase/liquibase:4.15
           securityContext:
