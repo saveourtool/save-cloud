@@ -85,14 +85,13 @@ class WebSecurityConfig(
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
-                "/demo/api/**",
                 "/neo4j/**",
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**", "/sandbox/api/**")
+                .pathMatchers("/api/**", "/sandbox/api/**", "/demo/api/**")
                 .access { authentication, authorizationContext ->
                     AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                         authentication, authorizationContext

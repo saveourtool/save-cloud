@@ -19,7 +19,6 @@ import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
 import java.util.Comparator
-import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -141,24 +140,18 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
 
 /**
- * @param till
- * @param times
- * @param checking
+ * @param interval how long to wait between checks
+ * @param numberOfChecks how many times to check [checking]
+ * @param checking action which checks that waiting can be finished
  * @return true if [checking] was successful before timeout, otherwise -- false
  */
-fun waitReactively(till: Duration, times: Int, checking: () -> Boolean): Mono<Boolean> = Flux.interval((till / times).toJavaDuration())
-    .take(times.toLong())
-    .map {
-        checking()
-    }
+fun waitReactivelyUntil(
+    interval: Duration,
+    numberOfChecks: Long,
+    checking: () -> Boolean,
+): Mono<Boolean> = Flux.interval(interval.toJavaDuration())
+    .take(numberOfChecks)
+    .map { checking() }
     .takeUntil { it }
     // check whether we have got `true` or Flux has completed with only `false`
     .any { it }
-
-/**
- * @param till
- * @param interval
- * @param checking
- * @return true if [checking] was successful before timeout, otherwise -- false
- */
-fun waitReactively(till: Duration, interval: Duration, checking: () -> Boolean): Mono<Boolean> = waitReactively(interval, (till / interval).roundToInt(), checking)

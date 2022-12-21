@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.api.impl
 
+import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.api.SaveCloudClientEx
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.errors.TimeoutError
@@ -275,6 +276,19 @@ internal class DefaultSaveCloudClient(
                 }
             }
 
+    override suspend fun listTestRuns(
+        executionId: Long
+    ): Either<SaveCloudError, List<TestExecutionDto>> =
+            postAndCheck(
+                "/test-executions",
+                requestBody = EmptyContent,
+                contentType = Application.Json,
+                EXECUTION_ID to executionId,
+                CHECK_DEBUG_INFO to true,
+                PAGE to 0,
+                SIZE to Integer.MAX_VALUE,
+            )
+
     private suspend inline fun <reified T> getAndCheck(
         absolutePath: String,
         requestBody: Any = EmptyContent,
@@ -326,13 +340,16 @@ internal class DefaultSaveCloudClient(
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DefaultSaveCloudClient>()
         private const val AMOUNT = "amount"
+        private const val CHECK_DEBUG_INFO = "checkDebugInfo"
         private const val DEFAULT_API_VERSION = v1
         private const val EXECUTION_ID = "executionId"
         private const val NAME = "name"
         private const val ORGANIZATION_NAME = "organizationName"
+        private const val PAGE = "page"
         private const val PERMISSION = "permission"
         private const val POLL_DELAY_MILLIS = 100L
         private const val PROJECT_NAME = "projectName"
+        private const val SIZE = "size"
         private const val UPLOADED_MILLIS = "uploadedMillis"
         private val fileWithVersion =
                 Regex("""^(?<basename>.+?)-(?<version>\d+(?:\.\d+)*)(?<extension>(?:\.[^.\s-]+)+?)?$""")

@@ -100,7 +100,7 @@ class DockerContainerRunner(
                     it.id
                 }
             if (containerId in existingContainerIds) {
-                dockerClient.removeContainerCmd(containerId).exec()
+                dockerClient.removeContainerCmd(containerId).withForce(true).exec()
             } else {
                 logger.info("Container $containerId is not present, so won't attempt to remove")
             }

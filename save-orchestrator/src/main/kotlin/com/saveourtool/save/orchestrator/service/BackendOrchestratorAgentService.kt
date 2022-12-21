@@ -55,7 +55,7 @@ class BackendOrchestratorAgentService(
             webClientBackend
                 .post()
                 .uri("/updateAgentStatus")
-                .bodyValue(listOf(agentStatus))
+                .bodyValue(agentStatus)
                 .retrieve()
                 .toBodilessEntity()
 
