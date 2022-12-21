@@ -98,18 +98,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    fun `should stop agents by id`() {
-        webClient
-            .post()
-            .uri("/stopAgents")
-            .body(BodyInserters.fromValue(listOf("id-of-agent")))
-            .exchange()
-            .expectStatus()
-            .isOk
-        verify(containerService).stopAgents(anyList())
-    }
-
-    @Test
     fun `should cleanup execution artifacts`() {
         webClient.post()
             .uri("/cleanup?executionId=42")
