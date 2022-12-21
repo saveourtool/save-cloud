@@ -55,6 +55,10 @@ abstract class AbstractFileBasedStorage<K>(
         val contentPath = buildPathToContent(key)
         return Mono.fromCallable {
             contentPath.deleteIfExists()
+        }.doOnNext {
+            if (it) {
+                contentPath.parent.deleteDirectoriesTill(rootDir)
+            }
         }
     }
 
