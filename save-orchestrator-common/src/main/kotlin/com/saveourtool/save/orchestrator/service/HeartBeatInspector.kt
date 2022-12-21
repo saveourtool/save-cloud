@@ -1,14 +1,11 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
-import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
 
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -64,23 +61,11 @@ class HeartBeatInspector(
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     fun processCrashedAgents() {
-        orchestratorAgentStatusService.processCrashed { crashedAgents ->
-            logger.debug("Stopping crashed agents: $crashedAgents")
-
-            val areAgentsStopped = containerService.stopAgents(crashedAgents)
-            if (areAgentsStopped) {
-                Flux.fromIterable(crashedAgents).flatMap { containerId ->
-                    agentService.updateAgentStatusesWithDto(AgentStatusDto(AgentState.CRASHED, containerId))
-                }.blockLast()
-                orchestratorAgentStatusService.processExecutionWithoutNotCrashedContainers { executionIds ->
-                    executionIds.forEach { executionId ->
-                        logger.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
-                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
-                        agentService.finalizeExecution(executionId)
-                    }
-                }
-            } else {
-                logger.warn("Crashed agents $crashedAgents are not stopped after stop command")
+        orchestratorAgentStatusService.processExecutionWithoutNotCrashedContainers { executionIds ->
+            executionIds.forEach { executionId ->
+                logger.warn("All agents for execution $executionId are crashed, initialize cleanup for it.")
+                orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                agentService.finalizeExecution(executionId)
             }
         }
     }

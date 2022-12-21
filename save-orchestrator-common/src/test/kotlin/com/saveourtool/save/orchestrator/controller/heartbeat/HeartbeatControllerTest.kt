@@ -127,7 +127,6 @@ class HeartbeatControllerTest {
             mockUpdateAgentStatusesCount = 1,
             mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -148,7 +147,6 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 2,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -170,10 +168,6 @@ class HeartbeatControllerTest {
             mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                containerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 
@@ -197,7 +191,6 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 3,
         ) { heartbeatResponses ->
-            verify(containerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -205,8 +198,6 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        whenever(containerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(containerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -250,6 +241,8 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1".toAgentInfo(), AgentState.STARTING, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
                 Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
                 Heartbeat("test-2".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                // some heartbeat from another agent to prevent cleanup of execution
+                Heartbeat("test-3".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now()),
             ),
             heartBeatInterval = 0,
             initConfigs = listOf(initConfig),
@@ -258,7 +251,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockUpdateAgentStatusesCount = 4,
+            mockUpdateAgentStatusesCount = 5,
         ) {
             orchestratorAgentStatusService.processCrashed {
                 it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
@@ -284,10 +277,6 @@ class HeartbeatControllerTest {
             mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                containerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 
