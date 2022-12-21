@@ -12,6 +12,7 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -57,7 +58,7 @@ class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var containerService: ContainerService
-//    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
+    @Autowired private lateinit var orchestratorAgentStatusService: OrchestratorAgentStatusService
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -219,7 +220,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            containerService.containers.processCrashed { crashedAgents ->
+            orchestratorAgentStatusService.processCrashed { crashedAgents ->
                 crashedAgents shouldContainExactly setOf("test-2")
             }
         }
@@ -249,7 +250,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 5,
         ) {
-            containerService.containers.processCrashed { crashedAgents ->
+            orchestratorAgentStatusService.processCrashed { crashedAgents ->
                 crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
             }
         }

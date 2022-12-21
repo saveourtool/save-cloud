@@ -1,9 +1,15 @@
 package com.saveourtool.save.orchestrator.utils
 
+import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
+import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
@@ -11,8 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlinx.datetime.*
 
 /**
  * Collection that stores information about containers:
@@ -22,40 +27,39 @@ import kotlinx.datetime.Instant
  *
  * Collection is thread safe
  *
- * @property crashedThresholdInMillis threshold in millis to detect crashed containers
+ * @property configProperties it needs [ConfigProperties.agentsHeartBeatTimeoutMillis] as a threshold in millis to detect crashed containers
  */
-class ContainersCollection(
-    private val crashedThresholdInMillis: Long,
+@Service
+class OrchestratorAgentStatusService(
+    private val configProperties: ConfigProperties,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
 
     @Suppress("TYPE_ALIAS")
     private val executionToContainers: MutableMap<Long, Set<String>> = HashMap()
-    private val containerToLatestState: MutableMap<String, Instant> = HashMap()
+    private val containerToLatestState: MutableMap<String, LocalDateTime> = HashMap()
     private val crashedContainers: MutableSet<String> = HashSet()
 
     /**
      * Adds or updates information about container.
      * It checks that new information about container contains the original execution id.
      *
-     * @param containerId ID of the container
      * @param executionId ID of an execution to which this container is assigned to
-     * @param timestamp when **orchestrator** received the latest heartbeat from this container
+     * @param agentStatus status of agent
      */
     fun upsert(
-        containerId: String,
         executionId: Long,
-        timestamp: Instant,
+        agentStatus: AgentStatusDto,
     ): Unit = useWriteLock {
         val anotherExecutionIds = executionToContainers
-            .filterValues { it.contains(containerId) }
+            .filterValues { it.contains(agentStatus.containerId) }
             .filterKeys { it != executionId }
             .keys
         require(anotherExecutionIds.isEmpty()) {
-            "Invalid containerId $containerId: it's already assigned to another execution $anotherExecutionIds"
+            "Invalid containerId ${agentStatus.containerId}: it's already assigned to another execution $anotherExecutionIds"
         }
-        executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + containerId
-        containerToLatestState[containerId] = timestamp
+        executionToContainers[executionId] = executionToContainers[executionId].orEmpty() + agentStatus.containerId
+        containerToLatestState[agentStatus.containerId] = agentStatus.time
     }
 
     /**
@@ -147,10 +151,10 @@ class ContainersCollection(
      *
      * @param process action on execution ids
      */
-    fun processStartedExecutionWithoutActiveContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
+    fun processExecutionWithAllCrashedContainers(process: (Set<Long>) -> Unit): Unit = useReadLock {
         executionToContainers
             .mapNotNullTo(HashSet()) { (key, values) ->
-                key.takeIf { values.isEmpty() || crashedContainers.containsAll(values) }
+                key.takeIf { values.isNotEmpty() && crashedContainers.containsAll(values) }
             }
             .takeIf { it.isNotEmpty() }
             ?.let(process)
@@ -165,30 +169,43 @@ class ContainersCollection(
     fun updateByStatus(isStoppedFunction: (String) -> Boolean): Unit = useWriteLock {
         containerToLatestState.filter { (currentContainerId, _) ->
             currentContainerId !in crashedContainers
-        }.forEach { (currentContainerId, timestamp) ->
+        }.forEach { (currentContainerId, latestHeartbeat) ->
+            val duration = ChronoUnit.MILLIS.between(latestHeartbeat.toJavaLocalDateTime(), getCurrentLocalDateTime().toJavaLocalDateTime())
             log.debug {
-                "Latest heartbeat from $currentContainerId was sent: $timestamp"
+                "Latest heartbeat from $currentContainerId was sent: $duration ms ago"
             }
-            if (timestamp.isStale()) {
-                log.debug { "Adding $currentContainerId to list crashed agents" }
+            if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
+                log.debug("Adding $currentContainerId to list crashed agents")
                 crashedContainers.add(currentContainerId)
             }
         }
         executionToContainers.forEach { (executionId, containerIds) ->
             val stoppedContainersIds = containerIds.filterTo(HashSet(), isStoppedFunction)
-            executionToContainers[executionId] = containerIds - stoppedContainersIds
-            containerToLatestState.keys.removeAll(containerIds)
-            crashedContainers.removeAll(containerIds)
+            if (stoppedContainersIds.isNotEmpty()) {
+                log.debug {
+                    "Agents with ids $stoppedContainersIds are already stopped, will stop watching it"
+                }
+                executionToContainers[executionId] = containerIds - stoppedContainersIds
+                containerToLatestState.keys.removeAll(containerIds)
+                crashedContainers.removeAll(containerIds)
+            }
         }
     }
 
-    private fun Instant.isStale(): Boolean = (Clock.System.now() - this).inWholeMilliseconds >= crashedThresholdInMillis
+    /**
+     * Clear collection
+     */
+    internal fun clear(): Unit = useWriteLock {
+        executionToContainers.clear()
+        containerToLatestState.clear()
+        crashedContainers.clear()
+    }
 
     private fun <R> useReadLock(action: () -> R): R = lock.readLock().use(action)
     private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().use(action)
 
     companion object {
-        private val log = LoggerFactory.getLogger(ContainersCollection::class.java)
+        private val log: Logger = LoggerFactory.getLogger(OrchestratorAgentStatusService::class.java)
 
         private fun <R> Lock.use(action: () -> R): R {
             lock()

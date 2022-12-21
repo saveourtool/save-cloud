@@ -3,13 +3,14 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.TerminateResponse
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.utils.ContainersCollection
+import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.waitReactivelyUntil
@@ -23,7 +24,6 @@ import reactor.core.publisher.Mono
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Instant
 
 /**
  * A service that builds and starts containers for test execution.
@@ -33,12 +33,8 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
+    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
 ) {
-    /**
-     * It's internal for testing purpose only
-     */
-    internal val containers: ContainersCollection = ContainersCollection(configProperties.agentsHeartBeatTimeoutMillis)
-
     /**
      * Function that builds a base image with test resources
      *
@@ -91,10 +87,10 @@ class ContainerService(
                     interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
                     numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
                 ) {
-                    !containers.containsAnyByExecutionId(executionId)
+                    !orchestratorAgentStatusService.containsAnyByExecutionId(executionId)
                 }
                     .doOnSuccess {
-                        if (!containers.containsAnyByExecutionId(executionId)) {
+                        if (!orchestratorAgentStatusService.containsAnyByExecutionId(executionId)) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.cleanupAllByExecution(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -102,28 +98,26 @@ class ContainerService(
                             ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                                 .subscribe()
                         }
-                        containers.deleteAllByExecutionId(executionId)
+                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
                     }
             }
     }
 
     /**
      * @param executionId
-     * @param containerId
-     * @param timestamp
+     * @param agentStatus
      */
-    fun touchContainer(
+    fun updateAgentStatus(
         executionId: Long,
-        containerId: String,
-        timestamp: Instant,
-    ): Unit = containers.upsert(containerId, executionId, timestamp)
+        agentStatus: AgentStatusDto,
+    ): Unit = orchestratorAgentStatusService.upsert(executionId, agentStatus)
 
     /**
      * @param containerId
      */
     fun markContainerAsCrashed(
         containerId: String,
-    ): Unit = containers.markAsCrashed(containerId)
+    ): Unit = orchestratorAgentStatusService.markAsCrashed(containerId)
 
     /**
      * Check whether the agent with [containerId] is stopped
@@ -151,10 +145,10 @@ class ContainerService(
                         "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
                                 " will add it to crashed list"
                     }
-                    containers.markAsCrashed(containerId)
+                    orchestratorAgentStatusService.markAsCrashed(containerId)
                 } else {
                     log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
-                    containers.delete(containerId)
+                    orchestratorAgentStatusService.delete(containerId)
                 }
 
                 // Update final execution status, perform cleanup etc.
@@ -168,7 +162,7 @@ class ContainerService(
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
-        containers.deleteAllByExecutionId(executionId)
+        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
 
@@ -203,17 +197,17 @@ class ContainerService(
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     private fun determineCrashedAgents() {
-        containers.updateByStatus { containerId -> isStoppedByContainerId(containerId) }
+        orchestratorAgentStatusService.updateByStatus { containerId -> isStoppedByContainerId(containerId) }
     }
 
     /**
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     private fun cleanupExecutionWithoutContainers() {
-        containers.processStartedExecutionWithoutActiveContainers { executionIds ->
+        orchestratorAgentStatusService.processExecutionWithAllCrashedContainers { executionIds ->
             executionIds.forEach { executionId ->
                 log.warn("All agents for execution $executionId are crashed or not started, initialize cleanup for it.")
-                containers.deleteAllByExecutionId(executionId)
+                orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
                 agentService.finalizeExecution(executionId)
             }
         }

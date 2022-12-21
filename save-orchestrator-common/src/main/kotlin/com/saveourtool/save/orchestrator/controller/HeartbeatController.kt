@@ -11,6 +11,8 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.*
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 import org.slf4j.Logger
 import org.springframework.web.bind.annotation.PostMapping
@@ -51,7 +53,14 @@ class HeartbeatController(private val agentService: AgentService,
         val containerId = heartbeat.agentInfo.containerId
         log.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
-            containerService.touchContainer(executionId, heartbeat.agentInfo.containerId, heartbeat.timestamp)
+            containerService.updateAgentStatus(
+                executionId = executionId,
+                agentStatus = AgentStatusDto(
+                    containerId = containerId,
+                    state = heartbeat.state,
+                    time = heartbeat.timestamp.toLocalDateTime(TimeZone.UTC),
+                )
+            )
         }
             .toMono()
             .flatMap {
