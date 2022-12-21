@@ -7,7 +7,6 @@ import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.v1
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -15,7 +14,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.MediaType
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -30,14 +28,10 @@ import reactor.kotlin.core.publisher.toMono
 @RequestMapping("/api/$v1/demo")
 class DemoManagerController(
     configProperties: ConfigProperties,
-    objectMapper: ObjectMapper,
     customizers: List<WebClientCustomizer>,
 ) {
     private val webClientDemo = WebClient.builder()
         .baseUrl(configProperties.demoUrl)
-        .codecs {
-            it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
-        }
         .applyAll(customizers)
         .build()
 

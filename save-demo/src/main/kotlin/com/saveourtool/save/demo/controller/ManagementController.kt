@@ -8,12 +8,12 @@ import com.saveourtool.save.demo.service.GithubDownloadToolService
 import com.saveourtool.save.demo.service.GithubRepoService
 import com.saveourtool.save.demo.service.SnapshotService
 import com.saveourtool.save.demo.service.ToolService
+import com.saveourtool.save.utils.blockingToMono
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -34,14 +34,21 @@ class ManagementController(
      */
     @PostMapping("/add-tool")
     fun addTool(@RequestBody newDemoToolRequest: NewDemoToolRequest): Mono<Tool> = with(newDemoToolRequest) {
-        GithubRepo(organizationName, projectName).let { githubRepoService.saveIfNotPresent(it) }
+        GithubRepo(organizationName, projectName)
     }
-        .toMono()
+        .let {
+            blockingToMono {
+                githubRepoService.saveIfNotPresent(it)
+            }
+        }
         .zipWhen { repo ->
             val vcsTagName = newDemoToolRequest.vcsTagName
             Snapshot(vcsTagName, githubDownloadToolService.getExecutableName(repo, vcsTagName))
-                .let { snapshotService.saveIfNotPresent(it) }
-                .toMono()
+                .let {
+                    blockingToMono {
+                        snapshotService.saveIfNotPresent(it)
+                    }
+                }
         }
         .map { (repo, snapshot) ->
             toolService.saveIfNotPresent(repo, snapshot)
