@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Controller for heartbeat
