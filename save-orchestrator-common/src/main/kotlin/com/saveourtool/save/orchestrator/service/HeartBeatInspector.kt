@@ -28,12 +28,12 @@ class HeartBeatInspector(
      */
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
         agentStatusInMemoryRepository.upsert(
+            executionId = heartbeat.executionProgress.executionId,
             AgentStatusDto(
                 containerId = heartbeat.agentInfo.containerId,
                 state = heartbeat.state,
                 time = heartbeat.timestamp.toLocalDateTime(TimeZone.UTC)
             ),
-            executionId = heartbeat.executionProgress.executionId,
         )
     }
 
