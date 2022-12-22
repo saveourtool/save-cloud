@@ -1,9 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.agent.TerminateResponse
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -12,7 +10,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.waitReactivelyUntil
 import com.saveourtool.save.utils.warn
 
@@ -23,7 +20,6 @@ import reactor.core.publisher.Mono
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * A service that builds and starts containers for test execution.
@@ -104,60 +100,12 @@ class ContainerService(
     }
 
     /**
-     * @param executionId
-     * @param agentStatus
-     */
-    fun updateAgentStatus(
-        executionId: Long,
-        agentStatus: AgentStatusDto,
-    ): Unit = agentStatusInMemoryRepository.upsert(executionId, agentStatus)
-
-    /**
-     * @param containerId
-     */
-    fun markContainerAsCrashed(
-        containerId: String,
-    ): Unit = agentStatusInMemoryRepository.markAsCrashed(containerId)
-
-    /**
      * Check whether the agent with [containerId] is stopped
      *
      * @param containerId id of an container
      * @return true if agent is stopped
      */
     fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
-
-    /**
-     * @param executionId
-     * @param containerId
-     */
-    fun ensureGracefullyStopped(executionId: Long, containerId: String) {
-        val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
-        val numChecks: Int = configProperties.shutdown.gracefulNumChecks
-        waitReactivelyUntil(
-            interval = shutdownTimeoutSeconds / numChecks,
-            numberOfChecks = numChecks.toLong(),
-        ) {
-            isStopped(containerId)
-        }
-            .doOnNext { successfullyStopped ->
-                if (!successfullyStopped) {
-                    log.warn {
-                        "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
-                                " will add it to crashed list"
-                    }
-                    agentStatusInMemoryRepository.markAsCrashed(containerId)
-                } else {
-                    log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
-                    agentStatusInMemoryRepository.delete(containerId)
-                }
-
-                // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(executionId)
-            }
-            .subscribeOn(agentService.scheduler)
-            .subscribe()
-    }
 
     /**
      * @param executionId ID of execution

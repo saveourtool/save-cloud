@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -20,8 +21,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
 
 /**
@@ -34,6 +34,7 @@ import kotlinx.serialization.json.Json
 class HeartbeatController(private val agentService: AgentService,
                           private val containerService: ContainerService,
                           private val configProperties: ConfigProperties,
+                          private val heartBeatInspector: HeartBeatInspector,
 ) {
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -52,14 +53,7 @@ class HeartbeatController(private val agentService: AgentService,
         val containerId = heartbeat.agentInfo.containerId
         log.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
-            containerService.updateAgentStatus(
-                executionId = executionId,
-                agentStatus = AgentStatusDto(
-                    containerId = containerId,
-                    state = heartbeat.state,
-                    time = heartbeat.timestamp.toLocalDateTime(TimeZone.UTC),
-                )
-            )
+            heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
             .flatMap {
@@ -81,9 +75,9 @@ class HeartbeatController(private val agentService: AgentService,
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED -> Mono.fromCallable {
-                        log.warn("Agent with containerId=$containerId sent ${heartbeat.state} status, but should be offline in that case!")
-                        containerService.markContainerAsCrashed(containerId)
-                    }.thenReturn(TerminateResponse)
+                        handleIllegallyOnlineAgent(containerId, heartbeat.state)
+                        TerminateResponse
+                    }
                 }
             }
             // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.
@@ -113,7 +107,7 @@ class HeartbeatController(private val agentService: AgentService,
                                 .defaultIfEmpty(ContinueResponse)
                                 .doOnSuccess {
                                     log.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                    containerService.ensureGracefullyStopped(executionId, containerId)
+                                    ensureGracefulShutdown(executionId, containerId)
                                 }
                         }
                         .defaultIfEmpty(WaitResponse)
@@ -131,6 +125,38 @@ class HeartbeatController(private val agentService: AgentService,
             .subscribeOn(agentService.scheduler)
             .subscribe()
         Mono.just(WaitResponse)
+    }
+
+    private fun handleIllegallyOnlineAgent(containerId: String, state: AgentState) {
+        log.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
+        heartBeatInspector.watchCrashedAgent(containerId)
+    }
+
+    private fun ensureGracefulShutdown(executionId: Long, containerId: String) {
+        val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
+        val numChecks = configProperties.shutdown.gracefulNumChecks
+        waitReactivelyUntil(
+            interval = shutdownTimeoutSeconds / numChecks,
+            numberOfChecks = numChecks.toLong(),
+        ) {
+            containerService.isStopped(containerId)
+        }
+            .doOnNext { successfullyStopped ->
+                if (!successfullyStopped) {
+                    log.warn {
+                        "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
+                                " will add it to crashed list"
+                    }
+                    heartBeatInspector.watchCrashedAgent(containerId)
+                } else {
+                    log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    heartBeatInspector.unwatchAgent(containerId)
+                }
+                // Update final execution status, perform cleanup etc.
+                agentService.finalizeExecution(executionId)
+            }
+            .subscribeOn(agentService.scheduler)
+            .subscribe()
     }
 
     companion object {

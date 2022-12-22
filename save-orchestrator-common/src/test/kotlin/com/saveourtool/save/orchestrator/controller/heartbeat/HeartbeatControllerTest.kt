@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
@@ -47,7 +48,7 @@ import java.time.Month
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
     AgentService::class,
-//    HeartBeatInspector::class,
+    HeartBeatInspector::class,
     AgentStatusInMemoryRepository::class,
     JsonConfig::class,
 )
