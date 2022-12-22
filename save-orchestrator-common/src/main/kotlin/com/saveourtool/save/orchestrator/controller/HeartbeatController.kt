@@ -15,7 +15,6 @@ import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
-import org.slf4j.Logger
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -105,7 +104,7 @@ class HeartbeatController(private val agentService: AgentService,
     )
         .doOnError(WebClientResponseException::class) { exception ->
             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-            containerService.cleanupByExecutionId(executionId)
+            containerService.cleanupAllByExecution(executionId)
         }
         .then(agentService.getInitConfig(agentInfo.containerId))
 
