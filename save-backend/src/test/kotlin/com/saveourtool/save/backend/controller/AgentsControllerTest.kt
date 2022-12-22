@@ -9,7 +9,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.AgentStatusDtoList
 import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -119,13 +119,13 @@ class AgentsControllerTest {
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
-            .uri("/internal/getAgentsStatusesForSameExecution?containerId=container-1")
+            .uri("/internal/getAgentStatusesByExecutionId?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectBody<AgentStatusesForExecution>()
+            .expectBody<AgentStatusDtoList>()
             .consumeWith {
-                val statuses = requireNotNull(it.responseBody).agentStatuses
+                val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
