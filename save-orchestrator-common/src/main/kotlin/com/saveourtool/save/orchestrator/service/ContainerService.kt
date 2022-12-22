@@ -11,10 +11,8 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.waitReactivelyUntil
-import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -36,7 +34,6 @@ class ContainerService(
      *
      * @param request [RunExecutionRequest] with info about [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
-     * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
     fun prepareConfiguration(request: RunExecutionRequest): RunConfiguration {
@@ -134,32 +131,6 @@ class ContainerService(
             ),
             env = env,
         )
-    }
-
-    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
-    private fun run() {
-        determineCrashedAgents()
-        cleanupExecutionWithoutContainers()
-    }
-
-    /**
-     * Consider agent as crashed, if it didn't send heartbeats for some time
-     */
-    private fun determineCrashedAgents() {
-        agentStatusInMemoryRepository.updateByStatus { containerId -> isStopped(containerId) }
-    }
-
-    /**
-     * Stop crashed agents and mark corresponding test executions as failed with internal error
-     */
-    private fun cleanupExecutionWithoutContainers() {
-        agentStatusInMemoryRepository.processExecutionWithAllCrashedContainers { executionIds ->
-            executionIds.forEach { executionId ->
-                log.warn("All agents for execution $executionId are crashed or not started, initialize cleanup for it.")
-                agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
-                agentService.finalizeExecution(executionId)
-            }
-        }
     }
 
     /**
