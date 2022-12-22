@@ -153,7 +153,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(containerService.isStoppedByContainerId(any())).thenReturn(true)
+        whenever(containerService.isStopped(any())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),

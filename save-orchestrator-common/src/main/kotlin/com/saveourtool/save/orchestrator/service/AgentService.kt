@@ -50,13 +50,11 @@ class AgentService(
      * Sets new tests ids
      *
      * @param containerId
-     * @return [Mono] of [NewJobResponse] or [WaitResponse]
+     * @return [Mono] of [NewJobResponse] if there is some job to do or [Mono.empty]
      */
     internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getNextRunConfig(containerId)
                 .map { NewJobResponse(it) }
-                .cast(HeartbeatResponse::class.java)
-                .defaultIfEmpty(WaitResponse)
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -82,12 +80,12 @@ class AgentService(
         .last()
 
     /**
-     * @param agentState [AgentStatus] to update in the DB
+     * @param agentStatus [AgentStatus] to update in the DB
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
+    fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
             orchestratorAgentService
-                .updateAgentStatus(agentState)
+                .updateAgentStatus(agentStatus)
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
                     Mono.empty()
