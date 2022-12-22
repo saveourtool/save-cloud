@@ -55,7 +55,7 @@ class HeartBeatInspector(
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     fun determineCrashedAgents() {
-        agentStatusInMemoryRepository.updateByStatus { containerId -> containerService.isStoppedByContainerId(containerId) }
+        agentStatusInMemoryRepository.updateByStatus { containerId -> containerService.isStopped(containerId) }
     }
 
     /**
