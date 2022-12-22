@@ -19,6 +19,7 @@ spec:
         {{- include "pod.common.annotations" (dict "service" .Values.demo ) | nindent 8 }}
     spec:
       restartPolicy: Always
+      {{- include "cnb.securityContext" . | nindent 6}}
       containers:
         - name: demo
           {{- include "spring-boot.common" (merge (dict "service" .Values.demo) .) | nindent 10 }}

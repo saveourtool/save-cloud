@@ -11,6 +11,7 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
   * `spring.datasource.password`
   * `spring.datasource.backend-url`
   * `spring.datasource.sandbox-url`
+  * `spring.datasource.demo-url`
   
   These secrets are then mounted under the path specified as `DATABASE_SECRETS_PATH` environment variable.
 

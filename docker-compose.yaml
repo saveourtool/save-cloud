@@ -109,7 +109,7 @@ services:
   demo:
     image: ghcr.io/saveourtool/save-demo:${DEMO_TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
     ports:
       - "5421:5421"
     volumes:
