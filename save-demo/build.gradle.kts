@@ -30,6 +30,8 @@ dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
 
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+
     implementation(libs.ktor.client.apache)
     api(libs.ktor.client.auth)
     implementation(libs.ktor.client.core)
