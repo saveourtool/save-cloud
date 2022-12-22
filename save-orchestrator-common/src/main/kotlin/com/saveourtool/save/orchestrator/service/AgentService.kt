@@ -46,12 +46,11 @@ class AgentService(
      * Sets new tests ids
      *
      * @param containerId
-     * @return [Mono] of [NewJobResponse] if there is some job to do
+     * @return [Mono] of [NewJobResponse] if there is some job to do or [Mono.empty]
      */
     internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getNextRunConfig(containerId)
                 .map { NewJobResponse(it) }
-                .cast(HeartbeatResponse::class.java)
 
     /**
      * Save new agent to the DB

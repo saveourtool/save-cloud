@@ -107,7 +107,7 @@ class AgentsControllerTest {
             .isOk
 
         Thread.sleep(2_500)
-        verify(containerService, times(1)).cleanupByExecutionId(anyLong())
+        verify(containerService, times(1)).cleanupAllByExecution(anyLong())
     }
 
     companion object {

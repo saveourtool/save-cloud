@@ -113,7 +113,7 @@ class ContainerService(
     /**
      * @param executionId ID of execution
      */
-    fun cleanupByExecutionId(executionId: Long) {
+    fun cleanupAllByExecution(executionId: Long) {
         containerRunner.cleanupAllByExecution(executionId)
     }
 
