@@ -5,7 +5,7 @@ import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.AgentStatusDtoList
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.spring.utils.applyAll
@@ -66,7 +66,7 @@ class BackendOrchestratorAgentService(
 
     override fun getAgentsStatuses(
         containerIds: List<String>,
-    ): Mono<AgentStatusList> = webClientBackend
+    ): Mono<AgentStatusDtoList> = webClientBackend
         .get()
         .uri("/agents/statuses?ids=${containerIds.joinToString(separator = DATABASE_DELIMITER)}")
         .retrieve()
@@ -83,15 +83,9 @@ class BackendOrchestratorAgentService(
                 .retrieve()
                 .toBodilessEntity()
 
-    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution> = webClientBackend
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList> = webClientBackend
         .get()
         .uri("/getAgentStatusesByExecutionId?executionId=$executionId")
-        .retrieve()
-        .bodyToMono()
-
-    override fun getAgentStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = webClientBackend
-        .get()
-        .uri("/getAgentsStatusesForSameExecution?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 

@@ -10,7 +10,6 @@ import com.saveourtool.save.utils.EmptyResponse
 
 import reactor.core.publisher.Mono
 
-typealias AgentStatusList = List<AgentStatusDto>
 typealias TestExecutionList = List<TestExecutionDto>
 
 /**
@@ -64,7 +63,7 @@ interface OrchestratorAgentService {
      */
     fun getAgentsStatuses(
         containerIds: List<String>,
-    ): Mono<AgentStatusList>
+    ): Mono<AgentStatusDtoList>
 
     /**
      * Marks the execution to specified state
@@ -87,10 +86,10 @@ interface OrchestratorAgentService {
     fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusesForExecution>
 
     /**
-     * @param containerId containerId of an agent
-     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
+     * @param executionId ID of an execution
+     * @return Mono with [AgentStatusDtoList]: agent statuses belonged to a [com.saveourtool.save.entities.Execution] with provided ID
      */
-    fun getAgentStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution>
+    fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList>
 
     /**
      * Mark agent's test executions as failed

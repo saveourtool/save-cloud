@@ -10,7 +10,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.waitReactivelyUntil
@@ -33,7 +33,7 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
-    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
      * Function that builds a base image with test resources
@@ -87,10 +87,10 @@ class ContainerService(
                     interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
                     numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
                 ) {
-                    !orchestratorAgentStatusService.containsAnyByExecutionId(executionId)
+                    !agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
                 }
                     .doOnSuccess {
-                        if (!orchestratorAgentStatusService.containsAnyByExecutionId(executionId)) {
+                        if (!agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.cleanupAllByExecution(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -98,7 +98,7 @@ class ContainerService(
                             ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                                 .subscribe()
                         }
-                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                     }
             }
     }
@@ -110,14 +110,14 @@ class ContainerService(
     fun updateAgentStatus(
         executionId: Long,
         agentStatus: AgentStatusDto,
-    ): Unit = orchestratorAgentStatusService.upsert(executionId, agentStatus)
+    ): Unit = agentStatusInMemoryRepository.upsert(executionId, agentStatus)
 
     /**
      * @param containerId
      */
     fun markContainerAsCrashed(
         containerId: String,
-    ): Unit = orchestratorAgentStatusService.markAsCrashed(containerId)
+    ): Unit = agentStatusInMemoryRepository.markAsCrashed(containerId)
 
     /**
      * Check whether the agent with [containerId] is stopped
@@ -125,7 +125,7 @@ class ContainerService(
      * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStopped(containerId)
+    fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
      * @param containerId
@@ -161,7 +161,7 @@ class ContainerService(
     /**
      * @param executionId ID of execution
      */
-    fun cleanup(executionId: Long) {
+    fun cleanupAllByExecution(executionId: Long) {
         orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
