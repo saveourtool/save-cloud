@@ -44,12 +44,12 @@ class AgentStatusInMemoryRepository(
      * Adds or updates information about container.
      * It checks that new information about container contains the original execution id.
      *
-     * @param agentStatus status of agent
      * @param executionId ID of an execution to which this container is assigned to
+     * @param agentStatus status of agent
      */
     fun upsert(
-        agentStatus: AgentStatusDto,
         executionId: Long,
+        agentStatus: AgentStatusDto,
     ): Unit = useWriteLock {
         val anotherExecutionIds = executionToContainers
             .filterValues { it.contains(agentStatus.containerId) }
