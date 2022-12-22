@@ -78,7 +78,7 @@ class AgentsController(
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                            containerService.cleanup(request.executionId)
+                            containerService.cleanupAllByExecution(request.executionId)
                         }
                         .thenReturn(containerIds)
                 }
@@ -107,7 +107,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        containerService.cleanup(executionId)
+        containerService.cleanupAllByExecution(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())

@@ -79,10 +79,10 @@ class HeartBeatInspector(
         }
 
         crashedAgents.removeIf { containerId ->
-            containerService.isStoppedByContainerId(containerId)
+            containerService.isStopped(containerId)
         }
         agentsLatestHeartBeatsMap.filterKeys { containerId ->
-            containerService.isStoppedByContainerId(containerId)
+            containerService.isStopped(containerId)
         }.forEach { (containerId, _) ->
             logger.debug("Agent $containerId is already stopped, will stop watching it")
             agentsLatestHeartBeatsMap.remove(containerId)

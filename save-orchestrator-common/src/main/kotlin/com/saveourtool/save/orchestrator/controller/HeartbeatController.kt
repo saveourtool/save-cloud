@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
@@ -62,7 +61,7 @@ class HeartbeatController(private val agentService: AgentService,
             .toMono()
             .flatMap {
                 // store new state into DB
-                agentService.updateAgentStatusesWithDto(
+                agentService.updateAgentStatus(
                     AgentStatusDto(heartbeat.state, heartbeat.agentInfo.containerId)
                 )
             }
@@ -97,31 +96,25 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleVacantAgent(containerId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(containerId)
-                .asyncEffectIf({ this is NewJobResponse }) {
-                    agentService.updateAgentStatusesWithDto(AgentStatusDto(BUSY, containerId))
+                .asyncEffect {
+                    agentService.updateAgentStatus(AgentStatusDto(BUSY, containerId))
                 }
-                .zipWhen {
+                .switchIfEmpty {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
-                    if (it is WaitResponse) {
-                        agentService.areAllAgentsIdleOrFinished(containerId)
-                    } else {
-                        Mono.just(false)
-                    }
-                }
-                .flatMap { (response, shouldStop) ->
-                    if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(AgentStatusDto(TERMINATED, containerId))
-                            .thenReturn<HeartbeatResponse>(TerminateResponse)
-                            .defaultIfEmpty(ContinueResponse)
-                            .doOnSuccess {
-                                logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                ensureGracefulShutdown(containerId)
-                            }
-                    } else {
-                        Mono.just(response)
-                    }
+                    agentService.areAllAgentsIdleOrFinished(containerId)
+                        .filter { it }
+                        .flatMap {
+                            agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
+                                .thenReturn<HeartbeatResponse>(TerminateResponse)
+                                .defaultIfEmpty(ContinueResponse)
+                                .doOnSuccess {
+                                    logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
+                                    ensureGracefulShutdown(containerId)
+                                }
+                        }
+                        .defaultIfEmpty(WaitResponse)
                 }
 
     private fun handleFinishedAgent(containerId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
@@ -146,7 +139,7 @@ class HeartbeatController(private val agentService: AgentService,
             interval = shutdownTimeoutSeconds / numChecks,
             numberOfChecks = numChecks.toLong(),
         ) {
-            containerService.isStoppedByContainerId(containerId)
+            containerService.isStopped(containerId)
         }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
