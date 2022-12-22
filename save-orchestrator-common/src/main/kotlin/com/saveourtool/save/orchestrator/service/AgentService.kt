@@ -5,7 +5,6 @@ import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
@@ -128,41 +127,6 @@ class AgentService(
                         agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                         containerRunner.cleanupAllByExecution(executionId)
                     })
-            }
-            .doOnSuccess {
-                if (it == null) {
-                    log.debug("Agents for execution $executionId are still running, so won't try to stop them")
-                }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
-
-    /**
-     * This method should be called when all agents are done and execution status can be updated and cleanup can be performed
-     *
-     * @param executionId an ID of the execution, that will be checked.
-     */
-    @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    internal fun finalizeExecution(executionId: Long) {
-        // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
-        // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getFinishedOrStoppedAgentsByExecutionId(executionId)
-            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
-            .flatMap { (_, _) ->
-                // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for execution=$executionId")
-                Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getFinishedOrStoppedAgentsByExecutionId(executionId)
-                )
-            }
-            .filter { (_, finishedContainerIds) -> finishedContainerIds.isNotEmpty() }
-            .flatMap { (executionId, finishedContainerIds) ->
-                log.info { "For execution id=$executionId all agents have completed their lifecycle" }
-                markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
-                    .thenReturn(
-                        containerRunner.cleanupAllByExecution(executionId)
-                    )
             }
             .doOnSuccess {
                 if (it == null) {

@@ -128,16 +128,17 @@ class ContainerService(
     fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
+     * @param executionId
      * @param containerId
      */
-    fun ensureGracefullyStopped(containerId: String) {
+    fun ensureGracefullyStopped(executionId: Long, containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks: Int = configProperties.shutdown.gracefulNumChecks
         waitReactivelyUntil(
             interval = shutdownTimeoutSeconds / numChecks,
             numberOfChecks = numChecks.toLong(),
         ) {
-            isStoppedByContainerId(containerId)
+            isStopped(containerId)
         }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
@@ -145,14 +146,14 @@ class ContainerService(
                         "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
                                 " will add it to crashed list"
                     }
-                    orchestratorAgentStatusService.markAsCrashed(containerId)
+                    agentStatusInMemoryRepository.markAsCrashed(containerId)
                 } else {
                     log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
-                    orchestratorAgentStatusService.delete(containerId)
+                    agentStatusInMemoryRepository.delete(containerId)
                 }
 
                 // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(containerId)
+                agentService.finalizeExecution(executionId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
@@ -162,7 +163,7 @@ class ContainerService(
      * @param executionId ID of execution
      */
     fun cleanupAllByExecution(executionId: Long) {
-        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
 
@@ -197,17 +198,17 @@ class ContainerService(
      * Consider agent as crashed, if it didn't send heartbeats for some time
      */
     private fun determineCrashedAgents() {
-        orchestratorAgentStatusService.updateByStatus { containerId -> isStoppedByContainerId(containerId) }
+        agentStatusInMemoryRepository.updateByStatus { containerId -> isStopped(containerId) }
     }
 
     /**
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     private fun cleanupExecutionWithoutContainers() {
-        orchestratorAgentStatusService.processExecutionWithAllCrashedContainers { executionIds ->
+        agentStatusInMemoryRepository.processExecutionWithAllCrashedContainers { executionIds ->
             executionIds.forEach { executionId ->
                 log.warn("All agents for execution $executionId are crashed or not started, initialize cleanup for it.")
-                orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                 agentService.finalizeExecution(executionId)
             }
         }
