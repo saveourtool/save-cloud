@@ -55,7 +55,6 @@ class HeartbeatController(private val agentService: AgentService,
         val containerId = heartbeat.agentInfo.containerId
         logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
-            containerService.markAgentForExecutionAsStarted(executionId)
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
@@ -70,10 +69,10 @@ class HeartbeatController(private val agentService: AgentService,
                     // if agent sends the first heartbeat, we try to assign work for it
                     STARTING -> handleNewAgent(containerId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    IDLE -> handleVacantAgent(containerId)
+                    IDLE -> handleVacantAgent(executionId, containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
                     FINISHED -> agentService.checkSavedData(containerId).flatMap { isSavingSuccessful ->
-                        handleFinishedAgent(containerId, isSavingSuccessful)
+                        handleFinishedAgent(executionId, containerId, isSavingSuccessful)
                     }
 
                     BUSY -> Mono.just(ContinueResponse)
@@ -94,7 +93,7 @@ class HeartbeatController(private val agentService: AgentService,
     private fun handleNewAgent(containerId: String): Mono<HeartbeatResponse> =
             agentService.getInitConfig(containerId)
 
-    private fun handleVacantAgent(containerId: String): Mono<HeartbeatResponse> =
+    private fun handleVacantAgent(executionId: Long, containerId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(containerId)
                 .asyncEffect {
                     agentService.updateAgentStatus(AgentStatusDto(BUSY, containerId))
@@ -103,7 +102,7 @@ class HeartbeatController(private val agentService: AgentService,
                     // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
-                    agentService.areAllAgentsIdleOrFinished(containerId)
+                    agentService.areAllAgentsIdleOrFinished(executionId)
                         .filter { it }
                         .flatMap {
                             agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
@@ -111,14 +110,18 @@ class HeartbeatController(private val agentService: AgentService,
                                 .defaultIfEmpty(ContinueResponse)
                                 .doOnSuccess {
                                     logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                                    ensureGracefulShutdown(containerId)
+                                    ensureGracefulShutdown(executionId, containerId)
                                 }
                         }
                         .defaultIfEmpty(WaitResponse)
                 }
 
-    private fun handleFinishedAgent(containerId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
-        handleVacantAgent(containerId)
+    private fun handleFinishedAgent(
+        executionId: Long,
+        containerId: String,
+        isSavingSuccessful: Boolean
+    ): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
+        handleVacantAgent(executionId, containerId)
     } else {
         // Agent finished its work, however only part of results were received, other should be marked as failed
         agentService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
@@ -132,7 +135,7 @@ class HeartbeatController(private val agentService: AgentService,
         heartBeatInspector.watchCrashedAgent(containerId)
     }
 
-    private fun ensureGracefulShutdown(containerId: String) {
+    private fun ensureGracefulShutdown(executionId: Long, containerId: String) {
         val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks = configProperties.shutdown.gracefulNumChecks
         waitReactivelyUntil(
@@ -153,7 +156,7 @@ class HeartbeatController(private val agentService: AgentService,
                     heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(containerId)
+                agentService.finalizeExecution(executionId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
