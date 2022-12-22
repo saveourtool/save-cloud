@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -29,7 +29,7 @@ class AgentService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val orchestratorAgentService: OrchestratorAgentService,
-    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
      * A scheduler that executes long-running background tasks
@@ -126,7 +126,7 @@ class AgentService(
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
                     .then(Mono.fromCallable {
-                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                         containerRunner.cleanupAllByExecution(executionId)
                     })
             }

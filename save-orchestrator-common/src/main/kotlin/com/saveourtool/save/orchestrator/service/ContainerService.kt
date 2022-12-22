@@ -8,7 +8,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.waitReactivelyUntil
 
@@ -27,7 +27,7 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
-    private val orchestratorAgentStatusService: OrchestratorAgentStatusService,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
      * Function that builds a base image with test resources
@@ -81,10 +81,10 @@ class ContainerService(
                     interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
                     numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
                 ) {
-                    !orchestratorAgentStatusService.containsAnyByExecutionId(executionId)
+                    !agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
                 }
                     .doOnSuccess {
-                        if (!orchestratorAgentStatusService.containsAnyByExecutionId(executionId)) {
+                        if (!agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)) {
                             log.error("Internal error: none of agents $containerIds are started, will mark execution $executionId as failed.")
                             containerRunner.cleanupAllByExecution(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -92,7 +92,7 @@ class ContainerService(
                             ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                                 .subscribe()
                         }
-                        orchestratorAgentStatusService.deleteAllByExecutionId(executionId)
+                        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                     }
             }
     }

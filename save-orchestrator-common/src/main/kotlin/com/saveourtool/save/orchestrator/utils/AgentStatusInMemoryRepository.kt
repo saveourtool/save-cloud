@@ -30,7 +30,7 @@ import kotlinx.datetime.*
  * @property configProperties it needs [ConfigProperties.agentsHeartBeatTimeoutMillis] as a threshold in millis to detect crashed containers
  */
 @Service
-class OrchestratorAgentStatusService(
+class AgentStatusInMemoryRepository(
     private val configProperties: ConfigProperties,
 ) {
     private val lock: ReadWriteLock = ReentrantReadWriteLock()
@@ -205,7 +205,7 @@ class OrchestratorAgentStatusService(
     private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().use(action)
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(OrchestratorAgentStatusService::class.java)
+        private val log: Logger = LoggerFactory.getLogger(AgentStatusInMemoryRepository::class.java)
 
         private fun <R> Lock.use(action: () -> R): R {
             lock()

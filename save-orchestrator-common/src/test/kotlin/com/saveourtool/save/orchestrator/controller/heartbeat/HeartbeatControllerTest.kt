@@ -13,7 +13,7 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
-import com.saveourtool.save.orchestrator.utils.OrchestratorAgentStatusService
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -49,7 +49,7 @@ import java.time.Month
 @Import(
     AgentService::class,
     HeartBeatInspector::class,
-    OrchestratorAgentStatusService::class,
+    AgentStatusInMemoryRepository::class,
     JsonConfig::class,
 )
 @MockBeans(MockBean(ContainerRunner::class))
@@ -60,7 +60,7 @@ class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var containerService: ContainerService
-    @Autowired private lateinit var orchestratorAgentStatusService: OrchestratorAgentStatusService
+    @Autowired private lateinit var agentStatusInMemoryRepository: AgentStatusInMemoryRepository
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -74,7 +74,7 @@ class HeartbeatControllerTest {
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        orchestratorAgentStatusService.clear()
+        agentStatusInMemoryRepository.clear()
     }
 
     @Test
@@ -223,7 +223,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            orchestratorAgentStatusService.processCrashed {
+            agentStatusInMemoryRepository.processCrashed {
                 it shouldContainExactly setOf("test-2")
             }
         }
@@ -253,7 +253,7 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 5,
         ) {
-            orchestratorAgentStatusService.processCrashed {
+            agentStatusInMemoryRepository.processCrashed {
                 it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
             }
         }
