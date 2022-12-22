@@ -8,16 +8,13 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.waitReactivelyUntil
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -30,9 +27,8 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
-    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
-
     /**
      * Function that builds a base image with test resources
      *
@@ -77,10 +73,10 @@ class ContainerService(
             interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
             numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
         ) {
-            areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+            !agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
         }
             .doOnSuccess {
-                if (areAgentsHaveStarted[executionId]?.get() != true) {
+                if (!agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
                     containerRunner.cleanupAllByExecution(executionId)
                     agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -88,18 +84,9 @@ class ContainerService(
                     ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                         .subscribe()
                 }
-                areAgentsHaveStarted.remove(executionId)
+                agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
             }
             .then()
-    }
-
-    /**
-     * @param executionId
-     */
-    fun markAgentForExecutionAsStarted(executionId: Long) {
-        areAgentsHaveStarted
-            .computeIfAbsent(executionId) { AtomicBoolean(false) }
-            .compareAndSet(false, true)
     }
 
     /**
