@@ -11,9 +11,9 @@ import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
+import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.EmptyResponse
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import kotlinx.datetime.Clock
@@ -30,7 +30,6 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -81,7 +80,7 @@ class HeartbeatControllerTest {
         val heartBeatBusy = Heartbeat("test".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
 
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(emptyResponse)
+            .thenReturn(emptyResponseAsMono)
         webClient.post()
             .uri("/heartbeat")
             .contentType(MediaType.APPLICATION_JSON)
@@ -313,7 +312,7 @@ class HeartbeatControllerTest {
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
         whenever(orchestratorAgentService.markReadyForTestingTestExecutionsOfAgentAsFailed(any()))
-            .thenReturn(emptyResponse)
+            .thenReturn(emptyResponseAsMono)
 
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -359,7 +358,7 @@ class HeartbeatControllerTest {
     ) {
         if (mockAddAgentCount > 0) {
             whenever(orchestratorAgentService.addAgent(anyLong(), any()))
-                .thenReturn(emptyResponse)
+                .thenReturn(emptyResponseAsMono)
         }
         initConfigs.forEach {
             whenever(orchestratorAgentService.getInitConfig(any()))
@@ -381,7 +380,7 @@ class HeartbeatControllerTest {
 
         repeat(mockUpdateAgentStatusesCount) {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
-                .thenReturn(emptyResponse)
+                .thenReturn(emptyResponseAsMono)
         }
         if (mockAgentStatusesByExecutionId) {
             whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
@@ -435,7 +434,6 @@ class HeartbeatControllerTest {
             additionalFileNameToUrl = mapOf("file" to "stub"),
             saveCliOverrides = SaveCliOverrides(),
         )
-        private val emptyResponse: Mono<EmptyResponse> = Mono.just(ResponseEntity.ok().build())
         private fun String.toAgentInfo(): AgentInfo = AgentInfo(
             containerId = this,
             containerName = this,

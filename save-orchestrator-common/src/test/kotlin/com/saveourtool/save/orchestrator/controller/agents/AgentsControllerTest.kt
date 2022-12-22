@@ -11,7 +11,7 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,9 +29,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
-import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
@@ -68,11 +66,11 @@ class AgentsControllerTest {
         whenever(containerService.validateContainersAreStarted(any()))
             .thenReturn(Mono.just(Unit).then())
         whenever(orchestratorAgentService.addAgent(anyLong(), any()))
-            .thenReturn(emptyResponse.toMono())
+            .thenReturn(emptyResponseAsMono)
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(emptyResponse.toMono())
+            .thenReturn(emptyResponseAsMono)
         whenever(orchestratorAgentService.updateExecutionStatus(anyLong(), any(), anyOrNull()))
-            .thenReturn(emptyResponse.toMono())
+            .thenReturn(emptyResponseAsMono)
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         webClient
@@ -108,9 +106,5 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(containerService, times(1)).cleanupAllByExecution(anyLong())
-    }
-
-    companion object {
-        private val emptyResponse: EmptyResponse = ResponseEntity.ok().build()
     }
 }
