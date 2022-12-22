@@ -13,6 +13,7 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
@@ -21,7 +22,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -55,20 +56,20 @@ class DockerContainerRunner(
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ) {
-        logger.debug { "Pulling image ${configuration.imageTag}" }
+        log.debug { "Pulling image ${configuration.imageTag}" }
         dockerClient.pullImageCmd(configuration.imageTag)
             .withRegistry("https://ghcr.io")
             .exec(PullImageResultCallback())
             .awaitCompletion()
 
         repeat(replicas) { number ->
-            logger.info("Creating a container #$number for execution.id=$executionId")
+            log.info("Creating a container #$number for execution.id=$executionId")
             val containerId = try {
                 createContainerFromImage(configuration, containerName(executionId, number))
             } catch (dex: DockerException) {
                 throw ContainerRunnerException("Unable to create containers", dex)
             }
-            logger.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
+            log.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
             try {
                 dockerClient.startContainerCmd(containerId).exec()
             } catch (dex: DockerException) {
@@ -80,17 +81,18 @@ class DockerContainerRunner(
     override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
-        .also { logger.debug("Container $containerId has state $it") }
+        .also { log.debug("Container $containerId has state $it") }
         .status != RUNNING_STATUS
 
     override fun cleanupAllByExecution(executionId: Long) {
+        log.info("Stopping all agents for execution id=$executionId")
         val containersForExecution = dockerClient.listContainersCmd()
             .withNameFilter(listOf("-$executionId-"))
             .withShowAll(true)
             .exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
-            logger.info("Removing container $containerId")
+            log.info("Removing container $containerId")
             val existingContainerIds = dockerClient.listContainersCmd().withShowAll(true).exec()
                 .map {
                     it.id
@@ -98,7 +100,7 @@ class DockerContainerRunner(
             if (containerId in existingContainerIds) {
                 dockerClient.removeContainerCmd(containerId).withForce(true).exec()
             } else {
-                logger.info("Container $containerId is not present, so won't attempt to remove")
+                log.info("Container $containerId is not present, so won't attempt to remove")
             }
         }
     }
@@ -112,10 +114,10 @@ class DockerContainerRunner(
         for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
             val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
             val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
-            logger.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            log.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
             reclaimedBytes += currentReclaimedBytes
         }
-        logger.info("Reclaimed $reclaimedBytes bytes after prune command")
+        log.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
@@ -215,7 +217,7 @@ class DockerContainerRunner(
     private fun containerName(executionId: Long, number: Int) = "${configProperties.containerNamePrefix}$executionId-$number"
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DockerContainerRunner::class.java)
+        private val log: Logger = getLogger<DockerContainerRunner>()
         private const val RUNNING_STATUS = "running"
     }
 }

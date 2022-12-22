@@ -15,7 +15,7 @@ import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -40,8 +40,6 @@ class HeartbeatController(private val agentService: AgentService,
                           private val configProperties: ConfigProperties,
                           private val heartBeatInspector: HeartBeatInspector,
 ) {
-    private val logger = LoggerFactory.getLogger(HeartbeatController::class.java)
-
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
      *
@@ -58,7 +56,7 @@ class HeartbeatController(private val agentService: AgentService,
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         val executionId = heartbeat.executionProgress.executionId
         val containerId = heartbeat.agentInfo.containerId
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
+        log.info("Got heartbeat state: ${heartbeat.state.name} from $containerId under execution id=$executionId")
         return {
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
@@ -79,12 +77,11 @@ class HeartbeatController(private val agentService: AgentService,
                     FINISHED -> agentService.checkSavedData(containerId).flatMap { isSavingSuccessful ->
                         handleFinishedAgent(executionId, containerId, isSavingSuccessful)
                     }
-
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED -> Mono.fromCallable {
                         handleIllegallyOnlineAgent(containerId, heartbeat.state)
-                        WaitResponse
+                        TerminateResponse
                     }
                 }
             }
@@ -128,7 +125,7 @@ class HeartbeatController(private val agentService: AgentService,
                                 .thenReturn<HeartbeatResponse>(TerminateResponse)
                                 .defaultIfEmpty(ContinueResponse)
                                 .doOnSuccess {
-                                    logger.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
+                                    log.info("Agent id=$containerId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
                                     ensureGracefulShutdown(executionId, containerId)
                                 }
                         }
@@ -150,7 +147,7 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     private fun handleIllegallyOnlineAgent(containerId: String, state: AgentState) {
-        logger.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
+        log.warn("Agent with containerId=$containerId sent $state status, but should be offline in that case!")
         heartBeatInspector.watchCrashedAgent(containerId)
     }
 
@@ -165,13 +162,13 @@ class HeartbeatController(private val agentService: AgentService,
         }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
-                    logger.warn {
+                    log.warn {
                         "Agent with containerId=$containerId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
                                 " will add it to crashed list"
                     }
                     heartBeatInspector.watchCrashedAgent(containerId)
                 } else {
-                    logger.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    log.debug { "Agent with containerId=$containerId has stopped after ${TerminateResponse::class.simpleName} signal" }
                     heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.

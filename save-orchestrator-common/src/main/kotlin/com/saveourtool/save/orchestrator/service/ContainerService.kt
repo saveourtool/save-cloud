@@ -34,7 +34,6 @@ class ContainerService(
      *
      * @param request [RunExecutionRequest] with info about [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
-     * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
     fun prepareConfiguration(request: RunExecutionRequest): RunConfiguration {
@@ -53,7 +52,7 @@ class ContainerService(
     fun createAndStartContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = containerRunner.createAndStart(
+    ): Unit = containerRunner.createAndStart(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -101,6 +100,7 @@ class ContainerService(
      * @param executionId ID of execution
      */
     fun cleanupAllByExecution(executionId: Long) {
+        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
 
