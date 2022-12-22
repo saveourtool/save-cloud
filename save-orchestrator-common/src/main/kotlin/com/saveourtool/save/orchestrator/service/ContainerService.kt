@@ -116,12 +116,12 @@ class ContainerService(
      * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStopped(containerId)
+    fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
      * @param executionId ID of execution
      */
-    fun cleanup(executionId: Long) {
+    fun cleanupAllByExecution(executionId: Long) {
         containerRunner.cleanupAllByExecution(executionId)
     }
 
