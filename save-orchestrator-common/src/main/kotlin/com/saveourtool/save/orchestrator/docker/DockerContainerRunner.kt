@@ -28,8 +28,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
@@ -47,9 +45,6 @@ class DockerContainerRunner(
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
-
-    @Suppress("TYPE_ALIAS")
-    private val containerIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
 
     override fun createAndStart(
         executionId: Long,
