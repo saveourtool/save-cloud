@@ -110,6 +110,9 @@ class SandboxOrchestratorAgentService(
             .map { it.toDto() }
     }
 
+    override fun getExecutionStatus(executionId: Long): Mono<ExecutionStatus> = getExecutionAsMono(executionId)
+        .map { it.status }
+
     override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,

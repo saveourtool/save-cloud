@@ -92,6 +92,18 @@ class ExecutionController(private val executionService: ExecutionService,
 
     /**
      * @param executionId
+     * @return execution dto
+     */
+    @GetMapping(path = ["/internal/executionDto"])
+    fun getExecutionDto(
+        @RequestParam executionId: Long,
+    ): Mono<ExecutionDto> =
+        executionService.findExecution(executionId)
+            .toMonoOrNotFound()
+            .map { it.toDto() }
+
+    /**
+     * @param executionId
      * @param authentication
      * @return execution dto
      */
