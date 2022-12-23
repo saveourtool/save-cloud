@@ -26,8 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
 import org.springframework.http.ResponseEntity
 import reactor.kotlin.core.publisher.toMono
@@ -67,10 +65,10 @@ class AgentsControllerTest {
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
         whenever(containerService.validateContainersAreStarted(any(), anyList()))
-            .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(orchestratorAgentService.addAgents(anyLong(), anyList()))
-            .thenReturn(listOf<Long>(1, 2).toMono())
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
+            .thenReturn(true.toMono())
+        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
@@ -98,18 +96,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    fun `should stop agents by id`() {
-        webClient
-            .post()
-            .uri("/stopAgents")
-            .body(BodyInserters.fromValue(listOf("id-of-agent")))
-            .exchange()
-            .expectStatus()
-            .isOk
-        verify(containerService).stopAgents(anyList())
-    }
-
-    @Test
     fun `should cleanup execution artifacts`() {
         webClient.post()
             .uri("/cleanup?executionId=42")
@@ -118,6 +104,6 @@ class AgentsControllerTest {
             .isOk
 
         Thread.sleep(2_500)
-        verify(containerService, times(1)).cleanup(anyLong())
+        verify(containerService, times(1)).cleanupAllByExecution(anyLong())
     }
 }

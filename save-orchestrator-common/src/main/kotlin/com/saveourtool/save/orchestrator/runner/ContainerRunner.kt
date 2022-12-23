@@ -29,43 +29,12 @@ interface ContainerRunner {
     /**
      * @param executionId
      */
-    fun start(executionId: Long)
-
-    /**
-     * Stop all agents in an execution. Currently, not used.
-     * TODO: actually call
-     *
-     * @param executionId
-     */
-    fun stop(executionId: Long)
-
-    /**
-     * @param containerId ID of container that should be stopped
-     * @return true if agent has been stopped successfully
-     * todo: distinguish stopped / not stopped / error / already stopped
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stopByContainerId(containerId: String): Boolean
+    fun startAllByExecution(executionId: Long)
 
     /**
      * @param executionId
      */
-    fun cleanup(executionId: Long)
-
-    /**
-     * Prune old docker data
-     */
-    fun prune()
-
-    /**
-     * Base on id of an execution load data about existing running agents for it.
-     * TODO: implement under https://github.com/saveourtool/save-cloud/issues/11
-     *
-     * @param executionId
-     */
-    fun discover(executionId: Long) {
-        TODO("Not yet implemented")
-    }
+    fun cleanupAllByExecution(executionId: Long)
 
     /**
      * @param executionId
@@ -79,7 +48,7 @@ interface ContainerRunner {
      * @param containerId id of the agent
      * @return true if agent is not running
      */
-    fun isStoppedByContainerId(containerId: String): Boolean
+    fun isStopped(containerId: String): Boolean
 
     /**
      * Get container identifier: container name for docker agent runner and container id for kubernetes
@@ -88,4 +57,14 @@ interface ContainerRunner {
      * @return container identifier
      */
     fun getContainerIdentifier(containerId: String): String
+
+    /**
+     * [ContainerRunner] which implements this interface requires prune old data
+     */
+    interface Prunable {
+        /**
+         * Prune old docker data
+         */
+        fun prune()
+    }
 }

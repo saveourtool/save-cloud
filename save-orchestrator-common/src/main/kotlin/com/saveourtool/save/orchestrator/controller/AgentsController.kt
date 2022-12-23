@@ -74,14 +74,6 @@ class AgentsController(
     }
 
     /**
-     * @param containerIds list of container IDs of agents to stop
-     */
-    @PostMapping("/stopAgents")
-    fun stopAgents(@RequestBody containerIds: List<String>) {
-        containerService.stopAgents(containerIds)
-    }
-
-    /**
      * Delete containers and images associated with execution [executionId]
      *
      * @param executionId id of execution
@@ -89,7 +81,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        containerService.cleanup(executionId)
+        containerService.cleanupAllByExecution(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())

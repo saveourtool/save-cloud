@@ -5,12 +5,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     id("de.undercouch.download")
     id("org.gradle.test-retry") version "1.5.0"
 }
-
-configureJacoco()
-configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

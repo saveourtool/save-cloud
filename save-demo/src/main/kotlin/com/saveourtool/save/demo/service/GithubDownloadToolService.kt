@@ -1,8 +1,8 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.diktat.DiktatDemoTool
-import com.saveourtool.save.demo.entities.ReleaseAsset
-import com.saveourtool.save.demo.entities.ReleaseMetadata
+import com.saveourtool.save.demo.entity.GithubRepo
+import com.saveourtool.save.demo.entity.ReleaseAsset
+import com.saveourtool.save.demo.entity.ReleaseMetadata
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.storage.toToolKey
@@ -19,6 +19,8 @@ import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
@@ -34,6 +36,7 @@ import kotlinx.serialization.json.Json
 @Service
 class GithubDownloadToolService(
     private val toolStorage: ToolStorage,
+    private val toolService: ToolService,
 ) {
     private val jsonSerializer = Json { ignoreUnknownKeys = true }
 
@@ -41,19 +44,19 @@ class GithubDownloadToolService(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpClient()
 
-    private fun getGithubMetadataUrlByKey(key: ToolKey) = with(key) {
-        val release = if (vcsTagName == LATEST_VERSION) {
-            vcsTagName
-        } else {
-            "tags/$vcsTagName"
-        }
-        "$GITHUB_API_URL/$ownerName/$toolName/releases/$release"
+    private fun getGithubMetadataUrl(repo: GithubRepo, vcsTagName: String) = if (vcsTagName == LATEST_VERSION) {
+        vcsTagName
+    } else {
+        "tags/$vcsTagName"
     }
+        .let { release ->
+            "$GITHUB_API_URL/${repo.organizationName}/${repo.toolName}/releases/$release"
+        }
 
-    private fun getMetadata(key: ToolKey): ReleaseMetadata {
+    private fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata {
         val channel: Channel<ReleaseMetadata> = Channel()
         scope.launch {
-            httpClient.get(getGithubMetadataUrlByKey(key))
+            httpClient.get(getGithubMetadataUrl(repo, vcsTagName))
                 .bodyAsText()
                 .let {
                     jsonSerializer.decodeFromString<ReleaseMetadata>(it)
@@ -74,31 +77,37 @@ class GithubDownloadToolService(
         .bodyAsChannel()
         .toByteBufferFlux()
 
-    private fun downloadFromGithubAndUploadToStorage(key: ToolKey) = getMetadata(key).assets
-        .filterNot(ReleaseAsset::isDigest)
-        .first()
+    /**
+     * @param repo
+     * @param vcsTagName
+     * @return [DisposableHandle]
+     */
+    fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                toolStorage.upload(key, downloadAsset(asset)).subscribe()
+                toolStorage.upload(
+                    ToolKey(repo.organizationName, repo.toolName, vcsTagName, asset.name),
+                    downloadAsset(asset),
+                ).subscribe()
             }
                 .invokeOnCompletion { exception ->
                     exception?.let {
                         if (it is CancellationException) {
-                            logger.debug("Download of ${key.toPrettyString()} was cancelled.")
+                            logger.debug("Download of ${repo.toPrettyString()} was cancelled.")
                         } else {
-                            logger.error("Error while downloading ${key.toPrettyString()}: ${it.message}")
+                            logger.error("Error while downloading ${repo.toPrettyString()}: ${it.message}")
                         }
-                    } ?: logger.debug("${key.toPrettyString()} was successfully downloaded.")
+                    } ?: logger.debug("${repo.toPrettyString()} was successfully downloaded.")
                 }
         }
 
     @PostConstruct
     private fun loadToStorage() = toolStorage.list()
         .collectList()
-        .flatMapIterable { availableFiles ->
-            supportedTools.filter {
-                it !in availableFiles
-            }
+        .zipWith(toolService.getSupportedTools().toMono())
+        .flatMapIterable { (availableFiles, supportedTools) ->
+            supportedTools.map { it.toToolKey() }
+                .filter { it !in availableFiles }
                 .also { tools ->
                     if (tools.isEmpty()) {
                         logger.debug("All required tools are already present in storage.")
@@ -109,19 +118,29 @@ class GithubDownloadToolService(
                 }
         }
         .flatMap { key ->
-            downloadFromGithubAndUploadToStorage(key).toMono()
+            downloadFromGithubAndUploadToStorage(
+                GithubRepo(key.ownerName, key.toolName),
+                key.vcsTagName,
+            ).toMono()
         }
         .subscribe()
+
+    private fun getExecutable(repo: GithubRepo, vcsTagName: String) = getMetadata(repo, vcsTagName).assets
+        .filterNot(ReleaseAsset::isDigest)
+        .first()
+
+    /**
+     * @param repo
+     * @param vcsTagName
+     * @return executable name
+     */
+    fun getExecutableName(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName).name
 
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<GithubDownloadToolService>()
         private const val GITHUB_API_URL = "https://api.github.com/repos"
         private const val LATEST_VERSION = "latest"
-        private val supportedTools = listOf(
-            DiktatDemoTool.KTLINT.toToolKey("ktlint"),
-            DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"),
-        )
         private fun httpClient(): HttpClient = HttpClient {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }

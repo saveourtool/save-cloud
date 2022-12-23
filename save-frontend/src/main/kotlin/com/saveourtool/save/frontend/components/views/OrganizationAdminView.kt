@@ -33,6 +33,10 @@ import kotlinx.serialization.json.Json
  * The list of all organizations, visible to super-users.
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
+    private val comparator: Comparator<OrganizationDto> =
+            compareBy<OrganizationDto> { it.status.ordinal }
+                .thenBy { it.name }
+
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
@@ -107,11 +111,10 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { isBanned ->
-                                        val newStatus = if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED
-                                        setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = newStatus)
-                                        }
+                                        updateOrganizationStatusInOrganizationDtoList(
+                                            organization,
+                                            changeOrganizationDtoStatus(organization, if (isBanned) OrganizationStatus.BANNED else OrganizationStatus.DELETED),
+                                        )
                                     }
                                     conditionClick = true
                                     sendRequest = { isBanned ->
@@ -141,10 +144,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
-                                        }
+                                        updateOrganizationStatusInOrganizationDtoList(organization, changeOrganizationDtoStatus(organization, OrganizationStatus.CREATED))
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -173,10 +173,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                         }
                                     }
                                     onActionSuccess = { _ ->
-                                        setState {
-                                            organizations -= organization
-                                            organizations += organization.copy(status = OrganizationStatus.CREATED)
-                                        }
+                                        updateOrganizationStatusInOrganizationDtoList(organization, changeOrganizationDtoStatus(organization, OrganizationStatus.CREATED))
                                     }
                                     conditionClick = false
                                     sendRequest = { _ ->
@@ -207,6 +204,24 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
         state.organizations = mutableListOf()
     }
 
+    /**
+     * Removes [oldOrganization] by [organizations], adds [newOrganization] in [organizations] and sorts the resulting list by their status and then by name
+     *
+     * @param oldOrganization
+     * @param newOrganization
+     */
+    private fun updateOrganizationStatusInOrganizationDtoList(oldOrganization: OrganizationDto, newOrganization: OrganizationDto) {
+        setState {
+            organizations = organizations.minus(oldOrganization).plus(newOrganization).sortedWith(comparator)
+        }
+    }
+
+    /**
+     * Returned the [organizationDto] with the updated [OrganizationStatus] field to the [newStatus]
+     */
+    private fun changeOrganizationDtoStatus(organizationDto: OrganizationDto, newStatus: OrganizationStatus) =
+            organizationDto.copy(status = newStatus)
+
     override fun componentDidMount() {
         super.componentDidMount()
 
@@ -214,7 +229,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             /*
              * Get the list of organizations and cache it forever.
              */
-            val organizations = getOrganizations()
+            val organizations = getOrganizations().sortedWith(comparator)
             setState {
                 this.organizations = organizations
             }
@@ -244,7 +259,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
     /**
      * @return the list of all organizations, excluding the deleted ones.
      */
-    private suspend fun getOrganizations(): MutableList<OrganizationDto> {
+    private suspend fun getOrganizations(): List<OrganizationDto> {
         val response = post(
             url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
@@ -291,5 +306,5 @@ internal external interface OrganizationAdminState : State {
      * Allows avoiding to run an `HTTP GET` each time an organization is deleted
      * (re-rendering gets triggered by updating the state instead).
      */
-    var organizations: MutableList<OrganizationDto>
+    var organizations: List<OrganizationDto>
 }

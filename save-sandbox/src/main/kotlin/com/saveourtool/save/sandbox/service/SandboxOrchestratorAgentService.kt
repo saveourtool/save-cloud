@@ -3,14 +3,8 @@ package com.saveourtool.save.sandbox.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.SaveCliOverrides
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.toEntity
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.service.AgentStatusList
-import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
@@ -88,28 +82,18 @@ class SandboxOrchestratorAgentService(
             )
         }
 
-    override fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList> = blockingToMono {
-        val execution = sandboxExecutionRepository.findByIdOrNull(executionId)
-            .orNotFound {
-                "Not found execution by id $executionId"
-            }
-        agents
-            .map { it.toEntity() }
-            .let { sandboxAgentRepository.saveAll(it) }
-            .map {
-                SandboxLnkExecutionAgent(
-                    execution = execution,
-                    agent = it
-                )
-            }
-            .let { sandboxLnkExecutionAgentRepository.saveAll(it) }
-            .map { it.agent.requiredId() }
-    }
+    override fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse> = getExecutionAsMono(executionId)
+        .map { execution ->
+            val savedAgent = sandboxAgentRepository.save(agent.toEntity())
+            sandboxLnkExecutionAgentRepository.save(SandboxLnkExecutionAgent(
+                execution = execution,
+                agent = savedAgent
+            ))
+            ResponseEntity.ok().build()
+        }
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {
-        agentStates
-            .map { it.toEntity(this::getAgent) }
-            .let { sandboxAgentStatusRepository.saveAll(it) }
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> = blockingToMono {
+        sandboxAgentStatusRepository.save(agentStatus.toEntity(this::getAgent))
             .let {
                 ResponseEntity.ok().build()
             }
@@ -120,13 +104,16 @@ class SandboxOrchestratorAgentService(
         emptyList()
     }
 
-    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusList> = blockingToMono {
+    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusDtoList> = blockingToMono {
         containerIds
             .mapNotNull { sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(it) }
             .map { it.toDto() }
     }
 
-    override fun updateExecutionByDto(
+    override fun getExecutionStatus(executionId: Long): Mono<ExecutionStatus> = getExecutionAsMono(executionId)
+        .map { it.status }
+
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
@@ -141,7 +128,7 @@ class SandboxOrchestratorAgentService(
         }
         .thenReturn(ResponseEntity.ok().build())
 
-    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = getExecutionAsMonoByContainerId(containerId)
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList> = getExecutionAsMono(executionId)
         .map { execution ->
             sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
                 .map { it.agent }
@@ -154,12 +141,14 @@ class SandboxOrchestratorAgentService(
                 .map {
                     it.toDto()
                 }
-                .let {
-                    AgentStatusesForExecution(execution.requiredId(), it)
-                }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(executionId: Long, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse> = Mono.fromCallable {
+        // sandbox doesn't have TestExecution
+        ResponseEntity.ok().build()
+    }
+
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }

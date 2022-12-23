@@ -99,43 +99,25 @@ class KubernetesManager(
             .orEmpty()
     }
 
-    override fun start(executionId: Long) {
+    override fun startAllByExecution(executionId: Long) {
         logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
     }
 
-    override fun stop(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
+        logger.debug { "Removing a Job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
-        val deletedResources = kcJobsWithName(jobName)
-            .delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
-        }
-        logger.debug("Deleted Job for execution id=$executionId")
-    }
-
-    override fun stopByAgentId(agentId: String): Boolean {
-        logger.warn {
-            "${this::class.simpleName}#stopByAgentId is called, but it's no-op, " +
-                    "because we don't directly delete pods in kubernetes"
-        }
-        return false
-    }
-
-    override fun cleanup(executionId: Long) {
-        logger.debug("Removing a Job for execution id=$executionId")
-        val job = kcJobsWithName(jobNameForExecution(executionId))
+        val job = kcJobsWithName(jobName)
         job.get()?.let {
-            job.delete()
+            val deletedResources = job.delete()
+            val isDeleted = deletedResources.size == 1
+            if (!isDeleted) {
+                throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+            }
+            logger.debug { "Deleted Job for execution id=$executionId" }
         }
     }
 
-    override fun prune() {
-        logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
-                "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
-    }
-
-    override fun isStoppedByContainerId(containerId: String): Boolean {
+    override fun isStopped(containerId: String): Boolean {
         val pod = kc.pods().withName(containerId).get()
         return pod == null || run {
             // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839

@@ -7,25 +7,19 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.waitReactivelyUntil
 import com.saveourtool.save.utils.info
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
+import reactor.core.publisher.Mono
 
 import kotlin.io.path.*
 import kotlin.jvm.Throws
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
-import kotlinx.datetime.Clock
 
 /**
  * A service that builds and starts containers for test execution.
@@ -35,15 +29,13 @@ class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
     private val agentService: AgentService,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
-    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
-
     /**
      * Function that builds a base image with test resources
      *
      * @param request [RunExecutionRequest] with info about [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
-     * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
     @Throws(ContainerException::class)
@@ -64,7 +56,7 @@ class ContainerService(
     fun createAndStartContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ) = containerRunner.createAndStart(
+    ): List<String> = containerRunner.createAndStart(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -108,42 +100,19 @@ class ContainerService(
     }
 
     /**
-     * @param containerIds list of container IDs of agents to stop
-     * @return true if agents have been stopped, false if another thread is already stopping them
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
-    fun stopAgents(containerIds: Collection<String>) =
-            try {
-                containerIds.all { containerId ->
-                    containerRunner.stopByContainerId(containerId)
-                }
-            } catch (e: ContainerRunnerException) {
-                log.error("Error while stopping agents $containerIds", e)
-                false
-            }
-
-    /**
-     * @param executionId
-     */
-    fun markAgentForExecutionAsStarted(executionId: Long) {
-        areAgentsHaveStarted
-            .computeIfAbsent(executionId) { AtomicBoolean(false) }
-            .compareAndSet(false, true)
-    }
-
-    /**
      * Check whether the agent with [containerId] is stopped
      *
      * @param containerId id of an container
      * @return true if agent is stopped
      */
-    fun isStoppedByContainerId(containerId: String): Boolean = containerRunner.isStoppedByContainerId(containerId)
+    fun isStopped(containerId: String): Boolean = containerRunner.isStopped(containerId)
 
     /**
      * @param executionId ID of execution
      */
-    fun cleanup(executionId: Long) {
-        containerRunner.cleanup(executionId)
+    fun cleanupAllByExecution(executionId: Long) {
+        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
+        containerRunner.cleanupAllByExecution(executionId)
     }
 
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {

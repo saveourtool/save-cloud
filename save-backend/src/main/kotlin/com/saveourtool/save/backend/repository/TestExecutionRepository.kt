@@ -164,6 +164,15 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     ): List<TestExecution>
 
     /**
+     * Returns test executions for agent [com.saveourtool.save.entities.Agent.containerId] and status [TestExecution.status]
+     *
+     * @param agentContainerId
+     * @param status
+     * @return a list of test executions
+     */
+    fun findByAgentContainerIdAndStatus(agentContainerId: String, status: TestResultStatus): List<TestExecution>
+
+    /**
      * Returns a TestExecution matched by a set of fields
      *
      * @param executionId if of execution
@@ -185,10 +194,11 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     /**
      * @param executionId
      * @param agentId
+     * @param status
      * @return list of TestExecution's
      */
     @Suppress("TYPE_ALIAS")
-    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): List<TestExecution>
+    fun findByExecutionIdAndAgentIdAndStatus(executionId: Long, agentId: Long, status: TestResultStatus): List<TestExecution>
 
     /**
      * Delete a TestExecution matched by a set of fields

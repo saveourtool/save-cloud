@@ -8,11 +8,11 @@ import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
@@ -22,7 +22,7 @@ import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
 import com.saveourtool.save.orchestrator.service.ContainerException
 import io.micrometer.core.instrument.MeterRegistry
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -43,7 +43,7 @@ class DockerContainerRunner(
     private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : ContainerRunner {
+) : ContainerRunner, ContainerRunner.Prunable {
     private val settings: DockerSettings = requireNotNull(configProperties.docker) {
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
@@ -53,7 +53,7 @@ class DockerContainerRunner(
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
     ): List<String> {
-        logger.debug { "Pulling image ${configuration.imageTag}" }
+        log.debug { "Pulling image ${configuration.imageTag}" }
         try {
             dockerClient.pullImageCmd(configuration.imageTag)
                 .withRegistry("https://ghcr.io")
@@ -61,10 +61,10 @@ class DockerContainerRunner(
                 .awaitCompletion()
 
             val containerIds = (1..replicas).map { number ->
-                logger.info("Creating a container #$number for execution.id=$executionId")
+                log.info("Creating a container #$number for execution.id=$executionId")
                 createContainerFromImage(configuration, containerName(executionId, number))
                     .also { containerId ->
-                        logger.info("Created a container id=$containerId for execution.id=$executionId")
+                        log.info("Created a container id=$containerId for execution.id=$executionId")
                     }
             }
             containerIds.forEach { agentId ->
@@ -78,57 +78,38 @@ class DockerContainerRunner(
 
     }
 
-    override fun start(executionId: Long) {
-    }
-
-    override fun stop(executionId: Long) {
-        val runningContainersForExecution = dockerClient.listContainersCmd()
-            .withStatusFilter(listOf("running"))
-            .exec()
-            .filter { container -> container.names.any { it.contains("-$executionId-") } }
-        runningContainersForExecution.map { it.id }.forEach { containerId ->
-            dockerClient.stopContainerCmd(containerId).exec()
+    override fun startAllByExecution(executionId: Long) {
+        val containerIds = containerIdsByExecution.computeIfAbsent(executionId) {
+            // For executions started by the running instance of orchestrator, this key should be already present in the map.
+            // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
+            TODO("${DockerContainerRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
+        }
+        containerIds.forEach { containerId ->
+            log.info("Starting container id=$containerId")
+            dockerClient.startContainerCmd(containerId).exec()
         }
     }
 
-    override fun stopByContainerId(containerId: String): Boolean {
-        logger.info("Stopping agent with id=$containerId")
-        val state = dockerClient.inspectContainerCmd(containerId).exec().state
-        return if (state.status == "running") {
-            try {
-                dockerClient.stopContainerCmd(containerId).exec()
-            } catch (dex: DockerException) {
-                throw ContainerRunnerException("Exception when stopping agent id=$containerId", dex)
-            }
-            logger.info("Agent with id=$containerId has been stopped")
-            true
-        } else {
-            if (state.status != "exited") {
-                logger.warn("Agent with id=$containerId was requested to be stopped, but it actual state=$state")
-            }
-            state.status == "exited"
-        }
-    }
-
-    override fun isStoppedByContainerId(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
+    override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
-        .also { logger.debug("Container $containerId has state $it") }
+        .also { log.debug("Container $containerId has state $it") }
         .status != "running"
 
-    override fun cleanup(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
+        log.info("Stopping all agents for execution id=$executionId")
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
-            logger.info("Removing container $containerId")
+            log.info("Removing container $containerId")
             val existingContainerIds = dockerClient.listContainersCmd().withShowAll(true).exec()
                 .map {
                     it.id
                 }
             if (containerId in existingContainerIds) {
-                dockerClient.removeContainerCmd(containerId).exec()
+                dockerClient.removeContainerCmd(containerId).withForce(true).exec()
             } else {
-                logger.info("Container $containerId is not present, so won't attempt to remove")
+                log.info("Container $containerId is not present, so won't attempt to remove")
             }
         }
     }
@@ -142,10 +123,10 @@ class DockerContainerRunner(
         for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
             val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
             val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
-            logger.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            log.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
             reclaimedBytes += currentReclaimedBytes
         }
-        logger.info("Reclaimed $reclaimedBytes bytes after prune command")
+        log.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
     override fun listContainerIds(executionId: Long): List<String> = dockerClient.listContainersCmd()
@@ -251,6 +232,6 @@ class DockerContainerRunner(
     private fun containerName(executionId: Long, number: Int) = "${configProperties.containerNamePrefix}$executionId-$number"
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DockerContainerRunner::class.java)
+        private val log: Logger = getLogger<DockerContainerRunner>()
     }
 }

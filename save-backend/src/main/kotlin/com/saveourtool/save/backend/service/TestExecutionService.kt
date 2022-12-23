@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
@@ -96,6 +95,16 @@ class TestExecutionService(
             testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status.name, PageRequest.of(page, pageSize))
 
     /**
+     * Get test executions by [containerId] and [status]
+     *
+     * @param containerId
+     * @param status
+     * @return a list of test executions
+     */
+    internal fun getTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
+        .findByAgentContainerIdAndStatus(containerId, status)
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
@@ -171,8 +180,8 @@ class TestExecutionService(
                     it.status == TestResultStatus.RUNNING
                 }
                 .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
+                    it.startTime = testExecDto.startTimeSeconds?.secondsToJLocalDateTime()
+                    it.endTime = testExecDto.endTimeSeconds?.secondsToJLocalDateTime()
                     it.status = testExecDto.status
                     when (testExecDto.status) {
                         TestResultStatus.PASSED -> counters.passed++
@@ -288,44 +297,56 @@ class TestExecutionService(
     }
 
     /**
-     * @param containerIds the list of agents, for which corresponding test executions should be marked as failed
-     * @param condition
+     * @param containerId the container ID of agent, for which corresponding test executions should be marked as failed
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
-        containerIds.forEach { containerId ->
-            val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
-                "Agent with containerId=[$containerId] was not found in the DB"
-            }
-            val agentId = agent.requiredId()
-            val executionId = agentService.getExecution(agent).requiredId()
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String) {
+        val agent = agentService.getAgentByContainerId(containerId)
+        val agentId = agent.requiredId()
+        val executionId = agentService.getExecution(agent).requiredId()
 
-            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
-                executionId,
-                agentId
-            ).filter(condition)
+        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentIdAndStatus(
+            executionId,
+            agentId,
+            TestResultStatus.READY_FOR_TESTING,
+        )
 
-            if (testExecutionList.isEmpty()) {
-                // Crashed agent could be not assigned with tests, so just warn and return
-                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
-                return@forEach
-            }
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
 
-            testExecutionList.map { testExecution ->
-                testExecutionRepository.save(testExecution.apply {
-                    this.status = TestResultStatus.INTERNAL_ERROR
-                    // In case of execution without errors all information about test execution we take from
-                    // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
-                    this.endTime = LocalDateTime.now()
-                })
-            }.also { testExecutions ->
-                if (testExecutions.isNotEmpty()) {
-                    log.info("Test executions with ids ${testExecutions.map { it.id }} were failed with internal error")
-                }
+    /**
+     * @param executionId the ID of an execution, for which corresponding test executions should be marked as failed
+     */
+    @Transactional
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long) {
+        val testExecutionList = testExecutionRepository.findByExecutionId(executionId)
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
+
+    private fun List<TestExecution>.doMarkTestExecutionOfAgentsAsFailed() = this
+        .map { testExecution ->
+            testExecution.apply {
+                this.status = TestResultStatus.INTERNAL_ERROR
+                // In case of execution without errors all information about test execution we take from
+                // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
+                this.endTime = LocalDateTime.now()
             }
         }
-    }
+        .let { testExecutionRepository.saveAll(it) }
+        .also {
+            log.info("Test executions with ids ${this.map { it.requiredId() }} were failed with internal error")
+        }
 
     private fun Long?.orZeroIfNotApplicable() = this?.takeUnless { CountWarnings.isNotApplicable(it.toInt()) } ?: 0
 

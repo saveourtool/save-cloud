@@ -181,22 +181,31 @@ class TestExecutionController(
                 }
 
     /**
-     * @param onlyReadyForTesting
-     * @param containerIds
+     * @param containerId id of agent's container
+     * @param status status for test executions
+     * @return a list of test executions
      */
-    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
-    fun markTestExecutionsOfAgentsAsFailed(
-        @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
-        @RequestBody containerIds: Collection<String>,
-    ) {
-        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
-            if (onlyReadyForTesting) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            } else {
-                true
-            }
-        }
-    }
+    @GetMapping("/internal/test-executions/get-by-container-id")
+    fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
+                                            @RequestParam status: TestResultStatus
+    ) = testExecutionService.getTestExecutions(containerId, status)
+        .map { it.toDto() }
+
+    /**
+     * @param executionId
+     */
+    @PostMapping("/internal/test-executions/mark-all-as-failed-by-execution-id")
+    fun markAllTestExecutionsOfExecutionAsFailed(
+        @RequestParam executionId: Long,
+    ) = testExecutionService.markAllTestExecutionsOfExecutionAsFailed(executionId)
+
+    /**
+     * @param containerId
+     */
+    @PostMapping("/internal/test-executions/mark-ready-for-testing-as-failed-by-container-id")
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        @RequestBody containerId: String,
+    ) = testExecutionService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
 
     /**
      * @param testExecutionsDto

@@ -29,6 +29,8 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_TOKEN("settings/token"),
     ;
 
+    override fun toString(): String = path
+
     companion object {
         /**
          * Get forbidden words from [FrontendRoutes].

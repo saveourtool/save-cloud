@@ -1,5 +1,5 @@
 imageRegistry: ghcr.io/saveourtool
-dockerTag: latest  # this should be set explicitly during chart installation
+# dockerTag: <TDB>  # this should be set explicitly during chart installation
 
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
@@ -74,6 +74,7 @@ mysql:
   # Name of the database schema that will be used by save-cloud deployment
   backend_schema: save_cloud
   sandbox_schema: save_sandbox
+  demo_schema: save_demo
   root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application
@@ -85,7 +86,7 @@ grafana:
   enabled: false
   image:
     repository: grafana/grafana
-    tag: 9.3.1
+    tag: 9.3.2
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
@@ -110,7 +111,7 @@ prometheus:
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.40.6
+      tag: v2.40.7
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
