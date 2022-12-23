@@ -130,7 +130,7 @@ class AgentService(
             .filterWhen {
                 orchestratorAgentService.getExecutionStatus(executionId)
                     .map {
-                        it !in setOf(ExecutionStatus.FINISHED, ExecutionStatus.FINISHED)
+                        it !in setOf(ExecutionStatus.FINISHED, ExecutionStatus.ERROR)
                     }
                     .doOnNext { hasNotFinalStatus ->
                         if (!hasNotFinalStatus) {
