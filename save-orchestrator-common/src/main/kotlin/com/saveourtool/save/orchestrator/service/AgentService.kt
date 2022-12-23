@@ -121,8 +121,8 @@ class AgentService(
             }
             .filter { finishedContainerIds ->
                 finishedContainerIds.isNotEmpty()
-                    .also {
-                        if (!it) {
+                    .also { hasFinishedContainers ->
+                        if (!hasFinishedContainers) {
                             log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
                         }
                     }
@@ -132,8 +132,10 @@ class AgentService(
                     .map {
                         it !in setOf(ExecutionStatus.FINISHED, ExecutionStatus.FINISHED)
                     }
-                    .doOnNext {
-                        log.info { "Execution id=$executionId already has final status, skip finalization" }
+                    .doOnNext { hasNotFinalStatus ->
+                        if (!hasNotFinalStatus) {
+                            log.info { "Execution id=$executionId already has final status, skip finalization" }
+                        }
                     }
             }
             .flatMap { finishedContainerIds ->
