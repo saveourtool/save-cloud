@@ -10,8 +10,8 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.waitReactivelyUntil
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.waitReactivelyUntil
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -64,39 +64,36 @@ class ContainerService(
 
     /**
      * @param executionId ID of [Execution] for which containers are being started
-     * @param containerIds list of IDs of agents (==containers) for this execution
+     * @param replicas
      * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun validateContainersAreStarted(executionId: Long, replicas: Int): Flux<Long> {
+    fun validateContainersAreStarted(executionId: Long, replicas: Int): Mono<Void> {
         log.info {
             "Validate that $replicas agents are started for execution.id=$executionId"
         }
         // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
         // if no, mark execution as failed with internal error here
-        val now = Clock.System.now()
-        val duration = AtomicLong(0)
-        return Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
-            .takeWhile {
-                val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
-                duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
-            }
-            .doOnNext {
-                duration.set((Clock.System.now() - now).inWholeMilliseconds)
-            }
-            .doOnComplete {
-                if (areAgentsHaveStarted[executionId]?.get() != true) {
+        return waitReactivelyUntil(
+            interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
+            numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis,
+        ) {
+            agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
+        }
+            .doOnSuccess { hasAnyContainers ->
+                if (!hasAnyContainers) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
-                    agentRunner.stop(executionId)
+                    containerRunner.cleanupAllByExecution(executionId)
                     agentService.updateExecution(
                         executionId, ExecutionStatus.ERROR,
                         "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                    ).then(agentService.markTestExecutionsAsFailed(executionId, false))
+                    ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                         .subscribe()
                 }
-                areAgentsHaveStarted.remove(executionId)
+                agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
             }
+            .then()
     }
 
     /**

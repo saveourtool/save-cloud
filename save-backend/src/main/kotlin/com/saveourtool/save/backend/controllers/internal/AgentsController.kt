@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
@@ -36,7 +35,6 @@ import kotlinx.datetime.toJavaLocalDateTime
 @RequestMapping("/internal")
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
-    private val agentService: AgentService,
     private val agentService: AgentService,
     private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
     private val configProperties: ConfigProperties,

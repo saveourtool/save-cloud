@@ -29,11 +29,6 @@ interface ContainerRunner {
     /**
      * @param executionId
      */
-    fun startAllByExecution(executionId: Long)
-
-    /**
-     * @param executionId
-     */
     fun cleanupAllByExecution(executionId: Long)
 
     /**

@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
+import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -20,7 +21,6 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
-import com.saveourtool.save.orchestrator.service.ContainerException
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.context.annotation.Profile
@@ -28,8 +28,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
@@ -68,25 +66,12 @@ class DockerContainerRunner(
                     }
             }
             containerIds.forEach { agentId ->
-                logger.info("Starting container id=$agentId")
+                log.info("Starting container id=$agentId")
                 dockerClient.startContainerCmd(agentId).exec()
             }
             return containerIds
         } catch (dex: DockerException) {
             throw ContainerException("Unable to create and start containers", dex)
-        }
-
-    }
-
-    override fun startAllByExecution(executionId: Long) {
-        val containerIds = containerIdsByExecution.computeIfAbsent(executionId) {
-            // For executions started by the running instance of orchestrator, this key should be already present in the map.
-            // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
-            TODO("${DockerContainerRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
-        }
-        containerIds.forEach { containerId ->
-            log.info("Starting container id=$containerId")
-            dockerClient.startContainerCmd(containerId).exec()
         }
     }
 
@@ -130,10 +115,10 @@ class DockerContainerRunner(
     }
 
     override fun listContainerIds(executionId: Long): List<String> = dockerClient.listContainersCmd()
-            .withNameFilter(listOf("-$executionId-"))
-            .exec()
-            .map { it.id }
-            .filterNot { isAgentStopped(it) }
+        .withNameFilter(listOf("-$executionId-"))
+        .exec()
+        .map { it.id }
+        .filterNot { isStopped(it) }
 
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 

@@ -6,7 +6,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -99,10 +98,6 @@ class KubernetesManager(
             .orEmpty()
     }
 
-    override fun startAllByExecution(executionId: Long) {
-        logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
-    }
-
     override fun cleanupAllByExecution(executionId: Long) {
         logger.debug { "Removing a Job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
@@ -115,6 +110,10 @@ class KubernetesManager(
             }
             logger.debug { "Deleted Job for execution id=$executionId" }
         }
+    }
+
+    override fun listContainerIds(executionId: Long): List<String> {
+        TODO("Not yet implemented")
     }
 
     override fun isStopped(containerId: String): Boolean {

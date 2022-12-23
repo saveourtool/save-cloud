@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.doOnError
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
 import kotlin.time.Duration.Companion.seconds
@@ -69,7 +69,8 @@ class HeartbeatController(
             .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleNewAgent(heartbeat.executionProgress.executionId, heartbeat.containerId, heartbeat.containerName, heartbeat.version)
+                    STARTING ->
+                        handleNewAgent(heartbeat.executionProgress.executionId, heartbeat.agentInfo.containerId, heartbeat.agentInfo.containerName, heartbeat.agentInfo.version)
                     // if agent idles, we try to assign work, but also check if it should be terminated
                     IDLE -> handleVacantAgent(executionId, containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
@@ -105,7 +106,7 @@ class HeartbeatController(
     )
         .doOnError(WebClientResponseException::class) { exception ->
             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-            containerService.cleanup(executionId)
+            containerService.cleanupAllByExecution(executionId)
         }
         .then(agentService.getInitConfig(agentContainerId))
 
