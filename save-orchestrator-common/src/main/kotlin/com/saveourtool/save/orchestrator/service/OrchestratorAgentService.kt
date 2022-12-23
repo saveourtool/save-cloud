@@ -66,6 +66,16 @@ interface OrchestratorAgentService {
     ): Mono<AgentStatusDtoList>
 
     /**
+     * Fetches the status of execution
+     *
+     * @param executionId execution for which the status is required
+     * @return a Mono with [ExecutionStatus]
+     */
+    fun getExecutionStatus(
+        executionId: Long,
+    ): Mono<ExecutionStatus>
+
+    /**
      * Marks the execution to specified state
      *
      * @param executionId execution that should be updated

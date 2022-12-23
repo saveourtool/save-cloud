@@ -106,7 +106,25 @@ class AgentService(
                     getFinishedOrStoppedAgentsByExecutionId(executionId)
                 )
             }
-            .filter { finishedContainerIds -> finishedContainerIds.isNotEmpty() }
+            .filter { finishedContainerIds ->
+                finishedContainerIds.isNotEmpty()
+                    .also { hasFinishedContainers ->
+                        if (!hasFinishedContainers) {
+                            log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
+                        }
+                    }
+            }
+            .filterWhen {
+                orchestratorAgentService.getExecutionStatus(executionId)
+                    .map {
+                        it !in setOf(ExecutionStatus.FINISHED, ExecutionStatus.ERROR)
+                    }
+                    .doOnNext { hasNotFinalStatus ->
+                        if (!hasNotFinalStatus) {
+                            log.info { "Execution id=$executionId already has final status, skip finalization" }
+                        }
+                    }
+            }
             .flatMap { finishedContainerIds ->
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
@@ -114,11 +132,6 @@ class AgentService(
                         agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
                         containerRunner.cleanupAllByExecution(executionId)
                     })
-            }
-            .doOnSuccess {
-                if (it == null) {
-                    log.debug("Agents for execution $executionId are still running, so won't try to stop them")
-                }
             }
             .subscribeOn(scheduler)
             .subscribe()
@@ -141,13 +154,9 @@ class AgentService(
             .getAgentsStatuses(finishedContainerIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
-                if (agentStatuses.map { it.state }.all {
-                    it == TERMINATED
-                }) {
+                if (agentStatuses.areAllStatesIn(TERMINATED)) {
                     updateExecution(executionId, ExecutionStatus.FINISHED)
-                } else if (agentStatuses.map { it.state }.all {
-                    it == CRASHED
-                }) {
+                } else if (agentStatuses.areAllStatesIn(CRASHED)) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
                     ).then(markAllTestExecutionsOfExecutionAsFailed(executionId))
@@ -225,14 +234,14 @@ class AgentService(
         executionId: Long,
     ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(executionId)
 
-    private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == IDLE || it.state in finishedOrStoppedStates
-    }
+    private fun Collection<AgentStatusDto>.areIdleOrFinished() = areAllStatesIn(*finishedOrStoppedStates, IDLE)
 
-    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all { it.state in finishedOrStoppedStates }
+    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = areAllStatesIn(*finishedOrStoppedStates)
+
+    private fun Collection<AgentStatusDto>.areAllStatesIn(vararg states: AgentState) = all { it.state in states }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentService::class.java)
-        private val finishedOrStoppedStates = setOf(FINISHED, CRASHED, TERMINATED)
+        private val finishedOrStoppedStates = arrayOf(FINISHED, CRASHED, TERMINATED)
     }
 }
