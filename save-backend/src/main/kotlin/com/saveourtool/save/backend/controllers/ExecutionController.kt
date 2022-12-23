@@ -98,9 +98,9 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecutionDto(
         @RequestParam executionId: Long,
     ): Mono<ExecutionDto> =
-        executionService.findExecution(executionId)
-            .toMonoOrNotFound()
-            .map { it.toDto() }
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
+                .map { it.toDto() }
 
     /**
      * @param executionId

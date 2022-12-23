@@ -76,11 +76,11 @@ class BackendOrchestratorAgentService(
     override fun getExecutionStatus(
         executionId: Long,
     ): Mono<ExecutionStatus> =
-        webClientBackend.get()
-            .uri("/executionDto?executionId=$executionId")
-            .retrieve()
-            .bodyToMono<ExecutionDto>()
-            .map { it.status }
+            webClientBackend.get()
+                .uri("/executionDto?executionId=$executionId")
+                .retrieve()
+                .bodyToMono<ExecutionDto>()
+                .map { it.status }
 
     override fun updateExecutionStatus(
         executionId: Long,
