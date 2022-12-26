@@ -36,7 +36,8 @@ class AgentsController(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestBody request: RunExecutionRequest): Mono<EmptyResponse> {
-        val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
+        val response = agentService.updateExecution(request.executionId, ExecutionStatus.INITIALIZATION)
+            .thenReturn(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
             log.info {
