@@ -183,19 +183,128 @@ Usually, not the whole stack is required for development. Application logic is p
    The resulting application settings may look like this: [screenshot](../info/img/github-oauth-app-settings.png).
 
 ## Local debugging
-You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
-If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
-To run on Windows you need to compile `save-agent` on WSL and put `saveAgentDistroFilepath` to `%USERPROFILE%\.gradle\gradle.properties` <br/>
-For example:
+You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.
 
-    saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+#### Using `save-agent` executable on Windows
+
+If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.
+To run on Windows, you need to build and package `save-agent` on WSL:
+
+```bash
+./gradlew :save-agent:copyAgentDistribution
+```
+
+and provide the path to the JAR archive which contains `save-agent.kexe` via the
+`saveAgentDistroFilepath` _Gradle_ property, by setting the above property
+either under project-specific `gradle.properties`, or, globally, under
+`%USERPROFILE%\.gradle\gradle.properties`, e.g.:
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+```
+
+Using forward slashes on Windows is allowed, too (_Gradle_ will understand such
+paths just fine):
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
+```
+
+Once the _agent_ distribution is built and `saveAgentDistroFilepath` is set, you
+can run (on Windows):
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro
+```
+
+Once the task completes, the _agent_ JAR can be found under
+`save-backend\build\agentDistro` directory.
+
+For the classpath changes to take effect:
+
+1. Reload the project from disk (_Project_ tool window in IDEA).
+1. Reload the project model (_Gradle_ tool window in IDEA).
+1. Re-start the _back-end_ application.
+
+Then verify that the agent is indeed available for download from the _back-end_.
+Incorrect output example (the binary is not found):
+
+```console
+$ curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
+*   Trying 127.0.0.1:5800...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Connected to localhost (127.0.0.1) port 5800 (#0)
+> POST /internal/files/download-save-agent HTTP/1.1
+> Host: localhost:5800
+> User-Agent: curl/7.83.1
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 404 Not Found
+```
+
+Correct output example (the JAR is on the _back-end_'s classpath):
+
+```console
+$ curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
+*   Trying 127.0.0.1:5800...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Connected to localhost (127.0.0.1) port 5800 (#0)
+> POST /internal/files/download-save-agent HTTP/1.1
+> Host: localhost:5800
+> User-Agent: curl/7.83.1
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+```
+
+In addition to the HTTP status code, the content of the downloaded file can be
+examined.
+If the agent binary was found, the downloaded content would be an ELF executable,
+otherwise it would be JSON data with an error message:
+
+```json
+{
+    "timestamp": "2022-12-26T11:08:58.723+00:00",
+    "path": "/internal/files/download-save-agent",
+    "status": 404,
+    "error": "Not Found",
+    "message": null,
+    "requestId": "e1ab4d55-1"
+}
+```
+
+Similarly, troubles downloading an _agent_ binary from the _back-end_ can be
+diagnosed using `docker logs` (post-mortem).
+Here, you can see a container failing to execute the JSON data
+([#1663](https://github.com/saveourtool/save-cloud/issues/1663)):
+
+```console
+$ docker container ls -a | grep -F 'save-execution' | awk '{ print $1 }' | xargs -n1 -r docker logs 2>&1 | grep -F 'save-agent.kexe'
++ curl -vvv -X POST http://host.docker.internal:5800/internal/files/download-save-agent --output save-agent.kexe
++ chmod +x save-agent.kexe
++ ./save-agent.kexe
+./save-agent.kexe: 1: {timestamp:2022-12-26T08:21:55.070+00:00,path:/internal/files/download-save-agent,status:404,error:Not Found,message:null,requestId:90854645-736}: not found
+```
+
+#### Using a custom `save-cli` executable on Windows
 
 If you need to test changes in `save-cli` you can also compile `SNAPSHOT` version of `save-cli` on WSL <br/>
 and set `saveCliPath` and `saveCliVersion` in `%USERPROFILE%\.gradle\gradle.properties` <br/>
 For example:
 
-    saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
-    saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```properties
+# gradle.properties
+saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
+saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```
 
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
 
