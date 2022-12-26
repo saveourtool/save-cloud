@@ -2,9 +2,9 @@ package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
@@ -30,8 +30,8 @@ import reactor.kotlin.core.publisher.doOnError
 @RestController
 class AgentsController(
     private val agentService: AgentService,
-    private val dockerService: DockerService,
-    private val agentRunner: AgentRunner,
+    private val containerService: ContainerService,
+    private val containerRunner: ContainerRunner,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -51,7 +51,7 @@ class AgentsController(
             }
             Mono.fromCallable {
                 // todo: pass SDK via request body
-                dockerService.prepareConfiguration(request)
+                containerService.prepareConfiguration(request)
             }
                 .subscribeOn(agentService.scheduler)
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
@@ -59,31 +59,31 @@ class AgentsController(
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(request.executionId, configuration)
+                    containerService.createContainers(request.executionId, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(request.executionId, "Unable to create containers", ex)
                 }
                 .flatMap { containerIds ->
                     agentService.saveAgentsWithInitialStatuses(
+                        request.executionId,
                         containerIds.map { containerId ->
-                            val containerName = agentRunner.getContainerIdentifier(containerId)
+                            val containerName = containerRunner.getContainerIdentifier(containerId)
                             AgentDto(
                                 containerId = containerId,
                                 containerName = containerName,
-                                executionId = request.executionId,
                                 version = request.saveAgentVersion
                             )
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
-                            dockerService.cleanup(request.executionId)
+                            containerService.cleanupAllByExecution(request.executionId)
                         }
                         .thenReturn(containerIds)
                 }
-                .flatMapMany { agentIds ->
-                    dockerService.startContainersAndUpdateExecution(request.executionId, agentIds)
+                .flatMapMany { containerIds ->
+                    containerService.startContainersAndUpdateExecution(request.executionId, containerIds)
                 }
                 .subscribe()
         }
@@ -100,14 +100,6 @@ class AgentsController(
     }
 
     /**
-     * @param agentIds list of IDs of agents to stop
-     */
-    @PostMapping("/stopAgents")
-    fun stopAgents(@RequestBody agentIds: List<String>) {
-        dockerService.stopAgents(agentIds)
-    }
-
-    /**
      * Delete containers and images associated with execution [executionId]
      *
      * @param executionId id of execution
@@ -115,7 +107,7 @@ class AgentsController(
      */
     @PostMapping("/cleanup")
     fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
-        dockerService.cleanup(executionId)
+        containerService.cleanupAllByExecution(executionId)
     }
         .flatMap {
             Mono.just(ResponseEntity.ok().build())

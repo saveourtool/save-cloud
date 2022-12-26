@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -128,17 +127,6 @@ class TestExecutionController(
                 }
 
     /**
-     * @param agentContainerId id of agent's container
-     * @param status status for test executions
-     * @return a list of test executions
-     */
-    @GetMapping("/internal/testExecutions/agent/{agentId}/{status}")
-    fun getTestExecutionsForAgentWithStatus(@PathVariable("agentId") agentContainerId: String,
-                                            @PathVariable status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(agentContainerId, status)
-        .map { it.toDto() }
-
-    /**
      * Finds TestExecution by test location, returns 404 if not found
      *
      * @param executionId under this executionId test has been executed
@@ -193,44 +181,31 @@ class TestExecutionController(
                 }
 
     /**
-     * @param status
-     * @param agentIds the list of agents, for which, according the [status] test executions should be updated
-     * @throws ResponseStatusException
+     * @param containerId id of agent's container
+     * @param status status for test executions
+     * @return a list of test executions
      */
-    @PostMapping(value = ["/internal/testExecution/setStatusByAgentIds"])
-    fun setStatusByAgentIds(
-        @RequestParam("status") status: String,
-        @RequestBody agentIds: Collection<String>
-    ) {
-        when (status) {
-            AgentState.CRASHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds)
-            AgentState.FINISHED.name -> testExecutionService.markTestExecutionsOfAgentsAsFailed(agentIds) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            }
-            else -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "For now only CRASHED and FINISHED statuses are supported"
-            )
-        }
-    }
+    @GetMapping("/internal/test-executions/get-by-container-id")
+    fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
+                                            @RequestParam status: TestResultStatus
+    ) = testExecutionService.getTestExecutions(containerId, status)
+        .map { it.toDto() }
 
     /**
-     * @param onlyReadyForTesting
-     * @param containerIds
+     * @param executionId
      */
-    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
-    fun markTestExecutionsOfAgentsAsFailed(
-        @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
-        @RequestBody containerIds: Collection<String>,
-    ) {
-        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
-            if (onlyReadyForTesting) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            } else {
-                true
-            }
-        }
-    }
+    @PostMapping("/internal/test-executions/mark-all-as-failed-by-execution-id")
+    fun markAllTestExecutionsOfExecutionAsFailed(
+        @RequestParam executionId: Long,
+    ) = testExecutionService.markAllTestExecutionsOfExecutionAsFailed(executionId)
+
+    /**
+     * @param containerId
+     */
+    @PostMapping("/internal/test-executions/mark-ready-for-testing-as-failed-by-container-id")
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        @RequestBody containerId: String,
+    ) = testExecutionService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
 
     /**
      * @param testExecutionsDto

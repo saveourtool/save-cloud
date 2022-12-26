@@ -109,9 +109,9 @@ services:
   demo:
     image: ghcr.io/saveourtool/save-demo:${DEMO_TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
     ports:
-      - "5401:5401"
+      - "5421:5421"
     volumes:
       - /home/saveu/configs/demo:/home/cnb/config
     deploy:
@@ -131,7 +131,7 @@ services:
         - "prometheus-job=save-demo-cpg"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.40.3
+    image: prom/prometheus:v2.40.7
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -148,7 +148,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.2.6
+    image: grafana/grafana:9.3.2
     ports:
       - "9100:3000"
     volumes:
@@ -160,7 +160,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:2.7.0
+    image: grafana/loki:2.7.1
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/loki.yaml

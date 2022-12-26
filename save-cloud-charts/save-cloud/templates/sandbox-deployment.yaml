@@ -9,6 +9,9 @@ spec:
     matchLabels:
       io.kompose.service: sandbox
   replicas: 1
+  strategy:
+    # Because of shared volume with multi-attach problem
+    type: Recreate
   template:
     metadata:
       labels:
@@ -119,7 +122,7 @@ spec:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
         - name: fs-storage
           persistentVolumeClaim:
-            claimName: save-fs-storage
+            claimName: {{ .Values.sandbox.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets

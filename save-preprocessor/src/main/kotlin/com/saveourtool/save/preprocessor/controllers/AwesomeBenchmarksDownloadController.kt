@@ -22,7 +22,6 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
@@ -32,7 +31,6 @@ import kotlinx.serialization.serializer
  *
  * @property configProperties config properties
  */
-@OptIn(ExperimentalPathApi::class)
 @RestController
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
@@ -56,7 +54,7 @@ class AwesomeBenchmarksDownloadController(
                 .doOnSuccess {
                     Mono.fromCallable { gitDto.detectDefaultBranchName() }
                         .flatMap { branch ->
-                            log.debug("Starting to download awesome-benchmarks")
+                            log.info("Starting to download awesome-benchmarks")
                             gitPreprocessorService.cloneBranchAndProcessDirectory(
                                 gitDto,
                                 branch

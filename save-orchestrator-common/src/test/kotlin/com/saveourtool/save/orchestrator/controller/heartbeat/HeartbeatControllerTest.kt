@@ -5,14 +5,15 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
 import org.junit.jupiter.api.*
@@ -48,17 +49,18 @@ import java.time.Month
 @Import(
     AgentService::class,
     HeartBeatInspector::class,
+    AgentStatusInMemoryRepository::class,
     JsonConfig::class,
 )
-@MockBeans(MockBean(AgentRunner::class))
+@MockBeans(MockBean(ContainerRunner::class))
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
-    @MockBean private lateinit var dockerService: DockerService
-    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
+    @MockBean private lateinit var containerService: ContainerService
+    @Autowired private lateinit var agentStatusInMemoryRepository: AgentStatusInMemoryRepository
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -72,14 +74,14 @@ class HeartbeatControllerTest {
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        heartBeatInspector.clear()
+        agentStatusInMemoryRepository.clear()
     }
 
     @Test
     fun checkAcceptingHeartbeat() {
-        val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
+        val heartBeatBusy = Heartbeat("test".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
 
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         webClient.post()
             .uri("/heartbeat")
@@ -89,7 +91,7 @@ class HeartbeatControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-        verify(orchestratorAgentService).updateAgentStatusesWithDto(any())
+        verify(orchestratorAgentService).updateAgentStatus(any())
     }
 
     @Test
@@ -119,13 +121,12 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.IDLE, "test-1"),
                 AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 1,
-            mockAgentStatusesForSameExecution = true,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -137,7 +138,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.IDLE, "test-1"),
                 AgentStatusDto(AgentState.IDLE, "test-2"),
             ),
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
             testBatchNullable = listOf(
                 TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
@@ -146,32 +147,27 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 2,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(dockerService.isAgentStopped(any())).thenReturn(true)
+        whenever(containerService.isStopped(any())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(AgentState.IDLE, "test-1"),
             AgentStatusDto(AgentState.IDLE, "test-2"),
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesForSameExecution = true,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                dockerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 
@@ -184,8 +180,8 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.STARTING, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime + 1.seconds),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 2.seconds)
+                Heartbeat("test-1".toAgentInfo(), AgentState.STARTING, ExecutionProgress(0, -1L), currTime + 1.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 2.seconds)
             ),
             initConfigs = listOf(initConfig),
             testBatchNullable = listOf(
@@ -195,7 +191,6 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 3,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
@@ -203,8 +198,6 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
-        whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -212,14 +205,14 @@ class HeartbeatControllerTest {
                 AgentStatusDto(AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 1.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 2.seconds),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 3.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
+                Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 1.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 2.seconds),
+                Heartbeat("test-2".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 3.seconds),
                 // 3 absent heartbeats from test-2
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 4.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 5.seconds),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 10.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 4.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 5.seconds),
+                Heartbeat("test-1".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 10.seconds),
             ),
             heartBeatInterval = 1_000,
             initConfigs = listOf(initConfig),
@@ -230,9 +223,9 @@ class HeartbeatControllerTest {
             ),
             mockUpdateAgentStatusesCount = 8,
         ) {
-            heartBeatInspector.crashedAgents.shouldContainExactly(
-                setOf("test-2")
-            )
+            agentStatusInMemoryRepository.processCrashed {
+                it shouldContainExactly setOf("test-2")
+            }
         }
     }
 
@@ -245,9 +238,11 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
                 // heartbeats were sent long time ago
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                Heartbeat("test-1".toAgentInfo(), AgentState.STARTING, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                Heartbeat("test-2".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() - 1.minutes),
+                // some heartbeat from another agent to prevent cleanup of execution
+                Heartbeat("test-3".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now()),
             ),
             heartBeatInterval = 0,
             initConfigs = listOf(initConfig),
@@ -256,9 +251,11 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockUpdateAgentStatusesCount = 4,
+            mockUpdateAgentStatusesCount = 5,
         ) {
-            heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            agentStatusInMemoryRepository.processCrashed {
+                it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            }
         }
     }
 
@@ -272,18 +269,14 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
+            heartbeats = listOf(Heartbeat("test-1".toAgentInfo(), AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesForSameExecution = true,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
-            verify(
-                dockerService,
-                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(any())
         }
     }
 
@@ -317,13 +310,13 @@ class HeartbeatControllerTest {
             .whenever(orchestratorAgentService)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(orchestratorAgentService.markTestExecutionsOfAgentsAsFailed(any(), any()))
+        whenever(orchestratorAgentService.markReadyForTestingTestExecutionsOfAgentAsFailed(any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(
-                Heartbeat("test-1", AgentState.FINISHED, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)
+                Heartbeat("test-1".toAgentInfo(), AgentState.FINISHED, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)
             ),
             heartBeatInterval = 0,
             initConfigs = emptyList(),
@@ -332,7 +325,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
-            verify(orchestratorAgentService).markTestExecutionsOfAgentsAsFailed(any(), any())
+            verify(orchestratorAgentService).markReadyForTestingTestExecutionsOfAgentAsFailed(any())
         }
     }
 
@@ -342,7 +335,7 @@ class HeartbeatControllerTest {
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
      * @param heartbeats a [Heartbeat] that is received by sandbox
      * @param testBatchNullable a batch of tests returned from backend (mocked response)
-     * @param mockAgentStatusesForSameExecution whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
+     * @param mockAgentStatusesByExecutionId whether a mocked response for `/getAgentStatusesByExecutionId` should be added to queue
      * @param verification a lambda for test assertions
      */
     @Suppress(
@@ -358,7 +351,7 @@ class HeartbeatControllerTest {
         initConfigs: List<AgentInitConfig>,
         testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
-        mockAgentStatusesForSameExecution: Boolean = false,
+        mockAgentStatusesByExecutionId: Boolean = false,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
         initConfigs.forEach {
@@ -380,12 +373,12 @@ class HeartbeatControllerTest {
         }
 
         repeat(mockUpdateAgentStatusesCount) {
-            whenever(orchestratorAgentService.updateAgentStatusesWithDto(any()))
+            whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         }
-        if (mockAgentStatusesForSameExecution) {
-            whenever(orchestratorAgentService.getAgentsStatusesForSameExecution(any()))
-                .thenReturn(Mono.just(AgentStatusesForExecution(0, agentStatusDtos)))
+        if (mockAgentStatusesByExecutionId) {
+            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
+                .thenReturn(Mono.just(agentStatusDtos))
         }
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
@@ -418,9 +411,9 @@ class HeartbeatControllerTest {
         testBatchNullable?.let {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
-        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
-        if (mockAgentStatusesForSameExecution) {
-            verify(orchestratorAgentService).getAgentsStatusesForSameExecution(any())
+        verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
+        if (mockAgentStatusesByExecutionId) {
+            verify(orchestratorAgentService).getAgentStatusesByExecutionId(any())
         }
         verification.invoke(heartbeatResponses)
     }
@@ -431,6 +424,11 @@ class HeartbeatControllerTest {
             testSuitesSourceSnapshotUrl = "stub",
             additionalFileNameToUrl = mapOf("file" to "stub"),
             saveCliOverrides = SaveCliOverrides(),
+        )
+        private fun String.toAgentInfo(): AgentInfo = AgentInfo(
+            containerId = this,
+            containerName = this,
+            version = "1.0",
         )
     }
 }

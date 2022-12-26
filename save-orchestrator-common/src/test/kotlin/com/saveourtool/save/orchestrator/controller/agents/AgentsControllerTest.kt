@@ -6,11 +6,11 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -26,23 +26,21 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
 import org.springframework.http.ResponseEntity
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
-@MockBeans(MockBean(AgentRunner::class))
+@MockBeans(MockBean(ContainerRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
-    @MockBean private lateinit var dockerService: DockerService
+    @MockBean private lateinit var containerService: ContainerService
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
-    @MockBean private lateinit var agentRunner: AgentRunner
+    @MockBean private lateinit var containerRunner: ContainerRunner
 
     @Test
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
@@ -53,24 +51,24 @@ class AgentsControllerTest {
             status = ExecutionStatus.PENDING
             id = 42L
         }
-        whenever(dockerService.prepareConfiguration(any())).thenReturn(
-            DockerService.RunConfiguration(
+        whenever(containerService.prepareConfiguration(any())).thenReturn(
+            ContainerService.RunConfiguration(
                 imageTag = "test-image-id",
                 runCmd = listOf("sh", "-c", "test-exec-cmd"),
                 workingDir = EXECUTION_DIR,
                 env = emptyMap(),
             )
         )
-        whenever(dockerService.createContainers(any(), any()))
+        whenever(containerService.createContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
-        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+        whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
-        whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
-            .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(orchestratorAgentService.addAgents(anyList()))
-            .thenReturn(listOf<Long>(1, 2).toMono())
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
+        whenever(containerService.startContainersAndUpdateExecution(any(), anyList()))
+            .thenReturn(true.toMono())
+        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
@@ -82,9 +80,9 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any())
-        verify(dockerService).createContainers(any(), any())
-        verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
+        verify(containerService).prepareConfiguration(any())
+        verify(containerService).createContainers(any(), any())
+        verify(containerService).startContainersAndUpdateExecution(any(), anyList())
     }
 
     @Test
@@ -98,18 +96,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    fun `should stop agents by id`() {
-        webClient
-            .post()
-            .uri("/stopAgents")
-            .body(BodyInserters.fromValue(listOf("id-of-agent")))
-            .exchange()
-            .expectStatus()
-            .isOk
-        verify(dockerService).stopAgents(anyList())
-    }
-
-    @Test
     fun `should cleanup execution artifacts`() {
         webClient.post()
             .uri("/cleanup?executionId=42")
@@ -118,6 +104,6 @@ class AgentsControllerTest {
             .isOk
 
         Thread.sleep(2_500)
-        verify(dockerService, times(1)).cleanup(anyLong())
+        verify(containerService, times(1)).cleanupAllByExecution(anyLong())
     }
 }

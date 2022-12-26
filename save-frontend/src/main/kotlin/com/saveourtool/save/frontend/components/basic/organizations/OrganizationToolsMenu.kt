@@ -57,12 +57,40 @@ external interface OrganizationToolsMenuProps : Props {
     /**
      * lambda for update projects
      */
-    var updateProjects: (MutableList<ProjectDto>) -> Unit
+    var updateProjects: (List<ProjectDto>) -> Unit
+}
+
+/**
+ * Removes the projects specified by [oldProjects], adds projects specified by [newProjects],
+ * and sorts the resulting list by their status and then by name.
+ *
+ * @param projects is list of the projects
+ * @param oldProject is an old project, it needs to be removed from the list
+ * @param newProject is a new project, it needs to be added to the list
+ * @param setProjects is setter to update projects
+ * @param updateProjects method from props, for changing props
+ */
+@Suppress("TYPE_ALIAS")
+private fun updateOneProjectInProjects(
+    projects: List<ProjectDto>,
+    oldProject: ProjectDto,
+    newProject: ProjectDto,
+    updateProjects: (List<ProjectDto>) -> Unit,
+) {
+    val comparator: Comparator<ProjectDto> =
+            compareBy<ProjectDto> { it.status.ordinal }
+                .thenBy { it.name }
+    projects
+        .minus(oldProject)
+        .plus(newProject)
+        .sortedWith(comparator)
+        .also { sortedProjects ->
+            updateProjects(sortedProjects)
+        }
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "CyclomaticComplexMethod")
 private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
-    val (projects, setProjects) = useState(props.projects)
     @Suppress("TYPE_ALIAS")
     val tableWithProjects: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
@@ -143,9 +171,11 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { isBanMode ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED))
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
+                                            updateOneProjectInProjects(props.projects,
+                                                project,
+                                                project.copy(status = if (isBanMode) ProjectStatus.BANNED else ProjectStatus.DELETED),
+                                                props.updateProjects,
+                                            )
                                         }
                                         conditionClick = props.currentUserInfo.isSuperAdmin()
                                         sendRequest = { isBanned ->
@@ -175,44 +205,52 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                             }
                                         }
                                         onActionSuccess = { _ ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
+                                            updateOneProjectInProjects(
+                                                props.projects,
+                                                project,
+                                                project.copy(status = ProjectStatus.CREATED),
+                                                props.updateProjects,
+                                            )
                                         }
                                         conditionClick = false
                                         sendRequest = { _ ->
                                             responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
                                         }
                                     }
-                                    ProjectStatus.BANNED -> actionButton {
-                                        title = "WARNING: About to recover this BANNED project..."
-                                        errorTitle = "You cannot recover the project $projectName"
-                                        message = """Are you sure you want to recover the project "$projectName"?"""
-                                        buttonStyleBuilder = { childrenBuilder ->
-                                            with(childrenBuilder) {
-                                                fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
-                                            }
-                                        }
-                                        classes = actionButtonClasses.joinToString(" ")
-                                        modalButtons = { action, closeWindow, childrenBuilder, _ ->
-                                            with(childrenBuilder) {
-                                                buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
-                                                    action()
-                                                    closeWindow()
-                                                }
-                                                buttonBuilder("Cancel") {
-                                                    closeWindow()
+                                    ProjectStatus.BANNED -> if (props.currentUserInfo.isSuperAdmin()) {
+                                        actionButton {
+                                            title = "WARNING: About to unban this BANNED project..."
+                                            errorTitle = "You cannot unban the project $projectName"
+                                            message = """Are you sure you want to unban the project "$projectName"?"""
+                                            buttonStyleBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    fontAwesomeIcon(icon = faRedo, classes = actionIconClasses.joinToString(" "))
                                                 }
                                             }
-                                        }
-                                        onActionSuccess = { _ ->
-                                            val newProjects = projects.minus(project).plus(project.copy(status = ProjectStatus.CREATED))
-                                            setProjects(newProjects)
-                                            props.updateProjects(newProjects.toMutableList())
-                                        }
-                                        conditionClick = false
-                                        sendRequest = { _ ->
-                                            responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
+                                            classes = actionButtonClasses.joinToString(" ")
+                                            modalButtons = { action, closeWindow, childrenBuilder, _ ->
+                                                with(childrenBuilder) {
+                                                    buttonBuilder(label = "Yes, unban $projectName", style = "danger", classes = "mr-2") {
+                                                        action()
+                                                        closeWindow()
+                                                    }
+                                                    buttonBuilder("Cancel") {
+                                                        closeWindow()
+                                                    }
+                                                }
+                                            }
+                                            onActionSuccess = { _ ->
+                                                updateOneProjectInProjects(
+                                                    props.projects,
+                                                    project,
+                                                    project.copy(status = ProjectStatus.CREATED),
+                                                    props.updateProjects,
+                                                )
+                                            }
+                                            conditionClick = false
+                                            sendRequest = { _ ->
+                                                responseChangeProjectStatus("${project.organizationName}/${project.name}", ProjectStatus.CREATED)
+                                            }
                                         }
                                     }
                                 }
@@ -255,16 +293,10 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
 
             tableWithProjects {
                 getData = { _, _ ->
-                    getProjectsFromCache(projects).toTypedArray()
+                    props.projects.toTypedArray()
                 }
                 getPageCount = null
             }
         }
     }
 }
-
-/**
- * Small workaround to avoid the request to the backend for the second time and to use it inside the Table view
- */
-private fun getProjectsFromCache(projects: List<ProjectDto>): List<ProjectDto> =
-        projects.filter { it.status == ProjectStatus.CREATED } + projects.filter { it.status == ProjectStatus.DELETED } + projects.filter { it.status == ProjectStatus.BANNED }

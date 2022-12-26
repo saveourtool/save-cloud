@@ -11,6 +11,344 @@
     }
   ],
   "paths": {
+    "/api/v1/avatar/users/{userName}/{imageName}": {
+      "get": {
+        "description": "Download an avatar for user.",
+        "operationId": "forUser",
+        "parameters": [
+          {
+            "description": "user name",
+            "in": "path",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "image name of avatar",
+            "in": "path",
+            "name": "imageName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns content of the file."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Execution with provided ID is not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download an avatar for user.",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
+    "/api/v1/avatar/{organizationName}/{imageName}": {
+      "get": {
+        "description": "Download an avatar for organization.",
+        "operationId": "forOrganization",
+        "parameters": [
+          {
+            "description": "organization name",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "image name of avatar",
+            "in": "path",
+            "name": "imageName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns content of the file."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Execution with provided ID is not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download an avatar for organization.",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
     "/api/v1/awesome-benchmarks": {
       "get": {
         "operationId": "getAllAwesomeBenchmarks",
@@ -1431,6 +1769,55 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
+      "post": {
+        "description": "Add demo for a tool.",
+        "operationId": "addDemo",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "vcsTagName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully change status of a project."
+          }
+        },
+        "summary": "Add demo for a tool.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "operationId": "getExecution",
@@ -2211,6 +2598,241 @@
         ]
       }
     },
+    "/api/v1/logs/by-application-name": {
+      "get": {
+        "description": "Get logs for containerName in provided time range.",
+        "operationId": "getByApplicationName",
+        "parameters": [
+          {
+            "description": "application name",
+            "in": "query",
+            "name": "applicationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "start of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "end of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get logs for containerName in provided time range.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/api/v1/logs/by-container-name": {
+      "get": {
+        "description": "Get logs for containerName in provided time range.",
+        "operationId": "getByContainerName",
+        "parameters": [
+          {
+            "description": "name of a container",
+            "in": "query",
+            "name": "containerName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "start of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "end of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get logs for containerName in provided time range.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/api/v1/logs/by-container-name/from-agent": {
+      "get": {
+        "description": "Get all logs from agent by container name.",
+        "operationId": "logs",
+        "parameters": [
+          {
+            "description": "name of a container",
+            "in": "query",
+            "name": "containerName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched logs for container."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all logs from agent by container name.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
     "/api/v1/organizations/all-by-filters": {
       "post": {
         "description": "Get organizations",
@@ -2781,9 +3403,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           },
@@ -4324,9 +4946,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           },
@@ -7658,7 +8280,7 @@
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
-              "STATIC_ANALYSIS"
+              "CODE_ANALYSIS"
             ]
           },
           "description": {
@@ -8408,9 +9030,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           }
         }
@@ -8443,9 +9065,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           }
         }
@@ -8466,9 +9088,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           }
@@ -8560,9 +9182,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "url": {
@@ -8625,9 +9247,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "url": {
@@ -8655,9 +9277,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           }

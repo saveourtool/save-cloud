@@ -1,10 +1,9 @@
-import com.saveourtool.save.buildutils.configureJacoco
-import com.saveourtool.save.buildutils.configureSpotless
-
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 dependencies {
@@ -22,6 +21,3 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.commons.compress)
 }
-
-configureJacoco()
-configureSpotless()

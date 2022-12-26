@@ -3,26 +3,10 @@ rootProject.name = "save-cloud"
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
-            content {
-                includeGroup("com.saveourtool.save")
-            }
-        }
-        maven {
-            url = uri("https://maven.pkg.github.com/saveourtool/sarif4k")
-            val gprUser: String? by settings
-            val gprKey: String? by settings
-            credentials {
-                username = gprUser
-                password = gprKey
-            }
-            content {
-                includeGroup("io.github.detekt.sarif4k")
-            }
-        }
     }
 }
 
+includeBuild("gradle/plugins")
 include("api-gateway")
 include("save-backend")
 include("save-orchestrator-common")
@@ -38,5 +22,6 @@ include("save-sandbox")
 include("authentication-service")
 include("save-demo")
 include("save-demo-cpg")
+include("test-analysis-core")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -18,6 +18,9 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
+import java.util.Comparator
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 /**
  * @param status
@@ -116,6 +119,12 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
     .toFlux()
 
 /**
+ * @param keyExtractor the function used to extract the [Comparable] sort key
+ * @return sorted original [Flux]
+ */
+fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -129,3 +138,20 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @return [Flux] from result of blocking operation [List] of [T]
  */
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+
+/**
+ * @param interval how long to wait between checks
+ * @param numberOfChecks how many times to check [checking]
+ * @param checking action which checks that waiting can be finished
+ * @return true if [checking] was successful before timeout, otherwise -- false
+ */
+fun waitReactivelyUntil(
+    interval: Duration,
+    numberOfChecks: Long,
+    checking: () -> Boolean,
+): Mono<Boolean> = Flux.interval(interval.toJavaDuration())
+    .take(numberOfChecks)
+    .map { checking() }
+    .takeUntil { it }
+    // check whether we have got `true` or Flux has completed with only `false`
+    .any { it }

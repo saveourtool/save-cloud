@@ -27,6 +27,7 @@ class SandboxExecution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
     var sdk: String,
+    @Column(name = "user_id")
     var userId: Long,
     var initialized: Boolean,
     var failReason: String?,

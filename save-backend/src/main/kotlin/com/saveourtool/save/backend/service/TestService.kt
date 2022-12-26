@@ -11,9 +11,7 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
@@ -38,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 class TestService(
     private val testRepository: TestRepository,
     private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesService: TestSuitesService,
@@ -80,23 +79,6 @@ class TestService(
         testRepository.saveAll(nonExistentTests)
         return (existingTests + nonExistentTests).map { it.requiredId() }
     }
-
-    /**
-     * @param agentId
-     * @return Test batches
-     */
-    @Transactional
-    @Suppress("UnsafeCallOnNullableType")
-    fun getTestBatches(agentId: String): Mono<TestBatch> = blockingToMono {
-        agentRepository.findByContainerId(agentId)
-    }
-        .switchIfEmptyToNotFound {
-            "The specified agent (id = $agentId) does not exist"
-        }
-        .flatMap { agent ->
-            log.debug("Agent found, id=${agent.id}")
-            getTestBatches(agent.execution)
-        }
 
     /**
      * @param execution

@@ -1,17 +1,13 @@
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     application
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 application {
     mainClass.set("com.saveourtool.save.apicli.MainKt")
-}
-
-kotlin {
-    jvmToolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
 }
 
 dependencies {

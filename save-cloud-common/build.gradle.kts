@@ -1,12 +1,11 @@
-import com.saveourtool.save.buildutils.configurePublishing
-import com.saveourtool.save.buildutils.configureSpotless
-
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
-    `maven-publish`
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.publishing-configuration")
 }
 kotlin {
     allOpen {
@@ -50,7 +49,7 @@ kotlin {
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
-                implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+                implementation(libs.reactor.kotlin.extensions)
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
@@ -66,6 +65,3 @@ kotlin {
         }
     }
 }
-
-configureSpotless()
-configurePublishing()

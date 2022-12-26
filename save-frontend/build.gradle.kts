@@ -1,6 +1,3 @@
-import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.versionForDockerImages
-
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
@@ -8,6 +5,8 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
+    id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -105,9 +104,11 @@ kotlin {
             implementation(npm("sigma", "^2.4.0"))
             implementation(npm("graphology", "^0.25.1"))
             implementation(npm("graphology-layout", "^0.6.1"))
+            implementation(npm("graphology-layout-forceatlas2", "^0.10.1"))
             implementation(npm("@react-sigma/layout-core", "^3.1.0"))
             implementation(npm("@react-sigma/layout-random", "^3.1.0"))
             implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-forceatlas2", "^3.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
@@ -253,30 +254,6 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
 }
 
-tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
-    inputs.property("project version", version.toString())
-    inputs.file("$projectDir/nginx.conf")
-
-    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
-    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
-    buildpacks = listOf("paketo-buildpacks/nginx")
-    environment = mapOf(
-        "BP_WEB_SERVER_ROOT" to "static",
-    )
-    isVerboseLogging = true
-    System.getenv("GHCR_PWD")?.let { registryPassword ->
-        isPublish = true
-        docker {
-            publishRegistry {
-                username = "saveourtool"
-                password = registryPassword
-                url = "https://ghcr.io"
-            }
-        }
-    }
-}
-
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
-configureSpotless()

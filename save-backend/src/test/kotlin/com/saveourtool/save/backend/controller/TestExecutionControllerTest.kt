@@ -7,10 +7,11 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.utils.secondsToJLocalDateTime
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -47,6 +48,8 @@ class TestExecutionControllerTest {
 
     @Autowired
     private lateinit var agentRepository: AgentRepository
+    @Autowired
+    private lateinit var lnkExecutionAgentRepository: LnkExecutionAgentRepository
     private lateinit var transactionTemplate: TransactionTemplate
 
     @Autowired
@@ -113,7 +116,7 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
         val testExecutionDtoFirst = TestExecutionDto(
-            "testPath63",
+            "testPath29",
             "WarnPlugin",
             "container-3",
             "save-container-3",
@@ -126,7 +129,7 @@ class TestExecutionControllerTest {
             unexpected = 0,
         )
         val testExecutionDtoSecond = TestExecutionDto(
-            "testPath42",
+            "testPath30",
             "WarnPlugin",
             "container-3",
             "save-container-3",
@@ -150,8 +153,8 @@ class TestExecutionControllerTest {
         val tests = getAllTestExecutions()
         val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
         assertEquals(passedTestsBefore, passedTestsAfter - 1)
         assertEquals(failedTestsBefore, failedTestsAfter - 1)
         assertTrue(tests.any {
@@ -222,11 +225,17 @@ class TestExecutionControllerTest {
     @Suppress("UnsafeCallOnNullableType")
     private fun getExecutionsTestsResultByAgentContainerId(id: String, isPassed: Boolean) =
             transactionTemplate.execute {
-                if (isPassed) {
-                    agentRepository.findByContainerId(id)!!.execution.passedTests
-                } else {
-                    agentRepository.findByContainerId(id)!!.execution.failedTests
-                }
+                agentRepository.findByContainerId(id)
+                    ?.requiredId()
+                    ?.let { lnkExecutionAgentRepository.findByAgentId(it) }
+                    ?.execution
+                    ?.let {
+                        if (isPassed) {
+                            it.passedTests
+                        } else {
+                            it.failedTests
+                        }
+                    }!!
             }!!
 
     companion object {

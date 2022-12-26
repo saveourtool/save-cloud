@@ -50,6 +50,16 @@ class ExecutionService(
     fun findExecution(id: Long): Execution? = executionRepository.findByIdOrNull(id)
 
     /**
+     * Get execution by id
+     *
+     * @param id id of [Execution]
+     * @return [Execution] or exception
+     */
+    fun getExecution(id: Long): Execution = findExecution(id).orNotFound {
+        "Not found execution with id $id"
+    }
+
+    /**
      * @param execution execution that is connected to testSuite
      * @param testSuites manageable test suite
      */
@@ -76,7 +86,7 @@ class ExecutionService(
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
 
-            if (execution.type == TestingType.CONTEST_MODE) {
+            if (execution.type == TestingType.CONTEST_MODE && updatedExecution.status == ExecutionStatus.FINISHED) {
                 // maybe this execution is the new best execution under a certain contest
                 lnkContestProjectService.updateBestExecution(execution)
             }

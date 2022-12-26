@@ -32,7 +32,7 @@ spec:
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
-              mountPath: /home/cnb/files
+              mountPath: {{ include "backend.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
@@ -103,7 +103,7 @@ spec:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage
           persistentVolumeClaim:
-            claimName: save-fs-storage
+            claimName: {{ .Values.backend.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets

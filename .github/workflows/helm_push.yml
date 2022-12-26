@@ -41,7 +41,7 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         run: |
-          git checkout origin/${{ inputs.branch }}
+          git switch --force-create ${{ inputs.branch }} origin/${{ inputs.branch }}
       - uses: gittools/actions/gitversion/setup@v0.9.15
         with:
           versionSpec: 5.x

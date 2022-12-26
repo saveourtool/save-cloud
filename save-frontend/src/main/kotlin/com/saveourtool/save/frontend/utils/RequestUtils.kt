@@ -16,9 +16,6 @@ import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
-import react.useContext
-import react.useEffect
-import react.useState
 
 import kotlin.js.undefined
 import kotlinx.browser.window
@@ -395,69 +392,6 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
 }
 
 /**
- * Hook to get callbacks to perform requests in functional components.
- *
- * @param request
- * @return a function to trigger request execution.
- */
-fun <R> useDeferredRequest(
-    request: suspend WithRequestStatusContext.() -> R,
-): () -> Unit {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val context = useRequestStatusContext()
-    val (isSending, setIsSending) = useState(false)
-    useEffect(isSending) {
-        if (!isSending) {
-            return@useEffect
-        }
-        scope.launch {
-            request(context)
-            setIsSending(false)
-        }.invokeOnCompletion {
-            if (it != null && it !is CancellationException) {
-                setIsSending(false)
-            }
-        }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
-    val initiateSending: () -> Unit = {
-        if (!isSending) {
-            setIsSending(true)
-        }
-    }
-    return initiateSending
-}
-
-/**
- * Hook to perform requests in functional components.
- *
- * @param dependencies
- * @param request
- */
-fun <R> useRequest(
-    dependencies: Array<dynamic> = emptyArray(),
-    request: suspend WithRequestStatusContext.() -> R,
-) {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val context = useRequestStatusContext()
-
-    useEffect(*dependencies) {
-        scope.launch {
-            request(context)
-        }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
-}
-
-/**
  * Handler that allows to skip loading modal
  *
  * @param request REST API method
@@ -472,20 +406,6 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @return Unit
  */
 internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit
-
-@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
-private fun useRequestStatusContext(): WithRequestStatusContext {
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
-    return context
-}
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
