@@ -2,7 +2,7 @@ package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -28,7 +28,6 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     private val agentService: AgentService,
     private val containerService: ContainerService,
-    private val containerRunner: ContainerRunner,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -53,10 +52,14 @@ class AgentsController(
                 .map { configuration ->
                     containerService.createAndStartContainers(request.executionId, configuration)
                 }
-                .onErrorResume(ContainerException::class.java) { ex ->
-                    reportExecutionError(request.executionId, ex.message, ex.cause)
+                .onErrorResume(ContainerRunnerException::class.java) { ex ->
+                    reportExecutionError(request.executionId, ex)
                 }
-                .flatMapMany {
+                .flatMap {
+                    log.info("Sending request to make execution.id=${request.executionId} RUNNING")
+                    agentService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
+                }
+                .flatMap {
                     containerService.validateContainersAreStarted(request.executionId, configProperties.agentsCount)
                 }
                 .subscribe()
@@ -65,11 +68,10 @@ class AgentsController(
 
     private fun <T> reportExecutionError(
         executionId: Long,
-        failReason: String,
-        ex: Throwable?
+        ex: ContainerRunnerException,
     ): Mono<T> {
-        log.error("$failReason for executionId=$executionId, will mark it as ERROR", ex)
-        return agentService.updateExecution(executionId, ExecutionStatus.ERROR, failReason)
+        log.error("${ex.message} for executionId=$executionId, will mark it as ERROR", ex)
+        return agentService.updateExecution(executionId, ExecutionStatus.ERROR, ex.message)
             .then(Mono.empty())
     }
 

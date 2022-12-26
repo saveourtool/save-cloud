@@ -86,7 +86,7 @@ class ExecutionService(
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
 
-            if (execution.type == TestingType.CONTEST_MODE) {
+            if (execution.type == TestingType.CONTEST_MODE && updatedExecution.status == ExecutionStatus.FINISHED) {
                 // maybe this execution is the new best execution under a certain contest
                 lnkContestProjectService.updateBestExecution(execution)
             }

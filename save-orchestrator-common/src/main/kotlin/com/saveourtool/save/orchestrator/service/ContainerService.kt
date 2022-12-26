@@ -56,7 +56,7 @@ class ContainerService(
     fun createAndStartContainers(
         executionId: Long,
         configuration: RunConfiguration,
-    ): List<String> = containerRunner.createAndStart(
+    ): Unit = containerRunner.createAndStart(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
@@ -65,7 +65,7 @@ class ContainerService(
     /**
      * @param executionId ID of [Execution] for which containers are being started
      * @param replicas
-     * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
+     * @return Mono of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
@@ -108,7 +108,7 @@ class ContainerService(
      * @param executionId ID of execution
      */
     fun cleanupAllByExecution(executionId: Long) {
-        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
+        agentStatusInMemoryRepository.tryDeleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
 

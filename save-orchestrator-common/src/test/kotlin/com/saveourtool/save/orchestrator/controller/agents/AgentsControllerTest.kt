@@ -11,11 +11,13 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -27,8 +29,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
-import org.springframework.http.ResponseEntity
-import reactor.kotlin.core.publisher.toMono
+import reactor.core.publisher.Mono
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
@@ -59,17 +60,17 @@ class AgentsControllerTest {
                 env = emptyMap(),
             )
         )
-        whenever(containerService.createAndStartContainers(any(), any()))
-            .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
-        whenever(containerService.validateContainersAreStarted(any(), anyList()))
-            .thenReturn(true.toMono())
+        whenever(containerService.validateContainersAreStarted(any()))
+            .thenReturn(Mono.just(Unit).then())
         whenever(orchestratorAgentService.addAgent(anyLong(), any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponseAsMono)
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponseAsMono)
+        whenever(orchestratorAgentService.updateExecutionStatus(anyLong(), any(), anyOrNull()))
+            .thenReturn(emptyResponseAsMono)
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         webClient
@@ -82,7 +83,7 @@ class AgentsControllerTest {
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(containerService).prepareConfiguration(any())
         verify(containerService).createAndStartContainers(any(), any())
-        verify(containerService).validateContainersAreStarted(any(), anyList())
+        verify(containerService).validateContainersAreStarted(any())
     }
 
     @Test

@@ -79,18 +79,18 @@ class AgentStatusInMemoryRepository(
 
     /**
      * Delete all containers assigned to provided execution id and execution id itself.
-     * It checks that collection knows about provided execution.
+     * It doesn't check that collection knows about provided execution.
      *
      * @param executionId
      */
-    fun deleteAllByExecutionId(
+    fun tryDeleteAllByExecutionId(
         executionId: Long,
     ): Unit = useWriteLock {
-        val assignedContainerIds = requireNotNull(executionToContainers.remove(executionId)) {
-            "Invalid executionId $executionId: no container which is assigned to provided execution"
-        }
-        containerToLatestState.keys.removeAll(assignedContainerIds)
-        crashedContainers.removeAll(assignedContainerIds)
+        executionToContainers.remove(executionId)
+            ?.let { assignedContainerIds ->
+                containerToLatestState.keys.removeAll(assignedContainerIds)
+                crashedContainers.removeAll(assignedContainerIds)
+            }
     }
 
     /**

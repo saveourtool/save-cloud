@@ -17,14 +17,14 @@ interface ContainerRunner {
      * @param executionId and ID of execution for which agents will run tests
      * @param configuration [ContainerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
-     * @return unique identifier of created instances that can be used to manipulate them later
+     * @throws ContainerRunnerException when runner fails to create or start containers
      */
-    @Throws(ContainerException::class)
+    @Throws(ContainerRunnerException::class)
     fun createAndStart(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
-    ): List<String>
+    )
 
     /**
      * @param executionId

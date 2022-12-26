@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerException
@@ -50,7 +51,7 @@ class DockerContainerRunner(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
-    ): List<String> {
+    ) {
         log.debug { "Pulling image ${configuration.imageTag}" }
         try {
             dockerClient.pullImageCmd(configuration.imageTag)
@@ -58,20 +59,20 @@ class DockerContainerRunner(
                 .exec(PullImageResultCallback())
                 .awaitCompletion()
 
-            val containerIds = (1..replicas).map { number ->
+            repeat(replicas) { number ->
                 log.info("Creating a container #$number for execution.id=$executionId")
-                createContainerFromImage(configuration, containerName(executionId, number))
-                    .also { containerId ->
-                        log.info("Created a container id=$containerId for execution.id=$executionId")
-                    }
+                val containerId = try {
+                    createContainerFromImage(configuration, containerName(executionId, number))
+                } catch (dex: DockerException) {
+                    throw ContainerRunnerException("Unable to create containers", dex)
+                }
+                log.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
+                try {
+                    dockerClient.startContainerCmd(containerId).exec()
+                } catch (dex: DockerException) {
+                    throw ContainerRunnerException("Unable to start container $containerId", dex)
+                }
             }
-            containerIds.forEach { agentId ->
-                log.info("Starting container id=$agentId")
-                dockerClient.startContainerCmd(agentId).exec()
-            }
-            return containerIds
-        } catch (dex: DockerException) {
-            throw ContainerException("Unable to create and start containers", dex)
         }
     }
 
@@ -79,11 +80,14 @@ class DockerContainerRunner(
         .exec()
         .state
         .also { log.debug("Container $containerId has state $it") }
-        .status != "running"
+        .status != RUNNING_STATUS
 
     override fun cleanupAllByExecution(executionId: Long) {
         log.info("Stopping all agents for execution id=$executionId")
-        val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
+        val containersForExecution = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-$executionId-"))
+            .withShowAll(true)
+            .exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
             log.info("Removing container $containerId")
@@ -218,5 +222,6 @@ class DockerContainerRunner(
 
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
+        private const val RUNNING_STATUS = "running"
     }
 }
