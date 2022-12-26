@@ -129,7 +129,7 @@ class SandboxInternalController(
                 .filter { it.exists() }
                 .switchIfEmptyToNotFound()
 
-    /**pwd
+    /**
      * @param testExecutionsDto
      * @return response with text value
      */

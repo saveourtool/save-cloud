@@ -163,6 +163,7 @@ class AgentStatusInMemoryRepository(
     /**
      * If provided [executionId] doesn't have active containers, process [action].
      *
+     * @param executionId
      * @param action action which needs to be performed
      */
     fun runIfExecutionHasNoActiveContainers(
@@ -170,7 +171,7 @@ class AgentStatusInMemoryRepository(
         action: () -> Unit,
     ): Unit = useReadLock {
         executionToContainers[executionId]
-            ?.takeIf {  it.isEmpty() }
+            ?.takeIf { it.isEmpty() }
             ?.run { action() }
     }
 
