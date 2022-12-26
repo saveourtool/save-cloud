@@ -508,8 +508,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 setState {
                     isUploading = false
-                    window.location.reload()
                 }
+                window.location.reload()
             }
 
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import kotlin.time.Duration.Companion.days
+import kotlin.time.toJavaDuration
 
 /**
  * Controller for working with avatars.
@@ -83,9 +85,14 @@ internal class AvatarController(
 
     private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = this.toMono()
         .filterWhen(avatarStorage::doesExist)
-        .map {
-            ResponseEntity.ok()
-                .body(avatarStorage.download(this))
+        .flatMap {
+            avatarStorage.lastModified(this)
+                .map { lastModified ->
+                    ResponseEntity.ok()
+                        .cacheControl(CacheControl.maxAge(longExpirationTime.toJavaDuration()).cachePublic())
+                        .lastModified(lastModified)
+                        .body(avatarStorage.download(this))
+                }
         }
 
     companion object {
