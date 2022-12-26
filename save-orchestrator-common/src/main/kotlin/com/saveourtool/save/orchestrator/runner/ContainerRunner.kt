@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.runner
 
 import com.saveourtool.save.orchestrator.service.ContainerService
+import kotlin.jvm.Throws
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -15,18 +16,14 @@ interface ContainerRunner {
      * @param executionId and ID of execution for which agents will run tests
      * @param configuration [ContainerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
-     * @return unique identifier of created instances that can be used to manipulate them later
+     * @throws ContainerRunnerException when runner fails to create or start containers
      */
-    fun create(
+    @Throws(ContainerRunnerException::class)
+    fun createAndStart(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
-    ): List<String>
-
-    /**
-     * @param executionId
-     */
-    fun startAllByExecution(executionId: Long)
+    )
 
     /**
      * @param executionId

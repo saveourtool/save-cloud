@@ -104,12 +104,6 @@ class SandboxOrchestratorAgentService(
         emptyList()
     }
 
-    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusDtoList> = blockingToMono {
-        containerIds
-            .mapNotNull { sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(it) }
-            .map { it.toDto() }
-    }
-
     override fun getExecutionStatus(executionId: Long): Mono<ExecutionStatus> = getExecutionAsMono(executionId)
         .map { it.status }
 
