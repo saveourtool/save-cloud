@@ -1,3 +1,4 @@
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)

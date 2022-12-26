@@ -2,6 +2,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)

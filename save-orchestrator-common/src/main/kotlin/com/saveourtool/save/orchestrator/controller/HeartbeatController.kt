@@ -12,6 +12,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -29,15 +30,14 @@ import kotlinx.serialization.json.Json
 
 /**
  * Controller for heartbeat
- *
- * @param agentService
- * @property configProperties
  */
 @RestController
-class HeartbeatController(private val agentService: AgentService,
-                          private val containerService: ContainerService,
-                          private val configProperties: ConfigProperties,
-                          private val heartBeatInspector: HeartBeatInspector,
+class HeartbeatController(
+    private val agentService: AgentService,
+    private val containerService: ContainerService,
+    private val configProperties: ConfigProperties,
+    private val heartBeatInspector: HeartBeatInspector,
+    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
@@ -60,6 +60,10 @@ class HeartbeatController(private val agentService: AgentService,
             heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
         }
             .toMono()
+            .asyncEffectIf({ heartbeat.state == STARTING }) {
+                // if agent sends the first heartbeat, we store it into DB
+                addNewAgent(executionId, heartbeat.agentInfo)
+            }
             .flatMap {
                 // store new state into DB
                 agentService.updateAgentStatus(
@@ -68,8 +72,8 @@ class HeartbeatController(private val agentService: AgentService,
             }
             .flatMap {
                 when (heartbeat.state) {
-                    // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleNewAgent(executionId, heartbeat.agentInfo)
+                    // if agent sends the first heartbeat, we initialize the agent
+                    STARTING -> handleNotInitializedAgent(containerId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
                     IDLE -> handleVacantAgent(executionId, containerId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
@@ -91,10 +95,10 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun handleNewAgent(
+    private fun addNewAgent(
         executionId: Long,
         agentInfo: AgentInfo,
-    ): Mono<HeartbeatResponse> = agentService.addAgent(
+    ): Mono<EmptyResponse> = agentService.addAgent(
         executionId = executionId,
         agent = AgentDto(
             containerId = agentInfo.containerId,
@@ -106,7 +110,8 @@ class HeartbeatController(private val agentService: AgentService,
             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
             containerService.cleanupAllByExecution(executionId)
         }
-        .then(agentService.getInitConfig(agentInfo.containerId))
+
+    private fun handleNotInitializedAgent(containerId: String): Mono<HeartbeatResponse> = agentService.getInitConfig(containerId)
 
     private fun handleVacantAgent(executionId: Long, containerId: String): Mono<HeartbeatResponse> =
             agentService.getNextRunConfig(containerId)
@@ -171,7 +176,9 @@ class HeartbeatController(private val agentService: AgentService,
                     heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.
-                agentService.finalizeExecution(executionId)
+                agentStatusInMemoryRepository.runIfExecutionHasNoActiveContainers(executionId) {
+                    agentService.finalizeExecution(executionId)
+                }
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()

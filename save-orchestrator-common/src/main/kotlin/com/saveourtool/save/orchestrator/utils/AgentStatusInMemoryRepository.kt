@@ -161,6 +161,20 @@ class AgentStatusInMemoryRepository(
     }
 
     /**
+     * If provided [executionId] doesn't have active containers, process [action].
+     *
+     * @param action action which needs to be performed
+     */
+    fun runIfExecutionHasNoActiveContainers(
+        executionId: Long,
+        action: () -> Unit,
+    ): Unit = useReadLock {
+        executionToContainers[executionId]
+            ?.takeIf {  it.isEmpty() }
+            ?.run { action() }
+    }
+
+    /**
      * Update collection by checking status of container.
      * It marks stale containers as crashed.
      *

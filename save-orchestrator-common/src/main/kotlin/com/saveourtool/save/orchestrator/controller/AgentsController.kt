@@ -53,6 +53,7 @@ class AgentsController(
                     reportExecutionError(request.executionId, ex)
                 }
                 .flatMap {
+                    log.info("Sending request to make execution.id=${request.executionId} RUNNING")
                     agentService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
                 }
                 .flatMap {

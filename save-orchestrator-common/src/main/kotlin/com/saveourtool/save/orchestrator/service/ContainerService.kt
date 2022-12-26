@@ -65,17 +65,16 @@ class ContainerService(
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun validateContainersAreStarted(executionId: Long): Mono<Void> {
-        log.info("Sending request to make execution.id=$executionId RUNNING")
         // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
         // if no, mark execution as failed with internal error here
         return waitReactivelyUntil(
             interval = configProperties.agentsStartCheckIntervalMillis.milliseconds,
             numberOfChecks = configProperties.agentsStartTimeoutMillis / configProperties.agentsStartCheckIntervalMillis
         ) {
-            !agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
+            agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)
         }
-            .doOnSuccess {
-                if (!agentStatusInMemoryRepository.containsAnyByExecutionId(executionId)) {
+            .doOnSuccess { hasStartedContainers ->
+                if (!hasStartedContainers) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
                     containerRunner.cleanupAllByExecution(executionId)
                     agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -83,7 +82,6 @@ class ContainerService(
                     ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                         .subscribe()
                 }
-                agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
             }
             .then()
     }
