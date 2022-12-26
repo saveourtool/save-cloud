@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.backend.repository.LnkContestExecutionRepository
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -60,13 +61,8 @@ class LnkContestExecutionService(
      * @param contestName
      * @return [Mono] containing a created [LnkContestExecution] or `Mono.error` with code 404
      */
-    fun createLink(execution: Execution, contestName: String): Mono<LnkContestExecution> = blockingToMono {
-        contestRepository.findByName(contestName)
-    }
-        .switchIfEmptyToNotFound()
-        .map {
+    fun createLink(execution: Execution, contestName: String): LnkContestExecution =
             lnkContestExecutionRepository.save(
-                LnkContestExecution(execution = execution, contest = it)
+                LnkContestExecution(execution = execution, contest = contestRepository.findByName(contestName).orNotFound())
             )
-        }
 }

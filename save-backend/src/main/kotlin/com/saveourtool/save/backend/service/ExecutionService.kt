@@ -38,6 +38,8 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    private val fileRepository: FileRepository,
+    private val lnkExecutionFileRepository: LnkExecutionFileRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -61,12 +63,14 @@ class ExecutionService(
 
     /**
      * @param execution execution that is connected to testSuite
-     * @param testSuites manageable test suite
+     * @param testSuites list of manageable [TestSuite]
+     * @param files list of manageable [File]
      */
     @Transactional
-    fun save(execution: Execution, testSuites: List<TestSuite>): Execution {
+    fun save(execution: Execution, testSuites: Collection<TestSuite>, files: Collection<File> = emptyList()): Execution {
         val newExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(newExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(newExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
         return newExecution
     }
 
@@ -219,21 +223,23 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
-        return doCreateNew(
-            project = project,
-            testSuiteIds = testSuiteIds,
-            version = testSuitesService.getSingleVersionByIds(testSuiteIds),
-            allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
-                .count()
-                .toLong(),
-            additionalFiles = files.formatForExecution(),
-            username = username,
-            sdk = sdk.toString(),
-            execCmd = execCmd,
-            batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testingType = testingType,
-            contestName,
-        )
+        return blockingToMono {
+            doCreateNew(
+                project = project,
+                testSuiteIds = testSuiteIds,
+                version = testSuitesService.getSingleVersionByIds(testSuiteIds),
+                allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
+                    .count()
+                    .toLong(),
+                additionalFiles = files.formatForExecution(),
+                username = username,
+                sdk = sdk.toString(),
+                execCmd = execCmd,
+                batchSizeForAnalyzer = batchSizeForAnalyzer,
+                testingType = testingType,
+                contestName,
+            )
+        }
     }
 
     /**
@@ -247,20 +253,22 @@ class ExecutionService(
         username: String,
     ): Mono<Execution> {
         val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
-        return doCreateNew(
-            project = execution.project,
-            testSuiteIds = testSuiteIds,
-            version = execution.version,
-            allTests = execution.allTests,
-            additionalFiles = execution.additionalFiles,
-            username = username,
-            sdk = execution.sdk,
-            execCmd = execution.execCmd,
-            batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
-            testingType = execution.type,
-            contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
-                ?.findContestByExecution(execution)?.name,
-        )
+        return blockingToMono {
+            doCreateNew(
+                project = execution.project,
+                testSuiteIds = testSuiteIds,
+                version = execution.version,
+                allTests = execution.allTests,
+                additionalFiles = execution.additionalFiles,
+                username = username,
+                sdk = execution.sdk,
+                execCmd = execution.execCmd,
+                batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+                testingType = execution.type,
+                contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
+                    ?.findContestByExecution(execution)?.name,
+            )
+        }
     }
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -269,6 +277,7 @@ class ExecutionService(
         testSuiteIds: List<Long>,
         version: String?,
         allTests: Long,
+        fileIds: List<Long>,
         additionalFiles: String,
         username: String,
         sdk: String,
@@ -276,7 +285,7 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
-    ): Mono<Execution> {
+    ): Execution {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
@@ -284,6 +293,7 @@ class ExecutionService(
         val testSuiteSourceName = testSuitesService.getById(
             testSuiteIds.first()
         ).source.name
+        val files = fileIds.map { fileRepository.fin}
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -309,18 +319,18 @@ class ExecutionService(
             testSuiteSourceName = testSuiteSourceName,
             score = null,
         )
-        return blockingToMono {
-            save(execution, testSuites)
+
+        val savedExecution = executionRepository.save(execution)
+        testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
+        if (testingType == TestingType.CONTEST_MODE) {
+            lnkContestExecutionService.createLink(
+                savedExecution, requireNotNull(contestName) {
+                    "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
+                }
+            )
         }
-            .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
-                lnkContestExecutionService.createLink(
-                    savedExecution, requireNotNull(contestName) {
-                        "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
-                    }
-                )
-            }
-            .doOnSuccess { savedExecution ->
-                log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
-            }
+        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
+        return savedExecution
     }
 }

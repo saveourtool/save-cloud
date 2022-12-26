@@ -30,6 +30,7 @@
     <include file="lnk-execution-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
+    <include file="file.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
