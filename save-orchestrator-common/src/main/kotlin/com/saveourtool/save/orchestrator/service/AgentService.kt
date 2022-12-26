@@ -32,7 +32,7 @@ class AgentService(
     /**
      * A scheduler that executes long-running background tasks
      */
-    internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
+    internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.init() }
 
     /**
      * Gets configuration to init agent
@@ -127,7 +127,7 @@ class AgentService(
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId)
                     .then(Mono.fromCallable {
-                        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
+                        agentStatusInMemoryRepository.tryDeleteAllByExecutionId(executionId)
                         containerRunner.cleanupAllByExecution(executionId)
                     })
             }

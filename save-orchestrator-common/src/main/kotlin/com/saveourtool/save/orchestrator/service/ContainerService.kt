@@ -98,7 +98,7 @@ class ContainerService(
      * @param executionId ID of execution
      */
     fun cleanupAllByExecution(executionId: Long) {
-        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
+        agentStatusInMemoryRepository.tryDeleteAllByExecutionId(executionId)
         containerRunner.cleanupAllByExecution(executionId)
     }
 

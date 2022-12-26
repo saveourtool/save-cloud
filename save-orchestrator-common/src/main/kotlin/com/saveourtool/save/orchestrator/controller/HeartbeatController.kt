@@ -176,9 +176,7 @@ class HeartbeatController(
                     heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.
-                agentStatusInMemoryRepository.runIfExecutionHasNoActiveContainers(executionId) {
-                    agentService.finalizeExecution(executionId)
-                }
+                agentService.finalizeExecution(executionId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
