@@ -78,4 +78,14 @@
           onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="add-github-credentials" author="sanyavertolet" context="dev or prod">
+        <addColumn tableName="project">
+            <column name="github_organization" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="github_project" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

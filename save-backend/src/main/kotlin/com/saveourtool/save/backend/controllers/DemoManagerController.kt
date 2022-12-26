@@ -1,16 +1,15 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.Parameters
-import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.MediaType
@@ -18,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
@@ -27,6 +27,7 @@ import reactor.kotlin.core.publisher.toMono
 @RestController
 @RequestMapping("/api/$v1/demo")
 class DemoManagerController(
+    projectService: ProjectService,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -35,7 +36,7 @@ class DemoManagerController(
         .applyAll(customizers)
         .build()
 
-    @PostMapping("/{organizationName}/{projectName}/add")
+    @PostMapping("/add")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
@@ -43,17 +44,11 @@ class DemoManagerController(
         summary = "Add demo for a tool.",
         description = "Add demo for a tool.",
     )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully change status of a project.")
+    @ApiResponse(responseCode = "200", description = "Successfully added demo.")
     fun addDemo(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        @RequestParam vcsTagName: String,
+        @RequestBody demoToolRequest: NewDemoToolRequest,
         authentication: Authentication,
-    ): Mono<EmptyResponse> = NewDemoToolRequest(organizationName, projectName, vcsTagName).toMono()
+    ): Mono<EmptyResponse> = demoToolRequest.toMono()
         .flatMap {
             webClientDemo.post()
                 .uri("/demo/internal/add-tool")
@@ -62,4 +57,26 @@ class DemoManagerController(
                 .retrieve()
                 .toBodilessEntity()
         }
+        .map {
+
+            it
+        }
+
+    @GetMapping("/{organizationName}/{projectName}")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+        method = "GET",
+        summary = "Get demo status.",
+        description = "Get demo status.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
+    fun getDemoStatus(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<DemoStatus> = webClientDemo.get()
+        .uri("/demo/internal/$organizationName/$projectName")
+        .retrieve()
+        .bodyToMono()
 }

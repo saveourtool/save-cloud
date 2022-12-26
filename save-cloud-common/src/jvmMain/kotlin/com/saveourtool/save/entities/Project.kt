@@ -17,6 +17,8 @@ import kotlinx.serialization.Serializable
  * @property numberOfContainers
  * @property organization
  * @property contestRating global rating based on all contest results associated with this project
+ * @property githubOrganization
+ * @property githubProject
  */
 @Entity
 @Serializable
@@ -34,6 +36,8 @@ data class Project(
     @JoinColumn(name = "organization_id")
     var organization: Organization,
     var contestRating: Double = 0.0,
+    var githubOrganization: String?,
+    var githubProject: String?,
 ) : BaseEntityWithDto<ProjectDto>() {
     /**
      * @return [ProjectDto] from [Project]
@@ -101,4 +105,6 @@ fun ProjectDto.toProject(
     numberOfContainers = numberOfContainers,
     organization = organization,
     contestRating = contestRating,
+    githubOrganization = null,
+    githubProject = null,
 )

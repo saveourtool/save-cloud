@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.controller
 
+import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
 import com.saveourtool.save.demo.entity.GithubRepo
 import com.saveourtool.save.demo.entity.Snapshot
@@ -9,10 +10,7 @@ import com.saveourtool.save.demo.service.GithubRepoService
 import com.saveourtool.save.demo.service.SnapshotService
 import com.saveourtool.save.demo.service.ToolService
 import com.saveourtool.save.utils.blockingToMono
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -57,4 +55,15 @@ class ManagementController(
             githubDownloadToolService.downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version)
             it
         }
+
+    /**
+     * @param organizationName name of GitHub user/organization
+     * @param projectName name of GitHub repository
+     * @return [Mono] of [DemoStatus] of current demo
+     */
+    @GetMapping("/{organizationName}/{projectName}")
+    fun getDemoStatus(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): Mono<DemoStatus> = Mono.just(DemoStatus.STARTING)
 }
