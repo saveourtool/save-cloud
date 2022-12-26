@@ -98,7 +98,12 @@ class AgentService(
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
         haveAllAgentsFinalStatusByExecutionId(executionId)
-            .filter { it }
+            .filter { haveFinalStatus ->
+                if (!haveFinalStatus) {
+                    log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
+                }
+                haveFinalStatus
+            }
             .flatMap {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
                 log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `haveAllAgentsFinalStatusByExecutionId` call for execution=$executionId")
@@ -106,12 +111,7 @@ class AgentService(
                     haveAllAgentsFinalStatusByExecutionId(executionId)
                 )
             }
-            .filter { haveFinalStatus ->
-                if (!haveFinalStatus) {
-                    log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
-                }
-                haveFinalStatus
-            }
+            .filter { it }
             .filterWhen {
                 orchestratorAgentService.getExecutionStatus(executionId)
                     .map {
