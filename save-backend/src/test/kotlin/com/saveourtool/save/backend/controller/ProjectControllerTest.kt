@@ -122,7 +122,15 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+            githubProject = null,
+            githubOrganization = null,
+        )
 
         projectRepository.save(project)
 
@@ -145,7 +153,15 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete1",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+            githubProject = null,
+            githubOrganization = null,
+        )
 
         projectRepository.save(project)
 
@@ -168,7 +184,15 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 3)
         }
         val organization: Organization = organizationRepository.getOrganizationById(2)
-        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete1",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+            githubProject = null,
+            githubOrganization = null,
+        )
 
         projectRepository.save(project)
 
@@ -193,7 +217,15 @@ class ProjectControllerTest {
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "I",
+            "http://test.com",
+            "uurl",
+            ProjectStatus.CREATED,
+            organization = organization,
+            githubProject = null,
+            githubOrganization = null,
+        )
         saveProjectAndAssert(
             project,
             { expectStatus().isOk }
