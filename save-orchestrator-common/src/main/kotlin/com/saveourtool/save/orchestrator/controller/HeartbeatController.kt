@@ -12,7 +12,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -37,7 +36,6 @@ class HeartbeatController(
     private val containerService: ContainerService,
     private val configProperties: ConfigProperties,
     private val heartBeatInspector: HeartBeatInspector,
-    private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response

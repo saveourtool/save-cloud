@@ -6,7 +6,7 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
- * Repository for [AgentStatus]
+ * Repository for [AgentStatus] in sandbox
  */
 @Repository
 interface SandboxAgentStatusRepository : BaseEntityRepository<AgentStatus> {

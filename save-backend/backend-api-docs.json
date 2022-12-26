@@ -8389,6 +8389,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"
@@ -8558,6 +8559,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"
@@ -8657,6 +8659,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"

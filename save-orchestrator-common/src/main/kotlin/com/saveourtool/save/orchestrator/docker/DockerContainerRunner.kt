@@ -52,12 +52,16 @@ class DockerContainerRunner(
         replicas: Int,
     ) {
         log.debug { "Pulling image ${configuration.imageTag}" }
-        dockerClient.pullImageCmd(configuration.imageTag)
-            .withRegistry("https://ghcr.io")
-            .exec(PullImageResultCallback())
-            .awaitCompletion()
+        try {
+            dockerClient.pullImageCmd(configuration.imageTag)
+                .withRegistry("https://ghcr.io")
+                .exec(PullImageResultCallback())
+                .awaitCompletion()
+        } catch (dex: DockerException) {
+            throw ContainerRunnerException("Failed to fetch image ${configuration.imageTag}", dex)
+        }
 
-        repeat(replicas) { number ->
+        (1..replicas).forEach { number ->
             log.info("Creating a container #$number for execution.id=$executionId")
             val containerId = try {
                 createContainerFromImage(configuration, containerName(executionId, number))
