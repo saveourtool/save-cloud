@@ -240,41 +240,11 @@ For the classpath changes to take effect:
 1. Reload the project model (_Gradle_ tool window in IDEA).
 1. Re-start the _back-end_ application.
 
-Then verify that the agent is indeed available for download from the _back-end_.
-Incorrect output example (the binary is not found):
+Then verify that the agent is indeed available for download from the _back-end_
+by running an HTTP POST request, e.g.:
 
-```console
-$ curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
-*   Trying 127.0.0.1:5800...
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-* Connected to localhost (127.0.0.1) port 5800 (#0)
-> POST /internal/files/download-save-agent HTTP/1.1
-> Host: localhost:5800
-> User-Agent: curl/7.83.1
-> Accept: */*
->
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 404 Not Found
-```
-
-Correct output example (the JAR is on the _back-end_'s classpath):
-
-```console
-$ curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
-*   Trying 127.0.0.1:5800...
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-* Connected to localhost (127.0.0.1) port 5800 (#0)
-> POST /internal/files/download-save-agent HTTP/1.1
-> Host: localhost:5800
-> User-Agent: curl/7.83.1
-> Accept: */*
->
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
+```bash
+curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
 ```
 
 In addition to the HTTP status code, the content of the downloaded file can be
