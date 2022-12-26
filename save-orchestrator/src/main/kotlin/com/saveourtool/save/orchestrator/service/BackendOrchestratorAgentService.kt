@@ -65,14 +65,6 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun getAgentsStatuses(
-        containerIds: List<String>,
-    ): Mono<AgentStatusDtoList> = webClientBackend
-        .get()
-        .uri("/agents/statuses?ids=${containerIds.joinToString(separator = DATABASE_DELIMITER)}")
-        .retrieve()
-        .bodyToMono()
-
     override fun getExecutionStatus(
         executionId: Long,
     ): Mono<ExecutionStatus> =

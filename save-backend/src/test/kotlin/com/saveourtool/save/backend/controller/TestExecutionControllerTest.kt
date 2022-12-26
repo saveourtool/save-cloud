@@ -32,6 +32,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
+import java.time.Instant
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -239,6 +240,6 @@ class TestExecutionControllerTest {
             }!!
 
     companion object {
-        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
+        private val DEFAULT_DATE_TEST_EXECUTION: Long = Instant.now().epochSecond
     }
 }
