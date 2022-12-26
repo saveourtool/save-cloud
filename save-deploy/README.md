@@ -224,11 +224,20 @@ paths just fine):
 saveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
 ```
 
+Alternatively, you can set the property directly on the command line
+(`-PsaveAgentDistroFilepath=...`) or on a per _Run Configuration_ basis (in IDEA).
+
 Once the _agent_ distribution is built and `saveAgentDistroFilepath` is set, you
 can run (on Windows):
 
 ```bat
 gradlew.bat :save-backend:downloadSaveAgentDistro
+```
+
+or
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro -PsaveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
 ```
 
 Once the task completes, the _agent_ JAR can be found under
