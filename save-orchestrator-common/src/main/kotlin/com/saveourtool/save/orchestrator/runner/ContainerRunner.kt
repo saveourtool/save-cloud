@@ -31,12 +31,6 @@ interface ContainerRunner {
     fun cleanupAllByExecution(executionId: Long)
 
     /**
-     * @param executionId
-     * @return list of container id which are run for [executionId]
-     */
-    fun listContainerIds(executionId: Long): List<String>
-
-    /**
      * Check whether the agent [containerId] is stopped
      *
      * @param containerId id of the agent

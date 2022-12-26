@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
@@ -54,7 +53,6 @@ class DownloadFilesController(
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val agentService: AgentService,
-    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,

@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -24,7 +23,6 @@ import reactor.core.publisher.Mono
  */
 @RestController
 class AgentsController(
-    private val configProperties: ConfigProperties,
     private val agentService: AgentService,
     private val containerService: ContainerService,
 ) {
@@ -38,7 +36,8 @@ class AgentsController(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestBody request: RunExecutionRequest): Mono<EmptyResponse> {
-        val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
+        val response = agentService.updateExecution(request.executionId, ExecutionStatus.INITIALIZATION)
+            .thenReturn(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
             log.info {

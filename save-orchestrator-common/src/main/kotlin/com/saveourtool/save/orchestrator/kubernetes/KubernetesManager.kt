@@ -111,10 +111,6 @@ class KubernetesManager(
         logger.debug("Cleanup job for execution id=$executionId")
     }
 
-    override fun listContainerIds(executionId: Long): List<String> {
-        TODO("Not yet implemented")
-    }
-
     override fun isStopped(containerId: String): Boolean {
         val pod = kc.pods().withName(containerId).get()
         return pod == null || run {

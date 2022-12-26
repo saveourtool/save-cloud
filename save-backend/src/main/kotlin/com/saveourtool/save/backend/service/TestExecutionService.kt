@@ -35,7 +35,6 @@ class TestExecutionService(
     private val agentRepository: AgentRepository,
     private val agentService: AgentService,
     private val executionRepository: ExecutionRepository,
-
 ) {
     /**
      * Returns a page of [TestExecution]s with [executionId]

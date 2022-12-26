@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers.internal
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentStatusRepository
-import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
@@ -36,7 +35,6 @@ import kotlinx.datetime.toJavaLocalDateTime
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentService: AgentService,
-    private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
     private val configProperties: ConfigProperties,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,

@@ -119,12 +119,6 @@ class DockerContainerRunner(
         log.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
-    override fun listContainerIds(executionId: Long): List<String> = dockerClient.listContainersCmd()
-        .withNameFilter(listOf("-$executionId-"))
-        .exec()
-        .map { it.id }
-        .filterNot { isStopped(it) }
-
     override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
 
     /**
