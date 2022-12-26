@@ -188,7 +188,19 @@ You can run backend, orchestrator, preprocessor and frontend locally in IDE in d
 #### Using `save-agent` executable on Windows
 
 If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.
-To run on Windows, you need to build and package `save-agent` on WSL:
+To run on Windows, you need to build and package `save-agent` on WSL.
+
+When building from the WSL, better use a separate local _Git_ repository, for
+two reasons:
+
+1. Sometimes, WSL doesn't have enough permissions to create directories on the
+   NTFS file system, so file access errors may occur.
+1. Windows and Linux versions of _Gradle_ will use different absolute paths when
+   accessing the same local _Git_ repository, so, unless you each time do a full
+   rebuild, you'll encounter `NoSuchFileException` errors when switching from
+   Windows to WSL and back. 
+
+Under WSL, from a separate local _Git_ repository run:
 
 ```bash
 ./gradlew :save-agent:copyAgentDistribution
