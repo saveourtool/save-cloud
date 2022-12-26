@@ -82,7 +82,7 @@ external interface ContestSubmissionsMenuProps : Props {
 private fun ChildrenBuilder.displayStatus(status: ExecutionStatus, hasFailedTests: Boolean, score: Double?) {
     span {
         className = when (status) {
-            ExecutionStatus.PENDING -> ClassName("")
+            ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ClassName("")
             ExecutionStatus.RUNNING -> ClassName("")
             ExecutionStatus.ERROR -> ClassName("text-danger")
             ExecutionStatus.OBSOLETE -> ClassName("text-secondary")
