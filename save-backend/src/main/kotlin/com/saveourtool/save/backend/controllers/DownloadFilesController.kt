@@ -182,10 +182,16 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     // FIXME: backend should set version of save-agent here for agent
-    fun downloadSaveAgent(): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-agent.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound()
+    fun downloadSaveAgent(): Mono<out Resource> {
+        val executable = "save-agent.kexe"
+
+        return Mono.just(ClassPathResource(executable))
+            .filter { it.exists() }
+            .switchIfEmptyToNotFound {
+                logger.error("$executable is not found on the classpath; returning HTTP 404...")
+                "Can't find $executable"
+            }
+    }
 
     @Operation(
         method = "POST",
@@ -202,12 +208,16 @@ class DownloadFilesController(
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
-    ): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound {
-                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
-                }
+    ): Mono<out Resource> {
+        val executable = "save-$version-linuxX64.kexe"
+
+        return Mono.just(ClassPathResource(executable))
+            .filter { it.exists() }
+            .switchIfEmptyToNotFound {
+                logger.error("$executable is not found on the classpath; returning HTTP 404...")
+                "Can't find $executable with the requested version $version"
+            }
+    }
 
     /**
      * @param file a file to be uploaded
