@@ -23,8 +23,8 @@ repositories {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.38")
-    implementation("org.neo4j:neo4j-ogm-core:3.2.38")
+    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.39")
+    implementation("org.neo4j:neo4j-ogm-core:3.2.39")
     implementation(libs.spring.data.neo4j)
     api(libs.arrow.kt.core)
 
