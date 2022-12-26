@@ -34,8 +34,7 @@ class TestExecutionService(
     private val testExecutionRepository: TestExecutionRepository,
     private val agentRepository: AgentRepository,
     private val agentService: AgentService,
-    private val agentService: AgentService,
-    private valexecutionRepository: ExecutionRepository,
+    private val executionRepository: ExecutionRepository,
 
 ) {
     /**

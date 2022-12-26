@@ -4,7 +4,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
@@ -60,7 +59,7 @@ class AgentsController(
                     agentService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
                 }
                 .flatMap {
-                    containerService.validateContainersAreStarted(request.executionId, configProperties.agentsCount)
+                    containerService.validateContainersAreStarted(request.executionId)
                 }
                 .subscribe()
         }

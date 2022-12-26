@@ -11,7 +11,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
-import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -58,20 +57,22 @@ class DockerContainerRunner(
                 .withRegistry("https://ghcr.io")
                 .exec(PullImageResultCallback())
                 .awaitCompletion()
+        } catch (dex: DockerException) {
+            throw ContainerRunnerException("Failed to fetch image ${configuration.imageTag}", dex)
+        }
 
-            repeat(replicas) { number ->
-                log.info("Creating a container #$number for execution.id=$executionId")
-                val containerId = try {
-                    createContainerFromImage(configuration, containerName(executionId, number))
-                } catch (dex: DockerException) {
-                    throw ContainerRunnerException("Unable to create containers", dex)
-                }
-                log.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
-                try {
-                    dockerClient.startContainerCmd(containerId).exec()
-                } catch (dex: DockerException) {
-                    throw ContainerRunnerException("Unable to start container $containerId", dex)
-                }
+        (1..replicas).forEach { number ->
+            log.info("Creating a container #$number for execution.id=$executionId")
+            val containerId = try {
+                createContainerFromImage(configuration, containerName(executionId, number))
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to create containers", dex)
+            }
+            log.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
+            try {
+                dockerClient.startContainerCmd(containerId).exec()
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to start container $containerId", dex)
             }
         }
     }

@@ -52,7 +52,6 @@ import javax.transaction.Transactional
  * @property agentsController
  * @property orchestratorAgentService
  * @property logService
- * @property sandboxLnkExecutionAgentRepository
  */
 @ApiSwaggerSupport
 @Tags(

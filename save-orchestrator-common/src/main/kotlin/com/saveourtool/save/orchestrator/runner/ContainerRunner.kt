@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.runner
 
-import com.saveourtool.save.orchestrator.service.ContainerException
 import com.saveourtool.save.orchestrator.service.ContainerService
 import kotlin.jvm.Throws
 

@@ -55,15 +55,6 @@ class AgentService(
                 .map { NewJobResponse(it) }
 
     /**
-     * Save new agent to the DB and insert their status. This logic is performed in two consecutive requests.
-     *
-     * @param agent [AgentDto] to save in the DB
-     * @return Mono with response body
-     * @throws WebClientResponseException if any of the requests fails
-     */
-    fun saveAgentWithInitialStatus(agent: AgentDto): Mono<EmptyResponse> = saveAgentsWithInitialStatuses(listOf(agent))
-
-    /**
      * Save new agent to the DB
      *
      * @param executionId ID of an execution
@@ -237,18 +228,6 @@ class AgentService(
     fun markAllTestExecutionsOfExecutionAsFailed(
         executionId: Long,
     ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfExecutionAsFailed(executionId)
-
-    /**
-     * Mark agent's test executions as failed
-     *
-     * @param executionId execution ID, for which, corresponding test executions should be marked as failed
-     * @param onlyReadyForTesting
-     * @return a bodiless response entity
-     */
-    fun markAllTestExecutionsAsFailed(
-        executionId: Long,
-        onlyReadyForTesting: Boolean
-    ): Mono<EmptyResponse> = orchestratorAgentService.markAllTestExecutionsOfAgentsAsFailed(executionId, onlyReadyForTesting)
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = areAllStatesIn(*finishedOrStoppedStates, IDLE)
 
