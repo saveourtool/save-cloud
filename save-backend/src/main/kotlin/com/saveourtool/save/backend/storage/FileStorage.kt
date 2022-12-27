@@ -17,9 +17,7 @@ class FileStorage(
     configProperties: ConfigProperties,
     private val fileService: FileService,
 ) : AbstractFileBasedStorage<FileDto>(Path.of(configProperties.fileStorage.location) / "storage", PATH_PARTS_COUNT) {
-    override fun buildKey(rootDir: Path, pathToContent: Path): FileDto {
-        return fileService.get(pathToContent.name.toLong()).toDto()
-    }
+    override fun buildKey(rootDir: Path, pathToContent: Path): FileDto = fileService.get(pathToContent.name.toLong()).toDto()
 
     override fun buildPathToContent(rootDir: Path, key: FileDto): Path = rootDir
         .resolve(key.requiredId().toString())

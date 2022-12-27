@@ -4,7 +4,6 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.SandboxFileInfo
-import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController

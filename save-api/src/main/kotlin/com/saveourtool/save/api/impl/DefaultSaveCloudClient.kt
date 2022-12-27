@@ -10,10 +10,6 @@ import com.saveourtool.save.api.http.deleteAndCheck
 import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.TestingType.CONTEST_MODE
 import com.saveourtool.save.filters.ProjectFilters
@@ -28,6 +24,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import com.saveourtool.save.entities.*
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
@@ -232,17 +229,13 @@ internal class DefaultSaveCloudClient(
             )
 
     override suspend fun deleteFile(
-        organizationName: String,
-        projectName: String,
-        fileName: String,
-        fileTimestamp: Long
+        fileId: Long,
     ): Either<SaveCloudError, Unit> =
             deleteAndCheck(
-                "/files/$organizationName/$projectName/delete",
+                "/files/delete",
                 requestBody = EmptyContent,
                 accept = Text.Plain,
-                NAME to fileName,
-                UPLOADED_MILLIS to fileTimestamp
+                FILE_ID to fileId,
             )
 
     override suspend fun listActiveContests(
@@ -342,14 +335,13 @@ internal class DefaultSaveCloudClient(
         private const val CHECK_DEBUG_INFO = "checkDebugInfo"
         private const val DEFAULT_API_VERSION = v1
         private const val EXECUTION_ID = "executionId"
-        private const val NAME = "name"
+        private const val FILE_ID = "fileId"
         private const val ORGANIZATION_NAME = "organizationName"
         private const val PAGE = "page"
         private const val PERMISSION = "permission"
         private const val POLL_DELAY_MILLIS = 100L
         private const val PROJECT_NAME = "projectName"
         private const val SIZE = "size"
-        private const val UPLOADED_MILLIS = "uploadedMillis"
         private val fileWithVersion =
                 Regex("""^(?<basename>.+?)-(?<version>\d+(?:\.\d+)*)(?<extension>(?:\.[^.\s-]+)+?)?$""")
 

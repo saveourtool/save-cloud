@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit.MINUTES
 
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.LocalDateTime
 
 /**
  * _SAVE_ REST API client.
@@ -125,18 +124,12 @@ interface SaveCloudClientEx {
     suspend fun getExecutionById(id: Long): Either<SaveCloudError, ExecutionDto>
 
     /**
-     * @param organizationName the organization name.
-     * @param projectName the name of the project.
-     * @param fileName the name of the file to delete.
-     * @param fileTimestamp the timestamp of the file to delete.
+     * @param fileId [FileDto.id]
      * @return [Unit], or the error if an error has occurred.
      * @see Organization.deleteFile
      */
     suspend fun deleteFile(
-        organizationName: String,
-        projectName: String,
-        fileName: String,
-        fileTimestamp: LocalDateTime
+        fileId: Long,
     ): Either<SaveCloudError, Unit>
 
     /**
@@ -240,23 +233,6 @@ interface SaveCloudClientEx {
                 organizationName = name,
                 projectName,
                 contestName,
-            )
-
-    /**
-     * @param projectName the name of the project.
-     * @param fileDto the file descriptor.
-     * @return [Unit], or the error if an error has occurred.
-     * @see SaveCloudClientEx.deleteFile
-     */
-    suspend fun Organization.deleteFile(
-        projectName: String,
-        fileDto: FileDto
-    ): Either<SaveCloudError, Unit> =
-            deleteFile(
-                organizationName = name,
-                projectName,
-                fileDto.name,
-                fileDto.uploadedTime
             )
 
     /**
