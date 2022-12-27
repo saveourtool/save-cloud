@@ -111,7 +111,7 @@ prometheus:
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.40.7
+      tag: v2.41.0
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate

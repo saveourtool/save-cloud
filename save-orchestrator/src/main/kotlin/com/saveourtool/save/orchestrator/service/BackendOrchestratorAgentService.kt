@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusDtoList
+import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.spring.utils.applyAll
@@ -64,13 +65,14 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun getAgentsStatuses(
-        containerIds: List<String>,
-    ): Mono<AgentStatusDtoList> = webClientBackend
-        .get()
-        .uri("/agents/statuses?ids=${containerIds.joinToString(separator = DATABASE_DELIMITER)}")
-        .retrieve()
-        .bodyToMono()
+    override fun getExecutionStatus(
+        executionId: Long,
+    ): Mono<ExecutionStatus> =
+            webClientBackend.get()
+                .uri("/executionDto?executionId=$executionId")
+                .retrieve()
+                .bodyToMono<ExecutionDto>()
+                .map { it.status }
 
     override fun updateExecutionStatus(
         executionId: Long,

@@ -6,6 +6,8 @@ package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -18,9 +20,11 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
-import java.util.Comparator
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
+
+@Suppress("WRONG_WHITESPACE")
+private val logger = getLogger({}.javaClass)
 
 /**
  * @param status
@@ -155,3 +159,23 @@ fun waitReactivelyUntil(
     .takeUntil { it }
     // check whether we have got `true` or Flux has completed with only `false`
     .any { it }
+
+/**
+ * Downloads the resource named [resourceName] from the classpath.
+ *
+ * @param resourceName the name of the resource (file).
+ * @param lazyResponseBody the body of HTTP response if HTTP 404 is returned.
+ * @return either the Mono holding the resource, or [Mono.error] with an HTTP 404
+ *   status and response.
+ */
+fun downloadFromClasspath(
+    resourceName: String,
+    lazyResponseBody: (() -> String?) = { null },
+): Mono<out Resource> =
+        Mono.just(resourceName)
+            .map(::ClassPathResource)
+            .filter(Resource::exists)
+            .switchIfEmptyToNotFound {
+                logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
+                lazyResponseBody()
+            }

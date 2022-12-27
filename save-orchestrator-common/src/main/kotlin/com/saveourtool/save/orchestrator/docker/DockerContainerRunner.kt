@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
@@ -27,8 +28,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
@@ -47,40 +46,34 @@ class DockerContainerRunner(
         "Properties under configProperties.docker are not set, but are required with active profiles."
     }
 
-    @Suppress("TYPE_ALIAS")
-    private val containerIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
-
-    override fun create(
+    override fun createAndStart(
         executionId: Long,
         configuration: ContainerService.RunConfiguration,
         replicas: Int,
-    ): List<String> {
+    ) {
         log.debug { "Pulling image ${configuration.imageTag}" }
-        dockerClient.pullImageCmd(configuration.imageTag)
-            .withRegistry("https://ghcr.io")
-            .exec(PullImageResultCallback())
-            .awaitCompletion()
+        try {
+            dockerClient.pullImageCmd(configuration.imageTag)
+                .withRegistry("https://ghcr.io")
+                .exec(PullImageResultCallback())
+                .awaitCompletion()
+        } catch (dex: DockerException) {
+            throw ContainerRunnerException("Failed to fetch image ${configuration.imageTag}", dex)
+        }
 
-        return (1..replicas).map { number ->
+        (1..replicas).forEach { number ->
             log.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration, containerName(executionId, number)).also { containerId ->
-                log.info("Created a container id=$containerId for execution.id=$executionId")
-                containerIdsByExecution
-                    .getOrPut(executionId) { mutableListOf() }
-                    .add(containerId)
+            val containerId = try {
+                createContainerFromImage(configuration, containerName(executionId, number))
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to create containers", dex)
             }
-        }
-    }
-
-    override fun startAllByExecution(executionId: Long) {
-        val containerIds = containerIdsByExecution.computeIfAbsent(executionId) {
-            // For executions started by the running instance of orchestrator, this key should be already present in the map.
-            // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
-            TODO("${DockerContainerRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
-        }
-        containerIds.forEach { containerId ->
-            log.info("Starting container id=$containerId")
-            dockerClient.startContainerCmd(containerId).exec()
+            log.info("Created a container id=$containerId for execution.id=$executionId, starting it...")
+            try {
+                dockerClient.startContainerCmd(containerId).exec()
+            } catch (dex: DockerException) {
+                throw ContainerRunnerException("Unable to start container $containerId", dex)
+            }
         }
     }
 
@@ -88,11 +81,14 @@ class DockerContainerRunner(
         .exec()
         .state
         .also { log.debug("Container $containerId has state $it") }
-        .status != "running"
+        .status != RUNNING_STATUS
 
     override fun cleanupAllByExecution(executionId: Long) {
         log.info("Stopping all agents for execution id=$executionId")
-        val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
+        val containersForExecution = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-$executionId-"))
+            .withShowAll(true)
+            .exec()
 
         containersForExecution.map { it.id }.forEach { containerId ->
             log.info("Removing container $containerId")
@@ -221,5 +217,6 @@ class DockerContainerRunner(
 
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
+        private const val RUNNING_STATUS = "running"
     }
 }

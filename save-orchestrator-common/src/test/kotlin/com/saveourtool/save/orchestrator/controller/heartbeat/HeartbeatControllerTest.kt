@@ -9,17 +9,21 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
-
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
+import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
+import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.test.TestDto
 import io.kotest.matchers.collections.*
 import io.kotest.matchers.shouldNot
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -31,18 +35,12 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
-import java.time.Duration
-
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import org.mockito.kotlin.*
-import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.time.Duration
 import java.time.Month
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 @WebFluxTest(controllers = [HeartbeatController::class])
@@ -82,7 +80,7 @@ class HeartbeatControllerTest {
         val heartBeatBusy = Heartbeat("test".toAgentInfo(), AgentState.BUSY, ExecutionProgress(0, -1L), Clock.System.now() + 30.seconds)
 
         whenever(orchestratorAgentService.updateAgentStatus(any()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+            .thenReturn(emptyResponseAsMono)
         webClient.post()
             .uri("/heartbeat")
             .contentType(MediaType.APPLICATION_JSON)
@@ -190,13 +188,14 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 3,
+            mockAddAgentCount = 1,
         ) { heartbeatResponses ->
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
         val currTime = Clock.System.now()
         testHeartbeat(
@@ -222,6 +221,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 8,
+            mockAddAgentCount = 1,
         ) {
             agentStatusInMemoryRepository.processCrashed {
                 it shouldContainExactly setOf("test-2")
@@ -252,6 +252,7 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
             mockUpdateAgentStatusesCount = 5,
+            mockAddAgentCount = 1,
         ) {
             agentStatusInMemoryRepository.processCrashed {
                 it shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
@@ -311,7 +312,7 @@ class HeartbeatControllerTest {
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
         whenever(orchestratorAgentService.markReadyForTestingTestExecutionsOfAgentAsFailed(any()))
-            .thenReturn(Mono.just(ResponseEntity.ok().build()))
+            .thenReturn(emptyResponseAsMono)
 
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
@@ -352,8 +353,13 @@ class HeartbeatControllerTest {
         testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
         mockAgentStatusesByExecutionId: Boolean = false,
+        mockAddAgentCount: Int = 0,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
+        if (mockAddAgentCount > 0) {
+            whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+                .thenReturn(emptyResponseAsMono)
+        }
         initConfigs.forEach {
             whenever(orchestratorAgentService.getInitConfig(any()))
                 .thenReturn(Mono.just(it))
@@ -374,7 +380,7 @@ class HeartbeatControllerTest {
 
         repeat(mockUpdateAgentStatusesCount) {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
-                .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+                .thenReturn(emptyResponseAsMono)
         }
         if (mockAgentStatusesByExecutionId) {
             whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
@@ -414,6 +420,9 @@ class HeartbeatControllerTest {
         verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
         if (mockAgentStatusesByExecutionId) {
             verify(orchestratorAgentService).getAgentStatusesByExecutionId(any())
+        }
+        repeat(mockAddAgentCount) {
+            verify(orchestratorAgentService).addAgent(anyLong(), any())
         }
         verification.invoke(heartbeatResponses)
     }

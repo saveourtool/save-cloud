@@ -1,6 +1,6 @@
-import com.saveourtool.save.buildutils.*
 import org.springframework.boot.gradle.tasks.run.BootRun
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
@@ -23,8 +23,8 @@ repositories {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.38")
-    implementation("org.neo4j:neo4j-ogm-core:3.2.38")
+    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.39")
+    implementation("org.neo4j:neo4j-ogm-core:3.2.39")
     implementation(libs.spring.data.neo4j)
     api(libs.arrow.kt.core)
 

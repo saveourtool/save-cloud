@@ -56,14 +56,14 @@ interface OrchestratorAgentService {
     fun getReadyForTestingTestExecutions(containerId: String): Mono<TestExecutionList>
 
     /**
-     * Get list of [AgentStatus] for provided container ids
+     * Fetches the status of execution
      *
-     * @param containerIds ids of agents
-     * @return Mono with response from backend
+     * @param executionId execution for which the status is required
+     * @return a Mono with [ExecutionStatus]
      */
-    fun getAgentsStatuses(
-        containerIds: List<String>,
-    ): Mono<AgentStatusDtoList>
+    fun getExecutionStatus(
+        executionId: Long,
+    ): Mono<ExecutionStatus>
 
     /**
      * Marks the execution to specified state
