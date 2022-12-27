@@ -68,7 +68,7 @@ class DemoManagerController(
             projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED)).toMono()
         }
         .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName"
+            "Could not find project $projectName in organization $organizationName."
         }
         .map { project ->
             lnkProjectGithubService.saveIfNotPresent(project, demoToolRequest.ownerName, demoToolRequest.repoName)
@@ -121,7 +121,7 @@ class DemoManagerController(
         projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED))
     }
         .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName"
+            "Could not find project $projectName in organization $organizationName."
         }
         .flatMap {
             lnkProjectGithubService.findByProject(it).toMono()
