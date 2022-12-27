@@ -89,10 +89,6 @@ external interface OrganizationProps : PropsWithChildren {
  * [State] of project view component
  */
 external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
 
     /**
      * Image to owner avatar
@@ -165,7 +161,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     init {
-        state.isUploading = false
         state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
@@ -489,9 +484,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
-                setState {
-                    isUploading = true
-                }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
                         "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
@@ -505,9 +497,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     setState {
                         image = response
                     }
-                }
-                setState {
-                    isUploading = false
                 }
                 window.location.reload()
             }
