@@ -170,10 +170,17 @@ class OrganizationService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)
-            ?.apply {
-                avatar = relativePath
-            }.orNotFound { "Organization with name [$name] was not found." }
+        val organization = organizationRepository.findByName(name).orNotFound()
+
+        var version = organization.avatar?.substringAfterLast("?")?.toInt()
+
+        val relativePathNew = version?.let {
+            "$relativePath?${++version}"
+        } ?: "$relativePath?1"
+
+        organization.apply {
+            avatar = relativePathNew
+        }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
 
