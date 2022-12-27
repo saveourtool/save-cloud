@@ -41,6 +41,7 @@ class LnkProjectGithubService(
      * @return [LnkProjectGithub] saved to database
      */
     fun saveIfNotPresent(project: Project, ownerName: String, repoName: String): LnkProjectGithub = lnkProjectGithubRepository.findByProject(project)
+        ?.let { throw IllegalStateException("Project ${project.toProjectCoordinates()} is already linked with github.") }
         ?: lnkProjectGithubRepository.save(
             LnkProjectGithub(
                 project,

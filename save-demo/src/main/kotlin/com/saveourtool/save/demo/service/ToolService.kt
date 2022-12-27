@@ -27,12 +27,17 @@ class ToolService(
      * @param githubRepo
      * @param snapshot
      * @return [Tool] entity saved to database
+     * @throws IllegalStateException if tool is already present in DB
      */
     @Transactional
     fun saveIfNotPresent(githubRepo: GithubRepo, snapshot: Snapshot): Tool {
         val githubRepoFromDb = githubRepoService.saveIfNotPresent(githubRepo)
         val snapshotFromDb = snapshotService.saveIfNotPresent(snapshot)
-        return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb) ?: save(githubRepoFromDb, snapshotFromDb)
+        return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb)?.let {
+            throw IllegalStateException(
+                "Tool ${githubRepo.organizationName}/${githubRepo.toolName} of version ${snapshot.version} is already present in DB."
+            )
+        } ?: save(githubRepoFromDb, snapshotFromDb)
     }
 
     /**
