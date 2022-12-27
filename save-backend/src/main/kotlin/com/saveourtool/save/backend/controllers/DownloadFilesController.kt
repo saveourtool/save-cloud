@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -182,16 +181,14 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     // FIXME: backend should set version of save-agent here for agent
-    fun downloadSaveAgent(): Mono<out Resource> {
-        val executable = "save-agent.kexe"
+    fun downloadSaveAgent(): Mono<out Resource> =
+            run {
+                val executable = "save-agent.kexe"
 
-        return Mono.just(ClassPathResource(executable))
-            .filter { it.exists() }
-            .switchIfEmptyToNotFound {
-                logger.error("$executable is not found on the classpath; returning HTTP 404...")
-                "Can't find $executable"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
             }
-    }
 
     @Operation(
         method = "POST",
@@ -208,16 +205,14 @@ class DownloadFilesController(
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
-    ): Mono<out Resource> {
-        val executable = "save-$version-linuxX64.kexe"
+    ): Mono<out Resource> =
+            run {
+                val executable = "save-$version-linuxX64.kexe"
 
-        return Mono.just(ClassPathResource(executable))
-            .filter { it.exists() }
-            .switchIfEmptyToNotFound {
-                logger.error("$executable is not found on the classpath; returning HTTP 404...")
-                "Can't find $executable with the requested version $version"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
+                }
             }
-    }
 
     /**
      * @param file a file to be uploaded

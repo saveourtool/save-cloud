@@ -10,7 +10,6 @@ import com.saveourtool.save.utils.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -114,20 +113,26 @@ class SandboxInternalController(
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound {
-                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+            run {
+                val executable = "save-$version-linuxX64.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
                 }
+            }
 
     /**
      * @return content of save-agent
      */
     @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-agent.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound()
+            run {
+                val executable = "save-agent.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
+            }
 
     /**
      * @param testExecutionsDto
