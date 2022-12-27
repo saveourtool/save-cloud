@@ -190,10 +190,7 @@ class TestSuitesService(
         ) {
             "Expected that we remove all test suites related to a single execution at once"
         }
-        executionIds.forEach { executionId ->
-            log.debug { "Delete link between execution $executionId and test suites" }
-            lnkExecutionTestSuiteService.deleteByExecution(executionId)
-        }
+        executionIds.forEach { executionService.markAsObsolete(it) }
 
         testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
@@ -211,14 +208,6 @@ class TestSuitesService(
             }
             log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
             testSuiteRepository.deleteById(testSuite.requiredId())
-        }
-
-        // Delete agents, which related to the test suites
-        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-        agentService.deleteAgentByExecutionIds(executionIds)
-
-        executionIds.forEach {
-            executionService.updateExecutionStatus(executionService.findExecution(it).orNotFound(), ExecutionStatus.OBSOLETE)
         }
     }
 

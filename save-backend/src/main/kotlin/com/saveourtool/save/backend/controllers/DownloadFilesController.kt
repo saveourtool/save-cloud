@@ -104,7 +104,13 @@ class DownloadFilesController(
             }
         }
         .flatMap { (file, _) ->
-            fileStorage.delete(file.toDto())
+            val fileDto = file.toDto()
+            fileStorage.delete(fileDto)
+                .asyncEffectIf({this}) {
+                    blockingToMono {
+                        fileService.delete(fileDto)
+                    }
+                }
         }
         .map { deleted ->
             if (deleted) {

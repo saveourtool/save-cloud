@@ -35,8 +35,10 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    private val fileService: FileService,
+    @Lazy private val fileService: FileService,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
+    private val agentService: AgentService,
+    private val agentStatusService: AgentStatusService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -247,7 +249,7 @@ class ExecutionService(
         username: String,
     ): Mono<Execution> = blockingToMono {
         val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
-        val files = lnkExecutionFileRepository.findByExecutionId(execution.requiredId()).map { it.file }
+        val files = lnkExecutionFileRepository.findAllByExecutionId(execution.requiredId()).map { it.file }
         doCreateNew(
             project = execution.project,
             testSuites = testSuites,
@@ -319,11 +321,43 @@ class ExecutionService(
     }
 
     /**
+     * Mark [Execution] as [ExecutionStatus.OBSOLETE]
+     *
+     * @param executionId ID of [Execution]
+     */
+    @Transactional
+    fun markAsObsolete(executionId: Long) {
+        findExecution(executionId)
+            .orNotFound {
+                "Not found execution with id $executionId"
+            }
+            .let { execution ->
+                markAsObsolete(execution)
+            }
+    }
+
+    /**
+     * Mark [Execution] as [ExecutionStatus.OBSOLETE]
+     *
+     * @param execution
+     */
+    @Transactional
+    fun markAsObsolete(execution: Execution) {
+        log.info { "Mark execution with id = ${execution.requiredId()} as obsolete. Additionally delete link to test suites and files" }
+        lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
+        lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
+        updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
+        // Delete agents, which related to the test suites
+        agentStatusService.deleteAgentStatusWithExecutionId(execution.requiredId())
+        agentService.deleteAgentByExecutionId(execution.requiredId())
+    }
+
+    /**
      * @param execution
      * @return all [File]s are assigned to provided [Execution]
      */
     fun getFiles(execution: Execution): List<File> = execution
-        .let { lnkExecutionFileRepository.findByExecution(it) }
+        .let { lnkExecutionFileRepository.findAllByExecution(it) }
         .map { it.file }
 
     /**
