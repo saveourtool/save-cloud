@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -172,21 +171,26 @@ class DownloadFilesController(
         }
 
     @Operation(
-        method = "POST",
+        method = "GET",
         summary = "Download save-agent with current save-cloud version.",
         description = "Download save-agent with current save-cloud version.",
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
+    @GetMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-agent.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound()
+            run {
+                val executable = "save-agent.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
+            }
 
     @Operation(
-        method = "POST",
+        method = "GET",
         summary = "Download save-cli by version.",
         description = "Download save-cli by version.",
     )
@@ -197,15 +201,18 @@ class DownloadFilesController(
         required = true
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @GetMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
     ): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound {
-                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+            run {
+                val executable = "save-$version-linuxX64.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
                 }
+            }
 
     /**
      * @param filePartMono a file to be uploaded
@@ -263,7 +270,6 @@ class DownloadFilesController(
         val avatarKey = AvatarKey(
             type,
             owner,
-            part.filename()
         )
         val content = part.content().map { it.asByteBuffer() }
         avatarStorage.upsert(avatarKey, content).map {
@@ -275,6 +281,7 @@ class DownloadFilesController(
             when (type) {
                 AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
                 AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
+                else -> throw IllegalStateException("Not supported type: $type")
             }
         }
         ResponseEntity.status(

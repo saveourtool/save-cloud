@@ -48,18 +48,16 @@ internal class AvatarController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    @GetMapping("/users/{userName}/{imageName}")
+    @GetMapping("/users/{userName}")
     fun forUser(
         @PathVariable userName: String,
-        @PathVariable imageName: String,
     ): Mono<ByteBufferFluxResponse> = AvatarKey(
         type = AvatarType.USER,
         objectName = userName,
-        imageName = imageName
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for user $userName with name $imageName"
+            "Not found avatar for user $userName"
         }
 
     @Operation(
@@ -73,18 +71,16 @@ internal class AvatarController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    @GetMapping("/{organizationName}/{imageName}")
+    @GetMapping("/organizations/{organizationName}")
     fun forOrganization(
         @PathVariable organizationName: String,
-        @PathVariable imageName: String,
     ): Mono<ByteBufferFluxResponse> = AvatarKey(
         type = AvatarType.ORGANIZATION,
         objectName = organizationName,
-        imageName = imageName
     )
         .toMonoResponse()
         .switchIfEmptyToNotFound {
-            "Not found avatar for organization $organizationName with name $imageName"
+            "Not found avatar for organization $organizationName"
         }
 
     private fun AvatarKey.toMonoResponse(): Mono<ByteBufferFluxResponse> = this.toMono()

@@ -23,7 +23,6 @@ import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
@@ -166,6 +165,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     div {
                                         className = ClassName("col-md-4 pl-0 pr-0")
                                         label {
+                                            className = ClassName("btn")
+                                            title = "Change avatar owner"
                                             input {
                                                 type = InputType.file
                                                 hidden = true
@@ -173,7 +174,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                     postImageUpload(it.target)
                                                 }
                                             }
-                                            ariaLabel = "Change avatar owner"
                                             img {
                                                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                                 src = state.image?.path?.let {
