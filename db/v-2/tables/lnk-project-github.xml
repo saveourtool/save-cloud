@@ -20,12 +20,5 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-        <addForeignKeyConstraint baseColumnNames="project_id"
-                                 baseTableName="lnk_project_github"
-                                 constraintName="fk_lnk_project_github"
-                                 referencedColumnNames="id"
-                                 referencedTableName="project"
-                                 onDelete="CASCADE"/>
     </changeSet>
 </databaseChangeLog>
