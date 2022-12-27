@@ -1,5 +1,3 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
-
 package com.saveourtool.save.domain
 
 import kotlinx.serialization.Serializable

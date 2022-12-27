@@ -214,28 +214,26 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
-    ): Mono<Execution> {
-        return blockingToMono {
-            val project = with(projectCoordinates) {
-                projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
-                    "Not found project $projectName in $organizationName"
-                }
+    ): Mono<Execution> = blockingToMono {
+        val project = with(projectCoordinates) {
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
+                "Not found project $projectName in $organizationName"
             }
-            doCreateNew(
-                project = project,
-                testSuites = testSuiteIds.map { testSuitesService.getById(it) },
-                allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
-                    .count()
-                    .toLong(),
-                files = fileIds.map { fileService.get(it) },
-                username = username,
-                sdk = sdk.toString(),
-                execCmd = execCmd,
-                batchSizeForAnalyzer = batchSizeForAnalyzer,
-                testingType = testingType,
-                contestName,
-            )
         }
+        doCreateNew(
+            project = project,
+            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
+            allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
+                .count()
+                .toLong(),
+            files = fileIds.map { fileService.get(it) },
+            username = username,
+            sdk = sdk.toString(),
+            execCmd = execCmd,
+            batchSizeForAnalyzer = batchSizeForAnalyzer,
+            testingType = testingType,
+            contestName,
+        )
     }
 
     /**
@@ -247,24 +245,22 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Mono<Execution> {
-        return blockingToMono {
-            val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
-            val files = lnkExecutionFileRepository.findByExecutionId(execution.requiredId()).map { it.file }
-            doCreateNew(
-                project = execution.project,
-                testSuites = testSuites,
-                allTests = execution.allTests,
-                files = files,
-                username = username,
-                sdk = execution.sdk,
-                execCmd = execution.execCmd,
-                batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
-                testingType = execution.type,
-                contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
-                    ?.findContestByExecution(execution)?.name,
-            )
-        }
+    ): Mono<Execution> = blockingToMono {
+        val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
+        val files = lnkExecutionFileRepository.findByExecutionId(execution.requiredId()).map { it.file }
+        doCreateNew(
+            project = execution.project,
+            testSuites = testSuites,
+            allTests = execution.allTests,
+            files = files,
+            username = username,
+            sdk = execution.sdk,
+            execCmd = execution.execCmd,
+            batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+            testingType = execution.type,
+            contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
+                ?.findContestByExecution(execution)?.name,
+        )
     }
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -322,10 +318,17 @@ class ExecutionService(
         return savedExecution
     }
 
+    /**
+     * @param execution
+     * @return all [File]s are assigned to provided [Execution]
+     */
     fun getFiles(execution: Execution): List<File> = execution
         .let { lnkExecutionFileRepository.findByExecution(it) }
         .map { it.file }
 
+    /**
+     * @param executionId
+     */
     fun getFiles(executionId: Long): List<File> = getFiles(getExecution(executionId))
 
     companion object {

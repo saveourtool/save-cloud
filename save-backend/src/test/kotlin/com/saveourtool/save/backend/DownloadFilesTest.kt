@@ -196,7 +196,6 @@ class DownloadFilesTest {
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it }
                         .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())

@@ -2,17 +2,26 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
-import kotlinx.datetime.*
+
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
+import kotlinx.datetime.*
 
+/**
+ * @property project
+ * @property name
+ * @property uploadedTime
+ * @property sizeBytes
+ * @property isExecutable
+ */
 @Entity
 class File(
     @ManyToOne
@@ -23,7 +32,7 @@ class File(
     var uploadedTime: LocalDateTime,
     var sizeBytes: Long,
     var isExecutable: Boolean,
-): BaseEntityWithDtoWithId<FileDto>() {
+) : BaseEntityWithDtoWithId<FileDto>() {
     override fun toDto(): FileDto = FileDto(
         projectCoordinates = project.toProjectCoordinates(),
         name = name,
@@ -34,6 +43,10 @@ class File(
     )
 }
 
+/**
+ * @param projectResolver
+ * @return [File] created from [FileDto]
+ */
 fun FileDto.toEntity(projectResolver: (ProjectCoordinates) -> Project): File = File(
     project = projectResolver(projectCoordinates),
     name = name,

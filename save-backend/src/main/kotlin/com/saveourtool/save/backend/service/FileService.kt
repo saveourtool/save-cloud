@@ -9,28 +9,33 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
+/**
+ * Service for [FileRepository]
+ */
 @Service
 class FileService(
     private val fileRepository: FileRepository,
 ) {
+    /**
+     * @param id
+     * @return [File] with provided [id]
+     */
     fun get(id: Long): File = fileRepository.findByIdOrNull(id)
         .orNotFound { "Not found a file by id $id" }
 
-    fun getByProjectAndName(
-        project: Project,
-        name: String,
-        uploadedTime: LocalDateTime,
-    ): File = fileRepository.findByProjectAndNameAndUploadedTime(
-        project, name, uploadedTime
-    )
-        .orNotFound {
-            "Not found a file with name $name and uploadedTime $uploadedTime in $project"
-        }
-
+    /**
+     * @param project
+     * @return all [FileDto]s which provided [Project] does contain
+     */
     fun getByProject(
         project: Project,
     ): List<FileDto> = fileRepository.findAllByProject(project).map { it.toDto() }
 
+    /**
+     * @param project
+     * @param name
+     * @return saved [File]
+     */
     fun createNew(
         project: Project,
         name: String,
@@ -44,6 +49,11 @@ class FileService(
         )
     )
 
+    /**
+     * @param file
+     * @param contentSizeInBytes
+     * @return updated [File]
+     */
     fun update(
         file: File,
         contentSizeInBytes: Long,

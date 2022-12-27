@@ -12,6 +12,7 @@ import com.saveourtool.save.api.utils.initializeHttpClient
 import com.saveourtool.save.api.utils.submitExecution
 import com.saveourtool.save.api.utils.uploadAdditionalFile
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus.PENDING
 import com.saveourtool.save.execution.ExecutionStatus.RUNNING
@@ -25,7 +26,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
-import com.saveourtool.save.entities.FileDto
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -188,7 +188,6 @@ class SaveCloudClient(
         }
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
-            .map { it }
 
         val resultFileInfoList: MutableList<FileDto> = mutableListOf()
 

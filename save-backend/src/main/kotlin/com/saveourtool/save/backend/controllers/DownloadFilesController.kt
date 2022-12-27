@@ -14,6 +14,7 @@ import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -21,10 +22,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toLocalDateTime
-
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -42,6 +39,8 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
+
+typealias FileDtoResponse = ResponseEntity<FileDto>
 
 /**
  * A Spring controller for file downloading
@@ -122,31 +121,26 @@ class DownloadFilesController(
         description = "Download a file by execution ID and FileKey.",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of additional file key", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of additional file key", required = true),
-        Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of additional file key", required = true),
-        Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of additional file key", required = true),
+        Parameter(name = "fileId", `in` = ParameterIn.QUERY, description = "ID of additional file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
-    @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @ApiResponse(responseCode = "404", description = "File with provided ID is not found.")
+    @PostMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        @RequestParam name: String,
-        @RequestParam uploadedMillis: Long,
+        @RequestParam fileId: Long,
         authentication: Authentication,
-    ): Mono<ByteBufferFluxResponse> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, projectName, organizationName, Permission.READ
-    )
-        .map {
-            fileService.getByProjectAndName(
-                project = it,
-                name = name,
-                uploadedTime = uploadedMillis.millisToInstant().toLocalDateTime(TimeZone.UTC).toJavaLocalDateTime(),
-            )
+    ): Mono<ByteBufferFluxResponse> = blockingToMono {
+        fileService.get(fileId)
+    }
+        .zipWhen { file ->
+            with(projectPermissionEvaluator) {
+                Mono.just(file.project)
+                    .filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
+            }
         }
-        .flatMap { doDownload(it) }
+        .flatMap { (file, _) ->
+            doDownload(file)
+        }
 
     /**
      * @param fileId
@@ -221,7 +215,7 @@ class DownloadFilesController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<FileDto>> = projectService.findWithPermissionByNameAndOrganization(
+    ): Mono<FileDtoResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.WRITE
     )
         .flatMap { project ->

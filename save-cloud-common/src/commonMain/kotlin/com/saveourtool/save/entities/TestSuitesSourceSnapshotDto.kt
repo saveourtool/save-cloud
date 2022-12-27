@@ -2,6 +2,13 @@ package com.saveourtool.save.entities
 
 import kotlinx.datetime.LocalDateTime
 
+/**
+ * @property organizationName
+ * @property testSuitesSourceName
+ * @property version
+ * @property creationTime
+ * @property location
+ */
 data class TestSuitesSourceSnapshotDto(
     val organizationName: String,
     val testSuitesSourceName: String,

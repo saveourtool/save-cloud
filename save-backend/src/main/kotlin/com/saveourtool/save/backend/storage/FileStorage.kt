@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.FileService
-import com.saveourtool.save.entities.File
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.pathNamesTill

@@ -55,9 +55,16 @@ external interface UploaderProps<F : Any> : PropsWithChildren {
      */
     var selectedFiles: List<F>
 
+    /**
+     * Callback to get name from [F]
+     */
     var getName: (F) -> String
 
+    /**
+     * Callback to get sizeBytes from [F]
+     */
     var getSizeBytes: (F) -> Long
+
     /**
      * Callback to add file to [selectedFiles]
      */
