@@ -16,9 +16,7 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
@@ -125,16 +123,14 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
         val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
-        val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
-        val fileKey = sampleFileInfo.key
-        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        val sampleFileDto = tmpFile.toFileDto(projectCoordinates)
+        fileStorage.upload(sampleFileDto, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
 
         webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
-                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
+            .uri("/api/$v1/files/download?fileId={fileId}", sampleFileDto.id)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
@@ -150,11 +146,11 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBodyList<FileInfo>()
+            .expectBodyList<FileDto>()
             .hasSize(1)
-            .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
+            .consumeWith<WebTestClient.ListBodySpec<FileDto>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().key.name
+                    tmpFile.name, it.responseBody!!.first().name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
@@ -196,11 +192,11 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<FileInfo>()
+            .expectBody<FileDto>()
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.key }
+                        .map { it }
                         .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())

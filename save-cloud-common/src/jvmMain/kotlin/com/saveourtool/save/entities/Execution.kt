@@ -1,8 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toFileKeyList
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -36,7 +34,6 @@ import javax.persistence.ManyToOne
  * @property expectedChecks
  * @property unexpectedChecks
  * @property sdk
- * @property additionalFiles
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -85,8 +82,6 @@ class Execution(
 
     var sdk: String,
 
-    var additionalFiles: String,
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User?,
@@ -123,13 +118,6 @@ class Execution(
         testSuiteSourceName = testSuiteSourceName,
         score = score,
     )
-
-    /**
-     * Parse and get additionalFiles as [List] of [FileKey]
-     *
-     * @return list of keys [FileKey] of additional files
-     */
-    fun getFileKeys(): List<FileKey> = additionalFiles.toFileKeyList(project.toProjectCoordinates())
 
     /**
      * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]
@@ -176,7 +164,6 @@ class Execution(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
-            additionalFiles = "",
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,

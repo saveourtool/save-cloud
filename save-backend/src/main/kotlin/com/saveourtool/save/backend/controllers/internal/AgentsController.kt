@@ -4,6 +4,7 @@ import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
@@ -26,6 +27,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import kotlinx.datetime.toJavaLocalDateTime
+import java.time.ZoneOffset
 
 /**
  * Controller to manipulate with Agent related data
@@ -36,6 +38,7 @@ class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentService: AgentService,
     private val configProperties: ConfigProperties,
+    private val executionService: ExecutionService,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
 ) {
@@ -56,22 +59,8 @@ class AgentsController(
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "$backendUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
-                additionalFileNameToUrl = execution.getFileKeys()
-                    .associate { fileKey ->
-                        fileKey.name to buildString {
-                            append(backendUrl)
-                            append("/internal/files/download?")
-                            mapOf(
-                                "organizationName" to fileKey.projectCoordinates.organizationName,
-                                "projectName" to fileKey.projectCoordinates.projectName,
-                                "name" to fileKey.name,
-                                "uploadedMillis" to fileKey.uploadedMillis,
-                            )
-                                .map { (key, value) -> "$key=$value" }
-                                .joinToString("&")
-                                .let { append(it) }
-                        }
-                    },
+                additionalFileNameToUrl = executionService.getFiles(execution)
+                    .associate { it.name to "$backendUrl/internal/files/download?fileId=${it.requiredId()}" },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
                     overrideExecFlags = null,

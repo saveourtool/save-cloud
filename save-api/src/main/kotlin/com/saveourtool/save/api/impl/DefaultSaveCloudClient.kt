@@ -10,7 +10,6 @@ import com.saveourtool.save.api.http.deleteAndCheck
 import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.Organization
@@ -114,7 +113,7 @@ internal class DefaultSaveCloudClient(
     override suspend fun listFiles(
         organizationName: String,
         projectName: String
-    ): Either<SaveCloudError, List<FileInfo>> =
+    ): Either<SaveCloudError, List<FileDto>> =
             getAndCheck("/files/$organizationName/$projectName/list")
 
     override suspend fun uploadFile(
@@ -123,7 +122,7 @@ internal class DefaultSaveCloudClient(
         file: Path,
         contentType: ContentType?,
         stripVersionFromName: Boolean
-    ): Either<SaveCloudError, FileInfo> {
+    ): Either<SaveCloudError, FileDto> {
         val absoluteFile = file.toAbsolutePath().normalize()
 
         require(absoluteFile.isRegularFile()) {
@@ -134,9 +133,9 @@ internal class DefaultSaveCloudClient(
             }
         }
 
-        val fileInfo: FileInfo
+        val fileDto: FileDto
         val nanos = measureNanoTime {
-            fileInfo = postAndCheck<FileInfo>(
+            fileDto = postAndCheck<FileDto>(
                 "/files/$organizationName/$projectName/upload",
                 MultiPartFormDataContent(formData {
                     val fileName = absoluteFile.fileName.toString().let { fileName ->
@@ -168,7 +167,7 @@ internal class DefaultSaveCloudClient(
         @Suppress("MagicNumber", "FLOAT_IN_ACCURATE_CALCULATIONS")
         logger.debug("Uploaded ${absoluteFile.fileSize()} byte(s) in ${nanos / 1000L / 1e3} ms.")
 
-        return fileInfo.right()
+        return fileDto.right()
     }
 
     override suspend fun listExecutions(

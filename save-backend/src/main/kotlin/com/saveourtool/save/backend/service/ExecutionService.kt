@@ -6,10 +6,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.asyncEffectIf
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
@@ -38,7 +35,7 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    private val fileRepository: FileRepository,
+    private val fileService: FileService,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
@@ -196,7 +193,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param files
+     * @param fileIds
      * @param username
      * @param sdk
      * @param execCmd
@@ -210,7 +207,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        files: List<FileKey>,
+        fileIds: List<Long>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -218,20 +215,19 @@ class ExecutionService(
         testingType: TestingType,
         contestName: String?,
     ): Mono<Execution> {
-        val project = with(projectCoordinates) {
-            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
-                "Not found project $projectName in $organizationName"
-            }
-        }
         return blockingToMono {
+            val project = with(projectCoordinates) {
+                projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
+                    "Not found project $projectName in $organizationName"
+                }
+            }
             doCreateNew(
                 project = project,
-                testSuiteIds = testSuiteIds,
-                version = testSuitesService.getSingleVersionByIds(testSuiteIds),
+                testSuites = testSuiteIds.map { testSuitesService.getById(it) },
                 allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                     .count()
                     .toLong(),
-                additionalFiles = files.formatForExecution(),
+                files = fileIds.map { fileService.get(it) },
                 username = username,
                 sdk = sdk.toString(),
                 execCmd = execCmd,
@@ -252,14 +248,14 @@ class ExecutionService(
         execution: Execution,
         username: String,
     ): Mono<Execution> {
-        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
         return blockingToMono {
+            val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
+            val files = lnkExecutionFileRepository.findByExecutionId(execution.requiredId()).map { it.file }
             doCreateNew(
                 project = execution.project,
-                testSuiteIds = testSuiteIds,
-                version = execution.version,
+                testSuites = testSuites,
                 allTests = execution.allTests,
-                additionalFiles = execution.additionalFiles,
+                files = files,
                 username = username,
                 sdk = execution.sdk,
                 execCmd = execution.execCmd,
@@ -274,11 +270,9 @@ class ExecutionService(
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
-        testSuiteIds: List<Long>,
-        version: String?,
+        testSuites: List<TestSuite>,
         allTests: Long,
-        fileIds: List<Long>,
-        additionalFiles: String,
+        files: List<File>,
         username: String,
         sdk: String,
         execCmd: String?,
@@ -289,11 +283,6 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
-        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
-        val testSuiteSourceName = testSuitesService.getById(
-            testSuiteIds.first()
-        ).source.name
-        val files = fileIds.map { fileRepository.fin}
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -301,7 +290,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = version,
+            version = testSuites.singleVersion(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -312,11 +301,10 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
-            additionalFiles = additionalFiles,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuiteSourceName,
+            testSuiteSourceName = testSuites.singleSourceName(),
             score = null,
         )
 
@@ -332,5 +320,32 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
         return savedExecution
+    }
+
+    fun getFiles(execution: Execution): List<File> = execution
+        .let { lnkExecutionFileRepository.findByExecution(it) }
+        .map { it.file }
+
+    fun getFiles(executionId: Long): List<File> = getFiles(getExecution(executionId))
+
+    companion object {
+        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
+            .distinctBy { it.requiredId() }
+            .also { sources ->
+                require(sources.size == 1) {
+                    "Only a single test suites source is allowed for a run, but got: $sources"
+                }
+            }
+            .single()
+            .name
+
+        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
+            .distinct()
+            .also { versions ->
+                require(versions.size == 1) {
+                    "Only a single version is supported, but got: $versions"
+                }
+            }
+            .single()
     }
 }

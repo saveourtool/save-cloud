@@ -1,31 +1,36 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.spring.entity.BaseEntityWithDto
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
+import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
+import kotlinx.datetime.*
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
+import kotlin.io.path.name
 
 @Entity
 class File(
     @ManyToOne
     @JoinColumn(name = "project_id")
-    val project: Project,
+    var project: Project,
 
-    val name: String,
-    val uploadedTime: LocalDateTime,
-    val sizeBytes: Long,
-    val isExecutable: Boolean,
-): BaseEntityWithDto<FileDto>() {
+    var name: String,
+    var uploadedTime: LocalDateTime,
+    var sizeBytes: Long,
+    var isExecutable: Boolean,
+): BaseEntityWithDtoWithId<FileDto>() {
     override fun toDto(): FileDto = FileDto(
         projectCoordinates = project.toProjectCoordinates(),
         name = name,
         uploadedTime = uploadedTime.toKotlinLocalDateTime(),
         sizeBytes = sizeBytes,
         isExecutable = isExecutable,
+        id = id,
     )
 }
 
@@ -35,4 +40,22 @@ fun FileDto.toEntity(projectResolver: (ProjectCoordinates) -> Project): File = F
     uploadedTime = uploadedTime.toJavaLocalDateTime(),
     sizeBytes = sizeBytes,
     isExecutable = isExecutable,
+).apply {
+    id = id
+}
+
+/**
+ * @return a [Path] with same name as `this`
+ */
+fun FileDto.toPath(): Path = Paths.get(name)
+
+/**
+ * @param projectCoordinates
+ * @return [FileDto] constructed from `this` [Path]
+ */
+fun Path.toFileDto(projectCoordinates: ProjectCoordinates) = FileDto(
+    projectCoordinates = projectCoordinates,
+    name = name,
+    uploadedTime = getLastModifiedTime().toInstant().toKotlinInstant().toLocalDateTime(TimeZone.UTC),
+    sizeBytes = fileSize(),
 )

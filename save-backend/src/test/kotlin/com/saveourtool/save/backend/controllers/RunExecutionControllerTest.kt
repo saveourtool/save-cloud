@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.execution.TestingType
@@ -67,7 +66,7 @@ class RunExecutionControllerTest(
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
-            files = listOf(FileKey(project.toProjectCoordinates(), "test1", 123L)),
+            fileIds = listOf(1L),
             sdk = Jdk("8"),
             execCmd = "execCmd",
             batchSizeForAnalyzer = "batchSizeForAnalyzer",

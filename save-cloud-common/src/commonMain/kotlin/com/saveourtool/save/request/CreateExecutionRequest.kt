@@ -1,6 +1,5 @@
 package com.saveourtool.save.request
 
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.execution.TestingType
@@ -9,7 +8,7 @@ import kotlinx.serialization.Serializable
 /**
  * @property projectCoordinates project coordinates for evaluated tool
  * @property testSuiteIds selected test suites for running
- * @property files files of evaluated tool
+ * @property fileIds selected files of evaluated tool
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -21,7 +20,7 @@ data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
-    val files: List<FileKey>,
+    val fileIds: List<Long>,
 
     val sdk: Sdk,
     val execCmd: String? = null,

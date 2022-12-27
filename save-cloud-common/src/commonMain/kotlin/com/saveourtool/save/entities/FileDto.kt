@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
  * @property uploadedTime a time when file was uploaded
  * @property sizeBytes size in bytes
  * @property isExecutable
+ * @property id
  */
 @Serializable
 data class FileDto(
@@ -18,4 +19,5 @@ data class FileDto(
     val uploadedTime: LocalDateTime,
     val sizeBytes: Long,
     val isExecutable: Boolean = false,
-)
+    override val id: Long? = null,
+) : DtoWithId()
