@@ -124,7 +124,7 @@ class DemoManagerController(
             "Could not find project $projectName in organization $organizationName."
         }
         .flatMap {
-            lnkProjectGithubService.findByProject(it).toMono()
+            blockingToMono { lnkProjectGithubService.findByProject(it) }
         }
         .switchIfEmptyToNotFound {
             "$organizationName/$projectName has no demo linked with it."
