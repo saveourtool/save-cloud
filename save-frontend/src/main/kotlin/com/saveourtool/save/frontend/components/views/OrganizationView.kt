@@ -89,7 +89,6 @@ external interface OrganizationProps : PropsWithChildren {
  * [State] of project view component
  */
 external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
-
     /**
      * Image to owner avatar
      */
