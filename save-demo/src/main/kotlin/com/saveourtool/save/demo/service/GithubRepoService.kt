@@ -17,6 +17,13 @@ class GithubRepoService(
      */
     fun getRepos(): List<GithubRepo> = githubRepoRepository.findAll()
 
+    /**
+     * @param ownerName name of GitHub user/organization
+     * @param repoName name of GitHub repository
+     * @return [GithubRepo] entity
+     */
+    fun find(ownerName: String, repoName: String): GithubRepo? = githubRepoRepository.findByToolNameAndOrganizationName(repoName, ownerName)
+
     private fun save(githubRepo: GithubRepo): GithubRepo = githubRepoRepository.save(githubRepo)
 
     /**
