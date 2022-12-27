@@ -1763,11 +1763,73 @@
         ]
       }
     },
-    "/api/v1/demo/add": {
+    "/api/v1/demo/{organizationName}/{projectName}": {
+      "get": {
+        "description": "Get demo info.",
+        "operationId": "getDemoInfo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          }
+        },
+        "summary": "Get demo info.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
       "post": {
         "description": "Add demo for a tool.",
         "operationId": "addDemo",
         "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "example": "basic",
             "in": "header",
@@ -1779,18 +1841,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "demoToolRequest": {
-                    "$ref": "#/components/schemas/NewDemoToolRequest"
-                  },
-                  "organizationName": {
-                    "type": "string"
-                  },
-                  "projectName": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/NewDemoToolRequest"
               }
             }
           },
@@ -1814,7 +1865,7 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}": {
+    "/api/v1/demo/{organizationName}/{projectName}/status": {
       "get": {
         "description": "Get demo status.",
         "operationId": "getDemoStatus",
@@ -8499,6 +8550,27 @@
               "PRIVATE_TESTS",
               "PUBLIC_TESTS"
             ]
+          }
+        }
+      },
+      "DemoInfo": {
+        "required": [
+          "demoStatus",
+          "demoToolRequest"
+        ],
+        "type": "object",
+        "properties": {
+          "demoStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_CREATED",
+              "RUNNING",
+              "STARTING",
+              "STOPPED"
+            ]
+          },
+          "demoToolRequest": {
+            "$ref": "#/components/schemas/NewDemoToolRequest"
           }
         }
       },
