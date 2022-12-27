@@ -173,12 +173,13 @@ class DownloadFilesController(
         }
 
     @Operation(
-        method = "POST",
+        method = "GET",
         summary = "Download save-agent with current save-cloud version.",
         description = "Download save-agent with current save-cloud version.",
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
+    @GetMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
@@ -191,7 +192,7 @@ class DownloadFilesController(
             }
 
     @Operation(
-        method = "POST",
+        method = "GET",
         summary = "Download save-cli by version.",
         description = "Download save-cli by version.",
     )
@@ -202,6 +203,7 @@ class DownloadFilesController(
         required = true
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @GetMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
