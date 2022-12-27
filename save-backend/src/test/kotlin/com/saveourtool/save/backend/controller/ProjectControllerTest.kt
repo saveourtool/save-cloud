@@ -128,8 +128,6 @@ class ProjectControllerTest {
             "",
             ProjectStatus.CREATED,
             organization = organization,
-            githubProject = null,
-            githubOrganization = null,
         )
 
         projectRepository.save(project)
@@ -159,8 +157,6 @@ class ProjectControllerTest {
             "",
             ProjectStatus.CREATED,
             organization = organization,
-            githubProject = null,
-            githubOrganization = null,
         )
 
         projectRepository.save(project)
@@ -190,8 +186,6 @@ class ProjectControllerTest {
             "",
             ProjectStatus.CREATED,
             organization = organization,
-            githubProject = null,
-            githubOrganization = null,
         )
 
         projectRepository.save(project)
@@ -223,8 +217,6 @@ class ProjectControllerTest {
             "uurl",
             ProjectStatus.CREATED,
             organization = organization,
-            githubProject = null,
-            githubOrganization = null,
         )
         saveProjectAndAssert(
             project,

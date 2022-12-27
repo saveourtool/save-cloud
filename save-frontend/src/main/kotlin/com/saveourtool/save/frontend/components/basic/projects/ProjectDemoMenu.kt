@@ -37,7 +37,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
     val getDemoStatus = useDeferredRequest {
         val statusResponse = get(
-            "$apiUrl/demo/${demoToolRequest.organizationName}/${demoToolRequest.projectName}",
+            "$apiUrl/demo/${demoToolRequest.ownerName}/${demoToolRequest.repoName}",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
@@ -80,10 +80,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col mb-2")
                     autoComplete = AutoComplete.off
                     placeholder = "GitHub organization name"
-                    value = demoToolRequest.organizationName
+                    value = demoToolRequest.ownerName
                     onChange = { event ->
                         setDemoToolRequest { request ->
-                            request.copy(organizationName = event.target.value)
+                            request.copy(ownerName = event.target.value)
                         }
                     }
                 }
@@ -91,10 +91,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col mb-2")
                     autoComplete = AutoComplete.off
                     placeholder = "GitHub project name"
-                    value = demoToolRequest.projectName
+                    value = demoToolRequest.repoName
                     onChange = { event ->
                         setDemoToolRequest { request ->
-                            request.copy(projectName = event.target.value)
+                            request.copy(repoName = event.target.value)
                         }
                     }
                 }

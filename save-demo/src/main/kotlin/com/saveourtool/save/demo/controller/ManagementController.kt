@@ -32,7 +32,7 @@ class ManagementController(
      */
     @PostMapping("/add-tool")
     fun addTool(@RequestBody newDemoToolRequest: NewDemoToolRequest): Mono<Tool> = with(newDemoToolRequest) {
-        GithubRepo(organizationName, projectName)
+        GithubRepo(ownerName, repoName)
     }
         .let {
             blockingToMono {

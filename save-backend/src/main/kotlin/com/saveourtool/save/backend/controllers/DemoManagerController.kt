@@ -1,12 +1,15 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -27,7 +30,8 @@ import reactor.kotlin.core.publisher.toMono
 @RestController
 @RequestMapping("/api/$v1/demo")
 class DemoManagerController(
-    projectService: ProjectService,
+    private val projectService: ProjectService,
+    private val lnkProjectGithubService: LnkProjectGithubService,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -46,9 +50,11 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
     fun addDemo(
+        @RequestBody organizationName: String,
+        @RequestBody projectName: String,
         @RequestBody demoToolRequest: NewDemoToolRequest,
         authentication: Authentication,
-    ): Mono<EmptyResponse> = demoToolRequest.toMono()
+    ): Mono<Unit> = demoToolRequest.toMono()
         .flatMap {
             webClientDemo.post()
                 .uri("/demo/internal/add-tool")
@@ -57,9 +63,12 @@ class DemoManagerController(
                 .retrieve()
                 .toBodilessEntity()
         }
-        .map {
-
-            it
+        .flatMap {
+            projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED)).toMono()
+        }
+        .map { project ->
+            lnkProjectGithubService.saveIfNotPresent(project, demoToolRequest.ownerName, demoToolRequest.repoName)
+            Unit
         }
 
     @GetMapping("/{organizationName}/{projectName}")
@@ -75,8 +84,20 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = webClientDemo.get()
-        .uri("/demo/internal/$organizationName/$projectName")
-        .retrieve()
-        .bodyToMono()
+    ): Mono<DemoStatus> = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED))
+    }
+        .switchIfEmptyToNotFound {
+            "$organizationName/$projectName has no demo linked with it."
+        }
+        .flatMap {
+            lnkProjectGithubService.findByProject(it).toMono()
+        }
+        .flatMap {
+            webClientDemo.get()
+                .uri("/demo/internal/${it.githubOwner}/${it.githubRepoName}")
+                .retrieve()
+                .bodyToMono()
+        }
+
 }
