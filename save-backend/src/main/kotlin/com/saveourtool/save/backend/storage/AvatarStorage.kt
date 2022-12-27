@@ -28,9 +28,12 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return [AvatarKey] object is built by [Path]
      */
     override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey = AvatarKey(
-        if (pathToContent.parent.parent.name == USERS_DIRECTORY) AvatarType.USER else AvatarType.ORGANIZATION,
-        pathToContent.parent.name,
-        pathToContent.name
+        when (pathToContent.parent.name) {
+            USERS_DIRECTORY -> AvatarType.USER
+            ORGANIZATIONS_DIRECTORY -> AvatarType.ORGANIZATION
+            else -> throw IllegalStateException("Not supported type for path: ${pathToContent.parent.name}")
+        },
+        pathToContent.name,
     )
 
     /**
@@ -51,11 +54,17 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return [Path] is built by [AvatarKey] object
      */
     override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir
-        .let { if (key.type == AvatarType.USER) it.resolve(USERS_DIRECTORY) else it }
+        .let {
+            when (key.type) {
+                AvatarType.USER -> it.resolve(USERS_DIRECTORY)
+                AvatarType.ORGANIZATION -> it.resolve(ORGANIZATIONS_DIRECTORY)
+                else -> throw IllegalStateException("Not supported type: ${key.type}")
+            }
+        }
         .resolve(key.objectName)
-        .resolve(key.imageName)
 
     companion object {
+        const val ORGANIZATIONS_DIRECTORY = "organizations"
         const val USERS_DIRECTORY = "users"
     }
 }
@@ -63,12 +72,10 @@ class AvatarStorage(configProperties: ConfigProperties) :
 /**
  * @property type
  * @property objectName
- * @property imageName
  */
 data class AvatarKey(
     val type: AvatarType,
     val objectName: String,
-    val imageName: String,
 ) {
     /**
      * Added for backward compatibility
@@ -76,7 +83,8 @@ data class AvatarKey(
      * @return relative path to avatar image
      */
     fun getRelativePath(): String = when (type) {
-        AvatarType.ORGANIZATION -> "/$objectName/$imageName"
-        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$objectName/$imageName"
+        AvatarType.ORGANIZATION -> "/${AvatarStorage.ORGANIZATIONS_DIRECTORY}/$objectName"
+        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$objectName"
+        else -> throw IllegalStateException("Not supported type: $type")
     }
 }

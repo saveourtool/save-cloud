@@ -13,12 +13,10 @@ import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientException
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.onErrorResume
-import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 /**
@@ -34,7 +32,7 @@ class AgentService(
     /**
      * A scheduler that executes long-running background tasks
      */
-    internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
+    internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.init() }
 
     /**
      * Gets configuration to init agent
@@ -57,27 +55,16 @@ class AgentService(
                 .map { NewJobResponse(it) }
 
     /**
-     * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
+     * Save new agent to the DB
      *
      * @param executionId ID of an execution
-     * @param agents list of [AgentDto]s to save in the DB
+     * @param agent [AgentDto] to save in the DB
      * @return Mono with response body
-     * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(
+    fun addAgent(
         executionId: Long,
-        agents: List<AgentDto>,
-    ): Mono<EmptyResponse> = agents.toFlux()
-        .flatMap { agent ->
-            orchestratorAgentService
-                .addAgent(executionId, agent)
-                .flatMap {
-                    orchestratorAgentService.updateAgentStatus(
-                        AgentStatusDto(STARTING, agent.containerId)
-                    )
-                }
-        }
-        .last()
+        agent: AgentDto,
+    ): Mono<EmptyResponse> = orchestratorAgentService.addAgent(executionId, agent)
 
     /**
      * @param agentStatus [AgentStatus] to update in the DB
@@ -110,23 +97,21 @@ class AgentService(
     internal fun finalizeExecution(executionId: Long) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getFinishedOrStoppedAgentsByExecutionId(executionId)
-            .filter { finishedContainerIds -> finishedContainerIds.isNotEmpty() }
+        haveAllAgentsFinalStatusByExecutionId(executionId)
+            .filter { haveFinalStatus ->
+                if (!haveFinalStatus) {
+                    log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
+                }
+                haveFinalStatus
+            }
             .flatMap {
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for execution=$executionId")
+                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `haveAllAgentsFinalStatusByExecutionId` call for execution=$executionId")
                 Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getFinishedOrStoppedAgentsByExecutionId(executionId)
+                    haveAllAgentsFinalStatusByExecutionId(executionId)
                 )
             }
-            .filter { finishedContainerIds ->
-                finishedContainerIds.isNotEmpty()
-                    .also { hasFinishedContainers ->
-                        if (!hasFinishedContainers) {
-                            log.debug { "Agents for execution $executionId are still running, so won't try to stop them" }
-                        }
-                    }
-            }
+            .filter { it }
             .filterWhen {
                 orchestratorAgentService.getExecutionStatus(executionId)
                     .map {
@@ -138,11 +123,11 @@ class AgentService(
                         }
                     }
             }
-            .flatMap { finishedContainerIds ->
+            .flatMap {
                 log.info { "For execution id=$executionId all agents have completed their lifecycle" }
-                markExecutionBasedOnAgentStates(executionId, finishedContainerIds)
+                markExecutionBasedOnAgentStates(executionId)
                     .then(Mono.fromCallable {
-                        agentStatusInMemoryRepository.deleteAllByExecutionId(executionId)
+                        agentStatusInMemoryRepository.tryDeleteAllByExecutionId(executionId)
                         containerRunner.cleanupAllByExecution(executionId)
                     })
             }
@@ -151,20 +136,18 @@ class AgentService(
     }
 
     /**
-     * Updates status of execution [executionId] based on statues of agents [finishedContainerIds]
+     * Updates status of execution [executionId] based on statues of agents assigned to execution
      *
-     * @param executionId id of an [Execution]
-     * @param finishedContainerIds ids of agents
+     * @param executionId id of an Execution
      * @return Mono with response from backend
      */
     private fun markExecutionBasedOnAgentStates(
         executionId: Long,
-        finishedContainerIds: List<String>,
     ): Mono<EmptyResponse> {
         // all { TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return orchestratorAgentService
-            .getAgentsStatuses(finishedContainerIds)
+            .getAgentStatusesByExecutionId(executionId)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.areAllStatesIn(TERMINATED)) {
@@ -191,27 +174,26 @@ class AgentService(
             orchestratorAgentService.updateExecutionStatus(executionId, executionStatus, failReason)
 
     /**
-     * Get list of agent ids (containerIds) for agents that have completed their jobs.
-     * If we call this method, then there are no unfinished TestExecutions. So we check other agents' status.
+     * Checks [AgentStatusDto] in DB to detect that agents have completed their jobs.
      *
      * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
      * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
      *
      * @param executionId containerId of an agent
-     * @return Mono with list of agent ids for agents that can be shut down for an executionId
+     * @return [Mono] with result that all agents assigned to [executionId] have final status
      */
-    private fun getFinishedOrStoppedAgentsByExecutionId(executionId: Long): Mono<StringList> = orchestratorAgentService
+    private fun haveAllAgentsFinalStatusByExecutionId(executionId: Long): Mono<Boolean> = orchestratorAgentService
         .getAgentStatusesByExecutionId(executionId)
         .map { agentStatuses ->
             log.debug { "For executionId=$executionId agent statuses are $agentStatuses" }
             // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
-            if (agentStatuses.areFinishedOrStopped()) {
-                log.debug("For execution id=$executionId there are finished or stopped agents")
-                agentStatuses.map { it.containerId }
-            } else {
-                emptyList()
-            }
+            agentStatuses.areFinishedOrStopped()
+                .also { areAllAgentsFinishedOrStopped ->
+                    if (areAllAgentsFinishedOrStopped) {
+                        log.debug { "For execution id=$executionId there are finished or stopped agents" }
+                    }
+                }
         }
 
     /**

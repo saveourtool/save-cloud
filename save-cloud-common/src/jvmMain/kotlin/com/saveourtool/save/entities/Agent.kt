@@ -31,5 +31,5 @@ class Agent(
 fun AgentDto.toEntity() = Agent(
     containerId = containerId,
     containerName = containerName,
-    version = version
+    version = version,
 )
