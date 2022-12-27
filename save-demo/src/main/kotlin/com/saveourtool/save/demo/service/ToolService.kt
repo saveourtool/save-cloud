@@ -41,4 +41,12 @@ class ToolService(
      * @return [Tool] fetched from [githubRepo] that matches requested [version]
      */
     fun findByGithubRepoAndVersion(githubRepo: GithubRepo, version: String) = toolRepository.findByGithubRepoAndSnapshotVersion(githubRepo, version)
+
+    /**
+     * @param githubRepo GitHub credentials
+     * @return currently used version
+     * todo: allow to use multiple versions
+     */
+    fun findCurrentVersion(githubRepo: GithubRepo): String? = toolRepository.findByGithubRepo(githubRepo)
+        .maxOfOrNull { it.snapshot.version }
 }

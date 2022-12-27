@@ -1,8 +1,11 @@
 package com.saveourtool.save.demo
 
+import kotlinx.serialization.Serializable
+
 /**
  * Enum that defines demo status
  */
+@Serializable
 enum class DemoStatus {
     /**
      * No demo created yet

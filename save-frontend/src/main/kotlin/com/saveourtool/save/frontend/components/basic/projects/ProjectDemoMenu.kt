@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
 import com.saveourtool.save.frontend.components.basic.*
@@ -26,24 +27,45 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (demoToolRequest, setDemoToolRequest) = useState(NewDemoToolRequest.empty)
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
 
-    val sendDemoRequest = useDeferredRequest {
+    val sendDemoCreationRequest = useDeferredRequest {
         post(
-            "$apiUrl/demo/add",
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/add",
             jsonHeaders,
             Json.encodeToString(demoToolRequest),
             ::loadingHandler,
         )
+            .let {
+                if (it.ok) {
+                    setDemoStatus(DemoStatus.STARTING)
+                }
+            }
     }
 
     val getDemoStatus = useDeferredRequest {
         val statusResponse = get(
-            "$apiUrl/demo/${demoToolRequest.ownerName}/${demoToolRequest.repoName}",
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/status",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
         )
         if (statusResponse.ok) {
             setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
+        } else {
+            setDemoStatus(DemoStatus.NOT_CREATED)
+        }
+    }
+
+    useRequest {
+        val infoResponse = get(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        )
+        if (infoResponse.ok) {
+            val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
+            setDemoStatus(demoInfo.demoStatus)
+            setDemoToolRequest(demoInfo.demoToolRequest)
         } else {
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
@@ -137,8 +159,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
                         DemoStatus.NOT_CREATED -> buttonBuilder("Create") {
-                            sendDemoRequest()
-                            setDemoStatus(DemoStatus.STARTING)
+                            sendDemoCreationRequest()
                         }
                         DemoStatus.STARTING -> buttonBuilder("Reload") {
                             getDemoStatus()

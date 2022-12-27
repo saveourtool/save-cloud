@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
 import com.saveourtool.save.entities.ProjectStatus
@@ -40,7 +41,7 @@ class DemoManagerController(
         .applyAll(customizers)
         .build()
 
-    @PostMapping("/add")
+    @PostMapping("/{organizationName}/{projectName}/add")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
@@ -50,8 +51,8 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
     fun addDemo(
-        @RequestBody organizationName: String,
-        @RequestBody projectName: String,
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
         @RequestBody demoToolRequest: NewDemoToolRequest,
         authentication: Authentication,
     ): Mono<Unit> = demoToolRequest.toMono()
@@ -66,12 +67,14 @@ class DemoManagerController(
         .flatMap {
             projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED)).toMono()
         }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName"
+        }
         .map { project ->
             lnkProjectGithubService.saveIfNotPresent(project, demoToolRequest.ownerName, demoToolRequest.repoName)
-            Unit
         }
 
-    @GetMapping("/{organizationName}/{projectName}")
+    @GetMapping("/{organizationName}/{projectName}/status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
@@ -84,15 +87,29 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED))
-    }
-        .switchIfEmptyToNotFound {
-            "$organizationName/$projectName has no demo linked with it."
+    ): Mono<DemoStatus> = getGithubCredentials(organizationName, projectName)
+        .flatMap<DemoStatus?> {
+            webClientDemo.get()
+                .uri("/demo/internal/${it.githubOwner}/${it.githubRepoName}/status")
+                .retrieve()
+                .bodyToMono()
         }
-        .flatMap {
-            lnkProjectGithubService.findByProject(it).toMono()
-        }
+        .defaultIfEmpty(DemoStatus.NOT_CREATED)
+
+    @GetMapping("/{organizationName}/{projectName}")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+        method = "GET",
+        summary = "Get demo info.",
+        description = "Get demo info.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
+    fun getDemoInfo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<DemoInfo> = getGithubCredentials(organizationName, projectName)
         .flatMap {
             webClientDemo.get()
                 .uri("/demo/internal/${it.githubOwner}/${it.githubRepoName}")
@@ -100,4 +117,16 @@ class DemoManagerController(
                 .bodyToMono()
         }
 
+    private fun getGithubCredentials(organizationName: String, projectName: String) = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED))
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName"
+        }
+        .flatMap {
+            lnkProjectGithubService.findByProject(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "$organizationName/$projectName has no demo linked with it."
+        }
 }

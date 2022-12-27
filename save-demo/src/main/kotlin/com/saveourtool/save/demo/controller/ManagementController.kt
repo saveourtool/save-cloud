@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.controller
 
+import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.NewDemoToolRequest
 import com.saveourtool.save.demo.entity.GithubRepo
@@ -10,6 +11,7 @@ import com.saveourtool.save.demo.service.GithubRepoService
 import com.saveourtool.save.demo.service.SnapshotService
 import com.saveourtool.save.demo.service.ToolService
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
@@ -61,9 +63,41 @@ class ManagementController(
      * @param projectName name of GitHub repository
      * @return [Mono] of [DemoStatus] of current demo
      */
-    @GetMapping("/{organizationName}/{projectName}")
+    @GetMapping("/{organizationName}/{projectName}/status")
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
     ): Mono<DemoStatus> = Mono.just(DemoStatus.STARTING)
+
+    /**
+     * @param organizationName name of GitHub user/organization
+     * @param projectName name of GitHub repository
+     * @return [Mono] of [DemoStatus] of current demo
+     */
+    @GetMapping("/{organizationName}/{projectName}")
+    fun getDemoInfo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): Mono<DemoInfo> = blockingToMono {
+        githubRepoService.find(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .map {
+            toolService.findCurrentVersion(it).orEmpty()
+        }
+        .zipWith(getDemoStatus(organizationName, projectName))
+        .map { (vcsTagName, status) ->
+            DemoInfo(
+                NewDemoToolRequest(
+                    organizationName,
+                    projectName,
+                    vcsTagName,
+                    "",
+                    "",
+                ),
+                status,
+            )
+        }
 }
