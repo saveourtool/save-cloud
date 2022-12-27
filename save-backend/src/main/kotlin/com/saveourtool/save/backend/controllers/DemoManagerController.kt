@@ -65,7 +65,7 @@ class DemoManagerController(
                 .toBodilessEntity()
         }
         .flatMap {
-            projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED)).toMono()
+            blockingToMono { projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, setOf(ProjectStatus.CREATED)) }
         }
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
