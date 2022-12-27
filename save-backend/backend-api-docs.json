@@ -1785,7 +1785,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewDemoToolRequest"
+                "type": "object",
+                "properties": {
+                  "demoToolRequest": {
+                    "$ref": "#/components/schemas/NewDemoToolRequest"
+                  },
+                  "organizationName": {
+                    "type": "string"
+                  },
+                  "projectName": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -1793,6 +1804,13 @@
         },
         "responses": {
           "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            },
             "description": "Successfully added demo."
           }
         },
@@ -9037,8 +9055,8 @@
       "NewDemoToolRequest": {
         "required": [
           "fileName",
-          "organizationName",
-          "projectName",
+          "ownerName",
+          "repoName",
           "runCommand",
           "vcsTagName"
         ],
@@ -9047,10 +9065,10 @@
           "fileName": {
             "type": "string"
           },
-          "organizationName": {
+          "ownerName": {
             "type": "string"
           },
-          "projectName": {
+          "repoName": {
             "type": "string"
           },
           "runCommand": {
@@ -9223,12 +9241,6 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
-          },
-          "githubOrganization": {
-            "type": "string"
-          },
-          "githubProject": {
             "type": "string"
           },
           "id": {
