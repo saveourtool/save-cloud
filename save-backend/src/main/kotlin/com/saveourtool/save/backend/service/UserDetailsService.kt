@@ -51,11 +51,17 @@ class UserDetailsService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val user = userRepository.findByName(name)
-            .orNotFound()
-            .apply {
-                avatar = relativePath
-            }
+        val user = userRepository.findByName(name).orNotFound()
+
+        var version = user.avatar?.substringAfterLast("?")?.toInt()
+
+        val relativePathNew = version?.let {
+            "$relativePath?${++version}"
+        } ?: "$relativePath?1"
+
+        user.apply {
+            avatar = relativePathNew
+        }
         user.let { userRepository.save(it) }
     }
 
