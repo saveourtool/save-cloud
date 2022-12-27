@@ -17,6 +17,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.extra.bool.logicalOr
 
 import java.math.BigInteger
 
@@ -73,8 +77,10 @@ class TestExecutionController(
         @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = executionService.findExecution(executionId)
-        .toMonoOrNotFound()
+    ): Flux<TestExecutionDto> = blockingToMono {
+        executionService.findExecution(executionId)
+    }
+        .switchIfEmptyToNotFound()
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
@@ -86,8 +92,12 @@ class TestExecutionController(
         .runIf({ checkDebugInfo }) {
             flatMap { testExecutionDto ->
                 debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
-                    .zipWith(executionInfoStorage.doesExist(executionId))
-                    .map { testExecutionDto.copy(hasDebugInfo = (it.t1 || it.t2)) }
+                    .logicalOr(executionInfoStorage.doesExist(executionId))
+                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                        "Failure while checking for debug info availability."
+                    }.map { hasDebugInfo ->
+                        testExecutionDto.copy(hasDebugInfo = hasDebugInfo)
+                    }
             }
         }
 
