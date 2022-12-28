@@ -4,10 +4,10 @@ import com.saveourtool.save.test.analysis.algorithms.Algorithm
 import com.saveourtool.save.test.analysis.api.TestAnalysisService
 import com.saveourtool.save.test.analysis.api.TestId
 import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
-import com.saveourtool.save.test.analysis.api.metrics.NoDataAvailable
-import com.saveourtool.save.test.analysis.api.metrics.RegularTestMetrics
-import com.saveourtool.save.test.analysis.api.results.AnalysisResult
-import com.saveourtool.save.test.analysis.api.results.RegularTest
+import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
+import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
+import com.saveourtool.save.test.analysis.results.AnalysisResult
+import com.saveourtool.save.test.analysis.results.RegularTest
 
 /**
  * The default implementation of [TestAnalysisService].
@@ -23,7 +23,7 @@ internal class DefaultTestAnalysisService(
         val testRuns = statisticsStorage.getExecutionStatistics(id)
 
         return when (val metrics = statisticsStorage.getTestMetrics(id)) {
-            is NoDataAvailable -> listOf(RegularTest)
+            is NoDataAvailable -> listOf(RegularTest.instance)
             is RegularTestMetrics -> algorithms
                 .asSequence()
                 .map { algorithm ->
@@ -32,7 +32,7 @@ internal class DefaultTestAnalysisService(
                 .filterNotNull()
                 .toList()
                 .ifEmpty {
-                    listOf(RegularTest)
+                    listOf(RegularTest.instance)
                 }
         }
     }

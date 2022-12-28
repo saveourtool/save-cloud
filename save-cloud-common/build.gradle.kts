@@ -39,6 +39,14 @@ kotlin {
                 api(libs.kotlinx.datetime)
             }
         }
+        commonTest {
+            dependencies {
+                dependencies {
+                    api(libs.kotlin.test)
+                    implementation(libs.kotlinx.serialization.json)
+                }
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
@@ -60,7 +68,10 @@ kotlin {
                 useJUnitPlatform()
             }
             dependencies {
-                implementation(libs.kotlin.test)
+                api(libs.assertj.core)
+                api(libs.junit.jupiter.api)
+                api(libs.junit.jupiter.params)
+                runtimeOnly(libs.junit.jupiter.engine)
             }
         }
     }

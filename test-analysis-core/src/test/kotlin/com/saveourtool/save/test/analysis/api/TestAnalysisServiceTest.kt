@@ -4,12 +4,12 @@ import com.saveourtool.save.domain.TestResultStatus.FAILED
 import com.saveourtool.save.domain.TestResultStatus.IGNORED
 import com.saveourtool.save.domain.TestResultStatus.PASSED
 import com.saveourtool.save.test.analysis.api.TestAnalysisService.Factory.MINIMUM_RUN_COUNT
-import com.saveourtool.save.test.analysis.api.results.FlakyTest
-import com.saveourtool.save.test.analysis.api.results.PermanentFailure
-import com.saveourtool.save.test.analysis.api.results.Regression
-import com.saveourtool.save.test.analysis.api.results.RegularTest
 import com.saveourtool.save.test.analysis.internal.MemoryBacked
 import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
+import com.saveourtool.save.test.analysis.results.FlakyTest
+import com.saveourtool.save.test.analysis.results.PermanentFailure
+import com.saveourtool.save.test.analysis.results.Regression
+import com.saveourtool.save.test.analysis.results.RegularTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -40,7 +40,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -52,7 +52,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -64,7 +64,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -103,7 +103,7 @@ class TestAnalysisServiceTest {
         storage[testId] += TestRun(PASSED, null)
         assertThat(analyzer.analyze(testId))
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -129,7 +129,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -150,7 +150,7 @@ class TestAnalysisServiceTest {
         }
         assertThat(analyzer.analyze(testId))
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -176,7 +176,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     @Test
@@ -195,7 +195,7 @@ class TestAnalysisServiceTest {
         storage[testId] += TestRun(PASSED, null)
         assertThat(analyzer.analyze(testId))
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     /**
@@ -211,7 +211,7 @@ class TestAnalysisServiceTest {
         val results = analyzer.analyze(testId)
         assertThat(results)
             .hasSize(1)
-            .containsExactly(RegularTest)
+            .containsExactly(RegularTest.instance)
     }
 
     /**
