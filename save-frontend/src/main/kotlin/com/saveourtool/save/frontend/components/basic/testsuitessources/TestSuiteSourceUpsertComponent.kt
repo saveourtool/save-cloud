@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components.basic.testsuitessources
 
 import com.saveourtool.save.domain.EntitySaveStatus
-import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.basic.organizations.gitWindow
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
@@ -47,9 +46,9 @@ external interface TestSuiteSourceUpsertProps : Props {
     var organizationName: String
 
     /**
-     * existed [com.saveourtool.save.testsuite.TestSuitesSourceDto] with ID to update or null to create a new one
+     * existed [com.saveourtool.save.testsuite.TestSuitesSourceDto] to update or null to create a new one
      */
-    var testSuitesSourceWithId: DtoWithId<TestSuitesSourceDto>?
+    var testSuitesSource: TestSuitesSourceDto?
 
     /**
      * Callback invoked on successful save
@@ -59,14 +58,14 @@ external interface TestSuiteSourceUpsertProps : Props {
 
 /**
  * @param windowOpenness
- * @param testSuitesSourceWithId
+ * @param testSuitesSource
  * @param organizationName
  * @param onSuccess
  */
 @Suppress("TOO_LONG_FUNCTION")
 fun ChildrenBuilder.showTestSuiteSourceUpsertModal(
     windowOpenness: WindowOpenness,
-    testSuitesSourceWithId: DtoWithId<TestSuitesSourceDto>?,
+    testSuitesSource: TestSuitesSourceDto?,
     organizationName: String,
     onSuccess: (TestSuitesSourceDto) -> Unit,
 ) {
@@ -100,7 +99,7 @@ fun ChildrenBuilder.showTestSuiteSourceUpsertModal(
         div {
             testSuiteSourceCreationComponent {
                 this.organizationName = organizationName
-                this.testSuitesSourceWithId = testSuitesSourceWithId
+                this.testSuitesSource = testSuitesSource
                 this.onSuccess = {
                     windowOpenness.closeWindow()
                     onSuccess(it)
@@ -125,12 +124,12 @@ private fun EntitySaveStatus.message() = when (this) {
 )
 private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(
-        props.testSuitesSourceWithId?.content ?: TestSuitesSourceDto.empty.copy(organizationName = props.organizationName)
+        props.testSuitesSource ?: TestSuitesSourceDto.empty.copy(organizationName = props.organizationName)
     )
     val saveStatusState: StateInstance<EntitySaveStatus?> = useState()
     val (saveStatus, setSaveStatus) = saveStatusState
     val requestToUpsertEntity = prepareRequest(
-        id = props.testSuitesSourceWithId?.id,
+        id = props.testSuitesSource?.id,
         testSuiteSource = testSuiteSource,
         entitySaveStatusState = saveStatusState,
     ) {
@@ -211,7 +210,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
                 }
             }
             selectedValue = testSuiteSource.gitDto.url
-            disabled = props.testSuitesSourceWithId != null
+            disabled = props.testSuitesSource != null
             onChangeFun = { git ->
                 git?.let {
                     setTestSuiteSource(testSuiteSource.copy(gitDto = it))
