@@ -26,6 +26,10 @@ interface FileRepository : BaseEntityRepository<File> {
      * @param uploadedTime [File.uploadedTime]
      * @return [File] found by provided values or null
      */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE", "FunctionNaming", "FunctionName",
+    )
     fun findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
         organizationName: String,
         projectName: String,

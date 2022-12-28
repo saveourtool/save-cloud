@@ -4,16 +4,17 @@ import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
+
 import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
-import java.time.Instant
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 import java.nio.file.Path
+import java.time.Instant
+
 import kotlin.io.path.name
 
 /**
@@ -42,17 +43,9 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             .map { it.toDto() }
     }
 
-    override fun doesExist(key: K): Mono<Boolean> = blockingToMono { key.getId() }
-        .zipWhen { id ->
-            blockingToMono {
-                repository.findById(id).isPresent
-            }
-        }
-        .filter { (_, isPresentedInDb) ->
-            isPresentedInDb
-        }
-        .flatMap { (id, _) ->
-            storage.doesExist(id)
+    override fun doesExist(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
+        .flatMap { entity ->
+            storage.doesExist(entity.requiredId())
                 .filter { !it }
                 .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     "The key $key is presented in database, but missed in storage"
@@ -60,11 +53,11 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         }
         .defaultIfEmpty(false)
 
-    override fun contentSize(key: K): Mono<Long> = storage.contentSize(key.getId())
+    override fun contentSize(key: K): Mono<Long> = getIdAsMono(key).flatMap { storage.contentSize(it) }
 
-    override fun lastModified(key: K): Mono<Instant> = storage.lastModified(key.getId())
+    override fun lastModified(key: K): Mono<Instant> = getIdAsMono(key).flatMap { storage.lastModified(it) }
 
-    override fun delete(key: K): Mono<Boolean> = blockingToMono { getEntity(key) }
+    override fun delete(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
         .flatMap { entity ->
             storage.delete(entity.requiredId())
                 .asyncEffectIf({ this }) {
@@ -74,9 +67,10 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                     }
                 }
         }
+        .thenReturn(false)
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = blockingToMono {
-        repository.save(key.toEntity())
+        repository.save(createNewEntityFromDto(key))
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
@@ -92,18 +86,17 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                 }
         }
 
-    override fun download(key: K): Flux<ByteBuffer> =  blockingToMono { key.getId() }
-        .flatMapMany { storage.download(it) }
+    override fun download(key: K): Flux<ByteBuffer> = getIdAsMono(key).flatMapMany { storage.download(it) }
 
-    private fun getEntity(dto: K): E {
-        val result = dto.id?.let { id ->
+    private fun findEntity(dto: K): E? = dto.id
+        ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }
-        } ?: findByDto(dto)
-        return result ?: throw IllegalArgumentException("DTO $this is not saved: ID is not set and failed to find by default example")
-    }
+        }
+        ?: findByDto(dto)
 
-    private fun K.getId(): Long = getEntity(this).requiredId()
+    private fun getIdAsMono(dto: K): Mono<Long> = blockingToMono { findEntity(dto)?.requiredId() }
+        .switchIfEmptyToNotFound { "DTO $this is not saved: ID is not set and failed to find by default example" }
 
     /**
      * A default implementation uses Spring's [Example]
@@ -111,13 +104,18 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      * @param dto
      * @return [E] entity found by [K] dto or null
      */
-    protected open fun findByDto(dto: K): E? = repository.findOne(Example.of(dto.toEntity()))
+    protected open fun findByDto(dto: K): E? = repository.findOne(Example.of(createNewEntityFromDto(dto)))
         .orElseGet(null)
 
-    abstract fun K.toEntity(): E
+    /**
+     * @param dto
+     * @return a new [E] entity is created from provided [K] dto
+     */
+    abstract fun createNewEntityFromDto(dto: K): E
 
     /**
      * @receiver [E] entity which needs to be processed before deletion
+     * @param entity
      */
     protected open fun beforeDelete(entity: E): Unit = Unit
 

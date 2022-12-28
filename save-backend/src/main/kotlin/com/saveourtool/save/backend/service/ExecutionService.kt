@@ -304,27 +304,6 @@ class ExecutionService(
         return savedExecution
     }
 
-    companion object {
-        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
-            .distinctBy { it.requiredId() }
-            .also { sources ->
-                require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: $sources"
-                }
-            }
-            .single()
-            .name
-
-        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
-            .distinct()
-            .also { versions ->
-                require(versions.size == 1) {
-                    "Only a single version is supported, but got: $versions"
-                }
-            }
-            .single()
-    }
-
     /**
      * Mark [Execution] as [ExecutionStatus.OBSOLETE]
      *
@@ -332,9 +311,11 @@ class ExecutionService(
      */
     @Transactional
     fun markAsObsolete(execution: Execution) {
-        log.info { "Marking execution with id = ${execution.requiredId()} as obsolete. " +
-                "Additionally deleting link to test suites and files " +
-                "and deleting agents and agent statuses related to this execution " }
+        log.info {
+            "Marking execution with id = ${execution.requiredId()} as obsolete. " +
+                    "Additionally deleting link to test suites and files " +
+                    "and deleting agents and agent statuses related to this execution "
+        }
         lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
         lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
         updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
@@ -354,5 +335,26 @@ class ExecutionService(
             .forEach {
                 markAsObsolete(it.execution)
             }
+    }
+
+    companion object {
+        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
+            .distinctBy { it.requiredId() }
+            .also { sources ->
+                require(sources.size == 1) {
+                    "Only a single test suites source is allowed for a run, but got: $sources"
+                }
+            }
+            .single()
+            .name
+
+        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
+            .distinct()
+            .also { versions ->
+                require(versions.size == 1) {
+                    "Only a single version is supported, but got: $versions"
+                }
+            }
+            .single()
     }
 }

@@ -3,7 +3,10 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
@@ -71,8 +74,8 @@ class DownloadFilesController(
     ): Flux<FileInfo> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.READ
     )
-        .flatMapMany {
-            fileStorage.getFileInfoList(ProjectCoordinates(organizationName, projectName))
+        .flatMapMany { project ->
+            fileStorage.getFileInfoList(project.toProjectCoordinates())
         }
 
     /**
@@ -93,8 +96,8 @@ class DownloadFilesController(
         authentication: Authentication,
     ): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.DELETE
-    ).flatMap {
-        fileStorage.delete(FileKey(ProjectCoordinates(organizationName, projectName), name, uploadedMillis))
+    ).flatMap { project ->
+        fileStorage.delete(FileKey(project.toProjectCoordinates(), name, uploadedMillis))
     }.map { deleted ->
         if (deleted) {
             ResponseEntity.ok("File deleted successfully")
@@ -123,16 +126,18 @@ class DownloadFilesController(
         @PathVariable projectName: String,
         @RequestParam name: String,
         @RequestParam uploadedMillis: Long,
-    ): Mono<ByteBufferFluxResponse> = doDownload(
-        FileKey(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = organizationName,
-                projectName = projectName,
-            ),
-            name = name,
-            uploadedMillis = uploadedMillis,
+        authentication: Authentication,
+    ): Mono<ByteBufferFluxResponse> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, projectName, organizationName, Permission.READ
+    ).flatMap { project ->
+        doDownload(
+            FileKey(
+                projectCoordinates = project.toProjectCoordinates(),
+                name = name,
+                uploadedMillis = uploadedMillis,
+            )
         )
-    )
+    }
 
     /**
      * @param organizationName
