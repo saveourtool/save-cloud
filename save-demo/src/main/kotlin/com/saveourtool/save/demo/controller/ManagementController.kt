@@ -1,17 +1,15 @@
 package com.saveourtool.save.demo.controller
 
+import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
-import com.saveourtool.save.demo.NewDemoToolRequest
-import com.saveourtool.save.demo.entity.GithubRepo
-import com.saveourtool.save.demo.entity.Snapshot
-import com.saveourtool.save.demo.entity.Tool
-import com.saveourtool.save.demo.service.GithubDownloadToolService
-import com.saveourtool.save.demo.service.GithubRepoService
-import com.saveourtool.save.demo.service.SnapshotService
-import com.saveourtool.save.demo.service.ToolService
+import com.saveourtool.save.demo.entity.*
+import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
+
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
@@ -27,22 +25,28 @@ class ManagementController(
     private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
     private val githubDownloadToolService: GithubDownloadToolService,
+    private val demoService: DemoService,
 ) {
     /**
-     * @param newDemoToolRequest
+     * @param demoDto
      * @return [Mono] of [Tool] entity
      */
     @PostMapping("/add-tool")
-    fun addTool(@RequestBody newDemoToolRequest: NewDemoToolRequest): Mono<Tool> = with(newDemoToolRequest) {
-        GithubRepo(ownerName, repoName)
-    }
-        .let {
+    fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.githubProjectCoordinates
+        ?.toGithubRepo()
+        .let { repo ->
             blockingToMono {
-                githubRepoService.saveIfNotPresent(it)
+                repo?.let {
+                    githubRepoService.saveIfNotPresent(repo)
+                }
             }
         }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            // todo: will be removed when uploading files will be implemented
+            "Right now save-demo requires github repository to download tool. Please provide github repository."
+        }
         .zipWhen { repo ->
-            val vcsTagName = newDemoToolRequest.vcsTagName
+            val vcsTagName = demoDto.vcsTagName
             Snapshot(vcsTagName, githubDownloadToolService.getExecutableName(repo, vcsTagName))
                 .let {
                     blockingToMono {
@@ -55,7 +59,9 @@ class ManagementController(
         }
         .map {
             githubDownloadToolService.downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version)
-            it
+        }
+        .map {
+            demoDto.also { demoService.saveIfNotPresent(it.toDemo()) }
         }
 
     /**
@@ -79,25 +85,33 @@ class ManagementController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
     ): Mono<DemoInfo> = blockingToMono {
-        githubRepoService.find(organizationName, projectName)
+        demoService.findBySaveourtoolProject(organizationName, projectName)
     }
         .switchIfEmptyToNotFound {
             "Could not find demo for $organizationName/$projectName."
         }
-        .map {
-            toolService.findCurrentVersion(it).orEmpty()
-        }
         .zipWith(getDemoStatus(organizationName, projectName))
-        .map { (vcsTagName, status) ->
+        .map { (demo, status) ->
             DemoInfo(
-                NewDemoToolRequest(
-                    organizationName,
-                    projectName,
-                    vcsTagName,
-                    "",
-                    "",
-                ),
+                demo.toDto().copy(vcsTagName = ""),
                 status,
+            )
+        }
+        .zipWhen { demoInfo ->
+            blockingToMono {
+                demoInfo.demoDto
+                    .githubProjectCoordinates
+                    ?.let { repo ->
+                        toolService.findCurrentVersion(repo)
+                    }
+                    .orEmpty()
+            }
+        }
+        .map { (demoInfo, currentVersion) ->
+            demoInfo.copy(
+                demoDto = demoInfo.demoDto.copy(
+                    vcsTagName = currentVersion
+                )
             )
         }
 }
