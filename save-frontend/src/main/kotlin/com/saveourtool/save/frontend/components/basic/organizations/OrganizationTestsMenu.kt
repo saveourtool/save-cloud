@@ -148,7 +148,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
-        testSuitesSourceWithId = testSuiteSourceToUpsert,
+        testSuitesSource = testSuiteSourceToUpsert,
         organizationName = props.organizationName,
     ) {
         setIsSourceCreated { !it }
