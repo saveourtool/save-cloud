@@ -28,7 +28,9 @@ interface FileRepository : BaseEntityRepository<File> {
      */
     @Suppress(
         "IDENTIFIER_LENGTH",
-        "FUNCTION_NAME_INCORRECT_CASE", "FunctionNaming", "FunctionName",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
     )
     fun findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
         organizationName: String,
