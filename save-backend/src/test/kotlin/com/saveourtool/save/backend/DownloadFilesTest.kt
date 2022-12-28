@@ -271,6 +271,14 @@ class DownloadFilesTest {
                             it.responseBody
                         )
                     }
+
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-cli?version=2.0")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isNotFound
+
             }
     }
 
