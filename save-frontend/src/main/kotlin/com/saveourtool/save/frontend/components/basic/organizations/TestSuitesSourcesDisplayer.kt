@@ -29,7 +29,7 @@ import react.dom.html.ReactHTML.ul
  * Display single TestSuiteSource as list option
  *
  * @param isSelected flag that defines if this test suite source is selected or not
- * @param testSuitesSourceDtoWithId
+ * @param testSuitesSourceDto
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
@@ -42,10 +42,10 @@ import react.dom.html.ReactHTML.ul
     "LongMethod",
 )
 fun ChildrenBuilder.showTestSuitesSourceAsListElement(
-    testSuitesSourceDtoWithId: TestSuitesSourceDtoWithId,
+    testSuitesSourceDto: TestSuitesSourceDto,
     isSelected: Boolean,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     refreshHandler: () -> Unit,
 ) {
@@ -57,7 +57,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             button {
                 className = ClassName("btn btn-lg btn-link p-0 mb-1")
                 onClick = {
-                    selectHandler(testSuitesSourceDtoWithId)
+                    selectHandler(testSuitesSourceDto)
                 }
                 label {
                     style = jso {
@@ -70,17 +70,17 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
                             faArrowRight
                         }
                     )
-                    +("  ${testSuitesSourceDtoWithId.content.name}")
+                    +("  ${testSuitesSourceDto.name}")
                 }
             }
 
             buttonBuilder(faEdit, null, title = "Edit source") {
-                editHandler(testSuitesSourceDtoWithId)
+                editHandler(testSuitesSourceDto)
             }
         }
         div {
             p {
-                +(testSuitesSourceDtoWithId.content.description ?: "Description is not provided.")
+                +(testSuitesSourceDto.description ?: "Description is not provided.")
             }
         }
         div {
@@ -88,7 +88,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             div {
                 className = ClassName("float-left")
                 buttonBuilder("Fetch new version", "info", isOutline = true, classes = "btn-sm mr-2") {
-                    fetchHandler(testSuitesSourceDtoWithId.content)
+                    fetchHandler(testSuitesSourceDto)
                 }
             }
             if (isSelected) {
@@ -104,7 +104,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
                 asDynamic()["data-toggle"] = "tooltip"
                 asDynamic()["data-placement"] = "bottom"
                 title = "Organization-creator"
-                +(testSuitesSourceDtoWithId.content.organizationName)
+                +(testSuitesSourceDto.organizationName)
             }
         }
     }
@@ -113,17 +113,17 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
 /**
  * Display list of TestSuiteSources as a list
  *
- * @param testSuitesSources [TestSuitesSourceDtoWithIdList]
+ * @param testSuitesSources [TestSuitesSourceDtoList]
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
  * @param refreshHandler
  */
 fun ChildrenBuilder.showTestSuitesSources(
-    testSuitesSources: TestSuitesSourceDtoWithIdList,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    testSuitesSources: TestSuitesSourceDtoList,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     refreshHandler: () -> Unit,
 ) {
     div {
@@ -147,10 +147,10 @@ fun ChildrenBuilder.showTestSuitesSources(
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
-    selectedTestSuiteSource: TestSuitesSourceDtoWithId,
+    selectedTestSuiteSource: TestSuitesSourceDto,
     testSuitesSourcesSnapshotKeys: TestSuitesSourceSnapshotKeyList,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit,
     refreshHandler: () -> Unit,

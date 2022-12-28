@@ -6193,79 +6193,6 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/list-with-ids": {
-      "get": {
-        "description": "List test suites source with id by organization name.",
-        "operationId": "listWithIds",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of test suites sources with ids by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Organization was not found by provided name."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "List test suites source with id by organization name.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}": {
       "get": {
         "description": "Get test suites source by organization name and test suites source name.",
@@ -8574,22 +8501,6 @@
           }
         }
       },
-      "DtoWithIdTestSuitesSourceDto": {
-        "required": [
-          "content",
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "content": {
-            "$ref": "#/components/schemas/TestSuitesSourceDto"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
       "Execution": {
         "required": [
           "additionalFiles",
@@ -9756,6 +9667,10 @@
           },
           "gitDto": {
             "$ref": "#/components/schemas/GitDto"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           },
           "latestFetchedVersion": {
             "type": "string"

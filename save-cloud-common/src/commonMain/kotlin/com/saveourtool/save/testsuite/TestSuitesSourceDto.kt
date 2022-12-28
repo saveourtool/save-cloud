@@ -7,9 +7,7 @@ import com.saveourtool.save.validation.isValidName
 import com.saveourtool.save.validation.isValidPath
 import kotlinx.serialization.Serializable
 
-typealias TestSuitesSourceDtoWithId = DtoWithId<TestSuitesSourceDto>
 typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
-typealias TestSuitesSourceDtoWithIdList = List<TestSuitesSourceDtoWithId>
 
 /**
  * @property organizationName
@@ -18,6 +16,7 @@ typealias TestSuitesSourceDtoWithIdList = List<TestSuitesSourceDtoWithId>
  * @property gitDto
  * @property testRootPath
  * @property latestFetchedVersion
+ * @property id ID of saved entity or null
  */
 @Serializable
 data class TestSuitesSourceDto(
@@ -27,7 +26,8 @@ data class TestSuitesSourceDto(
     val gitDto: GitDto,
     val testRootPath: String,
     val latestFetchedVersion: String?,
-) : Validatable {
+    override val id: Long? = null,
+) : Validatable, DtoWithId() {
     override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath()
 
     /**
