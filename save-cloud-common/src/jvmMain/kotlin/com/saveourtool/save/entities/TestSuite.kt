@@ -3,7 +3,6 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
-import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
