@@ -134,17 +134,19 @@ class DownloadFilesTest {
             .toFuture()
             .get()
 
-        webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
-                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
+                        sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+                    }
             }
 
         webTestClient.get()
@@ -230,6 +232,46 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
+    }
+
+    @Test
+    fun `download save-agent`() {
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-agent")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals(
+                            "content-save-agent.kexe".toByteArray(),
+                            it.responseBody
+                        )
+                    }
+            }
+    }
+
+    @Test
+    fun `download save-cli`() {
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-cli?version=1.0")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals(
+                            "content-save-cli.kexe".toByteArray(),
+                            it.responseBody
+                        )
+                    }
+            }
     }
 
     companion object {

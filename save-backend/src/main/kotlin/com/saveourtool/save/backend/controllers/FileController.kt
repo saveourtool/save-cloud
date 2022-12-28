@@ -117,8 +117,11 @@ class FileController(
     )
     @ApiResponse(responseCode = "200", description = "The file uploaded successfully.")
     @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
-    @GetMapping(path = ["/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @PostMapping(path = ["/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @RequestMapping(
+        path = ["/{organizationName}/{projectName}/download"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        method = [RequestMethod.GET, RequestMethod.POST]
+    )
     fun download(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
