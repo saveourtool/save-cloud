@@ -1763,13 +1763,12 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}/add": {
-      "post": {
-        "description": "Add demo for a tool.",
-        "operationId": "addDemo",
+    "/api/v1/demo/{organizationName}/{projectName}": {
+      "get": {
+        "description": "Get demo info.",
+        "operationId": "getDemoInfo",
         "parameters": [
           {
-            "description": "name of an organization",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -1778,17 +1777,8 @@
             }
           },
           {
-            "description": "name of a project",
             "in": "path",
             "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "vcsTagName",
             "required": true,
             "schema": {
               "type": "string"
@@ -1803,10 +1793,125 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully change status of a project."
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          }
+        },
+        "summary": "Get demo info.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
+      "post": {
+        "description": "Add demo for a tool.",
+        "operationId": "addDemo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewDemoToolRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            },
+            "description": "Successfully added demo."
           }
         },
         "summary": "Add demo for a tool.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/status": {
+      "get": {
+        "description": "Get demo status.",
+        "operationId": "getDemoStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          }
+        },
+        "summary": "Get demo status.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -8375,6 +8480,43 @@
           }
         }
       },
+      "DemoInfo": {
+        "required": [
+          "demoStatus",
+          "demoToolRequest"
+        ],
+        "type": "object",
+        "properties": {
+          "demoStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_CREATED",
+              "RUNNING",
+              "STARTING",
+              "STOPPED"
+            ]
+          },
+          "demoToolRequest": {
+            "$ref": "#/components/schemas/NewDemoToolRequest"
+          }
+        }
+      },
+      "DtoWithIdTestSuitesSourceDto": {
+        "required": [
+          "content",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/TestSuitesSourceDto"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "Execution": {
         "required": [
           "additionalFiles",
@@ -8903,6 +9045,33 @@
           },
           "value$kotlinx_datetime": {
             "$ref": "#/components/schemas/LocalTime"
+          }
+        }
+      },
+      "NewDemoToolRequest": {
+        "required": [
+          "fileName",
+          "ownerName",
+          "repoName",
+          "runCommand",
+          "vcsTagName"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "repoName": {
+            "type": "string"
+          },
+          "runCommand": {
+            "type": "string"
+          },
+          "vcsTagName": {
+            "type": "string"
           }
         }
       },

@@ -10,10 +10,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
-import com.saveourtool.save.frontend.components.basic.projects.projectRunMenu
-import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
-import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
+import com.saveourtool.save.frontend.components.basic.projects.*
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -209,6 +206,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ProjectMenuBar.STATISTICS -> renderStatistics()
             ProjectMenuBar.SETTINGS -> renderSettings()
             ProjectMenuBar.INFO -> renderInfo()
+            ProjectMenuBar.DEMO -> renderDemo()
+        }
+    }
+
+    private fun ChildrenBuilder.renderDemo() {
+        projectDemoMenu {
+            projectName = props.name
+            organizationName = props.owner
         }
     }
 
