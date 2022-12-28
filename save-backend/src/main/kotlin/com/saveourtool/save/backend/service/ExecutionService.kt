@@ -201,13 +201,13 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
-    ): Mono<Execution> = blockingToMono {
+    ): Execution {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
             }
         }
-        doCreateNew(
+        return doCreateNew(
             project = project,
             testSuiteIds = testSuiteIds,
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
@@ -232,9 +232,9 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Mono<Execution> = blockingToMono {
+    ): Execution {
         val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
-        doCreateNew(
+        return doCreateNew(
             project = execution.project,
             testSuiteIds = testSuiteIds,
             allTests = execution.allTests,
