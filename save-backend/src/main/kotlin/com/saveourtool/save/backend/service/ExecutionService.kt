@@ -34,7 +34,6 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    @Lazy private val fileService: FileService,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
@@ -342,5 +341,18 @@ class ExecutionService(
         // Delete agents, which related to the test suites
         agentStatusService.deleteAgentStatusWithExecutionIds(listOf(execution.requiredId()))
         agentService.deleteAgentByExecutionIds(listOf(execution.requiredId()))
+    }
+
+    /**
+     * Unlink provided [File] from all [Execution]s
+     *
+     * @param file
+     */
+    @Transactional
+    fun unlinkFileFromAllExecution(file: File) {
+        lnkExecutionFileRepository.findAllByFile(file)
+            .forEach {
+                markAsObsolete(it.execution)
+            }
     }
 }

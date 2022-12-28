@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.File
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
  * Repository for [File]
@@ -17,4 +18,18 @@ interface FileRepository : BaseEntityRepository<File> {
     fun findAllByProject(
         project: Project,
     ): List<File>
+
+    /**
+     * @param organizationName [File.project.organization.name]
+     * @param projectName [File.project.name]
+     * @param name [File.name]
+     * @param uploadedTime [File.uploadedTime]
+     * @return [File] found by provided values or null
+     */
+    fun findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+        organizationName: String,
+        projectName: String,
+        name: String,
+        uploadedTime: LocalDateTime,
+    ): File?
 }
