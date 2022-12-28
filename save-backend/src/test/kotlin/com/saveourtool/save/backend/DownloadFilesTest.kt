@@ -2,8 +2,11 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
+import com.saveourtool.save.backend.controllers.FileController
+import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -11,7 +14,6 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
@@ -59,7 +61,7 @@ import java.nio.file.Paths
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
-@WebFluxTest(controllers = [DownloadFilesController::class])
+@WebFluxTest(controllers = [DownloadFilesController::class, FileController::class, FileInternalController::class])
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
