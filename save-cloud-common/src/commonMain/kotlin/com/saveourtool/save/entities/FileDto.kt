@@ -17,7 +17,7 @@ data class FileDto(
     val projectCoordinates: ProjectCoordinates,
     val name: String,
     val uploadedTime: LocalDateTime,
-    val sizeBytes: Long,
+    val sizeBytes: Long = -1L,
     val isExecutable: Boolean = false,
     override val id: Long? = null,
 ) : DtoWithId()
