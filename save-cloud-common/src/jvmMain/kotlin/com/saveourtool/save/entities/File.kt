@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.spring.entity.BaseEntityWithDto
+import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -32,7 +32,7 @@ class File(
     var uploadedTime: LocalDateTime,
     var sizeBytes: Long,
     var isExecutable: Boolean,
-) : BaseEntityWithDto<FileDto>() {
+) : BaseEntityWithDtoWithId<FileDto>() {
     override fun toDto(): FileDto = FileDto(
         projectCoordinates = project.toProjectCoordinates(),
         name = name,

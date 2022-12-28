@@ -6,8 +6,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
@@ -35,6 +34,10 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    @Lazy private val fileService: FileService,
+    private val lnkExecutionFileRepository: LnkExecutionFileRepository,
+    private val agentService: AgentService,
+    private val agentStatusService: AgentStatusService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -321,5 +324,23 @@ class ExecutionService(
                 }
             }
             .single()
+    }
+
+    /**
+     * Mark [Execution] as [ExecutionStatus.OBSOLETE]
+     *
+     * @param execution
+     */
+    @Transactional
+    fun markAsObsolete(execution: Execution) {
+        log.info { "Marking execution with id = ${execution.requiredId()} as obsolete. " +
+                "Additionally deleting link to test suites and files " +
+                "and deleting agents and agent statuses related to this execution " }
+        lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
+        lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
+        updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
+        // Delete agents, which related to the test suites
+        agentStatusService.deleteAgentStatusWithExecutionIds(listOf(execution.requiredId()))
+        agentService.deleteAgentByExecutionIds(listOf(execution.requiredId()))
     }
 }

@@ -19,5 +19,5 @@ data class FileDto(
     val uploadedTime: LocalDateTime,
     val sizeBytes: Long,
     val isExecutable: Boolean = false,
-    val id: Long? = null,
-)
+    override val id: Long? = null,
+) : DtoWithId()
