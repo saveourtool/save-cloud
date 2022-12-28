@@ -4,6 +4,7 @@ import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.spring.entity.BaseEntity
+import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
@@ -45,7 +46,7 @@ class TestSuite(
     var plugins: String = "",
 
     var isPublic: Boolean = true,
-) : BaseEntity() {
+) : BaseEntityWithDtoWithId<TestSuiteDto>() {
     /**
      * @return [plugins] as a list of string
      */
@@ -63,7 +64,7 @@ class TestSuite(
     /**
      * @return Dto of testSuite
      */
-    fun toDto() =
+    override fun toDto() =
             TestSuiteDto(
                 this.name,
                 this.description,

@@ -45,7 +45,7 @@ external interface OrganizationTestsMenuProps : Props {
 private suspend fun WithRequestStatusContext.getTestSuitesSourcesWithId(
     organizationName: String,
 ) = get(
-    url = "$apiUrl/test-suites-sources/$organizationName/list-with-ids",
+    url = "$apiUrl/test-suites-sources/$organizationName/list",
     headers = jsonHeaders,
     loadingHandler = ::loadingHandler,
 )
@@ -55,13 +55,13 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     useTooltip()
     val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
+    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
-            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
-            setTestSuitesSourcesWithId(emptyList())
+            setTestSuitesSources(emptyList())
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
@@ -71,12 +71,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
     )
 
-    val (selectedTestSuitesSourceWithId, setSelectedTestSuitesSourceWithId) = useState<TestSuitesSourceDtoWithId>()
+    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
-        selectedTestSuitesSourceWithId?.let { testSuitesSource ->
+        selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.content.organizationName}/${encodeURIComponent(testSuitesSource.content.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
@@ -103,11 +103,11 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuitesSourceSnapshotKeyToDelete(null)
         }
     }
-    val selectHandler: (TestSuitesSourceDtoWithId) -> Unit = {
-        if (selectedTestSuitesSourceWithId == it) {
-            setSelectedTestSuitesSourceWithId(null)
+    val selectHandler: (TestSuitesSourceDto) -> Unit = {
+        if (selectedTestSuitesSource == it) {
+            setSelectedTestSuitesSource(null)
         } else {
-            setSelectedTestSuitesSourceWithId(it)
+            setSelectedTestSuitesSource(it)
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
@@ -115,9 +115,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
-    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
-        setTestSuiteSourceWithIdToUpsert(it)
+    val (testSuiteSourceToUpsert, setTestSuiteSourceToUpsert) = useState<TestSuitesSourceDto>()
+    val editHandler: (TestSuitesSourceDto) -> Unit = {
+        setTestSuiteSourceToUpsert(it)
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
@@ -130,9 +130,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val refreshTestSuitesSourcesSnapshotKey = useDeferredRequest {
         val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
-            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
-            setTestSuitesSourcesWithId(emptyList())
+            setTestSuitesSources(emptyList())
         }
     }
     val refreshHandler: () -> Unit = {
@@ -148,7 +148,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
-        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        testSuitesSourceWithId = testSuiteSourceToUpsert,
         organizationName = props.organizationName,
     ) {
         setIsSourceCreated { !it }
@@ -169,10 +169,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
 
     div {
         className = ClassName("mb-2 d-flex justify-content-center")
-        when (selectedTestSuitesSourceWithId) {
-            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler, refreshHandler)
+        when (selectedTestSuitesSource) {
+            null -> showTestSuitesSources(testSuitesSources, selectHandler, fetchHandler, editHandler, refreshHandler)
             else -> showTestSuitesSourceSnapshotKeys(
-                selectedTestSuitesSourceWithId,
+                selectedTestSuitesSource,
                 testSuitesSourceSnapshotKeys,
                 selectHandler,
                 editHandler,
