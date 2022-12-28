@@ -35,7 +35,7 @@ class ExecutionService(
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
-    private val agentService: AgentService,
+    @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
