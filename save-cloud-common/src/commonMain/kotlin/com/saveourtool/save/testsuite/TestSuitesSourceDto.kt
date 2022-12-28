@@ -16,7 +16,7 @@ typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
  * @property gitDto
  * @property testRootPath
  * @property latestFetchedVersion
- * @property id
+ * @property id ID of saved entity or null
  */
 @Serializable
 data class TestSuitesSourceDto(

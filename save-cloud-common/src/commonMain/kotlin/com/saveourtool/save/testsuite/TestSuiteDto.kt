@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property version snapshot version of [com.saveourtool.save.entities.TestSuitesSource]
  * @property language [com.saveourtool.save.entities.TestSuite.language]
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
- * @property id
+ * @property id ID of saved entity or null
  * @property plugins
  * @property isPublic
  */
