@@ -37,12 +37,12 @@ import kotlinx.serialization.json.Json
 class GithubDownloadToolService(
     private val toolStorage: ToolStorage,
     private val toolService: ToolService,
+    private val httpClient: HttpClient = httpClient(),
 ) {
     private val jsonSerializer = Json { ignoreUnknownKeys = true }
 
     @Suppress("InjectDispatcher")
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private val httpClient = httpClient()
 
     private fun getGithubMetadataUrl(repo: GithubRepo, vcsTagName: String) = if (vcsTagName == LATEST_VERSION) {
         vcsTagName
@@ -53,7 +53,7 @@ class GithubDownloadToolService(
             "$GITHUB_API_URL/${repo.organizationName}/${repo.toolName}/releases/$release"
         }
 
-    private fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata {
+    fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata {
         val channel: Channel<ReleaseMetadata> = Channel()
         scope.launch {
             httpClient.get(getGithubMetadataUrl(repo, vcsTagName))
@@ -70,7 +70,7 @@ class GithubDownloadToolService(
     }
 
     @Suppress("ReactiveStreamsUnusedPublisher")
-    private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
+    suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
         url(asset.downloadUrl)
         accept(asset.contentType())
     }
@@ -125,7 +125,7 @@ class GithubDownloadToolService(
         }
         .subscribe()
 
-    private fun getExecutable(repo: GithubRepo, vcsTagName: String) = getMetadata(repo, vcsTagName).assets
+    fun getExecutable(repo: GithubRepo, vcsTagName: String) = getMetadata(repo, vcsTagName).assets
         .filterNot(ReleaseAsset::isDigest)
         .first()
 
