@@ -8501,22 +8501,6 @@
           }
         }
       },
-      "DtoWithIdTestSuitesSourceDto": {
-        "required": [
-          "content",
-          "id"
-        ],
-        "type": "object",
-        "properties": {
-          "content": {
-            "$ref": "#/components/schemas/TestSuitesSourceDto"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
       "Execution": {
         "required": [
           "additionalFiles",
