@@ -202,7 +202,7 @@ class FileController(
         authentication: Authentication,
         permission: Permission,
     ): Mono<Project> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, projectName, organizationName, Permission.DELETE
+        authentication, projectName, organizationName, permission
     )
 
     companion object {
