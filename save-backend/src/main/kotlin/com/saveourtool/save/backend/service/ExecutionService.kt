@@ -6,7 +6,8 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
@@ -34,8 +35,6 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    @Lazy private val agentService: AgentService,
-    private val agentStatusService: AgentStatusService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 

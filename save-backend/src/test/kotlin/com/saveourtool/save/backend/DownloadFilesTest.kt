@@ -13,7 +13,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.backend.storage.MigrationFileStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
@@ -65,7 +65,7 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    FileStorage::class,
+    MigrationFileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
@@ -100,7 +100,7 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
     
     @Autowired
-    private lateinit var fileStorage: FileStorage
+    private lateinit var fileStorage: MigrationFileStorage
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
