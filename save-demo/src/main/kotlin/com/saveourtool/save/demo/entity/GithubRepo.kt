@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.entity
 
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.spring.entity.BaseEntity
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -21,3 +22,11 @@ class GithubRepo(
      */
     fun toPrettyString() = "$organizationName/$toolName"
 }
+
+/**
+ * @return [GithubRepo] from [ProjectCoordinates]
+ */
+fun ProjectCoordinates.toGithubRepo() = GithubRepo(
+    organizationName,
+    projectName,
+)
