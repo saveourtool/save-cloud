@@ -2240,9 +2240,11 @@
     },
     "/api/v1/files/{organizationName}/{projectName}/delete": {
       "delete": {
+        "description": "Delete a file by project coordinates, name and uploaded time in millis.",
         "operationId": "delete",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2251,6 +2253,7 @@
             }
           },
           {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2259,6 +2262,7 @@
             }
           },
           {
+            "description": "name of a file key",
             "in": "query",
             "name": "name",
             "required": true,
@@ -2267,6 +2271,7 @@
             }
           },
           {
+            "description": "uploaded mills of a file key",
             "in": "query",
             "name": "uploadedMillis",
             "required": true,
@@ -2277,6 +2282,16 @@
           }
         ],
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File deleted successfully."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2286,6 +2301,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2293,18 +2318,19 @@
             "basic": []
           }
         ],
+        "summary": "Delete a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/download": {
-      "post": {
-        "description": "Download a file by execution ID and FileKey.",
+      "get": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
         "operationId": "download",
         "parameters": [
           {
-            "description": "organization name of additional file key",
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2313,7 +2339,7 @@
             }
           },
           {
-            "description": "project name of additional file key",
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2322,7 +2348,7 @@
             }
           },
           {
-            "description": "name of additional file key",
+            "description": "name of a file key",
             "in": "query",
             "name": "name",
             "required": true,
@@ -2331,7 +2357,7 @@
             }
           },
           {
-            "description": "uploaded mills of additional file key",
+            "description": "uploaded mills of a file key",
             "in": "query",
             "name": "uploadedMillis",
             "required": true,
@@ -2384,7 +2410,7 @@
                 }
               }
             },
-            "description": "Returns content of the file."
+            "description": "The file uploaded successfully."
           },
           "401": {
             "content": {
@@ -2472,7 +2498,7 @@
                 }
               }
             },
-            "description": "Execution with provided ID is not found."
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2480,17 +2506,17 @@
             "basic": []
           }
         ],
-        "summary": "Download a file by execution ID and FileKey.",
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
-      }
-    },
-    "/api/v1/files/{organizationName}/{projectName}/list": {
-      "get": {
-        "operationId": "list_1",
+      },
+      "post": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
+        "operationId": "download_1",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2499,6 +2525,195 @@
             }
           },
           {
+            "description": "project name of a file key",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a file key",
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "uploaded mills of a file key",
+            "in": "query",
+            "name": "uploadedMillis",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/list": {
+      "get": {
+        "description": "Get a list by project coordinates.",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "description": "organization name of a file key",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2508,6 +2723,19 @@
           }
         ],
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Returns the list of files."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2520,6 +2748,19 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Not found project by provided values."
           }
         },
         "security": [
@@ -2527,6 +2768,7 @@
             "basic": []
           }
         ],
+        "summary": "Get a list by project coordinates.",
         "tags": [
           "files"
         ]
@@ -2534,9 +2776,11 @@
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
+        "description": "Upload a file by project coordinates, name and uploaded time in millis.",
         "operationId": "upload",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2545,12 +2789,19 @@
             }
           },
           {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "a file to upload",
+            "in": "query",
+            "name": "file",
+            "required": true
           }
         ],
         "requestBody": {
@@ -2561,7 +2812,8 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "a file to upload"
                   }
                 },
                 "required": [
@@ -2572,6 +2824,16 @@
           }
         },
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2581,6 +2843,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2588,6 +2860,7 @@
             "basic": []
           }
         ],
+        "summary": "Upload a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
