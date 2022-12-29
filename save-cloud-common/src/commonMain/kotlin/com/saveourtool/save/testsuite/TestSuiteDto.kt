@@ -1,6 +1,7 @@
 package com.saveourtool.save.testsuite
 
 import com.saveourtool.save.domain.PluginType
+import com.saveourtool.save.entities.DtoWithId
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property version snapshot version of [com.saveourtool.save.entities.TestSuitesSource]
  * @property language [com.saveourtool.save.entities.TestSuite.language]
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
- * @property id
+ * @property id ID of saved entity or null
  * @property plugins
  * @property isPublic
  */
@@ -22,14 +23,7 @@ data class TestSuiteDto(
     val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
-    val id: Long? = null,
+    override val id: Long? = null,
     val plugins: List<PluginType> = emptyList(),
     val isPublic: Boolean = true,
-) {
-    /**
-     * @return non-nullable [id]
-     */
-    fun requiredId(): Long = requireNotNull(id) {
-        "Entity is not saved yet: $this"
-    }
-}
+) : DtoWithId()
