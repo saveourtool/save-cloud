@@ -13,13 +13,13 @@
             <column name="name" type="varchar(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="uploaded_time" type="varchar(100)">
+            <column name="uploaded_time" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="size_bytes" type="varchar(100)">
+            <column name="size_bytes" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_executable" type="varchar(100)">
+            <column name="is_executable" type="boolean">
                 <constraints nullable="false"/>
             </column>
             <column name="project_id" type="bigint">
