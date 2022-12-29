@@ -8,14 +8,17 @@ import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.millisToInstant
-import kotlinx.datetime.*
+
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
+
+import kotlinx.datetime.*
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -49,13 +52,6 @@ class FileStorage(
 
     /**
      * @param projectCoordinates
-     * @return list of keys in storage by [projectCoordinates]
-     */
-    fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
-        .filter { it.projectCoordinates == projectCoordinates }
-
-    /**
-     * @param projectCoordinates
      * @return a list of [FileInfo]'s
      */
     fun getFileInfoList(
@@ -70,16 +66,21 @@ class FileStorage(
             }
         }
 
-    override fun list(): Flux<FileKey> {
-        return newFileStorage.list()
-            .map { fileDto ->
-                FileKey(
-                    projectCoordinates = fileDto.projectCoordinates,
-                    name = fileDto.name,
-                    uploadedMillis = fileDto.uploadedTime.toInstant(TimeZone.UTC).toEpochMilliseconds()
-                )
-            }
-    }
+    /**
+     * @param projectCoordinates
+     * @return list of keys in storage by [projectCoordinates]
+     */
+    fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
+        .filter { it.projectCoordinates == projectCoordinates }
+
+    override fun list(): Flux<FileKey> = newFileStorage.list()
+        .map { fileDto ->
+            FileKey(
+                projectCoordinates = fileDto.projectCoordinates,
+                name = fileDto.name,
+                uploadedMillis = fileDto.uploadedTime.toInstant(TimeZone.UTC).toEpochMilliseconds()
+            )
+        }
 
     override fun download(key: FileKey): Flux<ByteBuffer> = newFileStorage.download(key.toFileDto())
 
