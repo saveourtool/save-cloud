@@ -55,7 +55,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -140,30 +140,18 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
-        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
-        val tmpFile = (createTempDirectory() / file1.name).createFile()
-            .writeLines("Lorem ipsum".lines())
-
-        whenever(fileRepository.save(any()))
-            .thenReturn(file1)
-        whenever(fileRepository.findById(file1.requiredId()))
-            .thenReturn(Optional.of(file1))
-        whenever(fileRepository.findAll())
-            .thenReturn(listOf(file1))
-        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
-            eq(organization.name),
-            eq(testProject.name),
-            eq(tmpFile.name),
-            any()
-        )).thenReturn(file1)
+        mockFileRepository(file1)
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject.name), eq(organization.name)))
             .thenReturn(testProject)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
 
+        val tmpFile = (createTempDirectory() / file1.name).createFile()
+            .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
+        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
         val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
         val fileKey = sampleFileInfo.key
         fileStorage.overwrite(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
@@ -211,6 +199,7 @@ class DownloadFilesTest {
             .isNotFound
     }
 
+    @Suppress("LongMethod")
     @Test
     @WithMockUser(roles = ["ADMIN"])
     fun checkUpload() {
@@ -218,49 +207,15 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
-        val tmpFile = (createTempDirectory() / file2.name).createFile()
-            .writeLines("Lorem ipsum".lines())
-
-        val isSaved = AtomicBoolean()
-        whenever(fileRepository.save(any()))
-            .thenAnswer {
-                isSaved.set(true)
-                file2
-            }
-        whenever(fileRepository.findById(file2.requiredId()))
-            .thenAnswer {
-                if (isSaved.get()) {
-                    Optional.of(file2)
-                } else {
-                    Optional.empty()
-                }
-            }
-        whenever(fileRepository.findAll())
-            .thenAnswer {
-                if (isSaved.get()) {
-                    listOf(file2)
-                } else {
-                    emptyList()
-                }
-            }
-        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
-            eq(organization2.name),
-            eq(testProject2.name),
-            eq(tmpFile.name),
-            any()
-        )).thenAnswer {
-            if (isSaved.get()) {
-                file2
-            } else {
-                null
-            }
-        }
-
+        mockFileRepository(file2)
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
             .thenReturn(testProject2)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
+
+        val tmpFile = (createTempDirectory() / file2.name).createFile()
+            .writeLines("Lorem ipsum".lines())
 
         val body = MultipartBodyBuilder().apply {
             part("file", FileSystemResource(tmpFile))
@@ -354,6 +309,46 @@ class DownloadFilesTest {
                     .isNotFound
 
             }
+    }
+
+    private fun mockFileRepository(file: File) {
+        val saveCallCount = AtomicInteger()
+        val isSaved: () -> Boolean = { saveCallCount.get() != 0 }
+        whenever(fileRepository.save(any()))
+            .thenAnswer {
+                assert(saveCallCount.incrementAndGet() <= 2) {
+                    "Too many times save() is called"
+                }
+                file
+            }
+        whenever(fileRepository.findById(file.requiredId()))
+            .thenAnswer {
+                if (isSaved()) {
+                    Optional.of(file)
+                } else {
+                    Optional.empty()
+                }
+            }
+        whenever(fileRepository.findAll())
+            .thenAnswer {
+                if (isSaved()) {
+                    listOf(file)
+                } else {
+                    emptyList()
+                }
+            }
+        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+            eq(file.project.organization.name),
+            eq(file.project.name),
+            eq(file.name),
+            any()
+        )).thenAnswer {
+            if (isSaved()) {
+                file
+            } else {
+                null
+            }
+        }
     }
 
     companion object {
