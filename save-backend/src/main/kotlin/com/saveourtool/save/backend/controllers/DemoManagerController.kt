@@ -1,12 +1,14 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.blockingToMono
@@ -38,6 +40,7 @@ import reactor.core.publisher.Mono
 class DemoManagerController(
     private val projectService: ProjectService,
     private val lnkProjectGithubService: LnkProjectGithubService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -48,7 +51,7 @@ class DemoManagerController(
 
     @PostMapping("/{organizationName}/{projectName}/add")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    // @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -59,6 +62,7 @@ class DemoManagerController(
         description = "Add demo for a tool.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     fun addDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -72,6 +76,10 @@ class DemoManagerController(
     }
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
+        }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
         }
         .flatMap { project ->
             blockingToMono {
@@ -109,23 +117,41 @@ class DemoManagerController(
         description = "Get demo status.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = webClientDemo.get()
-        .uri("/demo/internal/$organizationName/$projectName/status")
-        .retrieve()
-        .onStatus({ !it.is2xxSuccessful }) {
-            Mono.error(
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Demo for $organizationName/$projectName is not found.",
-                )
+    ): Mono<DemoStatus> = Mono.just("$organizationName/$projectName")
+        .filter {
+            projectPermissionEvaluator.hasPermission(
+                authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.WRITE
             )
+        }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
+        }.flatMap {
+            webClientDemo.get()
+                .uri("/demo/internal/$organizationName/$projectName/status")
+                .retrieve()
+                .onStatus({ !it.is2xxSuccessful }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Demo for $organizationName/$projectName is not found.",
+                        )
+                    )
+                }
+                .bodyToMono<DemoStatus>()
+                .filter {
+                    projectPermissionEvaluator.hasPermission(
+                        authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.READ
+                    )
+                }
+                .switchIfEmptyToNotFound {
+                    "Not enough permission for accessing given project."
+                }
+                .defaultIfEmpty(DemoStatus.NOT_CREATED)
         }
-        .bodyToMono<DemoStatus>()
-        .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     @GetMapping("/{organizationName}/{projectName}")
     @RequiresAuthorizationSourceHeader
@@ -140,26 +166,37 @@ class DemoManagerController(
         description = "Get demo info.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     fun getDemoInfo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoInfo> = webClientDemo.get()
-        .uri("/demo/internal/$organizationName/$projectName")
-        .retrieve()
-        .onStatus({ !it.is2xxSuccessful }) {
-            Mono.error(
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Demo for $organizationName/$projectName is not found.",
-                )
+    ): Mono<DemoInfo> = Mono.just("$organizationName/$projectName")
+        .filter {
+            projectPermissionEvaluator.hasPermission(
+                authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.WRITE
             )
+        }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
         }
-        .bodyToMono<DemoInfo>()
-        .defaultIfEmpty(
-            DemoInfo(
-                DemoDto.emptyForProject(organizationName, projectName),
-                DemoStatus.NOT_CREATED,
-            )
-        )
+        .flatMap{
+            webClientDemo.get()
+                .uri("/demo/internal/$organizationName/$projectName")
+                .retrieve()
+                .onStatus({ !it.is2xxSuccessful }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Demo for $organizationName/$projectName is not found.",
+                        )
+                    )
+                }
+                .bodyToMono<DemoInfo>()
+                .defaultIfEmpty(
+                    DemoInfo(
+                        DemoDto.emptyForProject(organizationName, projectName),
+                        DemoStatus.NOT_CREATED,
+                    )
+                )
+        }
 }
