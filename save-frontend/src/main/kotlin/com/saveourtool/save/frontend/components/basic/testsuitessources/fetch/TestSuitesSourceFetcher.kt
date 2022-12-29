@@ -52,11 +52,6 @@ external interface TestSuitesSourceFetcherProps : Props {
      * Selected value
      */
     var selectedValueState: StateInstance<String?>
-
-    /**
-     * lambda to change [selectedValueState]
-     */
-    var onChangeSelectedValueState: (String?) -> Unit
 }
 
 /**
@@ -74,7 +69,7 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
     val (selectedFetchMode, _) = selectedFetchModeState
     val selectedValueState: StateInstance<String?> = useState()
-    val (selectedValue, setSelectedValue) = selectedValueState
+    val (selectedValue, _) = selectedValueState
     val triggerFetchTestSuiteSource = useDeferredRequest {
         post(
             url = with(testSuitesSource) {
@@ -98,7 +93,6 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                     this.testSuitesSource = testSuitesSource
                     this.selectedFetchModeState = selectedFetchModeState
                     this.selectedValueState = selectedValueState
-                    this.onChangeSelectedValueState = { setSelectedValue(it) }
                 }
             },
         ) {
@@ -144,7 +138,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
             icon = faCodeBranch,
@@ -153,7 +146,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
             icon = faCheckCircle,
@@ -162,7 +154,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedValueState(null)
         }
     }
     useTooltip()
@@ -193,7 +184,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 this.selectedValue = selectedValue ?: ""
                 onChangeFun = { tag ->
                     setSelectedValue(tag)
-                    props.onChangeSelectedValueState(tag)
                 }
             }
         }
@@ -220,7 +210,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 this.selectedValue = selectedValue ?: ""
                 onChangeFun = { tag ->
                     setSelectedValue(tag)
-                    props.onChangeSelectedValueState(tag)
                 }
             }
         }
