@@ -51,7 +51,7 @@ class DemoManagerController(
 
     @PostMapping("/{organizationName}/{projectName}/add")
     @RequiresAuthorizationSourceHeader
-    // @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -122,14 +122,16 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = Mono.just("$organizationName/$projectName")
+    ): Mono<DemoStatus> = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+    }
         .filter {
-            projectPermissionEvaluator.hasPermission(
-                authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.WRITE
-            )
-        }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
-        }.flatMap {
+        }
+        .flatMap {
             webClientDemo.get()
                 .uri("/demo/internal/$organizationName/$projectName/status")
                 .retrieve()
@@ -144,7 +146,7 @@ class DemoManagerController(
                 .bodyToMono<DemoStatus>()
                 .filter {
                     projectPermissionEvaluator.hasPermission(
-                        authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.READ
+                        authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!!, Permission.READ
                     )
                 }
                 .switchIfEmptyToNotFound {
@@ -171,15 +173,18 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoInfo> = Mono.just("$organizationName/$projectName")
+    ): Mono<DemoInfo> = blockingToMono {
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+        }
         .filter {
             projectPermissionEvaluator.hasPermission(
-                authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!! , Permission.WRITE
+                authentication, it, Permission.WRITE
             )
-        }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
-        .flatMap{
+        .flatMap {
             webClientDemo.get()
                 .uri("/demo/internal/$organizationName/$projectName")
                 .retrieve()
