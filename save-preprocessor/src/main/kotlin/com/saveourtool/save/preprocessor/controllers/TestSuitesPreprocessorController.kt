@@ -95,6 +95,7 @@ class TestSuitesPreprocessorController(
     ): Mono<Unit> = Mono.fromCallable {
         log.debug { "Checking if source ${testSuitesSourceDto.name} already contains such version and it should be overridden." }
     }
+        .also { println("$testSuitesSourceDto  --  $branchName") }
         .flatMap {
             testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, branchName)
         }
@@ -169,7 +170,7 @@ class TestSuitesPreprocessorController(
             }
         }
         .doOnError(Exception::class.java) { ex ->
-            log.error(ex) { "Failed to fetch from $cloneObject" } //-----------------------------------
+            log.error(ex) { "Failed to fetch from $cloneObject" }
         }
         .onErrorReturn(Unit)
 

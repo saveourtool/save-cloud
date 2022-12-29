@@ -153,7 +153,7 @@ class TestSuitesSourceService(
         version: String,
     ): Mono<EmptyResponse> = preprocessorWebClient
         .post()
-        .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version) // -----------------------------------------
+        .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
         .bodyValue(testSuitesSource)
         .retrieve()
         .toBodilessEntity()

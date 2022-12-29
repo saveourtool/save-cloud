@@ -52,6 +52,18 @@ external interface TestSuitesSourceFetcherProps : Props {
      * Selected value
      */
     var selectedValueState: StateInstance<String?>
+
+
+    /**
+     * lambda to change [selectedFetchModeState]
+     */
+    var onChangeSelectedFetchModeState: (TestSuitesSourceFetchMode) -> Unit
+
+
+    /**
+     * lambda to change [selectedValueState]
+     */
+    var onChangeSelectedValueState: (String?) -> Unit
 }
 
 /**
@@ -67,9 +79,9 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     testSuitesSource: TestSuitesSourceDto,
 ) {
     val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
-    val (selectedFetchMode, _) = selectedFetchModeState
+    val (selectedFetchMode, setSelectedFetchMode) = selectedFetchModeState
     val selectedValueState: StateInstance<String?> = useState()
-    val (selectedValue, _) = selectedValueState
+    val (selectedValue, setSelectedValue) = selectedValueState
     val triggerFetchTestSuiteSource = useDeferredRequest {
         post(
             url = with(testSuitesSource) {
@@ -79,6 +91,7 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
             loadingHandler = ::loadingHandler,
             body = undefined
         )
+            .also { setSelectedValue("") }
     }
 
     modal { modalProps ->
@@ -93,6 +106,8 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                     this.testSuitesSource = testSuitesSource
                     this.selectedFetchModeState = selectedFetchModeState
                     this.selectedValueState = selectedValueState
+                    this.onChangeSelectedFetchModeState = { setSelectedFetchMode(it) }
+                    this.onChangeSelectedValueState = { setSelectedValue(it) }
                 }
             },
         ) {
@@ -138,6 +153,8 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
+            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_TAG)
+            props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
             icon = faCodeBranch,
@@ -146,6 +163,8 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
+            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_BRANCH)
+            props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
             icon = faCheckCircle,
@@ -154,6 +173,8 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
+            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_COMMIT)
+            props.onChangeSelectedValueState(null)
         }
     }
     useTooltip()
@@ -176,7 +197,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         loadingHandler = ::loadingHandler,
                     )
                         .unsafeMap {
-                            it.decodeFromJsonString()
+                            it.decodeFromJsonString<List<String>>()
                         }
                 }
                 dataToString = { it }
@@ -184,6 +205,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 this.selectedValue = selectedValue ?: ""
                 onChangeFun = { tag ->
                     setSelectedValue(tag)
+                    props.onChangeSelectedValueState(tag)
                 }
             }
         }
@@ -209,6 +231,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 this.selectedValue = selectedValue ?: ""
                 onChangeFun = { tag ->
                     setSelectedValue(tag)
+                    props.onChangeSelectedValueState(tag)
                 }
             }
         }
