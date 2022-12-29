@@ -2,8 +2,11 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
+import com.saveourtool.save.backend.controllers.FileController
+import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -11,7 +14,6 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
@@ -59,7 +61,7 @@ import java.nio.file.Paths
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
-@WebFluxTest(controllers = [DownloadFilesController::class])
+@WebFluxTest(controllers = [DownloadFilesController::class, FileController::class, FileInternalController::class])
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
@@ -132,17 +134,19 @@ class DownloadFilesTest {
             .toFuture()
             .get()
 
-        webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
-                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
+                        sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+                    }
             }
 
         webTestClient.get()
@@ -228,6 +232,54 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
+    }
+
+    @Test
+    fun `download save-agent`() {
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-agent")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals(
+                            "content-save-agent.kexe".toByteArray(),
+                            it.responseBody
+                        )
+                    }
+            }
+    }
+
+    @Test
+    fun `download save-cli`() {
+        setOf(HttpMethod.GET, HttpMethod.POST)
+            .forEach { httpMethod ->
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-cli?version=1.0")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isOk
+                    .expectBody()
+                    .consumeWith {
+                        Assertions.assertArrayEquals(
+                            "content-save-cli.kexe".toByteArray(),
+                            it.responseBody
+                        )
+                    }
+
+                webTestClient.method(httpMethod)
+                    .uri("/internal/files/download-save-cli?version=2.0")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM)
+                    .exchange()
+                    .expectStatus()
+                    .isNotFound
+
+            }
     }
 
     companion object {
