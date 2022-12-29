@@ -46,7 +46,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     override fun doesExist(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
         .flatMap { entity ->
             storage.doesExist(entity.requiredId())
-                .filter { !it }
+                .filter { it }
                 .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     "The key $key is presented in database, but missed in storage"
                 }

@@ -78,7 +78,7 @@ class TestSuitesSource(
                 testRootPath,
                 latestFetchedVersion,
             ).apply {
-                id = id
+                this.id = this@toTestSuiteSource.id
             }
         }
     }

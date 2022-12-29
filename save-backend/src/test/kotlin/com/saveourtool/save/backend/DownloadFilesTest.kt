@@ -15,9 +15,7 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
@@ -55,6 +53,9 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -94,6 +95,24 @@ class DownloadFilesTest {
         url = "huawei.com"
         description = "test description"
     }
+    private var file1: File = File(
+        project = testProject,
+        name = "test-1.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = -1L,
+        isExecutable = false,
+    ).apply {
+        id = 1L
+    }
+    private var file2: File = File(
+        project = testProject2,
+        name = "test-2.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = -1L,
+        isExecutable = false,
+    ).apply {
+        id = 2L
+    }
 
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -108,6 +127,9 @@ class DownloadFilesTest {
     private lateinit var projectService: ProjectService
 
     @MockBean
+    private lateinit var fileRepository: FileRepository
+
+    @MockBean
     private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @Test
@@ -118,20 +140,35 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
+        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
+        val tmpFile = (createTempDirectory() / file1.name).createFile()
+            .writeLines("Lorem ipsum".lines())
+
+        whenever(fileRepository.save(any()))
+            .thenReturn(file1)
+        whenever(fileRepository.findById(file1.requiredId()))
+            .thenReturn(Optional.of(file1))
+        whenever(fileRepository.findAll())
+            .thenReturn(listOf(file1))
+        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+            eq(organization.name),
+            eq(testProject.name),
+            eq(tmpFile.name),
+            any()
+        )).thenReturn(file1)
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject.name), eq(organization.name)))
+            .thenReturn(testProject)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
 
-        val tmpFile = createTempFile("test", "txt")
-            .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
-        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
         val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
         val fileKey = sampleFileInfo.key
-        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        fileStorage.overwrite(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
-            .toFuture()
-            .get()
+            .block()
 
         setOf(HttpMethod.GET, HttpMethod.POST)
             .forEach { httpMethod ->
@@ -181,11 +218,49 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
+        val tmpFile = (createTempDirectory() / file2.name).createFile()
+            .writeLines("Lorem ipsum".lines())
+
+        val isSaved = AtomicBoolean()
+        whenever(fileRepository.save(any()))
+            .thenAnswer {
+                isSaved.set(true)
+                file2
+            }
+        whenever(fileRepository.findById(file2.requiredId()))
+            .thenAnswer {
+                if (isSaved.get()) {
+                    Optional.of(file2)
+                } else {
+                    Optional.empty()
+                }
+            }
+        whenever(fileRepository.findAll())
+            .thenAnswer {
+                if (isSaved.get()) {
+                    listOf(file2)
+                } else {
+                    emptyList()
+                }
+            }
+        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+            eq(organization2.name),
+            eq(testProject2.name),
+            eq(tmpFile.name),
+            any()
+        )).thenAnswer {
+            if (isSaved.get()) {
+                file2
+            } else {
+                null
+            }
+        }
+
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
+            .thenReturn(testProject2)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
-
-        val tmpFile = createTempFile("test", "txt")
-            .writeLines("Lorem ipsum".lines())
 
         val body = MultipartBodyBuilder().apply {
             part("file", FileSystemResource(tmpFile))
