@@ -34,7 +34,6 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
 ) {
@@ -302,39 +301,6 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
         return savedExecution
-    }
-
-    /**
-     * Mark [Execution] as [ExecutionStatus.OBSOLETE]
-     *
-     * @param execution
-     */
-    @Transactional
-    fun markAsObsolete(execution: Execution) {
-        log.info {
-            "Marking execution with id = ${execution.requiredId()} as obsolete. " +
-                    "Additionally deleting link to test suites and files " +
-                    "and deleting agents and agent statuses related to this execution "
-        }
-        lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
-        lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
-        updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
-        // Delete agents, which related to the test suites
-        agentStatusService.deleteAgentStatusWithExecutionIds(listOf(execution.requiredId()))
-        agentService.deleteAgentByExecutionIds(listOf(execution.requiredId()))
-    }
-
-    /**
-     * Unlink provided [File] from all [Execution]s
-     *
-     * @param file
-     */
-    @Transactional
-    fun unlinkFileFromAllExecution(file: File) {
-        lnkExecutionFileRepository.findAllByFile(file)
-            .forEach {
-                markAsObsolete(it.execution)
-            }
     }
 
     companion object {

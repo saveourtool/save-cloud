@@ -46,10 +46,6 @@ class NewFileStorage(
         uploadedTime = dto.uploadedTime.toJavaLocalDateTime(),
     )
 
-    override fun beforeDelete(entity: File) {
-        executionService.unlinkFileFromAllExecution(entity)
-    }
-
     override fun File.updateByContentSize(sizeBytes: Long): File = apply {
         this.sizeBytes = sizeBytes
     }

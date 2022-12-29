@@ -32,7 +32,6 @@
     <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
     <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
     <include file="file.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
