@@ -4,6 +4,7 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.entities.toFileDto
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
@@ -92,12 +93,6 @@ class FileStorage(
     override fun contentSize(key: FileKey): Mono<Long> = newFileStorage.contentSize(key.toFileDto())
 
     override fun doesExist(key: FileKey): Mono<Boolean> = newFileStorage.doesExist(key.toFileDto())
-
-    private fun FileKey.toFileDto(): FileDto = FileDto(
-        projectCoordinates = this.projectCoordinates,
-        name = this.name,
-        uploadedTime = this.uploadedMillis.millisToInstant().toLocalDateTime(TimeZone.UTC),
-    )
 
     companion object {
         private val log: Logger = getLogger<FileStorage>()

@@ -207,13 +207,14 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
+
         return doCreateNew(
             project = project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            additionalFiles = files.formatForExecution(),
+            fileIds = files.formatForExecution(),
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -233,12 +234,13 @@ class ExecutionService(
         execution: Execution,
         username: String,
     ): Execution {
-        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
+        val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
+        val fileIds = lnkExecutionFileRepository.findAllByExecution(execution).map { it.requiredId() }
         return doCreateNew(
             project = execution.project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuites,
             allTests = execution.allTests,
-            additionalFiles = execution.additionalFiles,
+            fileIds = execution.additionalFiles,
             username = username,
             sdk = execution.sdk,
             execCmd = execution.execCmd,
@@ -252,9 +254,9 @@ class ExecutionService(
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
-        testSuiteIds: List<Long>,
+        testSuites: List<TestSuite>,
         allTests: Long,
-        additionalFiles: String,
+        fileIds: String,
         username: String,
         sdk: String,
         execCmd: String?,
@@ -265,7 +267,6 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
-        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -284,7 +285,7 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
-            additionalFiles = additionalFiles,
+            additionalFiles = fileIds,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,

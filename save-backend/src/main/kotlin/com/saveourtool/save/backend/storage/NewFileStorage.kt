@@ -4,10 +4,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.entities.File
-import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.toEntity
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.utils.*
 
