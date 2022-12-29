@@ -25,6 +25,7 @@ import kotlinx.datetime.*
  */
 @Service
 class MigrationFileStorage(
+    private val oldFileStorage: FileStorage,
     private val newFileStorage: NewFileStorage,
 ) : Storage<FileKey> {
     /**
@@ -32,19 +33,19 @@ class MigrationFileStorage(
      */
     @PostConstruct
     fun migration() {
-        list()
+        oldFileStorage.list()
             .map { fileKey ->
                 fileKey to fileKey.toFileDto()
             }
             .flatMap { (fileKey, fileDto) ->
-                newFileStorage.upload(fileDto, download(fileKey))
+                newFileStorage.upload(fileDto, oldFileStorage.download(fileKey))
                     .map {
                         log.info {
                             "Copied $fileKey to new storage with key $fileDto"
                         }
                     }
                     .flatMap {
-                        delete(fileKey)
+                        oldFileStorage.delete(fileKey)
                     }
             }
             .subscribe()
