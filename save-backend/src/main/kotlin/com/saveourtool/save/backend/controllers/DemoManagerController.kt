@@ -7,7 +7,6 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.blockingToMono
@@ -66,10 +65,9 @@ class DemoManagerController(
         @RequestBody demoDto: DemoDto,
         authentication: Authentication,
     ): Mono<EmptyResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndStatusIn(
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(
             projectName,
             organizationName,
-            setOf(ProjectStatus.CREATED)
         )
     }
         .switchIfEmptyToNotFound {
