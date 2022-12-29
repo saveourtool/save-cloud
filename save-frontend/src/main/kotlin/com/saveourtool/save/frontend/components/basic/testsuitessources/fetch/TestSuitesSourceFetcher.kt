@@ -53,12 +53,10 @@ external interface TestSuitesSourceFetcherProps : Props {
      */
     var selectedValueState: StateInstance<String?>
 
-
     /**
      * lambda to change [selectedFetchModeState]
      */
     var onChangeSelectedFetchModeState: (TestSuitesSourceFetchMode) -> Unit
-
 
     /**
      * lambda to change [selectedValueState]

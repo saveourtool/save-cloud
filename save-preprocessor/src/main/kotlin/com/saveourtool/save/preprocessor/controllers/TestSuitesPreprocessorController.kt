@@ -95,7 +95,6 @@ class TestSuitesPreprocessorController(
     ): Mono<Unit> = Mono.fromCallable {
         log.debug { "Checking if source ${testSuitesSourceDto.name} already contains such version and it should be overridden." }
     }
-        .also { println("$testSuitesSourceDto  --  $branchName") }
         .flatMap {
             testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, branchName)
         }
