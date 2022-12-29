@@ -4,6 +4,7 @@ import com.saveourtool.save.demo.entity.GithubRepo
 import com.saveourtool.save.demo.entity.Snapshot
 import com.saveourtool.save.demo.entity.Tool
 import com.saveourtool.save.demo.repository.ToolRepository
+import com.saveourtool.save.domain.ProjectCoordinates
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -54,4 +55,17 @@ class ToolService(
      */
     fun findCurrentVersion(githubRepo: GithubRepo): String? = toolRepository.findByGithubRepo(githubRepo)
         .maxOfOrNull { it.snapshot.version }
+
+    /**
+     * @param githubCoordinates GitHub project coordinates
+     * @return currently used version
+     * todo: allow to use multiple versions
+     */
+    fun findCurrentVersion(githubCoordinates: ProjectCoordinates): String? = with(githubCoordinates) {
+        githubRepoService.find(organizationName, projectName)
+    }
+        ?.let {
+            toolRepository.findByGithubRepo(it)
+        }
+        ?.maxOfOrNull { it.snapshot.version }
 }

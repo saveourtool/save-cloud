@@ -2,9 +2,11 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
-import com.saveourtool.save.demo.NewDemoToolRequest
+import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
 
@@ -24,20 +26,31 @@ private val demoInfoCard = cardComponent(isBordered = true, hasBg = true, isNoPa
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "EMPTY_BLOCK_STRUCTURE_ERROR")
 val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
-    val (demoToolRequest, setDemoToolRequest) = useState(NewDemoToolRequest.empty)
+    val (demoDto, setDemoToolRequest) = useState(
+        DemoDto.emptyForProject(props.organizationName, props.projectName)
+    )
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
 
+    val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
+
     val sendDemoCreationRequest = useDeferredRequest {
-        post(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}/add",
-            jsonHeaders,
-            Json.encodeToString(demoToolRequest),
-            ::loadingHandler,
-        )
-            .let {
-                if (it.ok) {
-                    setDemoStatus(DemoStatus.STARTING)
-                }
+        if (githubProjectCoordinates.consideredEmpty()) {
+            demoDto
+        } else {
+            demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
+        }
+            .let { demoRequest ->
+                post(
+                    "$apiUrl/demo/${props.organizationName}/${props.projectName}/add",
+                    jsonHeaders,
+                    Json.encodeToString(demoRequest),
+                    ::loadingHandler,
+                )
+                    .let {
+                        if (it.ok) {
+                            setDemoStatus(DemoStatus.STARTING)
+                        }
+                    }
             }
     }
 
@@ -65,7 +78,8 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (infoResponse.ok) {
             val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
             setDemoStatus(demoInfo.demoStatus)
-            setDemoToolRequest(demoInfo.demoToolRequest)
+            setDemoToolRequest(demoInfo.demoDto)
+            setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
         } else {
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
@@ -73,7 +87,6 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
     useOnce {
         window.alert("This is just a preview, nothing on this view works for now.")
-        getDemoStatus()
     }
 
     div {
@@ -102,10 +115,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col mb-2")
                     autoComplete = AutoComplete.off
                     placeholder = "GitHub organization name"
-                    value = demoToolRequest.ownerName
+                    value = githubProjectCoordinates.organizationName
                     onChange = { event ->
-                        setDemoToolRequest { request ->
-                            request.copy(ownerName = event.target.value)
+                        setGithubProjectCoordinates {
+                            it.copy(organizationName = event.target.value)
                         }
                     }
                 }
@@ -113,10 +126,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col mb-2")
                     autoComplete = AutoComplete.off
                     placeholder = "GitHub project name"
-                    value = demoToolRequest.repoName
+                    value = githubProjectCoordinates.projectName
                     onChange = { event ->
-                        setDemoToolRequest { request ->
-                            request.copy(repoName = event.target.value)
+                        setGithubProjectCoordinates {
+                            it.copy(projectName = event.target.value)
                         }
                     }
                 }
@@ -124,7 +137,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col")
                     autoComplete = AutoComplete.off
                     placeholder = "Release tag"
-                    value = demoToolRequest.vcsTagName
+                    value = demoDto.vcsTagName
                     onChange = { event ->
                         setDemoToolRequest { request ->
                             request.copy(vcsTagName = event.target.value)
@@ -136,7 +149,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col mb-2")
                     autoComplete = AutoComplete.off
                     placeholder = "Run command"
-                    value = demoToolRequest.runCommand
+                    value = demoDto.runCommand
                     onChange = { event ->
                         setDemoToolRequest { request ->
                             request.copy(runCommand = event.target.value)
@@ -147,7 +160,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     className = ClassName("form-control col")
                     autoComplete = AutoComplete.off
                     placeholder = "Test file name"
-                    value = demoToolRequest.fileName
+                    value = demoDto.fileName
                     onChange = { event ->
                         setDemoToolRequest { request ->
                             request.copy(fileName = event.target.value)
