@@ -185,7 +185,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         loadingHandler = ::loadingHandler,
                     )
                         .unsafeMap {
-                            it.decodeFromJsonString<List<String>>()
+                            it.decodeFromJsonString()
                         }
                 }
                 dataToString = { it }
