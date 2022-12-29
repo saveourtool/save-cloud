@@ -175,9 +175,10 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         headers = jsonHeaders,
                         loadingHandler = ::loadingHandler,
                     )
-                        .unsafeMap {
+                        .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
                         }
+                        .also { setSelectedValue(null) }
                 }
                 dataToString = { it }
                 notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
@@ -200,9 +201,10 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         headers = jsonHeaders,
                         loadingHandler = ::loadingHandler,
                     )
-                        .unsafeMap {
+                        .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
                         }
+                        .also { setSelectedValue(null) }
                 }
                 dataToString = { it }
                 notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
