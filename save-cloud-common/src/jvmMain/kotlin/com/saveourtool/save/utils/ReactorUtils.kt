@@ -6,6 +6,8 @@ package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -18,7 +20,11 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
-import java.util.Comparator
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
+
+@Suppress("WRONG_WHITESPACE")
+private val logger = getLogger({}.javaClass)
 
 /**
  * @param status
@@ -136,3 +142,40 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @return [Flux] from result of blocking operation [List] of [T]
  */
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+
+/**
+ * @param interval how long to wait between checks
+ * @param numberOfChecks how many times to check [checking]
+ * @param checking action which checks that waiting can be finished
+ * @return true if [checking] was successful before timeout, otherwise -- false
+ */
+fun waitReactivelyUntil(
+    interval: Duration,
+    numberOfChecks: Long,
+    checking: () -> Boolean,
+): Mono<Boolean> = Flux.interval(interval.toJavaDuration())
+    .take(numberOfChecks)
+    .map { checking() }
+    .takeUntil { it }
+    // check whether we have got `true` or Flux has completed with only `false`
+    .any { it }
+
+/**
+ * Downloads the resource named [resourceName] from the classpath.
+ *
+ * @param resourceName the name of the resource (file).
+ * @param lazyResponseBody the body of HTTP response if HTTP 404 is returned.
+ * @return either the Mono holding the resource, or [Mono.error] with an HTTP 404
+ *   status and response.
+ */
+fun downloadFromClasspath(
+    resourceName: String,
+    lazyResponseBody: (() -> String?) = { null },
+): Mono<out Resource> =
+        Mono.just(resourceName)
+            .map(::ClassPathResource)
+            .filter(Resource::exists)
+            .switchIfEmptyToNotFound {
+                logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
+                lazyResponseBody()
+            }

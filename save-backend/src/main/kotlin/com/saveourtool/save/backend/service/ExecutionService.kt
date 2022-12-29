@@ -6,8 +6,6 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.asyncEffectIf
-import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -17,7 +15,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
 import java.util.Optional
@@ -60,17 +57,6 @@ class ExecutionService(
     }
 
     /**
-     * @param execution execution that is connected to testSuite
-     * @param testSuites manageable test suite
-     */
-    @Transactional
-    fun save(execution: Execution, testSuites: List<TestSuite>): Execution {
-        val newExecution = executionRepository.save(execution)
-        testSuites.map { LnkExecutionTestSuite(newExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
-        return newExecution
-    }
-
-    /**
      * @param srcExecution [Execution]
      * @param newStatus [Execution.status]
      * @throws ResponseStatusException
@@ -86,7 +72,7 @@ class ExecutionService(
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
 
-            if (execution.type == TestingType.CONTEST_MODE) {
+            if (execution.type == TestingType.CONTEST_MODE && updatedExecution.status == ExecutionStatus.FINISHED) {
                 // maybe this execution is the new best execution under a certain contest
                 lnkContestProjectService.updateBestExecution(execution)
             }
@@ -213,7 +199,7 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
-    ): Mono<Execution> {
+    ): Execution {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
@@ -222,7 +208,6 @@ class ExecutionService(
         return doCreateNew(
             project = project,
             testSuiteIds = testSuiteIds,
-            version = testSuitesService.getSingleVersionByIds(testSuiteIds),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
@@ -245,12 +230,11 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Mono<Execution> {
+    ): Execution {
         val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
         return doCreateNew(
             project = execution.project,
             testSuiteIds = testSuiteIds,
-            version = execution.version,
             allTests = execution.allTests,
             additionalFiles = execution.additionalFiles,
             username = username,
@@ -267,7 +251,6 @@ class ExecutionService(
     private fun doCreateNew(
         project: Project,
         testSuiteIds: List<Long>,
-        version: String?,
         allTests: Long,
         additionalFiles: String,
         username: String,
@@ -276,14 +259,11 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
-    ): Mono<Execution> {
+    ): Execution {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
         val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
-        val testSuiteSourceName = testSuitesService.getById(
-            testSuiteIds.first()
-        ).source.name
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -291,7 +271,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = version,
+            version = testSuites.singleVersion(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -306,21 +286,40 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuiteSourceName,
+            testSuiteSourceName = testSuites.singleSourceName(),
             score = null,
         )
-        return blockingToMono {
-            save(execution, testSuites)
+        val savedExecution = executionRepository.save(execution)
+        testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        if (testingType == TestingType.CONTEST_MODE) {
+            lnkContestExecutionService.createLink(
+                savedExecution, requireNotNull(contestName) {
+                    "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
+                }
+            )
         }
-            .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
-                lnkContestExecutionService.createLink(
-                    savedExecution, requireNotNull(contestName) {
-                        "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
-                    }
-                )
+        log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
+        return savedExecution
+    }
+
+    companion object {
+        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
+            .distinctBy { it.requiredId() }
+            .also { sources ->
+                require(sources.size == 1) {
+                    "Only a single test suites source is allowed for a run, but got: $sources"
+                }
             }
-            .doOnSuccess { savedExecution ->
-                log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
+            .single()
+            .name
+
+        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
+            .distinct()
+            .also { versions ->
+                require(versions.size == 1) {
+                    "Only a single version is supported, but got: $versions"
+                }
             }
+            .single()
     }
 }

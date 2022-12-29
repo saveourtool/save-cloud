@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.components.basic.demoComponent
@@ -27,6 +28,7 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
@@ -58,6 +60,7 @@ private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = 
 )
 val cpgView: VFC = VFC {
     kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
+    useBackground(Style.WHITE)
     val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)
 
@@ -65,6 +68,8 @@ val cpgView: VFC = VFC {
     val errorWindowOpenness = useWindowOpenness()
 
     val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
+
+    val (selectedLayout, setSelectedLayout) = useState(SigmaLayout.preferredLayout)
 
     displaySimpleModal(
         errorWindowOpenness,
@@ -78,6 +83,8 @@ val cpgView: VFC = VFC {
             className = ClassName("col-12")
             backgroundCard {
                 demoComponent {
+                    this.selectedLayout = selectedLayout
+                    this.setSelectedLayout = { setSelectedLayout(it) }
                     this.placeholderText = CPG_PLACEHOLDER_TEXT
                     this.preselectedLanguage = Languages.CPP
                     this.resultRequest = { demoRequest ->
@@ -102,7 +109,7 @@ val cpgView: VFC = VFC {
                     this.resultBuilder = { builder ->
                         with(builder) {
                             div {
-                                className = ClassName("card card-body")
+                                className = ClassName("card card-body px-0 py-0")
                                 style = jso {
                                     height = "83%".unsafeCast<Height>()
                                     display = Display.block
@@ -114,13 +121,14 @@ val cpgView: VFC = VFC {
                                     graphEvents {
                                         shouldHideUnfocusedNodes = true
                                         setSelectedNode = { newSelectedNodeName ->
-                                            setSelectedNodeName(
-                                                newSelectedNodeName.takeIf { it != selectedNodeName }
-                                            )
+                                            setSelectedNodeName { previousSelectedNodeName ->
+                                                newSelectedNodeName.takeIf { it != previousSelectedNodeName }
+                                            }
                                         }
                                     }
                                     graphLoader {
-                                        cpgGraph = cpgResult.cpgGraph
+                                        this.cpgGraph = cpgResult.cpgGraph
+                                        this.selectedLayout = selectedLayout
                                     }
                                 }
                                 div {
@@ -136,8 +144,8 @@ val cpgView: VFC = VFC {
                                             }
                                         }
                                         "show"
-                                    } ?: ""
-                                    className = ClassName("col-6 p-0 position-absolute collapse width overflow-auto $show")
+                                    } ?: "hide"
+                                    className = ClassName("col-6 p-0 position-absolute width overflow-auto $show")
                                     style = jso {
                                         top = "0px".unsafeCast<Top>()
                                         right = "0px".unsafeCast<Right>()
@@ -146,7 +154,11 @@ val cpgView: VFC = VFC {
                                 }
                             }
                             div {
-                                val alertStyle = if (cpgResult.applicationName.isNotBlank()) "alert-primary" else ""
+                                val alertStyle = when {
+                                    cpgResult.applicationName.isBlank() -> ""
+                                    cpgResult.applicationName.startsWith("Error") -> "alert-warning"
+                                    else -> "alert-primary"
+                                }
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
                                 +cpgResult.applicationName
                             }
@@ -163,8 +175,16 @@ val cpgView: VFC = VFC {
         div {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
-                    +log
-                    br { }
+                    when {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> p {
+                            className = ClassName("text-danger")
+                            +log
+                        }
+                        else -> {
+                            +log
+                            br { }
+                        }
+                    }
                 }
 
                 "alert-primary"
@@ -198,6 +218,16 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
 ) {
     div {
         className = ClassName("card card-body p-0")
+        button {
+            className = ClassName("btn p-0 position-absolute")
+            fontAwesomeIcon(faTimesCircle)
+            type = "button".unsafeCast<ButtonType>()
+            onClick = { setSelectedNodeName(null) }
+            style = jso {
+                top = "0%".unsafeCast<Top>()
+                right = "1%".unsafeCast<Right>()
+            }
+        }
         table {
             thead {
                 tr {
@@ -209,16 +239,6 @@ private fun ChildrenBuilder.displayCpgNodeAdditionalInfo(
                     th {
                         scope = "col"
                         +(nodeName ?: NOT_PROVIDED).formatPathToFile(applicationName)
-                    }
-                    button {
-                        className = ClassName("btn p-0 position-absolute")
-                        fontAwesomeIcon(faTimesCircle)
-                        type = "button".unsafeCast<ButtonType>()
-                        onClick = { setSelectedNodeName(null) }
-                        style = jso {
-                            top = "1%".unsafeCast<Top>()
-                            right = "1%".unsafeCast<Right>()
-                        }
                     }
                 }
             }

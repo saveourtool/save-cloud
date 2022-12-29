@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -16,9 +15,6 @@ import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
-import react.useContext
-import react.useEffect
-import react.useState
 
 import kotlin.js.undefined
 import kotlinx.browser.window
@@ -35,8 +31,6 @@ val jsonHeaders = Headers().apply {
     set("Accept", "application/json")
     set("Content-Type", "application/json")
 }
-
-typealias DtoWithIdList<T> = List<DtoWithId<T>>
 
 /**
  * Interface for objects that have access to [requestStatusContext]
@@ -124,21 +118,6 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
  * @return response body deserialized as [T]
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
-
-/**
- * A temporary workaround till migrated to JS Frontend IR: https://github.com/Kotlin/kotlinx.serialization/issues/1448
- *
- * @return response body deserialized as [List] of [DtoWithId] with content with type [T]
- */
-suspend inline fun <reified T> Response.decodeListDtoWithIdFromJsonString(): DtoWithIdList<T> = text().await()
-    .let { Json.parseToJsonElement(it) }
-    .jsonArray
-    .map { it.jsonObject }
-    .map { jsonObject ->
-        val id = requireNotNull(jsonObject["id"]?.jsonPrimitive?.longOrNull)
-        val content: T = Json.decodeFromJsonElement(requireNotNull(jsonObject["content"]))
-        DtoWithId(id, content)
-    }
 
 /**
  * Read [this] Response body as text and deserialize it using [Json] to [JsonObject] and take [fieldName]
@@ -395,69 +374,6 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
 }
 
 /**
- * Hook to get callbacks to perform requests in functional components.
- *
- * @param request
- * @return a function to trigger request execution.
- */
-fun <R> useDeferredRequest(
-    request: suspend WithRequestStatusContext.() -> R,
-): () -> Unit {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val context = useRequestStatusContext()
-    val (isSending, setIsSending) = useState(false)
-    useEffect(isSending) {
-        if (!isSending) {
-            return@useEffect
-        }
-        scope.launch {
-            request(context)
-            setIsSending(false)
-        }.invokeOnCompletion {
-            if (it != null && it !is CancellationException) {
-                setIsSending(false)
-            }
-        }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
-    val initiateSending: () -> Unit = {
-        if (!isSending) {
-            setIsSending(true)
-        }
-    }
-    return initiateSending
-}
-
-/**
- * Hook to perform requests in functional components.
- *
- * @param dependencies
- * @param request
- */
-fun <R> useRequest(
-    dependencies: Array<dynamic> = emptyArray(),
-    request: suspend WithRequestStatusContext.() -> R,
-) {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val context = useRequestStatusContext()
-
-    useEffect(*dependencies) {
-        scope.launch {
-            request(context)
-        }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
-}
-
-/**
  * Handler that allows to skip loading modal
  *
  * @param request REST API method
@@ -472,20 +388,6 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @return Unit
  */
 internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit
-
-@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
-private fun useRequestStatusContext(): WithRequestStatusContext {
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
-    return context
-}
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.

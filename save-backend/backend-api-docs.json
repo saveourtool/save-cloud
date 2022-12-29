@@ -11,176 +11,7 @@
     }
   ],
   "paths": {
-    "/api/v1/avatar/users/{userName}/{imageName}": {
-      "get": {
-        "description": "Download an avatar for user.",
-        "operationId": "forUser",
-        "parameters": [
-          {
-            "description": "user name",
-            "in": "path",
-            "name": "userName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "image name of avatar",
-            "in": "path",
-            "name": "imageName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Returns content of the file."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Execution with provided ID is not found."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Download an avatar for user.",
-        "tags": [
-          "avatars"
-        ]
-      }
-    },
-    "/api/v1/avatar/{organizationName}/{imageName}": {
+    "/api/v1/avatar/organizations/{organizationName}": {
       "get": {
         "description": "Download an avatar for organization.",
         "operationId": "forOrganization",
@@ -198,10 +29,7 @@
             "description": "image name of avatar",
             "in": "path",
             "name": "imageName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "required": true
           }
         ],
         "responses": {
@@ -344,6 +172,172 @@
           }
         ],
         "summary": "Download an avatar for organization.",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
+    "/api/v1/avatar/users/{userName}": {
+      "get": {
+        "description": "Download an avatar for user.",
+        "operationId": "forUser",
+        "parameters": [
+          {
+            "description": "user name",
+            "in": "path",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "image name of avatar",
+            "in": "path",
+            "name": "imageName",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns content of the file."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Execution with provided ID is not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download an avatar for user.",
         "tags": [
           "avatars"
         ]
@@ -1769,6 +1763,159 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}": {
+      "get": {
+        "description": "Get demo info.",
+        "operationId": "getDemoInfo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          }
+        },
+        "summary": "Get demo info.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
+      "post": {
+        "description": "Add demo for a tool.",
+        "operationId": "addDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully added demo."
+          }
+        },
+        "summary": "Add demo for a tool.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/status": {
+      "get": {
+        "description": "Get demo status.",
+        "operationId": "getDemoStatus",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          }
+        },
+        "summary": "Get demo status.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "operationId": "getExecution",
@@ -2093,9 +2240,11 @@
     },
     "/api/v1/files/{organizationName}/{projectName}/delete": {
       "delete": {
+        "description": "Delete a file by project coordinates, name and uploaded time in millis.",
         "operationId": "delete",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2104,6 +2253,7 @@
             }
           },
           {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2112,6 +2262,7 @@
             }
           },
           {
+            "description": "name of a file key",
             "in": "query",
             "name": "name",
             "required": true,
@@ -2120,6 +2271,7 @@
             }
           },
           {
+            "description": "uploaded mills of a file key",
             "in": "query",
             "name": "uploadedMillis",
             "required": true,
@@ -2130,6 +2282,16 @@
           }
         ],
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File deleted successfully."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2139,6 +2301,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2146,18 +2318,19 @@
             "basic": []
           }
         ],
+        "summary": "Delete a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/download": {
-      "post": {
-        "description": "Download a file by execution ID and FileKey.",
+      "get": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
         "operationId": "download",
         "parameters": [
           {
-            "description": "organization name of additional file key",
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2166,7 +2339,7 @@
             }
           },
           {
-            "description": "project name of additional file key",
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2175,7 +2348,7 @@
             }
           },
           {
-            "description": "name of additional file key",
+            "description": "name of a file key",
             "in": "query",
             "name": "name",
             "required": true,
@@ -2184,7 +2357,7 @@
             }
           },
           {
-            "description": "uploaded mills of additional file key",
+            "description": "uploaded mills of a file key",
             "in": "query",
             "name": "uploadedMillis",
             "required": true,
@@ -2237,7 +2410,7 @@
                 }
               }
             },
-            "description": "Returns content of the file."
+            "description": "The file uploaded successfully."
           },
           "401": {
             "content": {
@@ -2325,7 +2498,7 @@
                 }
               }
             },
-            "description": "Execution with provided ID is not found."
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2333,17 +2506,17 @@
             "basic": []
           }
         ],
-        "summary": "Download a file by execution ID and FileKey.",
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
-      }
-    },
-    "/api/v1/files/{organizationName}/{projectName}/list": {
-      "get": {
-        "operationId": "list_1",
+      },
+      "post": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
+        "operationId": "download_1",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2352,6 +2525,195 @@
             }
           },
           {
+            "description": "project name of a file key",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a file key",
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "uploaded mills of a file key",
+            "in": "query",
+            "name": "uploadedMillis",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/list": {
+      "get": {
+        "description": "Get a list by project coordinates.",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "description": "organization name of a file key",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2361,6 +2723,19 @@
           }
         ],
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Returns the list of files."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2373,6 +2748,19 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Not found project by provided values."
           }
         },
         "security": [
@@ -2380,6 +2768,7 @@
             "basic": []
           }
         ],
+        "summary": "Get a list by project coordinates.",
         "tags": [
           "files"
         ]
@@ -2387,9 +2776,11 @@
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
+        "description": "Upload a file by project coordinates, name and uploaded time in millis.",
         "operationId": "upload",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2398,12 +2789,19 @@
             }
           },
           {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "a file to upload",
+            "in": "query",
+            "name": "file",
+            "required": true
           }
         ],
         "requestBody": {
@@ -2414,7 +2812,8 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "a file to upload"
                   }
                 },
                 "required": [
@@ -2425,6 +2824,16 @@
           }
         },
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
           "401": {
             "content": {
               "*/*": {
@@ -2434,6 +2843,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2441,6 +2860,7 @@
             "basic": []
           }
         ],
+        "summary": "Upload a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
@@ -3354,9 +3774,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           },
@@ -4897,9 +5317,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           },
@@ -6040,79 +6460,6 @@
           }
         ],
         "summary": "List of snapshot for all test suites sources in requested organization.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/{organizationName}/list-with-ids": {
-      "get": {
-        "description": "List test suites source with id by organization name.",
-        "operationId": "listWithIds",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of test suites sources with ids by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            },
-            "description": "Organization was not found by provided name."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "List test suites source with id by organization name.",
         "tags": [
           "test-suites-source"
         ]
@@ -8346,6 +8693,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"
@@ -8404,19 +8752,57 @@
           }
         }
       },
-      "DtoWithIdTestSuitesSourceDto": {
+      "DemoDto": {
         "required": [
-          "content",
-          "id"
+          "fileName",
+          "projectCoordinates",
+          "runCommand",
+          "sdk",
+          "vcsTagName"
         ],
         "type": "object",
         "properties": {
-          "content": {
-            "$ref": "#/components/schemas/TestSuitesSourceDto"
+          "configName": {
+            "type": "string"
           },
-          "id": {
-            "type": "integer",
-            "format": "int64"
+          "fileName": {
+            "type": "string"
+          },
+          "githubProjectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "runCommand": {
+            "type": "string"
+          },
+          "sdk": {
+            "$ref": "#/components/schemas/Sdk"
+          },
+          "vcsTagName": {
+            "type": "string"
+          }
+        }
+      },
+      "DemoInfo": {
+        "required": [
+          "demoDto",
+          "demoStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "demoDto": {
+            "$ref": "#/components/schemas/DemoDto"
+          },
+          "demoStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_CREATED",
+              "RUNNING",
+              "STARTING",
+              "STOPPED"
+            ]
           }
         }
       },
@@ -8515,6 +8901,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"
@@ -8614,6 +9001,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "INITIALIZATION",
               "OBSOLETE",
               "PENDING",
               "RUNNING"
@@ -8981,9 +9369,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           }
         }
@@ -9016,9 +9404,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           }
         }
@@ -9039,9 +9427,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           }
@@ -9133,9 +9521,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "url": {
@@ -9198,9 +9586,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "BANNED",
               "CREATED",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "url": {
@@ -9228,9 +9616,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "BANNED",
                 "CREATED",
-                "DELETED"
+                "DELETED",
+                "BANNED"
               ]
             }
           }
@@ -9557,6 +9945,10 @@
           },
           "gitDto": {
             "$ref": "#/components/schemas/GitDto"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           },
           "latestFetchedVersion": {
             "type": "string"

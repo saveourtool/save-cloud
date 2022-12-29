@@ -10,8 +10,8 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.utils.secondsToJLocalDateTime
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -32,6 +32,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
+import java.time.Instant
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -153,8 +154,8 @@ class TestExecutionControllerTest {
         val tests = getAllTestExecutions()
         val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
         val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
         assertEquals(passedTestsBefore, passedTestsAfter - 1)
         assertEquals(failedTestsBefore, failedTestsAfter - 1)
         assertTrue(tests.any {
@@ -239,6 +240,6 @@ class TestExecutionControllerTest {
             }!!
 
     companion object {
-        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
+        private val DEFAULT_DATE_TEST_EXECUTION: Long = Instant.now().epochSecond
     }
 }

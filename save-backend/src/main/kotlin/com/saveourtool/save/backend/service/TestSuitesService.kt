@@ -222,32 +222,6 @@ class TestSuitesService(
         }
     }
 
-    /**
-     * @param testSuiteIds IDs of [TestSuite]
-     * @return a single version got from test suites
-     */
-    fun getSingleVersionByIds(testSuiteIds: List<Long>): String {
-        require(testSuiteIds.isNotEmpty()) {
-            "No test suite is selected"
-        }
-        val testSuites = testSuiteIds.map { getById(it) }
-        testSuites.map { it.source }
-            .distinctBy { it.requiredId() }
-            .also { sources ->
-                require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: $sources"
-                }
-            }
-        return testSuites.map { it.version }
-            .distinct()
-            .also { versions ->
-                require(versions.size == 1) {
-                    "Only a single version is supported, but got: $versions"
-                }
-            }
-            .single()
-    }
-
     private fun getSavedEntityByDto(
         dto: TestSuiteDto,
     ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(

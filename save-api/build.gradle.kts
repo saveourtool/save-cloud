@@ -1,10 +1,11 @@
-import com.saveourtool.save.buildutils.configurePublishing
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.publishing-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
-    `maven-publish`
 }
 
 java {
@@ -58,5 +59,3 @@ publishing {
         }
     }
 }
-
-configurePublishing()

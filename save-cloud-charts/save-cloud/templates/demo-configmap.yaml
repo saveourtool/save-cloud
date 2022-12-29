@@ -8,3 +8,5 @@ data:
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.demo.managementPort }}
     logging.level.org.springframework=DEBUG
+    spring.datasource.url=${spring.datasource.demo-url}
+

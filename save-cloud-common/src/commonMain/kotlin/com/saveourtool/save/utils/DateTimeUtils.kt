@@ -7,9 +7,14 @@ package com.saveourtool.save.utils
 import kotlinx.datetime.*
 
 /**
- * @return [Instant] from epoch time
+ * @return [Instant] from epoch time in mills
  */
-fun Long.secondsToInstant(): Instant = Instant.fromEpochMilliseconds(this)
+fun Long.millisToInstant(): Instant = Instant.fromEpochMilliseconds(this)
+
+/**
+ * @return [Instant] from epoch time in seconds
+ */
+fun Long.secondsToInstant(): Instant = Instant.fromEpochSeconds(this)
 
 /**
  * @return pretty string representation of [Instant]
