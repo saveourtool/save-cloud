@@ -10,10 +10,7 @@ import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.AvatarStorage
-import com.saveourtool.save.backend.storage.DebugInfoStorage
-import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.storage.MigrationFileStorage
+import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
@@ -66,6 +63,8 @@ import kotlin.io.path.*
     WebConfig::class,
     NoopWebSecurityConfig::class,
     MigrationFileStorage::class,
+    FileStorage::class,
+    NewFileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,

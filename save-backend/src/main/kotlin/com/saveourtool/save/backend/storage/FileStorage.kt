@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import java.nio.file.Path

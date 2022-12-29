@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.FileRepository
-import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.File
 import com.saveourtool.save.entities.FileDto
@@ -29,7 +28,6 @@ class NewFileStorage(
     configProperties: ConfigProperties,
     private val fileRepository: FileRepository,
     private val projectService: ProjectService,
-    private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File>(
     Path.of(configProperties.fileStorage.location) / "storage", fileRepository) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
