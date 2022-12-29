@@ -54,11 +54,6 @@ external interface TestSuitesSourceFetcherProps : Props {
     var selectedValueState: StateInstance<String?>
 
     /**
-     * lambda to change [selectedFetchModeState]
-     */
-    var onChangeSelectedFetchModeState: (TestSuitesSourceFetchMode) -> Unit
-
-    /**
      * lambda to change [selectedValueState]
      */
     var onChangeSelectedValueState: (String?) -> Unit
@@ -77,7 +72,7 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     testSuitesSource: TestSuitesSourceDto,
 ) {
     val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
-    val (selectedFetchMode, setSelectedFetchMode) = selectedFetchModeState
+    val (selectedFetchMode, _) = selectedFetchModeState
     val selectedValueState: StateInstance<String?> = useState()
     val (selectedValue, setSelectedValue) = selectedValueState
     val triggerFetchTestSuiteSource = useDeferredRequest {
@@ -89,7 +84,6 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
             loadingHandler = ::loadingHandler,
             body = undefined
         )
-            .also { setSelectedValue("") }
     }
 
     modal { modalProps ->
@@ -104,7 +98,6 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                     this.testSuitesSource = testSuitesSource
                     this.selectedFetchModeState = selectedFetchModeState
                     this.selectedValueState = selectedValueState
-                    this.onChangeSelectedFetchModeState = { setSelectedFetchMode(it) }
                     this.onChangeSelectedValueState = { setSelectedValue(it) }
                 }
             },
@@ -151,7 +144,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_TAG)
             props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
@@ -161,7 +153,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_BRANCH)
             props.onChangeSelectedValueState(null)
         }
         buttonWithIcon(
@@ -171,7 +162,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             currentModeState = props.selectedFetchModeState
         ) {
             setSelectedValue(null)
-            props.onChangeSelectedFetchModeState(TestSuitesSourceFetchMode.BY_COMMIT)
             props.onChangeSelectedValueState(null)
         }
     }
@@ -220,9 +210,10 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         headers = jsonHeaders,
                         loadingHandler = ::loadingHandler,
                     )
-                        .unsafeMap {
+                        .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
                         }
+                        .also { setSelectedValue("") }
                 }
                 dataToString = { it }
                 notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
