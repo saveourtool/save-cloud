@@ -1822,7 +1822,7 @@
                 }
               }
             },
-            "description": "Could not find project in organization."
+            "description": "Could not find project in organization or demo for it."
           }
         },
         "summary": "Get demo info.",
@@ -1968,7 +1968,7 @@
                 }
               }
             },
-            "description": "Could not find project in organization."
+            "description": "Could not find project in organization or demo for it."
           }
         },
         "summary": "Get demo status.",
