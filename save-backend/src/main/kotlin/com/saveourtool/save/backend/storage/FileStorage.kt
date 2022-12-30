@@ -66,6 +66,6 @@ class FileStorage(
         }
 
     companion object {
-        private const val PATH_PARTS_COUNT = 4 // organization + project + uploadedMills + fileName
+        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
     }
 }

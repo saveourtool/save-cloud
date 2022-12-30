@@ -308,7 +308,9 @@ class ExecutionService(
      * @param executionId
      */
     @Transactional
-    fun deleteById(executionId: Long): Unit = delete(getExecution(executionId))
+    fun deleteById(executionId: Long) {
+        delete(getExecution(executionId))
+    }
 
     /**
      * Mark [Execution] as [ExecutionStatus.OBSOLETE]
@@ -334,10 +336,11 @@ class ExecutionService(
      * Mark [Execution] as [ExecutionStatus.OBSOLETE] by ID
      *
      * @param executionId
-     * @return
      */
     @Transactional
-    fun markAsObsoleteById(executionId: Long): Unit = markAsObsolete(getExecution(executionId))
+    fun markAsObsoleteById(executionId: Long) {
+        markAsObsolete(getExecution(executionId))
+    }
 
     /**
      * Unlink provided [File] from all [Execution]s

@@ -75,7 +75,7 @@ class NewFileStorage(
 
     /**
      * @param fileKey
-     * @return
+     * @return [File] is found by [FileKey]
      */
     fun getFileEntityByFileKey(
         fileKey: FileKey

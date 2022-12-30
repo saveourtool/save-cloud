@@ -1,8 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toFileKeyList
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
