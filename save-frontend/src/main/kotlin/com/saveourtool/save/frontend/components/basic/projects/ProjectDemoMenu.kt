@@ -8,6 +8,9 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
+import com.saveourtool.save.frontend.components.views.contests.myProjectsRating
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -21,6 +24,7 @@ import react.dom.html.ReactHTML.label
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.fetch.Response
 
 private val demoInfoCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false)
 
@@ -45,10 +49,13 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     jsonHeaders,
                     Json.encodeToString(demoRequest),
                     ::loadingHandler,
+                    ::noopResponseHandler,
                 )
                     .let {
                         if (it.ok) {
                             setDemoStatus(DemoStatus.STARTING)
+                        } else {
+                            props.updateErrorMessage(it, it.unpackMessage())
                         }
                     }
             }
@@ -64,6 +71,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (statusResponse.ok) {
             setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
         } else {
+            props.updateErrorMessage(statusResponse, statusResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -81,6 +89,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
             setDemoToolRequest(demoInfo.demoDto)
             setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
         } else {
+            props.updateErrorMessage(infoResponse, infoResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -211,4 +220,10 @@ external interface ProjectDemoMenuProps : Props {
      * Organization name
      */
     var organizationName: String
+
+    /**
+     * Callback to show error message
+     */
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 }

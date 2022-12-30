@@ -214,6 +214,13 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectDemoMenu {
             projectName = props.name
             organizationName = props.owner
+            updateErrorMessage = { response, message ->
+                setState {
+                    errorLabel = response.statusText
+                    errorMessage = message
+                    isErrorOpen = true
+                }
+            }
         }
     }
 
