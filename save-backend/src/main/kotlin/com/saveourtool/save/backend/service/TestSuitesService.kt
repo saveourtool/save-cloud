@@ -191,34 +191,19 @@ class TestSuitesService(
             "Expected that we remove all test suites related to a single execution at once"
         }
         executionIds.forEach { executionId ->
-            log.debug { "Delete link between execution $executionId and test suites" }
-            lnkExecutionTestSuiteService.deleteByExecution(executionId)
+            executionService.markAsObsoleteById(executionId)
         }
 
         testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
             testIds.forEach { testId ->
-                testExecutionRepository.findByTestId(testId).forEach { testExecution ->
-                    // Delete test executions
-                    val testExecutionId = testExecution.requiredId()
-                    log.debug { "Delete test execution with id $testExecutionId" }
-                    testExecutionRepository.deleteById(testExecutionId)
-                }
                 // Delete tests
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
             log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
             testSuiteRepository.deleteById(testSuite.requiredId())
-        }
-
-        // Delete agents, which related to the test suites
-        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-        agentService.deleteAgentByExecutionIds(executionIds)
-
-        executionIds.forEach {
-            executionService.updateExecutionStatus(executionService.findExecution(it).orNotFound(), ExecutionStatus.OBSOLETE)
         }
     }
 

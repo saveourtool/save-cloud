@@ -201,15 +201,11 @@ class ExecutionController(private val executionService: ExecutionService,
             Permission.DELETE,
             messageIfNotFound = "Could not find the project with name: $name and owner: ${organization.name} or related objects",
         )
-            .mapNotNull { it.id!! }
-            .map { id ->
-                val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
-                    it.requiredId()
-                }
-                testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
-                agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
-                agentService.deleteAgentByExecutionIds(executionsNotInContests)
-                executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
+            .map { project ->
+                executionService.getExecutionNotParticipatingInContestByNameAndOrganization(project.name, project.organization)
+                    .forEach {
+                        executionService.delete(it)
+                    }
                 ResponseEntity.ok().build<String>()
             }
     }
@@ -258,10 +254,7 @@ class ExecutionController(private val executionService: ExecutionService,
             .collectList()
             .map { filteredExecutionIds ->
                 // at this point we should have only present executions from a project, that user has access to
-                testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
-                agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
-                agentService.deleteAgentByExecutionIds(filteredExecutionIds)
-                executionService.deleteExecutionByIds(filteredExecutionIds)
+                filteredExecutionIds.forEach { executionService.deleteById(it) }
                 if (filteredExecutionIds.isNotEmpty()) {
                     ResponseEntity.ok().build<Void>()
                 } else if (isProjectHidden.get()) {

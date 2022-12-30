@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.millisToInstant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
@@ -24,7 +25,16 @@ data class FileDto(
     val sizeBytes: Long = -1L,
     val isExecutable: Boolean = false,
     override val id: Long? = null,
-) : DtoWithId()
+) : DtoWithId() {
+    /**
+     * @return [FileKey] is built from this [FileDto]
+     */
+    fun toFileKey(): FileKey = FileKey(
+        projectCoordinates = this.projectCoordinates,
+        name = this.name,
+        uploadedMillis = this.uploadedTime.toInstant(TimeZone.UTC).toEpochMilliseconds(),
+    )
+}
 
 /**
  * @receiver [FileKey]

@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
@@ -37,6 +38,7 @@ class ExecutionService(
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
+    private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -144,31 +146,6 @@ class ExecutionService(
             executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
 
     /**
-     * Delete executions, except participating in contests, by project name and organization
-     *
-     * @param name name of project
-     * @param organization organization of project
-     * @return Unit
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
-        getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
-            executionRepository.delete(it)
-        }
-    }
-
-    /**
-     * Delete all executions by project name and organization
-     *
-     * @param executionIds list of ids
-     * @return Unit
-     */
-    fun deleteExecutionByIds(executionIds: List<Long>) =
-            executionIds.forEach {
-                executionRepository.deleteById(it)
-            }
-
-    /**
      * Get all executions, which contains provided test suite id
      *
      * @param testSuiteId
@@ -180,7 +157,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param files
+     * @param fileKeys
      * @param username
      * @param sdk
      * @param execCmd
@@ -194,7 +171,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        files: List<FileKey>,
+        fileKeys: List<FileKey>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -207,14 +184,14 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
-
+        val files = fileKeys.map { newFileStorage.getFileEntityByFileKey(it) }
         return doCreateNew(
             project = project,
             testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            fileIds = files.formatForExecution(),
+            files = files,
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -235,12 +212,12 @@ class ExecutionService(
         username: String,
     ): Execution {
         val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
-        val fileIds = lnkExecutionFileRepository.findAllByExecution(execution).map { it.requiredId() }
+        val files = lnkExecutionFileRepository.findAllByExecution(execution).map { it.file }
         return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
             allTests = execution.allTests,
-            fileIds = execution.additionalFiles,
+            files = files,
             username = username,
             sdk = execution.sdk,
             execCmd = execution.execCmd,
@@ -256,7 +233,7 @@ class ExecutionService(
         project: Project,
         testSuites: List<TestSuite>,
         allTests: Long,
-        fileIds: String,
+        files: List<File>,
         username: String,
         sdk: String,
         execCmd: String?,
@@ -285,7 +262,6 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
-            additionalFiles = fileIds,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
@@ -294,6 +270,7 @@ class ExecutionService(
         )
         val savedExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
         if (testingType == TestingType.CONTEST_MODE) {
             lnkContestExecutionService.createLink(
                 savedExecution, requireNotNull(contestName) {
@@ -306,6 +283,35 @@ class ExecutionService(
     }
 
     /**
+     * Delete [Execution] and links to TestSuite, File, TestExecution and related Agent with AgentStatus
+     *
+     * @param execution
+     */
+    @Transactional
+    fun delete(execution: Execution) {
+        log.info {
+            "Marking execution with id = ${execution.requiredId()} as obsolete. " +
+                    "Additionally deleting link to test suites and files " +
+                    "and deleting agents with agent statuses and test executions related to this execution"
+        }
+        lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
+        lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
+        testExecutionRepository.deleteByExecutionIdIn(listOf(execution.requiredId()))
+        agentStatusService.deleteAgentStatusWithExecutionIds(listOf(execution.requiredId()))
+        agentService.deleteAgentByExecutionIds(listOf(execution.requiredId()))
+        executionRepository.delete(execution)
+    }
+
+
+    /**
+     * Delete [Execution] and links to TestSuite, File, TestExecution and related Agent with AgentStatus
+     *
+     * @param executionId
+     */
+    @Transactional
+    fun deleteById(executionId: Long) = delete(getExecution(executionId))
+
+    /**
      * Mark [Execution] as [ExecutionStatus.OBSOLETE]
      *
      * @param execution
@@ -315,15 +321,23 @@ class ExecutionService(
         log.info {
             "Marking execution with id = ${execution.requiredId()} as obsolete. " +
                     "Additionally deleting link to test suites and files " +
-                    "and deleting agents and agent statuses related to this execution "
+                    "and deleting agents with agent statuses and test executions related to this execution"
         }
         lnkExecutionTestSuiteService.deleteByExecution(execution.requiredId())
         lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecution(execution))
-        updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
-        // Delete agents, which related to the test suites
+        testExecutionRepository.deleteByExecutionIdIn(listOf(execution.requiredId()))
         agentStatusService.deleteAgentStatusWithExecutionIds(listOf(execution.requiredId()))
         agentService.deleteAgentByExecutionIds(listOf(execution.requiredId()))
+        updateExecutionStatus(execution, ExecutionStatus.OBSOLETE)
     }
+
+    /**
+     * Mark [Execution] as [ExecutionStatus.OBSOLETE] by ID
+     *
+     * @param executionId
+     */
+    @Transactional
+    fun markAsObsoleteById(executionId: Long) = markAsObsolete(getExecution(executionId))
 
     /**
      * Unlink provided [File] from all [Execution]s
@@ -336,6 +350,15 @@ class ExecutionService(
             .forEach {
                 markAsObsolete(it.execution)
             }
+    }
+
+    /**
+     * @param execution
+     * @return all [FileDto]s are assigned to provided [Execution]
+     */
+    fun getAssignedFiles(execution: Execution): List<FileDto> {
+        return lnkExecutionFileRepository.findAllByExecution(execution)
+            .map { it.file.toDto() }
     }
 
     companion object {
