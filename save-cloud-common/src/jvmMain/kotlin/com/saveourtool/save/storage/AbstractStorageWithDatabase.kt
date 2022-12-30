@@ -46,7 +46,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     override fun doesExist(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
         .flatMap { entity ->
             storage.doesExist(entity.requiredId())
-                .filter { !it }
+                .filter { it }
                 .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     "The key $key is presented in database, but missed in storage"
                 }
@@ -63,7 +63,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                 .asyncEffectIf({ this }) {
                     blockingToMono {
                         beforeDelete(entity)
-                        repository.deleteById(entity.requiredId())
+                        repository.delete(entity)
                     }
                 }
         }
@@ -74,15 +74,17 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
+                .filter { it > 0 }
                 .flatMap { contentSize ->
-                    blockingToMono {
-                        if (contentSize > 0) {
-                            repository.save(entity.updateByContentSize(contentSize))
-                        } else {
-                            repository.delete(entity)
-                        }
-                    }
+                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
                         .thenReturn(contentSize)
+                }
+                .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+                    "Failed to upload key $key: content is empty"
+                }
+                .doOnError {
+                    beforeDelete(entity)
+                    repository.delete(entity)
                 }
         }
 

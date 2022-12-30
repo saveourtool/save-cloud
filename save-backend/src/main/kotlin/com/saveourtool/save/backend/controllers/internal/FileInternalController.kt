@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.NewFileStorage
+import com.saveourtool.save.backend.storage.MigrationFileStorage
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
 /**
- * Internal controller for [FileStorage]
+ * Internal controller for [MigrationFileStorage]
  *
  * @property fileStorage
  */

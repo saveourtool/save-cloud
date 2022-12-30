@@ -10,17 +10,12 @@ import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.AvatarStorage
-import com.saveourtool.save.backend.storage.DebugInfoStorage
-import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
@@ -58,6 +53,9 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -65,7 +63,9 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
+    MigrationFileStorage::class,
     FileStorage::class,
+    NewFileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
@@ -95,18 +95,39 @@ class DownloadFilesTest {
         url = "huawei.com"
         description = "test description"
     }
+    private var file1: File = File(
+        project = testProject,
+        name = "test-1.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = -1L,
+        isExecutable = false,
+    ).apply {
+        id = 1L
+    }
+    private var file2: File = File(
+        project = testProject2,
+        name = "test-2.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = -1L,
+        isExecutable = false,
+    ).apply {
+        id = 2L
+    }
 
     @Autowired
     lateinit var webTestClient: WebTestClient
     
     @Autowired
-    private lateinit var fileStorage: FileStorage
+    private lateinit var fileStorage: MigrationFileStorage
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
 
     @MockBean
     private lateinit var projectService: ProjectService
+
+    @MockBean
+    private lateinit var fileRepository: FileRepository
 
     @MockBean
     private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
@@ -119,20 +140,23 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
+        mockFileRepository(file1)
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject.name), eq(organization.name)))
+            .thenReturn(testProject)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
 
-        val tmpFile = createTempFile("test", "txt")
+        val tmpFile = (createTempDirectory() / file1.name).createFile()
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
         val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
         val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
         val fileKey = sampleFileInfo.key
-        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        fileStorage.overwrite(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
-            .toFuture()
-            .get()
+            .block()
 
         setOf(HttpMethod.GET, HttpMethod.POST)
             .forEach { httpMethod ->
@@ -175,6 +199,7 @@ class DownloadFilesTest {
             .isNotFound
     }
 
+    @Suppress("LongMethod")
     @Test
     @WithMockUser(roles = ["ADMIN"])
     fun checkUpload() {
@@ -182,10 +207,14 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
+        mockFileRepository(file2)
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
+            .thenReturn(testProject2)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
 
-        val tmpFile = createTempFile("test", "txt")
+        val tmpFile = (createTempDirectory() / file2.name).createFile()
             .writeLines("Lorem ipsum".lines())
 
         val body = MultipartBodyBuilder().apply {
@@ -280,6 +309,46 @@ class DownloadFilesTest {
                     .isNotFound
 
             }
+    }
+
+    private fun mockFileRepository(file: File) {
+        val saveCallCount = AtomicInteger()
+        val isSaved: () -> Boolean = { saveCallCount.get() != 0 }
+        whenever(fileRepository.save(any()))
+            .thenAnswer {
+                assert(saveCallCount.incrementAndGet() <= 2) {
+                    "Too many times save() is called"
+                }
+                file
+            }
+        whenever(fileRepository.findById(file.requiredId()))
+            .thenAnswer {
+                if (isSaved()) {
+                    Optional.of(file)
+                } else {
+                    Optional.empty()
+                }
+            }
+        whenever(fileRepository.findAll())
+            .thenAnswer {
+                if (isSaved()) {
+                    listOf(file)
+                } else {
+                    emptyList()
+                }
+            }
+        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+            eq(file.project.organization.name),
+            eq(file.project.name),
+            eq(file.name),
+            any()
+        )).thenAnswer {
+            if (isSaved()) {
+                file
+            } else {
+                null
+            }
+        }
     }
 
     companion object {

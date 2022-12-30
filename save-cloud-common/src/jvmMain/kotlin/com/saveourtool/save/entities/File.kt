@@ -54,7 +54,7 @@ fun FileDto.toEntity(projectResolver: (ProjectCoordinates) -> Project): File = F
     sizeBytes = sizeBytes,
     isExecutable = isExecutable,
 ).apply {
-    id = id
+    this.id = this@toEntity.id
 }
 
 /**
