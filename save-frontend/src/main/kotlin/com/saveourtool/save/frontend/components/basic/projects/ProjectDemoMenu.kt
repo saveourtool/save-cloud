@@ -8,12 +8,10 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
-import com.saveourtool.save.frontend.components.views.contests.myProjectsRating
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
@@ -24,7 +22,6 @@ import react.dom.html.ReactHTML.label
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.Response
 
 private val demoInfoCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false)
 
