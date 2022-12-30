@@ -10,13 +10,14 @@ import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 
 import org.springframework.http.HttpStatus
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 /**
- * Internal controller that allows to add tools to db
+ * Internal controller that allows to create demos
  */
 @RestController
 @RequestMapping("/demo/internal")
@@ -29,7 +30,7 @@ class ManagementController(
 ) {
     /**
      * @param demoDto
-     * @return [Mono] of [Tool] entity
+     * @return [Mono] of [DemoDto] entity
      */
     @PostMapping("/add-tool")
     fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.githubProjectCoordinates
@@ -62,6 +63,29 @@ class ManagementController(
         }
         .map {
             demoDto.also { demoService.saveIfNotPresent(it.toDemo()) }
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version to attach [file] to
+     * @param file file that should be uploaded to storage of [organizationName]/[projectName] with [version]
+     * @return amount of bytes loaded, wrapped into [Mono]
+     */
+    @GetMapping("/{organizationName}/{projectName}/upload-file")
+    fun uploadFile(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+        @RequestPart file: FilePart,
+    ): Mono<Long> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .flatMap {
+            demoService.loadFileToStorage(organizationName, projectName, version, file)
         }
 
     /**

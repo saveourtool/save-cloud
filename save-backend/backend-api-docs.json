@@ -1916,6 +1916,82 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/upload-file": {
+      "post": {
+        "description": "Attach file to demo.",
+        "operationId": "uploadFile",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "version to attach the file to",
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Successfully added demo."
+          }
+        },
+        "summary": "Attach file to demo.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "operationId": "getExecution",
