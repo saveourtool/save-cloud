@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -103,6 +104,44 @@ class DemoManagerController(
                 .bodyValue(demoDto)
                 .retrieve()
                 .toBodilessEntity()
+        }
+
+    @PostMapping("/{organizationName}/{projectName}/upload-file")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to attach the file to", required = true),
+    )
+    @Operation(
+        method = "POST",
+        summary = "Attach file to demo.",
+        description = "Attach file to demo.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully added demo.")
+    fun uploadFile(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+        @RequestPart file: FilePart,
+        authentication: Authentication,
+    ): Mono<Long> = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(
+            projectName,
+            organizationName,
+        )
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName."
+        }
+        .flatMap {
+            webClientDemo.post()
+                .uri("/demo/internal/$organizationName/$projectName/upload-file?version=$version")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .bodyValue(file)
+                .retrieve()
+                .bodyToMono()
         }
 
     @GetMapping("/{organizationName}/{projectName}/status")
