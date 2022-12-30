@@ -302,14 +302,13 @@ class ExecutionService(
         executionRepository.delete(execution)
     }
 
-
     /**
      * Delete [Execution] and links to TestSuite, File, TestExecution and related Agent with AgentStatus
      *
      * @param executionId
      */
     @Transactional
-    fun deleteById(executionId: Long) = delete(getExecution(executionId))
+    fun deleteById(executionId: Long): Unit = delete(getExecution(executionId))
 
     /**
      * Mark [Execution] as [ExecutionStatus.OBSOLETE]
@@ -335,9 +334,10 @@ class ExecutionService(
      * Mark [Execution] as [ExecutionStatus.OBSOLETE] by ID
      *
      * @param executionId
+     * @return
      */
     @Transactional
-    fun markAsObsoleteById(executionId: Long) = markAsObsolete(getExecution(executionId))
+    fun markAsObsoleteById(executionId: Long): Unit = markAsObsolete(getExecution(executionId))
 
     /**
      * Unlink provided [File] from all [Execution]s
@@ -356,10 +356,8 @@ class ExecutionService(
      * @param execution
      * @return all [FileDto]s are assigned to provided [Execution]
      */
-    fun getAssignedFiles(execution: Execution): List<FileDto> {
-        return lnkExecutionFileRepository.findAllByExecution(execution)
-            .map { it.file.toDto() }
-    }
+    fun getAssignedFiles(execution: Execution): List<FileDto> = lnkExecutionFileRepository.findAllByExecution(execution)
+        .map { it.file.toDto() }
 
     companion object {
         private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }

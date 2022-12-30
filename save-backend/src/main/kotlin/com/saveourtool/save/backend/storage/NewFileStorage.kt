@@ -73,11 +73,13 @@ class NewFileStorage(
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 
+    /**
+     * @param fileKey
+     * @return
+     */
     fun getFileEntityByFileKey(
         fileKey: FileKey
-    ): File {
-        return findByDto(fileKey.toFileDto()).orNotFound {
-            "Not found File by $fileKey"
-        }
+    ): File = findByDto(fileKey.toFileDto()).orNotFound {
+        "Not found File by $fileKey"
     }
 }

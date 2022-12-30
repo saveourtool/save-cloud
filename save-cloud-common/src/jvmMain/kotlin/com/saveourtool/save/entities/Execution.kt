@@ -9,7 +9,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -36,7 +35,6 @@ import javax.persistence.ManyToOne
  * @property expectedChecks
  * @property unexpectedChecks
  * @property sdk
- * @property additionalFiles
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -85,8 +83,6 @@ class Execution(
 
     var sdk: String,
 
-    var additionalFiles: String = "",
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User?,
@@ -123,13 +119,6 @@ class Execution(
         testSuiteSourceName = testSuiteSourceName,
         score = score,
     )
-
-    /**
-     * Parse and get additionalFiles as [List] of [FileKey]
-     *
-     * @return list of keys [FileKey] of additional files
-     */
-    fun getFileKeys(): List<FileKey> = additionalFiles.toFileKeyList(project.toProjectCoordinates())
 
     /**
      * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]

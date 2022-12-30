@@ -112,7 +112,6 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(testsCount, newExecution.allTests)
-        Assertions.assertEquals("test1:123", newExecution.additionalFiles)
         Assertions.assertEquals("eclipse-temurin:8", newExecution.sdk)
         Assertions.assertEquals("execCmd", newExecution.execCmd)
         Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
@@ -121,6 +120,7 @@ class RunExecutionControllerTest(
             .count { it.execution.requiredId() == executionId }
             .toLong()
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
+        // TODO: add checking lnk to test suites and files
     }
 
     @WithMockUser("admin")
@@ -168,7 +168,6 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(originalExecution.project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(originalExecution.allTests, newExecution.allTests)
-        Assertions.assertEquals(originalExecution.additionalFiles, newExecution.additionalFiles)
         Assertions.assertEquals(originalExecution.sdk, newExecution.sdk)
         Assertions.assertEquals(originalExecution.execCmd, newExecution.execCmd)
         Assertions.assertEquals(originalExecution.batchSizeForAnalyzer, newExecution.batchSizeForAnalyzer)
@@ -177,6 +176,7 @@ class RunExecutionControllerTest(
             .count { it.execution.requiredId() == executionId }
             .toLong()
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
+        // TODO: add checking lnk to test suites and files
     }
 
     companion object {
