@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
