@@ -64,6 +64,8 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
+    @ApiResponse(responseCode = "409", description = "Please provide github repository")
     fun addDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -113,6 +115,7 @@ class DemoManagerController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to attach the file to", required = true),
+        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file to upload", required = true),
     )
     @Operation(
         method = "POST",
@@ -120,6 +123,8 @@ class DemoManagerController(
         description = "Attach file to demo.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
     fun uploadFile(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -134,6 +139,10 @@ class DemoManagerController(
     }
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
+        }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
         }
         .flatMap {
             webClientDemo.post()
@@ -157,6 +166,7 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -164,8 +174,11 @@ class DemoManagerController(
     ): Mono<DemoStatus> = blockingToMono {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
     }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName."
+        }
         .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
+            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
@@ -183,14 +196,6 @@ class DemoManagerController(
                     )
                 }
                 .bodyToMono<DemoStatus>()
-                .filter {
-                    projectPermissionEvaluator.hasPermission(
-                        authentication, projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)!!, Permission.READ
-                    )
-                }
-                .switchIfEmptyToNotFound {
-                    "Not enough permission for accessing given project."
-                }
                 .defaultIfEmpty(DemoStatus.NOT_CREATED)
         }
 
@@ -208,12 +213,16 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
     fun getDemoInfo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
     ): Mono<DemoInfo> = blockingToMono {
-            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName."
         }
         .filter {
             projectPermissionEvaluator.hasPermission(
