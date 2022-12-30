@@ -52,7 +52,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                         if (it.ok) {
                             setDemoStatus(DemoStatus.STARTING)
                         } else {
-                            props.updateErrorMessage(it, it.unpackMessage())
+                            props.updateErrorMessage(it.statusText, it.unpackMessage())
                         }
                     }
             }
@@ -68,7 +68,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (statusResponse.ok) {
             setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
         } else {
-            props.updateErrorMessage(statusResponse, statusResponse.unpackMessage())
+            props.updateErrorMessage(statusResponse.statusText, statusResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -86,7 +86,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
             setDemoToolRequest(demoInfo.demoDto)
             setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
         } else {
-            props.updateErrorMessage(infoResponse, infoResponse.unpackMessage())
+            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -222,5 +222,5 @@ external interface ProjectDemoMenuProps : Props {
      * Callback to show error message
      */
     @Suppress("TYPE_ALIAS")
-    var updateErrorMessage: (Response, String) -> Unit
+    var updateErrorMessage: (String, String) -> Unit
 }
