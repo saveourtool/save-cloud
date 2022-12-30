@@ -1803,6 +1803,26 @@
               }
             },
             "description": "Successfully fetched demo status."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Could not find project in organization or demo for it."
           }
         },
         "summary": "Get demo info.",
@@ -1854,6 +1874,15 @@
         "responses": {
           "200": {
             "description": "Successfully added demo."
+          },
+          "403": {
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "description": "Could not find project in organization."
+          },
+          "409": {
+            "description": "Please provide github repository"
           }
         },
         "summary": "Add demo for a tool.",
@@ -1908,6 +1937,38 @@
               }
             },
             "description": "Successfully fetched demo status."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Could not find project in organization or demo for it."
           }
         },
         "summary": "Get demo status.",
@@ -1949,6 +2010,12 @@
             }
           },
           {
+            "description": "a file to upload",
+            "in": "query",
+            "name": "file",
+            "required": true
+          },
+          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -1963,7 +2030,8 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "a file to upload"
                   }
                 },
                 "required": [
@@ -1984,6 +2052,28 @@
               }
             },
             "description": "Successfully added demo."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Could not find project in organization."
           }
         },
         "summary": "Attach file to demo.",
