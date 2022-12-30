@@ -8,6 +8,7 @@ import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.millisToInstant
+import com.saveourtool.save.utils.warn
 
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
@@ -37,6 +38,9 @@ class MigrationFileStorage(
             .map { fileKey ->
                 fileKey to fileKey.toFileDto()
             }
+            .filterWhen { (_, fileDto) ->
+                newFileStorage.doesExist(fileDto).map { !it }
+            }
             .flatMap { (fileKey, fileDto) ->
                 newFileStorage.upload(fileDto, oldFileStorage.download(fileKey))
                     .map {
@@ -46,6 +50,14 @@ class MigrationFileStorage(
                     }
                     .flatMap {
                         oldFileStorage.delete(fileKey)
+                    }
+                    .onErrorResume { ex ->
+                        Mono.fromCallable {
+                            log.warn(ex) {
+                                "Failed to copy $fileKey from old storage"
+                            }
+                            false
+                        }
                     }
             }
             .subscribe()
