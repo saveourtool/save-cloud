@@ -10,10 +10,8 @@ import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.utils.EmptyResponse
-import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -80,8 +78,7 @@ class DemoManagerController(
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
         }
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
         .flatMap { project ->
@@ -140,8 +137,7 @@ class DemoManagerController(
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
         }
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
         .flatMap {
@@ -166,7 +162,7 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
-    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization or demo for it.")
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -177,10 +173,7 @@ class DemoManagerController(
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
         }
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.READ) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
         .flatMap {
@@ -213,7 +206,7 @@ class DemoManagerController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
-    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization or demo for it.")
     fun getDemoInfo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -224,12 +217,7 @@ class DemoManagerController(
         .switchIfEmptyToNotFound {
             "Could not find project $projectName in organization $organizationName."
         }
-        .filter {
-            projectPermissionEvaluator.hasPermission(
-                authentication, it, Permission.WRITE
-            )
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.WRITE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
         .flatMap {
