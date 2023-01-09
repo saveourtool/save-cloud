@@ -4,15 +4,13 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.entities.toFileDto
 import com.saveourtool.save.storage.AbstractMigrationStorage
-import com.saveourtool.save.utils.millisToInstant
 
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
 import javax.annotation.PostConstruct
-
-import kotlinx.datetime.*
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -30,17 +28,9 @@ class MigrationFileStorage(
         super.migration()
     }
 
-    override fun FileDto.toOldKey(): FileKey = FileKey(
-        projectCoordinates = projectCoordinates,
-        name = name,
-        uploadedMillis = uploadedTime.toInstant(TimeZone.UTC).toEpochMilliseconds()
-    )
+    override fun FileDto.toOldKey(): FileKey = toFileKey()
 
-    override fun FileKey.toNewKey(): FileDto = FileDto(
-        projectCoordinates = this.projectCoordinates,
-        name = this.name,
-        uploadedTime = this.uploadedMillis.millisToInstant().toLocalDateTime(TimeZone.UTC),
-    )
+    override fun FileKey.toNewKey(): FileDto = toFileDto()
 
     /**
      * @param projectCoordinates
