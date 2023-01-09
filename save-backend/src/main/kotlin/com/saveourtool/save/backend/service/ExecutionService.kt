@@ -117,17 +117,6 @@ class ExecutionService(
             executionRepository.findByProjectNameAndProjectOrganizationAndStartTimeBetween(name, organization, start, end)
 
     /**
-     * @param name name of project
-     * @param organization organization of project
-     * @return list of execution
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization): List<Execution> =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
-                lnkContestExecutionService.findContestByExecution(it) == null
-            }
-
-    /**
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
@@ -136,6 +125,24 @@ class ExecutionService(
      */
     fun getLatestExecutionByProjectNameAndProjectOrganizationName(name: String, organizationName: String): Optional<Execution> =
             executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
+
+    /**
+     * Delete executions, except participating in contests, by project name and organization
+     *
+     * @param name name of project
+     * @param organization organization of project
+     * @return Unit
+     */
+    @Suppress("IDENTIFIER_LENGTH")
+    @Transactional
+    fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
+        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
+            .filter {
+                lnkContestExecutionService.findContestByExecution(it) == null
+            }
+            .map { it.requiredId() }
+            .let { deleteByIds(it) }
+    }
 
     /**
      * Get all executions, which contains provided test suite id
@@ -271,20 +278,6 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
         return savedExecution
-    }
-
-    /**
-     * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
-     *
-     * @param execution
-     */
-    @Transactional
-    fun deleteAll(execution: Execution) {
-        log.info {
-            "Deleting execution with id = ${execution.requiredId()}. Additionally cleanup dependencies to this execution"
-        }
-        doDeleteDependencies(listOf(execution.requiredId()))
-        executionRepository.delete(execution)
     }
 
     /**

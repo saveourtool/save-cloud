@@ -1,11 +1,9 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -30,13 +28,10 @@ import java.time.LocalDateTime
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
-    private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
-    private val agentStatusService: AgentStatusService,
-    private val agentService: AgentService,
 ) {
     /**
      * Save new test suites to DB

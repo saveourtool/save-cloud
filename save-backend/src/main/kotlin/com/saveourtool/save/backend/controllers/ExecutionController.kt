@@ -1,13 +1,9 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
@@ -49,12 +45,8 @@ import kotlinx.datetime.toJavaLocalDateTime
 class ExecutionController(private val executionService: ExecutionService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                          private val testExecutionService: TestExecutionService,
-                          private val agentService: AgentService,
-                          private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
-                          private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -191,21 +183,17 @@ class ExecutionController(private val executionService: ExecutionService,
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<*>> {
-        return projectService.findWithPermissionByNameAndOrganization(
-            authentication,
-            name,
-            organizationName,
-            Permission.DELETE,
-            messageIfNotFound = "Could not find the project with name: $name and owner: $organizationName or related objects",
-        )
-            .map { project ->
-                executionService.deleteAll(
-                    executionService.getExecutionNotParticipatingInContestByNameAndOrganization(project.name, project.organization)
-                )
-                ResponseEntity.ok().build<String>()
-            }
-    }
+    ): Mono<ResponseEntity<*>> = projectService.findWithPermissionByNameAndOrganization(
+        authentication,
+        name,
+        organizationName,
+        Permission.DELETE,
+        messageIfNotFound = "Could not find the project with name: $name and owner: $organizationName or related objects",
+    )
+        .map { project ->
+            executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(project.name, project.organization)
+            ResponseEntity.ok().build<String>()
+        }
 
     /**
      * Batch delete executions by a list of IDs.
