@@ -11,7 +11,7 @@
             <column name="name" value="test.bat"/>
             <column name="uploaded_time" value="2022-12-30 01:02:03"/>
             <column name="size_bytes" value="-1"/>
-            <column name="is_executable" value="false"/>
+            <column name="is_executable" valueBoolean="false"/>
             <column name="project_id" value="1"/>
         </insert>
     </changeSet>

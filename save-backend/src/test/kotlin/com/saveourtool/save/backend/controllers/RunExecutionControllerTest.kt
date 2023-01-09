@@ -72,13 +72,19 @@ class RunExecutionControllerTest(
         }
         val project = projectRepository.findById(PROJECT_ID).get()
         val testSuiteIds = listOf(2L, 3L)
+        println("test: ${LocalDateTime.of(2022, 12, 30, 1, 2, 3)
+            .toInstant(ZoneOffset.UTC)
+            .toEpochMilli()}")
+        fileRepository.findAll().forEach {
+            println("${it.uploadedTime} : ${it.uploadedTime.toInstant(ZoneOffset.UTC).toEpochMilli()}")
+        }
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
             files = listOf(
                 FileKey(
                     project.toProjectCoordinates(),
-                    "test1",
+                    "test.bat",
                     LocalDateTime.of(2022, 12, 30, 1, 2, 3)
                         .toInstant(ZoneOffset.UTC)
                         .toEpochMilli()
@@ -138,10 +144,14 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
 
         Assertions.assertEquals(
-            FILE_ID,
+            testSuiteIds,
+            lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+                .map { it.testSuite.requiredId() }
+        )
+        Assertions.assertEquals(
+            listOf(FILE_ID),
             lnkExecutionFileRepository.findAllByExecutionId(executionId)
-                .map { it.requiredId() }
-                .single()
+                .map { it.file.requiredId() }
         )
     }
 
@@ -164,6 +174,7 @@ class RunExecutionControllerTest(
             log.info("Request $it")
         }
 
+        val testSuiteId = 11L
         val originalExecution = executionRepository.findById(EXECUTION_ID).get()
         val executionId = webClient.post()
             .uri("/api/$v1/run/re-trigger?executionId=$EXECUTION_ID")
@@ -184,7 +195,7 @@ class RunExecutionControllerTest(
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val testsCount = testRepository.findAll()
-            .count { it.testSuite.requiredId() == 11L }
+            .count { it.testSuite.requiredId() == testSuiteId }
             .toLong()
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(originalExecution.project, newExecution.project)
@@ -198,7 +209,18 @@ class RunExecutionControllerTest(
             .count { it.execution.requiredId() == executionId }
             .toLong()
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
-        // TODO: add checking lnk to test suites and files
+
+        Assertions.assertEquals(
+            listOf(FILE_ID),
+            lnkExecutionFileRepository.findAllByExecutionId(executionId)
+                .map { it.file.requiredId() }
+        )
+
+        Assertions.assertEquals(
+            listOf(testSuiteId),
+            lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+                .map { it.testSuite.requiredId() }
+        )
     }
 
     companion object {
@@ -215,7 +237,7 @@ class RunExecutionControllerTest(
 
         @BeforeAll
         fun setup() {
-            (tmpDir / "storage" / "1").createFile().writeText("TEST")
+            (tmpDir / "storage" / FILE_ID.toString()).createFile().writeText("TEST")
         }
 
         @AfterEach
