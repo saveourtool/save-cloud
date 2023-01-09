@@ -7,6 +7,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -35,6 +36,8 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    @Lazy private val agentService: AgentService,
+    private val agentStatusService: AgentStatusService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -116,17 +119,10 @@ class ExecutionService(
     /**
      * @param name name of project
      * @param organization organization of project
-     * @return list of execution dtos
-     */
-    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
-
-    /**
-     * @param name name of project
-     * @param organization organization of project
      * @return list of execution
      */
     @Suppress("IDENTIFIER_LENGTH")
-    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization) =
+    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization): List<Execution> =
             executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
                 lnkContestExecutionService.findContestByExecution(it) == null
             }
@@ -140,31 +136,6 @@ class ExecutionService(
      */
     fun getLatestExecutionByProjectNameAndProjectOrganizationName(name: String, organizationName: String): Optional<Execution> =
             executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
-
-    /**
-     * Delete executions, except participating in contests, by project name and organization
-     *
-     * @param name name of project
-     * @param organization organization of project
-     * @return Unit
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
-        getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
-            executionRepository.delete(it)
-        }
-    }
-
-    /**
-     * Delete all executions by project name and organization
-     *
-     * @param executionIds list of ids
-     * @return Unit
-     */
-    fun deleteExecutionByIds(executionIds: List<Long>) =
-            executionIds.forEach {
-                executionRepository.deleteById(it)
-            }
 
     /**
      * Get all executions, which contains provided test suite id
@@ -300,6 +271,60 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
         return savedExecution
+    }
+
+    /**
+     * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
+     *
+     * @param execution
+     */
+    @Transactional
+    fun deleteAll(execution: Execution) {
+        log.info {
+            "Deleting execution with id = ${execution.requiredId()}. Additionally cleanup dependencies to this execution"
+        }
+        doDeleteDependencies(listOf(execution.requiredId()))
+        executionRepository.delete(execution)
+    }
+
+    /**
+     * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
+     *
+     * @param executionIds
+     */
+    @Transactional
+    fun deleteByIds(executionIds: List<Long>) {
+        log.info {
+            "Deleting executions with id in $executionIds. Additionally cleanup dependencies to these executions"
+        }
+        doDeleteDependencies(executionIds)
+        executionRepository.deleteAllById(executionIds)
+    }
+
+    /**
+     * Mark [Execution] as [ExecutionStatus.OBSOLETE] by ID
+     *
+     * @param executionIds
+     */
+    @Transactional
+    fun markAsObsoleteByIds(executionIds: List<Long>) {
+        log.info {
+            "Marking executions with id in $executionIds as obsolete. Additionally cleanup dependencies to these executions"
+        }
+        doDeleteDependencies(executionIds)
+        executionIds.forEach {
+            updateExecutionStatus(getExecution(it), ExecutionStatus.OBSOLETE)
+        }
+    }
+
+    private fun doDeleteDependencies(executionIds: List<Long>) {
+        log.info {
+            "Delete dependencies to executions ($executionIds): links to test suites, agents with their statuses and test executions"
+        }
+        lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
+        testExecutionRepository.deleteByExecutionIdIn(executionIds)
+        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+        agentService.deleteAgentByExecutionIds(executionIds)
     }
 
     companion object {
