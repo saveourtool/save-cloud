@@ -183,24 +183,5 @@ class Execution(
             testSuiteSourceName = "",
             score = null,
         )
-
-        /**
-         * Parse and get testSuiteIds as List<Long>
-         *
-         * @param testSuiteIds
-         * @return list of TestSuite IDs
-         */
-        fun parseAndGetTestSuiteIds(testSuiteIds: String?): List<Long>? = testSuiteIds
-            ?.split(DATABASE_DELIMITER)
-            ?.map { it.trim().toLong() }
-
-        /**
-         * @param testSuiteIds list of TestSuite IDs
-         * @return formatted string
-         */
-        fun formatTestSuiteIds(testSuiteIds: List<Long>): String = testSuiteIds
-            .distinct()
-            .sorted()
-            .joinToString(DATABASE_DELIMITER)
     }
 }
