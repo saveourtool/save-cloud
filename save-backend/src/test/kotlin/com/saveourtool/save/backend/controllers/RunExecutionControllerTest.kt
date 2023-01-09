@@ -129,7 +129,24 @@ class RunExecutionControllerTest(
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(testsCount, newExecution.allTests)
         Assertions.assertEquals("eclipse-temurin:8", newExecution.sdk)
+        Assertions.assertEquals("execCmd", newExecution.execCmd)
+        Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
+
+        val newTestExecutionsCount = testExecutionRepository.findAll()
+            .count { it.execution.requiredId() == executionId }
+            .toLong()
+        Assertions.assertEquals(testsCount, newTestExecutionsCount)
+
         Assertions.assertEquals(
+            FILE_ID,
+            lnkExecutionFileRepository.findAllByExecutionId(executionId)
+                .map { it.requiredId() }
+                .single()
+        )
+    }
+
+    @WithMockUser("admin")
+    @Test
     fun reTrigger() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
@@ -188,6 +205,7 @@ class RunExecutionControllerTest(
         private val log: Logger = getLogger<RunExecutionControllerTest>()
         private const val EXECUTION_ID = 6L
         private const val PROJECT_ID = 1L
+        private const val FILE_ID = 1L
 
         @TempDir
         internal lateinit var tmpDir: Path
