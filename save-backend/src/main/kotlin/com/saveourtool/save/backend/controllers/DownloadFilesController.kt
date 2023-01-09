@@ -127,7 +127,7 @@ class DownloadFilesController(
             AvatarType.USER -> userDetailsService.saveAvatar(owner, path)
             else -> throw IllegalStateException("Not supported type: $type")
         }
-        ResponseEntity.status(HttpStatus.OK).body("Saved")
+        ResponseEntity.status(HttpStatus.OK).body("Image was successfully uploaded")
     }
 
     /**
