@@ -45,10 +45,13 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     jsonHeaders,
                     Json.encodeToString(demoRequest),
                     ::loadingHandler,
+                    ::noopResponseHandler,
                 )
                     .let {
                         if (it.ok) {
                             setDemoStatus(DemoStatus.STARTING)
+                        } else {
+                            props.updateErrorMessage(it.statusText, it.unpackMessage())
                         }
                     }
             }
@@ -64,6 +67,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (statusResponse.ok) {
             setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
         } else {
+            props.updateErrorMessage(statusResponse.statusText, statusResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -81,6 +85,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
             setDemoToolRequest(demoInfo.demoDto)
             setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
         } else {
+            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
     }
@@ -211,4 +216,10 @@ external interface ProjectDemoMenuProps : Props {
      * Organization name
      */
     var organizationName: String
+
+    /**
+     * Callback to show error message
+     */
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (String, String) -> Unit
 }
