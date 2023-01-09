@@ -185,7 +185,7 @@ class TestSuitesService(
             .distinct()
             .size
         require(
-            allTestSuiteIdsByExecutions == testSuites.size
+            allTestSuiteIdsByExecutions == testSuites.size || allTestSuiteIdsByExecutions == 0
         ) {
             "Expected that we remove all test suites related to a single execution at once"
         }

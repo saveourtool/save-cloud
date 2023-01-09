@@ -4,6 +4,7 @@ import com.saveourtool.save.demo.entity.GithubRepo
 import com.saveourtool.save.demo.entity.Snapshot
 import com.saveourtool.save.demo.entity.Tool
 import com.saveourtool.save.demo.repository.ToolRepository
+import com.saveourtool.save.domain.ProjectCoordinates
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -27,12 +28,17 @@ class ToolService(
      * @param githubRepo
      * @param snapshot
      * @return [Tool] entity saved to database
+     * @throws IllegalStateException if tool is already present in DB
      */
     @Transactional
     fun saveIfNotPresent(githubRepo: GithubRepo, snapshot: Snapshot): Tool {
         val githubRepoFromDb = githubRepoService.saveIfNotPresent(githubRepo)
         val snapshotFromDb = snapshotService.saveIfNotPresent(snapshot)
-        return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb) ?: save(githubRepoFromDb, snapshotFromDb)
+        return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb)?.let {
+            throw IllegalStateException(
+                "Tool ${githubRepo.organizationName}/${githubRepo.toolName} of version ${snapshot.version} is already present in DB."
+            )
+        } ?: save(githubRepoFromDb, snapshotFromDb)
     }
 
     /**
@@ -41,4 +47,25 @@ class ToolService(
      * @return [Tool] fetched from [githubRepo] that matches requested [version]
      */
     fun findByGithubRepoAndVersion(githubRepo: GithubRepo, version: String) = toolRepository.findByGithubRepoAndSnapshotVersion(githubRepo, version)
+
+    /**
+     * @param githubRepo GitHub credentials
+     * @return currently used version
+     * todo: allow to use multiple versions
+     */
+    fun findCurrentVersion(githubRepo: GithubRepo): String? = toolRepository.findByGithubRepo(githubRepo)
+        .maxOfOrNull { it.snapshot.version }
+
+    /**
+     * @param githubCoordinates GitHub project coordinates
+     * @return currently used version
+     * todo: allow to use multiple versions
+     */
+    fun findCurrentVersion(githubCoordinates: ProjectCoordinates): String? = with(githubCoordinates) {
+        githubRepoService.find(organizationName, projectName)
+    }
+        ?.let {
+            toolRepository.findByGithubRepo(it)
+        }
+        ?.maxOfOrNull { it.snapshot.version }
 }

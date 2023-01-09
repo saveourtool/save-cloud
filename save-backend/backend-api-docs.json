@@ -1763,13 +1763,13 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}/add": {
-      "post": {
-        "description": "Add demo for a tool.",
-        "operationId": "addDemo",
+    "/api/v1/demo/{organizationName}/{projectName}": {
+      "get": {
+        "description": "Get demo info.",
+        "operationId": "getDemoInfo",
         "parameters": [
           {
-            "description": "name of an organization",
+            "description": "name of saveourtool organization",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -1778,17 +1778,9 @@
             }
           },
           {
-            "description": "name of a project",
+            "description": "name of saveourtool project",
             "in": "path",
             "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "vcsTagName",
             "required": true,
             "schema": {
               "type": "string"
@@ -1803,10 +1795,288 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully change status of a project."
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoInfo"
+                }
+              }
+            },
+            "description": "Could not find project in organization or demo for it."
+          }
+        },
+        "summary": "Get demo info.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/add": {
+      "post": {
+        "description": "Add demo for a tool.",
+        "operationId": "addDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully added demo."
+          },
+          "403": {
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "description": "Could not find project in organization."
+          },
+          "409": {
+            "description": "Please provide github repository"
           }
         },
         "summary": "Add demo for a tool.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/status": {
+      "get": {
+        "description": "Get demo status.",
+        "operationId": "getDemoStatus",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Successfully fetched demo status."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_CREATED",
+                    "RUNNING",
+                    "STARTING",
+                    "STOPPED"
+                  ]
+                }
+              }
+            },
+            "description": "Could not find project in organization or demo for it."
+          }
+        },
+        "summary": "Get demo status.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/upload-file": {
+      "post": {
+        "description": "Attach file to demo.",
+        "operationId": "uploadFile",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "version to attach the file to",
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "a file to upload",
+            "in": "query",
+            "name": "file",
+            "required": true
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "a file to upload"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Successfully added demo."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Could not find project in organization."
+          }
+        },
+        "summary": "Attach file to demo.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -1996,42 +2266,6 @@
         ]
       }
     },
-    "/api/v1/files/delete": {
-      "delete": {
-        "operationId": "delete",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "fileId",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "files"
-        ]
-      }
-    },
     "/api/v1/files/get-debug-info": {
       "post": {
         "operationId": "getDebugInfo",
@@ -2170,13 +2404,13 @@
         ]
       }
     },
-    "/api/v1/files/{organizationName}/{projectName}/download": {
-      "post": {
-        "description": "Download a file by execution ID and FileKey.",
-        "operationId": "download",
+    "/api/v1/files/{organizationName}/{projectName}/delete": {
+      "delete": {
+        "description": "Delete a file by project coordinates, name and uploaded time in millis.",
+        "operationId": "delete",
         "parameters": [
           {
-            "description": "organization name of additional file key",
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2185,7 +2419,7 @@
             }
           },
           {
-            "description": "project name of additional file key",
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2194,7 +2428,7 @@
             }
           },
           {
-            "description": "name of additional file key",
+            "description": "name of a file key",
             "in": "query",
             "name": "name",
             "required": true,
@@ -2203,7 +2437,93 @@
             }
           },
           {
-            "description": "uploaded mills of additional file key",
+            "description": "uploaded mills of a file key",
+            "in": "query",
+            "name": "uploadedMillis",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "File deleted successfully."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete a file by project coordinates, name and uploaded time in millis.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/download": {
+      "get": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
+        "operationId": "download",
+        "parameters": [
+          {
+            "description": "organization name of a file key",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "project name of a file key",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a file key",
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "uploaded mills of a file key",
             "in": "query",
             "name": "uploadedMillis",
             "required": true,
@@ -2256,7 +2576,7 @@
                 }
               }
             },
-            "description": "Returns content of the file."
+            "description": "The file uploaded successfully."
           },
           "401": {
             "content": {
@@ -2344,7 +2664,7 @@
                 }
               }
             },
-            "description": "Execution with provided ID is not found."
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2352,17 +2672,17 @@
             "basic": []
           }
         ],
-        "summary": "Download a file by execution ID and FileKey.",
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
-      }
-    },
-    "/api/v1/files/{organizationName}/{projectName}/list": {
-      "get": {
-        "operationId": "list_1",
+      },
+      "post": {
+        "description": "Download a file by project coordinates, name and uploaded time in millis.",
+        "operationId": "download_1",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2371,6 +2691,195 @@
             }
           },
           {
+            "description": "project name of a file key",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of a file key",
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "uploaded mills of a file key",
+            "in": "query",
+            "name": "uploadedMillis",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download a file by project coordinates, name and uploaded time in millis.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/list": {
+      "get": {
+        "description": "Get a list by project coordinates.",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "description": "organization name of a file key",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
@@ -2380,18 +2889,44 @@
           }
         ],
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Returns the list of files."
+          },
           "401": {
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/FileDto"
+                    "$ref": "#/components/schemas/FileInfo"
                   }
                 }
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileInfo"
+                  }
+                }
+              }
+            },
+            "description": "Not found project by provided values."
           }
         },
         "security": [
@@ -2399,6 +2934,7 @@
             "basic": []
           }
         ],
+        "summary": "Get a list by project coordinates.",
         "tags": [
           "files"
         ]
@@ -2406,9 +2942,11 @@
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
+        "description": "Upload a file by project coordinates, name and uploaded time in millis.",
         "operationId": "upload",
         "parameters": [
           {
+            "description": "organization name of a file key",
             "in": "path",
             "name": "organizationName",
             "required": true,
@@ -2417,12 +2955,19 @@
             }
           },
           {
+            "description": "project name of a file key",
             "in": "path",
             "name": "projectName",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "a file to upload",
+            "in": "query",
+            "name": "file",
+            "required": true
           }
         ],
         "requestBody": {
@@ -2433,7 +2978,8 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "a file to upload"
                   }
                 },
                 "required": [
@@ -2444,15 +2990,35 @@
           }
         },
         "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "The file uploaded successfully."
+          },
           "401": {
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileDto"
+                  "$ref": "#/components/schemas/FileInfo"
                 }
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileInfo"
+                }
+              }
+            },
+            "description": "Not found project or file by provided values."
           }
         },
         "security": [
@@ -2460,6 +3026,7 @@
             "basic": []
           }
         ],
+        "summary": "Upload a file by project coordinates, name and uploaded time in millis.",
         "tags": [
           "files"
         ]
@@ -8305,7 +8872,7 @@
       },
       "CreateExecutionRequest": {
         "required": [
-          "fileIds",
+          "files",
           "projectCoordinates",
           "sdk",
           "testSuiteIds",
@@ -8322,11 +8889,10 @@
           "execCmd": {
             "type": "string"
           },
-          "fileIds": {
+          "files": {
             "type": "array",
             "items": {
-              "type": "integer",
-              "format": "int64"
+              "$ref": "#/components/schemas/FileKey"
             }
           },
           "projectCoordinates": {
@@ -8352,11 +8918,67 @@
           }
         }
       },
+      "DemoDto": {
+        "required": [
+          "fileName",
+          "projectCoordinates",
+          "runCommand",
+          "sdk",
+          "vcsTagName"
+        ],
+        "type": "object",
+        "properties": {
+          "configName": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "githubProjectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "runCommand": {
+            "type": "string"
+          },
+          "sdk": {
+            "$ref": "#/components/schemas/Sdk"
+          },
+          "vcsTagName": {
+            "type": "string"
+          }
+        }
+      },
+      "DemoInfo": {
+        "required": [
+          "demoDto",
+          "demoStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "demoDto": {
+            "$ref": "#/components/schemas/DemoDto"
+          },
+          "demoStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_CREATED",
+              "RUNNING",
+              "STARTING",
+              "STOPPED"
+            ]
+          }
+        }
+      },
       "Execution": {
         "required": [
+          "additionalFiles",
           "allTests",
           "expectedChecks",
           "failedTests",
+          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -8371,6 +8993,9 @@
         ],
         "type": "object",
         "properties": {
+          "additionalFiles": {
+            "type": "string"
+          },
           "allTests": {
             "type": "integer",
             "format": "int64"
@@ -8396,6 +9021,12 @@
           "failedTests": {
             "type": "integer",
             "format": "int64"
+          },
+          "fileKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileKey"
+            }
           },
           "id": {
             "type": "integer",
@@ -8581,35 +9212,47 @@
           }
         }
       },
-      "FileDto": {
+      "FileInfo": {
         "required": [
           "isExecutable",
+          "key",
           "name",
-          "projectCoordinates",
-          "sizeBytes",
-          "uploadedTime"
+          "sizeBytes"
         ],
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
           "isExecutable": {
             "type": "boolean"
           },
+          "key": {
+            "$ref": "#/components/schemas/FileKey"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "projectCoordinates",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
           "name": {
             "type": "string"
           },
           "projectCoordinates": {
             "$ref": "#/components/schemas/ProjectCoordinates"
           },
-          "sizeBytes": {
+          "uploadedMillis": {
             "type": "integer",
             "format": "int64"
-          },
-          "uploadedTime": {
-            "$ref": "#/components/schemas/LocalDateTime"
           }
         }
       },

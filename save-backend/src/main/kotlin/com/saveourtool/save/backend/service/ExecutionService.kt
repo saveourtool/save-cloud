@@ -14,7 +14,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
 import java.util.Optional
@@ -216,6 +215,7 @@ class ExecutionService(
         batchSizeForAnalyzer: String?,
         testingType: TestingType,
         contestName: String?,
+    ): Execution {
     ): Mono<Execution> = blockingToMono {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {

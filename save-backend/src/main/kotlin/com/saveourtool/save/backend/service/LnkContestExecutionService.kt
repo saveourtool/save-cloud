@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 
 /**
  * Service of [LnkContestExecution]
@@ -57,7 +56,7 @@ class LnkContestExecutionService(
     /**
      * @param execution
      * @param contestName
-     * @return [Mono] containing a created [LnkContestExecution] or `Mono.error` with code 404
+     * @return a created [LnkContestExecution] or exception with code 404
      */
     fun createLink(execution: Execution, contestName: String): LnkContestExecution =
             lnkContestExecutionRepository.save(

@@ -1,24 +1,23 @@
 package com.saveourtool.save.demo.controller
 
-import com.saveourtool.save.demo.NewDemoToolRequest
-import com.saveourtool.save.demo.entity.GithubRepo
-import com.saveourtool.save.demo.entity.Snapshot
-import com.saveourtool.save.demo.entity.Tool
-import com.saveourtool.save.demo.service.GithubDownloadToolService
-import com.saveourtool.save.demo.service.GithubRepoService
-import com.saveourtool.save.demo.service.SnapshotService
-import com.saveourtool.save.demo.service.ToolService
+import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.demo.DemoInfo
+import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.demo.entity.*
+import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.blockingToMono
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
+
+import org.springframework.http.HttpStatus
+import org.springframework.http.codec.multipart.FilePart
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 /**
- * Internal controller that allows to add tools to db
+ * Internal controller that allows to create demos
  */
 @RestController
 @RequestMapping("/demo/internal")
@@ -27,22 +26,28 @@ class ManagementController(
     private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
     private val githubDownloadToolService: GithubDownloadToolService,
+    private val demoService: DemoService,
 ) {
     /**
-     * @param newDemoToolRequest
-     * @return [Mono] of [Tool] entity
+     * @param demoDto
+     * @return [Mono] of [DemoDto] entity
      */
     @PostMapping("/add-tool")
-    fun addTool(@RequestBody newDemoToolRequest: NewDemoToolRequest): Mono<Tool> = with(newDemoToolRequest) {
-        GithubRepo(organizationName, projectName)
-    }
-        .let {
+    fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.githubProjectCoordinates
+        ?.toGithubRepo()
+        .let { repo ->
             blockingToMono {
-                githubRepoService.saveIfNotPresent(it)
+                repo?.let {
+                    githubRepoService.saveIfNotPresent(repo)
+                }
             }
         }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            // todo: will be removed when uploading files will be implemented
+            "Right now save-demo requires github repository to download tool. Please provide github repository."
+        }
         .zipWhen { repo ->
-            val vcsTagName = newDemoToolRequest.vcsTagName
+            val vcsTagName = demoDto.vcsTagName
             Snapshot(vcsTagName, githubDownloadToolService.getExecutableName(repo, vcsTagName))
                 .let {
                     blockingToMono {
@@ -55,6 +60,82 @@ class ManagementController(
         }
         .map {
             githubDownloadToolService.downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version)
-            it
+        }
+        .map {
+            demoDto.also { demoService.saveIfNotPresent(it.toDemo()) }
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version to attach [file] to
+     * @param file file that should be uploaded to storage of [organizationName]/[projectName] with [version]
+     * @return amount of bytes loaded, wrapped into [Mono]
+     */
+    @GetMapping("/{organizationName}/{projectName}/upload-file")
+    fun uploadFile(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+        @RequestPart file: FilePart,
+    ): Mono<Long> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .flatMap {
+            demoService.loadFileToStorage(organizationName, projectName, version, file)
+        }
+
+    /**
+     * @param organizationName name of GitHub user/organization
+     * @param projectName name of GitHub repository
+     * @return [Mono] of [DemoStatus] of current demo
+     */
+    @GetMapping("/{organizationName}/{projectName}/status")
+    fun getDemoStatus(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): Mono<DemoStatus> = Mono.just(DemoStatus.STARTING)
+
+    /**
+     * @param organizationName name of GitHub user/organization
+     * @param projectName name of GitHub repository
+     * @return [Mono] of [DemoStatus] of current demo
+     */
+    @GetMapping("/{organizationName}/{projectName}")
+    fun getDemoInfo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): Mono<DemoInfo> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .zipWith(getDemoStatus(organizationName, projectName))
+        .map { (demo, status) ->
+            DemoInfo(
+                demo.toDto().copy(vcsTagName = ""),
+                status,
+            )
+        }
+        .zipWhen { demoInfo ->
+            blockingToMono {
+                demoInfo.demoDto
+                    .githubProjectCoordinates
+                    ?.let { repo ->
+                        toolService.findCurrentVersion(repo)
+                    }
+                    .orEmpty()
+            }
+        }
+        .map { (demoInfo, currentVersion) ->
+            demoInfo.copy(
+                demoDto = demoInfo.demoDto.copy(
+                    vcsTagName = currentVersion
+                )
+            )
         }
 }

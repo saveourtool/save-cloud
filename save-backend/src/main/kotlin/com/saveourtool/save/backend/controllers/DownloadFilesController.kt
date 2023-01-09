@@ -5,19 +5,20 @@ import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.File
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.from
-import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -28,7 +29,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -51,7 +51,6 @@ typealias FileDtoResponse = ResponseEntity<FileDto>
 )
 @Suppress("LongParameterList")
 class DownloadFilesController(
-    private val fileStorage: FileStorage,
     private val avatarStorage: AvatarStorage,
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
@@ -177,8 +176,11 @@ class DownloadFilesController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
-    @GetMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @RequestMapping(
+        path = ["/internal/files/download-save-agent"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        method = [RequestMethod.GET, RequestMethod.POST]
+    )
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
             run {
@@ -201,8 +203,11 @@ class DownloadFilesController(
         required = true
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
-    @GetMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @RequestMapping(
+        path = ["/internal/files/download-save-cli"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        method = [RequestMethod.GET, RequestMethod.POST]
+    )
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
     ): Mono<out Resource> =
@@ -361,4 +366,8 @@ class DownloadFilesController(
         @RequestParam executionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = debugInfoStorage.save(executionId, testResultDebugInfo)
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
+    }
 }

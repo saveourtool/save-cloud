@@ -80,17 +80,19 @@ class RunExecutionController(
         .validateAccess(authentication) { it }
         .validateContestEnrollment(request)
         .flatMap {
-            executionService.createNew(
-                projectCoordinates = request.projectCoordinates,
-                testSuiteIds = request.testSuiteIds,
-                fileIds = request.fileIds,
-                username = authentication.username(),
-                sdk = request.sdk,
-                execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
-                testingType = request.testingType,
-                contestName = request.contestName,
-            )
+            blockingToMono {
+                executionService.createNew(
+                    projectCoordinates = request.projectCoordinates,
+                    testSuiteIds = request.testSuiteIds,
+                    fileIds = request.fileIds,
+                    username = authentication.username(),
+                    sdk = request.sdk,
+                    execCmd = request.execCmd,
+                    batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                    testingType = request.testingType,
+                    contestName = request.contestName,
+                )
+            }
         }
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap { execution ->
@@ -121,7 +123,7 @@ class RunExecutionController(
                 execution.project.name
             )
         }
-        .flatMap { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { blockingToMono { executionService.createNewCopy(it, authentication.username()) } }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {

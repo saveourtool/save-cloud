@@ -16,7 +16,7 @@ typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
  * @property gitDto
  * @property testRootPath
  * @property latestFetchedVersion
- * @property id
+ * @property id ID of saved entity or null
  */
 @Serializable
 data class TestSuitesSourceDto(
@@ -26,7 +26,7 @@ data class TestSuitesSourceDto(
     val gitDto: GitDto,
     val testRootPath: String,
     val latestFetchedVersion: String?,
-    override val id: Long? = null
+    override val id: Long? = null,
 ) : Validatable, DtoWithId() {
     override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath()
 
