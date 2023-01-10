@@ -385,7 +385,7 @@ class SaveAgent(private val config: AgentConfiguration,
             url(config.heartbeat.url)
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.info, state.get(), executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.info, state.get(), executionProgress))
         }
             .body()
     }
