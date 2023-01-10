@@ -43,10 +43,10 @@ class LnkExecutionTestSuiteService(
         }
 
     /**
-     * @param executionId ID of manageable execution
+     * @param executionIds IDs of manageable executions
      */
-    fun deleteByExecution(executionId: Long) {
-        lnkExecutionTestSuiteRepository.deleteAll(lnkExecutionTestSuiteRepository.findByExecutionId(executionId))
+    fun deleteByExecutionIds(executionIds: Collection<Long>) {
+        lnkExecutionTestSuiteRepository.deleteAll(lnkExecutionTestSuiteRepository.findByExecutionIdIn(executionIds))
     }
 
     /**
