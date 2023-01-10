@@ -66,8 +66,15 @@ class ExecutionService(
      */
     @Transactional
     fun updateExecutionStatus(srcExecution: Execution, newStatus: ExecutionStatus) {
-        log.debug("Updating status to $newStatus on execution id = ${srcExecution.requiredId()}")
-        val execution = executionRepository.findWithLockingById(srcExecution.requiredId()).orNotFound()
+        val executionId = srcExecution.requiredId()
+        log.debug("Updating status to $newStatus on execution id = $executionId")
+        if (newStatus == ExecutionStatus.OBSOLETE) {
+            log.info {
+                "Marking execution with id $executionId as obsolete. Additionally cleanup dependencies to this executions"
+            }
+            doDeleteDependencies(listOf(executionId))
+        }
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         val updatedExecution = execution.apply {
             status = newStatus
         }
@@ -290,24 +297,8 @@ class ExecutionService(
         log.info {
             "Deleting executions with id in $executionIds. Additionally cleanup dependencies to these executions"
         }
-        doDeleteDependencies(executionIds)
+        // dependencies will be cleanup by cascade constrains
         executionRepository.deleteAllById(executionIds)
-    }
-
-    /**
-     * Mark [Execution] as [ExecutionStatus.OBSOLETE] by ID
-     *
-     * @param executionIds
-     */
-    @Transactional
-    fun markAsObsoleteByIds(executionIds: List<Long>) {
-        log.info {
-            "Marking executions with id in $executionIds as obsolete. Additionally cleanup dependencies to these executions"
-        }
-        doDeleteDependencies(executionIds)
-        executionIds.forEach {
-            updateExecutionStatus(getExecution(it), ExecutionStatus.OBSOLETE)
-        }
     }
 
     private fun doDeleteDependencies(executionIds: List<Long>) {
