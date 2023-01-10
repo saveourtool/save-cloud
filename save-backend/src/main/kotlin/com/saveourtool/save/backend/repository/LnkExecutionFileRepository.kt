@@ -30,8 +30,7 @@ interface LnkExecutionFileRepository : BaseEntityRepository<LnkExecutionFile> {
     fun findAllByFile(file: File): List<LnkExecutionFile>
 
     /**
-     * @param fileId id of [File] that is connected to [Execution]
-     * @return [LnkExecutionFile] by [File]
+     * @param executionIds ids of [Execution] for which connection to [File] should be deleted
      */
-    fun findAllByFileId(fileId: Long): List<LnkExecutionFile>
+    fun deleteAllByExecutionIdIn(executionIds: Collection<Long>)
 }

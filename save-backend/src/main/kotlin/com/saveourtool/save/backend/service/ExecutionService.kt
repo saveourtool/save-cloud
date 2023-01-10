@@ -328,7 +328,7 @@ class ExecutionService(
             "Delete dependencies to executions ($executionIds): links to test suites, agents with their statuses and test executions"
         }
         lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
-        lnkExecutionFileRepository.deleteAll(lnkExecutionFileRepository.findAllByExecutionIdIn(executionIds))
+        lnkExecutionFileRepository.deleteAllByExecutionIdIn(executionIds)
         testExecutionRepository.deleteByExecutionIdIn(executionIds)
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
