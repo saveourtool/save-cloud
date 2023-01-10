@@ -2,13 +2,12 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
@@ -36,8 +35,10 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
+    @Lazy private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -163,7 +164,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param files
+     * @param fileKeys
      * @param username
      * @param sdk
      * @param execCmd
@@ -177,7 +178,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        files: List<FileKey>,
+        fileKeys: List<FileKey>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -190,13 +191,14 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
+        val files = fileKeys.map { newFileStorage.getFileEntityByFileKey(it) }
         return doCreateNew(
             project = project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            additionalFiles = files.formatForExecution(),
+            files = files,
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -216,12 +218,13 @@ class ExecutionService(
         execution: Execution,
         username: String,
     ): Execution {
-        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
+        val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
+        val files = lnkExecutionFileRepository.findAllByExecution(execution).map { it.file }
         return doCreateNew(
             project = execution.project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuites,
             allTests = execution.allTests,
-            additionalFiles = execution.additionalFiles,
+            files = files,
             username = username,
             sdk = execution.sdk,
             execCmd = execution.execCmd,
@@ -235,9 +238,9 @@ class ExecutionService(
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
-        testSuiteIds: List<Long>,
+        testSuites: List<TestSuite>,
         allTests: Long,
-        additionalFiles: String,
+        files: List<File>,
         username: String,
         sdk: String,
         execCmd: String?,
@@ -248,7 +251,6 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
-        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -267,7 +269,6 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
-            additionalFiles = additionalFiles,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
@@ -276,6 +277,7 @@ class ExecutionService(
         )
         val savedExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
         if (testingType == TestingType.CONTEST_MODE) {
             lnkContestExecutionService.createLink(
                 savedExecution, requireNotNull(contestName) {
@@ -286,6 +288,30 @@ class ExecutionService(
         log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
         return savedExecution
     }
+
+    /**
+     * Unlink provided [File] from all [Execution]s
+     *
+     * @param file
+     */
+    @Transactional
+    fun unlinkFileFromAllExecution(file: File) {
+        lnkExecutionFileRepository.findAllByFile(file)
+            .also {
+                lnkExecutionFileRepository.deleteAll(it)
+            }
+            .map { it.execution }
+            .forEach {
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
+            }
+    }
+
+    /**
+     * @param execution
+     * @return all [FileDto]s are assigned to provided [Execution]
+     */
+    fun getAssignedFiles(execution: Execution): List<FileDto> = lnkExecutionFileRepository.findAllByExecution(execution)
+        .map { it.file.toDto() }
 
     /**
      * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
@@ -303,9 +329,10 @@ class ExecutionService(
 
     private fun doDeleteDependencies(executionIds: List<Long>) {
         log.info {
-            "Delete dependencies to executions ($executionIds): links to test suites, agents with their statuses and test executions"
+            "Delete dependencies to executions ($executionIds): links to test suites and files, agents with their statuses and test executions"
         }
         lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
+        lnkExecutionFileRepository.deleteAllByExecutionIdIn(executionIds)
         testExecutionRepository.deleteByExecutionIdIn(executionIds)
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
