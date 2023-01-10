@@ -69,6 +69,7 @@ import kotlin.io.path.*
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
+    S11nTestConfig::class,
 )
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -116,7 +117,7 @@ class DownloadFilesTest {
 
     @Autowired
     lateinit var webTestClient: WebTestClient
-    
+
     @Autowired
     private lateinit var fileStorage: MigrationFileStorage
 

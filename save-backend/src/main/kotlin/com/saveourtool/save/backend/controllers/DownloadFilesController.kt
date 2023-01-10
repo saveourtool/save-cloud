@@ -271,7 +271,7 @@ class DownloadFilesController(
         @RequestPart("file") partMono: Mono<FilePart>,
         @RequestParam owner: String,
         @RequestParam type: AvatarType
-    ) = partMono.flatMap { part ->
+    ): Mono<StringResponse> = partMono.flatMap { part ->
         val avatarKey = AvatarKey(
             type,
             owner,
@@ -279,22 +279,14 @@ class DownloadFilesController(
         val content = part.content().map { it.asByteBuffer() }
         avatarStorage.upsert(avatarKey, content).map {
             logger.info("Saved $it bytes of $avatarKey")
-            ImageInfo(avatarKey.getRelativePath())
+            avatarKey.getRelativePath()
         }
-    }.map { imageInfo ->
-        imageInfo.path?.let {
-            when (type) {
-                AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, it)
-                AvatarType.USER -> userDetailsService.saveAvatar(owner, it)
-                else -> throw IllegalStateException("Not supported type: $type")
-            }
+    }.map { path ->
+        when (type) {
+            AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, path)
+            AvatarType.USER -> userDetailsService.saveAvatar(owner, path)
         }
-        ResponseEntity.status(
-            imageInfo.path?.let {
-                HttpStatus.OK
-            } ?: HttpStatus.INTERNAL_SERVER_ERROR
-        )
-            .body(imageInfo)
+        ResponseEntity.status(HttpStatus.OK).body("Image was successfully uploaded")
     }
 
     /**
