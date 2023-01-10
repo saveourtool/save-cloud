@@ -58,7 +58,6 @@ class RunExecutionControllerTest(
     @Autowired private lateinit var testExecutionRepository: TestExecutionRepository
     @Autowired private lateinit var lnkExecutionFileRepository: LnkExecutionFileRepository
     @Autowired private lateinit var lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository
-    @Autowired private lateinit var fileRepository: FileRepository
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -72,12 +71,6 @@ class RunExecutionControllerTest(
         }
         val project = projectRepository.findById(PROJECT_ID).get()
         val testSuiteIds = listOf(2L, 3L)
-        println("test: ${LocalDateTime.of(2022, 12, 30, 1, 2, 3)
-            .toInstant(ZoneOffset.UTC)
-            .toEpochMilli()}")
-        fileRepository.findAll().forEach {
-            println("${it.uploadedTime} : ${it.uploadedTime.toInstant(ZoneOffset.UTC).toEpochMilli()}")
-        }
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,

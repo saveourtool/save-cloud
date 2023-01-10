@@ -325,7 +325,7 @@ class ExecutionService(
 
     private fun doDeleteDependencies(executionIds: List<Long>) {
         log.info {
-            "Delete dependencies to executions ($executionIds): links to test suites, agents with their statuses and test executions"
+            "Delete dependencies to executions ($executionIds): links to test suites and files, agents with their statuses and test executions"
         }
         lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
         lnkExecutionFileRepository.deleteAllByExecutionIdIn(executionIds)
