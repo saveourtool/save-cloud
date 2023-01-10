@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.warn
@@ -40,8 +41,16 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
             .map { oldKey ->
                 oldKey to oldKey.toNewKey()
             }
-            .filterWhen { (_, newKey) ->
-                newStorage.doesExist(newKey).map { !it }
+            .filterWhen { (oldKey, newKey) ->
+                newStorage.doesExist(newKey)
+                    .map { existedInNewStorage ->
+                        if (existedInNewStorage) {
+                            log.debug {
+                                "$oldKey from old storage already existed in new storage as $newKey"
+                            }
+                        }
+                        !existedInNewStorage
+                    }
             }
             .flatMap { (oldKey, newKey) ->
                 newStorage.upload(newKey, oldStorage.download(oldKey))
