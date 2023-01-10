@@ -1,9 +1,9 @@
 package com.saveourtool.save.test.analysis.algorithms
 
 import com.saveourtool.save.test.analysis.api.TestRuns
-import com.saveourtool.save.test.analysis.api.metrics.RegularTestMetrics
-import com.saveourtool.save.test.analysis.api.results.IrregularTest
-import com.saveourtool.save.test.analysis.api.results.PermanentFailure
+import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
+import com.saveourtool.save.test.analysis.results.IrregularTest
+import com.saveourtool.save.test.analysis.results.PermanentFailure
 
 /**
  * _Permanent failure_ detection algorithm.
