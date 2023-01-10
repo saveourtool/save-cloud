@@ -70,7 +70,7 @@ class ExecutionService(
         log.debug("Updating status to $newStatus on execution id = $executionId")
         if (newStatus == ExecutionStatus.OBSOLETE) {
             log.info {
-                "Marking execution with id $executionId as obsolete. Additionally cleanup dependencies to this executions"
+                "Marking execution with id $executionId as obsolete. Additionally cleanup dependencies to this execution"
             }
             doDeleteDependencies(listOf(executionId))
         }
