@@ -67,7 +67,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                     }
                 }
         }
-        .thenReturn(false)
+        .defaultIfEmpty(false)
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = blockingToMono {
         repository.save(createNewEntityFromDto(key))
