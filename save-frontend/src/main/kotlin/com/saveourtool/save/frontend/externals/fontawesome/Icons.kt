@@ -199,3 +199,15 @@ external val faCaretSquareRight: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faSyncAlt")
 @JsNonModule
 external val faSyncAlt: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faPoo")
+@JsNonModule
+external val faPoo: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faDice")
+@JsNonModule
+external val faDice: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faBug")
+@JsNonModule
+external val faBug: FontAwesomeIconModule
