@@ -90,14 +90,14 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
     var paths: PathsForTabs
 
     /**
-     * Organization role of a user
-     */
-    var organizationRole: Role
-
-    /**
-     * Project role of a user
+     * The user role in the project
      */
     var projectRole: Role
+
+    /**
+     * The user role in the organization
+     */
+    var organizationRole: Role
 }
 
 /**
