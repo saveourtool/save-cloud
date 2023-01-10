@@ -3,12 +3,17 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.storage.NewFileStorage
+import com.saveourtool.save.backend.utils.ErrorMessage
+import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.*
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
@@ -258,7 +263,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testSuites.singleVersion(),
+            version = testSuites.singleVersion().getOrThrowBadRequest(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -272,7 +277,7 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuites.singleSourceName(),
+            testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
             score = null,
         )
         val savedExecution = executionRepository.save(execution)
@@ -339,23 +344,29 @@ class ExecutionService(
     }
 
     companion object {
-        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
+        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.source }
             .distinctBy { it.requiredId() }
-            .also { sources ->
-                require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}"
-                }
-            }
-            .single()
-            .name
+            .let { sources ->
+                when (sources.size) {
+                    1 -> sources[0]
+                        .name
+                        .right()
 
-        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
-            .distinct()
-            .also { versions ->
-                require(versions.size == 1) {
-                    "Only a single version is supported, but got: $versions"
+                    else -> ErrorMessage("Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}")
+                        .left()
                 }
             }
-            .single()
+
+        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.version }
+            .distinct()
+            .let { versions ->
+                when (versions.size) {
+                    1 -> versions[0]
+                        .right()
+
+                    else -> ErrorMessage("Only a single version is supported, but got: $versions")
+                        .left()
+                }
+            }
     }
 }
