@@ -3080,7 +3080,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageInfo"
+                  "type": "string"
                 }
               }
             },
@@ -3865,54 +3865,6 @@
           }
         ],
         "summary": "Get organization by name.",
-        "tags": [
-          "organizations"
-        ]
-      }
-    },
-    "/api/v1/organizations/{organizationName}/avatar": {
-      "get": {
-        "description": "Get organization avatar by organization name.",
-        "operationId": "avatar_1",
-        "parameters": [
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImageInfo"
-                }
-              }
-            },
-            "description": "Successfully fetched avatar by organization name."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImageInfo"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get avatar by organization name.",
         "tags": [
           "organizations"
         ]
@@ -8648,36 +8600,6 @@
         ]
       }
     },
-    "/api/v1/users/{userName}/avatar": {
-      "get": {
-        "operationId": "avatar",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImageInfo"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "users-details-controller"
-        ]
-      }
-    },
     "/api/v1/users/{userName}/save/token": {
       "post": {
         "operationId": "saveUserToken",
@@ -9258,14 +9180,6 @@
             "type": "string"
           },
           "username": {
-            "type": "string"
-          }
-        }
-      },
-      "ImageInfo": {
-        "type": "object",
-        "properties": {
-          "path": {
             "type": "string"
           }
         }

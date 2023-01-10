@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
@@ -89,11 +88,6 @@ external interface OrganizationProps : PropsWithChildren {
  * [State] of project view component
  */
 external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
-
     /**
      * Organization
      */
@@ -203,7 +197,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             setState {
                 paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
-                image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
@@ -484,7 +477,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
                 element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
+                    val response = post(
                         "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
                         Headers(),
                         FormData().apply {
@@ -492,9 +485,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         },
                         loadingHandler = ::noopLoadingHandler,
                     )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
+                    if (response.ok) {
+                        window.location.reload()
                     }
                 }
                 window.location.reload()
@@ -535,7 +527,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     }
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                        src = state.image?.path?.let {
+                        src = state.organization?.avatar?.let {
                             "/api/$v1/avatar$it"
                         }
                             ?: run {

@@ -1,6 +1,7 @@
-package com.saveourtool.save.test.analysis.api.metrics
+package com.saveourtool.save.test.analysis.metrics
 
 import kotlin.time.Duration
+import kotlinx.serialization.Serializable
 
 /**
  * @property successCount the number of successful test runs in a sample.
@@ -18,6 +19,7 @@ import kotlin.time.Duration
     "MAGIC_NUMBER",
     "CUSTOM_GETTERS_SETTERS",
 )
+@Serializable
 data class RegularTestMetrics(
     val successCount: Int,
     val failureCount: Int,
@@ -25,7 +27,7 @@ data class RegularTestMetrics(
     val ignoredCount: Int,
     val averageDurationOrNull: Duration?,
     val medianDurationOrNull: Duration?
-) : TestMetrics {
+) : TestMetrics() {
     /**
      * The run count of this test within the _sliding window_.
      */

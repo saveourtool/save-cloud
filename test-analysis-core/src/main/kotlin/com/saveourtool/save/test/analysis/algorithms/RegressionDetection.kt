@@ -4,9 +4,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.test.analysis.api.TestRuns
 import com.saveourtool.save.test.analysis.api.TestStatusProvider
 import com.saveourtool.save.test.analysis.api.TestStatusProviderScope
-import com.saveourtool.save.test.analysis.api.metrics.RegularTestMetrics
-import com.saveourtool.save.test.analysis.api.results.IrregularTest
-import com.saveourtool.save.test.analysis.api.results.Regression
+import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
+import com.saveourtool.save.test.analysis.results.IrregularTest
+import com.saveourtool.save.test.analysis.results.Regression
 
 /**
  * Regression detection algorithm.
