@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.warn
@@ -25,23 +26,31 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     /**
      * Init method which copies file from one storage to another
      */
-    fun migration() {
+    fun migrate() {
         migrationLock.writeLock().withLock {
             require(!isMigrated) {
                 "Migration cannot be called more than 1 time"
             }
-            doMigration()
+            doMigrate()
             isMigrated = true
         }
     }
 
-    private fun doMigration() {
+    private fun doMigrate() {
         oldStorage.list()
             .map { oldKey ->
                 oldKey to oldKey.toNewKey()
             }
-            .filterWhen { (_, fileDto) ->
-                newStorage.doesExist(fileDto).map { !it }
+            .filterWhen { (oldKey, newKey) ->
+                newStorage.doesExist(newKey)
+                    .map { existedInNewStorage ->
+                        if (existedInNewStorage) {
+                            log.debug {
+                                "$oldKey from old storage already existed in new storage as $newKey"
+                            }
+                        }
+                        !existedInNewStorage
+                    }
             }
             .flatMap { (oldKey, newKey) ->
                 newStorage.upload(newKey, oldStorage.download(oldKey))
@@ -51,7 +60,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                         }
                     }
                     .flatMap {
-                        delete(oldKey)
+                        oldStorage.delete(oldKey)
                     }
                     .onErrorResume { ex ->
                         Mono.fromCallable {
@@ -62,7 +71,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                         }
                     }
             }
-            .subscribe()
+            .blockLast()
     }
 
     /**

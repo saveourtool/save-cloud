@@ -25,7 +25,7 @@ class MigrationFileStorage(
      */
     @PostConstruct
     fun init() {
-        super.migration()
+        super.migrate()
     }
 
     override fun FileDto.toOldKey(): FileKey = toFileKey()
