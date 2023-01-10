@@ -185,7 +185,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                                 sendDemoCreationRequest()
                             }
                         }
-                        DemoStatus.STARTING -> if (props.projectRole.isHigherOrEqualThan(Role.VIEWER)) {
+                        DemoStatus.STARTING -> if (props.projectRole.isHigherOrEqualThan(Role.VIEWER) || props.organizationRole.isHigherOrEqualThan(Role.OWNER)) {
                             buttonBuilder("Reload") {
                                 getDemoStatus()
                             }
