@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -11,8 +9,6 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.File
-import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.from
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -34,12 +30,8 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
-
-typealias FileDtoResponse = ResponseEntity<FileDto>
 
 /**
  * A Spring controller for file downloading
@@ -57,118 +49,7 @@ class DownloadFilesController(
     private val agentService: AgentService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
-    private val projectService: ProjectService,
-    private val fileService: FileService,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
-    private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
-
-    /**
-     * @param organizationName
-     * @param projectName
-     * @param authentication
-     * @return a list of files in [fileStorage]
-     */
-    @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/list"])
-    @Suppress("UnsafeCallOnNullableType")
-    fun list(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        authentication: Authentication,
-    ): Flux<FileDto> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, projectName, organizationName, Permission.READ
-    )
-        .flatMapIterable {
-            fileService.getByProject(it)
-        }
-
-    /**
-     * @param fileId
-     * @param authentication
-     * @return [Mono] with response
-     */
-    @DeleteMapping(path = ["/api/$v1/files/delete"])
-    @Suppress("UnsafeCallOnNullableType")
-    fun delete(
-        @RequestParam fileId: Long,
-        authentication: Authentication,
-    ): Mono<StringResponse> = blockingToMono {
-        fileService.get(fileId)
-    }
-        .zipWhen { file ->
-            with(projectPermissionEvaluator) {
-                Mono.just(file.project)
-                    .filterByPermission(authentication, Permission.DELETE, HttpStatus.FORBIDDEN)
-            }
-        }
-        .flatMap { (file, _) ->
-            val fileDto = file.toDto()
-            fileStorage.delete(fileDto)
-                .asyncEffectIf({ this }) {
-                    blockingToMono {
-                        fileService.delete(fileDto)
-                    }
-                }
-        }
-        .map { deleted ->
-            if (deleted) {
-                ResponseEntity.ok("File deleted successfully")
-            } else {
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("File not found by id $fileId")
-            }
-        }
-
-    @Operation(
-        method = "POST",
-        summary = "Download a file by execution ID and FileKey.",
-        description = "Download a file by execution ID and FileKey.",
-    )
-    @Parameters(
-        Parameter(name = "fileId", `in` = ParameterIn.QUERY, description = "ID of additional file", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
-    @ApiResponse(responseCode = "404", description = "File with provided ID is not found.")
-    @PostMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun download(
-        @RequestParam fileId: Long,
-        authentication: Authentication,
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        fileService.get(fileId)
-    }
-        .zipWhen { file ->
-            with(projectPermissionEvaluator) {
-                Mono.just(file.project)
-                    .filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
-            }
-        }
-        .flatMap { (file, _) ->
-            doDownload(file)
-        }
-
-    /**
-     * @param fileId
-     * @return [Mono] with file contents
-     */
-    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun internalDownload(
-        @RequestParam fileId: Long,
-    ): Mono<ByteBufferFluxResponse> = doDownload(fileService.get(fileId))
-
-    private fun doDownload(file: File): Mono<ByteBufferFluxResponse> = doDownload(file.toDto())
-
-    private fun doDownload(file: FileDto): Mono<ByteBufferFluxResponse> = fileStorage.doesExist(file)
-        .filter { it }
-        .switchIfEmptyToNotFound {
-            "File with id ${file.requiredId()} is not found"
-        }
-        .map {
-            logger.info("Sending file ${file.name} to a client")
-            ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(fileStorage.download(file))
-        }
-
     @Operation(
         method = "GET",
         summary = "Download save-agent with current save-cloud version.",
@@ -218,46 +99,6 @@ class DownloadFilesController(
                     "Can't find $executable with the requested version $version"
                 }
             }
-
-    /**
-     * @param filePartMono a file to be uploaded
-     * @param organizationName
-     * @param projectName
-     * @param authentication
-     * @return [Mono] with response
-     */
-    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @Suppress("UnsafeCallOnNullableType")
-    fun upload(
-        @RequestPart("file") filePartMono: Mono<FilePart>,
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        authentication: Authentication,
-    ): Mono<FileDtoResponse> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, projectName, organizationName, Permission.WRITE
-    )
-        .flatMap { project ->
-            filePartMono.flatMap { filePart ->
-                val file = fileService.createNew(
-                    project = project,
-                    name = filePart.filename(),
-                )
-                val fileDto = file.toDto()
-                fileStorage.doesExist(fileDto)
-                    .filter { !it }
-                    .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
-                    .flatMap {
-                        fileStorage.upload(fileDto, filePart.content().map { it.asByteBuffer() })
-                            .map {
-                                fileService.update(file, it)
-                            }
-                            .thenReturn(fileDto)
-                    }
-                    .filter { it.sizeBytes > 0 }
-                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .map { ResponseEntity.ok(it) }
-            }
-        }
 
     /**
      * @param partMono image to be uploaded

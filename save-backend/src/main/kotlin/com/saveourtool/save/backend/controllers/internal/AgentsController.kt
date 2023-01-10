@@ -40,7 +40,6 @@ class AgentsController(
     private val executionService: ExecutionService,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
-    private val executionService: ExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -59,7 +58,7 @@ class AgentsController(
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "$backendUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
-                additionalFileNameToUrl = executionService.getFiles(execution)
+                additionalFileNameToUrl = executionService.getAssignedFiles(execution)
                     .associate { it.name to "$backendUrl/internal/files/download?fileId=${it.requiredId()}" },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,

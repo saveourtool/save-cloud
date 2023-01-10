@@ -63,8 +63,6 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    MigrationFileStorage::class,
-    FileStorage::class,
     NewFileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
@@ -119,7 +117,7 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
 
     @Autowired
-    private lateinit var fileStorage: MigrationFileStorage
+    private lateinit var fileStorage: NewFileStorage
 
     @Autowired
     private lateinit var configProperties: ConfigProperties

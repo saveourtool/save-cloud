@@ -2,9 +2,7 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.controllers.DownloadFilesController
-import com.saveourtool.save.backend.storage.MigrationFileStorage
-import com.saveourtool.save.domain.FileKey
-import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -14,51 +12,36 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 /**
- * Internal controller for [MigrationFileStorage]
+ * Internal controller for [NewFileStorage]
  *
  * @property fileStorage
  */
 @RestController
 @RequestMapping("/internal/files")
 class FileInternalController(
-    private val fileStorage: MigrationFileStorage,
+    private val fileStorage: NewFileStorage,
 ) {
     /**
-     * @param organizationName
-     * @param projectName
-     * @param name
-     * @param uploadedMillis
+     * @param fileId
      * @return [Mono] with file contents
      */
     @PostMapping(path = ["/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun internalDownload(
-        @RequestParam organizationName: String,
-        @RequestParam projectName: String,
-        @RequestParam name: String,
-        @RequestParam uploadedMillis: Long,
-    ): Mono<ByteBufferFluxResponse> = FileKey(
-        projectCoordinates = ProjectCoordinates(
-            organizationName = organizationName,
-            projectName = projectName,
-        ),
-        name = name,
-        uploadedMillis = uploadedMillis,
-    )
-        .toMono()
-        .flatMap { fileKey ->
-            fileStorage.doesExist(fileKey)
+        @RequestParam fileId: Long,
+    ): Mono<ByteBufferFluxResponse> = fileStorage.getFileById(fileId)
+        .flatMap { fileDto ->
+            fileStorage.doesExist(fileDto)
                 .filter { it }
                 .switchIfEmptyToNotFound {
-                    "File with key $fileKey is not found"
+                    "File with key $fileDto is not found"
                 }
                 .map {
-                    log.info("Sending file ${fileKey.name} to an agent")
+                    log.info("Sending file ${fileDto.name} to an agent")
                     ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(fileStorage.download(fileKey))
+                        .body(fileStorage.download(fileDto))
                 }
         }
 

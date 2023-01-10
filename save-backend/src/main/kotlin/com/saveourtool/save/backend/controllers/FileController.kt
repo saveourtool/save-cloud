@@ -3,9 +3,10 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.storage.MigrationFileStorage
+import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
@@ -17,6 +18,9 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -27,8 +31,10 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+typealias FileDtoResponse = ResponseEntity<FileDto>
+
 /**
- * A Spring controller for [FileInfo], [FileKey]
+ * A Spring controller for [FileDto]
  */
 @RestController
 @RequestMapping("/api/$v1/files")
@@ -37,7 +43,7 @@ import reactor.core.publisher.Mono
     Tag(name = "files"),
 )
 class FileController(
-    private val fileStorage: MigrationFileStorage,
+    private val fileStorage: NewFileStorage,
     private val projectService: ProjectService,
 ) {
     @Operation(
@@ -56,100 +62,72 @@ class FileController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Flux<FileInfo> = getProjectAsMonoAndValidatePermission(
+    ): Flux<FileDto> = getProjectAsMonoAndValidatePermission(
         organizationName = organizationName,
         projectName = projectName,
         authentication = authentication,
         permission = Permission.READ,
     )
         .flatMapMany { project ->
-            fileStorage.getFileInfoList(project.toProjectCoordinates())
+            fileStorage.listByProject(project)
         }
 
     @Operation(
         method = "DELETE",
-        summary = "Delete a file by project coordinates, name and uploaded time in millis.",
-        description = "Delete a file by project coordinates, name and uploaded time in millis.",
+        summary = "Delete a file by id.",
+        description = "Delete a file by id.",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of a file key", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of a file key", required = true),
-        Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of a file key", required = true),
-        Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of a file key", required = true),
+        Parameter(name = "fileId", `in` = ParameterIn.QUERY, description = "ID of additional file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "File deleted successfully.")
-    @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
-    @DeleteMapping(path = ["/{organizationName}/{projectName}/delete"])
+    @ApiResponse(responseCode = "404", description = "Not found file by provided values.")
+    @DeleteMapping(path = ["/delete"])
     fun delete(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        @RequestParam name: String,
-        @RequestParam uploadedMillis: Long,
+        @RequestParam fileId: Long,
         authentication: Authentication,
-    ): Mono<StringResponse> = getProjectAsMonoAndValidatePermission(
-        organizationName = organizationName,
-        projectName = projectName,
-        authentication = authentication,
-        permission = Permission.DELETE,
-    )
-        .flatMap { project ->
-            fileStorage.delete(FileKey(project.toProjectCoordinates(), name, uploadedMillis))
-        }
+    ): Mono<StringResponse> = fileStorage.getFileById(fileId)
+        .validatePermission(authentication, Permission.DELETE)
+        .flatMap { fileStorage.delete(it) }
         .map { deleted ->
             if (deleted) {
                 ResponseEntity.ok("File deleted successfully")
             } else {
                 ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("File not found by uploadedMillis $uploadedMillis in $organizationName/$projectName")
+                    .body("File not found by id $fileId")
             }
         }
 
     @Operation(
         method = "GET",
-        summary = "Download a file by project coordinates, name and uploaded time in millis.",
-        description = "Download a file by project coordinates, name and uploaded time in millis.",
+        summary = "Download a file by id.",
+        description = "Download a file by id.",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of a file key", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of a file key", required = true),
-        Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of a file key", required = true),
-        Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of a file key", required = true),
+        Parameter(name = "fileId", `in` = ParameterIn.QUERY, description = "ID of additional file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "The file uploaded successfully.")
-    @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
-    @RequestMapping(
-        path = ["/{organizationName}/{projectName}/download"],
+    @ApiResponse(responseCode = "404", description = "Not found file by provided values.")
+    @GetMapping(
+        path = ["/download"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        method = [RequestMethod.GET, RequestMethod.POST]
     )
     fun download(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        @RequestParam name: String,
-        @RequestParam uploadedMillis: Long,
+        @RequestParam fileId: Long,
         authentication: Authentication,
-    ): Mono<ByteBufferFluxResponse> = getProjectAsMonoAndValidatePermission(
-        organizationName = organizationName,
-        projectName = projectName,
-        authentication = authentication,
-        permission = Permission.READ,
-    )
-        .flatMap { project ->
-            val fileKey = FileKey(
-                projectCoordinates = project.toProjectCoordinates(),
-                name = name,
-                uploadedMillis = uploadedMillis,
-            )
-            fileStorage.doesExist(fileKey)
+    ): Mono<ByteBufferFluxResponse> = fileStorage.getFileById(fileId)
+        .validatePermission(authentication, Permission.READ)
+        .flatMap { fileDto ->
+            fileStorage.doesExist(fileDto)
                 .filter { it }
                 .switchIfEmptyToNotFound {
-                    "File with key $fileKey is not found"
+                    "File with key $fileDto is not found"
                 }
                 .map {
-                    log.info("Sending file ${fileKey.name} to a client")
+                    log.info("Sending file ${fileDto.name} to a client")
                     ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(fileStorage.download(fileKey))
+                        .body(fileStorage.download(fileDto))
                 }
         }
 
@@ -167,34 +145,33 @@ class FileController(
     @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
     @PostMapping(path = ["/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
-        @RequestPart("file") file: Mono<FilePart>,
+        @RequestPart("file") filePartMono: Mono<FilePart>,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ) = getProjectAsMonoAndValidatePermission(
+    ): Mono<FileDtoResponse> = getProjectAsMonoAndValidatePermission(
         organizationName = organizationName,
         projectName = projectName,
         authentication = authentication,
         permission = Permission.WRITE,
     )
         .flatMap { project ->
-            file.flatMap { part ->
-                val fileKey = FileKey(
-                    project.toProjectCoordinates(),
-                    part.filename(),
-                    System.currentTimeMillis(),
+            filePartMono.flatMap { filePart ->
+                val fileDto = FileDto(
+                    projectCoordinates = project.toProjectCoordinates(),
+                    name = filePart.filename(),
+                    uploadedTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
                 )
-                fileStorage.doesExist(fileKey)
+                fileStorage.doesExist(fileDto)
                     .filter { !it }
                     .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
                     .flatMap {
-                        fileStorage.upload(fileKey, part.content().map { it.asByteBuffer() })
-                            .map { FileInfo(fileKey, it) }
+                        fileStorage.uploadAndReturnUpdatedKey(fileDto, filePart.content().map { it.asByteBuffer() })
                     }
                     .filter { it.sizeBytes > 0 }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .map { fileInfo ->
-                        ResponseEntity.ok(fileInfo)
+                    .map {
+                        ResponseEntity.ok(fileDto)
                     }
             }
         }
@@ -207,6 +184,18 @@ class FileController(
     ): Mono<Project> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, permission
     )
+
+    private fun Mono<FileDto>.validatePermission(
+        authentication: Authentication,
+        permission: Permission,
+    ): Mono<FileDto> = flatMap { fileDto ->
+        getProjectAsMonoAndValidatePermission(
+            organizationName = fileDto.projectCoordinates.organizationName,
+            projectName = fileDto.projectCoordinates.projectName,
+            authentication = authentication,
+            permission = permission,
+        ).map { fileDto }
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(FileController::class.java)

@@ -71,9 +71,9 @@ class TestSuite(
                 this.version,
                 this.language,
                 this.tagsAsList(),
+                this.id,
                 this.pluginsAsListOfPluginType(),
                 this.isPublic,
-                this.id,
             )
 
     companion object {

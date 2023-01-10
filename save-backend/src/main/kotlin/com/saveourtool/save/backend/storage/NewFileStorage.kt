@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.utils.*
@@ -72,14 +71,4 @@ class NewFileStorage(
         fileRepository.findByIdOrNull(fileId)?.toDto()
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
-
-    /**
-     * @param fileKey
-     * @return [File] is found by [FileKey]
-     */
-    fun getFileEntityByFileKey(
-        fileKey: FileKey
-    ): File = findByDto(fileKey.toFileDto()).orNotFound {
-        "Not found File by $fileKey"
-    }
 }

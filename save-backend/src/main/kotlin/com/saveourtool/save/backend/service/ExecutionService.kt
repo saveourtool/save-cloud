@@ -35,7 +35,7 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
-    @Lazy private val fileService: FileService,
+    private val fileRepository: FileRepository,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
@@ -211,7 +211,10 @@ class ExecutionService(
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            files = fileIds.map { fileService.get(it) },
+            files = fileIds.map { fileId ->
+                fileRepository.findByIdOrNull(fileId)
+                    .orNotFound { "File (id=$fileId) not found" }
+            },
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
