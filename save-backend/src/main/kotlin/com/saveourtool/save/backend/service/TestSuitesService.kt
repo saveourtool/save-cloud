@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.TestSuite
@@ -29,13 +28,10 @@ import java.time.LocalDateTime
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
-    private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
-    private val agentStatusService: AgentStatusService,
-    private val agentService: AgentService,
 ) {
     /**
      * Save new test suites to DB
@@ -178,10 +174,10 @@ class TestSuitesService(
     }
 
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
-        val executionIds = testSuites.flatMap { testSuite ->
-            executionService.getExecutionsByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
-        }.distinct()
-        val allTestSuiteIdsByExecutions = executionIds.flatMap { lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(it) }
+        val executions = testSuites.flatMap { testSuite ->
+            executionService.getExecutionsByTestSuiteId(testSuite.requiredId())
+        }.distinctBy { it.requiredId() }
+        val allTestSuiteIdsByExecutions = executions.flatMap { lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(it.requiredId()) }
             .distinct()
             .size
         require(
@@ -189,8 +185,8 @@ class TestSuitesService(
         ) {
             "Expected that we remove all test suites related to a single execution at once"
         }
-        executionIds.forEach { executionId ->
-            executionService.markAsObsoleteById(executionId)
+        executions.forEach {
+            executionService.updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
         }
 
         testSuites.forEach { testSuite ->
