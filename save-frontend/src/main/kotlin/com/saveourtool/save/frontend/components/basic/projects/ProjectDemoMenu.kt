@@ -180,11 +180,15 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 div {
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> if (getHighestRole(props.organizationRole, props.projectRole).isHigherOrEqualThan(Role.OWNER)) buttonBuilder("Create") {
-                            sendDemoCreationRequest()
+                        DemoStatus.NOT_CREATED -> if (getHighestRole(props.organizationRole, props.projectRole).isHigherOrEqualThan(Role.OWNER)) {
+                            buttonBuilder("Create") {
+                                sendDemoCreationRequest()
+                            }
                         }
-                        DemoStatus.STARTING -> if (props.projectRole.isHigherOrEqualThan(Role.VIEWER)) buttonBuilder("Reload") {
-                            getDemoStatus()
+                        DemoStatus.STARTING -> if (props.projectRole.isHigherOrEqualThan(Role.VIEWER)) {
+                            buttonBuilder("Reload") {
+                                getDemoStatus()
+                            }
                         }
                         DemoStatus.RUNNING -> {
                             buttonBuilder("Restart") {
