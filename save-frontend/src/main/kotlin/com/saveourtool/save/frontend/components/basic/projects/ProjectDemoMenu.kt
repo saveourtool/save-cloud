@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
@@ -72,21 +73,23 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    useRequest {
-        val infoResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}",
-            jsonHeaders,
-            ::loadingHandler,
-            ::noopResponseHandler,
-        )
-        if (infoResponse.ok) {
-            val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
-            setDemoStatus(demoInfo.demoStatus)
-            setDemoToolRequest(demoInfo.demoDto)
-            setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
-        } else {
-            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
-            setDemoStatus(DemoStatus.NOT_CREATED)
+    props.role.isHigherOrEqualThan(Role.ADMIN).let {
+        useRequest {
+            val infoResponse = get(
+                "$apiUrl/demo/${props.organizationName}/${props.projectName}",
+                jsonHeaders,
+                ::loadingHandler,
+                ::noopResponseHandler,
+            )
+            if (infoResponse.ok) {
+                val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
+                setDemoStatus(demoInfo.demoStatus)
+                setDemoToolRequest(demoInfo.demoDto)
+                setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
+            } else {
+                props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
+                setDemoStatus(DemoStatus.NOT_CREATED)
+            }
         }
     }
 
@@ -176,10 +179,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 div {
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> buttonBuilder("Create") {
+                        DemoStatus.NOT_CREATED -> if (props.role.isHigherOrEqualThan(Role.ADMIN)) buttonBuilder("Create") {
                             sendDemoCreationRequest()
                         }
-                        DemoStatus.STARTING -> buttonBuilder("Reload") {
+                        DemoStatus.STARTING -> if (props.role.isHigherOrEqualThan(Role.VIEWER)) buttonBuilder("Reload") {
                             getDemoStatus()
                         }
                         DemoStatus.RUNNING -> {
@@ -216,6 +219,8 @@ external interface ProjectDemoMenuProps : Props {
      * Organization name
      */
     var organizationName: String
+
+    var role: Role
 
     /**
      * Callback to show error message

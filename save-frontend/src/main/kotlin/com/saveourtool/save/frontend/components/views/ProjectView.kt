@@ -88,6 +88,11 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
      * Contains the paths of default and other tabs
      */
     var paths: PathsForTabs
+
+    /**
+     * Project role of a user
+     */
+    var projectRole: Role
 }
 
 /**
@@ -106,6 +111,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
+        state.projectRole = Role.NONE
     }
 
     override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
@@ -148,6 +154,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
+                projectRole = currentUserRoleInProject
             }
 
             urlAnalysis(ProjectMenuBar, role, false)
@@ -214,6 +221,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectDemoMenu {
             projectName = props.name
             organizationName = props.owner
+            role = state.selfRole.let{if (it != Role.ADMIN) it else state.projectRole}
             updateErrorMessage = { label, message ->
                 setState {
                     errorLabel = label
