@@ -23,6 +23,12 @@ interface LnkExecutionTestSuiteRepository : BaseEntityRepository<LnkExecutionTes
     fun findByExecutionId(executionId: Long): List<LnkExecutionTestSuite>
 
     /**
+     * @param executionIds list of ID of execution that is connected to testSuite
+     * @return all [LnkExecutionTestSuite] by [Execution.id]
+     */
+    fun findByExecutionIdIn(executionIds: Collection<Long>): List<LnkExecutionTestSuite>
+
+    /**
      * @param testSuiteId manageable test suite
      * @return [LnkExecutionTestSuite] by [testSuiteId]
      */
