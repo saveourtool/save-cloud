@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
@@ -61,11 +60,6 @@ external interface RegistrationViewState : State {
      * Conflict error message
      */
     var conflictErrorMessage: String?
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
 
     /**
      * Validation of input fields
@@ -194,7 +188,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             img {
                 className =
                         ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                src = state.image?.path?.let {
+                src = props.userInfo?.avatar?.let {
                     "/api/$v1/avatar$it"
                 }
                     ?: "img/undraw_profile.svg"
@@ -248,7 +242,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
                 element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
+                    val response = post(
                         "$apiUrl/image/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
                         Headers(),
                         FormData().apply {
@@ -256,9 +250,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                         },
                         loadingHandler = ::classLoadingHandler,
                     )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
+                    if (response.ok) {
+                        window.location.reload()
                     }
                 }
             }

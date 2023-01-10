@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -35,6 +34,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
 import web.http.FormData
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -55,16 +55,6 @@ external interface UserSettingsProps : PropsWithChildren {
  */
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
 external interface UserSettingsViewState : State {
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
-
     /**
      * Currently logged in user or null
      */
@@ -92,7 +82,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private val renderMenu = renderMenu()
 
     init {
-        state.isUploading = false
         state.selfOrganizationWithUserList = emptyList()
     }
 
@@ -121,7 +110,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
-                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
             }
@@ -176,7 +164,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             img {
                                                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                                src = state.image?.path?.let {
+                                                src = state.userInfo?.avatar?.let {
                                                     "/api/$v1/avatar$it"
                                                 }
                                                     ?: run {
@@ -339,11 +327,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
-                setState {
-                    isUploading = true
-                }
                 element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
+                    val response = post(
                         "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
                         Headers(),
                         FormData().apply {
@@ -351,14 +336,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         },
                         loadingHandler = ::classLoadingHandler,
                     )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
+                    if (response.ok) {
+                        window.location.reload()
                     }
                 }
-                setState {
-                    isUploading = false
-                }
+                window.location.reload()
             }
 
     @Suppress("TYPE_ALIAS")

@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
@@ -34,14 +33,6 @@ class OrganizationViewTest {
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun createWorker() = setupWorker(
-        rest.get("$apiUrl/organizations/${testOrganization.name}/avatar") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    ImageInfo(""),
-                )
-            }
-        },
         rest.get("$apiUrl/organizations/${testOrganization.name}") { _, res, _ ->
             res { response ->
                 mockMswResponse(
