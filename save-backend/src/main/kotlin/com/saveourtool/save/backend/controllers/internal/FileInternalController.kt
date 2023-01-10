@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
-import com.saveourtool.save.backend.storage.NewFileStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
 /**
- * Internal controller for [NewFileStorage]
+ * Internal controller for [FileStorage]
  *
  * @property fileStorage
  */
 @RestController
 @RequestMapping("/internal/files")
 class FileInternalController(
-    private val fileStorage: NewFileStorage,
+    private val fileStorage: FileStorage,
 ) {
     /**
      * @param fileId

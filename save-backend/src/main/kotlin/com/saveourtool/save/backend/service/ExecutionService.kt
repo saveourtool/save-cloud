@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.backend.utils.ErrorMessage
 import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
@@ -44,7 +43,6 @@ class ExecutionService(
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
-    @Lazy private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 

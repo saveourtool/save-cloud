@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.storage.NewFileStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.FileDto
@@ -45,7 +45,7 @@ typealias FileDtoResponse = ResponseEntity<FileDto>
     Tag(name = "files"),
 )
 class FileController(
-    private val fileStorage: NewFileStorage,
+    private val fileStorage: FileStorage,
     private val projectService: ProjectService,
 ) {
     @Operation(

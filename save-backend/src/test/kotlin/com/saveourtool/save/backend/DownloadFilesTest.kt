@@ -63,7 +63,7 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    NewFileStorage::class,
+    FileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
@@ -76,6 +76,7 @@ import kotlin.io.path.*
     MockBean(UserDetailsService::class),
     MockBean(ExecutionService::class),
     MockBean(AgentService::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {
@@ -117,7 +118,7 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
 
     @Autowired
-    private lateinit var fileStorage: NewFileStorage
+    private lateinit var fileStorage: FileStorage
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
@@ -127,9 +128,6 @@ class DownloadFilesTest {
 
     @MockBean
     private lateinit var fileRepository: FileRepository
-
-    @MockBean
-    private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")

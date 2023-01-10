@@ -22,7 +22,7 @@ import kotlinx.datetime.toJavaLocalDateTime
  * Storage for evaluated tools are loaded by users
  */
 @Service
-class NewFileStorage(
+class FileStorage(
     configProperties: ConfigProperties,
     private val fileRepository: FileRepository,
     private val projectService: ProjectService,
