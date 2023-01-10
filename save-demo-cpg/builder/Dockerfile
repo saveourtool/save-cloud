@@ -1,4 +1,4 @@
-FROM paketobuildpacks/builder:base
+FROM paketobuildpacks/builder:0.3.135-base
 
 USER root
 RUN apt update && apt install -y software-properties-common && \
