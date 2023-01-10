@@ -297,8 +297,12 @@ class ExecutionService(
     @Transactional
     fun unlinkFileFromAllExecution(file: File) {
         lnkExecutionFileRepository.findAllByFile(file)
+            .also {
+                lnkExecutionFileRepository.deleteAll(it)
+            }
+            .map { it.execution }
             .forEach {
-                updateExecutionStatus(it.execution, ExecutionStatus.OBSOLETE)
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
             }
     }
 
