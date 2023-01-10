@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.enableExpanding
-import com.saveourtool.save.frontend.components.tables.invoke
 import com.saveourtool.save.frontend.components.tables.isExpanded
 import com.saveourtool.save.frontend.components.tables.pageIndex
 import com.saveourtool.save.frontend.components.tables.pageSize
@@ -47,6 +46,21 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * The maximum length of a test name (in chars), before it gets shortened.
+ */
+private const val MAX_TEST_NAME_LENGTH = 35
+
+/**
+ * Horizontal Ellipsis (U+2026).
+ */
+private const val ELLIPSIS = '\u2026'
+
+/**
+ * The infix of the shortened text label.
+ */
+private const val TEXT_LABEL_INFIX = " $ELLIPSIS "
 
 /**
  * [Props] for execution results view
@@ -152,8 +166,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     Fragment.create {
                         td {
                             val testName = cellContext.value.filePath
-                            val shortTestName =
-                                    if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
+                            val shortTestName = testName.shorten(MAX_TEST_NAME_LENGTH)
                             +shortTestName
 
                             // debug info is provided by agent after the execution
@@ -414,6 +427,30 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) =
             // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
             "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
+
+    /**
+     * @param maxLength the maximum desired length of a text label.
+     * @return the optionally shortened label.
+     * @throws IllegalArgumentException if [maxLength] is less or equal than the length of [TEXT_LABEL_INFIX].
+     */
+    private fun String.shorten(maxLength: Int): String {
+        val infixLength = TEXT_LABEL_INFIX.length
+
+        require(maxLength > infixLength) {
+            "The desired length: $maxLength doesn't exceed the length of the infix: $infixLength"
+        }
+
+        return when {
+            length > maxLength -> {
+                val usableLength = maxLength - infixLength
+                val prefixLength = usableLength / 2
+                val suffixLength = usableLength - prefixLength
+                take(prefixLength) + TEXT_LABEL_INFIX + takeLast(suffixLength)
+            }
+
+            else -> this
+        }
+    }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
