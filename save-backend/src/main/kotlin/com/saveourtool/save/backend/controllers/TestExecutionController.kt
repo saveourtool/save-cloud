@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
@@ -77,7 +78,7 @@ class TestExecutionController(
         @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = blockingToMono {
+    ): Flux<TestExecutionExDto> = blockingToMono {
         executionService.findExecution(executionId)
     }
         .switchIfEmptyToNotFound()
@@ -99,6 +100,9 @@ class TestExecutionController(
                         testExecutionDto.copy(hasDebugInfo = hasDebugInfo)
                     }
             }
+        }
+        .map { testExecution ->
+            testExecution.extended()
         }
 
     /**
