@@ -74,7 +74,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    props.projectRole.isHigherOrEqualThan(Role.ADMIN).let {
+    if (props.projectRole.isHigherOrEqualThan(Role.ADMIN) || props.organizationRole.isHigherOrEqualThan(Role.OWNER)) {
         useRequest {
             val infoResponse = get(
                 "$apiUrl/demo/${props.organizationName}/${props.projectName}",
