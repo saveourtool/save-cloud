@@ -316,7 +316,7 @@ class ExecutionService(
             .distinctBy { it.requiredId() }
             .also { sources ->
                 require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: $sources"
+                    "Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}"
                 }
             }
             .single()
