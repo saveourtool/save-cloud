@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
-import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.slf4j.LoggerFactory
@@ -46,6 +45,6 @@ class FileInternalController(
         }
 
     companion object {
-        private val log = LoggerFactory.getLogger(DownloadFilesController::class.java)
+        private val log = LoggerFactory.getLogger(FileInternalController::class.java)
     }
 }
