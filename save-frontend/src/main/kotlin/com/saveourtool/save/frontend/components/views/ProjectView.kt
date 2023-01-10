@@ -229,7 +229,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             projectName = props.name
             organizationName = props.owner
             projectRole = state.projectRole
-            organizationRole = state.projectRole
+            organizationRole = state.organizationRole
             updateErrorMessage = { label, message ->
                 setState {
                     errorLabel = label
