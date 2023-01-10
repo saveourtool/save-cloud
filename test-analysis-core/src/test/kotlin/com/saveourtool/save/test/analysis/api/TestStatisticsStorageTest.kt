@@ -4,10 +4,10 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.domain.TestResultStatus.FAILED
 import com.saveourtool.save.domain.TestResultStatus.IGNORED
 import com.saveourtool.save.domain.TestResultStatus.PASSED
-import com.saveourtool.save.test.analysis.api.metrics.NoDataAvailable
-import com.saveourtool.save.test.analysis.api.metrics.RegularTestMetrics
 import com.saveourtool.save.test.analysis.internal.MemoryBacked
 import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
+import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
+import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -45,7 +45,7 @@ class TestStatisticsStorageTest {
 
     @Test
     fun `test metrics should get updated`() {
-        assertThat(storage.getTestMetrics(testId)).isEqualTo(NoDataAvailable)
+        assertThat(storage.getTestMetrics(testId)).isEqualTo(NoDataAvailable.instance)
 
         storage[testId] += TestRun(PASSED, null)
         assertThat(storage.getTestMetrics(testId)).isInstanceOfSatisfying(RegularTestMetrics::class.java) { metrics ->

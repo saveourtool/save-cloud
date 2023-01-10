@@ -2,13 +2,18 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.storage.NewFileStorage
+import com.saveourtool.save.backend.utils.ErrorMessage
+import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
@@ -35,6 +40,10 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    private val lnkExecutionFileRepository: LnkExecutionFileRepository,
+    @Lazy private val agentService: AgentService,
+    private val agentStatusService: AgentStatusService,
+    @Lazy private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -63,8 +72,15 @@ class ExecutionService(
      */
     @Transactional
     fun updateExecutionStatus(srcExecution: Execution, newStatus: ExecutionStatus) {
-        log.debug("Updating status to $newStatus on execution id = ${srcExecution.requiredId()}")
-        val execution = executionRepository.findWithLockingById(srcExecution.requiredId()).orNotFound()
+        val executionId = srcExecution.requiredId()
+        log.debug("Updating status to $newStatus on execution id = $executionId")
+        if (newStatus == ExecutionStatus.OBSOLETE) {
+            log.info {
+                "Marking execution with id $executionId as obsolete. Additionally cleanup dependencies to this execution"
+            }
+            doDeleteDependencies(listOf(executionId))
+        }
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         val updatedExecution = execution.apply {
             status = newStatus
         }
@@ -114,24 +130,6 @@ class ExecutionService(
             executionRepository.findByProjectNameAndProjectOrganizationAndStartTimeBetween(name, organization, start, end)
 
     /**
-     * @param name name of project
-     * @param organization organization of project
-     * @return list of execution dtos
-     */
-    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
-
-    /**
-     * @param name name of project
-     * @param organization organization of project
-     * @return list of execution
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization) =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
-                lnkContestExecutionService.findContestByExecution(it) == null
-            }
-
-    /**
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
@@ -149,22 +147,15 @@ class ExecutionService(
      * @return Unit
      */
     @Suppress("IDENTIFIER_LENGTH")
+    @Transactional
     fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
-        getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
-            executionRepository.delete(it)
-        }
-    }
-
-    /**
-     * Delete all executions by project name and organization
-     *
-     * @param executionIds list of ids
-     * @return Unit
-     */
-    fun deleteExecutionByIds(executionIds: List<Long>) =
-            executionIds.forEach {
-                executionRepository.deleteById(it)
+        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
+            .filter {
+                lnkContestExecutionService.findContestByExecution(it) == null
             }
+            .map { it.requiredId() }
+            .let { deleteByIds(it) }
+    }
 
     /**
      * Get all executions, which contains provided test suite id
@@ -178,7 +169,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param files
+     * @param fileKeys
      * @param username
      * @param sdk
      * @param execCmd
@@ -192,7 +183,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        files: List<FileKey>,
+        fileKeys: List<FileKey>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -205,13 +196,14 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
+        val files = fileKeys.map { newFileStorage.getFileEntityByFileKey(it) }
         return doCreateNew(
             project = project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            additionalFiles = files.formatForExecution(),
+            files = files,
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -231,12 +223,13 @@ class ExecutionService(
         execution: Execution,
         username: String,
     ): Execution {
-        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
+        val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
+        val files = lnkExecutionFileRepository.findAllByExecution(execution).map { it.file }
         return doCreateNew(
             project = execution.project,
-            testSuiteIds = testSuiteIds,
+            testSuites = testSuites,
             allTests = execution.allTests,
-            additionalFiles = execution.additionalFiles,
+            files = files,
             username = username,
             sdk = execution.sdk,
             execCmd = execution.execCmd,
@@ -250,9 +243,9 @@ class ExecutionService(
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
-        testSuiteIds: List<Long>,
+        testSuites: List<TestSuite>,
         allTests: Long,
-        additionalFiles: String,
+        files: List<File>,
         username: String,
         sdk: String,
         execCmd: String?,
@@ -263,7 +256,6 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
-        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -271,7 +263,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testSuites.singleVersion(),
+            version = testSuites.singleVersion().getOrThrowBadRequest(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -282,15 +274,15 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
-            additionalFiles = additionalFiles,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuites.singleSourceName(),
+            testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
             score = null,
         )
         val savedExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
         if (testingType == TestingType.CONTEST_MODE) {
             lnkContestExecutionService.createLink(
                 savedExecution, requireNotNull(contestName) {
@@ -302,24 +294,79 @@ class ExecutionService(
         return savedExecution
     }
 
-    companion object {
-        private fun Collection<TestSuite>.singleSourceName(): String = map { it.source }
-            .distinctBy { it.requiredId() }
-            .also { sources ->
-                require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: $sources"
-                }
+    /**
+     * Unlink provided [File] from all [Execution]s
+     *
+     * @param file
+     */
+    @Transactional
+    fun unlinkFileFromAllExecution(file: File) {
+        lnkExecutionFileRepository.findAllByFile(file)
+            .also {
+                lnkExecutionFileRepository.deleteAll(it)
             }
-            .single()
-            .name
+            .map { it.execution }
+            .forEach {
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
+            }
+    }
 
-        private fun Collection<TestSuite>.singleVersion(): String = map { it.version }
-            .distinct()
-            .also { versions ->
-                require(versions.size == 1) {
-                    "Only a single version is supported, but got: $versions"
+    /**
+     * @param execution
+     * @return all [FileDto]s are assigned to provided [Execution]
+     */
+    fun getAssignedFiles(execution: Execution): List<FileDto> = lnkExecutionFileRepository.findAllByExecution(execution)
+        .map { it.file.toDto() }
+
+    /**
+     * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
+     *
+     * @param executionIds
+     */
+    @Transactional
+    fun deleteByIds(executionIds: List<Long>) {
+        log.info {
+            "Deleting executions with id in $executionIds. Additionally cleanup dependencies to these executions"
+        }
+        // dependencies will be cleanup by cascade constrains
+        executionRepository.deleteAllById(executionIds)
+    }
+
+    private fun doDeleteDependencies(executionIds: List<Long>) {
+        log.info {
+            "Delete dependencies to executions ($executionIds): links to test suites and files, agents with their statuses and test executions"
+        }
+        lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
+        lnkExecutionFileRepository.deleteAllByExecutionIdIn(executionIds)
+        testExecutionRepository.deleteByExecutionIdIn(executionIds)
+        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+        agentService.deleteAgentByExecutionIds(executionIds)
+    }
+
+    companion object {
+        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.source }
+            .distinctBy { it.requiredId() }
+            .let { sources ->
+                when (sources.size) {
+                    1 -> sources[0]
+                        .name
+                        .right()
+
+                    else -> ErrorMessage("Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}")
+                        .left()
                 }
             }
-            .single()
+
+        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.version }
+            .distinct()
+            .let { versions ->
+                when (versions.size) {
+                    1 -> versions[0]
+                        .right()
+
+                    else -> ErrorMessage("Only a single version is supported, but got: $versions")
+                        .left()
+                }
+            }
     }
 }

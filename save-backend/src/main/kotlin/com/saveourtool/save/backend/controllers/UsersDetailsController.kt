@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
@@ -34,15 +33,6 @@ class UsersDetailsController(
     private val userDetailsService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
-    /**
-     * @param userName username
-     * @return [ImageInfo] about user's avatar
-     */
-    @GetMapping("/{userName}/avatar")
-    @PreAuthorize("permitAll()")
-    fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            userRepository.findByName(userName).toMonoOrNotFound().map { ImageInfo(it.avatar) }
-
     /**
      * @param userName username
      * @return [UserInfo] info about user's

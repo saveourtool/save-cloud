@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service
 
 import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
+import kotlin.concurrent.withLock
 import kotlinx.datetime.*
 
 /**
@@ -201,19 +201,10 @@ class AgentStatusInMemoryRepository(
         crashedContainers.clear()
     }
 
-    private fun <R> useReadLock(action: () -> R): R = lock.readLock().use(action)
-    private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().use(action)
+    private fun <R> useReadLock(action: () -> R): R = lock.readLock().withLock(action)
+    private fun <R> useWriteLock(action: () -> R): R = lock.writeLock().withLock(action)
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(AgentStatusInMemoryRepository::class.java)
-
-        private fun <R> Lock.use(action: () -> R): R {
-            lock()
-            try {
-                return action()
-            } finally {
-                unlock()
-            }
-        }
     }
 }

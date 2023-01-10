@@ -12,7 +12,6 @@ import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -167,23 +166,6 @@ internal class OrganizationController(
     ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilters(prefix))
         .map { it.name }
         .collectList()
-
-    @GetMapping("/{organizationName}/avatar")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get avatar by organization name.",
-        description = "Get organization avatar by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched avatar by organization name.")
-    fun avatar(
-        @PathVariable organizationName: String
-    ): Mono<ImageInfo> = Mono.fromCallable {
-        organizationService.findByNameAndCreatedStatus(organizationName)?.avatar.let { ImageInfo(it) }
-    }
 
     @PostMapping("/{organizationName}/manage-contest-permission")
     @RequiresAuthorizationSourceHeader

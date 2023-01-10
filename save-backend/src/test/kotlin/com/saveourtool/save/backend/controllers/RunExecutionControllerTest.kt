@@ -2,11 +2,8 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.FileKey
@@ -24,6 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.io.TempDir
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -36,7 +34,14 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.createFile
+import kotlin.io.path.div
+import kotlin.io.path.writeText
 
 @ActiveProfiles("test")
 @SpringBootTest(classes = [SaveApplication::class])
@@ -51,6 +56,8 @@ class RunExecutionControllerTest(
     @Autowired private lateinit var executionRepository: ExecutionRepository
     @Autowired private lateinit var testRepository: TestRepository
     @Autowired private lateinit var testExecutionRepository: TestExecutionRepository
+    @Autowired private lateinit var lnkExecutionFileRepository: LnkExecutionFileRepository
+    @Autowired private lateinit var lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -67,7 +74,15 @@ class RunExecutionControllerTest(
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
-            files = listOf(FileKey(project.toProjectCoordinates(), "test1", 123L)),
+            files = listOf(
+                FileKey(
+                    project.toProjectCoordinates(),
+                    "test.bat",
+                    LocalDateTime.of(2022, 12, 30, 1, 2, 3)
+                        .toInstant(ZoneOffset.UTC)
+                        .toEpochMilli()
+                )
+            ),
             sdk = Jdk("8"),
             execCmd = "execCmd",
             batchSizeForAnalyzer = "batchSizeForAnalyzer",
@@ -112,7 +127,6 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(testsCount, newExecution.allTests)
-        Assertions.assertEquals("test1:123", newExecution.additionalFiles)
         Assertions.assertEquals("eclipse-temurin:8", newExecution.sdk)
         Assertions.assertEquals("execCmd", newExecution.execCmd)
         Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
@@ -121,6 +135,17 @@ class RunExecutionControllerTest(
             .count { it.execution.requiredId() == executionId }
             .toLong()
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
+
+        Assertions.assertEquals(
+            testSuiteIds,
+            lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+                .map { it.testSuite.requiredId() }
+        )
+        Assertions.assertEquals(
+            listOf(FILE_ID),
+            lnkExecutionFileRepository.findAllByExecutionId(executionId)
+                .map { it.file.requiredId() }
+        )
     }
 
     @WithMockUser("admin")
@@ -142,6 +167,7 @@ class RunExecutionControllerTest(
             log.info("Request $it")
         }
 
+        val testSuiteId = 11L
         val originalExecution = executionRepository.findById(EXECUTION_ID).get()
         val executionId = webClient.post()
             .uri("/api/$v1/run/re-trigger?executionId=$EXECUTION_ID")
@@ -162,13 +188,12 @@ class RunExecutionControllerTest(
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val testsCount = testRepository.findAll()
-            .count { it.testSuite.requiredId() == 11L }
+            .count { it.testSuite.requiredId() == testSuiteId }
             .toLong()
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(originalExecution.project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(originalExecution.allTests, newExecution.allTests)
-        Assertions.assertEquals(originalExecution.additionalFiles, newExecution.additionalFiles)
         Assertions.assertEquals(originalExecution.sdk, newExecution.sdk)
         Assertions.assertEquals(originalExecution.execCmd, newExecution.execCmd)
         Assertions.assertEquals(originalExecution.batchSizeForAnalyzer, newExecution.batchSizeForAnalyzer)
@@ -177,15 +202,36 @@ class RunExecutionControllerTest(
             .count { it.execution.requiredId() == executionId }
             .toLong()
         Assertions.assertEquals(testsCount, newTestExecutionsCount)
+
+        Assertions.assertEquals(
+            listOf(FILE_ID),
+            lnkExecutionFileRepository.findAllByExecutionId(executionId)
+                .map { it.file.requiredId() }
+        )
+
+        Assertions.assertEquals(
+            listOf(testSuiteId),
+            lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+                .map { it.testSuite.requiredId() }
+        )
     }
 
     companion object {
         private val log: Logger = getLogger<RunExecutionControllerTest>()
         private const val EXECUTION_ID = 6L
         private const val PROJECT_ID = 1L
+        private const val FILE_ID = 1L
+
+        @TempDir
+        internal lateinit var tmpDir: Path
 
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
+
+        @BeforeAll
+        fun setup() {
+            (tmpDir / "storage" / FILE_ID.toString()).createFile().writeText("TEST")
+        }
 
         @AfterEach
         fun cleanup() {
@@ -204,6 +250,7 @@ class RunExecutionControllerTest(
             mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("backend.orchestratorUrl") { "http://localhost:${mockServerOrchestrator.port}" }
+            registry.add("backend.fileStorage.location") { tmpDir.absolutePathString() }
         }
     }
 
