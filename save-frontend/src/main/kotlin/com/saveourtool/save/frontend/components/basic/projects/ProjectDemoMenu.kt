@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import react.*
@@ -73,7 +74,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    props.role.isHigherOrEqualThan(Role.ADMIN).let {
+    props.projectRole.isHigherOrEqualThan(Role.ADMIN).let {
         useRequest {
             val infoResponse = get(
                 "$apiUrl/demo/${props.organizationName}/${props.projectName}",
@@ -179,10 +180,10 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 div {
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> if (props.role.isHigherOrEqualThan(Role.ADMIN)) buttonBuilder("Create") {
+                        DemoStatus.NOT_CREATED -> if (getHighestRole(props.organizationRole, props.projectRole).isHigherOrEqualThan(Role.OWNER)) buttonBuilder("Create") {
                             sendDemoCreationRequest()
                         }
-                        DemoStatus.STARTING -> if (props.role.isHigherOrEqualThan(Role.VIEWER)) buttonBuilder("Reload") {
+                        DemoStatus.STARTING -> if (props.projectRole.isHigherOrEqualThan(Role.VIEWER)) buttonBuilder("Reload") {
                             getDemoStatus()
                         }
                         DemoStatus.RUNNING -> {
@@ -220,7 +221,15 @@ external interface ProjectDemoMenuProps : Props {
      */
     var organizationName: String
 
-    var role: Role
+    /**
+     * The user role in the project
+     */
+    var projectRole: Role
+
+    /**
+     * The user role in the organization
+     */
+    var organizationRole: Role
 
     /**
      * Callback to show error message

@@ -90,6 +90,11 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
     var paths: PathsForTabs
 
     /**
+     * Organization role of a user
+     */
+    var organizationRole: Role
+
+    /**
      * Project role of a user
      */
     var projectRole: Role
@@ -112,6 +117,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.projectRole = Role.NONE
+        state.organizationRole = Role.NONE
     }
 
     override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
@@ -154,6 +160,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
+                organizationRole = currentUserRoleInOrganization
                 projectRole = currentUserRoleInProject
             }
 
@@ -221,7 +228,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectDemoMenu {
             projectName = props.name
             organizationName = props.owner
-            role = state.selfRole.let{if (it != Role.ADMIN) it else state.projectRole}
+            projectRole = state.projectRole
+            organizationRole = state.projectRole
             updateErrorMessage = { label, message ->
                 setState {
                     errorLabel = label
