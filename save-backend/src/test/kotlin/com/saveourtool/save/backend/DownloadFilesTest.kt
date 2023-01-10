@@ -52,7 +52,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -120,9 +119,6 @@ class DownloadFilesTest {
     @Autowired
     private lateinit var fileStorage: FileStorage
 
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
-
     @MockBean
     private lateinit var projectService: ProjectService
 
@@ -146,30 +142,31 @@ class DownloadFilesTest {
 
         val tmpFile = (createTempDirectory() / file1.name).createFile()
             .writeLines("Lorem ipsum".lines())
-        Paths.get(configProperties.fileStorage.location).createDirectories()
 
-        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
-        val sampleFileDto = tmpFile.toFileDto(projectCoordinates)
-        fileStorage.overwrite(sampleFileDto, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
-            .subscribeOn(Schedulers.immediate())
-            .block()
+        val sampleFileDto = tmpFile.toFileDto(testProject.toProjectCoordinates())
+            .also { fileDto ->
+                fileStorage.delete(fileDto)
+                    .block()
+            }
+            .let { fileDto ->
+                fileStorage.uploadAndReturnUpdatedKey(fileDto, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+                    .subscribeOn(Schedulers.immediate())
+                    .block()
+            }!!
 
-        setOf(HttpMethod.GET, HttpMethod.POST)
-            .forEach { httpMethod ->
-                webTestClient.method(httpMethod)
-                    .uri("/api/$v1/files/download?fileId={fileId}", sampleFileDto.id)
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .expectStatus()
-                    .isOk
-                    .expectBody()
-                    .consumeWith {
-                        Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
-                    }
+        webTestClient.get()
+            .uri("/api/$v1/files/download?fileId={fileId}", sampleFileDto.requiredId())
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
         webTestClient.get()
-            .uri("/api/$v1/files/Example.com/TheProject/list")
+            .uri("/api/$v1/files/{organizationName}/{projectName}/list", testProject.organization.name, testProject.name)
             .exchange()
             .expectStatus()
             .isOk
@@ -324,6 +321,14 @@ class DownloadFilesTest {
                 }
             }
         whenever(fileRepository.findAll())
+            .thenAnswer {
+                if (isSaved()) {
+                    listOf(file)
+                } else {
+                    emptyList()
+                }
+            }
+        whenever(fileRepository.findAllByProject(eq(file.project)))
             .thenAnswer {
                 if (isSaved()) {
                     listOf(file)
