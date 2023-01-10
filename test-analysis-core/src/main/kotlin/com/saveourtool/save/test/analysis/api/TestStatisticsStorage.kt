@@ -1,9 +1,9 @@
 package com.saveourtool.save.test.analysis.api
 
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.test.analysis.api.metrics.NoDataAvailable
-import com.saveourtool.save.test.analysis.api.metrics.RegularTestMetrics
-import com.saveourtool.save.test.analysis.api.metrics.TestMetrics
+import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
+import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
+import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import kotlin.time.Duration
 import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.toDuration
@@ -37,7 +37,7 @@ interface TestStatisticsStorage : TestStatusProviderScope<TestResultStatus> {
                 val testRuns = getExecutionStatistics(id)
 
                 when {
-                    testRuns.isEmpty() -> NoDataAvailable
+                    testRuns.isEmpty() -> NoDataAvailable.instance
                     else -> RegularTestMetrics(
                         successCount = testRuns.count { it.isSuccess() },
                         failureCount = testRuns.count { it.isFailure() },

@@ -1,6 +1,9 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
+import com.saveourtool.save.test.analysis.metrics.TestMetrics
+import com.saveourtool.save.test.analysis.results.AnalysisResult
 
 import kotlinx.serialization.Serializable
 
@@ -37,5 +40,20 @@ data class TestExecutionDto(
     val expected: Long?,
     val unexpected: Long?,
     val hasDebugInfo: Boolean? = null,
-    val executionId: Long? = null
-)
+    val executionId: Long? = null,
+) {
+    /**
+     * @param testMetrics scalar test metrics.
+     * @param analysisResults test analysis results.
+     * @return an "extended" version of this test execution with extra information.
+     */
+    fun extended(
+        testMetrics: TestMetrics = NoDataAvailable.instance,
+        analysisResults: List<AnalysisResult> = emptyList(),
+    ): TestExecutionExDto =
+            TestExecutionExDto(
+                this,
+                testMetrics,
+                analysisResults,
+            )
+}

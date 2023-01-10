@@ -76,6 +76,7 @@ tasks.register<Exec>("cleanupDbAndStorage") {
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(projects.authenticationService)
+    implementation(projects.testAnalysisCore)
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)
@@ -84,6 +85,7 @@ dependencies {
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.reactor.extra)
     testImplementation(libs.spring.security.test)
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(projects.testUtils)
 }
 
