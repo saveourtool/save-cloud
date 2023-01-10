@@ -60,7 +60,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                         }
                     }
                     .flatMap {
-                        delete(oldKey)
+                        oldStorage.delete(oldKey)
                     }
                     .onErrorResume { ex ->
                         Mono.fromCallable {
