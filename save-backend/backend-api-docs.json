@@ -8896,11 +8896,9 @@
       },
       "Execution": {
         "required": [
-          "additionalFiles",
           "allTests",
           "expectedChecks",
           "failedTests",
-          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -8915,9 +8913,6 @@
         ],
         "type": "object",
         "properties": {
-          "additionalFiles": {
-            "type": "string"
-          },
           "allTests": {
             "type": "integer",
             "format": "int64"
@@ -8943,12 +8938,6 @@
           "failedTests": {
             "type": "integer",
             "format": "int64"
-          },
-          "fileKeys": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FileKey"
-            }
           },
           "id": {
             "type": "integer",

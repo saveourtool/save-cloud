@@ -40,6 +40,7 @@ class AgentsController(
     private val executionService: ExecutionService,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val executionService: ExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]

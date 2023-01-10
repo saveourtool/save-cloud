@@ -2,12 +2,12 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.*
-
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
@@ -39,6 +39,7 @@ class ExecutionService(
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
+    @Lazy private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -199,13 +200,12 @@ class ExecutionService(
         testingType: TestingType,
         contestName: String?,
     ): Execution {
-    ): Mono<Execution> = blockingToMono {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
             }
         }
-        doCreateNew(
+        return doCreateNew(
             project = project,
             testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
@@ -230,10 +230,10 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Mono<Execution> = blockingToMono {
+    ): Execution {
         val testSuites = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution)
-        val files = lnkExecutionFileRepository.findAllByExecutionId(execution.requiredId()).map { it.file }
-        doCreateNew(
+        val files = lnkExecutionFileRepository.findAllByExecution(execution).map { it.file }
+        return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
             allTests = execution.allTests,
@@ -304,17 +304,28 @@ class ExecutionService(
     }
 
     /**
-     * @param execution
-     * @return all [File]s are assigned to provided [Execution]
+     * Unlink provided [File] from all [Execution]s
+     *
+     * @param file
      */
-    fun getFiles(execution: Execution): List<File> = execution
-        .let { lnkExecutionFileRepository.findAllByExecution(it) }
-        .map { it.file }
+    @Transactional
+    fun unlinkFileFromAllExecution(file: File) {
+        lnkExecutionFileRepository.findAllByFile(file)
+            .also {
+                lnkExecutionFileRepository.deleteAll(it)
+            }
+            .map { it.execution }
+            .forEach {
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
+            }
+    }
 
     /**
-     * @param executionId
+     * @param execution
+     * @return all [FileDto]s are assigned to provided [Execution]
      */
-    fun getFiles(executionId: Long): List<File> = getFiles(getExecution(executionId))
+    fun getAssignedFiles(execution: Execution): List<FileDto> = lnkExecutionFileRepository.findAllByExecution(execution)
+        .map { it.file.toDto() }
 
     /**
      * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
@@ -332,9 +343,10 @@ class ExecutionService(
 
     private fun doDeleteDependencies(executionIds: List<Long>) {
         log.info {
-            "Delete dependencies to executions ($executionIds): links to test suites, agents with their statuses and test executions"
+            "Delete dependencies to executions ($executionIds): links to test suites and files, agents with their statuses and test executions"
         }
         lnkExecutionTestSuiteService.deleteByExecutionIds(executionIds)
+        lnkExecutionFileRepository.deleteAllByExecutionIdIn(executionIds)
         testExecutionRepository.deleteByExecutionIdIn(executionIds)
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
@@ -345,7 +357,7 @@ class ExecutionService(
             .distinctBy { it.requiredId() }
             .also { sources ->
                 require(sources.size == 1) {
-                    "Only a single test suites source is allowed for a run, but got: $sources"
+                    "Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}"
                 }
             }
             .single()

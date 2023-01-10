@@ -12,26 +12,25 @@ import org.springframework.stereotype.Repository
 @Repository
 interface LnkExecutionFileRepository : BaseEntityRepository<LnkExecutionFile> {
     /**
-     * @param execution execution that is connected to [com.saveourtool.save.entities.File]
+     * @param execution [Execution] that is connected to [File]
      * @return [LnkExecutionFile] by [Execution]
      */
     fun findAllByExecution(execution: Execution): List<LnkExecutionFile>
 
     /**
-     * @param executionId id of [Execution] that is connected to [com.saveourtool.save.entities.File]
+     * @param executionId id of [Execution] that is connected to [File]
      * @return [LnkExecutionFile] by [Execution.id]
      */
     fun findAllByExecutionId(executionId: Long): List<LnkExecutionFile>
 
     /**
-     * @param file id of [com.saveourtool.save.entities.File] that is connected to [com.saveourtool.save.entities.Execution]
-     * @return [LnkExecutionFile] by [com.saveourtool.save.entities.File.id]
+     * @param file id of [File] that is connected to [Execution]
+     * @return [LnkExecutionFile] by [File.id]
      */
     fun findAllByFile(file: File): List<LnkExecutionFile>
 
     /**
-     * @param fileId id of [com.saveourtool.save.entities.File] that is connected to [com.saveourtool.save.entities.Execution]
-     * @return [LnkExecutionFile] by [com.saveourtool.save.entities.File]
+     * @param executionIds ids of [Execution] for which connection to [File] should be deleted
      */
-    fun findAllByFileId(fileId: Long): List<LnkExecutionFile>
+    fun deleteAllByExecutionIdIn(executionIds: Collection<Long>)
 }

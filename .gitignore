@@ -3,6 +3,7 @@ target
 build
 !ktlint/src/main/resources/config/.idea
 /.idea
+/.mailmap
 *.iml
 out
 .DS_Store

@@ -26,6 +26,8 @@
     <include file="lnk-organization-test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-agent-insert.xml" relativeToChangelogFile="true"/>
+    <include file="file-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-file-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="add-tests-data" author="nulls">
         <tagDatabase tag="test-data-insert"/>
