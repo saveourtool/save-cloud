@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.api.impl
 
-import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.SaveCloudClientEx
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.errors.TimeoutError
@@ -278,7 +278,7 @@ internal class DefaultSaveCloudClient(
 
     override suspend fun listTestRuns(
         executionId: Long
-    ): Either<SaveCloudError, List<TestExecutionDto>> =
+    ): Either<SaveCloudError, List<TestExecutionExtDto>> =
             postAndCheck(
                 "/test-executions",
                 requestBody = EmptyContent,

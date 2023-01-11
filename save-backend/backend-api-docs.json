@@ -6144,7 +6144,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestExecutionDto"
+                    "$ref": "#/components/schemas/TestExecutionExtDto"
                   }
                 }
               }
@@ -8643,6 +8643,9 @@
   },
   "components": {
     "schemas": {
+      "AnalysisResult": {
+        "type": "object"
+      },
       "AwesomeBenchmarks": {
         "required": [
           "category",
@@ -9835,6 +9838,28 @@
           }
         }
       },
+      "TestExecutionExtDto": {
+        "required": [
+          "analysisResults",
+          "testExecution",
+          "testMetrics"
+        ],
+        "type": "object",
+        "properties": {
+          "analysisResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisResult"
+            }
+          },
+          "testExecution": {
+            "$ref": "#/components/schemas/TestExecutionDto"
+          },
+          "testMetrics": {
+            "$ref": "#/components/schemas/TestMetrics"
+          }
+        }
+      },
       "TestExecutionFilters": {
         "type": "object",
         "properties": {
@@ -9890,6 +9915,9 @@
             }
           }
         }
+      },
+      "TestMetrics": {
+        "type": "object"
       },
       "TestResultLocation": {
         "required": [
