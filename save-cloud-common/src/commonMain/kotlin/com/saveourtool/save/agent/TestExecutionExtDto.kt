@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  * An "extended" [test execution][TestExecutionDto] with some extra information,
  * such as test metrics.
  *
- * Use [TestExecutionDto.extended] to create an extension.
+ * Use [TestExecutionDto.toExtended] to create an extension.
  *
  * @property testExecution the actual test execution data.
  * @property testMetrics scalar test metrics.
@@ -17,7 +17,7 @@ import kotlinx.serialization.Serializable
  * @see TestExecutionDto
  */
 @Serializable
-data class TestExecutionExDto(
+data class TestExecutionExtDto(
     val testExecution: TestExecutionDto,
     val testMetrics: TestMetrics = NoDataAvailable.instance,
     val analysisResults: List<AnalysisResult> = emptyList(),

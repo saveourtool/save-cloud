@@ -1,13 +1,14 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
+import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
@@ -82,12 +83,13 @@ class TestExecutionControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
+        val expectedExecutionCount = 20
         webClient.post()
-            .uri("/api/$v1/test-executions?executionId=1&page=0&size=20")
+            .uri("/api/$v1/test-executions?executionId=1&page=0&size=$expectedExecutionCount")
             .exchange()
-            .expectBody<List<TestExecutionDto>>()
+            .expectBody<List<TestExecutionExtDto>>()
             .consumeWith {
-                assertEquals(20, it.responseBody!!.size)
+                assertEquals(expectedExecutionCount, it.responseBody!!.size)
             }
     }
 

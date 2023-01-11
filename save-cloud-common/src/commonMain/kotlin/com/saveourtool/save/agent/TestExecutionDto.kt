@@ -47,11 +47,11 @@ data class TestExecutionDto(
      * @param analysisResults test analysis results.
      * @return an "extended" version of this test execution with extra information.
      */
-    fun extended(
+    fun toExtended(
         testMetrics: TestMetrics = NoDataAvailable.instance,
         analysisResults: List<AnalysisResult> = emptyList(),
-    ): TestExecutionExDto =
-            TestExecutionExDto(
+    ): TestExecutionExtDto =
+            TestExecutionExtDto(
                 this,
                 testMetrics,
                 analysisResults,
