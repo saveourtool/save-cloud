@@ -7,8 +7,10 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.modalAvatarBuilder
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.imageeditor.reactAvatarImageCropper
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -18,20 +20,18 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import dom.html.HTMLInputElement
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import web.file.File
 import web.http.FormData
 
 import kotlinx.browser.window
@@ -74,6 +74,11 @@ external interface UserSettingsViewState : State {
      * Conflict error message
      */
     var conflictErrorMessage: String?
+
+    /**
+     * Flag to handle avatar Window
+     */
+    var isAvatarWindowOpen: Boolean
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -83,6 +88,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.selfOrganizationWithUserList = emptyList()
+        state.isAvatarWindowOpen = false
     }
 
     /**
@@ -133,6 +139,32 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
+        modalAvatarBuilder(
+            isOpen = state.isAvatarWindowOpen,
+            title = "Change avatar owner",
+            onCloseButtonPressed = {
+                setState {
+                    isAvatarWindowOpen = false
+                }
+            }
+        ) {
+            div {
+                className = ClassName("shadow")
+                style = jso {
+                    height = 18.rem
+                    width = 18.rem
+                }
+                reactAvatarImageCropper {
+                    apply = { file, _ ->
+                        postImageUpload(file)
+                        setState {
+                            isAvatarWindowOpen = false
+                        }
+                    }
+                }
+            }
+        }
+
         div {
             className = ClassName("row justify-content-center")
             // ===================== LEFT COLUMN =======================================================================
@@ -155,11 +187,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         label {
                                             className = ClassName("btn")
                                             title = "Change avatar owner"
-                                            input {
-                                                type = InputType.file
-                                                hidden = true
-                                                onChange = {
-                                                    postImageUpload(it.target)
+                                            onClick = {
+                                                setState {
+                                                    isAvatarWindowOpen = true
                                                 }
                                             }
                                             img {
@@ -325,22 +355,19 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         }
     }
 
-    private fun postImageUpload(element: HTMLInputElement) =
+    private fun postImageUpload(file: File) =
             scope.launch {
-                element.files!!.asList().single().let { file ->
-                    val response = post(
-                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::classLoadingHandler,
-                    )
-                    if (response.ok) {
-                        window.location.reload()
-                    }
+                val response = post(
+                    "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
+                    Headers(),
+                    FormData().apply {
+                        append("file", file)
+                    },
+                    loadingHandler = ::classLoadingHandler,
+                )
+                if (response.ok) {
+                    window.location.reload()
                 }
-                window.location.reload()
             }
 
     @Suppress("TYPE_ALIAS")
