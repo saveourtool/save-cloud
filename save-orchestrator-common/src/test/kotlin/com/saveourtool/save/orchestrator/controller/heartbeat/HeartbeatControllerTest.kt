@@ -35,6 +35,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.time.Month
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.minutes
@@ -68,12 +69,12 @@ class HeartbeatControllerTest {
             .mutate()
             .responseTimeout(2.seconds.toJavaDuration())
             .build()
+        agentStatusInMemoryRepository.clear()
     }
 
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
-        agentStatusInMemoryRepository.clear()
     }
 
     @Test
@@ -167,6 +168,7 @@ class HeartbeatControllerTest {
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
+        Thread.sleep(90_000)
     }
 
     @Test
@@ -350,6 +352,7 @@ class HeartbeatControllerTest {
         mockAddAgentCount: Int = 0,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
+        val executionId = executionIdCounter.incrementAndGet()
         if (mockAddAgentCount > 0) {
             whenever(orchestratorAgentService.addAgent(anyLong(), any()))
                 .thenReturn(emptyResponseAsMono)
@@ -377,7 +380,7 @@ class HeartbeatControllerTest {
                 .thenReturn(emptyResponseAsMono)
         }
         repeat(mockAgentStatusesByExecutionId) {
-            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
+            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(eq(executionId)))
                 .thenReturn(Mono.just(agentStatusDtos))
         }
 
@@ -388,7 +391,15 @@ class HeartbeatControllerTest {
                 .uri("/heartbeat")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(heartbeat))
+                .body(
+                    BodyInserters.fromValue(
+                        heartbeat.copy(
+                            executionProgress = heartbeat.executionProgress.copy(
+                                executionId = executionId
+                            )
+                        )
+                    )
+                )
                 .exchange()
                 .expectAll({ responseSpec ->
                     responseSpec.expectBody<HeartbeatResponse>()
@@ -420,6 +431,7 @@ class HeartbeatControllerTest {
     }
 
     companion object {
+        private val executionIdCounter = AtomicLong()
         private val noProgress: ExecutionProgress = ExecutionProgress(0, -1L)
         private val fullProgress: ExecutionProgress = ExecutionProgress(100, -1L)
         private val initConfig: AgentInitConfig = AgentInitConfig(

@@ -183,18 +183,21 @@ class AgentService(
      * @param executionId containerId of an agent
      * @return [Mono] with result that all agents assigned to [executionId] have final status
      */
-    private fun haveAllAgentsFinalStatusByExecutionId(executionId: Long): Mono<Boolean> = orchestratorAgentService
-        .getAgentStatusesByExecutionId(executionId)
-        .map { agentStatuses ->
-            log.debug { "For executionId=$executionId agent statuses are $agentStatuses" }
-            // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
-            agentStatuses.areFinishedOrStopped()
-                .also { areAllAgentsFinishedOrStopped ->
-                    if (areAllAgentsFinishedOrStopped) {
-                        log.debug { "For execution id=$executionId there are finished or stopped agents" }
+    private fun haveAllAgentsFinalStatusByExecutionId(executionId: Long): Mono<Boolean> {
+        log.debug { "Called for executionId=$executionId" }
+        return orchestratorAgentService
+            .getAgentStatusesByExecutionId(executionId)
+            .map { agentStatuses ->
+                log.debug { "For executionId=$executionId agent statuses are $agentStatuses" }
+                // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
+                agentStatuses.areFinishedOrStopped()
+                    .also { areAllAgentsFinishedOrStopped ->
+                        if (areAllAgentsFinishedOrStopped) {
+                            log.debug { "For execution id=$executionId there are finished or stopped agents" }
+                        }
                     }
-                }
-        }
+            }
+    }
 
     /**
      * Checks whether all agent under one execution have completed their jobs.
