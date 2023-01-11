@@ -378,10 +378,10 @@ class HeartbeatControllerTest {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(emptyResponseAsMono)
         }
-//        repeat(mockAgentStatusesByExecutionId) {
-//            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
-//                .thenReturn(Mono.just(agentStatusDtos))
-//        }
+        repeat(mockAgentStatusesByExecutionId) {
+            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
+                .thenReturn(Mono.just(agentStatusDtos))
+        }
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
         heartbeats.forEach { (heartbeat, delay) ->
@@ -414,7 +414,7 @@ class HeartbeatControllerTest {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
         verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
-//        verify(orchestratorAgentService, times(mockAgentStatusesByExecutionId)).getAgentStatusesByExecutionId(any())
+        verify(orchestratorAgentService, times(mockAgentStatusesByExecutionId)).getAgentStatusesByExecutionId(any())
         repeat(mockAddAgentCount) {
             verify(orchestratorAgentService).addAgent(anyLong(), any())
         }
