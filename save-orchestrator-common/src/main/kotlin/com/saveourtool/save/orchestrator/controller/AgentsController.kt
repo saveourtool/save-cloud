@@ -4,6 +4,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.orchestrator.service.ExecutionService
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.info
@@ -24,6 +25,7 @@ import reactor.core.publisher.Mono
 @RestController
 class AgentsController(
     private val agentService: AgentService,
+    private val executionService: ExecutionService,
     private val containerService: ContainerService,
 ) {
     /**
@@ -36,7 +38,7 @@ class AgentsController(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestBody request: RunExecutionRequest): Mono<EmptyResponse> {
-        val response = agentService.updateExecution(request.executionId, ExecutionStatus.INITIALIZATION)
+        val response = executionService.updateExecution(request.executionId, ExecutionStatus.INITIALIZATION)
             .thenReturn(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
@@ -55,7 +57,7 @@ class AgentsController(
                 }
                 .flatMap {
                     log.info("Sending request to make execution.id=${request.executionId} RUNNING")
-                    agentService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
+                    executionService.updateExecution(request.executionId, ExecutionStatus.RUNNING)
                 }
                 .flatMap {
                     containerService.validateContainersAreStarted(request.executionId)
@@ -69,7 +71,7 @@ class AgentsController(
         ex: ContainerRunnerException,
     ): Mono<T> {
         log.error("${ex.message} for executionId=$executionId, will mark it as ERROR", ex)
-        return agentService.updateExecution(executionId, ExecutionStatus.ERROR, ex.message)
+        return executionService.updateExecution(executionId, ExecutionStatus.ERROR, ex.message)
             .then(Mono.empty())
     }
 

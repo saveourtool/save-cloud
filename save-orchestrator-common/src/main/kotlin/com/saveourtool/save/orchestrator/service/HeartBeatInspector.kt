@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class HeartBeatInspector(
     private val containerService: ContainerService,
-    private val agentService: AgentService,
+    private val executionService: ExecutionService,
     private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
@@ -61,12 +61,12 @@ class HeartBeatInspector(
         agentStatusInMemoryRepository.processExecutionWithAllCrashedContainers { executionIds ->
             executionIds.forEach { executionId ->
                 logger.warn("All agents for execution $executionId are crashed, initialize finalization of it.")
-                agentService.finalizeExecution(executionId)
+                executionService.finalizeExecution(executionId)
             }
         }
     }
 
-    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
+    @Scheduled(cron = "\${orchestrator.heart-beat-inspector-cron}")
     private fun run() {
         determineCrashedAgents()
         processExecutionWithCrashedAgents()

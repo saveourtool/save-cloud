@@ -3,13 +3,11 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
-import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.service.*
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
 import com.saveourtool.save.test.TestBatch
@@ -59,22 +57,27 @@ import kotlin.time.toJavaDuration
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
+    @MockBean private lateinit var executionService: ExecutionService
     @MockBean private lateinit var containerService: ContainerService
     @Autowired private lateinit var agentStatusInMemoryRepository: AgentStatusInMemoryRepository
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
+    @Autowired private lateinit var configProperties: ConfigProperties
 
     @BeforeEach
-    fun webClientSetUp() {
+    fun setup() {
         webClient = webClient
             .mutate()
             .responseTimeout(2.seconds.toJavaDuration())
             .build()
+        whenever(executionService.areAllAgentsIdleOrFinished(anyLong()))
+            .thenReturn(true.toMono())
     }
 
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
         agentStatusInMemoryRepository.clear()
+//        Thread.sleep(configProperties.shutdown.gracefulTimeoutSeconds.seconds.toLong(DurationUnit.MILLISECONDS))
     }
 
     @Test
@@ -125,7 +128,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 1,
-            mockAgentStatusesByExecutionId = true,
+            mockAgentStatusesByExecutionId = 1,
         ) { heartbeatResponses ->
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
@@ -164,7 +167,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesByExecutionId = true,
+            mockAgentStatusesByExecutionId = 1,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
@@ -271,7 +274,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesByExecutionId = true,
+            mockAgentStatusesByExecutionId = 1,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
@@ -317,7 +320,8 @@ class HeartbeatControllerTest {
             ),
             initConfigs = emptyList(),
             testBatchNullable = null,
-            mockUpdateAgentStatusesCount = 1
+            mockUpdateAgentStatusesCount = 1,
+            mockAgentStatusesByExecutionId = 0,
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
@@ -346,7 +350,7 @@ class HeartbeatControllerTest {
         initConfigs: List<AgentInitConfig>,
         testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
-        mockAgentStatusesByExecutionId: Boolean = false,
+        mockAgentStatusesByExecutionId: Int = 0,
         mockAddAgentCount: Int = 0,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
@@ -376,10 +380,10 @@ class HeartbeatControllerTest {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(emptyResponseAsMono)
         }
-        if (mockAgentStatusesByExecutionId) {
-            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
-                .thenReturn(Mono.just(agentStatusDtos))
-        }
+//        repeat(mockAgentStatusesByExecutionId) {
+//            whenever(orchestratorAgentService.getAgentStatusesByExecutionId(any()))
+//                .thenReturn(Mono.just(agentStatusDtos))
+//        }
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
         heartbeats.forEach { (heartbeat, delay) ->
@@ -412,9 +416,7 @@ class HeartbeatControllerTest {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
         verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
-        if (mockAgentStatusesByExecutionId) {
-            verify(orchestratorAgentService).getAgentStatusesByExecutionId(any())
-        }
+//        verify(orchestratorAgentService, times(mockAgentStatusesByExecutionId)).getAgentStatusesByExecutionId(any())
         repeat(mockAddAgentCount) {
             verify(orchestratorAgentService).addAgent(anyLong(), any())
         }

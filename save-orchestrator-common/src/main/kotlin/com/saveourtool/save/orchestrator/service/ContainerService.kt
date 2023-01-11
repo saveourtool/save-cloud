@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class ContainerService(
     private val configProperties: ConfigProperties,
     private val containerRunner: ContainerRunner,
-    private val agentService: AgentService,
+    private val executionService: ExecutionService,
     private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
@@ -84,9 +84,9 @@ class ContainerService(
                 if (!hasStartedContainers) {
                     log.error("Internal error: no agents are started, will mark execution $executionId as failed.")
                     cleanupAllByExecution(executionId)
-                    agentService.updateExecution(executionId, ExecutionStatus.ERROR,
+                    executionService.updateExecution(executionId, ExecutionStatus.ERROR,
                         "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                    ).then(agentService.markAllTestExecutionsOfExecutionAsFailed(executionId))
+                    ).then(executionService.markAllTestExecutionsOfExecutionAsFailed(executionId))
                         .subscribe()
                 }
             }
