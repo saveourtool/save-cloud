@@ -19,8 +19,10 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     private val newStorage: Storage<N>,
 ) : Storage<O> {
     private val log: Logger = getLogger(this.javaClass)
+
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isMigrationStarted = AtomicBoolean(false)
+
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isMigrationFinished = AtomicBoolean(false)
 
