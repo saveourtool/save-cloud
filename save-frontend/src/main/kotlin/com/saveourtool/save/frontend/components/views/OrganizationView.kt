@@ -14,11 +14,9 @@ import com.saveourtool.save.frontend.components.basic.organizations.organization
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationToolsMenu
 import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.modalAvatarBuilder
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.imageeditor.reactAvatarImageCropper
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -481,18 +479,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun postImageUpload(file: File) =
             scope.launch {
-                file.let { file ->
-                    val response = post(
-                        "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                    if (response.ok) {
-                        window.location.reload()
-                    }
+                val response = post(
+                    "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
+                    Headers(),
+                    FormData().apply {
+                        append("file", file)
+                    },
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                if (response.ok) {
+                    window.location.reload()
                 }
             }
 
@@ -511,29 +507,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
-        modalAvatarBuilder(
-            isOpen = state.isAvatarWindowOpen,
-            title = "Change organization's avatar",
-            onCloseButtonPressed = {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            onCloseWindow = { isOpen ->
                 setState {
-                    isAvatarWindowOpen = false
+                    isAvatarWindowOpen = isOpen
                 }
             }
-        ) {
-            div {
-                className = ClassName("shadow")
-                style = jso {
-                    height = 18.rem
-                    width = 18.rem
-                }
-                reactAvatarImageCropper {
-                    apply = { file, _ ->
-                        postImageUpload(file)
-                        setState {
-                            isAvatarWindowOpen = false
-                        }
-                    }
-                }
+            imageUpload = { file ->
+                postImageUpload(file)
             }
         }
 

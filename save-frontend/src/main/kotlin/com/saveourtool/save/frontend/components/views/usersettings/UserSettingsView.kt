@@ -6,11 +6,10 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.modal.modalAvatarBuilder
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.imageeditor.reactAvatarImageCropper
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -139,29 +138,15 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
-        modalAvatarBuilder(
-            isOpen = state.isAvatarWindowOpen,
-            title = "Change avatar owner",
-            onCloseButtonPressed = {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            onCloseWindow = { isOpen ->
                 setState {
-                    isAvatarWindowOpen = false
+                    isAvatarWindowOpen = isOpen
                 }
             }
-        ) {
-            div {
-                className = ClassName("shadow")
-                style = jso {
-                    height = 18.rem
-                    width = 18.rem
-                }
-                reactAvatarImageCropper {
-                    apply = { file, _ ->
-                        postImageUpload(file)
-                        setState {
-                            isAvatarWindowOpen = false
-                        }
-                    }
-                }
+            imageUpload = { file ->
+                postImageUpload(file)
             }
         }
 
