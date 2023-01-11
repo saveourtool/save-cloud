@@ -57,7 +57,6 @@ import kotlin.time.toJavaDuration
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
-    @MockBean private lateinit var executionService: ExecutionService
     @MockBean private lateinit var containerService: ContainerService
     @Autowired private lateinit var agentStatusInMemoryRepository: AgentStatusInMemoryRepository
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
@@ -69,7 +68,7 @@ class HeartbeatControllerTest {
             .mutate()
             .responseTimeout(2.seconds.toJavaDuration())
             .build()
-        whenever(executionService.areAllAgentsIdleOrFinished(anyLong()))
+        whenever(agentService.areAllAgentsIdleOrFinished(anyLong()))
             .thenReturn(true.toMono())
     }
 
@@ -77,7 +76,6 @@ class HeartbeatControllerTest {
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
         agentStatusInMemoryRepository.clear()
-//        Thread.sleep(configProperties.shutdown.gracefulTimeoutSeconds.seconds.toLong(DurationUnit.MILLISECONDS))
     }
 
     @Test

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class HeartBeatInspector(
     private val containerService: ContainerService,
-    private val executionService: ExecutionService,
+    private val agentService: AgentService,
     private val agentStatusInMemoryRepository: AgentStatusInMemoryRepository,
 ) {
     /**
@@ -61,7 +61,7 @@ class HeartBeatInspector(
         agentStatusInMemoryRepository.processExecutionWithAllCrashedContainers { executionIds ->
             executionIds.forEach { executionId ->
                 logger.warn("All agents for execution $executionId are crashed, initialize finalization of it.")
-                executionService.finalizeExecution(executionId)
+                agentService.finalizeExecution(executionId)
             }
         }
     }

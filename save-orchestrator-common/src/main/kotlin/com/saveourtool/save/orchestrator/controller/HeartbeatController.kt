@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.orchestrator.service.ExecutionService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.*
 
@@ -34,7 +33,6 @@ import kotlinx.serialization.json.Json
 @RestController
 class HeartbeatController(
     private val agentService: AgentService,
-    private val executionService: ExecutionService,
     private val containerService: ContainerService,
     private val configProperties: ConfigProperties,
     private val heartBeatInspector: HeartBeatInspector,
@@ -122,7 +120,7 @@ class HeartbeatController(
                     // Check if all agents have completed their jobs; if true - we can terminate agent [containerId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
-                    executionService.areAllAgentsIdleOrFinished(executionId)
+                    agentService.areAllAgentsIdleOrFinished(executionId)
                         .filter { it }
                         .flatMap {
                             agentService.updateAgentStatus(AgentStatusDto(TERMINATED, containerId))
@@ -176,7 +174,7 @@ class HeartbeatController(
                     heartBeatInspector.unwatchAgent(containerId)
                 }
                 // Update final execution status, perform cleanup etc.
-                executionService.finalizeExecution(executionId)
+                agentService.finalizeExecution(executionId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()
