@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
@@ -87,7 +87,7 @@ class TestExecutionControllerTest {
         webClient.post()
             .uri("/api/$v1/test-executions?executionId=1&page=0&size=$expectedExecutionCount")
             .exchange()
-            .expectBody<List<TestExecutionExDto>>()
+            .expectBody<List<TestExecutionExtDto>>()
             .consumeWith {
                 assertEquals(expectedExecutionCount, it.responseBody!!.size)
             }

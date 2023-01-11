@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -112,7 +112,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
-    private val testExecutionsTable: FC<StatusProps<TestExecutionExDto>> = tableComponent(
+    private val testExecutionsTable: FC<StatusProps<TestExecutionExtDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "#") {
@@ -386,7 +386,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
-                    Json.decodeFromString<Array<TestExecutionExDto>>(
+                    Json.decodeFromString<Array<TestExecutionExtDto>>(
                         it.text().await()
                     )
                 }.onEach { (testExecution: TestExecutionDto) ->
