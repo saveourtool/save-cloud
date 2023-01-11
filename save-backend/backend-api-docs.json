@@ -6144,7 +6144,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestExecutionExDto"
+                    "$ref": "#/components/schemas/TestExecutionExtDto"
                   }
                 }
               }
@@ -9838,7 +9838,7 @@
           }
         }
       },
-      "TestExecutionExDto": {
+      "TestExecutionExtDto": {
         "required": [
           "analysisResults",
           "testExecution",
