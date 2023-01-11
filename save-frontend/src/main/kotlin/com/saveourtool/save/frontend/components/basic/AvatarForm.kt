@@ -13,7 +13,7 @@ import csstype.rem
 import js.core.jso
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.div
 import web.file.File
 
 val avatarForm = avatarForm()
@@ -47,7 +47,7 @@ private fun avatarForm() = FC<AvatarFormProps> { props ->
             props.onCloseWindow(false)
         }
     ) {
-        ReactHTML.div {
+        div {
             className = ClassName("shadow")
             style = jso {
                 height = 18.rem
