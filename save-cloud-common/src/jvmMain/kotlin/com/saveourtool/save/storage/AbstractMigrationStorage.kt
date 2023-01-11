@@ -19,14 +19,16 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     private val newStorage: Storage<N>,
 ) : Storage<O> {
     private val log: Logger = getLogger(this.javaClass)
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isMigrationStarted = AtomicBoolean(false)
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isMigrationFinished = AtomicBoolean(false)
 
     /**
      * Init method which copies file from one storage to another
      */
     fun migrate() {
-        require(isMigrationStarted.compareAndExchange(false, true)) {
+        require(!isMigrationStarted.compareAndExchange(false, true)) {
             "Migration cannot be called more than 1 time, migration is in progress"
         }
         oldStorage.list()
@@ -65,8 +67,11 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
             }
             .then(
                 Mono.fromCallable {
-                    require(isMigrationFinished.compareAndExchange(false, true)) {
+                    require(!isMigrationFinished.compareAndExchange(false, true)) {
                         "Migration cannot be called more than 1 time. Migration already finished by another project"
+                    }
+                    log.info {
+                        "Migration of ${javaClass.simpleName} is done"
                     }
                 }
             )
