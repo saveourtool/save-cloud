@@ -6144,7 +6144,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestExecutionDto"
+                    "$ref": "#/components/schemas/TestExecutionExtDto"
                   }
                 }
               }
@@ -8643,6 +8643,9 @@
   },
   "components": {
     "schemas": {
+      "AnalysisResult": {
+        "type": "object"
+      },
       "AwesomeBenchmarks": {
         "required": [
           "category",
@@ -8896,11 +8899,9 @@
       },
       "Execution": {
         "required": [
-          "additionalFiles",
           "allTests",
           "expectedChecks",
           "failedTests",
-          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -8915,9 +8916,6 @@
         ],
         "type": "object",
         "properties": {
-          "additionalFiles": {
-            "type": "string"
-          },
           "allTests": {
             "type": "integer",
             "format": "int64"
@@ -8943,12 +8941,6 @@
           "failedTests": {
             "type": "integer",
             "format": "int64"
-          },
-          "fileKeys": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FileKey"
-            }
           },
           "id": {
             "type": "integer",
@@ -9846,6 +9838,28 @@
           }
         }
       },
+      "TestExecutionExtDto": {
+        "required": [
+          "analysisResults",
+          "testExecution",
+          "testMetrics"
+        ],
+        "type": "object",
+        "properties": {
+          "analysisResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalysisResult"
+            }
+          },
+          "testExecution": {
+            "$ref": "#/components/schemas/TestExecutionDto"
+          },
+          "testMetrics": {
+            "$ref": "#/components/schemas/TestMetrics"
+          }
+        }
+      },
       "TestExecutionFilters": {
         "type": "object",
         "properties": {
@@ -9901,6 +9915,9 @@
             }
           }
         }
+      },
+      "TestMetrics": {
+        "type": "object"
       },
       "TestResultLocation": {
         "required": [

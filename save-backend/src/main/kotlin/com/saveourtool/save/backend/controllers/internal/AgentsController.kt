@@ -4,6 +4,7 @@ import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
@@ -38,6 +39,7 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val executionService: ExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -56,8 +58,9 @@ class AgentsController(
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "$backendUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
-                additionalFileNameToUrl = execution.getFileKeys()
-                    .associate { fileKey ->
+                additionalFileNameToUrl = executionService.getAssignedFiles(execution)
+                    .associate { fileDto ->
+                        val fileKey = fileDto.toFileKey()
                         fileKey.name to buildString {
                             append(backendUrl)
                             append("/internal/files/download?")

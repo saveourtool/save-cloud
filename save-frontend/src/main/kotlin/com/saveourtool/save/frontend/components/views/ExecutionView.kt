@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -18,7 +19,6 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.enableExpanding
-import com.saveourtool.save.frontend.components.tables.invoke
 import com.saveourtool.save.frontend.components.tables.isExpanded
 import com.saveourtool.save.frontend.components.tables.pageIndex
 import com.saveourtool.save.frontend.components.tables.pageSize
@@ -47,6 +47,21 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * The maximum length of a test name (in chars), before it gets shortened.
+ */
+private const val MAX_TEST_NAME_LENGTH = 35
+
+/**
+ * Horizontal Ellipsis (U+2026).
+ */
+private const val ELLIPSIS = '\u2026'
+
+/**
+ * The infix of the shortened text label.
+ */
+private const val TEXT_LABEL_INFIX = " $ELLIPSIS "
 
 /**
  * [Props] for execution results view
@@ -97,7 +112,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
-    private val testExecutionsTable: FC<StatusProps<TestExecutionDto>> = tableComponent(
+    private val testExecutionsTable: FC<StatusProps<TestExecutionExtDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "#") {
@@ -107,7 +122,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellContext ->
+                column(id = "startTime", header = "Start time", { testExecution.startTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
@@ -117,7 +132,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellContext ->
+                column(id = "endTime", header = "End time", { testExecution.endTimeSeconds }) { cellContext ->
                     Fragment.create {
                         td {
                             +"${
@@ -127,21 +142,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "status", header = "Status", { status.name }) {
+                column(id = "status", header = "Status", { testExecution.status.name }) {
                     Fragment.create {
                         td {
                             +it.value
                         }
                     }
                 }
-                column(id = "missing", header = "Missing", { unmatched }) {
+                column(id = "missing", header = "Missing", { testExecution.unmatched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
                         }
                     }
                 }
-                column(id = "matched", header = "Matched", { matched }) {
+                column(id = "matched", header = "Matched", { testExecution.matched }) {
                     Fragment.create {
                         td {
                             +formatCounter(it.value)
@@ -151,14 +166,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 column(id = "path", header = "Test Name") { cellContext ->
                     Fragment.create {
                         td {
-                            val testName = cellContext.value.filePath
-                            val shortTestName =
-                                    if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
+                            val testName = cellContext.value.testExecution.filePath
+                            val shortTestName = testName.shorten(MAX_TEST_NAME_LENGTH)
                             +shortTestName
 
                             // debug info is provided by agent after the execution
                             // possibly there can be cases when this info is not available
-                            if (cellContext.value.hasDebugInfo == true) {
+                            if (cellContext.value.testExecution.hasDebugInfo == true) {
                                 style = jso {
                                     textDecoration = "underline".unsafeCast<TextDecoration>()
                                     color = "blue".unsafeCast<Color>()
@@ -168,7 +182,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 onClick = {
                                     this@ExecutionView.scope.launch {
                                         if (!cellContext.row.isExpanded) {
-                                            getAdditionalInfoFor(cellContext.value, cellContext.row.id)
+                                            getAdditionalInfoFor(cellContext.value.testExecution, cellContext.row.id)
                                         }
                                         cellContext.row.toggleExpanded(null)
                                     }
@@ -177,14 +191,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
-                column(id = "plugin", header = "Plugin type", { pluginName }) {
+                column(id = "plugin", header = "Plugin type", { testExecution.pluginName }) {
                     Fragment.create {
                         td {
                             +it.value
                         }
                     }
                 }
-                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
+                column(id = "suiteName", header = "Test suite", { testExecution.testSuiteName }) {
                     Fragment.create {
                         td {
                             +"${it.value}"
@@ -194,21 +208,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 column(id = "tags", header = "Tags") {
                     Fragment.create {
                         td {
-                            +"${it.value.tags}"
+                            +"${it.value.testExecution.tags}"
                         }
                     }
                 }
                 column(id = "containerName", header = "Container Name") {
                     Fragment.create {
                         td {
-                            +"${it.value.agentContainerName}"
+                            +"${it.value.testExecution.agentContainerName}"
                         }
                     }
                 }
                 column(id = "containerId", header = "Container ID") {
                     Fragment.create {
                         td {
-                            +"${it.value.agentContainerId}"
+                            +"${it.value.testExecution.agentContainerId}"
                         }
                     }
                 }
@@ -263,7 +277,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getRowProps = { row ->
-            val color = when (row.original.status) {
+            val color = when (row.original.testExecution.status) {
                 TestResultStatus.FAILED -> Colors.RED
                 TestResultStatus.IGNORED -> Colors.GOLD
                 TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
@@ -372,11 +386,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
-                    Json.decodeFromString<Array<TestExecutionDto>>(
+                    Json.decodeFromString<Array<TestExecutionExtDto>>(
                         it.text().await()
                     )
-                }.apply {
-                    asDynamic().debugInfo = null
+                }.onEach { (testExecution: TestExecutionDto) ->
+                    /*
+                     * Add empty debug info to each test execution.
+                     */
+                    testExecution.apply {
+                        asDynamic().debugInfo = null
+                    }
                 }
             }
             getPageCount = { pageSize ->
@@ -409,6 +428,30 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) =
             // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
             "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
+
+    /**
+     * @param maxLength the maximum desired length of a text label.
+     * @return the optionally shortened label.
+     * @throws IllegalArgumentException if [maxLength] is less or equal than the length of [TEXT_LABEL_INFIX].
+     */
+    private fun String.shorten(maxLength: Int): String {
+        val infixLength = TEXT_LABEL_INFIX.length
+
+        require(maxLength > infixLength) {
+            "The desired length: $maxLength doesn't exceed the length of the infix: $infixLength"
+        }
+
+        return when {
+            length > maxLength -> {
+                val usableLength = maxLength - infixLength
+                val prefixLength = usableLength / 2
+                val suffixLength = usableLength - prefixLength
+                take(prefixLength) + TEXT_LABEL_INFIX + takeLast(suffixLength)
+            }
+
+            else -> this
+        }
+    }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
