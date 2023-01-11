@@ -375,10 +375,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     Json.decodeFromString<Array<TestExecutionDto>>(
                         it.text().await()
                     )
-                }.onEach { }
-                    .apply {
-                        asDynamic().debugInfo = null
-                    }
+                }.apply {
+                    asDynamic().debugInfo = null
+                }
             }
             getPageCount = { pageSize ->
                 val filtersQueryString = buildString {
