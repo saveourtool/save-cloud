@@ -68,8 +68,6 @@ class HeartbeatControllerTest {
             .mutate()
             .responseTimeout(2.seconds.toJavaDuration())
             .build()
-        whenever(agentService.areAllAgentsIdleOrFinished(anyLong()))
-            .thenReturn(true.toMono())
     }
 
     @AfterEach
