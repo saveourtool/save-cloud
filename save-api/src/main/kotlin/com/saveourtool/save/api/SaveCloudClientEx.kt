@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.api
 
-import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
 import com.saveourtool.save.entities.ContestDto
@@ -159,7 +159,7 @@ interface SaveCloudClientEx {
      *   occurred.
      * @see ExecutionDto.listTestRuns
      */
-    suspend fun listTestRuns(executionId: Long): Either<SaveCloudError, List<TestExecutionDto>>
+    suspend fun listTestRuns(executionId: Long): Either<SaveCloudError, List<TestExecutionExtDto>>
 
     /**
      * Lists projects within this organization.
@@ -262,7 +262,7 @@ interface SaveCloudClientEx {
      *   occurred.
      * @see SaveCloudClientEx.listTestRuns
      */
-    suspend fun ExecutionDto.listTestRuns(): Either<SaveCloudError, List<TestExecutionDto>> =
+    suspend fun ExecutionDto.listTestRuns(): Either<SaveCloudError, List<TestExecutionExtDto>> =
             listTestRuns(id)
 
     /**
