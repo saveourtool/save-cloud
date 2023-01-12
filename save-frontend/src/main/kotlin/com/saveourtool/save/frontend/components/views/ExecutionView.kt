@@ -25,6 +25,8 @@ import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
+import com.saveourtool.save.frontend.components.views.test.analysis.analysisResultsView
+import com.saveourtool.save.frontend.components.views.test.analysis.testMetricsView
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
@@ -76,6 +78,11 @@ external interface ExecutionProps : PropsWithChildren {
      * All filters in one value [filters]
      */
     var filters: TestExecutionFilters
+
+    /**
+     * Indicates whether test analysis is enabled or not.
+     */
+    var testAnalysisEnabled: Boolean
 }
 
 /**
@@ -223,6 +230,23 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     Fragment.create {
                         td {
                             +"${it.value.testExecution.agentContainerId}"
+                        }
+                    }
+                }
+
+                if (props.testAnalysisEnabled) {
+                    column(id = "testMetrics", header = "Test Metrics") {
+                        td.create {
+                            testMetricsView {
+                                testMetrics = it.value.testMetrics
+                            }
+                        }
+                    }
+                    column(id = "testAnalysis", header = "Test Analysis") {
+                        td.create {
+                            analysisResultsView {
+                                analysisResults = it.value.analysisResults
+                            }
                         }
                     }
                 }
