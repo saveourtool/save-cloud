@@ -34,6 +34,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
 import js.core.jso
+import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
@@ -405,7 +406,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             filters = state.filters
             getData = { page, size ->
                 post(
-                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
+                    url = "$apiUrl/test-executions?" + URLSearchParams(jso {
+                        executionId = props.executionId
+                        this.page = page
+                        this.size = size
+                        checkDebugInfo = true
+                    }),
                     headers = jsonHeaders,
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
