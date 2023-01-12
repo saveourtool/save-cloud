@@ -102,7 +102,7 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
  */
 suspend fun ComponentWithScope<*, *>.postImageUpload(
     file: File,
-    name: String?,
+    name: String,
     type: AvatarType,
 ) {
     val response = post(
