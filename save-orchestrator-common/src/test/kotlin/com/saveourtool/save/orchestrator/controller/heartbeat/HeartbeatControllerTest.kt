@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
@@ -29,6 +28,8 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
@@ -123,7 +124,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 1,
-            mockAgentStatusesByExecutionId = 1,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
@@ -162,7 +163,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesByExecutionId = 1,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
@@ -269,7 +270,7 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = emptyList(),
             mockUpdateAgentStatusesCount = 2,
-            mockAgentStatusesByExecutionId = 1,
+            mockAgentStatusesByExecutionId = true,
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
@@ -316,7 +317,6 @@ class HeartbeatControllerTest {
             initConfigs = emptyList(),
             testBatchNullable = null,
             mockUpdateAgentStatusesCount = 1,
-            mockAgentStatusesByExecutionId = 0,
         ) {
             // not interested in any checks for heartbeats
             verify(orchestratorAgentService).getReadyForTestingTestExecutions(any())
@@ -345,7 +345,7 @@ class HeartbeatControllerTest {
         initConfigs: List<AgentInitConfig>,
         testBatchNullable: TestBatch?,
         mockUpdateAgentStatusesCount: Int = 0,
-        mockAgentStatusesByExecutionId: Int = 0,
+        mockAgentStatusesByExecutionId: Boolean = false,
         mockAddAgentCount: Int = 0,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
@@ -376,7 +376,7 @@ class HeartbeatControllerTest {
             whenever(orchestratorAgentService.updateAgentStatus(any()))
                 .thenReturn(emptyResponseAsMono)
         }
-        repeat(mockAgentStatusesByExecutionId) {
+        if (mockAgentStatusesByExecutionId) {
             whenever(orchestratorAgentService.getAgentStatusesByExecutionId(eq(executionId)))
                 .thenReturn(Mono.just(agentStatusDtos))
         }
@@ -420,7 +420,9 @@ class HeartbeatControllerTest {
             verify(orchestratorAgentService).getNextRunConfig(any())
         }
         verify(orchestratorAgentService, times(mockUpdateAgentStatusesCount)).updateAgentStatus(any())
-        verify(orchestratorAgentService, times(mockAgentStatusesByExecutionId)).getAgentStatusesByExecutionId(any())
+        if (mockAgentStatusesByExecutionId) {
+            verify(orchestratorAgentService).getAgentStatusesByExecutionId(any())
+        }
         repeat(mockAddAgentCount) {
             verify(orchestratorAgentService).addAgent(anyLong(), any())
         }
@@ -451,5 +453,15 @@ class HeartbeatControllerTest {
         private fun Heartbeat.withDelay(delay: Duration): HeartbeatWithDelay = HeartbeatWithDelay(this, delay)
 
         private fun Heartbeat.withoutDelay(): HeartbeatWithDelay = withDelay(ZERO)
+
+        @DynamicPropertySource
+        @JvmStatic
+        fun properties(registry: DynamicPropertyRegistry) {
+            // need to disable scheduler tasks in HeartBeatInspector
+            registry.add("orchestrator.heart-beat-inspector-cron") { "-" }
+            // need to disable graceful shutdown
+            registry.add("orchestrator.shutdown.graceful-timeout-seconds") { "6000" }
+            registry.add("orchestrator.shutdown.graceful-num-checks") { "1" }
+        }
     }
 }
