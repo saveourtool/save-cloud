@@ -17,6 +17,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
+import reactor.util.function.Tuple2
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
@@ -104,6 +105,73 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
 }
 
 /**
+ * Transforms the item emitted by this [Mono] into a [Sequence], then forwards
+ * its elements into the returned [Flux].
+ *
+ * @param transform the mapper function to transform the input into a [Sequence].
+ * @param T the input type.
+ * @param R the merged output sequence type.
+ * @return the merged [Flux].
+ * @see Mono.flatMapIterable
+ */
+@Suppress(
+    "KDOC_WITHOUT_PARAM_TAG",
+    "IDENTIFIER_LENGTH",
+)
+fun <T : Any, R : Any> Mono<T>.flatMapSequence(transform: (T) -> Sequence<R>): Flux<R> =
+        flatMapIterable { t ->
+            transform(t).asIterable()
+        }
+
+/**
+ * Transforms the [left][Pair.first] value of each element of this [Flux].
+ *
+ * @param transformLeft the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapLeft(transformLeft: (A, B) -> R): Flux<Pair<R, B>> =
+        map { (left, right) ->
+            transformLeft(left, right) to right
+        }
+
+/**
+ * Transforms the [left][Pair.first] value of each element of this [Flux].
+ *
+ * @param transformLeft the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapLeft(transformLeft: (A) -> R): Flux<Pair<R, B>> =
+        mapLeft { left, _ ->
+            transformLeft(left)
+        }
+
+/**
+ * Transforms the [right][Pair.second] value of each element of this [Flux].
+ *
+ * @param transformRight the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapRight(transformRight: (A, B) -> R): Flux<Pair<A, R>> =
+        map { (first, second) ->
+            first to transformRight(first, second)
+        }
+
+/**
+ * Transforms the [right][Pair.second] value of each element of this [Flux].
+ *
+ * @param transformRight the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapRight(transformRight: (B) -> R): Flux<Pair<A, R>> =
+        mapRight { _, right ->
+            transformRight(right)
+        }
+
+/**
  * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
  */
 fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
@@ -127,6 +195,22 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
  * @return sorted original [Flux]
  */
 fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
+
+/**
+ * Exposes this tuple as a data class, allowing destructuring.
+ *
+ * @return the 1st component of this tuple.
+ */
+operator fun <T : Any> Tuple2<T, *>.component1(): T =
+        t1
+
+/**
+ * Exposes this tuple as a data class, allowing destructuring.
+ *
+ * @return the 2nd component of this tuple.
+ */
+operator fun <T : Any> Tuple2<*, T>.component2(): T =
+        t2
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
@@ -179,3 +263,12 @@ fun downloadFromClasspath(
                 logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
                 lazyResponseBody()
             }
+
+/**
+ * @param seed the starting value of this sequence.
+ * @return the sequence infinitely returning [seed].
+ */
+fun <T : Any> infiniteSequenceOf(seed: T): Sequence<T> =
+        generateSequence {
+            seed
+        }

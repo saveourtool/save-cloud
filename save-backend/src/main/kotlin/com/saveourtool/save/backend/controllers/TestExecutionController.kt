@@ -5,7 +5,9 @@ import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.service.TestIdGeneratorService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
@@ -15,14 +17,24 @@ import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.test.analysis.entities.metadata
+import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.component1
+import com.saveourtool.save.utils.component2
+import com.saveourtool.save.utils.flatMapSequence
+import com.saveourtool.save.utils.infiniteSequenceOf
+import com.saveourtool.save.utils.mapLeft
+import com.saveourtool.save.utils.mapRight
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
+import arrow.core.plus
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
@@ -50,12 +62,15 @@ import java.math.BigInteger
 )
 @RestController
 @Transactional
+@Suppress("LongParameterList")
 class TestExecutionController(
     private val testExecutionService: TestExecutionService,
     private val executionService: ExecutionService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val debugInfoStorage: DebugInfoStorage,
-    private val executionInfoStorage: ExecutionInfoStorage
+    private val executionInfoStorage: ExecutionInfoStorage,
+    private val testAnalysisService: TestAnalysisService,
+    private val testIdGeneratorService: TestIdGeneratorService,
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -66,6 +81,7 @@ class TestExecutionController(
      * @param filters
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
+     * @param testAnalysis if `true`, also perform test analysis.
      * @return a list of [TestExecutionDto]s
      */
     @PostMapping("/api/$v1/test-executions")
@@ -77,6 +93,7 @@ class TestExecutionController(
         @RequestParam size: Int,
         @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
+        @RequestParam(required = false, defaultValue = "false") testAnalysis: Boolean,
         authentication: Authentication,
     ): Flux<TestExecutionExtDto> = blockingToMono {
         executionService.findExecution(executionId)
@@ -85,24 +102,60 @@ class TestExecutionController(
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
-        .flatMapIterable {
+        .zipWhen { execution ->
+            /*
+             * Test analysis: collect execution metadata.
+             */
+            Mono.fromCallable(execution::metadata)
+        }
+        .flatMapSequence { (_, metadata) ->
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
             testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
+                .asSequence()
+                .zip(infiniteSequenceOf(metadata))
         }
-        .map { it.toDto() }
+        .mapRight { testExecution, metadata ->
+            /*
+             * Test analysis: collect test execution metadata.
+             */
+            metadata.extendWith(testExecution)
+        }
+        .mapLeft(TestExecution::toDto)
         .runIf({ checkDebugInfo }) {
-            flatMap { testExecutionDto ->
+            flatMap { (testExecutionDto, metadata) ->
                 debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
                     .logicalOr(executionInfoStorage.doesExist(executionId))
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                         "Failure while checking for debug info availability."
                     }.map { hasDebugInfo ->
-                        testExecutionDto.copy(hasDebugInfo = hasDebugInfo)
+                        testExecutionDto.copy(hasDebugInfo = hasDebugInfo) to metadata
                     }
             }
         }
-        .map { testExecution ->
-            testExecution.toExtended()
+        .mapRight(testIdGeneratorService::testId)
+        .run {
+            when {
+                /*
+                 * Test analysis.
+                 */
+                testAnalysis -> switchMap { (testExecution, testId) ->
+                    Mono.just(testExecution)
+                        .zipWith(
+                            testAnalysisService.getTestMetrics(testId),
+                            ::Pair,
+                        )
+                        .zipWith(
+                            testAnalysisService.analyze(testId).collectList(),
+                            Pair<TestExecutionDto, TestMetrics>::plus,
+                        )
+                }.map { (testExecution, metrics, results) ->
+                    testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                }
+
+                else -> map { (testExecution, _) ->
+                    testExecution.toExtended()
+                }
+            }
         }
 
     /**
