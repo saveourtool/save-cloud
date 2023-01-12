@@ -18,7 +18,7 @@ external val reactAvatarImageCropper: FC<ReactAvatarImageCropperProps>
  * Props of [ReactAvatarImageCropperProps]
  */
 @Suppress("TYPE_ALIAS")
-external interface ReactAvatarImageCropperProps : PropsWithChildren {
+external interface ReactAvatarImageCropperProps : Props {
     /**
      * The apply function will get the cropped blob file, you can handle it whatever you want.
      */
