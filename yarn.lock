@@ -4305,6 +4305,11 @@ react-ace@^10.1.0:
     lodash.isequal "^4.5.0"
     prop-types "^15.7.2"
 
+react-avatar-image-cropper@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/react-avatar-image-cropper/-/react-avatar-image-cropper-1.4.2.tgz#ad66fbc51d526cbfb27906e9fea72cef8646a655"
+  integrity sha512-XpfRJ+aqAkof7+T+qfdgu/QPCONXyXVVULQJftZH6snf5U6sX0Bk4SfDTEXewbPt/PRiOWLC1102w337dvTi3A==
+
 react-calendar@^3.8.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/react-calendar/-/react-calendar-3.9.0.tgz#4dfe342ef61574c0e819e49847981076c7af58ea"

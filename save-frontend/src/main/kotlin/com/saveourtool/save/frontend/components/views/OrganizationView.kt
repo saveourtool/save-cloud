@@ -18,6 +18,7 @@ import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -25,29 +26,23 @@ import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 
 import csstype.*
-import dom.html.HTMLInputElement
 import history.Location
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
-import web.http.FormData
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -147,6 +142,11 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Contains the paths of default and other tabs
      */
     var paths: PathsForTabs
+
+    /**
+     * Flag to handle avatar Window
+     */
+    var isAvatarWindowOpen: Boolean
 }
 
 /**
@@ -163,6 +163,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.isConfirmWindowOpen = false
         state.isErrorOpen = false
         state.confirmationType = ConfirmationType.DELETE_CONFIRM
+        state.isAvatarWindowOpen = false
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -474,24 +475,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString()
         }
 
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                element.files!!.asList().single().let { file ->
-                    val response = post(
-                        "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                    if (response.ok) {
-                        window.location.reload()
-                    }
-                }
-                window.location.reload()
-            }
-
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
@@ -507,6 +490,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            title = AVATAR_TITLE
+            onCloseWindow = {
+                setState {
+                    isAvatarWindowOpen = false
+                }
+            }
+            imageUpload = { file ->
+                scope.launch {
+                    postImageUpload(file, props.organizationName, AvatarType.ORGANIZATION)
+                }
+            }
+        }
+
         div {
             className = ClassName("row d-flex")
             div {
@@ -517,12 +515,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 label {
                     className = ClassName("btn")
-                    title = "Change organization's avatar"
-                    input {
-                        type = InputType.file
-                        hidden = true
-                        onChange = { event ->
-                            postImageUpload(event.target)
+                    title = AVATAR_TITLE
+                    onClick = {
+                        setState {
+                            isAvatarWindowOpen = true
                         }
                     }
                     img {
@@ -591,6 +587,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
     ) {
+        private const val AVATAR_TITLE = "Change organization's avatar"
         const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = requestStatusContext
