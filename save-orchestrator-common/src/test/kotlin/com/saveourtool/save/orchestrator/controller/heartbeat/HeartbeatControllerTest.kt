@@ -38,7 +38,6 @@ import java.time.Month
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.toJavaDuration
@@ -61,7 +60,6 @@ class HeartbeatControllerTest {
     @MockBean private lateinit var containerService: ContainerService
     @Autowired private lateinit var agentStatusInMemoryRepository: AgentStatusInMemoryRepository
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
-    @Autowired private lateinit var configProperties: ConfigProperties
 
     @BeforeEach
     fun setup() {
@@ -168,7 +166,6 @@ class HeartbeatControllerTest {
         ) { heartbeatResponses ->
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
         }
-        Thread.sleep(90_000)
     }
 
     @Test
