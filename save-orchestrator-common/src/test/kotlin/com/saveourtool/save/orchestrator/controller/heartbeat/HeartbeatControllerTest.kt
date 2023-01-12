@@ -63,17 +63,17 @@ class HeartbeatControllerTest {
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
-    fun setup() {
+    fun webClientSetUp() {
         webClient = webClient
             .mutate()
             .responseTimeout(2.seconds.toJavaDuration())
             .build()
-        agentStatusInMemoryRepository.clear()
     }
 
     @AfterEach
     fun cleanup() {
         verifyNoMoreInteractions(orchestratorAgentService)
+        agentStatusInMemoryRepository.clear()
     }
 
     @Test
