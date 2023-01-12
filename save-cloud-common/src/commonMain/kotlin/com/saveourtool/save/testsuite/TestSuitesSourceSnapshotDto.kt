@@ -16,4 +16,4 @@ data class TestSuitesSourceSnapshotDto(
     val commitId: String,
     val commitTime: LocalDateTime,
     override val id: Long? = null,
-): DtoWithId()
+) : DtoWithId()

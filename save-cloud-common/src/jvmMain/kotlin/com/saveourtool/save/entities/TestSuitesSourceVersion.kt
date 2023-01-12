@@ -2,12 +2,14 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuitesSourceVersionDto
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
+
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property snapshot [TestSuitesSourceSnapshot]
@@ -27,7 +29,7 @@ class TestSuitesSourceVersion(
     @JoinColumn(name = "created_by_user_id")
     val createdByUser: User,
     val creationTime: LocalDateTime,
-): BaseEntityWithDtoWithId<TestSuitesSourceVersionDto>() {
+) : BaseEntityWithDtoWithId<TestSuitesSourceVersionDto>() {
     override fun toDto(): TestSuitesSourceVersionDto = TestSuitesSourceVersionDto(
         snapshotId = snapshot.requiredId(),
         name = name,

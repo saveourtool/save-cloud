@@ -28,7 +28,7 @@ class NewFileStorage(
     private val fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-) : AbstractStorageWithDatabase<FileDto, File>(
+) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
     Path.of(configProperties.fileStorage.location) / "storage", fileRepository) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)
@@ -37,7 +37,7 @@ class NewFileStorage(
             }
     }
 
-    override fun findByDto(dto: FileDto): File? = fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+    override fun findByDto(repository: FileRepository, dto: FileDto): File? = repository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
         organizationName = dto.projectCoordinates.organizationName,
         projectName = dto.projectCoordinates.projectName,
         name = dto.name,
@@ -79,7 +79,7 @@ class NewFileStorage(
      */
     fun getFileEntityByFileKey(
         fileKey: FileKey
-    ): File = findByDto(fileKey.toFileDto()).orNotFound {
+    ): File = findByDto(fileRepository, fileKey.toFileDto()).orNotFound {
         "Not found File by $fileKey"
     }
 }

@@ -2,13 +2,14 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
-import java.time.LocalDateTime
 
+import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property source [TestSuitesSource]
@@ -23,7 +24,7 @@ class TestSuitesSourceSnapshot(
 
     var commitId: String,
     var commitTime: LocalDateTime,
-): BaseEntityWithDtoWithId<TestSuitesSourceSnapshotDto>() {
+) : BaseEntityWithDtoWithId<TestSuitesSourceSnapshotDto>() {
     override fun toDto(): TestSuitesSourceSnapshotDto = TestSuitesSourceSnapshotDto(
         sourceId = source.requiredId(),
         commitId = commitId,
@@ -41,7 +42,7 @@ class TestSuitesSourceSnapshot(
             commitId = commitId,
             commitTime = commitTime.toJavaLocalDateTime(),
         ).apply {
-            this.id  = this@toEntity.id
+            this.id = this@toEntity.id
         }
     }
 }

@@ -446,10 +446,7 @@ class TestSuitesSourceController(
         .map {
             testSuitesService.deleteTestSuite(it, version)
         }
-        .then(testSuitesSourceSnapshotStorage.findKey(organizationName, sourceName, version))
-        .flatMap {
-            testSuitesSourceSnapshotStorage.delete(it)
-        }
+        .then(testSuitesSourceSnapshotStorage.deleteByVersion(organizationName, sourceName, version))
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
@@ -571,14 +568,15 @@ class TestSuitesSourceController(
 
     private fun TestSuitesSourceDto.downloadSnapshot(
         version: String
-    ): Mono<ByteBufferFluxResponse> = testSuitesSourceSnapshotStorage.findKey(organizationName, name, version)
+    ): Mono<ByteBufferFluxResponse> = testSuitesSourceSnapshotStorage.doesContain(organizationName, name, version)
+        .filter { it }
         .switchIfEmptyToNotFound {
             "Not found a snapshot of $name in $organizationName with version=$version"
         }
         .map {
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(testSuitesSourceSnapshotStorage.download(it))
+                .body(testSuitesSourceSnapshotStorage.downloadByVersion(organizationName, name, version))
         }
 
     companion object {

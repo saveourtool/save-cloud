@@ -13,7 +13,25 @@ interface TestSuitesSourceVersionRepository : BaseEntityRepository<TestSuitesSou
     /**
      * @param testSuitesSource
      * @param name
-     * @return [TestSuitesSourceVersion] found by [name] in [TestSuitesSource]
+     * @return [TestSuitesSourceVersion] found by [name] in provided [TestSuitesSource]
      */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
     fun findBySnapshot_SourceAndName(testSuitesSource: TestSuitesSource, name: String): TestSuitesSourceVersion?
+
+    /**
+     * @param testSuitesSource
+     * @return all [TestSuitesSourceVersion] in provided [TestSuitesSource]
+     */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findAllBySnapshot_Source(testSuitesSource: TestSuitesSource): Collection<TestSuitesSourceVersion>
 }

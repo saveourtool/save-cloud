@@ -141,7 +141,7 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @param supplier blocking operation like JDBC
  * @return [Flux] from result of blocking operation [List] of [T]
  */
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+fun <T> blockingToFlux(supplier: () -> Iterable<T>?): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
 
 /**
  * @param interval how long to wait between checks

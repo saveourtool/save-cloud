@@ -514,13 +514,11 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun cleanupStorageData(testSuite: TestSuite) = testSuitesSourceSnapshotStorage.findKey(
+    private fun cleanupStorageData(testSuite: TestSuite) = testSuitesSourceSnapshotStorage.deleteByVersion(
         testSuite.source.organization.name,
         testSuite.source.name,
         testSuite.version,
-    ).flatMap { key ->
-        testSuitesSourceSnapshotStorage.delete(key)
-    }
+    )
 
     private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
         organizationService.getFiltered(filters)

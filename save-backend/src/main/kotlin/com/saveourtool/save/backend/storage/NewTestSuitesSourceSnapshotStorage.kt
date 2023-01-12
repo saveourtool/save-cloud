@@ -1,54 +1,57 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.repository.TestSuitesSourceSnapshotRepository
+import com.saveourtool.save.backend.repository.TestSuitesSourceVersionRepository
+import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.entities.TestSuitesSourceSnapshot
+import com.saveourtool.save.entities.TestSuitesSourceSnapshot.Companion.toEntity
+import com.saveourtool.save.entities.TestSuitesSourceVersion
+import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
+
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.net.URLDecoder
-import java.net.URLEncoder
+
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+
 import kotlin.io.path.*
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * Storage for snapshots of [com.saveourtool.save.entities.TestSuitesSource]
  */
 @Component
-class TestSuitesSourceSnapshotStorage(
+class NewTestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites", PATH_PARTS_COUNT) {
+    testSuitesSourceSnapshotRepository: TestSuitesSourceSnapshotRepository,
+    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
+    private val testSuitesSourceRepository: TestSuitesSourceRepository,
+    private val testSuitesSourceService: TestSuitesSourceService,
+) : AbstractStorageWithDatabase<TestSuitesSourceSnapshotDto, TestSuitesSourceSnapshot, TestSuitesSourceSnapshotRepository>(
+    Path.of(configProperties.fileStorage.location) / "testSuites", testSuitesSourceSnapshotRepository) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
-    /**
-     * @param rootDir
-     * @param pathToContent
-     * @return true if there is 4 parts between pathToContent and rootDir and ends with [ARCHIVE_EXTENSION]
-     */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(ARCHIVE_EXTENSION)
+    override fun createNewEntityFromDto(dto: TestSuitesSourceSnapshotDto): TestSuitesSourceSnapshot =
+            dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
-    @Suppress("DestructuringDeclarationWithTooManyEntries")
-    override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
-        val (version, creationTime, sourceName, organizationName) = pathToContent.pathNamesTill(rootDir)
-        return TestSuitesSourceSnapshotKey(
-            organizationName,
-            sourceName.decodeUrl(),
-            version.dropLast(ARCHIVE_EXTENSION.length),
-            creationTime.toLong()
-        )
-    }
-
-    override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
-    }
+    override fun findByDto(
+        repository: TestSuitesSourceSnapshotRepository,
+        dto: TestSuitesSourceSnapshotDto
+    ): TestSuitesSourceSnapshot? = repository.findBySourceAndCommitId(
+        testSuitesSource = testSuitesSourceRepository.getByIdOrNotFound(dto.sourceId),
+        commitId = dto.commitId,
+    )
 
     /**
      * @param organizationName
@@ -100,9 +103,13 @@ class TestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
-    ): Mono<TestSuitesSourceSnapshotKey> = list()
-        .filter { it.equalsTo(organizationName, testSuitesSourceName, version) }
-        .singleOrEmpty()
+    ): Mono<TestSuitesSourceSnapshotDto> = blockingToMono {
+        val testSuitesSource = testSuitesSourceService.findByName(organizationName, testSuitesSourceName)
+        testSuitesSource
+            ?.let { testSuitesSourceVersionRepository.findBySnapshot_SourceAndName(it, version) }
+            ?.snapshot
+            ?.toDto()
+    }
 
     /**
      * @param organizationName
@@ -112,8 +119,12 @@ class TestSuitesSourceSnapshotStorage(
     fun list(
         organizationName: String,
         testSuitesSourceName: String,
-    ): Flux<TestSuitesSourceSnapshotKey> = list()
-        .filter { it.equalsTo(organizationName, testSuitesSourceName) }
+    ): Flux<TestSuitesSourceSnapshotKey> = blockingToFlux {
+        val testSuitesSource = testSuitesSourceService.findByName(organizationName, testSuitesSourceName)
+        testSuitesSource
+            ?.let { testSuitesSourceVersionRepository.findAllBySnapshot_Source(it) }
+            ?.map { it.toKey() }
+    }
 
     /**
      * @param request
@@ -151,11 +162,12 @@ class TestSuitesSourceSnapshotStorage(
                 }
         }
 
-    private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
-
-    private fun String.decodeUrl(): String = URLDecoder.decode(this, StandardCharsets.UTF_8)
-
     companion object {
-        private const val PATH_PARTS_COUNT = 4  // organizationName + testSuitesSourceName + creationTime + version.zip
+        private fun TestSuitesSourceVersion.toKey() = TestSuitesSourceSnapshotKey(
+            organizationName = snapshot.source.organization.name,
+            testSuitesSourceName = snapshot.source.name,
+            version = name,
+            creationTime = creationTime.toKotlinLocalDateTime(),
+        )
     }
 }
