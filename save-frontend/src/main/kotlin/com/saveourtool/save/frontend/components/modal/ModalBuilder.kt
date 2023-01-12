@@ -258,7 +258,7 @@ fun ChildrenBuilder.modalBuilder(
 }
 
 /**
- * Function to create modals with bootstrap styles for upload avatars.
+ * Creates modals with bootstrap styles for uploading avatars.
  *
  * @param title title of the modal that will be shown in top-left corner
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
@@ -268,7 +268,7 @@ fun ChildrenBuilder.modalBuilder(
 fun ChildrenBuilder.modalAvatarBuilder(
     isOpen: Boolean,
     title: String,
-    onCloseButtonPressed: (() -> Unit)?,
+    onCloseButtonPressed: (() -> Unit),
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     modal { props ->

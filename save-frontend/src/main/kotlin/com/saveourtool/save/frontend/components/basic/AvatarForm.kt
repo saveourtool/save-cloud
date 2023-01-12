@@ -28,9 +28,14 @@ external interface AvatarFormProps : Props {
     var isOpen: Boolean
 
     /**
+     * Title of window
+     */
+    var title: String
+
+    /**
      * Callback to update state for close window.
      */
-    var onCloseWindow: (Boolean) -> Unit
+    var onCloseWindow: () -> Unit
 
     /**
      * Callback to upload avatar.
@@ -42,9 +47,9 @@ private fun avatarForm() = FC<AvatarFormProps> { props ->
 
     modalAvatarBuilder(
         isOpen = props.isOpen,
-        title = "Change organization's avatar",
+        title = props.title,
         onCloseButtonPressed = {
-            props.onCloseWindow(false)
+            props.onCloseWindow()
         }
     ) {
         div {
@@ -56,7 +61,7 @@ private fun avatarForm() = FC<AvatarFormProps> { props ->
             reactAvatarImageCropper {
                 apply = { file, _ ->
                     props.imageUpload(file)
-                    props.onCloseWindow(false)
+                    props.onCloseWindow()
                 }
             }
         }

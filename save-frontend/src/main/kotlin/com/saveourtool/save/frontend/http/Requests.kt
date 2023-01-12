@@ -8,10 +8,14 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
+import web.file.File
+import web.http.FormData
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -90,6 +94,29 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
     loadingHandler = ::classLoadingHandler,
 )
     .decodeFromJsonString<UserInfo>()
+
+/**
+ * @param file image file
+ * @param name avatar owner name
+ * @param type avatar type
+ */
+suspend fun ComponentWithScope<*, *>.postImageUpload(
+    file: File,
+    name: String?,
+    type: AvatarType,
+) {
+    val response = post(
+        "$apiUrl/image/upload?owner=$name&type=$type",
+        Headers(),
+        FormData().apply {
+            append("file", file)
+        },
+        loadingHandler = ::noopLoadingHandler,
+    )
+    if (response.ok) {
+        window.location.reload()
+    }
+}
 
 /**
  * Fetch debug info for test execution

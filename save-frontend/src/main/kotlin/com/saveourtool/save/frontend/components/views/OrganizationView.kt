@@ -18,6 +18,7 @@ import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -41,10 +42,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
-import web.file.File
-import web.http.FormData
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -477,21 +475,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString()
         }
 
-    private fun postImageUpload(file: File) =
-            scope.launch {
-                val response = post(
-                    "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    },
-                    loadingHandler = ::noopLoadingHandler,
-                )
-                if (response.ok) {
-                    window.location.reload()
-                }
-            }
-
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
@@ -509,13 +492,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
         avatarForm {
             isOpen = state.isAvatarWindowOpen
-            onCloseWindow = { isOpen ->
+            title = AVATAR_TITLE
+            onCloseWindow = {
                 setState {
-                    isAvatarWindowOpen = isOpen
+                    isAvatarWindowOpen = false
                 }
             }
             imageUpload = { file ->
-                postImageUpload(file)
+                scope.launch {
+                    postImageUpload(file, props.organizationName, AvatarType.ORGANIZATION)
+                }
             }
         }
 
@@ -529,7 +515,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
                 label {
                     className = ClassName("btn")
-                    title = "Change organization's avatar"
+                    title = AVATAR_TITLE
                     onClick = {
                         setState {
                             isAvatarWindowOpen = true
@@ -601,6 +587,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
     ) {
+        private const val AVATAR_TITLE = "Change organization's avatar"
         const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = requestStatusContext

@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -30,10 +31,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
-import web.file.File
-import web.http.FormData
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -140,13 +138,16 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun ChildrenBuilder.render() {
         avatarForm {
             isOpen = state.isAvatarWindowOpen
-            onCloseWindow = { isOpen ->
+            title = AVATAR_TITLE
+            onCloseWindow = {
                 setState {
-                    isAvatarWindowOpen = isOpen
+                    isAvatarWindowOpen = false
                 }
             }
             imageUpload = { file ->
-                postImageUpload(file)
+                scope.launch {
+                    postImageUpload(file, props.userName, AvatarType.USER)
+                }
             }
         }
 
@@ -171,7 +172,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         className = ClassName("col-md-4 pl-0 pr-0")
                                         label {
                                             className = ClassName("btn")
-                                            title = "Change avatar owner"
+                                            title = AVATAR_TITLE
                                             onClick = {
                                                 setState {
                                                     isAvatarWindowOpen = true
@@ -340,21 +341,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         }
     }
 
-    private fun postImageUpload(file: File) =
-            scope.launch {
-                val response = post(
-                    "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    },
-                    loadingHandler = ::classLoadingHandler,
-                )
-                if (response.ok) {
-                    window.location.reload()
-                }
-            }
-
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationWithUsersList() = post(
         url = "$apiUrl/organizations/by-filters",
@@ -363,4 +349,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
+
+    companion object {
+        private const val AVATAR_TITLE = "Change avatar owner"
+    }
 }
