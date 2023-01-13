@@ -25,6 +25,8 @@ import com.saveourtool.save.frontend.components.tables.pageSize
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
+import com.saveourtool.save.frontend.components.views.test.analysis.analysisResultsView
+import com.saveourtool.save.frontend.components.views.test.analysis.testMetricsView
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
@@ -33,6 +35,7 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -76,6 +79,11 @@ external interface ExecutionProps : PropsWithChildren {
      * All filters in one value [filters]
      */
     var filters: TestExecutionFilters
+
+    /**
+     * Indicates whether test analysis is enabled or not.
+     */
+    var testAnalysisEnabled: Boolean
 }
 
 /**
@@ -226,6 +234,23 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
+
+                if (props.testAnalysisEnabled) {
+                    column(id = "testMetrics", header = "Test Metrics") {
+                        td.create {
+                            testMetricsView {
+                                testMetrics = it.value.testMetrics
+                            }
+                        }
+                    }
+                    column(id = "testAnalysis", header = "Test Analysis") {
+                        td.create {
+                            analysisResultsView {
+                                analysisResults = it.value.analysisResults
+                            }
+                        }
+                    }
+                }
             }
         },
         useServerPaging = true,
@@ -334,9 +359,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get(
-                        "$apiUrl/executionDto?executionId=${props.executionId}",
-                        headers,
+                    get<dynamic>(
+                        url = "$apiUrl/executionDto",
+                        params = jso {
+                            executionId = props.executionId
+                        },
+                        headers = headers,
                         loadingHandler = ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
@@ -360,9 +388,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             div {
                 displayExecutionInfoHeader(state.executionDto, false, "row mb-2") { event ->
                     scope.launch {
-                        val response = post(
-                            "$apiUrl/run/re-trigger?executionId=${props.executionId}",
-                            Headers(),
+                        val response: Response = post<dynamic>(
+                            url = "$apiUrl/run/re-trigger",
+                            params = jso {
+                                executionId = props.executionId
+                            },
+                            headers = Headers(),
                             body = undefined,
                             loadingHandler = ::classLoadingHandler,
                         )
@@ -380,8 +411,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         testExecutionsTable {
             filters = state.filters
             getData = { page, size ->
-                post(
-                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
+                post<dynamic>(
+                    url = "$apiUrl/test-executions",
+                    params = jso {
+                        executionId = props.executionId
+                        this.page = page
+                        this.size = size
+                        checkDebugInfo = true
+                    },
                     headers = jsonHeaders,
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
@@ -409,7 +446,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     } ?: append("")
                 }
 
-                val count: Int = get(
+                val count: Int = get<dynamic>(
                     url = "$apiUrl/testExecution/count?executionId=${props.executionId}$filtersQueryString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")

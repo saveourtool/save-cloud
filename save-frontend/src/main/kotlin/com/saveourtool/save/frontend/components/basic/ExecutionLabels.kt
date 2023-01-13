@@ -96,7 +96,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.failedTests = executionDto?.failedTests?.toString() ?: "0"
         this.runningTests = executionDto?.runningTests?.toString() ?: "0"
         this.passRate = executionDto
-            ?.let { "${calculateRate(it.passedTests, it.allTests)}" }
+            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?.toString()
             ?: "0"
         this.precisionRate = executionDto
             ?.let {

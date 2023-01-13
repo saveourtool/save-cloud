@@ -8,9 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-
 /**
  * Background inspector, which detect crashed agents
  * TODO: can be used to store data about existing agents on orchestrator startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))
@@ -32,7 +29,6 @@ class HeartBeatInspector(
             AgentStatusDto(
                 containerId = heartbeat.agentInfo.containerId,
                 state = heartbeat.state,
-                time = heartbeat.timestamp.toLocalDateTime(TimeZone.UTC)
             ),
         )
     }
@@ -70,7 +66,7 @@ class HeartBeatInspector(
         }
     }
 
-    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
+    @Scheduled(cron = "\${orchestrator.heart-beat-inspector-cron}")
     private fun run() {
         determineCrashedAgents()
         processExecutionWithCrashedAgents()

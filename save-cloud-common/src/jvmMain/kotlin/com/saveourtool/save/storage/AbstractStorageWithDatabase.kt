@@ -61,10 +61,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         .flatMap { entity ->
             storage.delete(entity.requiredId())
                 .asyncEffectIf({ this }) {
-                    blockingToMono {
-                        beforeDelete(entity)
-                        repository.delete(entity)
-                    }
+                    doDelete(entity)
                 }
         }
         .defaultIfEmpty(false)
@@ -83,19 +80,14 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
-                .filter { it > 0 }
                 .flatMap { contentSize ->
                     blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
                         .map {
                             it.toDto() to contentSize
                         }
                 }
-                .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
-                    "Failed to upload key $key: content is empty"
-                }
-                .doOnError {
-                    beforeDelete(entity)
-                    repository.delete(entity)
+                .onErrorResume { ex ->
+                    doDelete(entity).then(Mono.error(ex))
                 }
         }
 
@@ -110,6 +102,11 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
 
     private fun getIdAsMono(dto: K): Mono<Long> = blockingToMono { findEntity(dto)?.requiredId() }
         .switchIfEmptyToNotFound { "DTO $this is not saved: ID is not set and failed to find by default example" }
+
+    private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
+        beforeDelete(entity)
+        repository.delete(entity)
+    }
 
     /**
      * A default implementation uses Spring's [Example]
