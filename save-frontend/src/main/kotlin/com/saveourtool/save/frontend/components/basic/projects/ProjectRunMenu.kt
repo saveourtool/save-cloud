@@ -2,10 +2,10 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.*
@@ -111,7 +111,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     }
 
     val (testingType, setTestingType) = useState(TestingType.PRIVATE_TESTS)
-    val (files, setFiles) = useState<List<FileInfo>>(emptyList())
+    val (files, setFiles) = useState<List<FileDto>>(emptyList())
 
     val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
     val (execCmd, setExecCmd) = useState("")
@@ -132,7 +132,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 projectName = project.name
             ),
             testSuiteIds = selectedTestSuites.map { it.requiredId() },
-            files = files.map { it.key },
+            fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = batchSizeForAnalyzer.takeUnless { it.isBlank() },

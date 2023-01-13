@@ -5,9 +5,8 @@ package com.saveourtool.save.api
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus.CREATED
@@ -15,13 +14,16 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
+
 import arrow.core.Either
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.http.ContentType
+
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MINUTES
+
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 
@@ -65,7 +67,7 @@ interface SaveCloudClientEx {
      * @return either the list of files, or the error if an error has occurred.
      * @see Organization.listFiles
      */
-    suspend fun listFiles(organizationName: String, projectName: String): Either<SaveCloudError, List<FileInfo>>
+    suspend fun listFiles(organizationName: String, projectName: String): Either<SaveCloudError, List<FileDto>>
 
     /**
      * Uploads a local file.
@@ -87,7 +89,7 @@ interface SaveCloudClientEx {
         file: Path,
         contentType: ContentType? = null,
         stripVersionFromName: Boolean = false
-    ): Either<SaveCloudError, FileInfo>
+    ): Either<SaveCloudError, FileDto>
 
     /**
      * @param organizationName the organization name.
@@ -122,18 +124,12 @@ interface SaveCloudClientEx {
     suspend fun getExecutionById(id: Long): Either<SaveCloudError, ExecutionDto>
 
     /**
-     * @param organizationName the organization name.
-     * @param projectName the name of the project.
-     * @param fileName the name of the file to delete.
-     * @param fileTimestamp the timestamp of the file to delete.
+     * @param fileId [FileDto.id]
      * @return [Unit], or the error if an error has occurred.
      * @see Organization.deleteFile
      */
     suspend fun deleteFile(
-        organizationName: String,
-        projectName: String,
-        fileName: String,
-        fileTimestamp: Long
+        fileId: Long,
     ): Either<SaveCloudError, Unit>
 
     /**
@@ -192,7 +188,7 @@ interface SaveCloudClientEx {
      * @return either the list of files, or the error if an error has occurred.
      * @see SaveCloudClientEx.listFiles
      */
-    suspend fun Organization.listFiles(projectName: String): Either<SaveCloudError, List<FileInfo>> =
+    suspend fun Organization.listFiles(projectName: String): Either<SaveCloudError, List<FileDto>> =
             listFiles(organizationName = name, projectName)
 
     /**
@@ -213,7 +209,7 @@ interface SaveCloudClientEx {
         file: Path,
         contentType: ContentType? = null,
         stripVersionFromName: Boolean = false
-    ): Either<SaveCloudError, FileInfo> =
+    ): Either<SaveCloudError, FileDto> =
             uploadFile(
                 organizationName = name,
                 projectName,
@@ -237,23 +233,6 @@ interface SaveCloudClientEx {
                 organizationName = name,
                 projectName,
                 contestName,
-            )
-
-    /**
-     * @param projectName the name of the project.
-     * @param fileKey the file descriptor.
-     * @return [Unit], or the error if an error has occurred.
-     * @see SaveCloudClientEx.deleteFile
-     */
-    suspend fun Organization.deleteFile(
-        projectName: String,
-        fileKey: FileKey
-    ): Either<SaveCloudError, Unit> =
-            deleteFile(
-                organizationName = name,
-                projectName,
-                fileKey.name,
-                fileKey.uploadedMillis
             )
 
     /**

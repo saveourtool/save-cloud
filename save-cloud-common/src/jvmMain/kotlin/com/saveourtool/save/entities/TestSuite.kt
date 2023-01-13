@@ -73,7 +73,7 @@ class TestSuite(
                 this.tagsAsList(),
                 this.id,
                 this.pluginsAsListOfPluginType(),
-                this.isPublic
+                this.isPublic,
             )
 
     companion object {
