@@ -67,16 +67,13 @@ abstract class AbstractFileBasedStorage<K>(
         return Mono.fromCallable {
             contentPath.parent.createDirectoriesIfRequired()
             contentPath.createFile()
-        }.flatMap { _ ->
+        }.flatMap {
             content.collectToFile(contentPath)
         }.map { it.toLong() }
     }
 
-    override fun download(key: K): Flux<ByteBuffer> {
-        @Suppress("BlockingMethodInNonBlockingContext")
-        return buildPathToContent(key).toDataBufferFlux()
-            .map { it.asByteBuffer() }
-    }
+    override fun download(key: K): Flux<ByteBuffer> = buildPathToContent(key).toDataBufferFlux()
+        .map { it.asByteBuffer() }
 
     /**
      * @param rootDir

@@ -6,7 +6,6 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.execution.TestingType
@@ -74,15 +73,7 @@ class RunExecutionControllerTest(
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
-            files = listOf(
-                FileKey(
-                    project.toProjectCoordinates(),
-                    "test.bat",
-                    LocalDateTime.of(2022, 12, 30, 1, 2, 3)
-                        .toInstant(ZoneOffset.UTC)
-                        .toEpochMilli()
-                )
-            ),
+            fileIds = listOf(FILE_ID),
             sdk = Jdk("8"),
             execCmd = "execCmd",
             batchSizeForAnalyzer = "batchSizeForAnalyzer",

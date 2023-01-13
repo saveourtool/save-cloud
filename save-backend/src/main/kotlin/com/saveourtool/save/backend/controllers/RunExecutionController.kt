@@ -84,7 +84,7 @@ class RunExecutionController(
                 executionService.createNew(
                     projectCoordinates = request.projectCoordinates,
                     testSuiteIds = request.testSuiteIds,
-                    fileKeys = request.files,
+                    fileIds = request.fileIds,
                     username = authentication.username(),
                     sdk = request.sdk,
                     execCmd = request.execCmd,

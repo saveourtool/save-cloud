@@ -66,14 +66,25 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         }
         .defaultIfEmpty(false)
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = blockingToMono {
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
+
+    /**
+     * @param key a key for provided content
+     * @param content
+     * @return updated key [K]
+     */
+    fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
+
+    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
         repository.save(createNewEntityFromDto(key))
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
                 .flatMap { contentSize ->
                     blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .thenReturn(contentSize)
+                        .map {
+                            it.toDto() to contentSize
+                        }
                 }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))

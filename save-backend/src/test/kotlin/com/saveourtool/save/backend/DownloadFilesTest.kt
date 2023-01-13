@@ -52,7 +52,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -63,9 +62,7 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    MigrationFileStorage::class,
     FileStorage::class,
-    NewFileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
@@ -78,6 +75,7 @@ import kotlin.io.path.*
     MockBean(UserDetailsService::class),
     MockBean(ExecutionService::class),
     MockBean(AgentService::class),
+    MockBean(ProjectPermissionEvaluator::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {
@@ -119,19 +117,13 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
 
     @Autowired
-    private lateinit var fileStorage: MigrationFileStorage
-
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
+    private lateinit var fileStorage: FileStorage
 
     @MockBean
     private lateinit var projectService: ProjectService
 
     @MockBean
     private lateinit var fileRepository: FileRepository
-
-    @MockBean
-    private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")
@@ -150,40 +142,39 @@ class DownloadFilesTest {
 
         val tmpFile = (createTempDirectory() / file1.name).createFile()
             .writeLines("Lorem ipsum".lines())
-        Paths.get(configProperties.fileStorage.location).createDirectories()
 
-        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
-        val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
-        val fileKey = sampleFileInfo.key
-        fileStorage.overwrite(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
-            .subscribeOn(Schedulers.immediate())
-            .block()
-
-        setOf(HttpMethod.GET, HttpMethod.POST)
-            .forEach { httpMethod ->
-                webTestClient.method(httpMethod)
-                    .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
-                        sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .expectStatus()
-                    .isOk
-                    .expectBody()
-                    .consumeWith {
-                        Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
-                    }
+        val sampleFileDto = tmpFile.toFileDto(testProject.toProjectCoordinates())
+            .also { fileDto ->
+                fileStorage.delete(fileDto)
+                    .block()
             }
+            .let { fileDto ->
+                fileStorage.uploadAndReturnUpdatedKey(fileDto, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+                    .subscribeOn(Schedulers.immediate())
+                    .block()
+            }!!
 
         webTestClient.get()
-            .uri("/api/$v1/files/Example.com/TheProject/list")
+            .uri("/api/$v1/files/download?fileId={fileId}", sampleFileDto.requiredId())
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
             .isOk
-            .expectBodyList<FileInfo>()
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+            }
+
+        webTestClient.get()
+            .uri("/api/$v1/files/{organizationName}/{projectName}/list", testProject.organization.name, testProject.name)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBodyList<FileDto>()
             .hasSize(1)
-            .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
+            .consumeWith<WebTestClient.ListBodySpec<FileDto>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().key.name
+                    tmpFile.name, it.responseBody!!.first().name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
@@ -230,11 +221,10 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<FileInfo>()
+            .expectBody<FileDto>()
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.key }
                         .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
@@ -331,6 +321,14 @@ class DownloadFilesTest {
                 }
             }
         whenever(fileRepository.findAll())
+            .thenAnswer {
+                if (isSaved()) {
+                    listOf(file)
+                } else {
+                    emptyList()
+                }
+            }
+        whenever(fileRepository.findAllByProject(eq(file.project)))
             .thenAnswer {
                 if (isSaved()) {
                     listOf(file)

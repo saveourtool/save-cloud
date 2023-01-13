@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.backend.utils.ErrorMessage
 import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
@@ -40,10 +39,10 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    private val fileRepository: FileRepository,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
-    @Lazy private val newFileStorage: NewFileStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -63,6 +62,19 @@ class ExecutionService(
      */
     fun getExecution(id: Long): Execution = findExecution(id).orNotFound {
         "Not found execution with id $id"
+    }
+
+    /**
+     * @param execution execution that is connected to testSuite
+     * @param testSuites list of manageable [TestSuite]
+     * @param files list of manageable [File]
+     */
+    @Transactional
+    fun save(execution: Execution, testSuites: Collection<TestSuite>, files: Collection<File> = emptyList()): Execution {
+        val newExecution = executionRepository.save(execution)
+        testSuites.map { LnkExecutionTestSuite(newExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(newExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
+        return newExecution
     }
 
     /**
@@ -169,7 +181,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param fileKeys
+     * @param fileIds
      * @param username
      * @param sdk
      * @param execCmd
@@ -183,7 +195,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        fileKeys: List<FileKey>,
+        fileIds: List<Long>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -196,14 +208,16 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
-        val files = fileKeys.map { newFileStorage.getFileEntityByFileKey(it) }
         return doCreateNew(
             project = project,
             testSuites = testSuiteIds.map { testSuitesService.getById(it) },
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            files = files,
+            files = fileIds.map { fileId ->
+                fileRepository.findByIdOrNull(fileId)
+                    .orNotFound { "File (id=$fileId) not found" }
+            },
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -280,6 +294,7 @@ class ExecutionService(
             testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
             score = null,
         )
+
         val savedExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
         files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
@@ -290,7 +305,7 @@ class ExecutionService(
                 }
             )
         }
-        log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
+        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
         return savedExecution
     }
 
