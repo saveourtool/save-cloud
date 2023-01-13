@@ -31,10 +31,8 @@ class TestSuite(
     var description: String? = "Undefined",
 
     @ManyToOne
-    @JoinColumn(name = "source_id")
-    var source: TestSuitesSource,
-
-    var version: String,
+    @JoinColumn(name = "source_version_id")
+    var sourceVersion: TestSuitesSourceVersion,
 
     var dateAdded: LocalDateTime? = null,
 
@@ -67,8 +65,7 @@ class TestSuite(
             TestSuiteDto(
                 this.name,
                 this.description,
-                this.source.toDto(),
-                this.version,
+                this.sourceVersion.requiredId(),
                 this.language,
                 this.tagsAsList(),
                 this.id,
@@ -100,5 +97,17 @@ class TestSuite(
          * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [PluginType]s
          */
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
+
+        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestSuitesSourceVersion): TestSuite {
+            return TestSuite(
+                name = name,
+                description = description,
+                sourceVersion = sourceVersionResolver(sourceVersionId),
+                dateAdded = null,
+                language = language,
+                tags = tags?.let(TestSuite::tagsFromList),
+                plugins = pluginsByTypes(plugins)
+            )
+        }
     }
 }

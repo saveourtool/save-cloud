@@ -380,9 +380,8 @@ class TestSuitesSourceController(
         val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).firstOrNull().orNotFound {
             "Execution (id=$executionId) doesn't have any testSuites"
         }
-        testSuite
-            .toDto()
-            .let { it.source to it.version }
+        testSuite.sourceVersion
+            .let { it.snapshot.source.toDto() to it.name }
     }.flatMap { (source, version) ->
         source.downloadSnapshot(version)
     }

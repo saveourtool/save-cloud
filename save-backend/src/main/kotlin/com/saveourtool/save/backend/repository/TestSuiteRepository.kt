@@ -8,6 +8,12 @@ import org.springframework.stereotype.Repository
 /**
  * JPA repositories for TestSuite
  */
+@Suppress(
+    "IDENTIFIER_LENGTH",
+    "FUNCTION_NAME_INCORRECT_CASE",
+    "FunctionNaming",
+    "FunctionName",
+)
 @Repository
 interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     /**
@@ -22,6 +28,18 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
         tags: String?,
         source: TestSuitesSource,
         version: String
+    ): TestSuite?
+
+    /**
+     * @param name name of the test suite
+     * @param tags tags of the test suite
+     * @param sourceVersionId version of source of the test suite
+     * @return matched test suite
+     */
+    fun findByNameAndTagsAndSourceVersion_Id(
+        name: String,
+        tags: String?,
+        sourceVersionId: Long,
     ): TestSuite?
 
     /**

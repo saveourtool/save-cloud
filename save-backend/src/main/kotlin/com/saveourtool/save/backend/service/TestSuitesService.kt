@@ -2,13 +2,16 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.repository.TestSuitesSourceVersionRepository
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getByIdOrNotFound
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -33,6 +36,7 @@ class TestSuitesService(
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
+    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
 ) {
     /**
      * Save new test suites to DB
@@ -47,22 +51,14 @@ class TestSuitesService(
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
-        val testSuiteSourceVersion = testSuiteDto.version
-        val testSuiteSource = testSuitesSourceService.getByName(testSuiteDto.source.organizationName, testSuiteDto.source.name)
+        val testSuiteCandidate = testSuiteDto.toEntity {
+            testSuitesSourceVersionRepository.getByIdOrNotFound(it)
+        }
+        val testSuiteSourceVersion = testSuiteCandidate.sourceVersion.name
+        val testSuiteSource = testSuiteCandidate.sourceVersion.snapshot.source
             .apply {
                 latestFetchedVersion = testSuiteSourceVersion
             }
-
-        val testSuiteCandidate = TestSuite(
-            name = testSuiteDto.name,
-            description = testSuiteDto.description,
-            source = testSuiteSource,
-            version = testSuiteDto.version,
-            dateAdded = null,
-            language = testSuiteDto.language,
-            tags = testSuiteDto.tags?.let(TestSuite::tagsFromList),
-            plugins = TestSuite.pluginsByTypes(testSuiteDto.plugins)
-        )
         // try to find TestSuite in the DB based on all non-null properties of `testSuite`
         // NB: that's why `dateAdded` is null in the mapping above
         val description = testSuiteCandidate.description
@@ -205,12 +201,11 @@ class TestSuitesService(
 
     private fun getSavedEntityByDto(
         dto: TestSuiteDto,
-    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
+    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceVersion_Id(
         dto.name,
         dto.tags?.let(TestSuite::tagsFromList),
-        testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
-        dto.version
-    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+        dto.sourceVersionId,
+    ).orNotFound { "TestSuite (name=${dto.name} linked with version ${dto.sourceVersionId}) not found" }
 
     /**
      * @param testSuites list of test suites to be updated

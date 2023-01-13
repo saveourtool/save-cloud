@@ -46,59 +46,15 @@ class TestSuitesPreprocessorController(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam mode: TestSuitesSourceFetchMode,
         @RequestParam version: String,
-    ): Mono<Unit> = when (mode) {
-        TestSuitesSourceFetchMode.BY_BRANCH -> fetchFromBranch(testSuitesSourceDto, version)
-        TestSuitesSourceFetchMode.BY_COMMIT -> fetchFromCommit(testSuitesSourceDto, version)
-        TestSuitesSourceFetchMode.BY_TAG -> fetchFromTag(testSuitesSourceDto, version)
-        TestSuitesSourceFetchMode.UNKNOWN -> error("Not expected mode $mode")
-    }
-
-    /**
-     * Fetch new tests suites from provided source from provided tag
-     *
-     * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param tagName tag which needs to be loaded, will be used as version
-     * @return empty response
-     */
-    private fun fetchFromTag(
-        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-        @RequestParam tagName: String,
     ): Mono<Unit> = fetchTestSuites(
-        testSuitesSourceDto,
-        tagName,
-        GitPreprocessorService::cloneTagAndProcessDirectory
-    )
-
-    /**
-     * Fetch new tests suites from provided source from latest sha-1 in provided branch
-     *
-     * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param branchName branch from which the latest commit needs to be loaded, will be used as version
-     * @return empty response
-     */
-    private fun fetchFromBranch(
-        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-        @RequestParam branchName: String,
-    ): Mono<Unit> = fetchTestSuites(
-        testSuitesSourceDto,
-        branchName,
-        GitPreprocessorService::cloneBranchAndProcessDirectory
-    )
-
-    /**
-     * Fetch new tests suites from provided source from commitId
-     *
-     * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param commitId commit which needs to be loaded, will be used as version
-     * @return empty response
-     */
-    private fun fetchFromCommit(
-        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-        @RequestParam commitId: String,
-    ): Mono<Unit> = fetchTestSuites(
-        testSuitesSourceDto,
-        commitId,
-        GitPreprocessorService::cloneCommitAndProcessDirectory
+        testSuitesSourceDto = testSuitesSourceDto,
+        cloneObject = version,
+        cloneAndProcessDirectoryAction = when (mode) {
+            TestSuitesSourceFetchMode.BY_BRANCH -> GitPreprocessorService::cloneBranchAndProcessDirectory
+            TestSuitesSourceFetchMode.BY_COMMIT -> GitPreprocessorService::cloneCommitAndProcessDirectory
+            TestSuitesSourceFetchMode.BY_TAG -> GitPreprocessorService::cloneTagAndProcessDirectory
+            TestSuitesSourceFetchMode.UNKNOWN -> error("Not expected mode $mode")
+        }
     )
 
     private fun fetchTestSuites(
