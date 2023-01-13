@@ -19,7 +19,14 @@ fun Long.secondsToInstant(): Instant = Instant.fromEpochSeconds(this)
 /**
  * @return pretty string representation of [Instant]
  */
-fun Instant.prettyPrint() = this.toString()
+fun Instant.prettyPrint() = this.toString().formatTime()
+
+/**
+ * @return pretty string representation of [LocalDateTime]
+ */
+fun LocalDateTime.prettyPrint() = this.toString().formatTime()
+
+private fun String.formatTime() = this
     .replace("T", " ")
     .replace("Z", "")
     .replace("-", ".")

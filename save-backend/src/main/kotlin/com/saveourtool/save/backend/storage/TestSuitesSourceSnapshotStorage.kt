@@ -2,13 +2,8 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
-import org.springframework.core.io.buffer.DataBuffer
-import org.springframework.core.io.buffer.DataBufferUtils
-import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -114,42 +109,6 @@ class TestSuitesSourceSnapshotStorage(
         testSuitesSourceName: String,
     ): Flux<TestSuitesSourceSnapshotKey> = list()
         .filter { it.equalsTo(organizationName, testSuitesSourceName) }
-
-    /**
-     * @param request
-     * @return [TestFilesContent] filled with test files
-     */
-    fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = with(request.testSuitesSource) {
-        findKey(organizationName, name, request.version)
-            .orNotFound {
-                "There is no content for tests from $name in $organizationName with version ${request.version}"
-            }
-    }
-        .flatMap { key ->
-            val tmpSourceDir = createTempDirectory(tmpDir, "source-")
-            val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
-            val sourceContent = download(key)
-                .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
-                .cast(DataBuffer::class.java)
-
-            DataBufferUtils.write(sourceContent, tmpArchive.outputStream())
-                .map { DataBufferUtils.release(it) }
-                .collectList()
-                .map {
-                    tmpArchive.extractZipHere()
-                    tmpArchive.deleteExisting()
-                }
-                .map {
-                    val testFilePath = request.test.filePath
-                    val additionalTestFilePath = request.test.additionalFiles.firstOrNull()
-                    val result = TestFilesContent(
-                        tmpSourceDir.resolve(testFilePath).readLines(),
-                        additionalTestFilePath?.let { tmpSourceDir.resolve(it).readLines() },
-                    )
-                    tmpSourceDir.toFile().deleteRecursively()
-                    result
-                }
-        }
 
     private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
 

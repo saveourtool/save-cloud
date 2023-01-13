@@ -25,6 +25,13 @@ interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
     fun findByOrganizationIdAndName(organizationId: Long, name: String): TestSuitesSource?
 
     /**
+     * @param organizationName
+     * @param name
+     * @return found entity or null
+     */
+    fun findByOrganizationNameAndName(organizationName: String, name: String): TestSuitesSource?
+
+    /**
      * @param organization
      * @param git
      * @param testRootPath

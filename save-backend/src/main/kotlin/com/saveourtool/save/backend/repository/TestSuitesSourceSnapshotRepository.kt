@@ -11,9 +11,9 @@ import org.springframework.stereotype.Repository
 @Repository
 interface TestSuitesSourceSnapshotRepository : BaseEntityRepository<TestSuitesSourceSnapshot> {
     /**
-     * @param testSuitesSource
+     * @param source
      * @param commitId
      * @return [TestSuitesSourceSnapshot] found by [commitId] in [TestSuitesSource]
      */
-    fun findBySourceAndCommitId(testSuitesSource: TestSuitesSource, commitId: String): TestSuitesSourceSnapshot?
+    fun findBySourceAndCommitId(source: TestSuitesSource, commitId: String): TestSuitesSourceSnapshot?
 }

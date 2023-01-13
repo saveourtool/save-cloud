@@ -1,12 +1,11 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.testsuite.TestSuitesSourceVersionDto
 
 import java.time.LocalDateTime
-import javax.persistence.Entity
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -16,6 +15,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property name human-readable version
  * @property createdByUser [User] created this version
  * @property creationTime time of creation this version
+ * @property type
  */
 @Entity
 class TestSuitesSourceVersion(
@@ -24,6 +24,8 @@ class TestSuitesSourceVersion(
     var snapshot: TestSuitesSourceSnapshot,
 
     var name: String,
+    @Enumerated(EnumType.STRING)
+    var type: TestSuitesSourceFetchMode,
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id")
@@ -33,6 +35,7 @@ class TestSuitesSourceVersion(
     override fun toDto(): TestSuitesSourceVersionDto = TestSuitesSourceVersionDto(
         snapshotId = snapshot.requiredId(),
         name = name,
+        type = type,
         createdByUserId = createdByUser.requiredId(),
         creationTime = creationTime.toKotlinLocalDateTime(),
         id = id,
@@ -50,6 +53,7 @@ class TestSuitesSourceVersion(
         ): TestSuitesSourceVersion = TestSuitesSourceVersion(
             snapshot = snapshotResolver(snapshotId),
             name = name,
+            type = type,
             createdByUser = userResolver(createdByUserId),
             creationTime = creationTime.toJavaLocalDateTime(),
         ).apply {

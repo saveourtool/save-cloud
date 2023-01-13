@@ -2,6 +2,7 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.CommitInfo
 import com.saveourtool.save.preprocessor.utils.cloneBranchToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneCommitToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
@@ -15,11 +16,11 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.Instant
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 
-typealias GitRepositoryProcessor<T> = (Path, Instant) -> Mono<T>
+typealias CloneResult = Pair<Path, CommitInfo>
+typealias GitRepositoryProcessor<T> = (Path, CommitInfo) -> Mono<T>
 typealias ArchiveProcessor<T> = (Path) -> Mono<T>
 
 /**
@@ -95,22 +96,22 @@ class GitPreprocessorService(
     private fun <T> doCloneAndProcessDirectory(
         gitDto: GitDto,
         repositoryProcessor: GitRepositoryProcessor<T>,
-        doCloneToDirectory: GitDto.(Path) -> Instant,
+        doCloneToDirectory: GitDto.(Path) -> CommitInfo,
     ): Mono<T> {
-        val cloneAction: () -> Pair<Path, Instant> = {
+        val cloneAction: () -> CloneResult = {
             val tmpDir = createTempDirectoryForRepository()
-            val creationTime = try {
+            val commitInfo = try {
                 gitDto.doCloneToDirectory(tmpDir)
             } catch (ex: Exception) {
                 log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
                 tmpDir.deleteRecursivelySafely()
                 throw ex
             }
-            tmpDir to creationTime
+            tmpDir to commitInfo
         }
         return Mono.usingWhen(
             Mono.fromSupplier(cloneAction),
-            { (directory, creationTime) -> repositoryProcessor(directory, creationTime) },
+            { (directory, commitInfo) -> repositoryProcessor(directory, commitInfo) },
             { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
         )
     }

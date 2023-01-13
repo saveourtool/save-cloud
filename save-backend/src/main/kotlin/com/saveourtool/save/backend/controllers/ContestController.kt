@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.Contest
@@ -56,7 +55,7 @@ internal class ContestController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationService: OrganizationService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkContestTestSuiteService: LnkContestTestSuiteService,
 ) {
     @GetMapping("/{contestName}")
@@ -205,7 +204,7 @@ internal class ContestController(
         .flatMap { (testSuite, test) ->
             Mono.zip(
                 testSuite.toMono(),
-                testSuitesSourceSnapshotStorage.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
+                testSuitesSourceService.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
             )
         }
         .map { (testSuite, testFilesContent) ->

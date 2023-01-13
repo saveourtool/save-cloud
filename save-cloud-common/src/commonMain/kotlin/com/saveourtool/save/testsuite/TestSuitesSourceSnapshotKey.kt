@@ -10,6 +10,10 @@ typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
  * @property testSuitesSourceName
  * @property version
  * @property creationTimeInMills
+ * @property createdBy
+ * @property commitId
+ * @property commitTime
+ * @property fetchMode
  */
 @Serializable
 data class TestSuitesSourceSnapshotKey(
@@ -17,12 +21,16 @@ data class TestSuitesSourceSnapshotKey(
     val testSuitesSourceName: String,
     val version: String,
     val creationTimeInMills: Long,
+    val createdBy: String = "save_user",
+    val commitId: String = version,
+    val commitTime: LocalDateTime = creationTimeFromLong(creationTimeInMills),
+    val fetchMode: TestSuitesSourceFetchMode = TestSuitesSourceFetchMode.UNKNOWN,
 ) {
     constructor(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
-        creationTime: LocalDateTime
+        creationTime: LocalDateTime,
     ) : this(
         organizationName,
         testSuitesSourceName,
@@ -30,7 +38,11 @@ data class TestSuitesSourceSnapshotKey(
         creationTimeToLong(creationTime),
     )
 
-    constructor(testSuitesSourceDto: TestSuitesSourceDto, version: String, creationTimeInMills: Long) : this(
+    constructor(
+        testSuitesSourceDto: TestSuitesSourceDto,
+        version: String,
+        creationTimeInMills: Long,
+    ) : this(
         testSuitesSourceDto.organizationName,
         testSuitesSourceDto.name,
         version,

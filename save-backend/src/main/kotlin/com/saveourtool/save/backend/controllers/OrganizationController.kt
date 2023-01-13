@@ -9,7 +9,7 @@ import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.MigrationTestSuitesSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus
@@ -65,7 +65,7 @@ internal class OrganizationController(
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
     config: ConfigProperties,
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)

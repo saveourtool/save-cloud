@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.service.TestService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono
 class TestController(
     private val testService: TestService,
     private val meterRegistry: MeterRegistry,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testSuitesSourceService: TestSuitesSourceService,
 ) {
     /**
      * @param testDtos list of [TestDto]s to save into the DB
@@ -45,7 +45,7 @@ class TestController(
      */
     @PostMapping("/tests/get-content")
     fun getContent(@RequestBody testFilesRequest: TestFilesRequest): Mono<TestFilesContent> =
-            testSuitesSourceSnapshotStorage.getTestContent(testFilesRequest)
+            testSuitesSourceService.getTestContent(testFilesRequest)
 
     companion object {
         private val log: Logger = getLogger<TestController>()

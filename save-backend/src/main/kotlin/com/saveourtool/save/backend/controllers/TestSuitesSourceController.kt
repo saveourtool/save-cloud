@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.MigrationTestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -48,7 +48,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @Suppress("LongParameterList")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,

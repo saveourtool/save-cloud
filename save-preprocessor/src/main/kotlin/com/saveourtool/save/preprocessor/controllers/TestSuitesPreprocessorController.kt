@@ -50,6 +50,7 @@ class TestSuitesPreprocessorController(
         TestSuitesSourceFetchMode.BY_BRANCH -> fetchFromBranch(testSuitesSourceDto, version)
         TestSuitesSourceFetchMode.BY_COMMIT -> fetchFromCommit(testSuitesSourceDto, version)
         TestSuitesSourceFetchMode.BY_TAG -> fetchFromTag(testSuitesSourceDto, version)
+        TestSuitesSourceFetchMode.UNKNOWN -> error("Not expected mode $mode")
     }
 
     /**
@@ -62,25 +63,11 @@ class TestSuitesPreprocessorController(
     private fun fetchFromTag(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam tagName: String,
-    ): Mono<Unit> = Mono.fromCallable {
-        log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
-    }
-        .filterWhen {
-            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, tagName)
-                .map(Boolean::not)
-        }
-        .flatMap {
-            fetchTestSuites(
-                testSuitesSourceDto,
-                tagName,
-                GitPreprocessorService::cloneTagAndProcessDirectory
-            )
-        }
-        .lazyDefaultIfEmpty {
-            with(testSuitesSourceDto) {
-                log.debug { "Test suites source $name in $organizationName already contains version $tagName" }
-            }
-        }
+    ): Mono<Unit> = fetchTestSuites(
+        testSuitesSourceDto,
+        tagName,
+        GitPreprocessorService::cloneTagAndProcessDirectory
+    )
 
     /**
      * Fetch new tests suites from provided source from latest sha-1 in provided branch
@@ -92,26 +79,11 @@ class TestSuitesPreprocessorController(
     private fun fetchFromBranch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam branchName: String,
-    ): Mono<Unit> = Mono.fromCallable {
-        log.debug { "Checking if source ${testSuitesSourceDto.name} already contains such version and it should be overridden." }
-    }
-        .flatMap {
-            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, branchName)
-        }
-        .flatMap { doesContain ->
-            if (doesContain) {
-                testsPreprocessorToBackendBridge.deleteTestSuitesAndSourceSnapshot(testSuitesSourceDto, branchName)
-            } else {
-                Mono.just(Unit)
-            }
-        }
-        .flatMap {
-            fetchTestSuites(
-                testSuitesSourceDto,
-                branchName,
-                GitPreprocessorService::cloneBranchAndProcessDirectory
-            )
-        }
+    ): Mono<Unit> = fetchTestSuites(
+        testSuitesSourceDto,
+        branchName,
+        GitPreprocessorService::cloneBranchAndProcessDirectory
+    )
 
     /**
      * Fetch new tests suites from provided source from commitId
@@ -123,36 +95,22 @@ class TestSuitesPreprocessorController(
     private fun fetchFromCommit(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam commitId: String,
-    ): Mono<Unit> = Mono.fromCallable {
-        log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
-    }
-        .filterWhen {
-            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, commitId)
-                .map(Boolean::not)
-        }
-        .flatMap {
-            fetchTestSuites(
-                testSuitesSourceDto,
-                commitId,
-                GitPreprocessorService::cloneCommitAndProcessDirectory
-            )
-        }
-        .lazyDefaultIfEmpty {
-            with(testSuitesSourceDto) {
-                log.debug { "There is no new version for $name in $organizationName" }
-            }
-        }
+    ): Mono<Unit> = fetchTestSuites(
+        testSuitesSourceDto,
+        commitId,
+        GitPreprocessorService::cloneCommitAndProcessDirectory
+    )
 
     private fun fetchTestSuites(
         testSuitesSourceDto: TestSuitesSourceDto,
         cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, creationTime ->
+    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, commitInfo ->
         gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSource = testSuitesSourceDto,
                 version = cloneObject,
-                creationTime = creationTime,
+                creationTime = commitInfo.time,
                 resourceWithContent = FileSystemResource(archive)
             ).flatMap {
                 testDiscoveringService.detectAndSaveAllTestSuitesAndTests(

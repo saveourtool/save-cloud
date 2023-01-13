@@ -1,10 +1,11 @@
 package com.saveourtool.save.backend.storage
 
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.storage.AbstractMigrationStorage
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.utils.getByIdOrNotFound
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -18,8 +19,9 @@ import javax.annotation.PostConstruct
 class MigrationTestSuitesSourceSnapshotStorage(
     oldStorage: TestSuitesSourceSnapshotStorage,
     private val newStorage: NewTestSuitesSourceSnapshotStorage,
+    private val testSuitesSourceRepository: TestSuitesSourceRepository,
+    private val testSuitesSourceService: TestSuitesSourceService,
 ) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestSuitesSourceSnapshotDto>(oldStorage, newStorage) {
-
     /**
      * A temporary init method which copies file from one storage to another
      */
@@ -28,9 +30,24 @@ class MigrationTestSuitesSourceSnapshotStorage(
         super.migrate()
     }
 
-    override fun TestSuitesSourceSnapshotDto.toOldKey(): TestSuitesSourceSnapshotKey = TODO()
+    override fun TestSuitesSourceSnapshotDto.toOldKey(): TestSuitesSourceSnapshotKey {
+        val source = testSuitesSourceRepository.getByIdOrNotFound(sourceId)
+        return TestSuitesSourceSnapshotKey(
+            organizationName = source.organization.name,
+            testSuitesSourceName = source.name,
+            version = commitId,
+            creationTime = commitTime,
+        )
+    }
 
-    override fun TestSuitesSourceSnapshotKey.toNewKey(): TestSuitesSourceSnapshotDto = TODO()
+    override fun TestSuitesSourceSnapshotKey.toNewKey(): TestSuitesSourceSnapshotDto {
+        val source = testSuitesSourceService.getByName(organizationName, testSuitesSourceName)
+        return TestSuitesSourceSnapshotDto(
+            sourceId = source.requiredId(),
+            commitId = version,
+            commitTime = convertAndGetCreationTime(),
+        )
+    }
 
     /**
      * @param organizationName
@@ -77,10 +94,4 @@ class MigrationTestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
     ): Flux<TestSuitesSourceSnapshotKey> = newStorage.list(organizationName, testSuitesSourceName)
-
-    /**
-     * @param request
-     * @return [TestFilesContent] filled with test files
-     */
-    fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = newStorage.getTestContent(request)
 }

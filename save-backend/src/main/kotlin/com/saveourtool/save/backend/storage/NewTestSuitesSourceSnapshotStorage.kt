@@ -1,23 +1,20 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.backend.repository.TestSuitesSourceSnapshotRepository
-import com.saveourtool.save.backend.repository.TestSuitesSourceVersionRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.TestSuitesSourceSnapshot
 import com.saveourtool.save.entities.TestSuitesSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.entities.TestSuitesSourceVersion
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.blockingToFlux
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.getByIdOrNotFound
 
-import org.springframework.core.io.buffer.DataBuffer
-import org.springframework.core.io.buffer.DataBufferUtils
-import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -25,7 +22,7 @@ import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.nio.file.Path
 
-import kotlin.io.path.*
+import kotlin.io.path.div
 import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
@@ -35,21 +32,34 @@ import kotlinx.datetime.toKotlinLocalDateTime
 class NewTestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
     testSuitesSourceSnapshotRepository: TestSuitesSourceSnapshotRepository,
-    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
+    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
+    private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
 ) : AbstractStorageWithDatabase<TestSuitesSourceSnapshotDto, TestSuitesSourceSnapshot, TestSuitesSourceSnapshotRepository>(
     Path.of(configProperties.fileStorage.location) / "testSuites", testSuitesSourceSnapshotRepository) {
-    private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
+    override fun createNewEntityFromDto(dto: TestSuitesSourceSnapshotDto): TestSuitesSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
-    override fun createNewEntityFromDto(dto: TestSuitesSourceSnapshotDto): TestSuitesSourceSnapshot =
-            dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
+    override fun TestSuitesSourceSnapshot.updateByContentSize(sizeBytes: Long): TestSuitesSourceSnapshot {
+        // a temporary -- saved version
+        testSuitesSourceVersionRepository.save(
+            TestSuitesSourceVersion(
+                snapshot = this,
+                name = this.commitId,
+                type = TestSuitesSourceFetchMode.UNKNOWN,
+                createdByUser = lnkUserOrganizationRepository.findByOrganization(this.source.organization)
+                    .first { it.role == Role.OWNER }.user,
+                creationTime = this.commitTime,
+            )
+        )
+        return this
+    }
 
     override fun findByDto(
         repository: TestSuitesSourceSnapshotRepository,
         dto: TestSuitesSourceSnapshotDto
     ): TestSuitesSourceSnapshot? = repository.findBySourceAndCommitId(
-        testSuitesSource = testSuitesSourceRepository.getByIdOrNotFound(dto.sourceId),
+        source = testSuitesSourceRepository.getByIdOrNotFound(dto.sourceId),
         commitId = dto.commitId,
     )
 
@@ -125,42 +135,6 @@ class NewTestSuitesSourceSnapshotStorage(
             ?.let { testSuitesSourceVersionRepository.findAllBySnapshot_Source(it) }
             ?.map { it.toKey() }
     }
-
-    /**
-     * @param request
-     * @return [TestFilesContent] filled with test files
-     */
-    fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = with(request.testSuitesSource) {
-        findKey(organizationName, name, request.version)
-            .orNotFound {
-                "There is no content for tests from $name in $organizationName with version ${request.version}"
-            }
-    }
-        .flatMap { key ->
-            val tmpSourceDir = createTempDirectory(tmpDir, "source-")
-            val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
-            val sourceContent = download(key)
-                .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
-                .cast(DataBuffer::class.java)
-
-            DataBufferUtils.write(sourceContent, tmpArchive.outputStream())
-                .map { DataBufferUtils.release(it) }
-                .collectList()
-                .map {
-                    tmpArchive.extractZipHere()
-                    tmpArchive.deleteExisting()
-                }
-                .map {
-                    val testFilePath = request.test.filePath
-                    val additionalTestFilePath = request.test.additionalFiles.firstOrNull()
-                    val result = TestFilesContent(
-                        tmpSourceDir.resolve(testFilePath).readLines(),
-                        additionalTestFilePath?.let { tmpSourceDir.resolve(it).readLines() },
-                    )
-                    tmpSourceDir.toFile().deleteRecursively()
-                    result
-                }
-        }
 
     companion object {
         private fun TestSuitesSourceVersion.toKey() = TestSuitesSourceSnapshotKey(

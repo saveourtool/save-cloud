@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -48,9 +47,6 @@ class TestSuitesControllerTest {
 
     @Autowired
     lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
-
-    @Autowired
-    lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
 
     @MockBean
     lateinit var scheduler: Scheduler
