@@ -104,25 +104,6 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
 }
 
 /**
- * Transforms the item emitted by this [Mono] into a [Sequence], then forwards
- * its elements into the returned [Flux].
- *
- * @param transform the mapper function to transform the input into a [Sequence].
- * @param T the input type.
- * @param R the merged output sequence type.
- * @return the merged [Flux].
- * @see Mono.flatMapIterable
- */
-@Suppress(
-    "KDOC_WITHOUT_PARAM_TAG",
-    "IDENTIFIER_LENGTH",
-)
-fun <T : Any, R : Any> Mono<T>.flatMapSequence(transform: (T) -> Sequence<R>): Flux<R> =
-        flatMapIterable { t ->
-            transform(t).asIterable()
-        }
-
-/**
  * Transforms the [left][Pair.first] value of each element of this [Flux].
  *
  * @param transformLeft the mapper function.
@@ -246,12 +227,3 @@ fun downloadFromClasspath(
                 logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
                 lazyResponseBody()
             }
-
-/**
- * @param seed the starting value of this sequence.
- * @return the sequence infinitely returning [seed].
- */
-fun <T : Any> infiniteSequenceOf(seed: T): Sequence<T> =
-        generateSequence {
-            seed
-        }

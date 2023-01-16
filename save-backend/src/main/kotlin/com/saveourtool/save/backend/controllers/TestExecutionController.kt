@@ -24,8 +24,6 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.flatMapSequence
-import com.saveourtool.save.utils.infiniteSequenceOf
 import com.saveourtool.save.utils.mapLeft
 import com.saveourtool.save.utils.mapRight
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -102,17 +100,21 @@ class TestExecutionController(
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
-        .zipWhen { execution ->
+        .flatMapMany { execution ->
+            val testExecutions = Flux.fromStream {
+                log.debug("Request to get test executions on page $page with size $size for execution $executionId")
+                testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty).stream()
+            }
+
             /*
              * Test analysis: collect execution metadata.
              */
-            Mono.fromCallable(execution::metadata)
+            val metadata = Mono.fromCallable(execution::metadata).cache().repeat()
+
+            testExecutions.zipWith(metadata)
         }
-        .flatMapSequence { (_, metadata) ->
-            log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
-                .asSequence()
-                .zip(infiniteSequenceOf(metadata))
+        .map { (testExecution, metadata) ->
+            testExecution to metadata
         }
         .mapRight { testExecution, metadata ->
             /*
