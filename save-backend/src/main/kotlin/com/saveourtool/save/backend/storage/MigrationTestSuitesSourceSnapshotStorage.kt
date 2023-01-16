@@ -18,7 +18,7 @@ import javax.annotation.PostConstruct
 @Service
 class MigrationTestSuitesSourceSnapshotStorage(
     oldStorage: TestSuitesSourceSnapshotStorage,
-    private val newStorage: NewTestSuitesSourceSnapshotStorage,
+    private val newStorage: TestsSourceSnapshotStorage,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
 ) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestsSourceSnapshotDto>(oldStorage, newStorage) {

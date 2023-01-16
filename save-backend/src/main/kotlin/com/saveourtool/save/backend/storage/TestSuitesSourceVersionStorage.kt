@@ -14,13 +14,13 @@ import java.nio.ByteBuffer
 import java.time.Instant
 
 /**
- * Wrapper for [NewTestSuitesSourceSnapshotStorage] using [TestsSourceVersionDto] as a key
+ * Wrapper for [TestsSourceSnapshotStorage] using [TestsSourceVersionDto] as a key
  */
 @Service
 class TestSuitesSourceVersionStorage(
     private val versionRepository: TestSuitesSourceVersionRepository,
     private val snapshotRepository: TestSuitesSourceSnapshotRepository,
-    private val snapshotStorage: NewTestSuitesSourceSnapshotStorage,
+    private val snapshotStorage: TestsSourceSnapshotStorage,
 ) : Storage<TestsSourceVersionDto> {
     override fun list(): Flux<TestsSourceVersionDto> = blockingToFlux {
         versionRepository.findAll().map { it.toDto() }

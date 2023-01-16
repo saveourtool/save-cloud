@@ -29,7 +29,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * Storage for snapshots of [com.saveourtool.save.entities.TestSuitesSource]
  */
 @Component
-class NewTestSuitesSourceSnapshotStorage(
+class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
     testSuitesSourceSnapshotRepository: TestSuitesSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
