@@ -35,7 +35,7 @@ class TestSuitesSourceInternalController(
      * @param contentAsMonoPart
      * @return [Mono] without value
      */
-    @PostMapping("/internal/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/{organizationName}/{sourceName}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadSnapshot(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
@@ -59,7 +59,7 @@ class TestSuitesSourceInternalController(
      * @param version
      * @return [Mono] with result
      */
-    @GetMapping("/internal/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot")
+    @GetMapping("/{organizationName}/{sourceName}/contains-snapshot")
     fun containsSnapshot(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
@@ -73,7 +73,7 @@ class TestSuitesSourceInternalController(
      * @param executionId
      * @return content of tests related to provided values
      */
-    @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadByExecutionId(
         @RequestParam executionId: Long
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
