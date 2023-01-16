@@ -33,7 +33,7 @@
     <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
     <include file="file.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
-    <include file="tests-sources-snapshot.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
