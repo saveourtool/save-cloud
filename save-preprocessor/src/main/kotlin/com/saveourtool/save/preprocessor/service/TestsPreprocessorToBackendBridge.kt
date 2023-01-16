@@ -86,25 +86,6 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @return empty response
-     */
-    fun deleteTestSuitesAndSourceSnapshot(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Unit> =
-            webClientBackend.delete()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-test-suites-and-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono<Boolean>()
-                .map { isDeleted ->
-                    with(testSuitesSource) {
-                        log.debug {
-                            "Result of delete operation for $name in $organizationName is $isDeleted"
-                        }
-                    }
-                }
-
-    /**
      * @param tests
      * @return empty response
      */
