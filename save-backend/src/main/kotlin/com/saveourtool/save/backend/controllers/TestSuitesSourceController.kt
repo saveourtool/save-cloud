@@ -2,16 +2,18 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
+import com.saveourtool.save.test.TestsSourceVersionInfo
+import com.saveourtool.save.test.TestsSourceVersionInfoList
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -30,6 +32,9 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
 typealias EntitySaveStatusResponse = ResponseEntity<EntitySaveStatus>
 typealias StringListResponse = ResponseEntity<List<String>>
 
@@ -44,7 +49,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @RequestMapping("/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testsSourceVersionService: TestsSourceVersionService,
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
@@ -114,9 +119,9 @@ class TestSuitesSourceController(
     fun listSnapshotVersions(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
-    ): Mono<TestSuitesSourceSnapshotKeyList> = findAsDtoByName(organizationName, sourceName)
+    ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
-            testSuitesSourceSnapshotStorage.list(it.organizationName, it.name)
+            testsSourceVersionService.list(it.organizationName, it.name)
                 .collectList()
         }
 
@@ -135,10 +140,9 @@ class TestSuitesSourceController(
     @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
     fun listSnapshots(
         @PathVariable organizationName: String,
-    ): Mono<TestSuitesSourceSnapshotKeyList> = getOrganization(organizationName)
+    ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
-            testSuitesSourceSnapshotStorage.list()
-                .filter { it.organizationName == organization.name }
+            testsSourceVersionService.list(organization.name)
                 .collectList()
         }
 
@@ -206,12 +210,7 @@ class TestSuitesSourceController(
                 EntitySaveStatus.UPDATED -> {
                     val newName = updatedEntity.name
                     val movingSnapshots = if (originalName != newName) {
-                        testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
-                            .map { it to it.copy(testSuitesSourceName = newName) }
-                            .flatMap { (sourceKey, targetKey) ->
-                                testSuitesSourceSnapshotStorage.move(sourceKey, targetKey)
-                            }
-                            .then()
+                        testsSourceVersionService.updateSourceName(updatedEntity.organization.name, originalName, newName)
                     } else {
                         Mono.just(Unit)
                     }
@@ -277,10 +276,7 @@ class TestSuitesSourceController(
         .map {
             testSuitesService.deleteTestSuite(it, version)
         }
-        .then(testSuitesSourceSnapshotStorage.findKey(organizationName, sourceName, version))
-        .flatMap {
-            testSuitesSourceSnapshotStorage.delete(it)
-        }
+        .then(testsSourceVersionService.delete(organizationName, sourceName, version))
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
@@ -359,7 +355,7 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.tagList(it.toDto()) }
-        .zipWith(testSuitesSourceSnapshotStorage.list(organizationName, sourceName)
+        .zipWith(testsSourceVersionService.list(organizationName, sourceName)
             .map { it.version }
             .collectList())
         .map { (tags, versions) ->

@@ -3,8 +3,6 @@ package com.saveourtool.save.testsuite
 import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
 
-typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
-
 /**
  * @property organizationName
  * @property testSuitesSourceName
