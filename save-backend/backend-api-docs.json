@@ -6297,7 +6297,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -6310,7 +6310,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -6323,7 +6323,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7042,7 +7042,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7055,7 +7055,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7068,7 +7068,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -9809,23 +9809,30 @@
           }
         }
       },
-      "TestSuitesSourceSnapshotKey": {
+      "TestsSourceVersionInfo": {
         "required": [
-          "creationTimeInMills",
+          "commitId",
+          "commitTime",
+          "creationTime",
           "organizationName",
-          "testSuitesSourceName",
+          "sourceName",
           "version"
         ],
         "type": "object",
         "properties": {
-          "creationTimeInMills": {
-            "type": "integer",
-            "format": "int64"
+          "commitId": {
+            "type": "string"
+          },
+          "commitTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "creationTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "organizationName": {
             "type": "string"
           },
-          "testSuitesSourceName": {
+          "sourceName": {
             "type": "string"
           },
           "version": {
