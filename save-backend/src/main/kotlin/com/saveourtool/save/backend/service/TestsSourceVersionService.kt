@@ -40,7 +40,7 @@ class TestsSourceVersionService(
         key = TestSuitesSourceSnapshotKey(
             organizationName = versionInfo.organizationName,
             testSuitesSourceName = versionInfo.sourceName,
-            version = versionInfo.commitId,
+            version = versionInfo.version,
             creationTime = versionInfo.commitTime,
         ),
         content = content
