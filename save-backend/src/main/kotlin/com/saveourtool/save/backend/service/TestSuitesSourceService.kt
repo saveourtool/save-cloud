@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
@@ -30,7 +29,7 @@ import reactor.kotlin.core.publisher.toMono
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testsSourceVersionService: TestsSourceVersionService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -154,9 +153,9 @@ class TestSuitesSourceService(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-    ): Mono<EmptyResponse> = testSuitesSourceSnapshotStorage.doesContain(
+    ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
         organizationName = testSuitesSource.organizationName,
-        testSuitesSourceName = testSuitesSource.name,
+        sourceName = testSuitesSource.name,
         version = version,
     )
         .filterWhen { doesContain ->
@@ -165,12 +164,11 @@ class TestSuitesSourceService(
                     "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and it should be" +
                             " overridden."
                 }
-                testSuitesSourceSnapshotStorage.findKey(
+                testsSourceVersionService.delete(
                     organizationName = testSuitesSource.organizationName,
-                    testSuitesSourceName = testSuitesSource.name,
+                    sourceName = testSuitesSource.name,
                     version = version,
                 )
-                    .flatMap { testSuitesSourceSnapshotStorage.delete(it) }
                     .filter { it }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                         "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
