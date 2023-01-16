@@ -39,26 +39,26 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
 /**
  * @param branch
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, branchWithPrefix = branch to Constants.R_HEADS)
+fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = branch to Constants.R_HEADS)
 
 /**
  * @param tagName
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
+fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
 
 /**
  * @param commitId
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
+fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
 
 /**
  * Sorted set of tags for [GitDto]
@@ -109,7 +109,7 @@ private fun GitDto.doCloneToDirectory(
     pathToDirectory: Path,
     branchWithPrefix: Pair<String, String>? = null,
     commitToCheckout: String? = null,
-): Instant = Git.cloneRepository()
+): GitCommitInfo = Git.cloneRepository()
     .setCredentialsProvider(credentialsProvider())
     .setURI(url)
     .setDirectory(pathToDirectory.toFile())
@@ -132,11 +132,14 @@ private fun GitDto.doCloneToDirectory(
         }
         withRethrow {
             val objectId = git.repository.resolve(Constants.HEAD)
-            RevWalk(git.repository).use {
-                it.parseCommit(objectId)
-                    .authorIdent
-                    .whenAsInstant
-            }
+            GitCommitInfo(
+                id = objectId.name,
+                time = RevWalk(git.repository).use {
+                    it.parseCommit(objectId)
+                        .authorIdent
+                        .whenAsInstant
+                }
+            )
         }
     }
 

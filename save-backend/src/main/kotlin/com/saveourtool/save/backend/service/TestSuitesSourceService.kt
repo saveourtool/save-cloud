@@ -2,24 +2,26 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
-import com.saveourtool.save.utils.EmptyResponse
-import com.saveourtool.save.utils.StringList
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
@@ -28,6 +30,7 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -151,12 +154,46 @@ class TestSuitesSourceService(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-    ): Mono<EmptyResponse> = preprocessorWebClient
-        .post()
-        .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
-        .bodyValue(testSuitesSource)
-        .retrieve()
-        .toBodilessEntity()
+    ): Mono<EmptyResponse> = testSuitesSourceSnapshotStorage.doesContain(
+        organizationName = testSuitesSource.organizationName,
+        testSuitesSourceName = testSuitesSource.name,
+        version = version,
+    )
+        .filterWhen { doesContain ->
+            if (doesContain && mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+                log.debug {
+                    "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and it should be" +
+                            " overridden."
+                }
+                testSuitesSourceSnapshotStorage.findKey(
+                    organizationName = testSuitesSource.organizationName,
+                    testSuitesSourceName = testSuitesSource.name,
+                    version = version,
+                )
+                    .flatMap { testSuitesSourceSnapshotStorage.delete(it) }
+                    .filter { it }
+                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                        "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
+                    }
+                    .thenReturn(true)
+            } else if (doesContain) {
+                log.debug {
+                    "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and we skip fetching a new" +
+                            " version."
+                }
+                false.toMono()
+            } else {
+                true.toMono()
+            }
+        }
+        .flatMap {
+            preprocessorWebClient
+                .post()
+                .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
+                .bodyValue(testSuitesSource)
+                .retrieve()
+                .toBodilessEntity()
+        }
 
     /**
      * @param testSuitesSource test suites source for which a list of tags is requested
@@ -183,4 +220,8 @@ class TestSuitesSourceService(
         .bodyValue(testSuitesSource.gitDto)
         .retrieve()
         .bodyToMono()
+
+    companion object {
+        private val log: Logger = getLogger<TestSuitesSourceService>()
+    }
 }
