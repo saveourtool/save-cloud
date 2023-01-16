@@ -196,7 +196,7 @@ fun ChildrenBuilder.showTestsSourceVersionInfoList(
                         }
                         div {
                             className = ClassName("float-right")
-                            +testsSourceVersionInfo.creationTime.toInstant(TimeZone.UTC).prettyPrint()
+                            +testsSourceVersionInfo.creationTime.prettyPrint()
                         }
                     }
                 }

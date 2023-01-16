@@ -140,6 +140,7 @@ class TestSuitesSourceController(
         responseCode = "404",
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun uploadSnapshot(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
