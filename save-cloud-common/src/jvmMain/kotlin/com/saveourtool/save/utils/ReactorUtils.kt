@@ -104,6 +104,54 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
 }
 
 /**
+ * Transforms the [left][Pair.first] value of each element of this [Flux].
+ *
+ * @param transformLeft the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapLeft(transformLeft: (A, B) -> R): Flux<Pair<R, B>> =
+        map { (left, right) ->
+            transformLeft(left, right) to right
+        }
+
+/**
+ * Transforms the [left][Pair.first] value of each element of this [Flux].
+ *
+ * @param transformLeft the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapLeft(transformLeft: (A) -> R): Flux<Pair<R, B>> =
+        mapLeft { left, _ ->
+            transformLeft(left)
+        }
+
+/**
+ * Transforms the [right][Pair.second] value of each element of this [Flux].
+ *
+ * @param transformRight the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapRight(transformRight: (A, B) -> R): Flux<Pair<A, R>> =
+        map { (first, second) ->
+            first to transformRight(first, second)
+        }
+
+/**
+ * Transforms the [right][Pair.second] value of each element of this [Flux].
+ *
+ * @param transformRight the mapper function.
+ * @return the transformed [Flux].
+ * @see Flux.map
+ */
+fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapRight(transformRight: (B) -> R): Flux<Pair<A, R>> =
+        mapRight { _, right ->
+            transformRight(right)
+        }
+
+/**
  * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
  */
 fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this

@@ -35,7 +35,6 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -359,9 +358,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         scope.launch {
             val headers = Headers().also { it.set("Accept", "application/json") }
             val executionDtoFromBackend: ExecutionDto =
-                    get<dynamic>(
+                    get(
                         url = "$apiUrl/executionDto",
-                        params = jso {
+                        params = jso<dynamic> {
                             executionId = props.executionId
                         },
                         headers = headers,
@@ -388,9 +387,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             div {
                 displayExecutionInfoHeader(state.executionDto, false, "row mb-2") { event ->
                     scope.launch {
-                        val response: Response = post<dynamic>(
+                        val response = post(
                             url = "$apiUrl/run/re-trigger",
-                            params = jso {
+                            params = jso<dynamic> {
                                 executionId = props.executionId
                             },
                             headers = Headers(),
@@ -411,13 +410,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         testExecutionsTable {
             filters = state.filters
             getData = { page, size ->
-                post<dynamic>(
+                post(
                     url = "$apiUrl/test-executions",
-                    params = jso {
+                    params = jso<dynamic> {
                         executionId = props.executionId
                         this.page = page
                         this.size = size
                         checkDebugInfo = true
+                        testAnalysis = props.testAnalysisEnabled
                     },
                     headers = jsonHeaders,
                     body = Json.encodeToString(filters),
