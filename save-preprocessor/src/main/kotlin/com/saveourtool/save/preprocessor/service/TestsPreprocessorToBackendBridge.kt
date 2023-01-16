@@ -65,12 +65,12 @@ class TestsPreprocessorToBackendBridge(
      * @return true if backend knows [testsSourceSnapshotInfo], otherwise -- false
      */
     fun doesContainTestsSourceSnapshot(testsSourceSnapshotInfo: TestsSourceSnapshotInfo): Mono<Boolean> =
-        webClientBackend
-            .post()
-            .uri("/test-suites-sources/contains-snapshot")
-            .bodyValue(testsSourceSnapshotInfo)
-            .retrieve()
-            .bodyToMono()
+            webClientBackend
+                .post()
+                .uri("/test-suites-sources/contains-snapshot")
+                .bodyValue(testsSourceSnapshotInfo)
+                .retrieve()
+                .bodyToMono()
 
     /**
      * @param testsSourceVersionInfo
