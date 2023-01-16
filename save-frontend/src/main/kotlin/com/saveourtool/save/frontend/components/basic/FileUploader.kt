@@ -7,7 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.domain.Sdk.Default.name
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -39,12 +39,9 @@ import web.file.File
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-private val fileUploaderOverFileInfo = fileUploader<FileInfo>()
+private val fileUploaderOverFileInfo = fileUploader<FileDto>()
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverSandboxFileInfo = fileUploader<SandboxFileInfo>()
@@ -52,11 +49,21 @@ private val fileUploaderOverSandboxFileInfo = fileUploader<SandboxFileInfo>()
 /**
  * Props for file uploader
  */
-external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
+external interface UploaderProps<F : Any> : PropsWithChildren {
     /**
      * List of currently selected files.
      */
     var selectedFiles: List<F>
+
+    /**
+     * Callback to get name from [F]
+     */
+    var getName: (F) -> String
+
+    /**
+     * Callback to get sizeBytes from [F]
+     */
+    var getSizeBytes: (F) -> Long
 
     /**
      * Callback to add file to [selectedFiles]
@@ -94,12 +101,12 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
     var fileInfoToPrettyPrint: (F) -> String
 
     /**
-     * Callback to decode [Response] into [F] : [AbstractFileInfo]
+     * Callback to decode [Response] into [F]
      */
     var decodeFileInfoFromString: suspend (Response) -> F
 
     /**
-     * Callback to decode [Response] into [List] of [F] : [AbstractFileInfo]
+     * Callback to decode [Response] into [List] of [F]
      */
     var decodeListOfFileInfosFromString: suspend (Response) -> List<F>
 
@@ -121,6 +128,8 @@ fun ChildrenBuilder.fileUploaderForSandbox(
 ) {
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
+        getName = { it.name }
+        getSizeBytes = { it.sizeBytes }
         selectedFiles = selectedFilesFromState
         getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file" }
         getUrlForFileUpload = { "$sandboxApiUrl/upload-file" }
@@ -152,32 +161,30 @@ fun ChildrenBuilder.fileUploaderForSandbox(
  */
 fun ChildrenBuilder.fileUploaderForProjectRun(
     projectCoordinates: ProjectCoordinates,
-    selectedFilesFromState: List<FileInfo>,
-    addSelectedFile: (FileInfo) -> Unit,
-    removeSelectedFile: (FileInfo) -> Unit,
+    selectedFilesFromState: List<FileDto>,
+    addSelectedFile: (FileDto) -> Unit,
+    removeSelectedFile: (FileDto) -> Unit,
 ) {
     fileUploaderOverFileInfo {
         isSandboxMode = false
+        getName = { it.name }
+        getSizeBytes = { it.sizeBytes }
         selectedFiles = selectedFilesFromState
         getUrlForAvailableFilesFetch = { "$apiUrl/files/$projectCoordinates/list" }
         getUrlForFileUpload = { "$apiUrl/files/$projectCoordinates/upload" }
         getUrlForFileDownload = { fileInfo ->
-            with(fileInfo.key) {
-                "$apiUrl/files/$projectCoordinates/download?name=$name&uploadedMillis=$uploadedMillis"
+            with(fileInfo) {
+                "$apiUrl/files/download?fileId=${requiredId()}"
             }
         }
         getUrlForFileDeletion = { fileInfo ->
-            with(fileInfo.key) {
-                "$apiUrl/files/$projectCoordinates/delete?name=$name&uploadedMillis=$uploadedMillis"
+            with(fileInfo) {
+                "$apiUrl/files/delete?fileId=${requiredId()}"
             }
         }
         @Suppress("MAGIC_NUMBER")
         fileInfoToPrettyPrint = {
-            "${it.key.name} (uploaded at ${
-                Instant.fromEpochMilliseconds(it.key.uploadedMillis).toLocalDateTime(
-                    TimeZone.UTC
-                )
-            }, size ${it.sizeBytes / 1024} KiB)"
+            "${it.name} (uploaded at ${it.uploadedTime}, size ${it.sizeBytes / 1024} KiB)"
         }
         decodeFileInfoFromString = {
             it.decodeFromJsonString()
@@ -199,7 +206,7 @@ fun ChildrenBuilder.fileUploaderForProjectRun(
     "LongMethod",
     "ComplexMethod",
 )
-fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
+fun <F : Any> fileUploader() = FC<UploaderProps<F>> { props ->
     val (availableFiles, setAvailableFiles) = useState<List<F>>(emptyList())
 
     val (bytesReceived, setBytesReceived) = useState(0L)
@@ -234,8 +241,8 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
 
             if (response.ok) {
                 props.removeSelectedFile(fileToDelete)
-                setBytesReceived(bytesReceived - fileToDelete.sizeBytes)
-                setBytesTotal(bytesTotal - fileToDelete.sizeBytes)
+                setBytesReceived(bytesReceived - props.getSizeBytes(fileToDelete))
+                setBytesTotal(bytesTotal - props.getSizeBytes(fileToDelete))
                 setFileToDelete(null)
             }
         }
@@ -258,7 +265,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         props.decodeFileInfoFromString(it)
                     }
 
-                setBytesReceived { it + response.sizeBytes }
+                setBytesReceived { it + props.getSizeBytes(response) }
                 props.addSelectedFile(response)
             } else {
                 window.alert("Use code editor instead of file uploader to manage ${fileForUploading.name}, please.")
@@ -272,7 +279,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
 
             // ===== SELECTED FILES =====
             props.selectedFiles
-                .filter { !props.isSandboxMode || it.name != FileType.SETUP_SH.fileName }
+                .filter { !props.isSandboxMode || props.getName(it) != FileType.SETUP_SH.fileName }
                 .map { file ->
                     li {
                         className = ClassName("list-group-item")
@@ -293,7 +300,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                                 className = ClassName("btn")
                                 fontAwesomeIcon(icon = faDownload)
                             }
-                            download = file.name
+                            download = props.getName(file)
                             href = props.getUrlForFileDownload(file)
                         }
                         button {
@@ -302,7 +309,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                             fontAwesomeIcon(icon = faTrash)
                             onClick = {
                                 val confirm = window.confirm(
-                                    "Are you sure you want to delete ${file.name} file?"
+                                    "Are you sure you want to delete ${props.getName(file)} file?"
                                 )
                                 if (confirm) {
                                     setFileToDelete(file)
@@ -343,8 +350,8 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                             }
                             props.addSelectedFile(availableFile)
                             setAvailableFiles(availableFiles - availableFile)
-                            setBytesReceived(bytesReceived + availableFile.sizeBytes)
-                            setBytesTotal(bytesTotal + availableFile.sizeBytes)
+                            setBytesReceived(bytesReceived + props.getSizeBytes(availableFile))
+                            setBytesTotal(bytesTotal + props.getSizeBytes(availableFile))
                         }
                     }
                 }

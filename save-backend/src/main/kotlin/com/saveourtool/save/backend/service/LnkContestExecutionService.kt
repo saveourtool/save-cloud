@@ -58,10 +58,8 @@ class LnkContestExecutionService(
      * @param contestName
      * @return a created [LnkContestExecution] or exception with code 404
      */
-    fun createLink(execution: Execution, contestName: String): LnkContestExecution = lnkContestExecutionRepository.save(
-        LnkContestExecution(
-            execution = execution,
-            contest = contestRepository.findByName(contestName).orNotFound()
-        )
-    )
+    fun createLink(execution: Execution, contestName: String): LnkContestExecution =
+            lnkContestExecutionRepository.save(
+                LnkContestExecution(execution = execution, contest = contestRepository.findByName(contestName).orNotFound())
+            )
 }
