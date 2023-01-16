@@ -1,9 +1,6 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.warn
+import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -34,39 +31,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
             "Migration cannot be called more than 1 time, migration is in progress"
         }
         oldStorage.list()
-            .map { oldKey ->
-                oldKey to oldKey.toNewKey()
-            }
-            .filterWhen { (oldKey, newKey) ->
-                newStorage.doesExist(newKey)
-                    .map { existedInNewStorage ->
-                        if (existedInNewStorage) {
-                            log.debug {
-                                "$oldKey from old storage already existed in new storage as $newKey"
-                            }
-                        }
-                        !existedInNewStorage
-                    }
-            }
-            .flatMap { (oldKey, newKey) ->
-                newStorage.upload(newKey, oldStorage.download(oldKey))
-                    .map {
-                        log.info {
-                            "Copied $oldKey to new storage with key $newKey"
-                        }
-                    }
-                    .flatMap {
-                        oldStorage.delete(oldKey)
-                    }
-                    .onErrorResume { ex ->
-                        Mono.fromCallable {
-                            log.warn(ex) {
-                                "Failed to copy $oldKey from old storage"
-                            }
-                            false
-                        }
-                    }
-            }
+            .flatMap { doMigrate(it) }
             .then(
                 Mono.fromCallable {
                     require(!isMigrationFinished.compareAndExchange(false, true)) {
@@ -79,6 +44,38 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
             )
             .subscribe()
     }
+
+    private fun doMigrate(oldKey: O): Mono<Boolean> = blockingToMono { oldKey.toNewKey() }
+        .filterWhen { newKey ->
+            newStorage.doesExist(newKey)
+                .map { existedInNewStorage ->
+                    if (existedInNewStorage) {
+                        log.debug {
+                            "$oldKey from old storage already existed in new storage as $newKey"
+                        }
+                    }
+                    !existedInNewStorage
+                }
+        }
+        .flatMap { newKey ->
+            newStorage.upload(newKey, oldStorage.download(oldKey))
+                .map {
+                    log.info {
+                        "Copied $oldKey to new storage with key $newKey"
+                    }
+                }
+                .flatMap {
+                    oldStorage.delete(oldKey)
+                }
+        }
+        .onErrorResume { ex ->
+            Mono.fromCallable {
+                log.warn(ex) {
+                    "Failed to copy $oldKey from old storage"
+                }
+                false
+            }
+        }
 
     /**
      * @receiver [O] old key

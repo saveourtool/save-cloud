@@ -160,10 +160,7 @@ class TestSuitesSourceService(
     )
         .filterWhen { doesContain ->
             if (doesContain && mode == TestSuitesSourceFetchMode.BY_BRANCH) {
-                log.debug {
-                    "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and it should be" +
-                            " overridden."
-                }
+                logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
                 testsSourceVersionService.delete(
                     organizationName = testSuitesSource.organizationName,
                     sourceName = testSuitesSource.name,
@@ -175,10 +172,7 @@ class TestSuitesSourceService(
                     }
                     .thenReturn(true)
             } else if (doesContain) {
-                log.debug {
-                    "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and we skip fetching a new" +
-                            " version."
-                }
+                logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
                 false.toMono()
             } else {
                 true.toMono()
@@ -192,6 +186,12 @@ class TestSuitesSourceService(
                 .retrieve()
                 .toBodilessEntity()
         }
+
+    private fun logDuplicateVersion(testSuitesSource: TestSuitesSourceDto, version: String, action: String) {
+        log.debug {
+            "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and $action"
+        }
+    }
 
     /**
      * @param testSuitesSource test suites source for which a list of tags is requested

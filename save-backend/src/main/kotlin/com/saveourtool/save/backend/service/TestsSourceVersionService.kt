@@ -9,6 +9,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import com.saveourtool.save.utils.extractZipHere
 import com.saveourtool.save.utils.orNotFound
+import org.springframework.context.annotation.Lazy
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
@@ -23,6 +24,7 @@ import kotlin.io.path.*
  */
 @Service
 class TestsSourceVersionService(
+    @Lazy
     private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
     configProperties: ConfigProperties,
 ) {
