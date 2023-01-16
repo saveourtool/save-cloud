@@ -26,9 +26,6 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-
 /**
  * Display single TestSuiteSource as list option
  *
