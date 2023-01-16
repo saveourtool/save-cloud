@@ -1,13 +1,13 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.entities.TestSuitesSourceSnapshot
-import com.saveourtool.save.entities.TestSuitesSourceVersion
+import com.saveourtool.save.entities.TestsSourceSnapshot
+import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
- * Repository for [TestSuitesSourceVersion]
+ * Repository for [TestsSourceVersion]
  */
 @Repository
 @Suppress(
@@ -16,30 +16,30 @@ import org.springframework.stereotype.Repository
     "FunctionNaming",
     "FunctionName",
 )
-interface TestSuitesSourceVersionRepository : BaseEntityRepository<TestSuitesSourceVersion> {
+interface TestSuitesSourceVersionRepository : BaseEntityRepository<TestsSourceVersion> {
     /**
      * @param snapshot
      * @param name
-     * @return [TestSuitesSourceVersion] found by [name] in provided [TestSuitesSourceSnapshot]
+     * @return [TestsSourceVersion] found by [name] in provided [TestsSourceSnapshot]
      */
-    fun findBySnapshotAndName(snapshot: TestSuitesSourceSnapshot, name: String): TestSuitesSourceVersion?
+    fun findBySnapshotAndName(snapshot: TestsSourceSnapshot, name: String): TestsSourceVersion?
 
     /**
      * @param source
      * @param name
-     * @return [TestSuitesSourceVersion] found by [name] in provided [TestSuitesSource]
+     * @return [TestsSourceVersion] found by [name] in provided [TestSuitesSource]
      */
-    fun findBySnapshot_SourceAndName(source: TestSuitesSource, name: String): TestSuitesSourceVersion?
+    fun findBySnapshot_SourceAndName(source: TestSuitesSource, name: String): TestsSourceVersion?
 
     /**
      * @param source
-     * @return all [TestSuitesSourceVersion] in provided [TestSuitesSource]
+     * @return all [TestsSourceVersion] in provided [TestSuitesSource]
      */
-    fun findAllBySnapshot_Source(source: TestSuitesSource): Collection<TestSuitesSourceVersion>
+    fun findAllBySnapshot_Source(source: TestSuitesSource): Collection<TestsSourceVersion>
 
     /**
      * @param snapshot
-     * @return all [TestSuitesSourceVersion] which are linked to provide [TestSuitesSourceSnapshot]
+     * @return all [TestsSourceVersion] which are linked to provide [TestsSourceSnapshot]
      */
-    fun findAllBySnapshot(snapshot: TestSuitesSourceSnapshot): Collection<TestSuitesSourceVersion>
+    fun findAllBySnapshot(snapshot: TestsSourceSnapshot): Collection<TestsSourceVersion>
 }

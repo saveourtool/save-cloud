@@ -1,4 +1,4 @@
-package com.saveourtool.save.testsuite
+package com.saveourtool.save.test
 
 import com.saveourtool.save.entities.DtoWithId
 import kotlinx.datetime.LocalDateTime
@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property id ID of saved entity
  */
 @Serializable
-data class TestSuitesSourceSnapshotDto(
+data class TestsSourceSnapshotDto(
     val sourceId: Long,
     val commitId: String,
     val commitTime: LocalDateTime,

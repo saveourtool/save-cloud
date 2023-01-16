@@ -4,12 +4,12 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.TestSuitesSourceSnapshot
-import com.saveourtool.save.entities.TestSuitesSourceSnapshot.Companion.toEntity
-import com.saveourtool.save.entities.TestSuitesSourceVersion
+import com.saveourtool.save.entities.TestsSourceSnapshot
+import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
+import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
@@ -36,14 +36,14 @@ class NewTestSuitesSourceSnapshotStorage(
     private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
-) : AbstractStorageWithDatabase<TestSuitesSourceSnapshotDto, TestSuitesSourceSnapshot, TestSuitesSourceSnapshotRepository>(
+) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestSuitesSourceSnapshotRepository>(
     Path.of(configProperties.fileStorage.location) / "testSuites", testSuitesSourceSnapshotRepository) {
-    override fun createNewEntityFromDto(dto: TestSuitesSourceSnapshotDto): TestSuitesSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
+    override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
-    override fun TestSuitesSourceSnapshot.updateByContentSize(sizeBytes: Long): TestSuitesSourceSnapshot {
+    override fun TestsSourceSnapshot.updateByContentSize(sizeBytes: Long): TestsSourceSnapshot {
         // a temporary -- saved version
         testSuitesSourceVersionRepository.save(
-            TestSuitesSourceVersion(
+            TestsSourceVersion(
                 snapshot = this,
                 name = this.commitId,
                 type = TestSuitesSourceFetchMode.UNKNOWN,
@@ -57,8 +57,8 @@ class NewTestSuitesSourceSnapshotStorage(
 
     override fun findByDto(
         repository: TestSuitesSourceSnapshotRepository,
-        dto: TestSuitesSourceSnapshotDto
-    ): TestSuitesSourceSnapshot? = repository.findBySourceAndCommitId(
+        dto: TestsSourceSnapshotDto
+    ): TestsSourceSnapshot? = repository.findBySourceAndCommitId(
         source = testSuitesSourceRepository.getByIdOrNotFound(dto.sourceId),
         commitId = dto.commitId,
     )
@@ -113,7 +113,7 @@ class NewTestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
-    ): Mono<TestSuitesSourceSnapshotDto> = blockingToMono {
+    ): Mono<TestsSourceSnapshotDto> = blockingToMono {
         val testSuitesSource = testSuitesSourceService.findByName(organizationName, testSuitesSourceName)
         testSuitesSource
             ?.let { testSuitesSourceVersionRepository.findBySnapshot_SourceAndName(it, version) }
@@ -137,7 +137,7 @@ class NewTestSuitesSourceSnapshotStorage(
     }
 
     companion object {
-        private fun TestSuitesSourceVersion.toKey() = TestSuitesSourceSnapshotKey(
+        private fun TestsSourceVersion.toKey() = TestSuitesSourceSnapshotKey(
             organizationName = snapshot.source.organization.name,
             testSuitesSourceName = snapshot.source.name,
             version = name,

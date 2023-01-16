@@ -32,7 +32,7 @@ class TestSuite(
 
     @ManyToOne
     @JoinColumn(name = "source_version_id")
-    var sourceVersion: TestSuitesSourceVersion,
+    var sourceVersion: TestsSourceVersion,
 
     var dateAdded: LocalDateTime? = null,
 
@@ -98,7 +98,7 @@ class TestSuite(
          */
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
 
-        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestSuitesSourceVersion): TestSuite {
+        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestsSourceVersion): TestSuite {
             return TestSuite(
                 name = name,
                 description = description,

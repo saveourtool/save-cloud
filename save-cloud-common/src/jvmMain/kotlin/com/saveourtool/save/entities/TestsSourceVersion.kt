@@ -2,7 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
-import com.saveourtool.save.testsuite.TestSuitesSourceVersionDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 
 import java.time.LocalDateTime
 import javax.persistence.*
@@ -11,17 +11,17 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
- * @property snapshot [TestSuitesSourceSnapshot]
+ * @property snapshot [TestsSourceSnapshot]
  * @property name human-readable version
  * @property createdByUser [User] created this version
  * @property creationTime time of creation this version
  * @property type
  */
 @Entity
-class TestSuitesSourceVersion(
+class TestsSourceVersion(
     @ManyToOne
     @JoinColumn(name = "snapshot_id")
-    var snapshot: TestSuitesSourceSnapshot,
+    var snapshot: TestsSourceSnapshot,
 
     var name: String,
     @Enumerated(EnumType.STRING)
@@ -31,8 +31,8 @@ class TestSuitesSourceVersion(
     @JoinColumn(name = "created_by_user_id")
     val createdByUser: User,
     val creationTime: LocalDateTime,
-) : BaseEntityWithDtoWithId<TestSuitesSourceVersionDto>() {
-    override fun toDto(): TestSuitesSourceVersionDto = TestSuitesSourceVersionDto(
+) : BaseEntityWithDtoWithId<TestsSourceVersionDto>() {
+    override fun toDto(): TestsSourceVersionDto = TestsSourceVersionDto(
         snapshotId = snapshot.requiredId(),
         name = name,
         type = type,
@@ -43,14 +43,14 @@ class TestSuitesSourceVersion(
 
     companion object {
         /**
-         * @param snapshotResolver returns [TestSuitesSourceSnapshot] by ID
+         * @param snapshotResolver returns [TestsSourceSnapshot] by ID
          * @param userResolver returns [User] by ID
-         * @return [TestSuitesSourceVersion] created from [TestSuitesSourceVersionDto]
+         * @return [TestsSourceVersion] created from [TestsSourceVersionDto]
          */
-        fun TestSuitesSourceVersionDto.toEntity(
-            snapshotResolver: (Long) -> TestSuitesSourceSnapshot,
+        fun TestsSourceVersionDto.toEntity(
+            snapshotResolver: (Long) -> TestsSourceSnapshot,
             userResolver: (Long) -> User,
-        ): TestSuitesSourceVersion = TestSuitesSourceVersion(
+        ): TestsSourceVersion = TestsSourceVersion(
             snapshot = snapshotResolver(snapshotId),
             name = name,
             type = type,

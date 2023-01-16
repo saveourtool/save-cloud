@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
@@ -17,15 +17,15 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property commitTime time of commit
  */
 @Entity
-class TestSuitesSourceSnapshot(
+class TestsSourceSnapshot(
     @ManyToOne
     @JoinColumn(name = "source_id")
     var source: TestSuitesSource,
 
     var commitId: String,
     var commitTime: LocalDateTime,
-) : BaseEntityWithDtoWithId<TestSuitesSourceSnapshotDto>() {
-    override fun toDto(): TestSuitesSourceSnapshotDto = TestSuitesSourceSnapshotDto(
+) : BaseEntityWithDtoWithId<TestsSourceSnapshotDto>() {
+    override fun toDto(): TestsSourceSnapshotDto = TestsSourceSnapshotDto(
         sourceId = source.requiredId(),
         commitId = commitId,
         commitTime = commitTime.toKotlinLocalDateTime(),
@@ -35,9 +35,9 @@ class TestSuitesSourceSnapshot(
     companion object {
         /**
          * @param sourceResolver returns [TestSuitesSource] by ID
-         * @return [TestSuitesSourceSnapshot] created from [TestSuitesSourceSnapshotDto]
+         * @return [TestsSourceSnapshot] created from [TestsSourceSnapshotDto]
          */
-        fun TestSuitesSourceSnapshotDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestSuitesSourceSnapshot = TestSuitesSourceSnapshot(
+        fun TestsSourceSnapshotDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestsSourceSnapshot = TestsSourceSnapshot(
             source = sourceResolver(sourceId),
             commitId = commitId,
             commitTime = commitTime.toJavaLocalDateTime(),

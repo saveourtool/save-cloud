@@ -1,17 +1,18 @@
-package com.saveourtool.save.testsuite
+package com.saveourtool.save.test
 
 import com.saveourtool.save.entities.DtoWithId
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import kotlinx.datetime.LocalDateTime
 
 /**
- * @property snapshotId ID of [TestSuitesSourceSnapshotDto]
+ * @property snapshotId ID of [TestsSourceSnapshotDto]
  * @property name human-readable version
  * @property type type of fetch mode
  * @property createdByUserId ID of [UserDto] created this version
  * @property creationTime time of creation this version
  * @property id ID of saved entity
  */
-data class TestSuitesSourceVersionDto(
+data class TestsSourceVersionDto(
     val snapshotId: Long,
     val name: String,
     val type: TestSuitesSourceFetchMode,

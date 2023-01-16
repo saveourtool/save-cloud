@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.storage.AbstractMigrationStorage
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.getByIdOrNotFound
 import org.springframework.stereotype.Service
@@ -21,7 +21,7 @@ class MigrationTestSuitesSourceSnapshotStorage(
     private val newStorage: NewTestSuitesSourceSnapshotStorage,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
-) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestSuitesSourceSnapshotDto>(oldStorage, newStorage) {
+) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestsSourceSnapshotDto>(oldStorage, newStorage) {
     /**
      * A temporary init method which copies file from one storage to another
      */
@@ -30,7 +30,7 @@ class MigrationTestSuitesSourceSnapshotStorage(
         super.migrate()
     }
 
-    override fun TestSuitesSourceSnapshotDto.toOldKey(): TestSuitesSourceSnapshotKey {
+    override fun TestsSourceSnapshotDto.toOldKey(): TestSuitesSourceSnapshotKey {
         val source = testSuitesSourceRepository.getByIdOrNotFound(sourceId)
         return TestSuitesSourceSnapshotKey(
             organizationName = source.organization.name,
@@ -40,9 +40,9 @@ class MigrationTestSuitesSourceSnapshotStorage(
         )
     }
 
-    override fun TestSuitesSourceSnapshotKey.toNewKey(): TestSuitesSourceSnapshotDto {
+    override fun TestSuitesSourceSnapshotKey.toNewKey(): TestsSourceSnapshotDto {
         val source = testSuitesSourceService.getByName(organizationName, testSuitesSourceName)
-        return TestSuitesSourceSnapshotDto(
+        return TestsSourceSnapshotDto(
             sourceId = source.requiredId(),
             commitId = version,
             commitTime = convertAndGetCreationTime(),

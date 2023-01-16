@@ -5,13 +5,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="test-suites-source-version-1" author="nulls" context="dev or prod">
-        <createTable tableName="test_suites_source_version">
+    <changeSet id="tests-source-version-1" author="nulls" context="dev or prod">
+        <createTable tableName="tests_source_version">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="snapshot_id" type="bigint">
-                <constraints foreignKeyName="fk_test_suites_source_version_snapshot" references="test_suites_source_snapshot(id)" deleteCascade="true" nullable="false"/>
+                <constraints foreignKeyName="fk_tests_source_version_snapshot" references="tests_source_snapshot(id)" deleteCascade="true" nullable="false"/>
             </column>
             <column name="name" type="varchar(100)">
                 <constraints nullable="false"/>
@@ -20,13 +20,13 @@
                 <constraints nullable="false"/>
             </column>
             <column name="created_by_user_id" type="bigint">
-                <constraints foreignKeyName="fk_test_suites_source_version_created_by_user" references="user(id)" deleteCascade="true" nullable="false"/>
+                <constraints foreignKeyName="fk_tests_source_version_created_by_user" references="user(id)" deleteCascade="true" nullable="false"/>
             </column>
             <column name="creation_time" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="test_suites_source_version" columnNames="snapshot_id,name" constraintName="uq_test_suites_source_version"/>
+        <addUniqueConstraint tableName="tests_source_version" columnNames="snapshot_id,name" constraintName="uq_tests_source_version"/>
     </changeSet>
 
 </databaseChangeLog>
