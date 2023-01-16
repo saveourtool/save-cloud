@@ -24,8 +24,6 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.component1
-import com.saveourtool.save.utils.component2
 import com.saveourtool.save.utils.flatMapSequence
 import com.saveourtool.save.utils.infiniteSequenceOf
 import com.saveourtool.save.utils.mapLeft
@@ -47,6 +45,8 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.extra.bool.logicalOr
 
 import java.math.BigInteger

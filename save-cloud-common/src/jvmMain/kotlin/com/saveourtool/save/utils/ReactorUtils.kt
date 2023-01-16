@@ -17,7 +17,6 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
-import reactor.util.function.Tuple2
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
@@ -195,22 +194,6 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
  * @return sorted original [Flux]
  */
 fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
-
-/**
- * Exposes this tuple as a data class, allowing destructuring.
- *
- * @return the 1st component of this tuple.
- */
-operator fun <T : Any> Tuple2<T, *>.component1(): T =
-        t1
-
-/**
- * Exposes this tuple as a data class, allowing destructuring.
- *
- * @return the 2nd component of this tuple.
- */
-operator fun <T : Any> Tuple2<*, T>.component2(): T =
-        t2
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
