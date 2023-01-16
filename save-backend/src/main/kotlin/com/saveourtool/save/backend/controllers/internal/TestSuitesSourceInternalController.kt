@@ -7,8 +7,7 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+
 import org.slf4j.Logger
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -16,6 +15,9 @@ import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Controller for [TestSuitesSource]
@@ -38,6 +40,7 @@ class TestSuitesSourceInternalController(
      * @return [Mono] without value
      */
     @PostMapping("/{organizationName}/{sourceName}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun uploadSnapshot(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
