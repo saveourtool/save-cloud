@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property fileStorage configuration of file storage
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
+ * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
  */
 @ConstructorBinding
@@ -26,6 +27,7 @@ data class ConfigProperties(
     val fileStorage: FileStorageConfig,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
+    val testAnalysisSettings: TestAnalysisSettings = TestAnalysisSettings(),
     val loki: LokiConfig? = null,
 ) {
     /**
@@ -52,7 +54,16 @@ data class ConfigProperties(
         val backendUrl: String = DEFAULT_BACKEND_URL,
     )
 
+    /**
+     * @property slidingWindowSize the size of the sliding window (the maximum
+     *   sample size preserved in memory for any given test).
+     */
+    data class TestAnalysisSettings(
+        val slidingWindowSize: Int = DEFAULT_SLIDING_WINDOW_SIZE
+    )
+
     private companion object {
         private const val DEFAULT_BACKEND_URL = "http://backend:5800"
+        private const val DEFAULT_SLIDING_WINDOW_SIZE = Int.MAX_VALUE
     }
 }

@@ -4,7 +4,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.test.analysis.api.TestId
 import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
-import com.saveourtool.save.test.analysis.internal.MemoryBacked
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.test.analysis.results.AnalysisResult
 import org.springframework.stereotype.Service
@@ -19,8 +18,7 @@ import com.saveourtool.save.test.analysis.api.TestAnalysisService as LowLevelAna
  * @see TestStatisticsStorage
  */
 @Service
-class TestAnalysisService {
-    private val statisticsStorage: TestStatisticsStorage = MemoryBacked(slidingWindowSize = Int.MAX_VALUE)
+class TestAnalysisService(private val statisticsStorage: TestStatisticsStorage) {
     private val lowLevelAnalysisService = LowLevelAnalysisService(statisticsStorage)
 
     /**
