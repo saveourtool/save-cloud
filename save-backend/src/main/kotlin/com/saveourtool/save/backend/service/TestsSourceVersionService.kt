@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.test.TestsSourceVersionInfo
@@ -23,7 +23,7 @@ import kotlin.io.path.*
  */
 @Service
 class TestsSourceVersionService(
-    private val snapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
     configProperties: ConfigProperties,
 ) {
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
