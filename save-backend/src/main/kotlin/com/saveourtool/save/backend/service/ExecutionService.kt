@@ -8,6 +8,11 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.test.analysis.api.TestIdGenerator
+import com.saveourtool.save.test.analysis.api.TestRun
+import com.saveourtool.save.test.analysis.api.testId
+import com.saveourtool.save.test.analysis.entities.metadata
+import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
 import com.saveourtool.save.utils.*
 
 import arrow.core.Either
@@ -22,6 +27,13 @@ import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
 import java.util.Optional
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration
+import kotlinx.datetime.Instant
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.UtcOffset.Companion.ZERO
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * Service that is used to manipulate executions
@@ -43,6 +55,8 @@ class ExecutionService(
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
+    private val statisticsStorage: MutableTestStatisticsStorage,
+    private val testIdGenerator: TestIdGenerator,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -116,6 +130,29 @@ class ExecutionService(
             }
         }
         executionRepository.save(updatedExecution)
+
+        /*
+         * Test analysis: update the in-memory statistics.
+         */
+        if (updatedExecution.status == ExecutionStatus.FINISHED) {
+            val nanos = measureNanoTime {
+                val metadata = updatedExecution.metadata()
+
+                testExecutionRepository.findByExecutionId(executionId).forEach { testExecution ->
+                    val testId = metadata.extendWith(testExecution).let(testIdGenerator::testId)
+
+                    statisticsStorage.updateExecutionStatistics(testId, testExecution.asTestRun())
+                }
+            }
+
+            log.info {
+                @Suppress(
+                    "MagicNumber",
+                    "FLOAT_IN_ACCURATE_CALCULATIONS",
+                )
+                "Test statistics updated in ${nanos / 1000L / 1e3} ms from execution (id = $executionId)"
+            }
+        }
     }
 
     /**
@@ -383,5 +420,22 @@ class ExecutionService(
                         .left()
                 }
             }
+
+        private fun TestExecution.asTestRun(): TestRun =
+                TestRun(status, durationOrNull())
+
+        /**
+         * @return the duration of this test execution as `kotlin.time.Duration`.
+         */
+        private fun TestExecution.durationOrNull(): Duration? {
+            val offset = ZERO
+            val startTime = startTime?.toInstant(offset) ?: return null
+            val endTime = endTime?.toInstant(offset) ?: return null
+
+            return endTime - startTime
+        }
+
+        private fun LocalDateTime.toInstant(offset: UtcOffset): Instant =
+                toKotlinLocalDateTime().toInstant(offset)
     }
 }
