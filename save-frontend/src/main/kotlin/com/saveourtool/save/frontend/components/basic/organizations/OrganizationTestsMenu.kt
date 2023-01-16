@@ -97,7 +97,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val deleteTestSuitesSourcesSnapshotKey = useDeferredRequest {
         testsSourceVersionInfoToDelete?.let { key ->
             delete(
-                url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.sourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
+                url = "$apiUrl/test-suites-sources/${key.snapshotInfo.organizationName}/${encodeURIComponent(key.snapshotInfo.sourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
@@ -122,7 +122,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
     val deleteHandler: (TestsSourceVersionInfo) -> Unit = {
-        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.sourceName}?")) {
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.snapshotInfo.sourceName}?")) {
             setTestsSourceVersionInfoToDelete(it)
             deleteTestSuitesSourcesSnapshotKey()
             setTestsSourceVersionInfoList(testsSourceVersionInfoList.filterNot(it::equals))

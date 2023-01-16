@@ -70,7 +70,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
             .block()
@@ -81,7 +81,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit)))
             .thenReturn(Mono.just(true))
         testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
             .block()
@@ -92,7 +92,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromBranchSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch)
             .block()
@@ -103,7 +103,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
             .block()
@@ -114,7 +114,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit)))
             .thenReturn(Mono.just(true))
         testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
             .block()
@@ -124,7 +124,7 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     private fun verifySuccessful(version: String) {
-        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit))
+        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit))
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(GitCommitInfo(fullCommit, creationTime)), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
@@ -132,7 +132,7 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     private fun verifyNotSuccessful() {
-        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit))
+        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(eq(testSuitesSourceDto), eq(fullCommit))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
         verifyNoMoreInteractions(gitPreprocessorService)
         verifyNoInteractions(testDiscoveringService)

@@ -6,6 +6,8 @@ import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
+import com.saveourtool.save.test.TestsSourceSnapshotInfo
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
@@ -61,21 +63,17 @@ class TestSuitesPreprocessorController(
         cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
     ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, gitCommitInfo ->
-        testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, gitCommitInfo.id)
-            .filter { doesContain ->
-                if (doesContain) {
-                    log.info { "Tests source $testSuitesSourceDto already contains snapshot with version ${gitCommitInfo.id}" }
-                    false
-                } else {
-                    true
-                }
-            }
-            .flatMap {
+        val testsSourceSnapshotInfo = TestsSourceSnapshotInfo(
+            organizationName = testSuitesSourceDto.organizationName,
+            sourceName = testSuitesSourceDto.name,
+            commitId = gitCommitInfo.id,
+            commitTime = gitCommitInfo.time,
+        )
+        testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo)
+            .asyncEffectIf({ this.not() }) {
                 gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
                     testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                        testSuitesSource = testSuitesSourceDto,
-                        version = cloneObject,
-                        gitCommitInfo = gitCommitInfo,
+                        snapshotInfo = testsSourceSnapshotInfo,
                         resourceWithContent = FileSystemResource(archive)
                     ).flatMap {
                         testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
@@ -85,6 +83,15 @@ class TestSuitesPreprocessorController(
                         )
                     }
                 }
+            }
+            .flatMap {
+                testsPreprocessorToBackendBridge.saveTestsSourceVersion(
+                    TestsSourceVersionInfo(
+                        snapshotInfo = testsSourceSnapshotInfo,
+                        version = cloneObject,
+                        creationTime = getCurrentLocalDateTime(),
+                    )
+                ).thenReturn(emptyList())
             }
     }
         .map { testSuites ->

@@ -6,19 +6,13 @@ import kotlinx.serialization.Serializable
 typealias TestsSourceVersionInfoList = List<TestsSourceVersionInfo>
 
 /**
- * @property organizationName
- * @property sourceName
+ * @property snapshotInfo
  * @property version
  * @property creationTime
- * @property commitId
- * @property commitTime
  */
 @Serializable
 data class TestsSourceVersionInfo(
-    val organizationName: String,
-    val sourceName: String,
+    val snapshotInfo: TestsSourceSnapshotInfo,
     val version: String,
     val creationTime: LocalDateTime,
-    val commitId: String,
-    val commitTime: LocalDateTime,
 )
