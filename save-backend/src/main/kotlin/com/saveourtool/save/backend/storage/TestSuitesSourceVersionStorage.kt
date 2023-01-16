@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.repository.TestSuitesSourceSnapshotRepository
-import com.saveourtool.save.backend.repository.TestSuitesSourceVersionRepository
+import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
+import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.utils.*
@@ -18,8 +18,8 @@ import java.time.Instant
  */
 @Service
 class TestSuitesSourceVersionStorage(
-    private val versionRepository: TestSuitesSourceVersionRepository,
-    private val snapshotRepository: TestSuitesSourceSnapshotRepository,
+    private val versionRepository: TestsSourceVersionRepository,
+    private val snapshotRepository: TestsSourceSnapshotRepository,
     private val snapshotStorage: TestsSourceSnapshotStorage,
 ) : Storage<TestsSourceVersionDto> {
     override fun list(): Flux<TestsSourceVersionDto> = blockingToFlux {

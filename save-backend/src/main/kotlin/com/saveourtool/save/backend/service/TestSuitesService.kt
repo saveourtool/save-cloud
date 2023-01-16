@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.repository.TestSuitesSourceVersionRepository
+import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestSuitesSource
@@ -36,7 +36,7 @@ class TestSuitesService(
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
-    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
+    private val testsSourceVersionRepository: TestsSourceVersionRepository,
 ) {
     /**
      * Save new test suites to DB
@@ -52,7 +52,7 @@ class TestSuitesService(
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
         val testSuiteCandidate = testSuiteDto.toEntity {
-            testSuitesSourceVersionRepository.getByIdOrNotFound(it)
+            testsSourceVersionRepository.getByIdOrNotFound(it)
         }
         val testSuiteSourceVersion = testSuiteCandidate.sourceVersion.name
         val testSuiteSource = testSuiteCandidate.sourceVersion.snapshot.source

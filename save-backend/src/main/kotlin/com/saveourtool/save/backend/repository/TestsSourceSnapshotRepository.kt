@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
  * Repository for [TestsSourceSnapshot]
  */
 @Repository
-interface TestSuitesSourceSnapshotRepository : BaseEntityRepository<TestsSourceSnapshot> {
+interface TestsSourceSnapshotRepository : BaseEntityRepository<TestsSourceSnapshot> {
     /**
      * @param source
      * @param commitId

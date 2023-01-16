@@ -31,18 +31,18 @@ import kotlinx.datetime.toKotlinLocalDateTime
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
-    testSuitesSourceSnapshotRepository: TestSuitesSourceSnapshotRepository,
+    testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
-    private val testSuitesSourceVersionRepository: TestSuitesSourceVersionRepository,
+    private val testsSourceVersionRepository: TestsSourceVersionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
-) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestSuitesSourceSnapshotRepository>(
-    Path.of(configProperties.fileStorage.location) / "testSuites", testSuitesSourceSnapshotRepository) {
+) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
+    Path.of(configProperties.fileStorage.location) / "testSuites", testsSourceSnapshotRepository) {
     override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
     override fun TestsSourceSnapshot.updateByContentSize(sizeBytes: Long): TestsSourceSnapshot {
         // a temporary -- saved version
-        testSuitesSourceVersionRepository.save(
+        testsSourceVersionRepository.save(
             TestsSourceVersion(
                 snapshot = this,
                 name = this.commitId,
@@ -56,7 +56,7 @@ class TestsSourceSnapshotStorage(
     }
 
     override fun findByDto(
-        repository: TestSuitesSourceSnapshotRepository,
+        repository: TestsSourceSnapshotRepository,
         dto: TestsSourceSnapshotDto
     ): TestsSourceSnapshot? = repository.findBySourceAndCommitId(
         source = testSuitesSourceRepository.getByIdOrNotFound(dto.sourceId),
@@ -116,7 +116,7 @@ class TestsSourceSnapshotStorage(
     ): Mono<TestsSourceSnapshotDto> = blockingToMono {
         val testSuitesSource = testSuitesSourceService.findByName(organizationName, testSuitesSourceName)
         testSuitesSource
-            ?.let { testSuitesSourceVersionRepository.findBySnapshot_SourceAndName(it, version) }
+            ?.let { testsSourceVersionRepository.findBySnapshot_SourceAndName(it, version) }
             ?.snapshot
             ?.toDto()
     }
@@ -132,7 +132,7 @@ class TestsSourceSnapshotStorage(
     ): Flux<TestSuitesSourceSnapshotKey> = blockingToFlux {
         val testSuitesSource = testSuitesSourceService.findByName(organizationName, testSuitesSourceName)
         testSuitesSource
-            ?.let { testSuitesSourceVersionRepository.findAllBySnapshot_Source(it) }
+            ?.let { testsSourceVersionRepository.findAllBySnapshot_Source(it) }
             ?.map { it.toKey() }
     }
 

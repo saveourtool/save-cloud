@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository
     "FunctionNaming",
     "FunctionName",
 )
-interface TestSuitesSourceVersionRepository : BaseEntityRepository<TestsSourceVersion> {
+interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion> {
     /**
      * @param snapshot
      * @param name
