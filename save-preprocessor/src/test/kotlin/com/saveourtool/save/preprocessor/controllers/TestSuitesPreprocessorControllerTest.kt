@@ -61,7 +61,7 @@ internal class TestSuitesPreprocessorControllerTest {
             processor(testLocations)
         }.whenever(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
 
-        whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), any(), eq(creationTime), any()))
+        whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), any(), eq(GitCommitInfo(fullCommit, creationTime)), any()))
             .thenReturn(Mono.just(Unit))
 
         whenever(testDiscoveringService.detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), any()))
@@ -126,7 +126,7 @@ internal class TestSuitesPreprocessorControllerTest {
     private fun verifySuccessful(version: String) {
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(fullCommit))
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
+        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(GitCommitInfo(fullCommit, creationTime)), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
     }

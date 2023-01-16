@@ -2,11 +2,14 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -19,8 +22,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
-import java.time.Instant
 
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
@@ -38,21 +39,32 @@ class TestsPreprocessorToBackendBridge(
     /**
      * @param testSuitesSource
      * @param version
-     * @param creationTime
+     * @param gitCommitInfo
      * @param resourceWithContent
      * @return empty response
      */
     fun saveTestsSuiteSourceSnapshot(
         testSuitesSource: TestSuitesSourceDto,
         version: String,
-        creationTime: Instant,
+        gitCommitInfo: GitCommitInfo,
         resourceWithContent: Resource,
     ): Mono<Unit> = webClientBackend.post()
-        .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
-            testSuitesSource.organizationName, testSuitesSource.name,
-            version, creationTime.toEpochMilli())
+        .uri("/test-suites-sources/upload-snapshot")
         .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(BodyInserters.fromMultipartData("content", resourceWithContent))
+        .body(
+            BodyInserters.fromMultipartData("content", resourceWithContent)
+                .with(
+                    "versionInfo",
+                    TestsSourceVersionInfo(
+                        organizationName = testSuitesSource.organizationName,
+                        sourceName = testSuitesSource.name,
+                        version = version,
+                        creationTime = getCurrentLocalDateTime(),
+                        commitId = gitCommitInfo.id,
+                        commitTime = gitCommitInfo.time,
+                    )
+                )
+        )
         .retrieve()
         .onStatus({ !it.is2xxSuccessful }) {
             Mono.error(

@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-
 /**
  * Controller for [TestSuitesSource]
  */
@@ -32,41 +29,20 @@ class TestSuitesSourceInternalController(
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     /**
-     * @param organizationName
-     * @param sourceName
-     * @param version
-     * @param creationTime
+     * @param versionInfo
      * @param contentAsMonoPart
      * @return [Mono] without value
      */
-    @PostMapping("/{organizationName}/{sourceName}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @PostMapping("/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadSnapshot(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-        @RequestParam creationTime: Long,
-        @RequestPart("content") contentAsMonoPart: Mono<Part>
-    ): Mono<Unit> = getTestSuitesSource(organizationName, sourceName)
-        .map {
-            val parsedCreationTime = creationTime.millisToInstant().toLocalDateTime(TimeZone.UTC)
-            TestsSourceVersionInfo(
-                organizationName = it.organization.name,
-                sourceName = it.name,
-                version = version,
-                creationTime = parsedCreationTime,
-                commitId = version,
-                commitTime = parsedCreationTime,
-            )
+        @RequestPart("versionInfo") versionInfo: TestsSourceVersionInfo,
+        @RequestPart("content") contentAsMonoPart: Mono<Part>,
+    ): Mono<Unit> = contentAsMonoPart.flatMap { part ->
+        val content = part.content().map { it.asByteBuffer() }
+        testSuitesSourceVersionService.upload(versionInfo, content).map { writtenBytes ->
+            log.info { "Saved ($writtenBytes bytes) snapshot of ${versionInfo.sourceName} in ${versionInfo.organizationName} with version ${versionInfo.version}" }
         }
-        .flatMap { key ->
-            contentAsMonoPart.flatMap { part ->
-                val content = part.content().map { it.asByteBuffer() }
-                testSuitesSourceVersionService.upload(key, content).map { writtenBytes ->
-                    log.info { "Saved ($writtenBytes bytes) snapshot of ${key.sourceName} in ${key.organizationName} with version $version" }
-                }
-            }
-        }
+    }
 
     /**
      * @param organizationName

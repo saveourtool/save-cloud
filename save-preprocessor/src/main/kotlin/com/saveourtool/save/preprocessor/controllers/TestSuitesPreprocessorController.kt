@@ -75,7 +75,7 @@ class TestSuitesPreprocessorController(
                     testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                         testSuitesSource = testSuitesSourceDto,
                         version = cloneObject,
-                        creationTime = gitCommitInfo.time,
+                        gitCommitInfo = gitCommitInfo,
                         resourceWithContent = FileSystemResource(archive)
                     ).flatMap {
                         testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
