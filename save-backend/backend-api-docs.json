@@ -6122,6 +6122,15 @@
             }
           },
           {
+            "in": "query",
+            "name": "testAnalysis",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
