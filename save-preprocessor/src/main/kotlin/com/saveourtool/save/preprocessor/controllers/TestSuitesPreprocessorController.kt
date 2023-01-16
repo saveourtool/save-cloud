@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono
 import kotlin.io.path.div
 
 typealias TestSuiteList = List<TestSuite>
-typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>
+typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Unit>) -> Mono<Unit>
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -83,6 +83,14 @@ class TestSuitesPreprocessorController(
                         )
                     }
                 }
+                .map { testSuites ->
+                    with(testSuitesSourceDto) {
+                        log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
+                    }
+                }
+                .doOnError(Exception::class.java) { ex ->
+                    log.error(ex) { "Failed to fetch from $cloneObject" }
+                }
             }
             .flatMap {
                 testsPreprocessorToBackendBridge.saveTestsSourceVersion(
@@ -91,18 +99,9 @@ class TestSuitesPreprocessorController(
                         version = cloneObject,
                         creationTime = getCurrentLocalDateTime(),
                     )
-                ).thenReturn(emptyList())
+                )
             }
     }
-        .map { testSuites ->
-            with(testSuitesSourceDto) {
-                log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
-            }
-        }
-        .doOnError(Exception::class.java) { ex ->
-            log.error(ex) { "Failed to fetch from $cloneObject" }
-        }
-        .onErrorReturn(Unit)
 
     companion object {
         private val log: Logger = getLogger<TestSuitesPreprocessorController>()
