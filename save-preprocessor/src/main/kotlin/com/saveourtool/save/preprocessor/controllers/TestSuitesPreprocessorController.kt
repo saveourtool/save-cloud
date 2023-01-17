@@ -1,7 +1,6 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
@@ -20,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.nio.file.Path
 import kotlin.io.path.div
 
-typealias TestSuiteList = List<TestSuite>
 typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Unit>) -> Mono<Unit>
 
 /**
@@ -62,7 +61,10 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto: TestSuitesSourceDto,
         cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, gitCommitInfo ->
+    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(
+        testSuitesSourceDto.gitDto,
+        cloneObject
+    ) { repositoryDirectory, gitCommitInfo ->
         val testsSourceSnapshotInfo = TestsSourceSnapshotInfo(
             organizationName = testSuitesSourceDto.organizationName,
             sourceName = testSuitesSourceDto.name,
@@ -71,26 +73,7 @@ class TestSuitesPreprocessorController(
         )
         testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo)
             .asyncEffectIf({ this.not() }) {
-                gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
-                    testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                        snapshotInfo = testsSourceSnapshotInfo,
-                        resourceWithContent = FileSystemResource(archive)
-                    ).flatMap {
-                        testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-                            repositoryPath = repositoryDirectory,
-                            testSuitesSourceDto = testSuitesSourceDto,
-                            version = cloneObject
-                        )
-                    }
-                }
-                    .map { testSuites ->
-                        with(testSuitesSourceDto) {
-                            log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
-                        }
-                    }
-                    .doOnError(Exception::class.java) { ex ->
-                        log.error(ex) { "Failed to fetch from $cloneObject" }
-                    }
+                doFetchTests(repositoryDirectory, testsSourceSnapshotInfo, testSuitesSourceDto)
             }
             .flatMap {
                 testsPreprocessorToBackendBridge.saveTestsSourceVersion(
@@ -100,6 +83,36 @@ class TestSuitesPreprocessorController(
                         creationTime = getCurrentLocalDateTime(),
                     )
                 )
+            }
+    }
+
+    private fun doFetchTests(
+        repositoryDirectory: Path,
+        testsSourceSnapshotInfo: TestsSourceSnapshotInfo,
+        testSuitesSourceDto: TestSuitesSourceDto,
+    ): Mono<Unit> = (repositoryDirectory / testSuitesSourceDto.testRootPath).let { pathToRepository ->
+        gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+                snapshotInfo = testsSourceSnapshotInfo,
+                resourceWithContent = FileSystemResource(archive)
+            ).flatMap {
+                testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+                    repositoryPath = repositoryDirectory,
+                    testSuitesSourceDto = testSuitesSourceDto,
+                    version = testsSourceSnapshotInfo.commitId
+                )
+            }
+        }
+            .map { testSuites ->
+                with(testSuitesSourceDto) {
+                    log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version ${testsSourceSnapshotInfo.commitId}" }
+                }
+            }
+            .doOnError(
+                Exception
+                ::class.java
+            ) { ex ->
+                log.error(ex) { "Failed to fetch from ${testsSourceSnapshotInfo.commitId}" }
             }
     }
 
