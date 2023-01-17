@@ -44,7 +44,6 @@ class TestSuitesPreprocessorController(
         @RequestBody request: TestsSourceFetchRequest,
     ): Mono<Unit> = fetchTestSuites(
         request = request,
-        cloneObject = request.version,
         cloneAndProcessDirectoryAction = when (request.mode) {
             TestSuitesSourceFetchMode.BY_BRANCH -> GitPreprocessorService::cloneBranchAndProcessDirectory
             TestSuitesSourceFetchMode.BY_COMMIT -> GitPreprocessorService::cloneCommitAndProcessDirectory
@@ -54,11 +53,10 @@ class TestSuitesPreprocessorController(
 
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
-        cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
     ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(
         request.source.gitDto,
-        cloneObject
+        request.version
     ) { repositoryDirectory, gitCommitInfo ->
         val testsSourceSnapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time)
         testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto)
