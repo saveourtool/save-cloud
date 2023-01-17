@@ -7,7 +7,6 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
-import com.saveourtool.save.backend.service.TestIdGeneratorService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
@@ -21,6 +20,8 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.test.analysis.api.TestIdGenerator
+import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.utils.blockingToMono
@@ -68,7 +69,7 @@ class TestExecutionController(
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testAnalysisService: TestAnalysisService,
-    private val testIdGeneratorService: TestIdGeneratorService,
+    private val testIdGenerator: TestIdGenerator,
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -134,7 +135,7 @@ class TestExecutionController(
                     }
             }
         }
-        .mapRight(testIdGeneratorService::testId)
+        .mapRight(testIdGenerator::testId)
         .run {
             when {
                 /*
