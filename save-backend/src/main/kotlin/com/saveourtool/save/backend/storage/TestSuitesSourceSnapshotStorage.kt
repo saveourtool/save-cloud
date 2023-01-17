@@ -31,13 +31,13 @@ class TestSuitesSourceSnapshotStorage(
         return TestSuitesSourceSnapshotKey(
             organizationName,
             sourceName.decodeUrl(),
-            version.dropLast(ARCHIVE_EXTENSION.length),
+            version.dropLast(ARCHIVE_EXTENSION.length).decodeUrl(),
             creationTime.toLong()
         )
     }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "${version.encodeUrl()}$ARCHIVE_EXTENSION"
     }
 
     private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
