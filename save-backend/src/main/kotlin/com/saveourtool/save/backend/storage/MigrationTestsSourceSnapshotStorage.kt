@@ -6,7 +6,13 @@ import com.saveourtool.save.storage.AbstractMigrationStorage
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
 
 /**
@@ -44,5 +50,24 @@ class MigrationTestsSourceSnapshotStorage(
             commitId = version,
             commitTime = convertAndGetCreationTime(),
         )
+    }
+
+    override fun upload(key: TestSuitesSourceSnapshotKey, content: Flux<ByteBuffer>): Mono<Long> = super.upload(key, content).doOnNext { writtenBytes ->
+        log.info {
+            "Saved ${key.toLogString(writtenBytes)}"
+        }
+    }
+
+    override fun copy(source: TestSuitesSourceSnapshotKey, target: TestSuitesSourceSnapshotKey): Mono<Long> = super.copy(source, target).doOnNext { writtenBytes ->
+        log.info {
+            "Copied ${source.toLogString(writtenBytes)} to new version ${target.version}"
+        }
+    }
+
+    companion object {
+        private val log: Logger = getLogger<MigrationTestsSourceSnapshotStorage>()
+
+        private fun TestSuitesSourceSnapshotKey.toLogString(writtenBytes: Long) =
+                "($writtenBytes bytes) snapshot of $testSuitesSourceName in $organizationName with version $version"
     }
 }
