@@ -1,11 +1,12 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
+import com.saveourtool.save.test.TestsSourceSnapshotInfo
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
@@ -18,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.nio.file.Path
 import kotlin.io.path.div
 
-typealias TestSuiteList = List<TestSuite>
-typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>
+typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Unit>) -> Mono<Unit>
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -61,42 +62,60 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto: TestSuitesSourceDto,
         cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, gitCommitInfo ->
-        testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, gitCommitInfo.id)
-            .filter { doesContain ->
-                if (doesContain) {
-                    log.info { "Tests source $testSuitesSourceDto already contains snapshot with version ${gitCommitInfo.id}" }
-                    false
-                } else {
-                    true
-                }
+    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(
+        testSuitesSourceDto.gitDto,
+        cloneObject
+    ) { repositoryDirectory, gitCommitInfo ->
+        val testsSourceSnapshotInfo = TestsSourceSnapshotInfo(
+            organizationName = testSuitesSourceDto.organizationName,
+            sourceName = testSuitesSourceDto.name,
+            commitId = gitCommitInfo.id,
+            commitTime = gitCommitInfo.time,
+        )
+        testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo)
+            .asyncEffectIf({ this.not() }) {
+                doFetchTests(repositoryDirectory, testsSourceSnapshotInfo, testSuitesSourceDto)
             }
             .flatMap {
-                gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
-                    testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                        testSuitesSource = testSuitesSourceDto,
+                testsPreprocessorToBackendBridge.saveTestsSourceVersion(
+                    TestsSourceVersionInfo(
+                        snapshotInfo = testsSourceSnapshotInfo,
                         version = cloneObject,
-                        gitCommitInfo = gitCommitInfo,
-                        resourceWithContent = FileSystemResource(archive)
-                    ).flatMap {
-                        testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-                            repositoryPath = repositoryDirectory,
-                            testSuitesSourceDto = testSuitesSourceDto,
-                            version = cloneObject
-                        )
-                    }
-                }
+                        creationTime = getCurrentLocalDateTime(),
+                    )
+                )
             }
     }
-        .map { testSuites ->
-            with(testSuitesSourceDto) {
-                log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
+
+    private fun doFetchTests(
+        repositoryDirectory: Path,
+        testsSourceSnapshotInfo: TestsSourceSnapshotInfo,
+        testSuitesSourceDto: TestSuitesSourceDto,
+    ): Mono<Unit> = (repositoryDirectory / testSuitesSourceDto.testRootPath).let { pathToRepository ->
+        gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+                snapshotInfo = testsSourceSnapshotInfo,
+                resourceWithContent = FileSystemResource(archive)
+            ).flatMap {
+                testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+                    repositoryPath = repositoryDirectory,
+                    testSuitesSourceDto = testSuitesSourceDto,
+                    version = testsSourceSnapshotInfo.commitId
+                )
             }
         }
-        .doOnError(Exception::class.java) { ex ->
-            log.error(ex) { "Failed to fetch from $cloneObject" }
-        }
-        .onErrorReturn(Unit)
+            .map { testSuites ->
+                with(testSuitesSourceDto) {
+                    log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version ${testsSourceSnapshotInfo.commitId}" }
+                }
+            }
+            .doOnError(
+                Exception
+                ::class.java
+            ) { ex ->
+                log.error(ex) { "Failed to fetch from ${testsSourceSnapshotInfo.commitId}" }
+            }
+    }
 
     companion object {
         private val log: Logger = getLogger<TestSuitesPreprocessorController>()

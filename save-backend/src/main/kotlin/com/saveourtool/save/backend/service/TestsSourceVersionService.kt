@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.test.TestsSourceSnapshotInfo
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
@@ -29,24 +30,6 @@ class TestsSourceVersionService(
     configProperties: ConfigProperties,
 ) {
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
-
-    /**
-     * @param versionInfo
-     * @param content
-     * @return count of written bytes
-     */
-    fun upload(
-        versionInfo: TestsSourceVersionInfo,
-        content: Flux<ByteBuffer>,
-    ): Mono<Long> = snapshotStorage.upload(
-        key = TestSuitesSourceSnapshotKey(
-            organizationName = versionInfo.organizationName,
-            testSuitesSourceName = versionInfo.sourceName,
-            version = versionInfo.version,
-            creationTime = versionInfo.commitTime,
-        ),
-        content = content
-    )
 
     /**
      * @param organizationName
@@ -182,12 +165,14 @@ class TestsSourceVersionService(
 
     companion object {
         private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
-            organizationName = organizationName,
-            sourceName = testSuitesSourceName,
+            snapshotInfo = TestsSourceSnapshotInfo(
+                organizationName = organizationName,
+                sourceName = testSuitesSourceName,
+                commitId = version,
+                commitTime = convertAndGetCreationTime(),
+            ),
             version = version,
             creationTime = convertAndGetCreationTime(),
-            commitId = version,
-            commitTime = convertAndGetCreationTime(),
         )
     }
 }

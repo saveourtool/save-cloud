@@ -9434,14 +9434,12 @@
           }
         }
       },
-      "TestsSourceVersionInfo": {
+      "TestsSourceSnapshotInfo": {
         "required": [
           "commitId",
           "commitTime",
-          "creationTime",
           "organizationName",
-          "sourceName",
-          "version"
+          "sourceName"
         ],
         "type": "object",
         "properties": {
@@ -9451,14 +9449,27 @@
           "commitTime": {
             "$ref": "#/components/schemas/LocalDateTime"
           },
-          "creationTime": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
           "organizationName": {
             "type": "string"
           },
           "sourceName": {
             "type": "string"
+          }
+        }
+      },
+      "TestsSourceVersionInfo": {
+        "required": [
+          "creationTime",
+          "snapshotInfo",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "creationTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "snapshotInfo": {
+            "$ref": "#/components/schemas/TestsSourceSnapshotInfo"
           },
           "version": {
             "type": "string"
