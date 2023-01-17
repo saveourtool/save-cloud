@@ -138,6 +138,46 @@ class TestSuitesService(
     fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
 
     /**
+     * Creates copy of TestSuites found by provided values.
+     * New copies have a new version.
+     *
+     * @param organizationName
+     * @param sourceName
+     * @param originalVersion
+     * @param newVersion
+     */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun copyToNewVersion(
+        organizationName: String,
+        sourceName: String,
+        originalVersion: String,
+        newVersion: String,
+    ) {
+        val existedTestSuites = testSuiteRepository.findAllBySource_Organization_NameAndSource_NameAndVersion(
+            organizationName,
+            sourceName,
+            originalVersion
+        )
+        existedTestSuites.map {
+            // a copy of existed one but with a new version
+            TestSuite(
+                name = it.name,
+                description = it.description,
+                source = it.source,
+                version = newVersion,
+                dateAdded = it.dateAdded,
+                language = it.language,
+                tags = it.tags,
+                plugins = it.plugins,
+                isPublic = it.isPublic,
+            )
+        }
+            .let {
+                testSuiteRepository.saveAll(it)
+            }
+    }
+
+    /**
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suites
