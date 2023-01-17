@@ -5,8 +5,6 @@ import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.ByteBuffer
@@ -21,8 +19,6 @@ import kotlin.io.path.*
 class TestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites", PATH_PARTS_COUNT) {
-    private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
-
     /**
      * @param rootDir
      * @param pathToContent
@@ -36,79 +32,14 @@ class TestSuitesSourceSnapshotStorage(
         return TestSuitesSourceSnapshotKey(
             organizationName,
             sourceName.decodeUrl(),
-            version.dropLast(ARCHIVE_EXTENSION.length),
+            version.dropLast(ARCHIVE_EXTENSION.length).decodeUrl(),
             creationTime.toLong()
         )
     }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "${version.encodeUrl()}$ARCHIVE_EXTENSION"
     }
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @return true if storage contains snapshot with provided values, otherwise -- false
-     */
-    fun doesContain(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String,
-    ): Mono<Boolean> = findKey(organizationName, testSuitesSourceName, version)
-        .map { true }
-        .defaultIfEmpty(false)
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @return content of a key which contains provided values
-     */
-    fun downloadByVersion(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String,
-    ): Flux<ByteBuffer> = findKey(
-        organizationName = organizationName,
-        testSuitesSourceName = testSuitesSourceName,
-        version = version,
-    ).flatMapMany { download(it) }
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @return result of deletion of a key which contains provided values
-     */
-    fun deleteByVersion(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String,
-    ): Mono<Boolean> = findKey(
-        organizationName = organizationName,
-        testSuitesSourceName = testSuitesSourceName,
-        version = version,
-    ).flatMap { delete(it) }
-
-    private fun findKey(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String,
-    ): Mono<TestSuitesSourceSnapshotKey> = list()
-        .filter { it.equalsTo(organizationName, testSuitesSourceName, version) }
-        .singleOrEmpty()
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @return list of [TestSuitesSourceSnapshotKey] found by provided values
-     */
-    fun list(
-        organizationName: String,
-        testSuitesSourceName: String,
-    ): Flux<TestSuitesSourceSnapshotKey> = list()
-        .filter { it.equalsTo(organizationName, testSuitesSourceName) }
 
     private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
 

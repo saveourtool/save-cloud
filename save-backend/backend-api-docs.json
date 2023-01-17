@@ -5881,6 +5881,15 @@
             }
           },
           {
+            "in": "query",
+            "name": "testAnalysis",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -6297,7 +6306,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -6310,7 +6319,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -6323,7 +6332,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -6482,88 +6491,6 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot": {
-      "get": {
-        "description": "Check that test suites source contains provided version.",
-        "operationId": "containsSnapshot",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of test suites source",
-            "in": "path",
-            "name": "sourceName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "version of checking snapshot",
-            "in": "query",
-            "name": "version",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "description": "Successfully checked snapshot with provided values."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Check that test suites source contains provided version.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot": {
       "delete": {
         "description": "Delete test suites and snapshot for requested version from provided test suites source.",
@@ -6640,190 +6567,6 @@
           }
         ],
         "summary": "Delete test suites and snapshot for requested version from provided test suites source.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/download-snapshot": {
-      "post": {
-        "description": "Download a snapshot of test suites source.",
-        "operationId": "downloadSnapshot",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of test suites source",
-            "in": "path",
-            "name": "sourceName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "version of downloading snapshot",
-            "in": "query",
-            "name": "version",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Successfully downloaded snapshot with provided version."
-          },
-          "401": {
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Download a snapshot of test suites source.",
         "tags": [
           "test-suites-source"
         ]
@@ -7042,7 +6785,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7055,7 +6798,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7068,7 +6811,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                    "$ref": "#/components/schemas/TestsSourceVersionInfo"
                   }
                 }
               }
@@ -7149,121 +6892,6 @@
           }
         ],
         "summary": "Get list of tags which can be fetched from test suites source.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot": {
-      "post": {
-        "description": "Upload a snapshot of test suites source.",
-        "operationId": "uploadSnapshot",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of test suites source",
-            "in": "path",
-            "name": "sourceName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "version of uploading snapshot",
-            "in": "query",
-            "name": "version",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "creationTime of uploading snapshot",
-            "in": "query",
-            "name": "creationTime",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "description": "content of uploading snapshot",
-            "in": "query",
-            "name": "content",
-            "required": true
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "$ref": "#/components/schemas/Part"
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            },
-            "description": "Successfully uploaded provided snapshot."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            },
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Upload a snapshot of test suites source.",
         "tags": [
           "test-suites-source"
         ]
@@ -9297,9 +8925,6 @@
           }
         }
       },
-      "Part": {
-        "type": "object"
-      },
       "Project": {
         "required": [
           "contestRating",
@@ -9809,23 +9434,30 @@
           }
         }
       },
-      "TestSuitesSourceSnapshotKey": {
+      "TestsSourceVersionInfo": {
         "required": [
-          "creationTimeInMills",
+          "commitId",
+          "commitTime",
+          "creationTime",
           "organizationName",
-          "testSuitesSourceName",
+          "sourceName",
           "version"
         ],
         "type": "object",
         "properties": {
-          "creationTimeInMills": {
-            "type": "integer",
-            "format": "int64"
+          "commitId": {
+            "type": "string"
+          },
+          "commitTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "creationTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "organizationName": {
             "type": "string"
           },
-          "testSuitesSourceName": {
+          "sourceName": {
             "type": "string"
           },
           "version": {

@@ -55,7 +55,7 @@ internal class ContestController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationService: OrganizationService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceService: TestSuitesSourceService,
+    private val testsSourceVersionService: TestsSourceVersionService,
     private val lnkContestTestSuiteService: LnkContestTestSuiteService,
 ) {
     @GetMapping("/{contestName}")
@@ -204,7 +204,7 @@ internal class ContestController(
         .flatMap { (testSuite, test) ->
             Mono.zip(
                 testSuite.toMono(),
-                testSuitesSourceService.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
+                testsSourceVersionService.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
             )
         }
         .map { (testSuite, testFilesContent) ->

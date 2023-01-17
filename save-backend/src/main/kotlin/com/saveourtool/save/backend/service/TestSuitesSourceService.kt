@@ -38,6 +38,7 @@ class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
     private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
+    private val testsSourceVersionService: TestsSourceVersionService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -162,17 +163,17 @@ class TestSuitesSourceService(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-    ): Mono<EmptyResponse> = testSuitesSourceSnapshotStorage.doesContain(
+    ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
         organizationName = testSuitesSource.organizationName,
-        testSuitesSourceName = testSuitesSource.name,
+        sourceName = testSuitesSource.name,
         version = version,
     )
         .filterWhen { doesContain ->
             if (doesContain && mode == TestSuitesSourceFetchMode.BY_BRANCH) {
-                log.debug { "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and it should be overridden." }
-                testSuitesSourceSnapshotStorage.deleteByVersion(
+                logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
+                testsSourceVersionService.delete(
                     organizationName = testSuitesSource.organizationName,
-                    testSuitesSourceName = testSuitesSource.name,
+                    sourceName = testSuitesSource.name,
                     version = version,
                 )
                     .filter { it }
@@ -181,7 +182,7 @@ class TestSuitesSourceService(
                     }
                     .thenReturn(true)
             } else if (doesContain) {
-                log.debug { "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and we skip fetching a new version." }
+                logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
                 false.toMono()
             } else {
                 true.toMono()
@@ -195,6 +196,12 @@ class TestSuitesSourceService(
                 .retrieve()
                 .toBodilessEntity()
         }
+
+    private fun logDuplicateVersion(testSuitesSource: TestSuitesSourceDto, version: String, action: String) {
+        log.debug {
+            "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and $action"
+        }
+    }
 
     /**
      * @param testSuitesSource test suites source for which a list of tags is requested

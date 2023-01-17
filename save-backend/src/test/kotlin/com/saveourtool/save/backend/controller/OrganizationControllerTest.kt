@@ -73,6 +73,7 @@ import java.util.concurrent.TimeUnit
     MockBean(TestSuiteRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestExecutionRepository::class),
+    MockBean(TestsSourceVersionService::class),
     MockBean(MigrationTestSuitesSourceSnapshotStorage::class),
     MockBean(ExecutionRepository::class),
     MockBean(AgentStatusRepository::class),

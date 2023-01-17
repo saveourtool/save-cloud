@@ -2,7 +2,7 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
-import com.saveourtool.save.preprocessor.utils.CommitInfo
+import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.preprocessor.utils.cloneBranchToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneCommitToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
@@ -19,8 +19,8 @@ import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 
-typealias CloneResult = Pair<Path, CommitInfo>
-typealias GitRepositoryProcessor<T> = (Path, CommitInfo) -> Mono<T>
+typealias CloneResult = Pair<Path, GitCommitInfo>
+typealias GitRepositoryProcessor<T> = (Path, GitCommitInfo) -> Mono<T>
 typealias ArchiveProcessor<T> = (Path) -> Mono<T>
 
 /**
@@ -96,7 +96,7 @@ class GitPreprocessorService(
     private fun <T> doCloneAndProcessDirectory(
         gitDto: GitDto,
         repositoryProcessor: GitRepositoryProcessor<T>,
-        doCloneToDirectory: GitDto.(Path) -> CommitInfo,
+        doCloneToDirectory: GitDto.(Path) -> GitCommitInfo,
     ): Mono<T> {
         val cloneAction: () -> CloneResult = {
             val tmpDir = createTempDirectoryForRepository()
@@ -111,7 +111,7 @@ class GitPreprocessorService(
         }
         return Mono.usingWhen(
             Mono.fromSupplier(cloneAction),
-            { (directory, commitInfo) -> repositoryProcessor(directory, commitInfo) },
+            { (directory, gitCommitInfo) -> repositoryProcessor(directory, gitCommitInfo) },
             { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
         )
     }

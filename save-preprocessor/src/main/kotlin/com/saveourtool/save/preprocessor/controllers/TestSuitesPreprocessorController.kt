@@ -61,21 +61,32 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto: TestSuitesSourceDto,
         cloneObject: String,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, commitInfo ->
-        gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
-            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                testSuitesSource = testSuitesSourceDto,
-                version = cloneObject,
-                creationTime = commitInfo.time,
-                resourceWithContent = FileSystemResource(archive)
-            ).flatMap {
-                testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-                    repositoryPath = repositoryDirectory,
-                    testSuitesSourceDto = testSuitesSourceDto,
-                    version = cloneObject
-                )
+    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, gitCommitInfo ->
+        testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, gitCommitInfo.id)
+            .filter { doesContain ->
+                if (doesContain) {
+                    log.info { "Tests source $testSuitesSourceDto already contains snapshot with version ${gitCommitInfo.id}" }
+                    false
+                } else {
+                    true
+                }
             }
-        }
+            .flatMap {
+                gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
+                    testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+                        testSuitesSource = testSuitesSourceDto,
+                        version = cloneObject,
+                        gitCommitInfo = gitCommitInfo,
+                        resourceWithContent = FileSystemResource(archive)
+                    ).flatMap {
+                        testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+                            repositoryPath = repositoryDirectory,
+                            testSuitesSourceDto = testSuitesSourceDto,
+                            version = cloneObject
+                        )
+                    }
+                }
+            }
     }
         .map { testSuites ->
             with(testSuitesSourceDto) {
