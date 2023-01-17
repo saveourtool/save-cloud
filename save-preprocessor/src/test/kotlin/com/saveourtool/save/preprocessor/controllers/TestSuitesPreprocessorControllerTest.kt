@@ -4,7 +4,8 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.*
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
-import com.saveourtool.save.test.TestsSourceSnapshotInfo
+import com.saveourtool.save.request.TestsSourceFetchRequest
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
@@ -38,6 +39,7 @@ internal class TestSuitesPreprocessorControllerTest {
         gitDto,
         "examples/discovery-test",
         "aaaaaa",
+        1L,
     )
     private val repositoryDirectory = Paths.get("./some-folder")
     private val testLocations = repositoryDirectory.resolve(testSuitesSourceDto.testRootPath)
@@ -46,6 +48,7 @@ internal class TestSuitesPreprocessorControllerTest {
     private val branch = "main"
     private val commit = "1234567"
     private val fullCommit = "1234567890"
+    private val userId = 123L
 
     @BeforeEach
     fun setup() {
@@ -66,7 +69,7 @@ internal class TestSuitesPreprocessorControllerTest {
             processor(testLocations)
         }.whenever(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
 
-        whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit, creationTime), any()))
+        whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime), any()))
             .thenReturn(Mono.just(Unit))
         whenever(testsPreprocessorToBackendBridge.saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto)))
             .thenReturn(Mono.just(Unit))
@@ -77,9 +80,9 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
+        testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
             .block()
 
         verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
@@ -89,9 +92,9 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
+        testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
             .block()
 
         verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
@@ -101,9 +104,9 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromBranchSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch)
+        testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch, userId))
             .block()
 
         verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
@@ -113,9 +116,9 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
+        testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
             .block()
 
         verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
@@ -125,9 +128,9 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
+        testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
             .block()
 
         verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
@@ -136,27 +139,26 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     private fun verifyNewCommit() {
-        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit, creationTime))
+        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime))
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit, creationTime), any())
+        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(fullCommit))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
     }
 
     private fun verifyExistedCommit() {
-        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotInfo(testSuitesSourceDto, fullCommit))
+        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
         verifyNoMoreInteractions(gitPreprocessorService)
         verifyNoInteractions(testDiscoveringService)
     }
 
-    private fun testsSourceSnapshotInfo(
+    private fun testsSourceSnapshotDto(
         testSuitesSourceDto: TestSuitesSourceDto,
         commitId: String,
         commitTime: Instant? = null,
-    ): TestsSourceSnapshotInfo = argThat { value ->
-        value.organizationName == testSuitesSourceDto.organizationName &&
-                value.sourceName == testSuitesSourceDto.name &&
+    ): TestsSourceSnapshotDto = argThat { value ->
+        value.sourceId == testSuitesSourceDto.requiredId() &&
                 value.commitId == commitId &&
                 commitTime?.toKotlinInstant()?.toLocalDateTime(TimeZone.UTC).equalsOrTrueIfEmpty(value.commitTime)
     }
@@ -165,8 +167,8 @@ internal class TestSuitesPreprocessorControllerTest {
         testSuitesSourceDto: TestSuitesSourceDto,
         versionNullable: String? = null
     ): TestsSourceVersionInfo = argThat { value ->
-        value.snapshotInfo.organizationName == testSuitesSourceDto.organizationName &&
-                value.snapshotInfo.sourceName == testSuitesSourceDto.name &&
+        value.organizationName == testSuitesSourceDto.organizationName &&
+                value.sourceName == testSuitesSourceDto.name &&
                 versionNullable.equalsOrTrueIfEmpty(value.version)
     }
 

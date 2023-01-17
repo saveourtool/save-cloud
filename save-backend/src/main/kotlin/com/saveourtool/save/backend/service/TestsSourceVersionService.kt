@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
-import com.saveourtool.save.test.TestsSourceSnapshotInfo
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
@@ -165,12 +164,10 @@ class TestsSourceVersionService(
 
     companion object {
         private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
-            snapshotInfo = TestsSourceSnapshotInfo(
-                organizationName = organizationName,
-                sourceName = testSuitesSourceName,
-                commitId = version,
-                commitTime = convertAndGetCreationTime(),
-            ),
+            organizationName = organizationName,
+            sourceName = testSuitesSourceName,
+            commitId = version,
+            commitTime = convertAndGetCreationTime(),
             version = version,
             creationTime = convertAndGetCreationTime(),
         )
