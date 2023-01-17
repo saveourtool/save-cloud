@@ -11,7 +11,6 @@ import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 

@@ -21,15 +21,6 @@ import java.time.Instant
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
- * @property id hash commit
- * @property time commit time
- */
-data class CommitInfo(
-    val id: String,
-    val time: Instant,
-)
-
-/**
  * @return default branch name
  * @throws IllegalStateException when failed to detect default branch name
  */

@@ -1,8 +1,8 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
-import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.test.TestsSourceVersionDto
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 
 import java.time.LocalDateTime
 import javax.persistence.*

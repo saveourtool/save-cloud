@@ -15,13 +15,12 @@ import javax.persistence.ManyToOne
 /**
  * @property name name of the test suite
  * @property description description of the test suite
- * @property source source, which this test suite is created from
- * @property version version of source, which this test suite is created from
  * @property dateAdded date and time, when this test suite was added to the project
  * @property language
  * @property tags
  * @property plugins
  * @property isPublic
+ * @property sourceVersion version of source, which this test suite is created from
  */
 @Suppress("LongParameterList")
 @Entity
@@ -98,16 +97,18 @@ class TestSuite(
          */
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
 
-        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestsSourceVersion): TestSuite {
-            return TestSuite(
-                name = name,
-                description = description,
-                sourceVersion = sourceVersionResolver(sourceVersionId),
-                dateAdded = null,
-                language = language,
-                tags = tags?.let(TestSuite::tagsFromList),
-                plugins = pluginsByTypes(plugins)
-            )
-        }
+        /**
+         * @param sourceVersionResolver
+         * @return [TestSuite] created from [TestSuiteDto]
+         */
+        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestsSourceVersion): TestSuite = TestSuite(
+            name = name,
+            description = description,
+            sourceVersion = sourceVersionResolver(sourceVersionId),
+            dateAdded = null,
+            language = language,
+            tags = tags?.let(TestSuite::tagsFromList),
+            plugins = pluginsByTypes(plugins)
+        )
     }
 }
