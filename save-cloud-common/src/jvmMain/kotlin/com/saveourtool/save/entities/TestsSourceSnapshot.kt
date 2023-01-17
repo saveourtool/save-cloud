@@ -35,7 +35,7 @@ class TestsSourceSnapshot(
     companion object {
         /**
          * @param sourceResolver returns [TestSuitesSource] by ID
-         * @return [TestSuitesSourceSnapshot] created from [TestSuitesSourceSnapshotDto]
+         * @return [TestsSourceSnapshot] created from [TestSuitesSourceSnapshotDto]
          */
         fun TestsSourceSnapshotDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestsSourceSnapshot = TestsSourceSnapshot(
             source = sourceResolver(sourceId),

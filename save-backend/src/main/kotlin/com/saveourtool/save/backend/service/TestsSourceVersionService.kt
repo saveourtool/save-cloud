@@ -1,15 +1,18 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
+import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
-import com.saveourtool.save.test.TestsSourceSnapshotInfo
-import com.saveourtool.save.test.TestsSourceVersionInfo
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
+import com.saveourtool.save.entities.TestsSourceSnapshot
+import com.saveourtool.save.entities.TestsSourceVersion
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.test.*
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.utils.ARCHIVE_EXTENSION
-import com.saveourtool.save.utils.extractZipHere
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
+import kotlinx.datetime.toJavaLocalDateTime
 import org.springframework.context.annotation.Lazy
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -18,6 +21,11 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
+import java.time.LocalDateTime
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 import kotlin.io.path.*
 
 /**
@@ -26,7 +34,10 @@ import kotlin.io.path.*
 @Service
 class TestsSourceVersionService(
     @Lazy
-    private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
+    private val migrationStorage: MigrationTestsSourceSnapshotStorage,
+    private val snapshotStorage: TestsSourceSnapshotStorage,
+    private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
+    private val testsSourceVersionRepository: TestsSourceVersionRepository,
     configProperties: ConfigProperties,
 ) {
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
@@ -41,25 +52,31 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<Boolean> = findSnapshotKey(organizationName, sourceName, version)
-        .map { true }
-        .defaultIfEmpty(false)
+    ): Mono<Boolean> {
+        require(migrationStorage.isMigrated())
+        return findSnapshotKey(organizationName, sourceName, version)
+            .map { true }
+            .defaultIfEmpty(false)
+    }
 
     /**
      * @param organizationName
-     * @param testSuitesSourceName
+     * @param sourceName
      * @param version
      * @return content of a key which contains provided values
      */
     fun download(
         organizationName: String,
-        testSuitesSourceName: String,
+        sourceName: String,
         version: String,
-    ): Flux<ByteBuffer> = findSnapshotKey(
-        organizationName = organizationName,
-        sourceName = testSuitesSourceName,
-        version = version,
-    ).flatMapMany { snapshotStorage.download(it) }
+    ): Flux<ByteBuffer> {
+        require(migrationStorage.isMigrated())
+        return findSnapshotKey(
+            organizationName = organizationName,
+            sourceName = sourceName,
+            version = version,
+        ).flatMapMany { snapshotStorage.download(it) }
+    }
 
     /**
      * @param organizationName
@@ -71,19 +88,24 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<Boolean> = findSnapshotKey(
-        organizationName = organizationName,
-        sourceName = sourceName,
-        version = version,
-    ).flatMap { snapshotStorage.delete(it) }
+    ): Mono<Boolean> {
+        require(migrationStorage.isMigrated())
+        return findSnapshotKey(
+            organizationName = organizationName,
+            sourceName = sourceName,
+            version = version,
+        ).flatMap { snapshotStorage.delete(it) }
+    }
 
     private fun findSnapshotKey(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<TestSuitesSourceSnapshotKey> = snapshotStorage.list()
-        .filter { it.equalsTo(organizationName, sourceName, version) }
-        .singleOrEmpty()
+    ): Mono<TestsSourceSnapshotDto> = blockingToMono {
+        testsSourceVersionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+            organizationName, sourceName, version
+        )?.snapshot?.toDto()
+    }
 
     /**
      * @param organizationName
@@ -91,9 +113,13 @@ class TestsSourceVersionService(
      */
     fun list(
         organizationName: String,
-    ): Flux<TestsSourceVersionInfo> = snapshotStorage.list()
-        .filter { it.organizationName == organizationName }
-        .map { it.toVersionInfo() }
+    ): Flux<TestsSourceVersionInfo> {
+        require(migrationStorage.isMigrated())
+        return blockingToFlux {
+            testsSourceVersionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
+                .map(TestsSourceVersion::toInfo)
+        }
+    }
 
     /**
      * @param organizationName
@@ -103,9 +129,13 @@ class TestsSourceVersionService(
     fun list(
         organizationName: String,
         sourceName: String,
-    ): Flux<TestsSourceVersionInfo> = snapshotStorage.list()
-        .filter { it.equalsTo(organizationName, sourceName) }
-        .map { it.toVersionInfo() }
+    ): Flux<TestsSourceVersionInfo> {
+        require(migrationStorage.isMigrated())
+        return blockingToFlux {
+            testsSourceVersionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(organizationName, sourceName)
+                .map(TestsSourceVersion::toInfo)
+        }
+    }
 
     /**
      * @param request
@@ -155,24 +185,32 @@ class TestsSourceVersionService(
         organizationName: String,
         oldSourceName: String,
         newSourceName: String,
-    ): Mono<Unit> = snapshotStorage.list()
-        .filter { it.equalsTo(organizationName, oldSourceName) }
-        .map { it to it.copy(testSuitesSourceName = newSourceName) }
-        .flatMap { (sourceKey, targetKey) ->
-            snapshotStorage.move(sourceKey, targetKey)
-        }
-        .then(Mono.just(Unit))
+    ): Mono<Unit> {
+        require(migrationStorage.isMigrated())
+        // no need to move files in new storage
+        return Mono.just(Unit)
+    }
 
-    companion object {
-        private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
-            snapshotInfo = TestsSourceSnapshotInfo(
-                organizationName = organizationName,
-                sourceName = testSuitesSourceName,
-                commitId = version,
-                commitTime = convertAndGetCreationTime(),
-            ),
-            version = version,
-            creationTime = convertAndGetCreationTime(),
+    /**
+     * Saves [TestsSourceVersion] created from provided [TestsSourceVersionInfo]
+     *
+     * @param versionInfo
+     */
+    fun save(
+        versionInfo: TestsSourceVersionInfo,
+    ) {
+        testsSourceVersionRepository.save(
+            TestsSourceVersion(
+                snapshot = testsSourceSnapshotRepository.findBySource_Organization_NameAndSource_NameAndCommitId(
+                    organizationName = versionInfo.snapshotInfo.organizationName,
+                    sourceName = versionInfo.snapshotInfo.sourceName,
+                    commitId = versionInfo.snapshotInfo.commitId,
+                ).orNotFound {
+                    "Not found ${TestsSourceSnapshot::class.simpleName} for ${versionInfo.snapshotInfo}"
+                },
+                name = versionInfo.version,
+                creationTime = versionInfo.creationTime.toJavaLocalDateTime()
+            )
         )
     }
 }
