@@ -3,6 +3,9 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.utils.asTestRun
+import com.saveourtool.save.backend.utils.mapLeft
+import com.saveourtool.save.backend.utils.mapRight
+import com.saveourtool.save.backend.utils.zip
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestExecution
@@ -21,14 +24,8 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.Spliterator.ORDERED
-import java.util.Spliterator.SIZED
-import java.util.Spliterators.AbstractSpliterator
-import java.util.Spliterators.iterator
-import java.util.function.Consumer
+import java.util.Comparator.comparingLong
 import java.util.stream.Stream
-import java.util.stream.StreamSupport.stream
-import kotlin.math.min
 import kotlin.system.measureNanoTime
 import com.saveourtool.save.test.analysis.api.TestAnalysisService as LowLevelAnalysisService
 
@@ -110,7 +107,7 @@ class TestAnalysisService(
         return executionService.getExecutionByNameAndOrganization(project.name, project.organization)
             .stream()
             .sequential()
-            .sorted(Comparator.comparingLong(Execution::requiredId))
+            .sorted(comparingLong(Execution::requiredId))
             .mapToLong { execution ->
                 /*
                  * Process test executions in parallel (slightly faster).
@@ -135,55 +132,4 @@ class TestAnalysisService(
             }
             .sum()
     }
-
-    private infix fun <T, R> Stream<T>.zip(other: Stream<R>): Stream<Pair<T, R>> {
-        val isParallel = isParallel || other.isParallel
-        val splitrLeft = spliterator()
-        val splitrRight = other.spliterator()
-        val characteristics = splitrLeft.characteristics() and
-                splitrRight.characteristics() and
-                (SIZED or ORDERED)
-        val itrLeft = iterator(splitrLeft)
-        val itrRight = iterator(splitrRight)
-
-        return stream(
-            object : AbstractSpliterator<Pair<T, R>>(
-                min(splitrLeft.estimateSize(), splitrRight.estimateSize()),
-                characteristics
-            ) {
-                override fun tryAdvance(action: Consumer<in Pair<T, R>>): Boolean =
-                        when {
-                            itrLeft.hasNext() && itrRight.hasNext() -> {
-                                action.accept(itrLeft.next() to itrRight.next())
-                                true
-                            }
-
-                            else -> false
-                        }
-            },
-            isParallel,
-        )
-            .onClose { close() }
-            .onClose { other.close() }
-    }
-
-    private fun <A : Any, B : Any, R : Any> Stream<Pair<A, B>>.mapLeft(transformLeft: (A, B) -> R): Stream<Pair<R, B>> =
-            map { (left, right) ->
-                transformLeft(left, right) to right
-            }
-
-    private fun <A : Any, B : Any, R : Any> Stream<Pair<A, B>>.mapLeft(transformLeft: (A) -> R): Stream<Pair<R, B>> =
-            mapLeft { left, _ ->
-                transformLeft(left)
-            }
-
-    private fun <A : Any, B : Any, R : Any> Stream<Pair<A, B>>.mapRight(transformRight: (A, B) -> R): Stream<Pair<A, R>> =
-            map { (first, second) ->
-                first to transformRight(first, second)
-            }
-
-    private fun <A : Any, B : Any, R : Any> Stream<Pair<A, B>>.mapRight(transformRight: (B) -> R): Stream<Pair<A, R>> =
-            mapRight { _, right ->
-                transformRight(right)
-            }
 }
