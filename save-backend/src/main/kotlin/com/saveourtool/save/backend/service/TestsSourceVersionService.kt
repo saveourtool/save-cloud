@@ -34,6 +34,7 @@ import kotlin.io.path.*
 class TestsSourceVersionService(
     @Lazy
     private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
+    @Lazy
     private val testSuitesService: TestSuitesService,
     private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
@@ -78,15 +79,46 @@ class TestsSourceVersionService(
      * @param version
      * @return result of deletion of a key which contains provided values
      */
+    @Transactional
     fun delete(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<Boolean> = snapshotStorage.findSnapshotKey(
-        organizationName = organizationName,
-        sourceName = sourceName,
-        version = version,
-    ).flatMap { snapshotStorage.delete(it) }
+    ): Mono<Boolean> = blockingToMono { doDeleteVersion(organizationName, sourceName, version) }
+        .filter { it }
+        .then(
+            snapshotStorage.findSnapshotKey(
+                organizationName = organizationName,
+                sourceName = sourceName,
+                version = version,
+            )
+        )
+        .flatMap { snapshotStorage.delete(it) }
+        .defaultIfEmpty(true)
+
+    /**
+     * @param organizationName
+     * @param sourceName
+     * @param version
+     * @return true if [TestsSourceSnapshot] related to deleted [TestsSourceVersion] doesn't have another [TestsSourceVersion] related to it
+     */
+    private fun doDeleteVersion(
+        organizationName: String,
+        sourceName: String,
+        version: String,
+    ): Boolean {
+        val versionEntity =
+            testsSourceVersionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+                organizationName = organizationName,
+                sourceName = sourceName,
+                version = version,
+            ).orNotFound {
+                "Not found ${TestsSourceVersion::class.simpleName} with version $version in $organizationName/$sourceName"
+            }
+        testsSourceVersionRepository.delete(versionEntity)
+        val snapshot = versionEntity.snapshot
+        return testsSourceVersionRepository.findAllBySnapshot(snapshot).isEmpty()
+    }
 
     /**
      * @param organizationName
