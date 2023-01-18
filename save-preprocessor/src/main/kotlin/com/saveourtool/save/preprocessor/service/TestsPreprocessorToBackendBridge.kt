@@ -4,7 +4,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.test.TestsSourceSnapshotInfo
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.EmptyResponse
@@ -36,19 +36,19 @@ class TestsPreprocessorToBackendBridge(
         .build()
 
     /**
-     * @param snapshotInfo
+     * @param snapshotDto
      * @param resourceWithContent
      * @return empty response
      */
     fun saveTestsSuiteSourceSnapshot(
-        snapshotInfo: TestsSourceSnapshotInfo,
+        snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
     ): Mono<Unit> = webClientBackend.post()
         .uri("/test-suites-sources/upload-snapshot")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(
             BodyInserters.fromMultipartData("content", resourceWithContent)
-                .with("snapshotInfo", snapshotInfo)
+                .with("snapshot", snapshotDto)
         )
         .retrieve()
         .onStatus({ !it.is2xxSuccessful }) {
@@ -61,14 +61,14 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testsSourceSnapshotInfo
-     * @return true if backend knows [testsSourceSnapshotInfo], otherwise -- false
+     * @param testsSourceSnapshotDto
+     * @return true if backend knows [testsSourceSnapshotDto], otherwise -- false
      */
-    fun doesContainTestsSourceSnapshot(testsSourceSnapshotInfo: TestsSourceSnapshotInfo): Mono<Boolean> =
+    fun doesContainTestsSourceSnapshot(testsSourceSnapshotDto: TestsSourceSnapshotDto): Mono<Boolean> =
             webClientBackend
                 .post()
                 .uri("/test-suites-sources/contains-snapshot")
-                .bodyValue(testsSourceSnapshotInfo)
+                .bodyValue(testsSourceSnapshotDto)
                 .retrieve()
                 .bodyToMono()
 

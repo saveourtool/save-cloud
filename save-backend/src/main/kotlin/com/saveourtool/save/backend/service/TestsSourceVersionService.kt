@@ -4,6 +4,9 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
+import com.saveourtool.save.test.TestFilesContent
+import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
@@ -202,15 +205,26 @@ class TestsSourceVersionService(
         testsSourceVersionRepository.save(
             TestsSourceVersion(
                 snapshot = testsSourceSnapshotRepository.findBySource_Organization_NameAndSource_NameAndCommitId(
-                    organizationName = versionInfo.snapshotInfo.organizationName,
-                    sourceName = versionInfo.snapshotInfo.sourceName,
-                    commitId = versionInfo.snapshotInfo.commitId,
+                    organizationName = versionInfo.organizationName,
+                    sourceName = versionInfo.sourceName,
+                    commitId = versionInfo.commitId,
                 ).orNotFound {
                     "Not found ${TestsSourceSnapshot::class.simpleName} for ${versionInfo.snapshotInfo}"
                 },
                 name = versionInfo.version,
                 creationTime = versionInfo.creationTime.toJavaLocalDateTime()
             )
+        )
+    }
+
+    companion object {
+        private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
+            organizationName = organizationName,
+            sourceName = testSuitesSourceName,
+            commitId = version,
+            commitTime = convertAndGetCreationTime(),
+            version = version,
+            creationTime = convertAndGetCreationTime(),
         )
     }
 }
