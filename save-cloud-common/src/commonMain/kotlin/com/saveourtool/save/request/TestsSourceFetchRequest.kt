@@ -1,6 +1,7 @@
 package com.saveourtool.save.request
 
 import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
@@ -12,7 +13,7 @@ import kotlinx.serialization.Serializable
  * @property source
  * @property mode
  * @property version
- * @property createdByUserName
+ * @property createdByUserId
  */
 @Serializable
 data class TestsSourceFetchRequest(
@@ -21,7 +22,7 @@ data class TestsSourceFetchRequest(
     val mode: TestSuitesSourceFetchMode,
     val version: String,
 
-    val createdByUserName: String,
+    val createdByUserId: Long,
 ) {
     /**
      * @param commitId [TestsSourceSnapshotDto.commitId]
@@ -38,21 +39,16 @@ data class TestsSourceFetchRequest(
     )
 
     /**
-     * @param commitId [TestsSourceVersionInfo.commitId]
-     * @param commitTime [TestsSourceVersionInfo.commitTime]
+     * @param snapshot [TestsSourceVersionDto.snapshot]
      * @return [TestsSourceVersionInfo] created by provided values and [TestsSourceFetchRequest]
      */
-    fun createVersionInfo(
-        commitId: String,
-        commitTime: LocalDateTime,
-    ): TestsSourceVersionInfo = TestsSourceVersionInfo(
-        organizationName = source.organizationName,
-        sourceName = source.name,
-        commitId = commitId,
-        commitTime = commitTime,
-        version = version,
+    fun createVersion(
+        snapshot: TestsSourceSnapshotDto,
+    ): TestsSourceVersionDto = TestsSourceVersionDto(
+        snapshot = snapshot,
+        name = version,
         type = mode,
+        createdByUserId = createdByUserId,
         creationTime = getCurrentLocalDateTime(),
-        createdByUserName = createdByUserName,
     )
 }

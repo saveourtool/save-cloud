@@ -25,8 +25,7 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     ): TestSuite?
 
     /**
-     * @param organizationName name of [TestSuitesSource.organization] from [TestSuite.source]
-     * @param sourceName name of [TestSuite.source]
+     * @param sourceId ID of [TestSuite.source]
      * @param version [TestSuite.version]
      * @return all [TestSuite] found by provided values
      */
@@ -36,9 +35,8 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
         "FunctionNaming",
         "FunctionName",
     )
-    fun findAllBySource_Organization_NameAndSource_NameAndVersion(
-        organizationName: String,
-        sourceName: String,
+    fun findAllBySource_IdAndVersion(
+        sourceId: Long,
         version: String,
     ): List<TestSuite>
 

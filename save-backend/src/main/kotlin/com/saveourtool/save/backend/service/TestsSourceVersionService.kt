@@ -3,9 +3,11 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
+import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
+import com.saveourtool.save.entities.TestsSourceVersion.Companion.toEntity
 import com.saveourtool.save.test.*
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
@@ -24,7 +26,6 @@ import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 
 import kotlin.io.path.*
-import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Service for [TestsSourceVersionInfo]
@@ -36,7 +37,7 @@ class TestsSourceVersionService(
     private val testSuitesService: TestSuitesService,
     private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
-    private val userDetailsService: UserDetailsService,
+    private val userRepository: UserRepository,
     configProperties: ConfigProperties,
 ) {
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
@@ -142,35 +143,31 @@ class TestsSourceVersionService(
         }
 
     /**
-     * Saves [TestsSourceVersion] created from provided [TestsSourceVersionInfo]
+     * Saves [TestsSourceVersion] created from provided [TestsSourceVersionDto]
      *
-     * @param versionInfo
+     * @param dto
      */
     @Transactional
     fun save(
-        versionInfo: TestsSourceVersionInfo,
+        dto: TestsSourceVersionDto,
     ) {
-        testsSourceVersionRepository.save(
-            TestsSourceVersion(
-                snapshot = testsSourceSnapshotRepository.findBySource_Organization_NameAndSource_NameAndCommitId(
-                    organizationName = versionInfo.organizationName,
-                    sourceName = versionInfo.sourceName,
-                    commitId = versionInfo.commitId,
-                ).orNotFound {
-                    "Not found ${TestsSourceSnapshot::class.simpleName} for $versionInfo"
-                },
-                name = versionInfo.version,
-                type = versionInfo.type,
-                createdByUser = userDetailsService.getByUsername(versionInfo.createdByUserName),
-                creationTime = versionInfo.creationTime.toJavaLocalDateTime()
-            )
+        val entity = dto.toEntity(
+            snapshotResolver = ::getSnapshot,
+            userResolver = userRepository::getByIdOrNotFound
         )
+        val savedEntity = testsSourceVersionRepository.save(entity)
         // copy test suites
         testSuitesService.copyToNewVersion(
-            organizationName = versionInfo.organizationName,
-            sourceName = versionInfo.sourceName,
-            originalVersion = versionInfo.commitId,
-            newVersion = versionInfo.version,
+            sourceId = savedEntity.snapshot.source.requiredId(),
+            originalVersion = savedEntity.snapshot.commitId,
+            newVersion = savedEntity.name,
         )
+    }
+
+    private fun getSnapshot(dto: TestsSourceSnapshotDto) = testsSourceSnapshotRepository.findBySource_IdAndCommitId(
+        sourceId = dto.sourceId,
+        commitId = dto.commitId,
+    ).orNotFound {
+        "Not found ${TestsSourceSnapshot::class.simpleName} for $dto"
     }
 }

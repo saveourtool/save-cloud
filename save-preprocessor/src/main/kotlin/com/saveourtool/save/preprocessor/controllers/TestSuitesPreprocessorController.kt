@@ -64,7 +64,7 @@ class TestSuitesPreprocessorController(
                 doFetchTests(repositoryDirectory, testsSourceSnapshotDto, request.source)
             }
             .flatMap {
-                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersionInfo(gitCommitInfo.id, gitCommitInfo.time))
+                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(testsSourceSnapshotDto))
             }
     }
 

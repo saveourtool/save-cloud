@@ -6,7 +6,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.test.TestsSourceSnapshotDto
-import com.saveourtool.save.test.TestsSourceVersionInfo
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
@@ -45,14 +45,14 @@ class TestSuitesSourceInternalController(
     }
 
     /**
-     * @param versionInfo
+     * @param versionDto
      * @return [Mono] without value
      */
     @PostMapping("/save-version")
     fun saveVersion(
-        @RequestBody versionInfo: TestsSourceVersionInfo,
+        @RequestBody versionDto: TestsSourceVersionDto,
     ): Mono<Unit> = blockingToMono {
-        testsSourceVersionService.save(versionInfo)
+        testsSourceVersionService.save(versionDto)
     }
 
     /**

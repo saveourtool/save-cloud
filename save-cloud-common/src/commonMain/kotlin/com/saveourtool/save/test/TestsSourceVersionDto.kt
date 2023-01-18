@@ -5,7 +5,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import kotlinx.datetime.LocalDateTime
 
 /**
- * @property snapshotId ID of [TestsSourceSnapshotDto]
+ * @property snapshot [TestsSourceSnapshotDto]// TODO: should be replaced to snapshotId after removing [com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey]
  * @property name human-readable version
  * @property type type of fetch mode
  * @property createdByUserId ID of [com.saveourtool.save.info.UserInfo] created this version
@@ -13,7 +13,7 @@ import kotlinx.datetime.LocalDateTime
  * @property id ID of saved entity
  */
 data class TestsSourceVersionDto(
-    val snapshotId: Long,
+    val snapshot: TestsSourceSnapshotDto,
     val name: String,
     val type: TestSuitesSourceFetchMode,
     val createdByUserId: Long,
