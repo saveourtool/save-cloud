@@ -7,7 +7,7 @@ import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import js.core.jso
@@ -36,7 +36,7 @@ external interface PublicTestComponentProps : Props {
     /**
      * List of test suites attached to current contest
      */
-    var contestTestSuites: List<TestSuiteDto>
+    var contestTestSuites: List<TestSuiteVersioned>
 }
 
 private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>, language: String? = null) = div {
@@ -60,13 +60,13 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
     "AVOID_NULL_CHECKS"
 )
 private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
-    val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteDto?>(null)
+    val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteVersioned?>(null)
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
 
     useRequest(dependencies = arrayOf(selectedTestSuite)) {
         selectedTestSuite?.let { selectedTestSuite ->
             val response = get(
-                "$apiUrl/contests/${props.contestName}/public-test?testSuiteId=${selectedTestSuite.requiredId()}",
+                "$apiUrl/contests/${props.contestName}/public-test?testSuiteId=${selectedTestSuite.id}",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler,
@@ -91,7 +91,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             // ========== Test Suite Selector ==========
             div {
                 className = ClassName("col-6")
-                showAvaliableTestSuites(
+                showAvailableTestSuites(
                     props.contestTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
                     null,
