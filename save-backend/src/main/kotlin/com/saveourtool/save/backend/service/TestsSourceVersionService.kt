@@ -26,6 +26,15 @@ class TestsSourceVersionService(
     private val userRepository: UserRepository,
 ) {
     /**
+     * @param candidate [TestsSourceSnapshotDto] without id
+     * @return [TestsSourceSnapshotDto] found by provided values
+     */
+    fun findSnapshot(
+        candidate: TestsSourceSnapshotDto,
+    ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(candidate.sourceId, candidate.commitId)
+        ?.toDto()
+
+    /**
      * @param organizationName
      * @param sourceName
      * @param version

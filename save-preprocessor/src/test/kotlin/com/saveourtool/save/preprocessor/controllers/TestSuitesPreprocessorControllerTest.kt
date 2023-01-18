@@ -81,7 +81,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
             .block()
@@ -93,7 +93,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromTagAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(true))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
             .block()
@@ -105,7 +105,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchFromBranchSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch, userId))
             .block()
@@ -117,7 +117,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitSuccessful() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(false))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
             .block()
@@ -129,7 +129,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
     @Test
     fun fetchCommitAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
+        whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit)))
             .thenReturn(Mono.just(true))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
             .block()
@@ -140,7 +140,7 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     private fun verifyNewCommit() {
-        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime))
+        verify(testsPreprocessorToBackendBridge).findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime))
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(fullCommit))
@@ -148,7 +148,7 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     private fun verifyExistedCommit() {
-        verify(testsPreprocessorToBackendBridge).doesContainTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit))
+        verify(testsPreprocessorToBackendBridge).findTestsSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
         verifyNoMoreInteractions(gitPreprocessorService)
         verifyNoInteractions(testDiscoveringService)

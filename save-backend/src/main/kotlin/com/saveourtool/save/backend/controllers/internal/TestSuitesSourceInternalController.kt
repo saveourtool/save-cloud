@@ -31,15 +31,15 @@ class TestSuitesSourceInternalController(
     /**
      * @param snapshotDto
      * @param contentAsMonoPart
-     * @return [Mono] without value
+     * @return [Mono] with updated [snapshotDto]
      */
     @PostMapping("/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadSnapshot(
         @RequestPart("snapshot") snapshotDto: TestsSourceSnapshotDto,
         @RequestPart("content") contentAsMonoPart: Mono<Part>,
-    ): Mono<Unit> = contentAsMonoPart.flatMap { part ->
+    ): Mono<TestsSourceSnapshotDto> = contentAsMonoPart.flatMap { part ->
         val content = part.content().map { it.asByteBuffer() }
-        snapshotStorage.upload(snapshotDto, content).thenReturn(Unit)
+        snapshotStorage.uploadAndReturnUpdatedKey(snapshotDto, content)
     }
 
     /**
@@ -55,12 +55,14 @@ class TestSuitesSourceInternalController(
 
     /**
      * @param snapshotDto
-     * @return [Mono] with result
+     * @return [Mono] with result or empty
      */
-    @PostMapping("/contains-snapshot")
-    fun containsSnapshot(
+    @PostMapping("/find-snapshot")
+    fun findSnapshot(
         @RequestBody snapshotDto: TestsSourceSnapshotDto,
-    ): Mono<Boolean> = snapshotStorage.doesExist(snapshotDto)
+    ): Mono<TestsSourceSnapshotDto> = blockingToMono {
+        testsSourceVersionService.findSnapshot(snapshotDto)
+    }
 
     /**
      * @param executionId

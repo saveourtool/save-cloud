@@ -2,6 +2,7 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestsSourceSnapshotDto
@@ -38,12 +39,12 @@ class TestsPreprocessorToBackendBridge(
     /**
      * @param snapshotDto
      * @param resourceWithContent
-     * @return empty response
+     * @return updated [snapshotDto]
      */
     fun saveTestsSuiteSourceSnapshot(
         snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
-    ): Mono<Unit> = webClientBackend.post()
+    ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
         .uri("/test-suites-sources/upload-snapshot")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(
@@ -61,16 +62,14 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testsSourceSnapshotDto
-     * @return true if backend knows [testsSourceSnapshotDto], otherwise -- false
+     * @param sourceId
+     * @param commitId
+     * @return [TestsSourceSnapshotDto] found by provided values
      */
-    fun doesContainTestsSourceSnapshot(testsSourceSnapshotDto: TestsSourceSnapshotDto): Mono<Boolean> =
-            webClientBackend
-                .post()
-                .uri("/test-suites-sources/contains-snapshot")
-                .bodyValue(testsSourceSnapshotDto)
-                .retrieve()
-                .bodyToMono()
+    fun findTestsSourceSnapshot(sourceId: Long, commitId: String): Mono<TestsSourceSnapshotDto> = webClientBackend.get()
+        .uri("/test-suites-sources/find-snapshot?sourceId={sourceId}&commitId={commitId}", sourceId, commitId)
+        .retrieve()
+        .bodyToMono()
 
     /**
      * @param testsSourceVersionDto
