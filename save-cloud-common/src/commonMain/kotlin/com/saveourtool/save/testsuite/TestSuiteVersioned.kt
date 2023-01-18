@@ -1,6 +1,7 @@
 package com.saveourtool.save.testsuite
 
 import com.saveourtool.save.domain.pluginName
+import com.saveourtool.save.utils.PRETTY_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**
@@ -38,11 +39,11 @@ data class TestSuiteVersioned(
             sourceName = this.source.name,
             organizationName = this.source.organizationName,
             isLatestFetchedVersion = this.version == this.source.latestFetchedVersion,
-            description = this.description ?: "",
+            description = this.description.orEmpty(),
             version = this.version,
-            language = this.language ?: "",
-            tags = this.tags?.joinToString(", ") ?: "",
-            plugins = this.plugins.joinToString(", ") { it.pluginName() },
+            language = this.language.orEmpty(),
+            tags = this.tags?.joinToString(PRETTY_DELIMITER).orEmpty(),
+            plugins = this.plugins.joinToString(PRETTY_DELIMITER) { it.pluginName() },
         )
     }
 }
