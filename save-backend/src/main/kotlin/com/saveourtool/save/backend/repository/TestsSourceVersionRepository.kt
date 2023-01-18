@@ -55,7 +55,6 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
         version: String,
     ): TestsSourceVersion?
 
-
     /**
      * @param organizationName
      * @return all [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [organizationName])
@@ -63,7 +62,6 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
     fun findAllBySnapshot_Source_Organization_Name(
         organizationName: String,
     ): Collection<TestsSourceVersion>
-
 
     /**
      * @param organizationName

@@ -4,32 +4,29 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
-import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.test.*
-import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
+import com.saveourtool.save.test.TestFilesContent
+import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
-import kotlinx.datetime.toJavaLocalDateTime
+
 import org.springframework.context.annotation.Lazy
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
-import java.time.LocalDateTime
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
+
 import kotlin.io.path.*
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Service for [TestsSourceVersionInfo]
@@ -39,6 +36,7 @@ class TestsSourceVersionService(
     @Lazy
     private val migrationStorage: MigrationTestsSourceSnapshotStorage,
     private val snapshotStorage: TestsSourceSnapshotStorage,
+    private val testSuitesService: TestSuitesService,
     private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
     configProperties: ConfigProperties,
@@ -199,6 +197,7 @@ class TestsSourceVersionService(
      *
      * @param versionInfo
      */
+    @Transactional
     fun save(
         versionInfo: TestsSourceVersionInfo,
     ) {
@@ -209,11 +208,18 @@ class TestsSourceVersionService(
                     sourceName = versionInfo.sourceName,
                     commitId = versionInfo.commitId,
                 ).orNotFound {
-                    "Not found ${TestsSourceSnapshot::class.simpleName} for ${versionInfo.snapshotInfo}"
+                    "Not found ${TestsSourceSnapshot::class.simpleName} for $versionInfo"
                 },
                 name = versionInfo.version,
                 creationTime = versionInfo.creationTime.toJavaLocalDateTime()
             )
+        )
+        // copy test suites
+        testSuitesService.copyToNewVersion(
+            organizationName = versionInfo.organizationName,
+            sourceName = versionInfo.sourceName,
+            originalVersion = versionInfo.commitId,
+            newVersion = versionInfo.version,
         )
     }
 

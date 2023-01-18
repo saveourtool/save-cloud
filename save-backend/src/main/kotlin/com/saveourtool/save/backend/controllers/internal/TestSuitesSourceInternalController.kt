@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
-import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
@@ -26,9 +25,7 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceInternalController(
     private val testsSourceVersionService: TestsSourceVersionService,
     @Lazy
-    private val migrationStorage: MigrationTestsSourceSnapshotStorage,
-    private val snapshotStorage: TestsSourceSnapshotStorage,
-    private val testSuitesService: TestSuitesService,
+    private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val executionService: ExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
@@ -56,15 +53,6 @@ class TestSuitesSourceInternalController(
         @RequestBody versionInfo: TestsSourceVersionInfo,
     ): Mono<Unit> = blockingToMono {
         testsSourceVersionService.save(versionInfo)
-    }.flatMap {
-        blockingToMono {
-            testSuitesService.copyToNewVersion(
-                organizationName = versionInfo.organizationName,
-                sourceName = versionInfo.sourceName,
-                originalVersion = versionInfo.commitId,
-                newVersion = versionInfo.version,
-            )
-        }
     }
 
     /**
@@ -118,20 +106,4 @@ class TestSuitesSourceInternalController(
                 creationTime = commitTime,
             )
         }
-
-    companion object {
-        private fun TestsSourceVersionInfo.toKeyForSnapshot() = TestSuitesSourceSnapshotKey(
-            organizationName = organizationName,
-            testSuitesSourceName = sourceName,
-            version = commitId,
-            creationTime = commitTime,
-        )
-
-        private fun TestsSourceVersionInfo.toKey() = TestSuitesSourceSnapshotKey(
-            organizationName = organizationName,
-            testSuitesSourceName = sourceName,
-            version = version,
-            creationTime = commitTime,
-        )
-    }
 }
