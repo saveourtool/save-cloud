@@ -301,7 +301,7 @@ internal class ContestController(
         }
         .zipWith(
             Mono.fromCallable {
-                testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.requiredId() })
+                testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.id })
             }
         )
         .map { (contest, testSuites) ->
