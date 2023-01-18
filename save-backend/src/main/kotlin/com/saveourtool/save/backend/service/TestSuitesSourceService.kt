@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
@@ -147,12 +148,14 @@ class TestSuitesSourceService(
      * @param testSuitesSource test suites source which requested to be fetched
      * @param mode mode of fetching, it controls how [version] is used
      * @param version tag, branch or commit (depends on [mode])
+     * @param userId ID of [com.saveourtool.save.entities.User]
      * @return empty response
      */
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
+        userId: Long,
     ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
         organizationName = testSuitesSource.organizationName,
         sourceName = testSuitesSource.name,
@@ -179,10 +182,16 @@ class TestSuitesSourceService(
             }
         }
         .flatMap {
+            val request = TestsSourceFetchRequest(
+                source = testSuitesSource,
+                mode = mode,
+                version = version,
+                createdByUserId = userId,
+            )
             preprocessorWebClient
                 .post()
-                .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
-                .bodyValue(testSuitesSource)
+                .uri("/test-suites-sources/fetch")
+                .bodyValue(request)
                 .retrieve()
                 .toBodilessEntity()
         }

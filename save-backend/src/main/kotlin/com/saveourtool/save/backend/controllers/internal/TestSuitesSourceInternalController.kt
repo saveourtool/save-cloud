@@ -1,20 +1,21 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
-import org.slf4j.Logger
+import org.springframework.context.annotation.Lazy
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller for [TestSuitesSource]
@@ -22,43 +23,57 @@ import reactor.kotlin.core.publisher.toMono
 @RestController
 @RequestMapping("/internal/test-suites-sources")
 class TestSuitesSourceInternalController(
-    private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesSourceVersionService: TestsSourceVersionService,
-    private val organizationService: OrganizationService,
+    private val testsSourceVersionService: TestsSourceVersionService,
+    @Lazy
+    private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
+    private val testSuitesService: TestSuitesService,
+    private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val executionService: ExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     /**
-     * @param versionInfo
+     * @param snapshotDto
      * @param contentAsMonoPart
      * @return [Mono] without value
      */
     @PostMapping("/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadSnapshot(
-        @RequestPart("versionInfo") versionInfo: TestsSourceVersionInfo,
+        @RequestPart("snapshot") snapshotDto: TestsSourceSnapshotDto,
         @RequestPart("content") contentAsMonoPart: Mono<Part>,
     ): Mono<Unit> = contentAsMonoPart.flatMap { part ->
         val content = part.content().map { it.asByteBuffer() }
-        testSuitesSourceVersionService.upload(versionInfo, content).map { writtenBytes ->
-            log.info { "Saved ($writtenBytes bytes) snapshot of ${versionInfo.sourceName} in ${versionInfo.organizationName} with version ${versionInfo.version}" }
+        snapshotStorage.upload(snapshotDto.toKey(), content).thenReturn(Unit)
+    }
+
+    /**
+     * @param versionInfo
+     * @return [Mono] without value
+     */
+    @PostMapping("/save-version")
+    fun saveVersion(
+        @RequestBody versionInfo: TestsSourceVersionInfo,
+    ): Mono<Unit> = snapshotStorage.copy(
+        source = versionInfo.toKeyForSnapshot(),
+        target = versionInfo.toKey(),
+    ).flatMap {
+        blockingToMono {
+            testSuitesService.copyToNewVersion(
+                organizationName = versionInfo.organizationName,
+                sourceName = versionInfo.sourceName,
+                originalVersion = versionInfo.commitId,
+                newVersion = versionInfo.version,
+            )
         }
     }
 
     /**
-     * @param organizationName
-     * @param sourceName
-     * @param version
+     * @param snapshotDto
      * @return [Mono] with result
      */
-    @GetMapping("/{organizationName}/{sourceName}/contains-snapshot")
+    @PostMapping("/contains-snapshot")
     fun containsSnapshot(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-    ): Mono<Boolean> = getTestSuitesSource(organizationName, sourceName)
-        .flatMap {
-            testSuitesSourceVersionService.doesContain(it.organization.name, it.name, version)
-        }
+        @RequestBody snapshotDto: TestsSourceSnapshotDto,
+    ): Mono<Boolean> = snapshotStorage.doesExist(snapshotDto.toKey())
 
     /**
      * @param executionId
@@ -80,24 +95,9 @@ class TestSuitesSourceInternalController(
         source.downloadSnapshot(version)
     }
 
-    private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
-        organizationService.findByNameAndCreatedStatus(organizationName)
-    }.switchIfEmptyToNotFound {
-        "Organization not found by name $organizationName"
-    }
-
-    private fun getTestSuitesSource(organizationName: String, name: String): Mono<TestSuitesSource> =
-            getOrganization(organizationName)
-                .flatMap { organization ->
-                    testSuitesSourceService.findByName(organization, name).toMono()
-                }
-                .switchIfEmptyToNotFound {
-                    "TestSuitesSource not found by name $name for organization $organizationName"
-                }
-
     private fun TestSuitesSourceDto.downloadSnapshot(
         version: String
-    ): Mono<ByteBufferFluxResponse> = testSuitesSourceVersionService.doesContain(organizationName, name, version)
+    ): Mono<ByteBufferFluxResponse> = testsSourceVersionService.doesContain(organizationName, name, version)
         .filter { it }
         .switchIfEmptyToNotFound {
             "Not found a snapshot of $name in $organizationName with version=$version"
@@ -105,10 +105,32 @@ class TestSuitesSourceInternalController(
         .map {
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(testSuitesSourceVersionService.download(organizationName, name, version))
+                .body(testsSourceVersionService.download(organizationName, name, version))
+        }
+
+    private fun TestsSourceSnapshotDto.toKey() = testSuitesSourceRepository.getByIdOrNotFound(sourceId)
+        .let { source ->
+            TestSuitesSourceSnapshotKey(
+                organizationName = source.organization.name,
+                testSuitesSourceName = source.name,
+                version = commitId,
+                creationTime = commitTime,
+            )
         }
 
     companion object {
-        private val log: Logger = getLogger<TestSuitesSourceService>()
+        private fun TestsSourceVersionInfo.toKeyForSnapshot() = TestSuitesSourceSnapshotKey(
+            organizationName = organizationName,
+            testSuitesSourceName = sourceName,
+            version = commitId,
+            creationTime = commitTime,
+        )
+
+        private fun TestsSourceVersionInfo.toKey() = TestSuitesSourceSnapshotKey(
+            organizationName = organizationName,
+            testSuitesSourceName = sourceName,
+            version = version,
+            creationTime = commitTime,
+        )
     }
 }

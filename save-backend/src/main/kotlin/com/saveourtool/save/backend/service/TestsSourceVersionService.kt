@@ -31,24 +31,6 @@ class TestsSourceVersionService(
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
     /**
-     * @param versionInfo
-     * @param content
-     * @return count of written bytes
-     */
-    fun upload(
-        versionInfo: TestsSourceVersionInfo,
-        content: Flux<ByteBuffer>,
-    ): Mono<Long> = snapshotStorage.upload(
-        key = TestSuitesSourceSnapshotKey(
-            organizationName = versionInfo.organizationName,
-            testSuitesSourceName = versionInfo.sourceName,
-            version = versionInfo.version,
-            creationTime = versionInfo.commitTime,
-        ),
-        content = content
-    )
-
-    /**
      * @param organizationName
      * @param sourceName
      * @param version
@@ -184,10 +166,10 @@ class TestsSourceVersionService(
         private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
             organizationName = organizationName,
             sourceName = testSuitesSourceName,
-            version = version,
-            creationTime = convertAndGetCreationTime(),
             commitId = version,
             commitTime = convertAndGetCreationTime(),
+            version = version,
+            creationTime = convertAndGetCreationTime(),
         )
     }
 }

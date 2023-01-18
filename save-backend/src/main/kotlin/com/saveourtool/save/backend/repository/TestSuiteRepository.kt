@@ -25,6 +25,24 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     ): TestSuite?
 
     /**
+     * @param organizationName name of [TestSuitesSource.organization] from [TestSuite.source]
+     * @param sourceName name of [TestSuite.source]
+     * @param version [TestSuite.version]
+     * @return all [TestSuite] found by provided values
+     */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findAllBySource_Organization_NameAndSource_NameAndVersion(
+        organizationName: String,
+        sourceName: String,
+        version: String,
+    ): List<TestSuite>
+
+    /**
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suites

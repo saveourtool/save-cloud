@@ -2,14 +2,13 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
-import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -37,33 +36,19 @@ class TestsPreprocessorToBackendBridge(
         .build()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @param gitCommitInfo
+     * @param snapshotDto
      * @param resourceWithContent
      * @return empty response
      */
     fun saveTestsSuiteSourceSnapshot(
-        testSuitesSource: TestSuitesSourceDto,
-        version: String,
-        gitCommitInfo: GitCommitInfo,
+        snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
     ): Mono<Unit> = webClientBackend.post()
         .uri("/test-suites-sources/upload-snapshot")
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(
             BodyInserters.fromMultipartData("content", resourceWithContent)
-                .with(
-                    "versionInfo",
-                    TestsSourceVersionInfo(
-                        organizationName = testSuitesSource.organizationName,
-                        sourceName = testSuitesSource.name,
-                        version = version,
-                        creationTime = getCurrentLocalDateTime(),
-                        commitId = gitCommitInfo.id,
-                        commitTime = gitCommitInfo.time,
-                    )
-                )
+                .with("snapshot", snapshotDto)
         )
         .retrieve()
         .onStatus({ !it.is2xxSuccessful }) {
@@ -76,16 +61,28 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @return true if backend knows [version], otherwise -- false
+     * @param testsSourceSnapshotDto
+     * @return true if backend knows [testsSourceSnapshotDto], otherwise -- false
      */
-    fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
-            webClientBackend.get()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
+    fun doesContainTestsSourceSnapshot(testsSourceSnapshotDto: TestsSourceSnapshotDto): Mono<Boolean> =
+            webClientBackend
+                .post()
+                .uri("/test-suites-sources/contains-snapshot")
+                .bodyValue(testsSourceSnapshotDto)
                 .retrieve()
                 .bodyToMono()
+
+    /**
+     * @param testsSourceVersionInfo
+     * @return empty response
+     */
+    fun saveTestsSourceVersion(testsSourceVersionInfo: TestsSourceVersionInfo): Mono<Unit> = webClientBackend
+        .post()
+        .uri("/test-suites-sources/save-version")
+        .bodyValue(testsSourceVersionInfo)
+        .retrieve()
+        .toBodilessEntity()
+        .then(Mono.just(Unit))
 
     /**
      * @param testSuiteDto

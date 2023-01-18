@@ -97,9 +97,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val deleteTestSuitesSourcesSnapshotKey = useDeferredRequest {
         testsSourceVersionInfoToDelete?.let { key ->
             delete(
-                url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.sourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
+                url = with(key) {
+                    "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(sourceName)}/delete-test-suites-and-snapshot?version=$version"
+                },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
+                
             )
             setTestsSourceVersionInfoToDelete(null)
         }

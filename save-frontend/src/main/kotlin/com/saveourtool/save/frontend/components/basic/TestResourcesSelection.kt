@@ -13,7 +13,7 @@ import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPubl
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
@@ -42,12 +42,12 @@ external interface TestResourcesProps : PropsWithChildren {
     var setSelectedContest: (ContestDto) -> Unit
 
     // properties for PRIVATE_TESTS mode
-    var selectedPrivateTestSuiteDtos: List<TestSuiteDto>
-    var setSelectedPrivateTestSuiteDtos: (List<TestSuiteDto>) -> Unit
+    var selectedPrivateTestSuites: List<TestSuiteVersioned>
+    var setSelectedPrivateTestSuites: (List<TestSuiteVersioned>) -> Unit
 
     // properties for PUBLIC_TESTS mode
-    var selectedPublicTestSuiteDtos: List<TestSuiteDto>
-    var setSelectedPublicTestSuiteDtos: (List<TestSuiteDto>) -> Unit
+    var selectedPublicTestSuites: List<TestSuiteVersioned>
+    var setSelectedPublicTestSuites: (List<TestSuiteVersioned>) -> Unit
     var execCmd: String
     var setExecCmd: (String) -> Unit
     var batchSizeForAnalyzer: String
@@ -104,9 +104,9 @@ private fun ContestDto.label(): String = "$organizationName/$name"
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
     testSuiteSelectorWindowOpenness: WindowOpenness,
-    testSuitesInSelectorState: StateInstance<List<TestSuiteDto>>,
-    selectedTestSuites: List<TestSuiteDto>,
-    setSelectedTestSuiteDtos: (List<TestSuiteDto>) -> Unit,
+    testSuitesInSelectorState: StateInstance<List<TestSuiteVersioned>>,
+    selectedTestSuites: List<TestSuiteVersioned>,
+    setSelectedTestSuites: (List<TestSuiteVersioned>) -> Unit,
 ) {
     div {
         className = ClassName("card shadow mb-4 w-100")
@@ -139,14 +139,14 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                     selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
                     testSuitesInSelectorState,
-                    setSelectedTestSuiteDtos
+                    setSelectedTestSuites
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
                     props.organizationName,
                     selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
                     testSuitesInSelectorState,
-                    setSelectedTestSuiteDtos
+                    setSelectedTestSuites
                 )
                 else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
             }
@@ -227,10 +227,10 @@ private fun ChildrenBuilder.renderForContestMode(
 private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     // states for private mode
     val testSuiteSelectorWindowOpennessPrivateMode = useWindowOpenness()
-    val testSuiteDtosInSelectorStatePrivateMode = useState(emptyList<TestSuiteDto>())
+    val testSuitesInSelectorStatePrivateMode = useState(emptyList<TestSuiteVersioned>())
     // states for public mode
     val testSuiteSelectorWindowOpennessPublicMode = useWindowOpenness()
-    val testSuiteDtosInSelectorStatePublicMode = useState(emptyList<TestSuiteDto>())
+    val testSuitesInSelectorStatePublicMode = useState(emptyList<TestSuiteVersioned>())
     // states for contest mode
     val contestEnrollerWindowOpenness = useWindowOpenness()
 
@@ -254,16 +254,16 @@ private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
         TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
             props,
             testSuiteSelectorWindowOpennessPrivateMode,
-            testSuiteDtosInSelectorStatePrivateMode,
-            props.selectedPrivateTestSuiteDtos,
-            props.setSelectedPrivateTestSuiteDtos
+            testSuitesInSelectorStatePrivateMode,
+            props.selectedPrivateTestSuites,
+            props.setSelectedPrivateTestSuites
         )
         TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
             props,
             testSuiteSelectorWindowOpennessPublicMode,
-            testSuiteDtosInSelectorStatePublicMode,
-            props.selectedPublicTestSuiteDtos,
-            props.setSelectedPublicTestSuiteDtos
+            testSuitesInSelectorStatePublicMode,
+            props.selectedPublicTestSuites,
+            props.setSelectedPublicTestSuites
         )
         TestingType.CONTEST_MODE -> renderForContestMode(
             props,
