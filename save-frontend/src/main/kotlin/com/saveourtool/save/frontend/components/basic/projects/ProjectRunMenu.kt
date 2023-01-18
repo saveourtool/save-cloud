@@ -14,7 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
@@ -117,8 +117,8 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     val (execCmd, setExecCmd) = useState("")
     val (batchSizeForAnalyzer, setBatchSizeForAnalyzer) = useState("")
 
-    val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
+    val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val buildExecutionRequest: () -> CreateExecutionRequest = {
         val selectedTestSuites = when (testingType) {
@@ -131,7 +131,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 organizationName = project.organizationName,
                 projectName = project.name
             ),
-            testSuiteIds = selectedTestSuites.map { it.requiredId() },
+            testSuiteIds = selectedTestSuites.map { it.id },
             fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },
@@ -231,11 +231,11 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 this.setSelectedContest = { setSelectedContest(it) }
                 this.availableContests = availableContests
                 // properties for PRIVATE_TESTS mode
-                selectedPrivateTestSuiteDtos = selectedPrivateTestSuites
-                setSelectedPrivateTestSuiteDtos = { setSelectedPrivateTestSuites(it) }
+                this.selectedPrivateTestSuites = selectedPrivateTestSuites
+                this.setSelectedPrivateTestSuites = { setSelectedPrivateTestSuites(it) }
                 // properties for PUBLIC_TESTS mode
-                selectedPublicTestSuiteDtos = selectedPublicTestSuites
-                setSelectedPublicTestSuiteDtos = { setSelectedPublicTestSuites(it) }
+                this.selectedPublicTestSuites = selectedPublicTestSuites
+                this.setSelectedPublicTestSuites = { setSelectedPublicTestSuites(it) }
                 // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
                 this.execCmd = execCmd
                 this.setExecCmd = { setExecCmd(it) }
