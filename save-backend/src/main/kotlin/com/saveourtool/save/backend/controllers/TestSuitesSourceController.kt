@@ -194,25 +194,16 @@ class TestSuitesSourceController(
             "Git cannot be changed in TestSuitesSource"
         }
         .map { originalEntity ->
-            originalEntity.name to originalEntity.apply {
+            originalEntity.apply {
                 name = dtoToUpdate.name
                 description = dtoToUpdate.description
                 testRootPath = dtoToUpdate.testRootPath
                 latestFetchedVersion = dtoToUpdate.latestFetchedVersion
             }
         }
-        .flatMap { (originalName, updatedEntity) ->
+        .flatMap { updatedEntity ->
             when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
-                EntitySaveStatus.UPDATED -> {
-                    val newName = updatedEntity.name
-                    val movingSnapshots = if (originalName != newName) {
-                        testsSourceVersionService.updateSourceName(updatedEntity.organization.name, originalName, newName)
-                    } else {
-                        Mono.just(Unit)
-                    }
-                    movingSnapshots.then(Mono.just(saveStatus.toResponseEntity()))
-                }
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.UPDATED -> Mono.just(saveStatus.toResponseEntity())
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }

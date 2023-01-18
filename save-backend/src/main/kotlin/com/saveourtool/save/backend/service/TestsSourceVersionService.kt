@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
-import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.test.*
@@ -34,8 +33,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 @Service
 class TestsSourceVersionService(
     @Lazy
-    private val migrationStorage: MigrationTestsSourceSnapshotStorage,
-    private val snapshotStorage: TestsSourceSnapshotStorage,
+    private val snapshotStorage: MigrationTestsSourceSnapshotStorage,
     private val testSuitesService: TestSuitesService,
     private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
@@ -53,12 +51,9 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<Boolean> {
-        require(migrationStorage.isMigrated())
-        return findSnapshotKey(organizationName, sourceName, version)
-            .map { true }
-            .defaultIfEmpty(false)
-    }
+    ): Mono<Boolean> = snapshotStorage.findSnapshotKey(organizationName, sourceName, version)
+        .map { true }
+        .defaultIfEmpty(false)
 
     /**
      * @param organizationName
@@ -70,14 +65,11 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Flux<ByteBuffer> {
-        require(migrationStorage.isMigrated())
-        return findSnapshotKey(
-            organizationName = organizationName,
-            sourceName = sourceName,
-            version = version,
-        ).flatMapMany { snapshotStorage.download(it) }
-    }
+    ): Flux<ByteBuffer> = snapshotStorage.findSnapshotKey(
+        organizationName = organizationName,
+        sourceName = sourceName,
+        version = version,
+    ).flatMapMany { snapshotStorage.download(it) }
 
     /**
      * @param organizationName
@@ -89,24 +81,11 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Mono<Boolean> {
-        require(migrationStorage.isMigrated())
-        return findSnapshotKey(
-            organizationName = organizationName,
-            sourceName = sourceName,
-            version = version,
-        ).flatMap { snapshotStorage.delete(it) }
-    }
-
-    private fun findSnapshotKey(
-        organizationName: String,
-        sourceName: String,
-        version: String,
-    ): Mono<TestsSourceSnapshotDto> = blockingToMono {
-        testsSourceVersionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
-            organizationName, sourceName, version
-        )?.snapshot?.toDto()
-    }
+    ): Mono<Boolean> = snapshotStorage.findSnapshotKey(
+        organizationName = organizationName,
+        sourceName = sourceName,
+        version = version,
+    ).flatMap { snapshotStorage.delete(it) }
 
     /**
      * @param organizationName
@@ -114,13 +93,7 @@ class TestsSourceVersionService(
      */
     fun list(
         organizationName: String,
-    ): Flux<TestsSourceVersionInfo> {
-        require(migrationStorage.isMigrated())
-        return blockingToFlux {
-            testsSourceVersionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
-                .map(TestsSourceVersion::toInfo)
-        }
-    }
+    ): Flux<TestsSourceVersionInfo> = snapshotStorage.list(organizationName)
 
     /**
      * @param organizationName
@@ -130,20 +103,14 @@ class TestsSourceVersionService(
     fun list(
         organizationName: String,
         sourceName: String,
-    ): Flux<TestsSourceVersionInfo> {
-        require(migrationStorage.isMigrated())
-        return blockingToFlux {
-            testsSourceVersionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(organizationName, sourceName)
-                .map(TestsSourceVersion::toInfo)
-        }
-    }
+    ): Flux<TestsSourceVersionInfo> = snapshotStorage.list(organizationName, sourceName)
 
     /**
      * @param request
      * @return [TestFilesContent] filled with test files
      */
     fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = with(request.testSuitesSource) {
-        findSnapshotKey(organizationName, name, request.version)
+        snapshotStorage.findSnapshotKey(organizationName, name, request.version)
             .orNotFound {
                 "There is no content for tests from $name in $organizationName with version ${request.version}"
             }
@@ -173,24 +140,6 @@ class TestsSourceVersionService(
                     result
                 }
         }
-
-    /**
-     * Handle changing source name -- files are moved in snapshot storage
-     *
-     * @param organizationName
-     * @param oldSourceName
-     * @param newSourceName
-     * @return [Mono] without value
-     */
-    fun updateSourceName(
-        organizationName: String,
-        oldSourceName: String,
-        newSourceName: String,
-    ): Mono<Unit> {
-        require(migrationStorage.isMigrated())
-        // no need to move files in new storage
-        return Mono.just(Unit)
-    }
 
     /**
      * Saves [TestsSourceVersion] created from provided [TestsSourceVersionInfo]

@@ -1,19 +1,24 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.storage.AbstractMigrationStorage
 import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.utils.getByIdOrNotFound
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.*
+
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
+
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * Storage for [com.saveourtool.save.entities.TestsSourceSnapshot]
@@ -23,6 +28,7 @@ class MigrationTestsSourceSnapshotStorage(
     oldStorage: TestSuitesSourceSnapshotStorage,
     newStorage: TestsSourceSnapshotStorage,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
+    private val testsSourceVersionRepository: TestsSourceVersionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
 ) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestsSourceSnapshotDto>(oldStorage, newStorage) {
     /**
@@ -62,6 +68,73 @@ class MigrationTestsSourceSnapshotStorage(
         log.info {
             "Copied ${source.toLogString(writtenBytes)} to new version ${target.version}"
         }
+    }
+
+    /**
+     * @param organizationName
+     * @param sourceName
+     * @param version
+     * @return [TestSuitesSourceSnapshotKey] related to some [com.saveourtool.save.test.TestsSourceVersionDto] with provided values
+     */
+    fun findSnapshotKey(
+        organizationName: String,
+        sourceName: String,
+        version: String,
+    ): Mono<TestSuitesSourceSnapshotKey> = validateAndRun { doFindSnapshotKey(organizationName, sourceName, version) }
+
+    private fun doFindSnapshotKey(
+        organizationName: String,
+        sourceName: String,
+        version: String,
+    ): Mono<TestSuitesSourceSnapshotKey> = blockingToMono {
+        testsSourceVersionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+            organizationName, sourceName, version
+        )
+            ?.snapshot
+            ?.let { snapshot ->
+                TestSuitesSourceSnapshotKey(
+                    organizationName = snapshot.source.organization.name,
+                    testSuitesSourceName = snapshot.source.name,
+                    version = snapshot.commitId,
+                    creationTime = snapshot.commitTime.toKotlinLocalDateTime(),
+                )
+            }
+    }
+
+    /**
+     * @param organizationName
+     * @return list of [TestsSourceVersionInfo] found by provided values
+     */
+    fun list(
+        organizationName: String,
+    ): Flux<TestsSourceVersionInfo> = validateAndRun { doList(organizationName) }
+
+    private fun doList(
+        organizationName: String,
+    ): Flux<TestsSourceVersionInfo> = blockingToFlux {
+        testsSourceVersionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
+            .map(TestsSourceVersion::toInfo)
+    }
+
+    /**
+     * @param organizationName
+     * @param sourceName
+     * @return list of [TestsSourceVersionInfo] found by provided values
+     */
+    fun list(
+        organizationName: String,
+        sourceName: String,
+    ): Flux<TestsSourceVersionInfo> = validateAndRun { doList(organizationName, sourceName) }
+
+    private fun doList(
+        organizationName: String,
+        sourceName: String,
+    ): Flux<TestsSourceVersionInfo> = blockingToFlux {
+        testsSourceVersionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
+            organizationName,
+            sourceName
+        )
+            .map(TestsSourceVersion::toInfo)
     }
 
     companion object {
