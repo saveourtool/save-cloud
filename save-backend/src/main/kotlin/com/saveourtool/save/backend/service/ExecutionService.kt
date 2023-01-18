@@ -129,14 +129,19 @@ class ExecutionService(
          * Test analysis: update the in-memory statistics.
          */
         if (updatedExecution.status == ExecutionStatus.FINISHED) {
+            val testRunCount: Int
+
             val nanos = measureNanoTime {
                 val metadata = updatedExecution.metadata()
 
-                testExecutionRepository.findByExecutionId(executionId).forEach { testExecution ->
-                    val testId = metadata.extendWith(testExecution).let(testIdGenerator::testId)
+                testRunCount = testExecutionRepository.findByExecutionId(executionId)
+                    .asSequence()
+                    .map { testExecution ->
+                        val testId = metadata.extendWith(testExecution).let(testIdGenerator::testId)
 
-                    statisticsStorage.updateExecutionStatistics(testId, testExecution.asTestRun())
-                }
+                        statisticsStorage.updateExecutionStatistics(testId, testExecution.asTestRun())
+                    }
+                    .count()
             }
 
             log.info {
@@ -144,7 +149,7 @@ class ExecutionService(
                     "MagicNumber",
                     "FLOAT_IN_ACCURATE_CALCULATIONS",
                 )
-                "Test statistics updated in ${nanos / 1000L / 1e3} ms from execution (id = $executionId)"
+                "Test statistics updated (+$testRunCount test run(s)) in ${nanos / 1000L / 1e3} ms from execution (id = $executionId)"
             }
         }
     }
