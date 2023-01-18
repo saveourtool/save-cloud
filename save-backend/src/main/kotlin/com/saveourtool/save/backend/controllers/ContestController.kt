@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.Contest
@@ -56,6 +57,7 @@ internal class ContestController(
     private val organizationService: OrganizationService,
     private val testSuitesService: TestSuitesService,
     private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     private val lnkContestTestSuiteService: LnkContestTestSuiteService,
 ) {
     @GetMapping("/{contestName}")
@@ -202,12 +204,18 @@ internal class ContestController(
             "No tests were found for test suite with id $testSuiteId."
         }
         .flatMap { (testSuite, test) ->
-            Mono.zip(
-                testSuite.toMono(),
-                testsSourceVersionService.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
-            )
+            blockingToMono {
+                testsSourceVersionService.findSnapshot(testSuite.source.organization.name, testSuite.source.name, testSuite.version)
+            }
+                .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                    "Failed to find a snapshot for test suite: ${testSuite.requiredId()}"
+                }
+                .flatMap {
+                    testsSourceSnapshotStorage.getTestContent(TestFilesRequest(test.toDto(), it))
+                }
+                .zipWith(testSuite.toMono())
         }
-        .map { (testSuite, testFilesContent) ->
+        .map { (testFilesContent, testSuite) ->
             testFilesContent.copy(
                 language = testSuite.language
             )
