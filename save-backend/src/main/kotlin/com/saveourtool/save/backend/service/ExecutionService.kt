@@ -3,16 +3,11 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.ErrorMessage
-import com.saveourtool.save.backend.utils.asTestRun
 import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.test.analysis.api.TestIdGenerator
-import com.saveourtool.save.test.analysis.api.testId
-import com.saveourtool.save.test.analysis.entities.metadata
-import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
 import com.saveourtool.save.utils.*
 
 import arrow.core.Either
@@ -27,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException
 
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.system.measureNanoTime
 
 /**
  * Service that is used to manipulate executions
@@ -49,8 +43,7 @@ class ExecutionService(
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
-    private val statisticsStorage: MutableTestStatisticsStorage,
-    private val testIdGenerator: TestIdGenerator,
+    private val testAnalysisService: TestAnalysisService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -129,28 +122,7 @@ class ExecutionService(
          * Test analysis: update the in-memory statistics.
          */
         if (updatedExecution.status == ExecutionStatus.FINISHED) {
-            val testRunCount: Int
-
-            val nanos = measureNanoTime {
-                val metadata = updatedExecution.metadata()
-
-                testRunCount = testExecutionRepository.findByExecutionId(executionId)
-                    .asSequence()
-                    .map { testExecution ->
-                        val testId = metadata.extendWith(testExecution).let(testIdGenerator::testId)
-
-                        statisticsStorage.updateExecutionStatistics(testId, testExecution.asTestRun())
-                    }
-                    .count()
-            }
-
-            log.info {
-                @Suppress(
-                    "MagicNumber",
-                    "FLOAT_IN_ACCURATE_CALCULATIONS",
-                )
-                "Test statistics updated (+$testRunCount test run(s)) in ${nanos / 1000L / 1e3} ms from execution (id = $executionId)"
-            }
+            testAnalysisService.updateStatistics(updatedExecution)
         }
     }
 

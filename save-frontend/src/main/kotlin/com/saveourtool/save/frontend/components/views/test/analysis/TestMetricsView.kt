@@ -51,7 +51,7 @@ val testMetricsView: FC<TestMetricsProps> = FC { props ->
                     li {
                         labelledValue {
                             label = "Failure rate"
-                            value = "$failureRatePercentage%"
+                            value = failureRatePercentagePretty()
                         }
                     }
 
@@ -59,7 +59,7 @@ val testMetricsView: FC<TestMetricsProps> = FC { props ->
                         labelledValue {
                             label = "Flip rate"
                             labelTooltip = FLIP_RATE_DESCRIPTION
-                            value = "$flipRatePercentage%"
+                            value = flipRatePercentagePretty()
                         }
                     }
 
@@ -86,6 +86,21 @@ val testMetricsView: FC<TestMetricsProps> = FC { props ->
     }
 }
 
+@Suppress("CUSTOM_GETTERS_SETTERS")
+private val String.percent: String
+    get() {
+        return when {
+            endsWith('%') -> this
+            else -> "$this%"
+        }
+    }
+
+@Suppress("CUSTOM_GETTERS_SETTERS")
+private val Any.percent: String
+    get() {
+        return toString().percent
+    }
+
 /**
  * Properties of [testMetricsView].
  *
@@ -97,3 +112,15 @@ external interface TestMetricsProps : Props {
      */
     var testMetrics: TestMetrics
 }
+
+private fun RegularTestMetrics.failureRatePercentagePretty(): String =
+        when {
+            failureRatePercentage == 0 && failureCount > 0 -> "<1".percent
+            else -> failureRatePercentage.percent
+        }
+
+private fun RegularTestMetrics.flipRatePercentagePretty(): String =
+        when {
+            flipRatePercentage == 0 && flipCount > 0 -> "<1".percent
+            else -> flipRatePercentage.percent
+        }

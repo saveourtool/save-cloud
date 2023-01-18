@@ -84,7 +84,7 @@ val basicRouting: FC<AppProps> = FC { props ->
                     tag = params.get("tag")
                 )
             }
-            testAnalysisEnabled = false
+            testAnalysisEnabled = true
         }
     }
 
