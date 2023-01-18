@@ -152,8 +152,8 @@ class TestAnalysisService(
     fun analyze(testId: TestId): Flux<AnalysisResult> =
             Flux.fromStream {
                 statisticsStorageLock.read {
-                    lowLevelAnalysisService.analyze(testId).stream()
-                }
+                    lowLevelAnalysisService.analyze(testId)
+                }.stream()
             }
 
     /**
