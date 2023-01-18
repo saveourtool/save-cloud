@@ -47,10 +47,16 @@ class TestAnalysisService(
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<TestAnalysisService>()
 
+    /**
+     * The low-level test analysis service instance.
+     */
     private val lowLevelAnalysisService = LowLevelAnalysisService(statisticsStorage)
 
+    /**
+     * Populates the in-memory statistics by replaying historical data.
+     */
     @EventListener(ApplicationReadyEvent::class)
-    fun init() {
+    fun replayHistoricalData() {
         val testRunCount: Long
 
         @Suppress("Destructure")
@@ -98,7 +104,7 @@ class TestAnalysisService(
             }
 
     /**
-     * @return the number of test executions for this project.
+     * @return the number of test executions for this [project].
      */
     private fun updateStatistics(project: Project): Long {
         /*

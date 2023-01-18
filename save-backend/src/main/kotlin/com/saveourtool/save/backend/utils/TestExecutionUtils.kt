@@ -13,6 +13,12 @@ import kotlinx.datetime.UtcOffset.Companion.ZERO
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toKotlinLocalDateTime
 
+/**
+ * Represents this test execution with a smaller [TestRun] instance, allowing to
+ * conserve memory.
+ *
+ * @return the [TestRun] view of this test execution.
+ */
 internal fun TestExecution.asTestRun(): TestRun =
         TestRun(status, durationOrNull())
 
