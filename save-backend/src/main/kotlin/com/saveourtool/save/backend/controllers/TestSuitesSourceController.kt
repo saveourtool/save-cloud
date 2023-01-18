@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -46,6 +47,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @RequestMapping("/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
+    private val testsSourceSnapshotStorage: MigrationTestsSourceSnapshotStorage,
     private val testsSourceVersionService: TestsSourceVersionService,
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
@@ -117,9 +119,8 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
     ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
-        .flatMap {
-            testsSourceVersionService.list(it.organizationName, it.name)
-                .collectList()
+        .map {
+            testsSourceVersionService.getAllAsInfo(it.organizationName, it.name).toList()
         }
 
     @GetMapping("/{organizationName}/list-snapshot")
@@ -139,8 +140,9 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
     ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
-            testsSourceVersionService.list(organization.name)
-                .collectList()
+            blockingToMono {
+                testsSourceVersionService.getAllAsInfo(organization.name).toList()
+            }
         }
 
     @PostMapping("/create")
@@ -343,10 +345,8 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.tagList(it.toDto()) }
-        .zipWith(testsSourceVersionService.list(organizationName, sourceName)
-            .map { it.version }
-            .collectList())
-        .map { (tags, versions) ->
+        .map { tags ->
+            val versions = testsSourceVersionService.getAllVersions(organizationName, sourceName)
             ResponseEntity.ok()
                 .body(tags.filterNot { it in versions })
         }

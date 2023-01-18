@@ -90,11 +90,16 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     protected abstract fun N.toOldKey(): O
 
     /**
+     * @return true if migration is done, otherwise -- false
+     */
+    fun isMigrationFinished(): Boolean = isMigrationFinished.get()
+
+    /**
      * @param action
      * @return result of [action] if migration is finished, otherwise -- exception
      */
     protected fun <R> validateAndRun(action: () -> R): R {
-        require(isMigrationFinished.get()) {
+        require(isMigrationFinished()) {
             "Any method of ${javaClass.simpleName} should be called after migration is finished"
         }
         return action()

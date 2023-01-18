@@ -1,10 +1,13 @@
 package com.saveourtool.save.backend.storage
 
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.entities.TestsSourceVersion
+import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.storage.AbstractMigrationStorage
+import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
@@ -19,6 +22,10 @@ import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
 
 import kotlinx.datetime.toKotlinLocalDateTime
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.core.io.buffer.DefaultDataBufferFactory
+import kotlin.io.path.*
 
 /**
  * Storage for [com.saveourtool.save.entities.TestsSourceSnapshot]
@@ -30,7 +37,10 @@ class MigrationTestsSourceSnapshotStorage(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
+    configProperties: ConfigProperties,
 ) : AbstractMigrationStorage<TestSuitesSourceSnapshotKey, TestsSourceSnapshotDto>(oldStorage, newStorage) {
+    private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
+
     /**
      * A temporary init method which copies file from one storage to another
      */
@@ -105,11 +115,11 @@ class MigrationTestsSourceSnapshotStorage(
      * @param organizationName
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
-    fun list(
+    fun listAsVersionInfo(
         organizationName: String,
-    ): Flux<TestsSourceVersionInfo> = validateAndRun { doList(organizationName) }
+    ): Flux<TestsSourceVersionInfo> = validateAndRun { doListAsVersionInfo(organizationName) }
 
-    private fun doList(
+    private fun doListAsVersionInfo(
         organizationName: String,
     ): Flux<TestsSourceVersionInfo> = blockingToFlux {
         testsSourceVersionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
@@ -121,12 +131,12 @@ class MigrationTestsSourceSnapshotStorage(
      * @param sourceName
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
-    fun list(
+    fun listAsVersionInfo(
         organizationName: String,
         sourceName: String,
-    ): Flux<TestsSourceVersionInfo> = validateAndRun { doList(organizationName, sourceName) }
+    ): Flux<TestsSourceVersionInfo> = validateAndRun { doListAsVersionInfo(organizationName, sourceName) }
 
-    private fun doList(
+    private fun doListAsVersionInfo(
         organizationName: String,
         sourceName: String,
     ): Flux<TestsSourceVersionInfo> = blockingToFlux {
@@ -136,6 +146,37 @@ class MigrationTestsSourceSnapshotStorage(
         )
             .map(TestsSourceVersion::toInfo)
     }
+
+
+    /**
+     * @param request
+     * @return [TestFilesContent] filled with test files
+     */
+    fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = validateAndRun {
+            val tmpSourceDir = createTempDirectory(tmpDir, "source-")
+            val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
+            val sourceContent = download(request.storageKey)
+                .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
+                .cast(DataBuffer::class.java)
+
+            DataBufferUtils.write(sourceContent, tmpArchive.outputStream())
+                .map { DataBufferUtils.release(it) }
+                .collectList()
+                .map {
+                    tmpArchive.extractZipHere()
+                    tmpArchive.deleteExisting()
+                }
+                .map {
+                    val testFilePath = request.test.filePath
+                    val additionalTestFilePath = request.test.additionalFiles.firstOrNull()
+                    val result = TestFilesContent(
+                        tmpSourceDir.resolve(testFilePath).readLines(),
+                        additionalTestFilePath?.let { tmpSourceDir.resolve(it).readLines() },
+                    )
+                    tmpSourceDir.toFile().deleteRecursively()
+                    result
+                }
+        }
 
     companion object {
         private val log: Logger = getLogger<MigrationTestsSourceSnapshotStorage>()

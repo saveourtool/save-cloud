@@ -3,6 +3,7 @@ package com.saveourtool.save.test
 import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
 /**
  * @property snapshot [TestsSourceSnapshotDto]// TODO: should be replaced to snapshotId after removing [com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey]
@@ -12,6 +13,7 @@ import kotlinx.datetime.LocalDateTime
  * @property creationTime time of creation this version
  * @property id ID of saved entity
  */
+@Serializable
 data class TestsSourceVersionDto(
     val snapshot: TestsSourceSnapshotDto,
     val name: String,

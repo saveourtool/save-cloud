@@ -6,6 +6,7 @@ import com.saveourtool.save.preprocessor.service.*
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
@@ -71,7 +72,7 @@ internal class TestSuitesPreprocessorControllerTest {
 
         whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testsSourceSnapshotDto(testSuitesSourceDto, fullCommit, creationTime), any()))
             .thenReturn(Mono.just(Unit))
-        whenever(testsPreprocessorToBackendBridge.saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto)))
+        whenever(testsPreprocessorToBackendBridge.saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto)))
             .thenReturn(Mono.just(Unit))
 
         whenever(testDiscoveringService.detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), any()))
@@ -86,7 +87,7 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto, tag))
+        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto, tag))
         verifyNewCommit()
     }
 
@@ -98,7 +99,7 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto, tag))
+        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto, tag))
         verifyExistedCommit()
     }
 
@@ -110,7 +111,7 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto, branch))
+        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto, branch))
         verifyNewCommit()
     }
 
@@ -122,7 +123,7 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto, commit))
+        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto, commit))
         verifyNewCommit()
     }
 
@@ -134,7 +135,7 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionInfo(testSuitesSourceDto, commit))
+        verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(testSuitesSourceDto, commit))
         verifyExistedCommit()
     }
 
@@ -163,13 +164,12 @@ internal class TestSuitesPreprocessorControllerTest {
                 commitTime?.toKotlinInstant()?.toLocalDateTime(TimeZone.UTC).equalsOrTrueIfEmpty(value.commitTime)
     }
 
-    private fun testsSourceVersionInfo(
+    private fun testsSourceVersionDto(
         testSuitesSourceDto: TestSuitesSourceDto,
         versionNullable: String? = null
-    ): TestsSourceVersionInfo = argThat { value ->
-        value.organizationName == testSuitesSourceDto.organizationName &&
-                value.sourceName == testSuitesSourceDto.name &&
-                versionNullable.equalsOrTrueIfEmpty(value.version)
+    ): TestsSourceVersionDto = argThat { value ->
+        value.snapshot.sourceId == testSuitesSourceDto.requiredId() &&
+                versionNullable.equalsOrTrueIfEmpty(value.name)
     }
 
     private fun <R> R?.equalsOrTrueIfEmpty(anotherValue: R) = this?.let { value -> value == anotherValue } ?: true

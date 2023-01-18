@@ -56,6 +56,26 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
     ): TestsSourceVersion?
 
     /**
+     * @param snapshotId
+     * @param version
+     * @return [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [snapshotId]) with provided [version]
+     */
+    fun findBySnapshot_IdAndName(
+        snapshotId: Long,
+        version: String,
+    ): TestsSourceVersion?
+
+    /**
+     * @param sourceId
+     * @param version
+     * @return [TestsSourceVersion] which linked to some [TestsSourceSnapshot] from some [com.saveourtool.save.entities.TestSuitesSource] (by [sourceId]) with provided [version]
+     */
+    fun findBySnapshot_SourceIdAndName(
+        sourceId: Long,
+        version: String,
+    ): TestsSourceVersion?
+
+    /**
      * @param organizationName
      * @return all [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [organizationName])
      */
