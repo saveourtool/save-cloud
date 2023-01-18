@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -30,9 +31,19 @@ class UserDetailsService(
 ) : ReactiveUserDetailsService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun findByUsername(username: String): Mono<UserDetails> = {
-        userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
-    }.toMono().getIdentitySourceAwareUserDetails(username)
+    override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
+        doFindByUsername(username)
+    }.getIdentitySourceAwareUserDetails(username)
+
+    /**
+     * @param username
+     * @return [User] found by provided values
+     */
+    fun getByUsername(username: String): User = doFindByUsername(username).orNotFound {
+        "Not found user $username"
+    }
+
+    private fun doFindByUsername(username: String) = userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
 
     /**
      * @param username

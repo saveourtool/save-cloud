@@ -10,7 +10,6 @@ import com.saveourtool.save.test.*
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.test.TestsSourceVersionInfo
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.*
 
 import org.springframework.context.annotation.Lazy
@@ -37,6 +36,7 @@ class TestsSourceVersionService(
     private val testSuitesService: TestSuitesService,
     private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testsSourceVersionRepository: TestsSourceVersionRepository,
+    private val userDetailsService: UserDetailsService,
     configProperties: ConfigProperties,
 ) {
     private val tmpDir = (java.nio.file.Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
@@ -160,6 +160,8 @@ class TestsSourceVersionService(
                     "Not found ${TestsSourceSnapshot::class.simpleName} for $versionInfo"
                 },
                 name = versionInfo.version,
+                type = versionInfo.type,
+                createdByUser = userDetailsService.getByUsername(versionInfo.createdByUserName),
                 creationTime = versionInfo.creationTime.toJavaLocalDateTime()
             )
         )
@@ -169,17 +171,6 @@ class TestsSourceVersionService(
             sourceName = versionInfo.sourceName,
             originalVersion = versionInfo.commitId,
             newVersion = versionInfo.version,
-        )
-    }
-
-    companion object {
-        private fun TestSuitesSourceSnapshotKey.toVersionInfo() = TestsSourceVersionInfo(
-            organizationName = organizationName,
-            sourceName = testSuitesSourceName,
-            commitId = version,
-            commitTime = convertAndGetCreationTime(),
-            version = version,
-            creationTime = convertAndGetCreationTime(),
         )
     }
 }

@@ -148,14 +148,14 @@ class TestSuitesSourceService(
      * @param testSuitesSource test suites source which requested to be fetched
      * @param mode mode of fetching, it controls how [version] is used
      * @param version tag, branch or commit (depends on [mode])
-     * @param userId ID of [com.saveourtool.save.entities.User]
+     * @param userName name of [com.saveourtool.save.entities.User]
      * @return empty response
      */
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-        userId: Long,
+        userName: String,
     ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
         organizationName = testSuitesSource.organizationName,
         sourceName = testSuitesSource.name,
@@ -186,7 +186,7 @@ class TestSuitesSourceService(
                 source = testSuitesSource,
                 mode = mode,
                 version = version,
-                createdByUserId = userId,
+                createdByUserName = userName,
             )
             preprocessorWebClient
                 .post()

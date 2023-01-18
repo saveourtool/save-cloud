@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.toResponseEntity
@@ -322,7 +322,7 @@ class TestSuitesSourceController(
                 ResponseEntity.accepted()
                     .body("Trigger fetching new tests from $sourceName in $organizationName")
             ).doOnSuccess {
-                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version, authentication.userId())
+                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version, authentication.username())
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }

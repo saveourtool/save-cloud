@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  * @property source
  * @property mode
  * @property version
- * @property createdByUserId
+ * @property createdByUserName
  */
 @Serializable
 data class TestsSourceFetchRequest(
@@ -21,7 +21,7 @@ data class TestsSourceFetchRequest(
     val mode: TestSuitesSourceFetchMode,
     val version: String,
 
-    val createdByUserId: Long,
+    val createdByUserName: String,
 ) {
     /**
      * @param commitId [TestsSourceSnapshotDto.commitId]
@@ -51,6 +51,8 @@ data class TestsSourceFetchRequest(
         commitId = commitId,
         commitTime = commitTime,
         version = version,
+        type = mode,
         creationTime = getCurrentLocalDateTime(),
+        createdByUserName = createdByUserName,
     )
 }
