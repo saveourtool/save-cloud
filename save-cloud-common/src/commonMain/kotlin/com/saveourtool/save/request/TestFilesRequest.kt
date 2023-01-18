@@ -1,5 +1,7 @@
-package com.saveourtool.save.test
+package com.saveourtool.save.request
 
+import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import kotlinx.serialization.Serializable
 
 /**
