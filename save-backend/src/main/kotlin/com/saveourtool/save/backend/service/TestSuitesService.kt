@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
@@ -158,23 +159,38 @@ class TestSuitesService(
             sourceName,
             originalVersion
         )
-        existedTestSuites.map {
-            // a copy of existed one but with a new version
-            TestSuite(
-                name = it.name,
-                description = it.description,
-                source = it.source,
-                version = newVersion,
-                dateAdded = it.dateAdded,
-                language = it.language,
-                tags = it.tags,
-                plugins = it.plugins,
-                isPublic = it.isPublic,
-            )
-        }
-            .let {
-                testSuiteRepository.saveAll(it)
+        existedTestSuites.forEach { testSuite -> testSuite.copyWithNewVersion(newVersion) }
+    }
+
+    private fun TestSuite.copyWithNewVersion(
+        newVersion: String,
+    ) {
+        // a copy of existed one but with a new version
+        val newTestSuite = TestSuite(
+            name = this.name,
+            description = this.description,
+            source = this.source,
+            version = newVersion,
+            dateAdded = this.dateAdded,
+            language = this.language,
+            tags = this.tags,
+            plugins = this.plugins,
+            isPublic = this.isPublic,
+        )
+        val savedNewTestSuite = testSuiteRepository.save(newTestSuite)
+        // also copy all tests from old TestSuite to new one
+        testRepository.findAllByTestSuiteId(this.requiredId())
+            .map { test ->
+                Test(
+                    hash = test.hash,
+                    filePath = test.filePath,
+                    pluginName = test.pluginName,
+                    dateAdded = test.dateAdded,
+                    testSuite = savedNewTestSuite,
+                    additionalFiles = test.additionalFiles,
+                )
             }
+            .let { testRepository.saveAll(it) }
     }
 
     /**
