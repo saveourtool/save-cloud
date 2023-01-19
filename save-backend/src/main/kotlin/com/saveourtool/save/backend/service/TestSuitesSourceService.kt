@@ -173,6 +173,7 @@ class TestSuitesSourceService(
                 .toBodilessEntity()
         }
 
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     private fun validateDuplicateVersion(
         source: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,

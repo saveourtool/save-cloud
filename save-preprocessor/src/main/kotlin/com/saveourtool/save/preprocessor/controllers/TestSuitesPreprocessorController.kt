@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -64,7 +65,9 @@ class TestSuitesPreprocessorController(
         request.version
     ) { repositoryDirectory, gitCommitInfo ->
         testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
-            .switchIfEmpty(doFetchTests(repositoryDirectory, gitCommitInfo, request, request.source))
+            .switchIfEmpty {
+                doFetchTests(repositoryDirectory, gitCommitInfo, request, request.source)
+            }
             .flatMap { snapshot ->
                 testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
             }

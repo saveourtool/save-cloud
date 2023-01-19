@@ -43,6 +43,7 @@ class TestsSourceVersionService(
      * @param version
      * @return true if there is [TestsSourceVersionDto] with provided values, otherwise -- false
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun doesVersionExist(
         sourceId: Long,
         version: String,
@@ -172,14 +173,15 @@ class TestsSourceVersionService(
      *
      * @param dto
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
     fun save(
         dto: TestsSourceVersionDto,
     ): Boolean {
         val existedEntity = find(dto.snapshotId, dto.name)
-        if (existedEntity != null) {
-            require(existedEntity.snapshot.requiredId() == dto.snapshotId) {
-                "Try to save a new $dto, but already exited another one linked to another snapshotId: ${existedEntity.toDto()}"
+        existedEntity?.run {
+            require(snapshot.requiredId() == dto.snapshotId) {
+                "Try to save a new $dto, but already exited another one linked to another snapshotId: ${toDto()}"
             }
             return false
         }
