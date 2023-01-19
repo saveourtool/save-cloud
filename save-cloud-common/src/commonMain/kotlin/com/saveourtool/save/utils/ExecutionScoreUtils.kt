@@ -57,7 +57,6 @@ fun Int.isValidScore() = this in 0..100
 
 private fun ExecutionDto.calculateScoreForContestMode(scoreType: ScoreType): Double = when (scoreType) {
     ScoreType.F_MEASURE -> calculateFmeasure()
-    else -> TODO("Invalid score type for contest mode!")
 }
 
 private fun ExecutionDto.calculateFmeasure(): Double {
