@@ -23,8 +23,6 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceInternalController(
     private val testsSourceVersionService: TestsSourceVersionService,
     private val snapshotStorage: TestsSourceSnapshotStorage,
-    private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceService: TestSuitesSourceService,
     private val executionService: ExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
@@ -49,7 +47,7 @@ class TestSuitesSourceInternalController(
     @PostMapping("/save-version")
     fun saveVersion(
         @RequestBody versionDto: TestsSourceVersionDto,
-    ): Mono<Unit> = blockingToMono {
+    ): Mono<Boolean> = blockingToMono {
         testsSourceVersionService.save(versionDto)
     }
 

@@ -39,17 +39,14 @@ class TestsSourceVersionService(
     ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(sourceId, commitId)?.toDto()
 
     /**
-     * @param organizationName
-     * @param sourceName
+     * @param sourceId
      * @param version
-     * @return [TestsSourceVersionDto] found by provided values
+     * @return true if there is [TestsSourceVersionDto] with provided values, otherwise -- false
      */
-    fun findVersion(
-        organizationName: String,
-        sourceName: String,
+    fun doesVersionExist(
+        sourceId: Long,
         version: String,
-    ): TestsSourceVersionDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(organizationName, sourceName, version)
-        ?.toDto()
+    ): Boolean = versionRepository.findBySnapshot_SourceIdAndName(sourceId, version) != null
 
     /**
      * @param organizationName
@@ -100,38 +97,14 @@ class TestsSourceVersionService(
     ).mapTo(HashSet(), TestsSourceVersion::name)
 
     /**
-     * @param sourceId
+     * @param snapshotId
      * @param version
      * @return [TestsSourceVersionDto] found by provided values
      */
-    fun find(
-        sourceId: Long,
+    private fun find(
+        snapshotId: Long,
         version: String,
-    ): TestsSourceVersionDto? = versionRepository.findBySnapshot_SourceIdAndName(sourceId, version)?.toDto()
-
-    /**
-     * @param info
-     * @return [TestsSourceSnapshotDto] found by [TestsSourceVersionInfo]
-     */
-    fun findByInfo(
-        info: TestsSourceVersionInfo,
-    ): TestsSourceVersionDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
-        organizationName = info.organizationName,
-        sourceName = info.sourceName,
-        version = info.version,
-    )?.toDto()
-
-    /**
-     * @param dto
-     * @return [TestsSourceSnapshotDto] found by [TestsSourceVersionInfo]
-     */
-    fun findSnapshot(
-        dto: TestsSourceVersionDto,
-    ): TestsSourceSnapshotDto? = doFind(dto)?.snapshot?.toDto()
-
-    private fun doFind(
-        dto: TestsSourceVersionDto,
-    ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)
+    ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(snapshotId, version)
 
     /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
@@ -202,7 +175,14 @@ class TestsSourceVersionService(
     @Transactional
     fun save(
         dto: TestsSourceVersionDto,
-    ) {
+    ): Boolean {
+        val existedEntity = find(dto.snapshotId, dto.name)
+        if (existedEntity != null) {
+            require(existedEntity.snapshot.requiredId() == dto.snapshotId) {
+                "Try to save a new $dto, but already exited another one linked to another snapshotId: ${existedEntity.toDto()}"
+            }
+            return false
+        }
         val entity = dto.toEntity(
             snapshotResolver = snapshotRepository::getByIdOrNotFound,
             userResolver = userRepository::getByIdOrNotFound
@@ -214,13 +194,7 @@ class TestsSourceVersionService(
             originalVersion = savedEntity.snapshot.commitId,
             newVersion = savedEntity.name,
         )
-    }
-
-    private fun getSnapshot(dto: TestsSourceSnapshotDto) = snapshotRepository.findBySourceIdAndCommitId(
-        sourceId = dto.sourceId,
-        commitId = dto.commitId,
-    ).orNotFound {
-        "Not found ${TestsSourceSnapshot::class.simpleName} for $dto"
+        return true
     }
 
     companion object {

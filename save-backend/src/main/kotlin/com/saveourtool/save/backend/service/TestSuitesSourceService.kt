@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
@@ -157,25 +156,7 @@ class TestSuitesSourceService(
         mode: TestSuitesSourceFetchMode,
         version: String,
         userId: Long,
-    ): Mono<EmptyResponse> = blockingToMono {
-        testsSourceVersionService.findVersion(
-            organizationName = testSuitesSource.organizationName,
-            sourceName = testSuitesSource.name,
-            version = version,
-        )
-    }
-        .flatMap { sourceVersion ->
-            if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
-                logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
-                blockingToMono {
-                    testsSourceVersionService.delete(sourceVersion)
-                }.thenReturn(true)
-            } else {
-                logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
-                false.toMono()
-            }
-        }
-        .defaultIfEmpty(true)
+    ): Mono<EmptyResponse> = blockingToMono { validateDuplicateVersion(testSuitesSource, mode, version) }
         .filter { it }
         .flatMap {
             val request = TestsSourceFetchRequest(
@@ -192,10 +173,25 @@ class TestSuitesSourceService(
                 .toBodilessEntity()
         }
 
-    private fun logDuplicateVersion(testSuitesSource: TestSuitesSourceDto, version: String, action: String) {
-        log.debug {
-            "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and $action"
+    private fun validateDuplicateVersion(
+        source: TestSuitesSourceDto,
+        mode: TestSuitesSourceFetchMode,
+        version: String
+    ): Boolean {
+        if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+            // we calculate version using commitId for branch on late phase
+            return true
         }
+        val doesExist = testsSourceVersionService.doesVersionExist(
+            sourceId = source.requiredId(),
+            version = version,
+        )
+        if (doesExist) {
+            log.debug {
+                "Detected that source ${source.organizationName}/${source.name} already contains such version $version and we skip fetching a new version."
+            }
+        }
+        return doesExist
     }
 
     /**
