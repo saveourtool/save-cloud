@@ -15,7 +15,6 @@ import org.slf4j.Logger
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Service for [TestsSourceVersionInfo]
@@ -145,10 +144,10 @@ class TestsSourceVersionService(
         version: TestsSourceVersionDto
     ) {
         val versionEntity =
-            versionRepository.findBySnapshot_IdAndName(version.snapshotId, version.name)
-                .orNotFound {
-                    "Not found ${TestsSourceVersion::class.simpleName} for $version"
-                }
+                versionRepository.findBySnapshot_IdAndName(version.snapshotId, version.name)
+                    .orNotFound {
+                        "Not found ${TestsSourceVersion::class.simpleName} for $version"
+                    }
         doDelete(versionEntity)
     }
 
