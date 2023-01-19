@@ -49,23 +49,21 @@ class TestsSourceVersionService(
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
     fun getAllAsInfo(
-        organizationName: String
+        organizationName: String,
     ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
         .map(TestsSourceVersion::toInfo)
 
     /**
      * @param organizationName
-     * @param sourceName * @return list of [TestsSourceVersionInfo] found by provided values
+     * @param sourceName
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
     fun getAllAsInfo(
         organizationName: String,
-        sourceName: String
+        sourceName: String,
     ): List<TestsSourceVersionInfo> =
-            versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
-                organizationName,
-                sourceName
-            ).map(TestsSourceVersion::toInfo)
+            versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(organizationName, sourceName)
+                .map(TestsSourceVersion::toInfo)
 
     /**
      * @param organizationName
@@ -74,7 +72,7 @@ class TestsSourceVersionService(
      */
     fun getAllVersions(
         organizationName: String,
-        sourceName: String
+        sourceName: String,
     ): Set<String> = versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
         organizationName,
         sourceName
