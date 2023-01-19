@@ -163,7 +163,7 @@ class TestSuitesSourceController(
         }
         .flatMap { testSuitesSource ->
             when (val saveStatus = testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.just(saveStatus.toResponseEntity())
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.fromCallable { saveStatus.toResponseEntity() }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
