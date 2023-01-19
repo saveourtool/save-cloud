@@ -74,8 +74,13 @@ class TestAnalysisService(
 
     /**
      * Whether historical data should be read in parallel.
+     * This is the default flag value, which is only used for entry points w/o
+     * parameters.
+     *
+     * For [clearAndReplayHistoricalData] JMX operation, this flag is overridden
+     * by the function parameter.
      */
-    private val parallel: Boolean = config.testAnalysisSettings.parallelStartup
+    private val defaultParallel: Boolean = config.testAnalysisSettings.parallelStartup
 
     /**
      * Guards [statisticsStorage] access.
@@ -95,7 +100,7 @@ class TestAnalysisService(
         logger.info {
             "Replaying historical test data..."
         }
-        replayHistoricalData(parallel)
+        replayHistoricalData(defaultParallel)
     }
 
     /**
@@ -115,7 +120,9 @@ class TestAnalysisService(
                         projectService.getAllByOrganizationName(organization.name)
                             .parallelStreamIfEnabled(enabled = parallel)
                     }
-                    .mapToLong(this::updateStatistics)
+                    .mapToLong { project ->
+                        updateStatistics(project, parallel)
+                    }
                     .sum()
             }
         }
@@ -205,7 +212,7 @@ class TestAnalysisService(
 
         val nanos = measureNanoTime {
             testRunCount = statisticsStorageLock.write {
-                updateStatisticsInternal(execution)
+                updateStatisticsInternal(execution, defaultParallel)
             }
         }
 
@@ -225,11 +232,15 @@ class TestAnalysisService(
      * externally guarded.
      *
      * @param execution either a historical or a newly-finished `Execution`.
+     * @param parallel whether data should be read in parallel.
      * @return the number of test executions for this [execution].
      * @see updateStatistics
      */
     @GuardedBy("statisticsStorageLock")
-    private fun updateStatisticsInternal(execution: Execution): Long {
+    private fun updateStatisticsInternal(
+        execution: Execution,
+        parallel: Boolean,
+    ): Long {
         val metadata = execution.metadata()
 
         /*
@@ -249,11 +260,15 @@ class TestAnalysisService(
      * May be invoked concurrently from multiple threads, so should be
      * externally guarded.
      *
+     * @param parallel whether historical data should be read in parallel.
      * @return the number of test executions for this [project].
      * @see updateStatisticsInternal
      */
     @GuardedBy("statisticsStorageLock")
-    private fun updateStatistics(project: Project): Long {
+    private fun updateStatistics(
+        project: Project,
+        parallel: Boolean,
+    ): Long {
         /*
          * Process executions sequentially.
          */
@@ -261,7 +276,9 @@ class TestAnalysisService(
             .stream()
             .sequential()
             .sorted(comparingLong(Execution::requiredId))
-            .mapToLong(this::updateStatisticsInternal)
+            .mapToLong { execution ->
+                updateStatisticsInternal(execution, parallel)
+            }
             .sum()
     }
 
