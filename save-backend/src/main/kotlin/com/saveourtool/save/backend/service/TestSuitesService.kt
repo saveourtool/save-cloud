@@ -152,7 +152,7 @@ class TestSuitesService(
         originalVersion: String,
         newVersion: String,
     ) {
-        val existedTestSuites = testSuiteRepository.findAllBySource_IdAndVersion(
+        val existedTestSuites = testSuiteRepository.findAllBySourceIdAndVersion(
             sourceId,
             originalVersion
         )

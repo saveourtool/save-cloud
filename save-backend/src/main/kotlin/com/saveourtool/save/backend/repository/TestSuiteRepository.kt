@@ -35,7 +35,7 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
         "FunctionNaming",
         "FunctionName",
     )
-    fun findAllBySource_IdAndVersion(
+    fun findAllBySourceIdAndVersion(
         sourceId: Long,
         version: String,
     ): List<TestSuite>
