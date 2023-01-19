@@ -19,6 +19,7 @@ import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.test.analysis.results.AnalysisResult
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.warn
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.jmx.export.annotation.ManagedOperation
@@ -92,15 +93,28 @@ class TestAnalysisService(
     private val statisticsStorageLock = ReentrantReadWriteLock()
 
     /**
+     * Controls running of [replayHistoricalData]
+     *
+     * Needs to disable it to generate springdoc openapi.
+     */
+    private val replayOnStartup: Boolean = config.testAnalysisSettings.replayOnStartup
+
+    /**
      * Populates the in-memory statistics by replaying historical data.
      */
     @EventListener(ApplicationReadyEvent::class)
     @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     fun replayHistoricalData() {
-        logger.info {
-            "Replaying historical test data..."
+        if (!replayOnStartup) {
+            logger.warn {
+                "Skip replaying historical test data..."
+            }
+        } else {
+            logger.info {
+                "Replaying historical test data..."
+            }
+            replayHistoricalData(defaultParallel)
         }
-        replayHistoricalData(defaultParallel)
     }
 
     /**

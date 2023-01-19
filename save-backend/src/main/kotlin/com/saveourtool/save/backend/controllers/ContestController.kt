@@ -92,8 +92,8 @@ internal class ContestController(
     fun isContestFeatured(
         @PathVariable contestName: String,
     ): Mono<Boolean> = getContestOrNotFound(contestName)
-        .map {
-            contestService.isContestFeatured(it.requiredId())
+        .map { contest ->
+            contestService.isContestFeatured(contest.requiredId())
         }
 
     @PostMapping("/featured/add-or-delete")
