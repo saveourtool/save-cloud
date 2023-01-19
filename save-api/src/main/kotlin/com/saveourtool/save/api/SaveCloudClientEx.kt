@@ -13,7 +13,7 @@ import com.saveourtool.save.entities.ProjectStatus.CREATED
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import arrow.core.Either
 import io.ktor.client.plugins.auth.Auth
@@ -57,7 +57,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see Organization.listTestSuites
      */
-    suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>>
+    suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteVersioned>>
 
     /**
      * Lists uploaded files within the project.
@@ -126,7 +126,6 @@ interface SaveCloudClientEx {
     /**
      * @param fileId [FileDto.id]
      * @return [Unit], or the error if an error has occurred.
-     * @see Organization.deleteFile
      */
     suspend fun deleteFile(
         fileId: Long,
@@ -178,7 +177,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listTestSuites
      */
-    suspend fun Organization.listTestSuites(): Either<SaveCloudError, List<TestSuiteDto>> =
+    suspend fun Organization.listTestSuites(): Either<SaveCloudError, List<TestSuiteVersioned>> =
             listTestSuites(organizationName = name)
 
     /**
