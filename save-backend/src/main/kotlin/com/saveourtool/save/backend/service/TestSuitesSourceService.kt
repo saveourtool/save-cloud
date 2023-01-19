@@ -159,21 +159,18 @@ class TestSuitesSourceService(
         version: String,
         userId: Long,
     ): Mono<EmptyResponse> = blockingToMono {
-        testsSourceVersionService.findSnapshot(
+        testsSourceVersionService.findVersion(
             organizationName = testSuitesSource.organizationName,
             sourceName = testSuitesSource.name,
             version = version,
         )
     }
-        .flatMap { snapshot ->
+        .flatMap { sourceVersion ->
             if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
                 logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
-                testsSourceSnapshotStorage.delete(snapshot)
-                    .filter { it }
-                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                        "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
-                    }
-                    .thenReturn(true)
+                blockingToMono {
+                    testsSourceVersionService.delete(sourceVersion)
+                }.thenReturn(true)
             } else {
                 logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
                 false.toMono()

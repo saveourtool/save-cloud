@@ -518,21 +518,6 @@ internal class OrganizationController(
             testSuite.version,
         )
     }
-        .flatMap { noVersionForSnapshot ->
-            if (noVersionForSnapshot) {
-                blockingToMono {
-                    testsSourceVersionService.findSnapshot(
-                        testSuite.source.organization.name,
-                        testSuite.source.name,
-                        testSuite.version,
-                    )
-                }
-                    .flatMap { testsSourceSnapshotStorage.delete(it) }
-                    .defaultIfEmpty(false)
-            } else {
-                true.toMono()
-            }
-        }
 
     private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
         organizationService.getFiltered(filters)

@@ -3,16 +3,19 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.entities.TestsSourceVersion.Companion.toEntity
 import com.saveourtool.save.test.*
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
  * Service for [TestsSourceVersionInfo]
@@ -24,6 +27,7 @@ class TestsSourceVersionService(
     private val snapshotRepository: TestsSourceSnapshotRepository,
     private val versionRepository: TestsSourceVersionRepository,
     private val userRepository: UserRepository,
+    private val snapshotStorage: TestsSourceSnapshotStorage,
 ) {
     /**
      * @param sourceId ID of [com.saveourtool.save.entities.TestSuitesSource]
@@ -131,17 +135,36 @@ class TestsSourceVersionService(
     ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)
 
     /**
+     * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
+     *
+     * @param version [TestsSourceVersionDto]
+     * @return true if [TestsSourceSnapshot] related to deleted [TestsSourceVersion] doesn't have another [TestsSourceVersion] related to it
+     */
+    @Transactional
+    fun delete(
+        version: TestsSourceVersionDto
+    ) {
+        val versionEntity =
+            versionRepository.findBySnapshot_IdAndName(version.snapshotId, version.name)
+                .orNotFound {
+                    "Not found ${TestsSourceVersion::class.simpleName} for $version"
+                }
+        doDelete(versionEntity)
+    }
+
+    /**
+     * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
+     *
      * @param organizationName
      * @param sourceName
      * @param version
-     * @return true if [TestsSourceSnapshot] related to deleted [TestsSourceVersion] doesn't have another [TestsSourceVersion] related to it
      */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    @Transactional
     fun delete(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): Boolean {
+    ) {
         val versionEntity =
                 versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
                     organizationName = organizationName,
@@ -150,9 +173,26 @@ class TestsSourceVersionService(
                 ).orNotFound {
                     "Not found ${TestsSourceVersion::class.simpleName} with version $version in $organizationName/$sourceName"
                 }
+        doDelete(versionEntity)
+    }
+
+    private fun doDelete(versionEntity: TestsSourceVersion) {
+        // clean-up [TestsSuite]
+        testSuitesService.deleteTestSuite(versionEntity.snapshot.source, versionEntity.name)
         versionRepository.delete(versionEntity)
-        val snapshot = versionEntity.snapshot
-        return versionRepository.findAllBySnapshot(snapshot).isEmpty()
+        val snapshotEntity = versionEntity.snapshot
+        if (versionRepository.findAllBySnapshot(snapshotEntity).isEmpty()) {
+            val snapshot = snapshotEntity.toDto()
+            snapshotStorage.delete(snapshot)
+                .map { deleted ->
+                    if (!deleted) {
+                        log.warn {
+                            "Failed to delete snapshot: $snapshot"
+                        }
+                    }
+                }
+                .subscribe()
+        }
     }
 
     /**
@@ -182,5 +222,9 @@ class TestsSourceVersionService(
         commitId = dto.commitId,
     ).orNotFound {
         "Not found ${TestsSourceSnapshot::class.simpleName} for $dto"
+    }
+
+    companion object {
+        private val log: Logger = getLogger<TestsSourceVersionService>()
     }
 }
