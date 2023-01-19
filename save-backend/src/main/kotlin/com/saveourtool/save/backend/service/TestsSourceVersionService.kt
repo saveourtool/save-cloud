@@ -98,16 +98,6 @@ class TestsSourceVersionService(
     ).mapTo(HashSet(), TestsSourceVersion::name)
 
     /**
-     * @param snapshotId
-     * @param version
-     * @return [TestsSourceVersionDto] found by provided values
-     */
-    private fun find(
-        snapshotId: Long,
-        version: String,
-    ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(snapshotId, version)
-
-    /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
      *
      * @param version [TestsSourceVersionDto]
@@ -178,8 +168,7 @@ class TestsSourceVersionService(
     fun save(
         dto: TestsSourceVersionDto,
     ): Boolean {
-        val existedEntity = find(dto.snapshotId, dto.name)
-        existedEntity?.run {
+        versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)?.run {
             require(snapshot.requiredId() == dto.snapshotId) {
                 "Try to save a new $dto, but already exited another one linked to another snapshotId: ${toDto()}"
             }
