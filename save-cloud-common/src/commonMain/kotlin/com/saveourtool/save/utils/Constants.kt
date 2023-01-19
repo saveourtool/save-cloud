@@ -15,6 +15,11 @@ const val SAVE_CLOUD_GITHUB_URL = "https://github.com/saveourtool/save-cloud"
 const val DATABASE_DELIMITER = ","
 
 /**
+ * Delimiter used to combine a list to show to user
+ */
+const val PRETTY_DELIMITER = ", "
+
+/**
  * Delimiter used in URL path
  */
 const val URL_PATH_DELIMITER = "/"

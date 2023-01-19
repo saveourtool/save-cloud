@@ -6926,7 +6926,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -6939,7 +6939,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7013,7 +7013,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7026,7 +7026,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7039,7 +7039,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7052,7 +7052,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7134,7 +7134,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7147,7 +7147,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7220,7 +7220,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7233,7 +7233,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7246,7 +7246,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -7259,7 +7259,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
                   }
                 }
               }
@@ -8130,7 +8130,7 @@
           "testSuites": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TestSuiteDto"
+              "$ref": "#/components/schemas/TestSuiteVersioned"
             }
           }
         },
@@ -9401,6 +9401,54 @@
           }
         }
       },
+      "TestSuiteVersioned": {
+        "required": [
+          "description",
+          "id",
+          "isLatestFetchedVersion",
+          "language",
+          "name",
+          "organizationName",
+          "plugins",
+          "sourceName",
+          "tags",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isLatestFetchedVersion": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "plugins": {
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
       "TestSuitesSourceDto": {
         "required": [
           "gitDto",
@@ -9434,12 +9482,14 @@
           }
         }
       },
-      "TestsSourceSnapshotInfo": {
+      "TestsSourceVersionInfo": {
         "required": [
           "commitId",
           "commitTime",
+          "creationTime",
           "organizationName",
-          "sourceName"
+          "sourceName",
+          "version"
         ],
         "type": "object",
         "properties": {
@@ -9449,27 +9499,14 @@
           "commitTime": {
             "$ref": "#/components/schemas/LocalDateTime"
           },
+          "creationTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
           "organizationName": {
             "type": "string"
           },
           "sourceName": {
             "type": "string"
-          }
-        }
-      },
-      "TestsSourceVersionInfo": {
-        "required": [
-          "creationTime",
-          "snapshotInfo",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "creationTime": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "snapshotInfo": {
-            "$ref": "#/components/schemas/TestsSourceSnapshotInfo"
           },
           "version": {
             "type": "string"

@@ -57,9 +57,14 @@ data class ConfigProperties(
     /**
      * @property slidingWindowSize the size of the sliding window (the maximum
      *   sample size preserved in memory for any given test).
+     * @property parallelStartup whether historical data should be read in
+     *   parallel.
+     * @property replayOnStartup enables [com.saveourtool.save.backend.service.TestAnalysisService.replayHistoricalData] on startup
      */
     data class TestAnalysisSettings(
-        val slidingWindowSize: Int = DEFAULT_SLIDING_WINDOW_SIZE
+        val slidingWindowSize: Int = DEFAULT_SLIDING_WINDOW_SIZE,
+        val parallelStartup: Boolean = true,
+        val replayOnStartup: Boolean = true,
     )
 
     private companion object {

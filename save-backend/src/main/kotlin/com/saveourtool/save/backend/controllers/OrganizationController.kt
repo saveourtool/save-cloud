@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.MigrationTestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus
@@ -61,8 +61,8 @@ internal class OrganizationController(
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
     private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     config: ConfigProperties,
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
@@ -511,11 +511,15 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun cleanupStorageData(testSuite: TestSuite) = testsSourceVersionService.delete(
-        testSuite.source.organization.name,
-        testSuite.source.name,
-        testSuite.version,
-    )
+    private fun cleanupStorageData(testSuite: TestSuite) = blockingToMono {
+        testsSourceVersionService.findSnapshot(
+            testSuite.source.organization.name,
+            testSuite.source.name,
+            testSuite.version,
+        )
+    }
+        .flatMap { testsSourceSnapshotStorage.delete(it) }
+        .defaultIfEmpty(false)
 
     private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
         organizationService.getFiltered(filters)

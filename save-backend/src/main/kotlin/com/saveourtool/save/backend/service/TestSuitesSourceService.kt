@@ -2,13 +2,12 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.backend.storage.MigrationTestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
@@ -38,6 +37,7 @@ class TestSuitesSourceService(
     private val organizationService: OrganizationService,
     private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
     private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -156,42 +156,48 @@ class TestSuitesSourceService(
      * @param testSuitesSource test suites source which requested to be fetched
      * @param mode mode of fetching, it controls how [version] is used
      * @param version tag, branch or commit (depends on [mode])
+     * @param userId ID of [com.saveourtool.save.entities.User]
      * @return empty response
      */
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-    ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
-        organizationName = testSuitesSource.organizationName,
-        sourceName = testSuitesSource.name,
-        version = version,
-    )
-        .filterWhen { doesContain ->
-            if (doesContain && mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+        userId: Long,
+    ): Mono<EmptyResponse> = blockingToMono {
+        testsSourceVersionService.findSnapshot(
+            organizationName = testSuitesSource.organizationName,
+            sourceName = testSuitesSource.name,
+            version = version,
+        )
+    }
+        .flatMap { snapshot ->
+            if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
                 logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
-                testsSourceVersionService.delete(
-                    organizationName = testSuitesSource.organizationName,
-                    sourceName = testSuitesSource.name,
-                    version = version,
-                )
+                testsSourceSnapshotStorage.delete(snapshot)
                     .filter { it }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                         "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
                     }
                     .thenReturn(true)
-            } else if (doesContain) {
+            } else {
                 logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
                 false.toMono()
-            } else {
-                true.toMono()
             }
         }
+        .defaultIfEmpty(true)
+        .filter { it }
         .flatMap {
+            val request = TestsSourceFetchRequest(
+                source = testSuitesSource,
+                mode = mode,
+                version = version,
+                createdByUserId = userId,
+            )
             preprocessorWebClient
                 .post()
-                .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
-                .bodyValue(testSuitesSource)
+                .uri("/test-suites-sources/fetch")
+                .bodyValue(request)
                 .retrieve()
                 .toBodilessEntity()
         }

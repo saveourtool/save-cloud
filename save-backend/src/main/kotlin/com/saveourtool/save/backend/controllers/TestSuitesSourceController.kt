@@ -1,8 +1,9 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.MigrationTestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -47,7 +48,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testsSourceVersionService: TestsSourceVersionService,
-    private val testSuitesSourceSnapshotStorage: MigrationTestSuitesSourceSnapshotStorage,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
@@ -119,8 +120,7 @@ class TestSuitesSourceController(
         @PathVariable sourceName: String,
     ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
-            testsSourceVersionService.list(it.organizationName, it.name)
-                .collectList()
+            blockingToMono { testsSourceVersionService.getAllAsInfo(it.organizationName, it.name) }
         }
 
     @GetMapping("/{organizationName}/list-snapshot")
@@ -140,8 +140,7 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
     ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
-            testsSourceVersionService.list(organization.name)
-                .collectList()
+            blockingToMono { testsSourceVersionService.getAllAsInfo(organization.name) }
         }
 
     @PostMapping("/create")
@@ -164,7 +163,7 @@ class TestSuitesSourceController(
         }
         .flatMap { testSuitesSource ->
             when (val saveStatus = testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.just(saveStatus.toResponseEntity())
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.fromCallable { saveStatus.toResponseEntity() }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
@@ -195,25 +194,16 @@ class TestSuitesSourceController(
             "Git cannot be changed in TestSuitesSource"
         }
         .map { originalEntity ->
-            originalEntity.name to originalEntity.apply {
+            originalEntity.apply {
                 name = dtoToUpdate.name
                 description = dtoToUpdate.description
                 testRootPath = dtoToUpdate.testRootPath
                 latestFetchedVersion = dtoToUpdate.latestFetchedVersion
             }
         }
-        .flatMap { (originalName, updatedEntity) ->
+        .flatMap { updatedEntity ->
             when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
-                EntitySaveStatus.UPDATED -> {
-                    val newName = updatedEntity.name
-                    val movingSnapshots = if (originalName != newName) {
-                        testsSourceVersionService.updateSourceName(updatedEntity.organization.name, originalName, newName)
-                    } else {
-                        Mono.just(Unit)
-                    }
-                    movingSnapshots.then(Mono.just(saveStatus.toResponseEntity()))
-                }
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.UPDATED -> Mono.just(saveStatus.toResponseEntity())
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
@@ -274,7 +264,11 @@ class TestSuitesSourceController(
         .map {
             testSuitesService.deleteTestSuite(it, version)
         }
-        .then(testsSourceVersionService.delete(organizationName, sourceName, version))
+        .then(
+            blockingToMono { testsSourceVersionService.findSnapshot(organizationName, sourceName, version) }
+                .flatMap { testsSourceSnapshotStorage.delete(it) }
+                .defaultIfEmpty(false)
+        )
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
@@ -332,7 +326,7 @@ class TestSuitesSourceController(
                 ResponseEntity.accepted()
                     .body("Trigger fetching new tests from $sourceName in $organizationName")
             ).doOnSuccess {
-                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version)
+                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version, authentication.userId())
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
@@ -353,10 +347,8 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.tagList(it.toDto()) }
-        .zipWith(testsSourceVersionService.list(organizationName, sourceName)
-            .map { it.version }
-            .collectList())
-        .map { (tags, versions) ->
+        .map { tags ->
+            val versions = testsSourceVersionService.getAllVersions(organizationName, sourceName)
             ResponseEntity.ok()
                 .body(tags.filterNot { it in versions })
         }
