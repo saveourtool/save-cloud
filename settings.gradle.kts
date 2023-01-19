@@ -38,6 +38,7 @@ include("test-analysis-core")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 gradleEnterprise {
+    @Suppress("AVOID_NULL_CHECKS")
     if (System.getenv("CI") != null) {
         buildScan {
             publishAlways()
