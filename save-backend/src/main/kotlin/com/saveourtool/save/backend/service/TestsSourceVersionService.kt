@@ -100,24 +100,6 @@ class TestsSourceVersionService(
     /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
      *
-     * @param version [TestsSourceVersionDto]
-     * @return true if [TestsSourceSnapshot] related to deleted [TestsSourceVersion] doesn't have another [TestsSourceVersion] related to it
-     */
-    @Transactional
-    fun delete(
-        version: TestsSourceVersionDto
-    ) {
-        val versionEntity =
-                versionRepository.findBySnapshot_IdAndName(version.snapshotId, version.name)
-                    .orNotFound {
-                        "Not found ${TestsSourceVersion::class.simpleName} for $version"
-                    }
-        doDelete(versionEntity)
-    }
-
-    /**
-     * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
-     *
      * @param organizationName
      * @param sourceName
      * @param version
