@@ -16,7 +16,7 @@ import com.saveourtool.save.execution.TestingType.CONTEST_MODE
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
@@ -103,7 +103,7 @@ internal class DefaultSaveCloudClient(
                 Application.Json
             )
 
-    override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>> =
+    override suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteVersioned>> =
             getAndCheck(
                 "/test-suites/$organizationName/available",
                 requestBody = EmptyContent,
