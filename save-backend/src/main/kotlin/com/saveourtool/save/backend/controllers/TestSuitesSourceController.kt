@@ -265,9 +265,16 @@ class TestSuitesSourceController(
             testSuitesService.deleteTestSuite(it, version)
         }
         .then(
-            blockingToMono { testsSourceVersionService.findSnapshot(organizationName, sourceName, version) }
-                .flatMap { testsSourceSnapshotStorage.delete(it) }
-                .defaultIfEmpty(false)
+            blockingToMono { testsSourceVersionService.delete(organizationName, sourceName, version) }
+                .flatMap { noVersionForSnapshot ->
+                    if (noVersionForSnapshot) {
+                        blockingToMono { testsSourceVersionService.findSnapshot(organizationName, sourceName, version) }
+                            .flatMap { testsSourceSnapshotStorage.delete(it) }
+                            .defaultIfEmpty(false)
+                    } else {
+                        true.toMono()
+                    }
+                }
         )
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {

@@ -6,7 +6,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
- * @property snapshot [TestsSourceSnapshotDto]// TODO: should be replaced to snapshotId after removing [com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey]
+ * @property snapshotId ID of [TestsSourceSnapshotDto]
  * @property name human-readable version
  * @property type type of fetch mode
  * @property createdByUserId ID of [com.saveourtool.save.info.UserInfo] created this version
@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TestsSourceVersionDto(
-    val snapshot: TestsSourceSnapshotDto,
+    val snapshotId: Long,
     val name: String,
     val type: TestSuitesSourceFetchMode,
     val createdByUserId: Long,

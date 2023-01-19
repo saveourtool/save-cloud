@@ -26,12 +26,26 @@ class TestsSourceVersionService(
     private val userRepository: UserRepository,
 ) {
     /**
-     * @param candidate [TestsSourceSnapshotDto] without id
+     * @param sourceId ID of [com.saveourtool.save.entities.TestSuitesSource]
+     * @param commitId [TestsSourceSnapshot.commitId]
      * @return [TestsSourceSnapshotDto] found by provided values
      */
     fun findSnapshot(
-        candidate: TestsSourceSnapshotDto,
-    ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(candidate.sourceId, candidate.commitId)
+        sourceId: Long,
+        commitId: String,
+    ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(sourceId, commitId)?.toDto()
+
+    /**
+     * @param organizationName
+     * @param sourceName
+     * @param version
+     * @return [TestsSourceVersionDto] found by provided values
+     */
+    fun findVersion(
+        organizationName: String,
+        sourceName: String,
+        version: String,
+    ): TestsSourceVersionDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(organizationName, sourceName, version)
         ?.toDto()
 
     /**
@@ -44,14 +58,9 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): TestsSourceSnapshotDto? = snapshotRepository.findBySource_Organization_NameAndSource_NameAndCommitId(organizationName, sourceName, version)
+    ): TestsSourceSnapshotDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(organizationName, sourceName, version)
+        ?.snapshot
         ?.toDto()
-
-    /**
-     * @return list of all [TestsSourceVersionInfo]
-     */
-    fun getAllAsInfo(): Collection<TestsSourceVersionInfo> = versionRepository.findAll()
-        .map(TestsSourceVersion::toInfo)
 
     /**
      * @param organizationName
@@ -119,7 +128,7 @@ class TestsSourceVersionService(
 
     private fun doFind(
         dto: TestsSourceVersionDto,
-    ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(dto.snapshot.sourceId, dto.name)
+    ): TestsSourceVersion? = versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)
 
     /**
      * @param organizationName
@@ -156,7 +165,7 @@ class TestsSourceVersionService(
         dto: TestsSourceVersionDto,
     ) {
         val entity = dto.toEntity(
-            snapshotResolver = ::getSnapshot,
+            snapshotResolver = snapshotRepository::getByIdOrNotFound,
             userResolver = userRepository::getByIdOrNotFound
         )
         val savedEntity = versionRepository.save(entity)

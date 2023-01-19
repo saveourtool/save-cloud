@@ -63,8 +63,8 @@ class TestSuitesPreprocessorController(
     ) { repositoryDirectory, gitCommitInfo ->
         testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
             .switchIfEmpty(doFetchTests(repositoryDirectory, gitCommitInfo, request, request.source))
-            .flatMap {
-                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(testsSourceSnapshotDto))
+            .flatMap { snapshot ->
+                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
             }
     }
 

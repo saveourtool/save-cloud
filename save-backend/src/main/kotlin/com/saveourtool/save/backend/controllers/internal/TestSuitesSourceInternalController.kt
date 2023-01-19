@@ -54,14 +54,16 @@ class TestSuitesSourceInternalController(
     }
 
     /**
-     * @param snapshotDto
+     * @param sourceId
+     * @param commitId
      * @return [Mono] with result or empty
      */
-    @PostMapping("/find-snapshot")
+    @GetMapping("/find-snapshot")
     fun findSnapshot(
-        @RequestBody snapshotDto: TestsSourceSnapshotDto,
+        @RequestParam sourceId: Long,
+        @RequestParam commitId: String,
     ): Mono<TestsSourceSnapshotDto> = blockingToMono {
-        testsSourceVersionService.findSnapshot(snapshotDto)
+        testsSourceVersionService.findSnapshot(sourceId, commitId)
     }
 
     /**

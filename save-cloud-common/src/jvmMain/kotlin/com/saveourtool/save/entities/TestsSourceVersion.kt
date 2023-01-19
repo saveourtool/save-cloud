@@ -35,7 +35,7 @@ class TestsSourceVersion(
     val creationTime: LocalDateTime,
 ) : BaseEntityWithDtoWithId<TestsSourceVersionDto>() {
     override fun toDto(): TestsSourceVersionDto = TestsSourceVersionDto(
-        snapshot = snapshot.toDto(),
+        snapshotId = snapshot.requiredId(),
         name = name,
         type = type,
         createdByUserId = createdByUser.requiredId(),
@@ -66,10 +66,10 @@ class TestsSourceVersion(
          * @return [TestsSourceVersion] created from [TestsSourceVersionDto]
          */
         fun TestsSourceVersionDto.toEntity(
-            snapshotResolver: (TestsSourceSnapshotDto) -> TestsSourceSnapshot,
+            snapshotResolver: (Long) -> TestsSourceSnapshot,
             userResolver: (Long) -> User,
         ): TestsSourceVersion = TestsSourceVersion(
-            snapshot = snapshotResolver(snapshot),
+            snapshot = snapshotResolver(snapshotId),
             name = name,
             type = type,
             createdByUser = userResolver(createdByUserId),

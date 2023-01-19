@@ -39,13 +39,13 @@ data class TestsSourceFetchRequest(
     )
 
     /**
-     * @param snapshot [TestsSourceVersionDto.snapshot]
+     * @param snapshot populate [TestsSourceVersionDto.snapshotId]
      * @return [TestsSourceVersionInfo] created by provided values and [TestsSourceFetchRequest]
      */
     fun createVersion(
         snapshot: TestsSourceSnapshotDto,
     ): TestsSourceVersionDto = TestsSourceVersionDto(
-        snapshot = snapshot,
+        snapshotId = snapshot.requiredId(),
         name = version,
         type = mode,
         createdByUserId = createdByUserId,
