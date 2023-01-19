@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.MigrationTestsSourceSnapshotStorage
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -47,8 +47,8 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @RequestMapping("/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testsSourceSnapshotStorage: MigrationTestsSourceSnapshotStorage,
     private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
@@ -119,8 +119,8 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
     ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
-        .map {
-            testsSourceVersionService.getAllAsInfo(it.organizationName, it.name).toList()
+        .flatMap {
+            blockingToMono { testsSourceVersionService.getAllAsInfo(it.organizationName, it.name) }
         }
 
     @GetMapping("/{organizationName}/list-snapshot")
@@ -140,9 +140,7 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
     ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
-            blockingToMono {
-                testsSourceVersionService.getAllAsInfo(organization.name).toList()
-            }
+            blockingToMono { testsSourceVersionService.getAllAsInfo(organization.name) }
         }
 
     @PostMapping("/create")
@@ -165,7 +163,7 @@ class TestSuitesSourceController(
         }
         .flatMap { testSuitesSource ->
             when (val saveStatus = testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.just(saveStatus.toResponseEntity())
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.fromCallable { saveStatus.toResponseEntity() }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
@@ -266,7 +264,11 @@ class TestSuitesSourceController(
         .map {
             testSuitesService.deleteTestSuite(it, version)
         }
-        .then(testsSourceVersionService.delete(organizationName, sourceName, version))
+        .then(
+            blockingToMono { testsSourceVersionService.findSnapshot(organizationName, sourceName, version) }
+                .flatMap { testsSourceSnapshotStorage.delete(it) }
+                .defaultIfEmpty(false)
+        )
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)

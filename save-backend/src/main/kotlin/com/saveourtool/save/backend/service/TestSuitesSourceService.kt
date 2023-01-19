@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
@@ -31,6 +32,7 @@ class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
     private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -156,31 +158,29 @@ class TestSuitesSourceService(
         mode: TestSuitesSourceFetchMode,
         version: String,
         userId: Long,
-    ): Mono<EmptyResponse> = testsSourceVersionService.doesContain(
-        organizationName = testSuitesSource.organizationName,
-        sourceName = testSuitesSource.name,
-        version = version,
-    )
-        .filterWhen { doesContain ->
-            if (doesContain && mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+    ): Mono<EmptyResponse> = blockingToMono {
+        testsSourceVersionService.findSnapshot(
+            organizationName = testSuitesSource.organizationName,
+            sourceName = testSuitesSource.name,
+            version = version,
+        )
+    }
+        .flatMap { snapshot ->
+            if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
                 logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
-                testsSourceVersionService.delete(
-                    organizationName = testSuitesSource.organizationName,
-                    sourceName = testSuitesSource.name,
-                    version = version,
-                )
+                testsSourceSnapshotStorage.delete(snapshot)
                     .filter { it }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                         "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
                     }
                     .thenReturn(true)
-            } else if (doesContain) {
+            } else {
                 logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
                 false.toMono()
-            } else {
-                true.toMono()
             }
         }
+        .defaultIfEmpty(true)
+        .filter { it }
         .flatMap {
             val request = TestsSourceFetchRequest(
                 source = testSuitesSource,

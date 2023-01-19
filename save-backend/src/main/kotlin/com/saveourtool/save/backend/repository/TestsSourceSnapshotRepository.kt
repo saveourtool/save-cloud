@@ -18,19 +18,37 @@ interface TestsSourceSnapshotRepository : BaseEntityRepository<TestsSourceSnapsh
     /**
      * @param sourceId
      * @param commitId
-     * @return [TestsSourceSnapshot] found by [commitId] in [com.saveourtool.save.entities.TestSuitesSource] (by [sourceId])
+     * @return [TestsSourceSnapshot] found by [commitId] in [TestSuitesSource] (by [sourceId])
      */
-    fun findBySource_IdAndCommitId(sourceId: Long, commitId: String): TestsSourceSnapshot?
+    fun findBySourceIdAndCommitId(sourceId: Long, commitId: String): TestsSourceSnapshot?
 
     /**
-     * @param organizationName
-     * @param sourceName
+     * @param organizationName name from [com.saveourtool.save.entities.Organization]<-[com.saveourtool.save.entities.TestSuitesSource]
+     * @return all [TestsSourceSnapshot] found by provided values
+     */
+    fun findAllBySource_Organization_Name(
+        organizationName: String,
+    ): List<TestsSourceSnapshot>
+
+    /**
+     * @param organizationName name from [com.saveourtool.save.entities.Organization]<-[com.saveourtool.save.entities.TestSuitesSource]
+     * @param sourceName name from [com.saveourtool.save.entities.TestSuitesSource]
+     * @return all [TestsSourceSnapshot] found by provided values
+     */
+    fun findAllBySource_Organization_NameAndSource_Name(
+        organizationName: String,
+        sourceName: String,
+    ): List<TestsSourceSnapshot>
+
+    /**
+     * @param organizationName name from [com.saveourtool.save.entities.Organization]<-[com.saveourtool.save.entities.TestSuitesSource]
+     * @param sourceName name from [com.saveourtool.save.entities.TestSuitesSource]
      * @param commitId
-     * @return [TestsSourceSnapshot] found by [commitId] in [com.saveourtool.save.entities.TestSuitesSource] (by [organizationName], [sourceName])
+     * @return [TestsSourceSnapshot] found by provided values
      */
     fun findBySource_Organization_NameAndSource_NameAndCommitId(
         organizationName: String,
         sourceName: String,
-        commitId: String
+        commitId: String,
     ): TestsSourceSnapshot?
 }

@@ -1,15 +1,15 @@
 package com.saveourtool.save.request
 
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import kotlinx.serialization.Serializable
 
 /**
  * @property test [TestDto] of a test that is requested
- * @property storageKey storage key with which tests snapshot is written
+ * @property testsSourceSnapshot snapshot where this test exists
  */
 @Serializable
 data class TestFilesRequest(
     val test: TestDto,
-    val storageKey: TestSuitesSourceSnapshotKey,
+    val testsSourceSnapshot: TestsSourceSnapshotDto,
 )
