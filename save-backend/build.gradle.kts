@@ -25,6 +25,7 @@ openApi {
 
     customBootRun {
         jvmArgs.add("-Dbackend.fileStorage.location=\${user.home}/cnb/files")
+        args.add("--debug")
     }
 }
 
