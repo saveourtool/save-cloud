@@ -192,7 +192,7 @@ class TestSuitesSourceService(
                 "Detected that source ${source.organizationName}/${source.name} already contains such version $version and we skip fetching a new version."
             }
         }
-        return doesExist
+        return !doesExist
     }
 
     /**
