@@ -230,6 +230,17 @@ class TestSuitesService(
         doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
     }
 
+    /**
+     * Delete testSuites and related tests & test executions from DB
+     *
+     * @param organizationName
+     * @param sourceName
+     * @param version
+     */
+    fun deleteTestSuite(organizationName: String, sourceName: String, version: String) {
+        doDeleteTestSuite(testSuiteRepository.findAllBySource_Organization_NameAndSource_NameAndVersion(organizationName, sourceName, version))
+    }
+
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
         val executions = testSuites.flatMap { testSuite ->
             executionService.getExecutionsByTestSuiteId(testSuite.requiredId())

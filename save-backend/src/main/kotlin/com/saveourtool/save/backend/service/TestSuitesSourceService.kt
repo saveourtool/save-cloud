@@ -33,6 +33,7 @@ class TestSuitesSourceService(
     private val organizationService: OrganizationService,
     private val testsSourceVersionService: TestsSourceVersionService,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
+    private val testSuitesService: TestSuitesService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -172,6 +173,13 @@ class TestSuitesSourceService(
                     .filter { it }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                         "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
+                    }
+                    .map {
+                        testSuitesService.deleteTestSuite(
+                            testSuitesSource.organizationName,
+                            testSuitesSource.name,
+                            version,
+                        )
                     }
                     .thenReturn(true)
             } else {
