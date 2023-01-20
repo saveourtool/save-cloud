@@ -100,7 +100,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = "/api/$v1/avatar$avatar"
+                            src = avatar
                             height = 45.0
                             width = 45.0
                             onError = {
