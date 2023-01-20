@@ -2,14 +2,17 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getByIdOrNotFound
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -31,6 +34,7 @@ class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
+    private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
@@ -48,17 +52,10 @@ class TestSuitesService(
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
-        val testSuiteSourceVersion = testSuiteDto.version
-        val testSuiteSource = testSuitesSourceService.getByName(testSuiteDto.source.organizationName, testSuiteDto.source.name)
-            .apply {
-                latestFetchedVersion = testSuiteSourceVersion
-            }
-
         val testSuiteCandidate = TestSuite(
             name = testSuiteDto.name,
             description = testSuiteDto.description,
-            source = testSuiteSource,
-            version = testSuiteDto.version,
+            sourceSnapshot = testsSourceSnapshotRepository.getByIdOrNotFound(testSuiteDto.requiredId()),
             dateAdded = null,
             language = testSuiteDto.language,
             tags = testSuiteDto.tags?.let(TestSuite::tagsFromList),
@@ -79,8 +76,7 @@ class TestSuitesService(
                 }
             }
         testSuiteRepository.save(testSuite)
-        testSuitesSourceService.update(testSuiteSource)
-        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuiteSource.organization, testSuite, Rights.MAINTAIN)
+        lnkOrganizationTestSuiteService.setOrDeleteSelfRights(testSuite, Rights.MAINTAIN)
         return testSuite
     }
 
@@ -114,8 +110,7 @@ class TestSuitesService(
                         TestSuite(
                             filters.name,
                             "",
-                            TestSuitesSource.empty,
-                            "",
+                            TestsSourceSnapshot.empty,
                             null,
                             filters.language,
                             filters.tags
@@ -137,58 +132,6 @@ class TestSuitesService(
      * @return public [TestSuite]s
      */
     fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
-
-    /**
-     * Creates copy of TestSuites found by provided values.
-     * New copies have a new version.
-     *
-     * @param sourceId
-     * @param originalVersion
-     * @param newVersion
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun copyToNewVersion(
-        sourceId: Long,
-        originalVersion: String,
-        newVersion: String,
-    ) {
-        val existedTestSuites = testSuiteRepository.findAllBySourceIdAndVersion(
-            sourceId,
-            originalVersion
-        )
-        existedTestSuites.forEach { testSuite -> testSuite.copyWithNewVersion(newVersion) }
-    }
-
-    private fun TestSuite.copyWithNewVersion(
-        newVersion: String,
-    ) {
-        // a copy of existed one but with a new version
-        val newTestSuite = TestSuite(
-            name = this.name,
-            description = this.description,
-            source = this.source,
-            version = newVersion,
-            dateAdded = this.dateAdded,
-            language = this.language,
-            tags = this.tags,
-            plugins = this.plugins,
-            isPublic = this.isPublic,
-        )
-        val savedNewTestSuite = testSuiteRepository.save(newTestSuite)
-        // also copy all tests from old TestSuite to new one
-        testRepository.findAllByTestSuiteId(this.requiredId())
-            .map { test ->
-                Test(
-                    hash = test.hash,
-                    filePath = test.filePath,
-                    pluginName = test.pluginName,
-                    dateAdded = test.dateAdded,
-                    testSuite = savedNewTestSuite,
-                    additionalFiles = test.additionalFiles,
-                )
-            }
-            .let { testRepository.saveAll(it) }
-    }
 
     /**
      * @param source source of the test suite
@@ -258,12 +201,11 @@ class TestSuitesService(
 
     private fun getSavedEntityByDto(
         dto: TestSuiteDto,
-    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
+    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceSnapshotId(
         dto.name,
         dto.tags?.let(TestSuite::tagsFromList),
-        testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
-        dto.version
-    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+        dto.sourceSnapshot.requiredId(),
+    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.sourceSnapshot.requiredId()}) not found" }
 
     /**
      * @param testSuites list of test suites to be updated

@@ -20,6 +20,7 @@ data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
+    val version: String,
     val fileIds: List<Long>,
 
     val sdk: Sdk,

@@ -25,20 +25,16 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     ): TestSuite?
 
     /**
-     * @param sourceId ID of [TestSuite.source]
-     * @param version [TestSuite.version]
-     * @return all [TestSuite] found by provided values
+     * @param name name of the test suite
+     * @param tags tags of the test suite
+     * @param sourceSnapshotId ID of source snapshot of the test suite
+     * @return matched test suite
      */
-    @Suppress(
-        "IDENTIFIER_LENGTH",
-        "FUNCTION_NAME_INCORRECT_CASE",
-        "FunctionNaming",
-        "FunctionName",
-    )
-    fun findAllBySourceIdAndVersion(
-        sourceId: Long,
-        version: String,
-    ): List<TestSuite>
+    fun findByNameAndTagsAndSourceSnapshotId(
+        name: String,
+        tags: String?,
+        sourceSnapshotId: Long,
+    ): TestSuite?
 
     /**
      * @param source source of the test suite

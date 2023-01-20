@@ -38,10 +38,10 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
     fun findAllBySnapshot_Source(source: TestSuitesSource): Collection<TestsSourceVersion>
 
     /**
-     * @param snapshot
-     * @return all [TestsSourceVersion] which are linked to provide [TestsSourceSnapshot]
+     * @param snapshotId
+     * @return all [TestsSourceVersion] which are linked to [TestsSourceSnapshot] (by [snapshotId])
      */
-    fun findAllBySnapshot(snapshot: TestsSourceSnapshot): Collection<TestsSourceVersion>
+    fun findAllBySnapshotId(snapshotId: Long): Collection<TestsSourceVersion>
 
     /**
      * @param organizationName

@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -27,6 +28,7 @@ class TestsSourceVersionService(
     private val versionRepository: TestsSourceVersionRepository,
     private val userRepository: UserRepository,
     private val snapshotStorage: TestsSourceSnapshotStorage,
+    private val sourceRepository: TestSuitesSourceRepository,
 ) {
     /**
      * @param sourceId ID of [com.saveourtool.save.entities.TestSuitesSource]
@@ -37,6 +39,11 @@ class TestsSourceVersionService(
         sourceId: Long,
         commitId: String,
     ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(sourceId, commitId)?.toDto()
+
+    fun findVersion(
+        sourceId: Long,
+        version: String,
+    ): TestsSourceVersion? = versionRepository.findBySnapshot_SourceIdAndName(sourceId, version)
 
     /**
      * @param sourceId
@@ -87,7 +94,7 @@ class TestsSourceVersionService(
     /**
      * @param organizationName
      * @param sourceName
-     * @return all fetched version of [TestsSourceSnapshot] found by provided values
+     * @return all fetched version of [TestsSourceVersion] found by provided values
      */
     fun getAllVersions(
         organizationName: String,
@@ -96,6 +103,14 @@ class TestsSourceVersionService(
         organizationName,
         sourceName
     ).mapTo(HashSet(), TestsSourceVersion::name)
+
+    /**
+     * @param snapshotId
+     * @return all fetched version of [TestsSourceVersion] found by provided values
+     */
+    fun getAllVersions(
+        snapshotId: Long,
+    ): Set<String> = versionRepository.findAllBySnapshotId(snapshotId).mapTo(HashSet(), TestsSourceVersion::name)
 
     /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
@@ -126,7 +141,7 @@ class TestsSourceVersionService(
         testSuitesService.deleteTestSuite(versionEntity.snapshot.source, versionEntity.name)
         versionRepository.delete(versionEntity)
         val snapshotEntity = versionEntity.snapshot
-        if (versionRepository.findAllBySnapshot(snapshotEntity).isEmpty()) {
+        if (versionRepository.findAllBySnapshotId(snapshotEntity.requiredId()).isEmpty()) {
             val snapshot = snapshotEntity.toDto()
             snapshotStorage.delete(snapshot)
                 .map { deleted ->
@@ -161,12 +176,14 @@ class TestsSourceVersionService(
             userResolver = userRepository::getByIdOrNotFound
         )
         val savedEntity = versionRepository.save(entity)
-        // copy test suites
-        testSuitesService.copyToNewVersion(
-            sourceId = savedEntity.snapshot.source.requiredId(),
-            originalVersion = savedEntity.snapshot.commitId,
-            newVersion = savedEntity.name,
-        )
+        // need to update latestFetchedVersion in source
+        savedEntity.snapshot.source
+            .apply {
+                latestFetchedVersion = savedEntity.name
+            }
+            .let {
+                sourceRepository.save(it)
+            }
         return true
     }
 

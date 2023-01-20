@@ -1,7 +1,6 @@
 package com.saveourtool.save.testsuite
 
-import com.saveourtool.save.domain.pluginName
-import com.saveourtool.save.utils.PRETTY_DELIMITER
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import kotlinx.serialization.Serializable
 
 /**
@@ -28,22 +27,4 @@ data class TestSuiteVersioned(
     val language: String,
     val tags: String,
     val plugins: String,
-) {
-    companion object {
-        /**
-         * @return [TestSuiteVersioned] created from [TestSuiteDto]
-         */
-        fun TestSuiteDto.toVersioned(): TestSuiteVersioned = TestSuiteVersioned(
-            id = this.requiredId(),
-            name = this.name,
-            sourceName = this.source.name,
-            organizationName = this.source.organizationName,
-            isLatestFetchedVersion = this.version == this.source.latestFetchedVersion,
-            description = this.description.orEmpty(),
-            version = this.version,
-            language = this.language.orEmpty(),
-            tags = this.tags?.joinToString(PRETTY_DELIMITER).orEmpty(),
-            plugins = this.plugins.joinToString(PRETTY_DELIMITER) { it.pluginName() },
-        )
-    }
-}
+)

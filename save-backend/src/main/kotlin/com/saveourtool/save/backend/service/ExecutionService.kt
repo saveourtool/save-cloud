@@ -367,7 +367,7 @@ class ExecutionService(
     }
 
     companion object {
-        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.source }
+        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.sourceSnapshot.source }
             .distinctBy { it.requiredId() }
             .let { sources ->
                 when (sources.size) {
@@ -380,7 +380,8 @@ class ExecutionService(
                 }
             }
 
-        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.version }
+        // FIXME: version on Execution
+        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.sourceSnapshot.commitId }
             .distinct()
             .let { versions ->
                 when (versions.size) {

@@ -121,17 +121,17 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val buildExecutionRequest: () -> CreateExecutionRequest = {
-        val selectedTestSuites = when (testingType) {
-            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites
-            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites
-            TestingType.CONTEST_MODE -> selectedContest.testSuites
+        val selectedTestSuiteIds = when (testingType) {
+            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites.map(TestSuiteVersioned::id)
+            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites.map(TestSuiteVersioned::id)
+            TestingType.CONTEST_MODE -> selectedContest.testSuiteIds
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = project.organizationName,
                 projectName = project.name
             ),
-            testSuiteIds = selectedTestSuites.map { it.id },
+            testSuiteIds = selectedTestSuiteIds,
             fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },

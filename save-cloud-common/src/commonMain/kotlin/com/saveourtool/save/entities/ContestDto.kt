@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
  * @property startTime start time of a contest
  * @property endTime end time of a contest
  * @property organizationName
- * @property testSuites
+ * @property testSuiteIds
  * @property creationTime
  * @property status
  */
@@ -29,7 +29,7 @@ data class ContestDto(
     val endTime: LocalDateTime?,
     val description: String?,
     val organizationName: String,
-    val testSuites: List<TestSuiteVersioned>,
+    val testSuiteIds: List<Long>,
     @Contextual
     val creationTime: LocalDateTime?,
 ) : Validatable {

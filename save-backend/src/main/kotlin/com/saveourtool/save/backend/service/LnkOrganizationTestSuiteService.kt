@@ -45,6 +45,13 @@ class LnkOrganizationTestSuiteService(
             ?: LnkOrganizationTestSuite(organization, testSuite, rights)
         lnkOrganizationTestSuiteRepository.save(lnkOrganizationTestSuite)
     }
+    /**
+     * Set [rights] of [Organization] to which belongs [testSuite] over [testSuite] or delete them if [rights] is [Role.NONE].
+     */
+    @Suppress("KDOC_WITHOUT_PARAM_TAG")
+    fun setOrDeleteSelfRights(testSuite: TestSuite, rights: Rights) {
+        setOrDeleteRights(testSuite.sourceSnapshot.source.organization, testSuite, rights)
+    }
 
     /**
      * @param organization

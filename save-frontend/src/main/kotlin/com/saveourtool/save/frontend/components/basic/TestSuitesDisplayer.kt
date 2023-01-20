@@ -8,7 +8,9 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
+import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteVersioned
+import com.saveourtool.save.utils.PRETTY_DELIMITER
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -23,17 +25,63 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.showAvailableTestSuites(
     testSuites: List<TestSuiteVersioned>,
     selectedTestSuites: List<TestSuiteVersioned>,
     displayMode: TestSuiteSelectorMode?,
     onTestSuiteClick: (TestSuiteVersioned) -> Unit,
 ) {
+    doShowAvailableTestSuites(
+        testSuites,
+        onTestSuiteClick,
+        isSelected = { it in selectedTestSuites },
+        nameGetter = TestSuiteVersioned::name,
+        languageGetter = TestSuiteVersioned::language,
+        descriptionGetter = TestSuiteVersioned::description,
+        versionGetter = { testSuite -> testSuite.version.takeIf { displayMode.shouldDisplayVersion() } },
+        tagsGetter = TestSuiteVersioned::tags,
+        pluginsGetter = TestSuiteVersioned::plugins,
+    )
+}
+
+/**
+ * @param testSuites
+ * @param selectedTestSuiteId
+ */
+fun ChildrenBuilder.showAvailableTestSuites(
+    testSuites: List<TestSuiteDto>,
+    selectedTestSuiteId: Long?,
+    onTestSuiteClick: (TestSuiteDto) -> Unit,
+) {
+    doShowAvailableTestSuites(
+        testSuites,
+        onTestSuiteClick,
+        isSelected = { it.requiredId() == selectedTestSuiteId },
+        nameGetter = TestSuiteDto::name,
+        languageGetter = { it.language.orEmpty() },
+        descriptionGetter = { it.description.orEmpty() },
+        versionGetter = { null },
+        tagsGetter = { it.tags?.joinToString(PRETTY_DELIMITER).orEmpty() },
+        pluginsGetter = { it.plugins.joinToString(PRETTY_DELIMITER) },
+    )
+}
+
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
+    testSuites: List<T>,
+    onTestSuiteClick: (T) -> Unit,
+    isSelected: (T) -> Boolean,
+    nameGetter: (T) -> String,
+    languageGetter: (T) -> String,
+    descriptionGetter: (T) -> String,
+    versionGetter: (T) -> String?,
+    tagsGetter: (T) -> String,
+    pluginsGetter: (T) -> String,
+) {
     div {
         className = ClassName("list-group")
         testSuites.forEach { testSuite ->
-            val active = if (testSuite in selectedTestSuites) {
+            val active = if (isSelected(testSuite)) {
                 "active"
             } else {
                 ""
@@ -47,10 +95,10 @@ fun ChildrenBuilder.showAvailableTestSuites(
                     className = ClassName("d-flex w-100 justify-content-between")
                     h5 {
                         className = ClassName("mb-1")
-                        +(testSuite.name)
+                        +nameGetter(testSuite)
                     }
                     small {
-                        +testSuite.language
+                        +languageGetter(testSuite)
                     }
                 }
                 div {
@@ -58,17 +106,18 @@ fun ChildrenBuilder.showAvailableTestSuites(
                     div {
                         className = ClassName("float-left")
                         p {
-                            +testSuite.description
+                            +descriptionGetter(testSuite)
                         }
                     }
                     div {
                         className = ClassName("float-right")
-                        if (displayMode.shouldDisplayVersion()) {
+                        val version = versionGetter(testSuite)
+                        version?.run {
                             small {
                                 asDynamic()["data-toggle"] = "tooltip"
                                 asDynamic()["data-placement"] = "bottom"
                                 title = "Hash of commit/branch name/tag name"
-                                +testSuite.version
+                                +this
                             }
                         }
                     }
@@ -80,7 +129,7 @@ fun ChildrenBuilder.showAvailableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Test suite tags"
-                        +testSuite.tags
+                        +tagsGetter(testSuite)
                     }
 
                     small {
@@ -88,7 +137,7 @@ fun ChildrenBuilder.showAvailableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Plugin type"
-                        +testSuite.plugins
+                        +pluginsGetter(testSuite)
                     }
                 }
             }
