@@ -76,6 +76,11 @@ external interface UserSettingsViewState : State {
      * Flag to handle avatar Window
      */
     var isAvatarWindowOpen: Boolean
+
+    /**
+     * User avatar
+     */
+    var avatar: String
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -115,6 +120,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
         }
     }
@@ -180,14 +186,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             img {
                                                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                                src = state.userInfo?.avatar?.let {
-                                                    "/api/$v1/avatar$it"
-                                                }
-                                                    ?: run {
-                                                        "img/undraw_profile.svg"
-                                                    }
+                                                src = state.avatar
                                                 height = 60.0
                                                 width = 60.0
+                                                onError = {
+                                                    setState {
+                                                        avatar = AVATAR_PLACEHOLDER
+                                                    }
+                                                }
                                             }
                                         }
                                     }
