@@ -28,6 +28,7 @@ import reactor.kotlin.core.publisher.toMono
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
  */
 @Service
+@Suppress("LongParameterList")
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
