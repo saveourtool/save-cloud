@@ -34,6 +34,10 @@ class TestSuite(
     @JoinColumn(name = "source_id")
     var source: TestSuitesSource,
 
+    @ManyToOne
+    @JoinColumn(name = "source_snapshot_id")
+    var sourceSnapshot: TestsSourceSnapshot,
+
     var version: String,
 
     var dateAdded: LocalDateTime? = null,
