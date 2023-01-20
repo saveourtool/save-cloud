@@ -14,6 +14,7 @@ import com.saveourtool.save.test.analysis.api.TestRun
 import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
 import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
+import com.saveourtool.save.test.analysis.internal.ExtendedTestRun
 import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.test.analysis.results.AnalysisResult
@@ -255,17 +256,24 @@ class TestAnalysisService(
         execution: Execution,
         parallel: Boolean,
     ): Long {
+        val executionId = execution.requiredId()
         val metadata = execution.metadata()
 
         /*
          * Process test executions in parallel (slightly faster).
          */
-        return testExecutionRepository.findByExecutionId(execution.requiredId())
+        return testExecutionRepository.findByExecutionId(executionId)
             .parallelStreamIfEnabled(enabled = parallel)
             .map { testExecution ->
                 val testId = metadata.extendWith(testExecution).let(testIdGenerator::testId)
 
-                statisticsStorage.updateExecutionStatistics(testId, testExecution.asTestRun())
+                statisticsStorage.updateExecutionStatistics(
+                    ExtendedTestRun(
+                        executionId,
+                        testId,
+                        testExecution.asTestRun()
+                    )
+                )
             }
             .countEagerly()
     }
