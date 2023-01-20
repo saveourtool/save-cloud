@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
@@ -104,7 +105,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             height = 45.0
                             width = 45.0
                             onError = {
-                                setAvatar { "img/undraw_image_not_found.png" }
+                                setAvatar { AVATAR_PLACEHOLDER }
                             }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {

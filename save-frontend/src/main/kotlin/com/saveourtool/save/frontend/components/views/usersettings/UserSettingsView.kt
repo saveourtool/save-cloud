@@ -120,7 +120,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
-                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: run { "img/undraw_profile.svg" }
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
         }
     }
@@ -191,7 +191,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 width = 60.0
                                                 onError = {
                                                     setState {
-                                                        avatar = "img/undraw_image_not_found.png"
+                                                        avatar = AVATAR_PLACEHOLDER
                                                     }
                                                 }
                                             }
