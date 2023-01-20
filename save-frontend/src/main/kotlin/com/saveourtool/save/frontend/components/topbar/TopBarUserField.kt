@@ -52,6 +52,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
+    val (avatar, setAvatar) = useState(props.userInfo?.avatar?.let { "/api/$v1/avatar$it" })
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -95,13 +96,16 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             }
                         }
                     }
-                    props.userInfo?.avatar?.let {
+                    avatar?.let { avatar ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = "/api/$v1/avatar$it"
+                            src = "/api/$v1/avatar$avatar"
                             height = 45.0
                             width = 45.0
+                            onError = {
+                                setAvatar { "img/undraw_image_not_found.png" }
+                            }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
