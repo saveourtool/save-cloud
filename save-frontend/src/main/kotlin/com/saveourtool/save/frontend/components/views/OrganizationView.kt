@@ -147,6 +147,11 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Flag to handle avatar Window
      */
     var isAvatarWindowOpen: Boolean
+
+    /**
+     * Organization avatar
+     */
+    var avatar: String
 }
 
 /**
@@ -203,6 +208,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
@@ -523,14 +529,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     }
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                        src = state.organization?.avatar?.let {
-                            "/api/$v1/avatar$it"
-                        }
-                            ?: run {
-                                "img/company.svg"
-                            }
+                        src = state.avatar
                         height = 100.0
                         width = 100.0
+                        onError = {
+                            setState {
+                                avatar = AVATAR_PLACEHOLDER
+                            }
+                        }
                     }
                 }
 
