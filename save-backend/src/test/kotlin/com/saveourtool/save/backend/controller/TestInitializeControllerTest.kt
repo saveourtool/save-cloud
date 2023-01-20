@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
+    MockBean(TestSuitesService::class),
 )
 class TestInitializeControllerTest {
     @Autowired

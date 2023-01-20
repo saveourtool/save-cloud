@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestsSourceVersionService
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
@@ -37,6 +38,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
+    MockBean(TestSuitesService::class),
 )
 @Import(QuartzAutoConfiguration::class)
 class TestSuitesControllerTest {

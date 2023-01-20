@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Jdk
@@ -27,6 +28,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Bean
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
@@ -48,6 +51,9 @@ import kotlin.io.path.writeText
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @Suppress("TOO_LONG_FUNCTION")
+@MockBeans(
+    MockBean(TestSuitesService::class),
+)
 class RunExecutionControllerTest(
     @Autowired private var webClient: WebTestClient,
 ) {

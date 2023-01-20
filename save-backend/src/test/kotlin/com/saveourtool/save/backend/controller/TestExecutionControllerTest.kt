@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
@@ -40,6 +41,7 @@ import java.time.Instant
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
+    MockBean(TestSuitesService::class),
 )
 class TestExecutionControllerTest {
     @Autowired
