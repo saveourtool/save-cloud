@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
-import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot

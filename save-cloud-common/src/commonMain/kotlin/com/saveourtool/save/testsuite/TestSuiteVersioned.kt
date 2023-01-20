@@ -1,6 +1,5 @@
 package com.saveourtool.save.testsuite
 
-import com.saveourtool.save.test.TestsSourceSnapshotDto
 import kotlinx.serialization.Serializable
 
 /**

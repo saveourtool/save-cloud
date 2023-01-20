@@ -25,8 +25,6 @@ data class TestsSourceFetchRequest(
 
     val createdByUserId: Long,
 ) {
-    val testRootPath = source.testRootPath
-
     /**
      * @param commitId [TestsSourceSnapshotDto.commitId]
      * @param commitTime [TestsSourceSnapshotDto.commitTime]

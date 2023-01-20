@@ -218,7 +218,7 @@ class ExecutionService(
         }
         return doCreateNew(
             project = project,
-            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
+            testSuites = testSuitesService.findTestSuitesByIds(testSuiteIds),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),

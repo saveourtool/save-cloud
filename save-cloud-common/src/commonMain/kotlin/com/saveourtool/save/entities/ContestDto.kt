@@ -1,6 +1,5 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 import kotlinx.datetime.LocalDateTime

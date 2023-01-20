@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.repository
 
-import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceVersion
 import com.saveourtool.save.spring.repository.BaseEntityRepository
@@ -18,26 +17,6 @@ import org.springframework.stereotype.Repository
 )
 interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion> {
     /**
-     * @param snapshot
-     * @param name
-     * @return [TestsSourceVersion] found by [name] in provided [TestsSourceSnapshot]
-     */
-    fun findBySnapshotAndName(snapshot: TestsSourceSnapshot, name: String): TestsSourceVersion?
-
-    /**
-     * @param source
-     * @param name
-     * @return [TestsSourceVersion] found by [name] in provided [TestSuitesSource]
-     */
-    fun findBySnapshot_SourceAndName(source: TestSuitesSource, name: String): TestsSourceVersion?
-
-    /**
-     * @param source
-     * @return all [TestsSourceVersion] in provided [TestSuitesSource]
-     */
-    fun findAllBySnapshot_Source(source: TestSuitesSource): Collection<TestsSourceVersion>
-
-    /**
      * @param snapshotId
      * @return all [TestsSourceVersion] which are linked to [TestsSourceSnapshot] (by [snapshotId])
      */
@@ -49,7 +28,7 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
      * @param version
      * @return [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [organizationName], [sourceName]) with provided [version]
      */
-    fun findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+    fun findBySnapshot_Source_OrganizationNameAndSnapshot_SourceNameAndName(
         organizationName: String,
         sourceName: String,
         version: String,
@@ -60,7 +39,7 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
      * @param version
      * @return [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [snapshotId]) with provided [version]
      */
-    fun findBySnapshot_IdAndName(
+    fun findBySnapshotIdAndName(
         snapshotId: Long,
         version: String,
     ): TestsSourceVersion?
@@ -79,7 +58,7 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
      * @param organizationName
      * @return all [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [organizationName])
      */
-    fun findAllBySnapshot_Source_Organization_Name(
+    fun findAllBySnapshot_Source_OrganizationName(
         organizationName: String,
     ): Collection<TestsSourceVersion>
 
@@ -88,7 +67,7 @@ interface TestsSourceVersionRepository : BaseEntityRepository<TestsSourceVersion
      * @param sourceName
      * @return all [TestsSourceVersion] which linked to some [TestsSourceSnapshot] (by [organizationName], [sourceName])
      */
-    fun findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
+    fun findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(
         organizationName: String,
         sourceName: String,
     ): Collection<TestsSourceVersion>

@@ -77,7 +77,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val fetchTestsSourcesVersionInfoList = useDeferredRequest {
         selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-version",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
@@ -98,11 +98,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testsSourceVersionInfoToDelete?.let { key ->
             delete(
                 url = with(key) {
-                    "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(sourceName)}/delete-test-suites-and-snapshot?version=$version"
+                    "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(sourceName)}/delete-version?version=$version"
                 },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-                
             )
             setTestsSourceVersionInfoToDelete(null)
         }

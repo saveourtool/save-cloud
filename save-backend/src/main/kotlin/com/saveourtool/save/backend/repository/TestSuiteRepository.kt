@@ -13,20 +13,6 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     /**
      * @param name name of the test suite
      * @param tags tags of the test suite
-     * @param source source of the test suite
-     * @param version version of snapshot of source
-     * @return matched test suite
-     */
-    fun findByNameAndTagsAndSourceAndVersion(
-        name: String,
-        tags: String?,
-        source: TestSuitesSource,
-        version: String
-    ): TestSuite?
-
-    /**
-     * @param name name of the test suite
-     * @param tags tags of the test suite
      * @param sourceSnapshotId ID of source snapshot of the test suite
      * @return matched test suite
      */

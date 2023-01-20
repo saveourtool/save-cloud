@@ -6278,7 +6278,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/list-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/list-version": {
       "get": {
         "description": "List of snapshot for all test suites sources in requested organization.",
         "operationId": "listSnapshots",
@@ -6491,7 +6491,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-version": {
       "delete": {
         "description": "Delete test suites and snapshot for requested version from provided test suites source.",
         "operationId": "deleteTestSuitesAndSnapshot",
@@ -6748,7 +6748,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/list-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/list-version": {
       "get": {
         "description": "List of snapshot for test suites source.",
         "operationId": "listSnapshotVersions",

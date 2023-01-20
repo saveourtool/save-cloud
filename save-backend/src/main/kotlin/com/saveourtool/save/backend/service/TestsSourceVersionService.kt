@@ -40,11 +40,6 @@ class TestsSourceVersionService(
         commitId: String,
     ): TestsSourceSnapshotDto? = snapshotRepository.findBySourceIdAndCommitId(sourceId, commitId)?.toDto()
 
-    fun findVersion(
-        sourceId: Long,
-        version: String,
-    ): TestsSourceVersion? = versionRepository.findBySnapshot_SourceIdAndName(sourceId, version)
-
     /**
      * @param sourceId
      * @param version
@@ -66,7 +61,7 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
         version: String,
-    ): TestsSourceSnapshotDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(organizationName, sourceName, version)
+    ): TestsSourceSnapshotDto? = versionRepository.findBySnapshot_Source_OrganizationNameAndSnapshot_SourceNameAndName(organizationName, sourceName, version)
         ?.snapshot
         ?.toDto()
 
@@ -76,7 +71,7 @@ class TestsSourceVersionService(
      */
     fun getAllAsInfo(
         organizationName: String,
-    ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
+    ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_OrganizationName(organizationName)
         .map(TestsSourceVersion::toInfo)
 
     /**
@@ -88,7 +83,7 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
     ): List<TestsSourceVersionInfo> =
-            versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(organizationName, sourceName)
+            versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(organizationName, sourceName)
                 .map(TestsSourceVersion::toInfo)
 
     /**
@@ -99,7 +94,7 @@ class TestsSourceVersionService(
     fun getAllVersions(
         organizationName: String,
         sourceName: String,
-    ): Set<String> = versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
+    ): Set<String> = versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(
         organizationName,
         sourceName
     ).mapTo(HashSet(), TestsSourceVersion::name)
@@ -126,7 +121,7 @@ class TestsSourceVersionService(
         version: String,
     ) {
         val versionEntity =
-                versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+                versionRepository.findBySnapshot_Source_OrganizationNameAndSnapshot_SourceNameAndName(
                     organizationName = organizationName,
                     sourceName = sourceName,
                     version = version,
@@ -165,7 +160,7 @@ class TestsSourceVersionService(
     fun save(
         dto: TestsSourceVersionDto,
     ): Boolean {
-        versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)?.run {
+        versionRepository.findBySnapshotIdAndName(dto.snapshotId, dto.name)?.run {
             require(snapshot.requiredId() == dto.snapshotId) {
                 "Try to save a new $dto, but already exited another one linked to another snapshotId: ${toDto()}"
             }

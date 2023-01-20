@@ -211,7 +211,6 @@ internal class ContestController(
                 }
         }
 
-
     @GetMapping("/{contestName}/test-suites")
     @Operation(
         method = "GET",

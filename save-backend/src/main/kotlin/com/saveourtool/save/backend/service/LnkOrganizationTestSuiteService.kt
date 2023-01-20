@@ -45,6 +45,7 @@ class LnkOrganizationTestSuiteService(
             ?: LnkOrganizationTestSuite(organization, testSuite, rights)
         lnkOrganizationTestSuiteRepository.save(lnkOrganizationTestSuite)
     }
+
     /**
      * Set [rights] of [Organization] to which belongs [testSuite] over [testSuite] or delete them if [rights] is [Role.NONE].
      */

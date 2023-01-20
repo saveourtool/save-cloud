@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPl
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import js.core.jso

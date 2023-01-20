@@ -47,6 +47,7 @@ fun ChildrenBuilder.showAvailableTestSuites(
 /**
  * @param testSuites
  * @param selectedTestSuiteId
+ * @param onTestSuiteClick
  */
 fun ChildrenBuilder.showAvailableTestSuites(
     testSuites: List<TestSuiteDto>,
