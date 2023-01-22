@@ -28,6 +28,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
+ * Avatar placeholder if an error was thrown.
+ */
+internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
+
+/**
  * An error message.
  */
 internal typealias ErrorMessage = String
