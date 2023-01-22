@@ -1,9 +1,11 @@
 package com.saveourtool.save.request
 
 import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
+import com.saveourtool.save.utils.GIT_HASH_PREFIX_LENGTH
 import com.saveourtool.save.utils.getCurrentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
@@ -38,19 +40,24 @@ data class TestsSourceFetchRequest(
     )
 
     /**
-     * @param commitId [TestsSourceVersionInfo.commitId]
-     * @param commitTime [TestsSourceVersionInfo.commitTime]
+     * @param snapshot populate [TestsSourceVersionDto.snapshotId]
      * @return [TestsSourceVersionInfo] created by provided values and [TestsSourceFetchRequest]
      */
-    fun createVersionInfo(
-        commitId: String,
-        commitTime: LocalDateTime,
-    ): TestsSourceVersionInfo = TestsSourceVersionInfo(
-        organizationName = source.organizationName,
-        sourceName = source.name,
-        commitId = commitId,
-        commitTime = commitTime,
-        version = version,
+    fun createVersion(
+        snapshot: TestsSourceSnapshotDto,
+    ): TestsSourceVersionDto = TestsSourceVersionDto(
+        snapshotId = snapshot.requiredId(),
+        name = calculateVersion(snapshot),
+        type = mode,
+        createdByUserId = createdByUserId,
         creationTime = getCurrentLocalDateTime(),
     )
+
+    private fun calculateVersion(
+        snapshot: TestsSourceSnapshotDto,
+    ): String = if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+        "$version (${snapshot.commitId.take(GIT_HASH_PREFIX_LENGTH)})"
+    } else {
+        version
+    }
 }
