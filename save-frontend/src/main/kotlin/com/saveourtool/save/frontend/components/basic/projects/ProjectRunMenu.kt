@@ -132,6 +132,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 projectName = project.name
             ),
             testSuiteIds = selectedTestSuiteIds,
+            testsVersion = "N/A",
             fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },

@@ -8,20 +8,20 @@ import kotlinx.serialization.Serializable
 /**
  * @property projectCoordinates project coordinates for evaluated tool
  * @property testSuiteIds selected test suites for running
+ * @property testsVersion version of selected test suites
  * @property fileIds selected files of evaluated tool
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property testingType a [TestingType] for this execution
  * @property contestName if [testingType] is [TestingType.CONTEST_MODE], then this property contains name of the associated contest
- * @property version
  */
 @Serializable
 data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
-    val version: String,
+    val testsVersion: String,
     val fileIds: List<Long>,
 
     val sdk: Sdk,
