@@ -4,6 +4,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.domain.TestResultStatus.FAILED
 import com.saveourtool.save.domain.TestResultStatus.IGNORED
 import com.saveourtool.save.domain.TestResultStatus.PASSED
+import com.saveourtool.save.test.analysis.internal.ExtendedTestRun
 import com.saveourtool.save.test.analysis.internal.MemoryBacked
 import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
 import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
@@ -12,6 +13,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.DurationUnit.SECONDS
 import kotlin.time.toDuration
@@ -208,11 +211,44 @@ class TestStatisticsStorageTest {
         }
     }
 
+    @Test
+    fun `consecutive test runs with duplicate execution id should be discarded`() {
+        storage[testId] += ExtendedTestRun(0L, testId, PASSED, 1L.seconds)
+
+        assertThat(storage.getTestMetrics(testId)).isInstanceOfSatisfying(RegularTestMetrics::class.java) { metrics ->
+            assertThat(metrics.runCount).isEqualTo(1)
+        }
+
+        storage[testId] += ExtendedTestRun(1L, testId, PASSED, 1L.seconds)
+
+        assertThat(storage.getTestMetrics(testId)).isInstanceOfSatisfying(RegularTestMetrics::class.java) { metrics ->
+            assertThat(metrics.runCount).isEqualTo(2)
+        }
+
+        /*
+         * Will be discarded.
+         */
+        storage[testId] += ExtendedTestRun(1L, testId, PASSED, 1L.seconds)
+
+        assertThat(storage.getTestMetrics(testId)).isInstanceOfSatisfying(RegularTestMetrics::class.java) { metrics ->
+            assertThat(metrics.runCount).isEqualTo(2)
+        }
+    }
+
     private operator fun TestRuns.plusAssign(testRun: TestRun) {
-        storage.updateExecutionStatistics(testId, testRun)
+        this += ExtendedTestRun(
+            executionId.getAndIncrement(),
+            testId,
+            testRun,
+        )
+    }
+
+    private operator fun TestRuns.plusAssign(testRun: ExtendedTestRun) {
+        storage.updateExecutionStatistics(testRun)
     }
 
     private companion object {
+        private val executionId = AtomicLong()
         private val testId = TestId("")
 
         /**
