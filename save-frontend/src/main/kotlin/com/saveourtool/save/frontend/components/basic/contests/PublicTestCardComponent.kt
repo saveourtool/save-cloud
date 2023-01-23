@@ -32,6 +32,11 @@ external interface PublicTestComponentProps : Props {
      * Name of current contest
      */
     var contestName: String
+
+    /**
+     * List of test suites attached to current contest
+     */
+    var contestTestSuites: List<TestSuiteVersioned>
 }
 
 private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>, language: String? = null) = div {
@@ -56,7 +61,6 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
 )
 private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
     val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteVersioned?>(null)
-    val (contestTestSuites, setContestTestSuites) = useState(emptyList<TestSuiteVersioned>())
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
 
     useRequest(dependencies = arrayOf(selectedTestSuite)) {
@@ -75,22 +79,8 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             }
         }
     }
-    useRequest {
-        val response = get(
-            "$apiUrl/contests/${props.contestName}/test-suites",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val fetchedTestSuites: List<TestSuiteVersioned> = response.decodeFromJsonString()
-            setContestTestSuites(fetchedTestSuites)
-        } else {
-            setContestTestSuites(emptyList())
-        }
-    }
 
-    if (contestTestSuites.isEmpty()) {
+    if (props.contestTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No public tests are provided yet."
@@ -102,7 +92,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             div {
                 className = ClassName("col-6")
                 showAvailableTestSuites(
-                    contestTestSuites,
+                    props.contestTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
                     null,
                 ) { testSuite ->

@@ -126,7 +126,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
         val (selectedTestSuiteIds, testsVersion) = when (testingType) {
             TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites.extractIdsAndVersion()
             TestingType.PUBLIC_TESTS -> selectedPublicTestSuites.extractIdsAndVersion()
-            TestingType.CONTEST_MODE -> selectedContest.testSuiteIds to null
+            TestingType.CONTEST_MODE -> selectedContest.testSuites.map { it.id } to null
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(

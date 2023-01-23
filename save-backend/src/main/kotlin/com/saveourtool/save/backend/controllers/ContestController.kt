@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -220,25 +219,6 @@ internal class ContestController(
             )
         }
 
-    @GetMapping("/{contestName}/test-suites")
-    @Operation(
-        method = "GET",
-        summary = "Get test suites for contest with given name.",
-        description = "Get test suites for contest with given name.",
-    )
-    @Parameters(
-        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched tests suites.")
-    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided/not attached to given contest.")
-    @Suppress("TOO_LONG_FUNCTION")
-    fun getTestSuitesForContest(
-        @PathVariable contestName: String,
-    ): Flux<TestSuiteVersioned> = getContestOrNotFound(contestName)
-        .flatMapIterable { contest ->
-            contest.testSuites().map(TestSuite::toVersioned)
-        }
-
     @GetMapping("/by-organization")
     @Operation(
         method = "GET",
@@ -327,7 +307,7 @@ internal class ContestController(
         }
         .zipWith(
             Mono.fromCallable {
-                testSuitesService.findTestSuitesByIds(contestDto.testSuiteIds)
+                testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.id })
             }
         )
         .map { (contest, testSuites) ->
