@@ -67,7 +67,12 @@ fun ChildrenBuilder.showAvailableTestSuites(
     )
 }
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList"
+)
 private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
     testSuites: List<T>,
     onTestSuiteClick: (T) -> Unit,
