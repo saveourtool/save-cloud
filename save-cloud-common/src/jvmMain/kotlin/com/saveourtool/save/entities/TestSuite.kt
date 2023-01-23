@@ -5,7 +5,9 @@ import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.PRETTY_DELIMITER
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
@@ -15,6 +17,7 @@ import javax.persistence.ManyToOne
 /**
  * @property name name of the test suite
  * @property description description of the test suite
+ * @property sourceSnapshot snapshot of source, which this test suite is created from
  * @property dateAdded date and time, when this test suite was added to the project
  * @property language
  * @property tags
@@ -30,8 +33,8 @@ class TestSuite(
     var description: String? = "Undefined",
 
     @ManyToOne
-    @JoinColumn(name = "source_version_id")
-    var sourceVersion: TestsSourceVersion,
+    @JoinColumn(name = "source_snapshot_id")
+    var sourceSnapshot: TestsSourceSnapshot,
 
     var dateAdded: LocalDateTime? = null,
 
@@ -64,13 +67,32 @@ class TestSuite(
             TestSuiteDto(
                 this.name,
                 this.description,
-                this.sourceVersion.requiredId(),
+                this.sourceSnapshot.toDto(),
                 this.language,
                 this.tagsAsList(),
                 this.id,
                 this.pluginsAsListOfPluginType(),
                 this.isPublic,
             )
+
+    /**
+     * @param version
+     * @return [TestSuiteVersioned] created from [TestSuiteDto]
+     */
+    fun toVersioned(
+        version: String,
+    ): TestSuiteVersioned = TestSuiteVersioned(
+        id = this.requiredId(),
+        name = this.name,
+        sourceName = this.sourceSnapshot.source.name,
+        organizationName = this.sourceSnapshot.source.organization.name,
+        isLatestFetchedVersion = version == this.sourceSnapshot.source.latestFetchedVersion,
+        description = this.description.orEmpty(),
+        version = version,
+        language = this.language.orEmpty(),
+        tags = tagsAsList().joinToString(PRETTY_DELIMITER),
+        plugins = pluginsAsListOfPluginType().joinToString(PRETTY_DELIMITER) { it.pluginName() },
+    )
 
     companion object {
         /**

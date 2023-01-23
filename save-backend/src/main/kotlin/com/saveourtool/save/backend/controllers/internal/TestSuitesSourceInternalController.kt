@@ -79,22 +79,10 @@ class TestSuitesSourceInternalController(
         }
         testSuite
             .toDto()
-            .let { it.source to it.version }
-    }.flatMap { (source, version) ->
-        source.downloadSnapshot(version)
+            .sourceSnapshot
+    }.map { snapshot ->
+        ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(snapshotStorage.download(snapshot))
     }
-
-    private fun TestSuitesSourceDto.downloadSnapshot(
-        version: String
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        testsSourceVersionService.findSnapshot(organizationName, name, version)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found a snapshot of $name in $organizationName with version=$version"
-        }
-        .map { snapshot ->
-            ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(snapshotStorage.download(snapshot))
-        }
 }

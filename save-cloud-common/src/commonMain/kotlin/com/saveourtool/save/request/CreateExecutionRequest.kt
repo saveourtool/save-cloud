@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 /**
  * @property projectCoordinates project coordinates for evaluated tool
  * @property testSuiteIds selected test suites for running
+ * @property testsVersion version of selected test suites
  * @property fileIds selected files of evaluated tool
  * @property sdk
  * @property execCmd
@@ -20,6 +21,7 @@ data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
+    val testsVersion: String,
     val fileIds: List<Long>,
 
     val sdk: Sdk,

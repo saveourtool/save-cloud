@@ -79,7 +79,7 @@ class TestSuitesPreprocessorController(
         gitCommitInfo: GitCommitInfo,
         request: TestsSourceFetchRequest,
         testSuitesSourceDto: TestSuitesSourceDto,
-    ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / testSuitesSourceDto.testRootPath).let { pathToRepository ->
+    ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / request.source.testRootPath).let { pathToRepository ->
         gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 snapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time),
@@ -87,15 +87,13 @@ class TestSuitesPreprocessorController(
             ).zipWhen { snapshot ->
                 testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
                     repositoryPath = repositoryDirectory,
-                    testSuitesSourceDto = testSuitesSourceDto,
-                    version = snapshot.commitId
+                    testRootPath = request.source.testRootPath,
+                    sourceSnapshot = snapshot,
                 )
             }
         }
             .map { (snapshot, testSuites) ->
-                with(testSuitesSourceDto) {
-                    log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version ${snapshot.commitId}" }
-                }
+                log.info { "Loaded ${testSuites.size} test suites from tests snapshot id ${snapshot.requiredId()} with version ${snapshot.commitId}" }
                 snapshot
             }
             .doOnError(

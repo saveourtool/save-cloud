@@ -13,9 +13,12 @@ import com.saveourtool.save.utils.*
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.saveourtool.save.backend.service.ExecutionService.Companion.singleSnapshot
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -44,6 +47,7 @@ class ExecutionService(
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
     private val testAnalysisService: TestAnalysisService,
+    private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -203,6 +207,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
+        testsVersion: String,
         fileIds: List<Long>,
         username: String,
         sdk: Sdk,
@@ -216,16 +221,15 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
+        val testSuites = testSuitesService.findTestSuitesByIds(testSuiteIds)
         return doCreateNew(
             project = project,
-            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
+            testSuites = testSuitesService.findTestSuitesByIds(testSuiteIds),
+            testsVersion = testsVersion.validateTestsVersion(testSuites),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            files = fileIds.map { fileId ->
-                fileRepository.findByIdOrNull(fileId)
-                    .orNotFound { "File (id=$fileId) not found" }
-            },
+            files = fileIds.map { fileRepository.getByIdOrNotFound(it) },
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -233,6 +237,16 @@ class ExecutionService(
             testingType = testingType,
             contestName,
         )
+    }
+
+    private fun String.validateTestsVersion(testSuites: Collection<TestSuite>): String {
+        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
+        testsSourceVersionService.doesVersionExist(snapshot.sourceId, this)
+            .takeIf { it }
+            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
+                "Provided tests version $this doesn't belong to tests snapshot $snapshot"
+            }
+        return this
     }
 
     /**
@@ -250,6 +264,7 @@ class ExecutionService(
         return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
+            testsVersion = execution.version.orEmpty(),
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -266,6 +281,7 @@ class ExecutionService(
     private fun doCreateNew(
         project: Project,
         testSuites: List<TestSuite>,
+        testsVersion: String,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -285,7 +301,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testSuites.singleVersion().getOrThrowBadRequest(),
+            version = testsVersion,
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -367,7 +383,7 @@ class ExecutionService(
     }
 
     companion object {
-        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.source }
+        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.sourceSnapshot.source }
             .distinctBy { it.requiredId() }
             .let { sources ->
                 when (sources.size) {
@@ -380,14 +396,14 @@ class ExecutionService(
                 }
             }
 
-        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.version }
+        private fun Collection<TestSuite>.singleSnapshot(): Either<ErrorMessage, TestsSourceSnapshotDto> = map { it.sourceSnapshot.toDto() }
             .distinct()
-            .let { versions ->
-                when (versions.size) {
-                    1 -> versions[0]
+            .let { snapshots ->
+                when (snapshots.size) {
+                    1 -> snapshots[0]
                         .right()
 
-                    else -> ErrorMessage("Only a single version is supported, but got: $versions")
+                    else -> ErrorMessage("Only a single tests snapshot is supported, but got: $snapshots")
                         .left()
                 }
             }

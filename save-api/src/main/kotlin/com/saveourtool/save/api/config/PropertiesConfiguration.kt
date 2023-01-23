@@ -53,6 +53,7 @@ data class EvaluatedToolProperties(
     val sdk: String? = null,
     val additionalFiles: String? = null,
     val testSuites: String,
+    val testsVersion: String,
     val execCmd: String? = null,
     val batchSize: String? = null,
 ) : PropertiesConfiguration()
