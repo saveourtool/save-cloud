@@ -214,10 +214,10 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
-        val testSuites = testSuitesService.findTestSuitesByIds(testSuiteIds)
+        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         return doCreateNew(
             project = project,
-            testSuites = testSuitesService.findTestSuitesByIds(testSuiteIds),
+            testSuites = testSuites,
             testsVersion = testsVersion.validateTestsVersion(testSuites),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
