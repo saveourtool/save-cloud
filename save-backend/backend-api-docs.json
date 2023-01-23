@@ -1620,6 +1620,73 @@
         ]
       }
     },
+    "/api/v1/contests/{contestName}/test-suites": {
+      "get": {
+        "description": "Get test suites for contest with given name.",
+        "operationId": "getTestSuitesForContest",
+        "parameters": [
+          {
+            "description": "name of a contest",
+            "in": "path",
+            "name": "contestName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched tests suites."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteVersioned"
+                  }
+                }
+              }
+            },
+            "description": "Either contest with such name was not found or tests are not provided/not attached to given contest."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get test suites for contest with given name.",
+        "tags": [
+          "contests"
+        ]
+      }
+    },
     "/api/v1/contests/{organizationName}/{projectName}/best": {
       "get": {
         "description": "Get list of contests in which given project has higher results.",
@@ -8098,7 +8165,7 @@
           "name",
           "organizationName",
           "status",
-          "testSuites"
+          "testSuiteIds"
         ],
         "type": "object",
         "properties": {
@@ -8127,10 +8194,11 @@
               "DELETED"
             ]
           },
-          "testSuites": {
+          "testSuiteIds": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TestSuiteVersioned"
+              "type": "integer",
+              "format": "int64"
             }
           }
         },
@@ -8228,6 +8296,9 @@
               "PRIVATE_TESTS",
               "PUBLIC_TESTS"
             ]
+          },
+          "testsVersion": {
+            "type": "string"
           }
         }
       },
