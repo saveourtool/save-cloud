@@ -5,7 +5,9 @@ import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.PRETTY_DELIMITER
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
@@ -76,6 +78,22 @@ class TestSuite(
                 this.isPublic,
             )
 
+    /**
+     * @return [TestSuiteVersioned] created from [TestSuite]
+     */
+    fun toVersioned(): TestSuiteVersioned = TestSuiteVersioned(
+        id = requiredId(),
+        name = name,
+        sourceName = source.name,
+        organizationName = source.organization.name,
+        isLatestFetchedVersion = version == source.latestFetchedVersion,
+        description = description.orEmpty(),
+        version = version,
+        language = language.orEmpty(),
+        tags = tagsAsList().joinToString(PRETTY_DELIMITER),
+        plugins = pluginsAsListOfPluginType().joinToString(PRETTY_DELIMITER) { it.pluginName() },
+    )
+
     companion object {
         /**
          * Concatenates [tags] using same format as [TestSuite.tagsAsList]
@@ -100,5 +118,20 @@ class TestSuite(
          * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [PluginType]s
          */
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
+
+        /**
+         * @param sourceResolver
+         * @return [TestSuite] created from [TestSuiteDto]
+         */
+        fun TestSuiteDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestSuite = TestSuite(
+            name = name,
+            description = description,
+            source = sourceResolver(source.requiredId()),
+            version = version,
+            dateAdded = null,
+            language = language,
+            tags = tags?.let(TestSuite::tagsFromList),
+            plugins = pluginsByTypes(plugins)
+        )
     }
 }

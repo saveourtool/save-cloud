@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * @property batchSizeForAnalyzer
  * @property testingType a [TestingType] for this execution
  * @property contestName if [testingType] is [TestingType.CONTEST_MODE], then this property contains name of the associated contest
+ * @property testsVersion version of selected test suites
  */
 @Serializable
 data class CreateExecutionRequest(
@@ -28,6 +29,7 @@ data class CreateExecutionRequest(
 
     val testingType: TestingType,
     val contestName: String? = null,
+    val testsVersion: String? = null,
 ) {
     init {
         require((testingType == TestingType.CONTEST_MODE) xor (contestName == null)) {

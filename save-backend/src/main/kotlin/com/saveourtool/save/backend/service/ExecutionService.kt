@@ -181,6 +181,7 @@ class ExecutionService(
     /**
      * @param projectCoordinates
      * @param testSuiteIds
+     * @param testsVersion
      * @param fileIds
      * @param username
      * @param sdk
@@ -195,6 +196,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
+        testsVersion: String?,
         fileIds: List<Long>,
         username: String,
         sdk: Sdk,
@@ -208,9 +210,11 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
+        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         return doCreateNew(
             project = project,
-            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
+            testSuites = testSuites,
+            testsVersion = testsVersion?.validateTestsVersion(testSuites),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
@@ -225,6 +229,13 @@ class ExecutionService(
             testingType = testingType,
             contestName,
         )
+    }
+
+    private fun String.validateTestsVersion(testSuites: Collection<TestSuite>): String {
+        require(testSuites.singleVersion().getOrThrowBadRequest() == this) {
+            "Provided tests version $this doesn't match to calculated version from test suties"
+        }
+        return this
     }
 
     /**
@@ -242,6 +253,7 @@ class ExecutionService(
         return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
+            testsVersion = execution.version,
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -258,6 +270,7 @@ class ExecutionService(
     private fun doCreateNew(
         project: Project,
         testSuites: List<TestSuite>,
+        testsVersion: String?,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -277,7 +290,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testSuites.singleVersion().getOrThrowBadRequest(),
+            version = testsVersion ?: testSuites.singleVersion().getOrThrowBadRequest(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,

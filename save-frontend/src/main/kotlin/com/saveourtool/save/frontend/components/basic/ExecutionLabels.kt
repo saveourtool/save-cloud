@@ -229,7 +229,7 @@ fun ChildrenBuilder.displayProjectVersion(
                 +(executionDto?.status?.name ?: "N/A")
                 div {
                     className = ClassName("text-white-50 small")
-                    +"Project version: ${executionDto?.version ?: "N/A"}"
+                    +"Tests version: ${executionDto?.version ?: "N/A"}"
                 }
             }
         }

@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.testsuite.TestSuiteVersioned.Companion.toVersioned
 import com.saveourtool.save.validation.isValidName
 
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -59,7 +58,7 @@ class Contest(
         endTime?.toKotlinLocalDateTime()!!,
         description,
         organization.name,
-        testSuiteLinks.map { it.testSuite.toDto().toVersioned() },
+        testSuiteLinks.map { it.testSuite.toVersioned() },
         creationTime?.toKotlinLocalDateTime(),
     )
 
