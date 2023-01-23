@@ -4,6 +4,7 @@ import com.saveourtool.save.domain.TestResultStatus.FAILED
 import com.saveourtool.save.domain.TestResultStatus.IGNORED
 import com.saveourtool.save.domain.TestResultStatus.PASSED
 import com.saveourtool.save.test.analysis.api.TestAnalysisService.Factory.MINIMUM_RUN_COUNT
+import com.saveourtool.save.test.analysis.internal.ExtendedTestRun
 import com.saveourtool.save.test.analysis.internal.MemoryBacked
 import com.saveourtool.save.test.analysis.internal.MutableTestStatisticsStorage
 import com.saveourtool.save.test.analysis.results.FlakyTest
@@ -14,6 +15,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * @see TestAnalysisService
@@ -263,10 +265,17 @@ class TestAnalysisServiceTest {
     }
 
     private operator fun TestRuns.plusAssign(testRun: TestRun) {
-        storage.updateExecutionStatistics(testId, testRun)
+        storage.updateExecutionStatistics(
+            ExtendedTestRun(
+                executionId.getAndIncrement(),
+                testId,
+                testRun,
+            )
+        )
     }
 
     private companion object {
+        private val executionId = AtomicLong()
         private val testId = TestId("")
 
         /**

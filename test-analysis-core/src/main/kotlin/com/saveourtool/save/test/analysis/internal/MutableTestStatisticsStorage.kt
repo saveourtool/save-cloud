@@ -1,7 +1,5 @@
 package com.saveourtool.save.test.analysis.internal
 
-import com.saveourtool.save.test.analysis.api.TestId
-import com.saveourtool.save.test.analysis.api.TestRun
 import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
 
 /**
@@ -10,14 +8,12 @@ import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
  */
 interface MutableTestStatisticsStorage : TestStatisticsStorage {
     /**
-     * Updates stored statistical data for the test specified by [id] with a new
-     * [testRun].
+     * Updates stored statistical data with a new [testRunExt].
      *
-     * @param id the unique id of the test.
-     * @param testRun the recent test run information with a status and optional
-     *   duration.
+     * @param testRunExt the recent test run information with a status and
+     *   optional duration.
      */
-    fun updateExecutionStatistics(id: TestId, testRun: TestRun)
+    fun updateExecutionStatistics(testRunExt: ExtendedTestRun)
 
     /**
      * Clears any statistical data collected.
