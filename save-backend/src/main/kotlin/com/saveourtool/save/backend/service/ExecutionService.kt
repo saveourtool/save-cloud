@@ -351,8 +351,14 @@ class ExecutionService(
     @Transactional
     fun unlinkTestSuiteFromAllExecution(testSuites: List<TestSuite>) {
         lnkExecutionTestSuiteRepository.findAllByTestSuiteIn(testSuites)
-            .also {
-                lnkExecutionTestSuiteRepository.deleteAll(it)
+            .also { links ->
+                val linksByExecutions = lnkExecutionTestSuiteRepository.findByExecutionIdIn(links.map { it.execution.requiredId() })
+                require(
+                    linksByExecutions.isEmpty() || linksByExecutions.size == links.size
+                ) {
+                    "Expected that we remove all test suites related to a single execution at once"
+                }
+                lnkExecutionTestSuiteRepository.deleteAll(links)
             }
             .map { it.execution }
             .forEach {
