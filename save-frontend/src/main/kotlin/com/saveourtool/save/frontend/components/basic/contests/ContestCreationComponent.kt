@@ -163,7 +163,6 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 setContestDto(
                     contestDto.copy(
                         testSuiteIds = testSuites.map(TestSuiteVersioned::id),
-                        testsVersion = testSuites.map(TestSuiteVersioned::version).single(),
                     )
                 )
             }
