@@ -6,8 +6,11 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
+import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.entities.LnkContestTestSuite
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.test.TestFilesContent

@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 

@@ -22,12 +22,12 @@ data class CreateExecutionRequest(
 
     val testSuiteIds: List<Long>,
     val fileIds: List<Long>,
-    val sdk: Sdk,
 
+    val sdk: Sdk,
     val execCmd: String? = null,
     val batchSizeForAnalyzer: String? = null,
-    val testingType: TestingType,
 
+    val testingType: TestingType,
     val contestName: String? = null,
     val testsVersion: String? = null,
 ) {
