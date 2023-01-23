@@ -23,9 +23,9 @@ import kotlin.io.path.name
  * @property storage some storage which uses [Long] ([DtoWithId.id]) as a key
  * @property repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>>(
+abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     private val storage: Storage<Long>,
-    private val repository: BaseEntityRepository<E>,
+    protected val repository: R,
 ) : Storage<K> {
     /**
      * Implementation using file-based storage
@@ -35,7 +35,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      */
     constructor(
         rootDir: Path,
-        repository: BaseEntityRepository<E>,
+        repository: R,
     ) : this(defaultFileBasedStorage(rootDir), repository)
 
     override fun list(): Flux<K> = blockingToFlux {

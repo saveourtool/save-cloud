@@ -28,9 +28,9 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
-    private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
+    testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
-) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot>(
+) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
     Path.of(configProperties.fileStorage.location) / "testSuites", testsSourceSnapshotRepository) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
@@ -38,7 +38,7 @@ class TestsSourceSnapshotStorage(
 
     override fun findByDto(
         dto: TestsSourceSnapshotDto
-    ): TestsSourceSnapshot? = testsSourceSnapshotRepository.findBySourceIdAndCommitId(
+    ): TestsSourceSnapshot? = repository.findBySourceIdAndCommitId(
         sourceId = dto.sourceId,
         commitId = dto.commitId,
     )

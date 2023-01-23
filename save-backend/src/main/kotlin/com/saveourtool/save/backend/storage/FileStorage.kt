@@ -24,10 +24,10 @@ import kotlinx.datetime.toJavaLocalDateTime
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-    private val fileRepository: FileRepository,
+    fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-) : AbstractStorageWithDatabase<FileDto, File>(
+) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
     Path.of(configProperties.fileStorage.location) / "storage", fileRepository) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)
@@ -36,7 +36,7 @@ class FileStorage(
             }
     }
 
-    override fun findByDto(dto: FileDto): File? = fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+    override fun findByDto(dto: FileDto): File? = repository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
         organizationName = dto.projectCoordinates.organizationName,
         projectName = dto.projectCoordinates.projectName,
         name = dto.name,
@@ -58,7 +58,7 @@ class FileStorage(
     fun listByProject(
         project: Project,
     ): Flux<FileDto> = blockingToFlux {
-        fileRepository.findAllByProject(project).map { it.toDto() }
+        repository.findAllByProject(project).map { it.toDto() }
     }
 
     /**
@@ -68,7 +68,7 @@ class FileStorage(
     fun getFileById(
         fileId: Long,
     ): Mono<FileDto> = blockingToMono {
-        fileRepository.findByIdOrNull(fileId)?.toDto()
+        repository.findByIdOrNull(fileId)?.toDto()
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 }
