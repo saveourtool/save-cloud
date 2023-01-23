@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -32,7 +31,6 @@ class TestSuitesService(
     private val testRepository: TestRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
-    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
 ) {
     /**
@@ -228,20 +226,7 @@ class TestSuitesService(
     }
 
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
-        val executions = testSuites.flatMap { testSuite ->
-            executionService.getExecutionsByTestSuiteId(testSuite.requiredId())
-        }.distinctBy { it.requiredId() }
-        val allTestSuiteIdsByExecutions = executions.flatMap { lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(it.requiredId()) }
-            .distinct()
-            .size
-        require(
-            allTestSuiteIdsByExecutions == testSuites.size || allTestSuiteIdsByExecutions == 0
-        ) {
-            "Expected that we remove all test suites related to a single execution at once"
-        }
-        executions.forEach {
-            executionService.updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
-        }
+        executionService.unlinkTestSuiteFromAllExecution(testSuites)
 
         testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
