@@ -47,7 +47,7 @@ class TestsSourceSnapshotStorage(
     )
 
     override fun beforeDelete(entity: TestsSourceSnapshot) {
-        executionService.unlinkTestSuiteFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
+        executionService.unlinkTestSuitesFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
     }
 
     /**

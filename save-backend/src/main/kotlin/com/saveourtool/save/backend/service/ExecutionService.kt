@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.service.ExecutionService.Companion.singleSnapshot
 import com.saveourtool.save.backend.utils.ErrorMessage
 import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
@@ -349,7 +348,7 @@ class ExecutionService(
      * @param testSuites
      */
     @Transactional
-    fun unlinkTestSuiteFromAllExecution(testSuites: List<TestSuite>) {
+    fun unlinkTestSuitesFromAllExecution(testSuites: List<TestSuite>) {
         lnkExecutionTestSuiteRepository.findAllByTestSuiteIn(testSuites)
             .also { links ->
                 val linksByExecutions = lnkExecutionTestSuiteRepository.findByExecutionIdIn(links.map { it.execution.requiredId() })

@@ -43,7 +43,6 @@ data class WebClientProperties(
  * @property sdk
  * @property additionalFiles
  * @property testSuites
- * @property testsVersion
  * @property execCmd
  * @property batchSize
  */
