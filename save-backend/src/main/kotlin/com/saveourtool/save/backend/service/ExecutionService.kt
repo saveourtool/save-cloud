@@ -373,6 +373,16 @@ class ExecutionService(
         .map { it.file.toDto() }
 
     /**
+     * @param executionId
+     * @return a single [TestsSourceSnapshotDto] (with validation) from [TestSuite]s which are assigned to [Execution] (by provided [executionId])
+     */
+    fun getRelatedTestsSourceSnapshot(executionId: Long): TestsSourceSnapshotDto = lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+        .map { it.testSuite }
+        .singleSnapshot()
+        .getOrThrowBadRequest()
+        .toDto()
+
+    /**
      * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
      *
      * @param executionIds

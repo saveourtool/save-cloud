@@ -24,7 +24,6 @@ class TestSuitesSourceInternalController(
     private val testsSourceVersionService: TestsSourceVersionService,
     private val snapshotStorage: TestsSourceSnapshotStorage,
     private val executionService: ExecutionService,
-    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     /**
      * @param snapshotDto
@@ -72,14 +71,7 @@ class TestSuitesSourceInternalController(
     fun downloadByExecutionId(
         @RequestParam executionId: Long
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        val execution = executionService.findExecution(executionId)
-            .orNotFound { "Execution (id=$executionId) not found" }
-        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).firstOrNull().orNotFound {
-            "Execution (id=$executionId) doesn't have any testSuites"
-        }
-        testSuite
-            .toDto()
-            .sourceSnapshot
+        executionService.getRelatedTestsSourceSnapshot(executionId)
     }.map { snapshot ->
         ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)

@@ -454,10 +454,10 @@ internal class OrganizationController(
         }
         .asyncEffect { organization ->
             // Find all tests sources and remove all corresponding snapshots from storage
-            Mono.fromCallable {
-                gitService.getByOrganizationAndUrl(organization, url)
+            blockingToFlux {
+                val git = gitService.getByOrganizationAndUrl(organization, url)
+                testSuitesSourceService.findByGit(git)
             }
-                .flatMapIterable { testSuitesSourceService.findByGit(it) }
                 .flatMap { testsSourceSnapshotStorage.deleteAll(it) }
                 .map { deleted ->
                     if (!deleted) {
