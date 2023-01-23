@@ -41,6 +41,7 @@ class ExecutionService(
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val fileRepository: FileRepository,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
+    private val lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
     private val testAnalysisService: TestAnalysisService,
@@ -176,15 +177,6 @@ class ExecutionService(
             .map { it.requiredId() }
             .let { deleteByIds(it) }
     }
-
-    /**
-     * Get all executions, which contains provided test suite id
-     *
-     * @param testSuiteId
-     * @return list of [Execution]'s
-     */
-    fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> =
-            lnkExecutionTestSuiteService.getAllExecutionsByTestSuiteId(testSuiteId)
 
     /**
      * @param projectCoordinates
@@ -340,6 +332,29 @@ class ExecutionService(
         lnkExecutionFileRepository.findAllByFile(file)
             .also {
                 lnkExecutionFileRepository.deleteAll(it)
+            }
+            .map { it.execution }
+            .forEach {
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
+            }
+    }
+
+    /**
+     * Unlink provided list of [TestSuite]s from all [Execution]s
+     *
+     * @param testSuites
+     */
+    @Transactional
+    fun unlinkTestSuiteFromAllExecution(testSuites: List<TestSuite>) {
+        lnkExecutionTestSuiteRepository.findAllByTestSuiteIn(testSuites)
+            .also { links ->
+                val linksByExecutions = lnkExecutionTestSuiteRepository.findByExecutionIdIn(links.map { it.execution.requiredId() })
+                require(
+                    linksByExecutions.isEmpty() || linksByExecutions.size == links.size
+                ) {
+                    "Expected that we remove all test suites related to a single execution at once"
+                }
+                lnkExecutionTestSuiteRepository.deleteAll(links)
             }
             .map { it.execution }
             .forEach {
