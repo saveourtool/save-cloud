@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
@@ -54,16 +55,8 @@ class TestSuitesService(
                 latestFetchedVersion = testSuiteSourceVersion
             }
 
-        val testSuiteCandidate = TestSuite(
-            name = testSuiteDto.name,
-            description = testSuiteDto.description,
-            source = testSuiteSource,
-            version = testSuiteDto.version,
-            dateAdded = null,
-            language = testSuiteDto.language,
-            tags = testSuiteDto.tags?.let(TestSuite::tagsFromList),
-            plugins = TestSuite.pluginsByTypes(testSuiteDto.plugins)
-        )
+        val testSuiteCandidate = testSuiteDto.toEntity { testSuiteSource }
+            .apply { dateAdded = null }
         // try to find TestSuite in the DB based on all non-null properties of `testSuite`
         // NB: that's why `dateAdded` is null in the mapping above
         val description = testSuiteCandidate.description

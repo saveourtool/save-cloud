@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
@@ -117,7 +118,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName() || contestDto.testSuites.isEmpty()
+        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -127,6 +128,7 @@ private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == nul
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
     val (contestDto, setContestDto) = useState(ContestDto.empty.copy(organizationName = props.organizationName))
+    val (testSuiteVersionedList, setTestSuiteVersionedList) = useState(emptyList<TestSuiteVersioned>())
 
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
@@ -153,11 +155,17 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         contestCreationCard {
             showContestTestSuitesSelectorModal(
                 contestDto.organizationName,
-                contestDto.testSuites,
+                testSuiteVersionedList,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
             ) { testSuites ->
-                setContestDto(contestDto.copy(testSuites = testSuites))
+                setTestSuiteVersionedList(testSuites)
+                setContestDto(
+                    contestDto.copy(
+                        testSuiteIds = testSuites.map(TestSuiteVersioned::id),
+                        testsVersion = testSuites.map(TestSuiteVersioned::version).single(),
+                    )
+                )
             }
             div {
                 className = ClassName("")
@@ -215,7 +223,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_TEST_SUITE_IDS
                             conflictMessage = null
-                            textValue = contestDto.testSuites.map { it.name }
+                            textValue = testSuiteVersionedList.map { it.name }
                                 .sorted()
                                 .joinToString(", ")
                             validInput = true
