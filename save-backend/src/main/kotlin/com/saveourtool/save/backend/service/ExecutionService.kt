@@ -231,15 +231,6 @@ class ExecutionService(
         )
     }
 
-    private fun String.validateTestsVersion(snapshot: TestsSourceSnapshot): String {
-        testsSourceVersionService.doesVersionExist(snapshot.source.requiredId(), this)
-            .takeIf { it }
-            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
-                "Provided tests version $this doesn't belong to tests snapshot $snapshot"
-            }
-        return this
-    }
-
     /**
      * @param execution
      * @param username
@@ -255,7 +246,7 @@ class ExecutionService(
         return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
-            testsVersion = execution.version.orEmpty(),
+            testsVersion = execution.version,
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -323,6 +314,15 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
         return savedExecution
+    }
+
+    private fun String.validateTestsVersion(snapshot: TestsSourceSnapshot): String {
+        testsSourceVersionService.doesVersionExist(snapshot.source.requiredId(), this)
+            .takeIf { it }
+            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
+                "Provided tests version $this doesn't belong to tests snapshot $snapshot"
+            }
+        return this
     }
 
     /**

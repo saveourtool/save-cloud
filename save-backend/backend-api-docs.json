@@ -8228,6 +8228,9 @@
               "PRIVATE_TESTS",
               "PUBLIC_TESTS"
             ]
+          },
+          "testsVersion": {
+            "type": "string"
           }
         }
       },
