@@ -84,9 +84,7 @@ class TestsSourceSnapshotStorage(
      * @param testSuitesSource
      * @return true if all [TestsSourceSnapshot] (found by [testSuitesSource]) deleted successfully, otherwise -- false
      */
-    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> {
-        return blockingToFlux { repository.findAllBySource(testSuitesSource) }
-            .flatMap { delete(it.toDto()) }
-            .all { it }
-    }
+    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> = blockingToFlux { repository.findAllBySource(testSuitesSource) }
+        .flatMap { delete(it.toDto()) }
+        .all { it }
 }

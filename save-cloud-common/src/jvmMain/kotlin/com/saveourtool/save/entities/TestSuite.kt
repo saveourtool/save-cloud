@@ -4,8 +4,6 @@ import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
-import com.saveourtool.save.test.TestsSourceSnapshotDto
-import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DATABASE_DELIMITER
@@ -83,14 +81,14 @@ class TestSuite(
     fun toVersioned(
         version: String,
     ): TestSuiteVersioned = TestSuiteVersioned(
-        id = this.requiredId(),
-        name = this.name,
-        sourceName = this.sourceSnapshot.source.name,
-        organizationName = this.sourceSnapshot.source.organization.name,
-        isLatestFetchedVersion = version == this.sourceSnapshot.source.latestFetchedVersion,
-        description = this.description.orEmpty(),
+        id = requiredId(),
+        name = name,
+        sourceName = sourceSnapshot.source.name,
+        organizationName = sourceSnapshot.source.organization.name,
+        isLatestFetchedVersion = version == sourceSnapshot.source.latestFetchedVersion,
+        description = description.orEmpty(),
         version = version,
-        language = this.language.orEmpty(),
+        language = language.orEmpty(),
         tags = tagsAsList().joinToString(PRETTY_DELIMITER),
         plugins = pluginsAsListOfPluginType().joinToString(PRETTY_DELIMITER) { it.pluginName() },
     )

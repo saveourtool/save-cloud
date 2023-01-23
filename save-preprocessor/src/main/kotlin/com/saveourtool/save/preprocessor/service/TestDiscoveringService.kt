@@ -40,6 +40,7 @@ class TestDiscoveringService(
 ) {
     /**
      * @param repositoryPath
+     * @param testRootPath
      * @param sourceSnapshot
      * @return list of [TestSuite] initialized from provided directory
      */
