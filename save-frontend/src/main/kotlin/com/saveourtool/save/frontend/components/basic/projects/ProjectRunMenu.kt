@@ -78,6 +78,8 @@ private fun ChildrenBuilder.testingTypeButton(
     }
 }
 
+private fun Collection<TestSuiteVersioned>.extractIdsAndVersion() = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version).takeIf { it.isNotEmpty() }?.single()
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     val (project, setProject) = useState(ProjectDto.empty)
@@ -121,10 +123,10 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val buildExecutionRequest: () -> CreateExecutionRequest = {
-        val selectedTestSuiteIds = when (testingType) {
-            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites.map(TestSuiteVersioned::id)
-            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites.map(TestSuiteVersioned::id)
-            TestingType.CONTEST_MODE -> selectedContest.testSuiteIds
+        val (selectedTestSuiteIds, testsVersion) = when (testingType) {
+            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites.extractIdsAndVersion()
+            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites.extractIdsAndVersion()
+            TestingType.CONTEST_MODE -> selectedContest.testSuites.map { it.id } to null
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
@@ -132,13 +134,13 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 projectName = project.name
             ),
             testSuiteIds = selectedTestSuiteIds,
-            testsVersion = "N/A",
             fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = batchSizeForAnalyzer.takeUnless { it.isBlank() },
             testingType = testingType,
-            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { selectedContest.name }
+            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { selectedContest.name },
+            testsVersion = testsVersion,
         )
     }
 

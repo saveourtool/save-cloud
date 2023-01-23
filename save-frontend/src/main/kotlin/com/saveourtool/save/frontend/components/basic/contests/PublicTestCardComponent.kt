@@ -7,7 +7,7 @@ import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import js.core.jso
@@ -32,6 +32,11 @@ external interface PublicTestComponentProps : Props {
      * Name of current contest
      */
     var contestName: String
+
+    /**
+     * List of test suites attached to current contest
+     */
+    var contestTestSuites: List<TestSuiteVersioned>
 }
 
 private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>, language: String? = null) = div {
@@ -55,14 +60,13 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
     "AVOID_NULL_CHECKS"
 )
 private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
-    val (selectedTestSuiteId, setSelectedTestSuiteId) = useState<Long?>(null)
-    val (testSuites, setTestSuites) = useState(emptyList<TestSuiteDto>())
+    val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteVersioned?>(null)
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
 
-    useRequest(dependencies = arrayOf(selectedTestSuiteId)) {
-        selectedTestSuiteId?.let { selectedTestSuiteId ->
+    useRequest(dependencies = arrayOf(selectedTestSuite)) {
+        selectedTestSuite?.let { selectedTestSuite ->
             val response = get(
-                "$apiUrl/contests/${props.contestName}/public-test?testSuiteId=$selectedTestSuiteId",
+                "$apiUrl/contests/${props.contestName}/public-test?testSuiteId=${selectedTestSuite.id}",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler,
@@ -76,22 +80,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
         }
     }
 
-    useRequest {
-        val response = get(
-            "$apiUrl/contests/${props.contestName}/test-suites",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val fetchedTestSuites: List<TestSuiteDto> = response.decodeFromJsonString()
-            setTestSuites(fetchedTestSuites)
-        } else {
-            setTestSuites(emptyList())
-        }
-    }
-
-    if (testSuites.isEmpty()) {
+    if (props.contestTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No public tests are provided yet."
@@ -103,14 +92,15 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             div {
                 className = ClassName("col-6")
                 showAvailableTestSuites(
-                    testSuites,
-                    selectedTestSuiteId,
+                    props.contestTestSuites,
+                    selectedTestSuite?.let { listOf(it) } ?: emptyList(),
+                    null,
                 ) { testSuite ->
-                    if (testSuite.requiredId() == selectedTestSuiteId) {
-                        setSelectedTestSuiteId(null)
+                    if (testSuite == selectedTestSuite) {
+                        setSelectedTestSuite(null)
                         setPublicTest(null)
                     } else {
-                        setSelectedTestSuiteId(testSuite.requiredId())
+                        setSelectedTestSuite(testSuite)
                     }
                 }
             }

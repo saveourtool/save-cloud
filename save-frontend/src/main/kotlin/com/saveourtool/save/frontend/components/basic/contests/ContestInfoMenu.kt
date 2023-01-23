@@ -73,6 +73,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
             +"Public tests"
         }
         publicTestComponent {
+            this.contestTestSuites = contest?.testSuites ?: emptyList()
             this.contestName = props.contestName ?: ""
         }
     }
