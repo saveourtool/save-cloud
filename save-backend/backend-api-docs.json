@@ -6281,7 +6281,7 @@
     "/api/v1/test-suites-sources/{organizationName}/list-version": {
       "get": {
         "description": "List of snapshot for all test suites sources in requested organization.",
-        "operationId": "listSnapshots",
+        "operationId": "listVersions_1",
         "parameters": [
           {
             "description": "name of organization",
@@ -6494,7 +6494,7 @@
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-version": {
       "delete": {
         "description": "Delete test suites and snapshot for requested version from provided test suites source.",
-        "operationId": "deleteTestSuitesAndSnapshot",
+        "operationId": "deleteVersion",
         "parameters": [
           {
             "description": "name of organization",
@@ -6534,7 +6534,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/Unit"
                 }
               }
             },
@@ -6544,7 +6544,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/Unit"
                 }
               }
             },
@@ -6554,7 +6554,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/Unit"
                 }
               }
             },
@@ -6658,100 +6658,10 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites": {
-      "get": {
-        "description": "List of test suites in requested test suites source.",
-        "operationId": "getTestSuiteDtos",
-        "parameters": [
-          {
-            "description": "name of organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of test suites source",
-            "in": "path",
-            "name": "sourceName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "version",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully listed snapshots for requested test suites source."
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            },
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found."
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "List of test suites in requested test suites source.",
-        "tags": [
-          "test-suites-source"
-        ]
-      }
-    },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/list-version": {
       "get": {
         "description": "List of snapshot for test suites source.",
-        "operationId": "listSnapshotVersions",
+        "operationId": "listVersions",
         "parameters": [
           {
             "description": "name of organization",
@@ -9323,8 +9233,7 @@
           "isPublic",
           "name",
           "plugins",
-          "source",
-          "version"
+          "sourceSnapshot"
         ],
         "type": "object",
         "properties": {
@@ -9356,17 +9265,14 @@
               ]
             }
           },
-          "source": {
-            "$ref": "#/components/schemas/TestSuitesSourceDto"
+          "sourceSnapshot": {
+            "$ref": "#/components/schemas/TestsSourceSnapshotDto"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             }
-          },
-          "version": {
-            "type": "string"
           }
         }
       },
@@ -9482,6 +9388,30 @@
           },
           "testRootPath": {
             "type": "string"
+          }
+        }
+      },
+      "TestsSourceSnapshotDto": {
+        "required": [
+          "commitId",
+          "commitTime",
+          "sourceId"
+        ],
+        "type": "object",
+        "properties": {
+          "commitId": {
+            "type": "string"
+          },
+          "commitTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sourceId": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
