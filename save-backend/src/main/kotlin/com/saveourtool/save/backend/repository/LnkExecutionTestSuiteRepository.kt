@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.LnkExecutionTestSuite
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
@@ -33,4 +34,10 @@ interface LnkExecutionTestSuiteRepository : BaseEntityRepository<LnkExecutionTes
      * @return [LnkExecutionTestSuite] by [testSuiteId]
      */
     fun findByTestSuiteId(testSuiteId: Long): List<LnkExecutionTestSuite>
+
+    /**
+     * @param testSuites list of manageable test suites
+     * @return [LnkExecutionTestSuite] by [testSuites]
+     */
+    fun findAllByTestSuiteIn(testSuites: List<TestSuite>): List<LnkExecutionTestSuite>
 }

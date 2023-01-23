@@ -8,7 +8,6 @@ import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridg
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.test.TestsSourceSnapshotDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
 
@@ -54,7 +53,6 @@ class TestSuitesPreprocessorController(
             TestSuitesSourceFetchMode.BY_BRANCH -> GitPreprocessorService::cloneBranchAndProcessDirectory
             TestSuitesSourceFetchMode.BY_COMMIT -> GitPreprocessorService::cloneCommitAndProcessDirectory
             TestSuitesSourceFetchMode.BY_TAG -> GitPreprocessorService::cloneTagAndProcessDirectory
-            TestSuitesSourceFetchMode.UNKNOWN -> error("Not expected mode $mode")
         }
     )
 
@@ -67,7 +65,7 @@ class TestSuitesPreprocessorController(
     ) { repositoryDirectory, gitCommitInfo ->
         testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
             .switchIfEmpty {
-                doFetchTests(repositoryDirectory, gitCommitInfo, request, request.source)
+                doFetchTests(repositoryDirectory, gitCommitInfo, request)
             }
             .flatMap { snapshot ->
                 testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
@@ -78,7 +76,6 @@ class TestSuitesPreprocessorController(
         repositoryDirectory: Path,
         gitCommitInfo: GitCommitInfo,
         request: TestsSourceFetchRequest,
-        testSuitesSourceDto: TestSuitesSourceDto,
     ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / request.source.testRootPath).let { pathToRepository ->
         gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(

@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.repository
 
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
@@ -28,6 +29,14 @@ interface TestsSourceSnapshotRepository : BaseEntityRepository<TestsSourceSnapsh
      */
     fun findAllBySource_Organization_Name(
         organizationName: String,
+    ): List<TestsSourceSnapshot>
+
+    /**
+     * @param source [com.saveourtool.save.entities.TestSuitesSource]
+     * @return all [TestsSourceSnapshot] found by provided values
+     */
+    fun findAllBySource(
+        source: TestSuitesSource,
     ): List<TestsSourceSnapshot>
 
     /**

@@ -4,6 +4,8 @@ import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
+import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DATABASE_DELIMITER
@@ -23,7 +25,6 @@ import javax.persistence.ManyToOne
  * @property tags
  * @property plugins
  * @property isPublic
- * @property sourceVersion version of source, which this test suite is created from
  */
 @Suppress("LongParameterList")
 @Entity
@@ -120,13 +121,13 @@ class TestSuite(
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
 
         /**
-         * @param sourceVersionResolver
+         * @param sourceSnapshotResolver
          * @return [TestSuite] created from [TestSuiteDto]
          */
-        fun TestSuiteDto.toEntity(sourceVersionResolver: (Long) -> TestsSourceVersion): TestSuite = TestSuite(
+        fun TestSuiteDto.toEntity(sourceSnapshotResolver: (Long) -> TestsSourceSnapshot): TestSuite = TestSuite(
             name = name,
             description = description,
-            sourceVersion = sourceVersionResolver(sourceVersionId),
+            sourceSnapshot = sourceSnapshotResolver(sourceSnapshot.requiredId()),
             dateAdded = null,
             language = language,
             tags = tags?.let(TestSuite::tagsFromList),

@@ -86,7 +86,6 @@ class TestDiscoveringService(
      *
      * @param rootTestConfig root config of SAVE configs hierarchy
      * @param sourceSnapshot tests snapshot
-     * @param source
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
@@ -106,7 +105,6 @@ class TestDiscoveringService(
                 config.suiteName!!,
                 config.description,
                 sourceSnapshot,
-                sourceSnapshot.commitId,
                 config.language,
                 config.tags
             )

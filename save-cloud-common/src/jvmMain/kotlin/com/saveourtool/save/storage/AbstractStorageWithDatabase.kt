@@ -25,7 +25,7 @@ import kotlin.io.path.name
  */
 abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     private val storage: Storage<Long>,
-    private val repository: R,
+    protected val repository: R,
 ) : Storage<K> {
     /**
      * Implementation using file-based storage
@@ -98,7 +98,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }
         }
-        ?: findByDto(repository, dto)
+        ?: findByDto(dto)
 
     private fun getIdAsMono(dto: K): Mono<Long> = blockingToMono { findEntity(dto)?.requiredId() }
         .switchIfEmptyToNotFound { "DTO $this is not saved: ID is not set and failed to find by default example" }
@@ -111,11 +111,10 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     /**
      * A default implementation uses Spring's [Example]
      *
-     * @param repository
      * @param dto
      * @return [E] entity found by [K] dto or null
      */
-    protected open fun findByDto(repository: R, dto: K): E? = repository.findOne(Example.of(createNewEntityFromDto(dto)))
+    protected open fun findByDto(dto: K): E? = repository.findOne(Example.of(createNewEntityFromDto(dto)))
         .orElseGet(null)
 
     /**

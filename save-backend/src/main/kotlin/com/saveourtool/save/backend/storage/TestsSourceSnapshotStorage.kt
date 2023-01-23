@@ -2,15 +2,16 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
-import com.saveourtool.save.utils.ARCHIVE_EXTENSION
-import com.saveourtool.save.utils.extractZipHere
-import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.*
 
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -28,9 +29,11 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
-    private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
+    testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
-) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot>(
+    private val testSuitesService: TestSuitesService,
+    private val executionService: ExecutionService,
+) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
     Path.of(configProperties.fileStorage.location) / "testSuites", testsSourceSnapshotRepository) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
@@ -38,10 +41,14 @@ class TestsSourceSnapshotStorage(
 
     override fun findByDto(
         dto: TestsSourceSnapshotDto
-    ): TestsSourceSnapshot? = testsSourceSnapshotRepository.findBySourceIdAndCommitId(
+    ): TestsSourceSnapshot? = repository.findBySourceIdAndCommitId(
         sourceId = dto.sourceId,
         commitId = dto.commitId,
     )
+
+    override fun beforeDelete(entity: TestsSourceSnapshot) {
+        executionService.unlinkTestSuiteFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
+    }
 
     /**
      * @param request
@@ -71,5 +78,15 @@ class TestsSourceSnapshotStorage(
                 tmpSourceDir.toFile().deleteRecursively()
                 result
             }
+    }
+
+    /**
+     * @param testSuitesSource
+     * @return true if all [TestsSourceSnapshot] (found by [testSuitesSource]) deleted successfully, otherwise -- false
+     */
+    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> {
+        return blockingToFlux { repository.findAllBySource(testSuitesSource) }
+            .flatMap { delete(it.toDto()) }
+            .all { it }
     }
 }

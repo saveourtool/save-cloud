@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.service.TestsSourceVersionService
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -47,21 +46,18 @@ class TestSuitesControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Autowired
-    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
-
-    @Autowired
-    lateinit var testsSourceVersionService: TestsSourceVersionService
+    lateinit var testsSourceSnapshotRepository: TestsSourceSnapshotRepository
 
     @MockBean
     lateinit var scheduler: Scheduler
 
     @Test
     fun `should accept test suites and return saved test suites`() {
-        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
+        val testsSourceSnapshot = testsSourceSnapshotRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             "test",
             null,
-            testSuitesSource.toDto(),
+            testsSourceSnapshot.toDto(),
         )
 
         saveTestSuite(testSuite) {
@@ -81,11 +77,11 @@ class TestSuitesControllerTest {
 
     @Test
     fun `saved test suites should be persisted in the DB`() {
-        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
+        val testsSourceSnapshot = testsSourceSnapshotRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             "test",
             null,
-            testSuitesSource.toDto()
+            testsSourceSnapshot.toDto()
         )
 
         saveTestSuite(testSuite) {
@@ -98,11 +94,11 @@ class TestSuitesControllerTest {
 
     @Test
     fun `should save only new test suites`() {
-        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
+        val testsSourceSnapshot = testsSourceSnapshotRepository.findById(1).get()
         val testSuite = TestSuiteDto(
             "test",
             null,
-            testSuitesSource.toDto(),
+            testsSourceSnapshot.toDto(),
         )
         var testSuiteId: Long? = null
         saveTestSuite(testSuite) {
@@ -115,7 +111,7 @@ class TestSuitesControllerTest {
         val testSuite2 = TestSuiteDto(
             "test2",
             null,
-            testSuitesSource.toDto(),
+            testsSourceSnapshot.toDto(),
         )
         saveTestSuite(testSuite2) {
             expectBody<TestSuite>().consumeWith {

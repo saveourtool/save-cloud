@@ -55,7 +55,6 @@ internal class ContestController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationService: OrganizationService,
     private val testSuitesService: TestSuitesService,
-    private val testsSourceVersionService: TestsSourceVersionService,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     private val lnkContestTestSuiteService: LnkContestTestSuiteService,
 ) {

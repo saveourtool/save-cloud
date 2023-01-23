@@ -73,6 +73,7 @@ class RunExecutionControllerTest(
         val request = CreateExecutionRequest(
             projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
+            testsVersion = "main",
             fileIds = listOf(FILE_ID),
             sdk = Jdk("8"),
             execCmd = "execCmd",

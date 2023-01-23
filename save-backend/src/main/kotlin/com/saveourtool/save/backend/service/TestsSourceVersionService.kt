@@ -132,8 +132,6 @@ class TestsSourceVersionService(
     }
 
     private fun doDelete(versionEntity: TestsSourceVersion) {
-        // clean-up [TestsSuite]
-        testSuitesService.deleteTestSuite(versionEntity.snapshot.source, versionEntity.name)
         versionRepository.delete(versionEntity)
         val snapshotEntity = versionEntity.snapshot
         if (versionRepository.findAllBySnapshotId(snapshotEntity.requiredId()).isEmpty()) {
