@@ -18,26 +18,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     /**
-     * @param name name of the test suite
-     * @param tags tags of the test suite
-     * @param sourceSnapshotId ID of source snapshot of the test suite
-     * @return matched test suite
-     */
-    fun findByNameAndTagsAndSourceSnapshotId(
-        name: String,
-        tags: String?,
-        sourceSnapshotId: Long,
-    ): TestSuite?
-
-    /**
-     * @param source source of the test suite
-     * @return matched test suites
-     */
-    fun findAllBySourceSnapshot_Source(
-        source: TestSuitesSource,
-    ): List<TestSuite>
-
-    /**
      * @param sourceSnapshot source snapshot of the test suite
      * @return matched test suites
      */

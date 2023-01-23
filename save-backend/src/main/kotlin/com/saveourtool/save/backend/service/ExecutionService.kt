@@ -47,7 +47,7 @@ class ExecutionService(
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
     private val testAnalysisService: TestAnalysisService,
-    private val testsSourceVersionService: TestsSourceVersionService,
+    @Lazy private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -199,7 +199,7 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        testsVersion: String,
+        testsVersion: String?,
         fileIds: List<Long>,
         username: String,
         sdk: Sdk,
@@ -217,7 +217,7 @@ class ExecutionService(
         return doCreateNew(
             project = project,
             testSuites = testSuites,
-            testsVersion = testsVersion.validateTestsVersion(testSuites),
+            testsVersion = testsVersion,
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
@@ -231,9 +231,8 @@ class ExecutionService(
         )
     }
 
-    private fun String.validateTestsVersion(testSuites: Collection<TestSuite>): String {
-        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
-        testsSourceVersionService.doesVersionExist(snapshot.sourceId, this)
+    private fun String.validateTestsVersion(snapshot: TestsSourceSnapshot): String {
+        testsSourceVersionService.doesVersionExist(snapshot.source.requiredId(), this)
             .takeIf { it }
             .orResponseStatusException(HttpStatus.BAD_REQUEST) {
                 "Provided tests version $this doesn't belong to tests snapshot $snapshot"
@@ -273,7 +272,7 @@ class ExecutionService(
     private fun doCreateNew(
         project: Project,
         testSuites: List<TestSuite>,
-        testsVersion: String,
+        testsVersion: String?,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -286,6 +285,7 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
+        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -293,7 +293,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testsVersion,
+            version = testsVersion?.validateTestsVersion(snapshot) ?: snapshot.commitId,
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -307,7 +307,7 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
+            testSuiteSourceName = snapshot.source.name,
             score = null,
         )
 
@@ -398,20 +398,7 @@ class ExecutionService(
     }
 
     companion object {
-        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.sourceSnapshot.source }
-            .distinctBy { it.requiredId() }
-            .let { sources ->
-                when (sources.size) {
-                    1 -> sources[0]
-                        .name
-                        .right()
-
-                    else -> ErrorMessage("Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}")
-                        .left()
-                }
-            }
-
-        private fun Collection<TestSuite>.singleSnapshot(): Either<ErrorMessage, TestsSourceSnapshotDto> = map { it.sourceSnapshot.toDto() }
+        private fun Collection<TestSuite>.singleSnapshot(): Either<ErrorMessage, TestsSourceSnapshot> = map { it.sourceSnapshot }
             .distinct()
             .let { snapshots ->
                 when (snapshots.size) {

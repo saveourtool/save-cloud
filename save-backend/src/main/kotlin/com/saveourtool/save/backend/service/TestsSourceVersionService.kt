@@ -13,7 +13,6 @@ import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -22,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class TestsSourceVersionService(
-    @Lazy
-    private val testSuitesService: TestSuitesService,
     private val snapshotRepository: TestsSourceSnapshotRepository,
     private val versionRepository: TestsSourceVersionRepository,
     private val userRepository: UserRepository,
@@ -50,20 +47,6 @@ class TestsSourceVersionService(
         sourceId: Long,
         version: String,
     ): Boolean = versionRepository.findBySnapshot_SourceIdAndName(sourceId, version) != null
-
-    /**
-     * @param organizationName
-     * @param sourceName
-     * @param version
-     * @return [TestsSourceSnapshotDto] found by provided values
-     */
-    fun findSnapshot(
-        organizationName: String,
-        sourceName: String,
-        version: String,
-    ): TestsSourceSnapshotDto? = versionRepository.findBySnapshot_Source_OrganizationNameAndSnapshot_SourceNameAndName(organizationName, sourceName, version)
-        ?.snapshot
-        ?.toDto()
 
     /**
      * @param organizationName
