@@ -15,7 +15,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="4" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="4" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -23,7 +23,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="5" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="5" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -31,7 +31,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="6" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="6" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -39,7 +39,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="7" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="7" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -47,7 +47,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="8" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="8" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -55,7 +55,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="9" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="9" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -63,7 +63,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="10" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="10" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -71,7 +71,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="11" />
-            <column name="snapshot_id" value="1" />
+            <column name="snapshot_id" value="11" />
             <column name="name" valueComputed="id"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
@@ -79,7 +79,7 @@
         </insert>
         <insert dbms="mysql" tableName="tests_source_version">
             <column name="id" value="12" />
-            <column name="snapshot_id" value="2" />
+            <column name="snapshot_id" value="12" />
             <column name="name" value="master"/>
             <column name="type" value="BY_COMMIT"/>
             <column name="created_by_user_id" value="1"/>
