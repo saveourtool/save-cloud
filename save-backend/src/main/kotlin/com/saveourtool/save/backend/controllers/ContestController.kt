@@ -49,7 +49,6 @@ import java.time.LocalDateTime
     Tag(name = "contests"),
 )
 @RestController
-@OptIn(ExperimentalStdlibApi::class)
 @RequestMapping(path = ["/api/$v1/contests"])
 @Suppress("LongParameterList")
 internal class ContestController(

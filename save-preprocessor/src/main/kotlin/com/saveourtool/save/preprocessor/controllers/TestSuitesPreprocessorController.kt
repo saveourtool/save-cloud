@@ -5,6 +5,7 @@ import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
+import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -18,7 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
 import java.nio.file.Path
+
 import kotlin.io.path.div
 
 typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Unit>) -> Mono<Unit>
@@ -58,43 +64,44 @@ class TestSuitesPreprocessorController(
         request.source.gitDto,
         request.version
     ) { repositoryDirectory, gitCommitInfo ->
-        val testsSourceSnapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time)
-        testsPreprocessorToBackendBridge.doesContainTestsSourceSnapshot(testsSourceSnapshotDto)
-            .asyncEffectIf({ this.not() }) {
-                doFetchTests(repositoryDirectory, testsSourceSnapshotDto, request.source)
+        testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
+            .switchIfEmpty {
+                doFetchTests(repositoryDirectory, gitCommitInfo, request, request.source)
             }
-            .flatMap {
-                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersionInfo(gitCommitInfo.id, gitCommitInfo.time))
+            .flatMap { snapshot ->
+                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
             }
     }
 
     private fun doFetchTests(
         repositoryDirectory: Path,
-        testsSourceSnapshotDto: TestsSourceSnapshotDto,
+        gitCommitInfo: GitCommitInfo,
+        request: TestsSourceFetchRequest,
         testSuitesSourceDto: TestSuitesSourceDto,
-    ): Mono<Unit> = (repositoryDirectory / testSuitesSourceDto.testRootPath).let { pathToRepository ->
+    ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / testSuitesSourceDto.testRootPath).let { pathToRepository ->
         gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                snapshotDto = testsSourceSnapshotDto,
+                snapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time),
                 resourceWithContent = FileSystemResource(archive)
-            ).flatMap {
+            ).zipWhen { snapshot ->
                 testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
                     repositoryPath = repositoryDirectory,
                     testSuitesSourceDto = testSuitesSourceDto,
-                    version = testsSourceSnapshotDto.commitId
+                    version = snapshot.commitId
                 )
             }
         }
-            .map { testSuites ->
+            .map { (snapshot, testSuites) ->
                 with(testSuitesSourceDto) {
-                    log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version ${testsSourceSnapshotDto.commitId}" }
+                    log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version ${snapshot.commitId}" }
                 }
+                snapshot
             }
             .doOnError(
                 Exception
                 ::class.java
             ) { ex ->
-                log.error(ex) { "Failed to fetch from ${testsSourceSnapshotDto.commitId}" }
+                log.error(ex) { "Failed to fetch from ${gitCommitInfo.id}" }
             }
     }
 
