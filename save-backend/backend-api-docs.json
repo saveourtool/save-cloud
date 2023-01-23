@@ -9486,9 +9486,11 @@
         "required": [
           "commitId",
           "commitTime",
+          "createdByUserName",
           "creationTime",
           "organizationName",
           "sourceName",
+          "type",
           "version"
         ],
         "type": "object",
@@ -9499,6 +9501,9 @@
           "commitTime": {
             "$ref": "#/components/schemas/LocalDateTime"
           },
+          "createdByUserName": {
+            "type": "string"
+          },
           "creationTime": {
             "$ref": "#/components/schemas/LocalDateTime"
           },
@@ -9507,6 +9512,14 @@
           },
           "sourceName": {
             "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BY_BRANCH",
+              "BY_COMMIT",
+              "BY_TAG"
+            ]
           },
           "version": {
             "type": "string"

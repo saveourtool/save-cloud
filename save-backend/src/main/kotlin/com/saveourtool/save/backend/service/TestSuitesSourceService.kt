@@ -19,7 +19,6 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
@@ -164,28 +163,7 @@ class TestSuitesSourceService(
         mode: TestSuitesSourceFetchMode,
         version: String,
         userId: Long,
-    ): Mono<EmptyResponse> = blockingToMono {
-        testsSourceVersionService.findSnapshot(
-            organizationName = testSuitesSource.organizationName,
-            sourceName = testSuitesSource.name,
-            version = version,
-        )
-    }
-        .flatMap { snapshot ->
-            if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
-                logDuplicateVersion(testSuitesSource, version, "it should be overridden.")
-                testsSourceSnapshotStorage.delete(snapshot)
-                    .filter { it }
-                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                        "Failed to delete existed version $version in ${testSuitesSource.organizationName}/${testSuitesSource.name}"
-                    }
-                    .thenReturn(true)
-            } else {
-                logDuplicateVersion(testSuitesSource, version, "we skip fetching a new version.")
-                false.toMono()
-            }
-        }
-        .defaultIfEmpty(true)
+    ): Mono<EmptyResponse> = blockingToMono { validateDuplicateVersion(testSuitesSource, mode, version) }
         .filter { it }
         .flatMap {
             val request = TestsSourceFetchRequest(
@@ -202,10 +180,26 @@ class TestSuitesSourceService(
                 .toBodilessEntity()
         }
 
-    private fun logDuplicateVersion(testSuitesSource: TestSuitesSourceDto, version: String, action: String) {
-        log.debug {
-            "Detected that source ${testSuitesSource.organizationName}/${testSuitesSource.name} already contains such version $version and $action"
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    private fun validateDuplicateVersion(
+        source: TestSuitesSourceDto,
+        mode: TestSuitesSourceFetchMode,
+        version: String
+    ): Boolean {
+        if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+            // we calculate version using commitId for branch on late phase
+            return true
         }
+        val doesExist = testsSourceVersionService.doesVersionExist(
+            sourceId = source.requiredId(),
+            version = version,
+        )
+        if (doesExist) {
+            log.debug {
+                "Detected that source ${source.organizationName}/${source.name} already contains such version $version and we skip fetching a new version."
+            }
+        }
+        return !doesExist
     }
 
     /**

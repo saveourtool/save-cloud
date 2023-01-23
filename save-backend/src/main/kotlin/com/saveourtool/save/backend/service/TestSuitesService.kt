@@ -138,21 +138,18 @@ class TestSuitesService(
      * Creates copy of TestSuites found by provided values.
      * New copies have a new version.
      *
-     * @param organizationName
-     * @param sourceName
+     * @param sourceId
      * @param originalVersion
      * @param newVersion
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun copyToNewVersion(
-        organizationName: String,
-        sourceName: String,
+        sourceId: Long,
         originalVersion: String,
         newVersion: String,
     ) {
-        val existedTestSuites = testSuiteRepository.findAllBySource_Organization_NameAndSource_NameAndVersion(
-            organizationName,
-            sourceName,
+        val existedTestSuites = testSuiteRepository.findAllBySourceIdAndVersion(
+            sourceId,
             originalVersion
         )
         existedTestSuites.forEach { testSuite -> testSuite.copyWithNewVersion(newVersion) }

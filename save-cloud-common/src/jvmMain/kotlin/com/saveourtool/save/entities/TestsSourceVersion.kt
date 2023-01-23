@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.test.TestsSourceVersionDto
+import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 
 import java.time.LocalDateTime
@@ -39,6 +40,22 @@ class TestsSourceVersion(
         createdByUserId = createdByUser.requiredId(),
         creationTime = creationTime.toKotlinLocalDateTime(),
         id = id,
+    )
+
+    /**
+     * @return [TestsSourceVersionInfo] created from [TestsSourceVersion]
+     */
+    fun toInfo(): TestsSourceVersionInfo = TestsSourceVersionInfo(
+        organizationName = snapshot.source.organization.name,
+        sourceName = snapshot.source.name,
+        commitId = snapshot.commitId,
+        commitTime = snapshot.commitTime.toKotlinLocalDateTime(),
+        version = name,
+        type = type,
+        creationTime = creationTime.toKotlinLocalDateTime(),
+        createdByUserName = requireNotNull(createdByUser.name) {
+            "username is not set for ${createdByUser.requiredId()}"
+        }
     )
 
     companion object {

@@ -100,14 +100,14 @@ class GitPreprocessorService(
     ): Mono<T> {
         val cloneAction: () -> CloneResult = {
             val tmpDir = createTempDirectoryForRepository()
-            val commitInfo = try {
+            val gitCommitInfo = try {
                 gitDto.doCloneToDirectory(tmpDir)
             } catch (ex: Exception) {
                 log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
                 tmpDir.deleteRecursivelySafely()
                 throw ex
             }
-            tmpDir to commitInfo
+            tmpDir to gitCommitInfo
         }
         return Mono.usingWhen(
             Mono.fromSupplier(cloneAction),
