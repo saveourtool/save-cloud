@@ -116,7 +116,6 @@ class SaveCloudClient(
             testSuiteIds = evaluatedToolProperties.testSuites
                 .split(DATABASE_DELIMITER)
                 .map { it.toLong() },
-            testsVersion = evaluatedToolProperties.testsVersion,
             fileIds = additionalFiles
                 ?.map { it.requiredId() }
                 .orEmpty(),
