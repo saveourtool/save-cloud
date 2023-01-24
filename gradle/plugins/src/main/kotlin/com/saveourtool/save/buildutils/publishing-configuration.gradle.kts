@@ -34,13 +34,4 @@ run {
 
 run {
     configurePublications()
-
-    /*-
-     * This alone is not sufficient if a sub-module has a custom `publishing {}`
-     * section, because, in most cases, this function is called before any Maven
-     * configuration is created.
-     *
-     * Should be explicitly called after each custom `publishing {}` section.
-     */
-    configureSigning()
 }
