@@ -30,12 +30,13 @@ internal class TestSuitesPreprocessorControllerTest {
     )
     private val gitDto = GitDto("https://github.com/saveourtool/save-cli")
     private val sourceId = 2L
+    private val testRootPath = "examples/discovery-test"
     private val testSuitesSourceDto = TestSuitesSourceDto(
         "Organization",
         "TestSuitesSource",
         null,
         gitDto,
-        "examples/discovery-test",
+        testRootPath,
         "aaaaaa",
         sourceId,
     )
@@ -82,7 +83,7 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.saveTestsSourceVersion(any()))
             .thenReturn(Mono.just(Unit))
 
-        whenever(testDiscoveringService.detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), any()))
+        whenever(testDiscoveringService.detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testRootPath), any()))
             .thenReturn(Mono.just(emptyList()))
     }
 
@@ -150,7 +151,7 @@ internal class TestSuitesPreprocessorControllerTest {
         verify(testsPreprocessorToBackendBridge).findTestsSourceSnapshot(eq(sourceId), eq(fullCommit))
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testsSourceSnapshotDtoCandidate), any())
-        verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(fullCommit))
+        verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testRootPath), eq(testsSourceSnapshotDto))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
     }
 

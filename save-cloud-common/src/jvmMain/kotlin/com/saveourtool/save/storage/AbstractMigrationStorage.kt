@@ -7,6 +7,7 @@ import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.annotation.PostConstruct
 
 /**
  * Abstract storage which has an init method to migrate keys from old storage to new one
@@ -26,6 +27,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     /**
      * Init method which copies file from one storage to another
      */
+    @PostConstruct
     fun migrate() {
         require(!isMigrationStarted.compareAndExchange(false, true)) {
             "Migration cannot be called more than 1 time, migration is in progress"

@@ -13,10 +13,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -455,25 +452,25 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization git credentials."
         }
-        .map { organization ->
-            // Find and remove all corresponding data to the current git repository from DB and file system storage
-            val git = gitService.getByOrganizationAndUrl(organization, url)
-            val testSuitesSources = testSuitesSourceService.findByGit(git)
-            // List of test suites for removing data from storage at next step
-            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
-                val testSuites = testSuitesService.getBySource(testSuitesSource)
-                testSuitesService.deleteTestSuitesDto(testSuites.map { it.toDto() })
-                testSuitesSourceService.delete(testSuitesSource)
-                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
-                testSuites.firstOrNull()
+        .asyncEffect { organization ->
+            // Find all tests sources and remove all corresponding snapshots from storage
+            blockingToFlux {
+                val git = gitService.getByOrganizationAndUrl(organization, url)
+                testSuitesSourceService.findByGit(git)
             }
-            gitService.delete(organization, url)
-            testSuitesList
+                .flatMap { testsSourceSnapshotStorage.deleteAll(it) }
+                .map { deleted ->
+                    if (!deleted) {
+                        logger.warn {
+                            "Failed to clean-up tests snapshots for git url $url in $organizationName"
+                        }
+                    }
+                }
+                .then(Mono.just(Unit))
         }
-        .flatMap { testSuitesList ->
-            Flux.fromIterable(testSuitesList).map { testSuite ->
-                cleanupStorageData(testSuite)
-            }.collectList()
+        .map { organization ->
+            // it removes TestSuitesSource and TestSuite by cascade constrain
+            gitService.delete(organization, url)
         }
         .map {
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
@@ -510,14 +507,6 @@ internal class OrganizationController(
         .flatMap {
             organizationService.getGlobalRating(organizationName, authentication)
         }
-
-    private fun cleanupStorageData(testSuite: TestSuite) = blockingToMono {
-        testsSourceVersionService.delete(
-            testSuite.source.organization.name,
-            testSuite.source.name,
-            testSuite.version,
-        )
-    }
 
     private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
         organizationService.getFiltered(filters)

@@ -8,6 +8,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
 
 import arrow.core.Either
@@ -16,6 +17,7 @@ import arrow.core.right
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -45,6 +47,7 @@ class ExecutionService(
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
     private val testAnalysisService: TestAnalysisService,
+    @Lazy private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -211,17 +214,16 @@ class ExecutionService(
             }
         }
         val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
+        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
         return doCreateNew(
             project = project,
             testSuites = testSuites,
-            testsVersion = testsVersion?.validateTestsVersion(testSuites),
+            testsVersion = testsVersion?.validateTestsVersion(snapshot) ?: snapshot.commitId,
+            testSuiteSourceName = snapshot.source.name,
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            files = fileIds.map { fileId ->
-                fileRepository.findByIdOrNull(fileId)
-                    .orNotFound { "File (id=$fileId) not found" }
-            },
+            files = fileIds.map { fileRepository.getByIdOrNotFound(it) },
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -229,13 +231,6 @@ class ExecutionService(
             testingType = testingType,
             contestName,
         )
-    }
-
-    private fun String.validateTestsVersion(testSuites: Collection<TestSuite>): String {
-        require(testSuites.singleVersion().getOrThrowBadRequest() == this) {
-            "Provided tests version $this doesn't match to calculated version from test suties"
-        }
-        return this
     }
 
     /**
@@ -254,6 +249,7 @@ class ExecutionService(
             project = execution.project,
             testSuites = testSuites,
             testsVersion = execution.version,
+            testSuiteSourceName = execution.testSuiteSourceName,
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -271,6 +267,7 @@ class ExecutionService(
         project: Project,
         testSuites: List<TestSuite>,
         testsVersion: String?,
+        testSuiteSourceName: String?,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -290,7 +287,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testsVersion ?: testSuites.singleVersion().getOrThrowBadRequest(),
+            version = testsVersion,
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -304,7 +301,7 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
+            testSuiteSourceName = testSuiteSourceName,
             score = null,
         )
 
@@ -320,6 +317,15 @@ class ExecutionService(
         }
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
         return savedExecution
+    }
+
+    private fun String.validateTestsVersion(snapshot: TestsSourceSnapshot): String {
+        testsSourceVersionService.doesVersionExist(snapshot.source.requiredId(), this)
+            .takeIf { it }
+            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
+                "Provided tests version $this doesn't belong to tests snapshot $snapshot"
+            }
+        return this
     }
 
     /**
@@ -345,7 +351,7 @@ class ExecutionService(
      * @param testSuites
      */
     @Transactional
-    fun unlinkTestSuiteFromAllExecution(testSuites: List<TestSuite>) {
+    fun unlinkTestSuitesFromAllExecution(testSuites: List<TestSuite>) {
         lnkExecutionTestSuiteRepository.findAllByTestSuiteIn(testSuites)
             .also { links ->
                 val linksByExecutions = lnkExecutionTestSuiteRepository.findByExecutionIdIn(links.map { it.execution.requiredId() })
@@ -368,6 +374,16 @@ class ExecutionService(
      */
     fun getAssignedFiles(execution: Execution): List<FileDto> = lnkExecutionFileRepository.findAllByExecution(execution)
         .map { it.file.toDto() }
+
+    /**
+     * @param executionId
+     * @return a single [TestsSourceSnapshotDto] (with validation) from [TestSuite]s which are assigned to [Execution] (by provided [executionId])
+     */
+    fun getRelatedTestsSourceSnapshot(executionId: Long): TestsSourceSnapshotDto = lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
+        .map { it.testSuite }
+        .singleSnapshot()
+        .getOrThrowBadRequest()
+        .toDto()
 
     /**
      * Delete [Execution] and links to TestSuite, TestExecution and related Agent with AgentStatus
@@ -395,27 +411,14 @@ class ExecutionService(
     }
 
     companion object {
-        private fun Collection<TestSuite>.singleSourceName(): Either<ErrorMessage, String> = map { it.source }
-            .distinctBy { it.requiredId() }
-            .let { sources ->
-                when (sources.size) {
-                    1 -> sources[0]
-                        .name
-                        .right()
-
-                    else -> ErrorMessage("Only a single test suites source is allowed for a run, but got: ${sources.map(TestSuitesSource::toDto)}")
-                        .left()
-                }
-            }
-
-        private fun Collection<TestSuite>.singleVersion(): Either<ErrorMessage, String> = map { it.version }
+        private fun Collection<TestSuite>.singleSnapshot(): Either<ErrorMessage, TestsSourceSnapshot> = map { it.sourceSnapshot }
             .distinct()
-            .let { versions ->
-                when (versions.size) {
-                    1 -> versions[0]
+            .let { snapshots ->
+                when (snapshots.size) {
+                    1 -> snapshots[0]
                         .right()
 
-                    else -> ErrorMessage("Only a single version is supported, but got: $versions")
+                    else -> ErrorMessage("Only a single tests snapshot is supported, but got: $snapshots")
                         .left()
                 }
             }

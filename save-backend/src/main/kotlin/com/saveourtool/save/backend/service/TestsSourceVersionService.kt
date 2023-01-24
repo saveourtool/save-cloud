@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.backend.repository.TestsSourceVersionRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -12,7 +13,6 @@ import com.saveourtool.save.test.TestsSourceVersionInfo
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,13 +21,20 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class TestsSourceVersionService(
-    @Lazy
-    private val testSuitesService: TestSuitesService,
     private val snapshotRepository: TestsSourceSnapshotRepository,
     private val versionRepository: TestsSourceVersionRepository,
     private val userRepository: UserRepository,
     private val snapshotStorage: TestsSourceSnapshotStorage,
+    private val sourceRepository: TestSuitesSourceRepository,
 ) {
+    /**
+     * @param snapshotId [TestsSourceSnapshot.id]
+     * @return [TestsSourceSnapshot] found by provided values
+     */
+    fun getSnapshotEntity(
+        snapshotId: Long,
+    ): TestsSourceSnapshot = snapshotRepository.getByIdOrNotFound(snapshotId)
+
     /**
      * @param sourceId ID of [com.saveourtool.save.entities.TestSuitesSource]
      * @param commitId [TestsSourceSnapshot.commitId]
@@ -51,25 +58,11 @@ class TestsSourceVersionService(
 
     /**
      * @param organizationName
-     * @param sourceName
-     * @param version
-     * @return [TestsSourceSnapshotDto] found by provided values
-     */
-    fun findSnapshot(
-        organizationName: String,
-        sourceName: String,
-        version: String,
-    ): TestsSourceSnapshotDto? = versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(organizationName, sourceName, version)
-        ?.snapshot
-        ?.toDto()
-
-    /**
-     * @param organizationName
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
     fun getAllAsInfo(
         organizationName: String,
-    ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_Organization_Name(organizationName)
+    ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_OrganizationName(organizationName)
         .map(TestsSourceVersion::toInfo)
 
     /**
@@ -81,21 +74,29 @@ class TestsSourceVersionService(
         organizationName: String,
         sourceName: String,
     ): List<TestsSourceVersionInfo> =
-            versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(organizationName, sourceName)
+            versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(organizationName, sourceName)
                 .map(TestsSourceVersion::toInfo)
 
     /**
      * @param organizationName
      * @param sourceName
-     * @return all fetched version of [TestsSourceSnapshot] found by provided values
+     * @return all fetched version of [TestsSourceVersion] found by provided values
      */
     fun getAllVersions(
         organizationName: String,
         sourceName: String,
-    ): Set<String> = versionRepository.findAllBySnapshot_Source_Organization_NameAndSnapshot_Source_Name(
+    ): Set<String> = versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(
         organizationName,
         sourceName
-    ).mapTo(HashSet(), TestsSourceVersion::name)
+    ).mapTo(LinkedHashSet(), TestsSourceVersion::name)
+
+    /**
+     * @param snapshotId
+     * @return all fetched version of [TestsSourceVersion] found by provided values
+     */
+    fun getAllVersions(
+        snapshotId: Long,
+    ): Set<String> = versionRepository.findAllBySnapshotId(snapshotId).mapTo(LinkedHashSet(), TestsSourceVersion::name)
 
     /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it
@@ -111,7 +112,7 @@ class TestsSourceVersionService(
         version: String,
     ) {
         val versionEntity =
-                versionRepository.findBySnapshot_Source_Organization_NameAndSnapshot_Source_NameAndName(
+                versionRepository.findBySnapshot_Source_OrganizationNameAndSnapshot_SourceNameAndName(
                     organizationName = organizationName,
                     sourceName = sourceName,
                     version = version,
@@ -122,11 +123,9 @@ class TestsSourceVersionService(
     }
 
     private fun doDelete(versionEntity: TestsSourceVersion) {
-        // clean-up [TestsSuite]
-        testSuitesService.deleteTestSuite(versionEntity.snapshot.source, versionEntity.name)
         versionRepository.delete(versionEntity)
         val snapshotEntity = versionEntity.snapshot
-        if (versionRepository.findAllBySnapshot(snapshotEntity).isEmpty()) {
+        if (versionRepository.findAllBySnapshotId(snapshotEntity.requiredId()).isEmpty()) {
             val snapshot = snapshotEntity.toDto()
             snapshotStorage.delete(snapshot)
                 .map { deleted ->
@@ -150,7 +149,7 @@ class TestsSourceVersionService(
     fun save(
         dto: TestsSourceVersionDto,
     ): Boolean {
-        versionRepository.findBySnapshot_IdAndName(dto.snapshotId, dto.name)?.run {
+        versionRepository.findBySnapshotIdAndName(dto.snapshotId, dto.name)?.run {
             require(snapshot.requiredId() == dto.snapshotId) {
                 "Try to save a new $dto, but already exited another one linked to another snapshotId: ${toDto()}"
             }
@@ -161,12 +160,14 @@ class TestsSourceVersionService(
             userResolver = userRepository::getByIdOrNotFound
         )
         val savedEntity = versionRepository.save(entity)
-        // copy test suites
-        testSuitesService.copyToNewVersion(
-            sourceId = savedEntity.snapshot.source.requiredId(),
-            originalVersion = savedEntity.snapshot.commitId,
-            newVersion = savedEntity.name,
-        )
+        // need to update latestFetchedVersion in source
+        savedEntity.snapshot.source
+            .apply {
+                latestFetchedVersion = savedEntity.name
+            }
+            .let {
+                sourceRepository.save(it)
+            }
         return true
     }
 
