@@ -26,8 +26,27 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
 
-private fun Project.styledOut(logCategory: String): StyledTextOutput =
-        serviceOf<StyledTextOutputFactory>().create(logCategory)
+/**
+ * Enables signing of the artifacts if the `signingKey` project property is set.
+ *
+ * Should be explicitly called after each custom `publishing {}` section.
+ */
+fun Project.configureSigning() {
+    if (hasProperty("signingKey")) {
+        configure<SigningExtension> {
+            useInMemoryPgpKeys(property("signingKey") as String?, property("signingPassword") as String?)
+            val publications = extensions.getByType<PublishingExtension>().publications
+            val publicationCount = publications.size
+            val message = "The following $publicationCount publication(s) are getting signed: ${publications.map(Named::getName)}"
+            val style = when (publicationCount) {
+                0 -> Failure
+                else -> Success
+            }
+            styledOut(logCategory = "signing").style(style).println(message)
+            sign(*publications.toTypedArray())
+        }
+    }
+}
 
 @Suppress("TOO_LONG_FUNCTION")
 internal fun Project.configurePublications() {
@@ -78,28 +97,6 @@ internal fun Project.configurePublications() {
     }
 }
 
-/**
- * Enables signing of the artifacts if the `signingKey` project property is set.
- *
- * Should be explicitly called after each custom `publishing {}` section.
- */
-fun Project.configureSigning() {
-    if (hasProperty("signingKey")) {
-        configure<SigningExtension> {
-            useInMemoryPgpKeys(property("signingKey") as String?, property("signingPassword") as String?)
-            val publications = extensions.getByType<PublishingExtension>().publications
-            val publicationCount = publications.size
-            val message = "The following $publicationCount publication(s) are getting signed: ${publications.map(Named::getName)}"
-            val style = when (publicationCount) {
-                0 -> Failure
-                else -> Success
-            }
-            styledOut(logCategory = "signing").style(style).println(message)
-            sign(*publications.toTypedArray())
-        }
-    }
-}
-
 internal fun Project.configureNexusPublishing() {
     configure<NexusPublishExtension> {
         repositories {
@@ -112,3 +109,6 @@ internal fun Project.configureNexusPublishing() {
         }
     }
 }
+
+private fun Project.styledOut(logCategory: String): StyledTextOutput =
+        serviceOf<StyledTextOutputFactory>().create(logCategory)
