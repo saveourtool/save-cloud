@@ -61,6 +61,7 @@ kotlin {
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
+                implementation(libs.annotation.api)
             }
         }
         val jvmTest by getting {
