@@ -180,14 +180,14 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                         DemoStatus.NOT_CREATED ->
                             buttonBuilder(
                                 label = "Create",
-                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.OWNER)
+                                isDisabled = props.userProjectRole.isLowerThan(Role.OWNER)
                             ) {
                                 sendDemoCreationRequest()
                             }
                         DemoStatus.STARTING ->
                             buttonBuilder(
                                 label = "Reload",
-                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
                             ) {
                                 getDemoStatus()
                             }
@@ -198,7 +198,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
                             buttonBuilder(
                                 label = "Stop",
-                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
                             ) {
                                 setDemoStatus(DemoStatus.STOPPED)
                                 // stop request here
@@ -206,7 +206,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                         }
                         DemoStatus.STOPPED -> buttonBuilder(
                             label = "Run",
-                            isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                            isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
                         ) {
                             setDemoStatus(DemoStatus.RUNNING)
                             // run request here
@@ -233,19 +233,9 @@ external interface ProjectDemoMenuProps : Props {
     var organizationName: String
 
     /**
-     * User project role
+     * User role in project
      */
-    var projectRole: Role
-
-    /**
-     * User organization role
-     */
-    var organizationRole: Role
-
-    /**
-     * User global role
-     */
-    var globalRole: Role?
+    var userProjectRole: Role
 
     /**
      * Callback to show error message
@@ -253,18 +243,3 @@ external interface ProjectDemoMenuProps : Props {
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (String, String) -> Unit
 }
-
-/** Checking the user's rights to the action being performed
- *
- * @param globalRole is user global role
- * @param organizationRole is user role in organization
- * @param projectRole is user role in project
- * @param expectedProjectRole is user expected role in project for current action
- * @return true is user have permissions for this action, else false
- */
-fun isUserHasPermissionHigherOrEqualCurrentProjectRole(
-    globalRole: Role?,
-    organizationRole: Role,
-    projectRole: Role,
-    expectedProjectRole: Role,
-) = globalRole.isSuperAdmin() || projectRole.isHigherOrEqualThan(expectedProjectRole) || organizationRole.isHigherOrEqualThan(Role.OWNER)

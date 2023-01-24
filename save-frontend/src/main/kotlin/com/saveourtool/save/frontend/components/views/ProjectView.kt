@@ -21,6 +21,7 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
@@ -226,9 +227,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectDemoMenu {
             projectName = props.name
             organizationName = props.owner
-            globalRole = props.currentUserInfo?.globalRole
-            organizationRole = state.organizationRole
-            projectRole = state.projectRole
+            userProjectRole = calculateUserRoleToProject()
             updateErrorMessage = { label, message ->
                 setState {
                     errorLabel = label
@@ -309,6 +308,12 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 }
             }
         }
+    }
+
+    private fun calculateUserRoleToProject() = when {
+        props.currentUserInfo?.globalRole.isSuperAdmin() -> Role.SUPER_ADMIN
+        state.organizationRole.isHigherOrEqualThan(Role.OWNER) -> state.organizationRole
+        else -> state.projectRole
     }
 
     private suspend fun fetchLatestExecutionId() {
