@@ -1,15 +1,15 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.repository.TestsSourceSnapshotRepository
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.getByIdOrNotFound
+
 import com.saveourtool.save.utils.orNotFound
+import org.springframework.context.annotation.Lazy
 
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -27,7 +27,8 @@ import java.time.LocalDateTime
 @Suppress("LongParameterList")
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
-    private val testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
+    @Lazy
+    private val testsSourceVersionService: TestsSourceVersionService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
 ) {
     /**
@@ -43,7 +44,7 @@ class TestSuitesService(
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
-        val testSuiteCandidate = testSuiteDto.toEntity(testsSourceSnapshotRepository::getByIdOrNotFound)
+        val testSuiteCandidate = testSuiteDto.toEntity(testsSourceVersionService::getSnapshotEntity)
             .apply {
                 dateAdded = null
             }

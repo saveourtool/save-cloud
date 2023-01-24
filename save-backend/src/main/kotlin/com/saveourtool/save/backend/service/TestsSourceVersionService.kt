@@ -28,6 +28,14 @@ class TestsSourceVersionService(
     private val sourceRepository: TestSuitesSourceRepository,
 ) {
     /**
+     * @param snapshotId [TestsSourceSnapshot.id]
+     * @return [TestsSourceSnapshot] found by provided values
+     */
+    fun getSnapshotEntity(
+        snapshotId: Long,
+    ): TestsSourceSnapshot = snapshotRepository.getByIdOrNotFound(snapshotId)
+
+    /**
      * @param sourceId ID of [com.saveourtool.save.entities.TestSuitesSource]
      * @param commitId [TestsSourceSnapshot.commitId]
      * @return [TestsSourceSnapshotDto] found by provided values

@@ -214,10 +214,12 @@ class ExecutionService(
             }
         }
         val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
+        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
         return doCreateNew(
             project = project,
             testSuites = testSuites,
-            testsVersion = testsVersion,
+            testsVersion = testsVersion?.validateTestsVersion(snapshot) ?: snapshot.commitId,
+            testSuiteSourceName = snapshot.source.name,
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
@@ -247,6 +249,7 @@ class ExecutionService(
             project = execution.project,
             testSuites = testSuites,
             testsVersion = execution.version,
+            testSuiteSourceName = execution.testSuiteSourceName,
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -264,6 +267,7 @@ class ExecutionService(
         project: Project,
         testSuites: List<TestSuite>,
         testsVersion: String?,
+        testSuiteSourceName: String?,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -276,7 +280,6 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
-        val snapshot = testSuites.singleSnapshot().getOrThrowBadRequest()
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -284,7 +287,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testsVersion?.validateTestsVersion(snapshot) ?: snapshot.commitId,
+            version = testsVersion,
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -298,7 +301,7 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testSuiteSourceName = snapshot.source.name,
+            testSuiteSourceName = testSuiteSourceName,
             score = null,
         )
 
