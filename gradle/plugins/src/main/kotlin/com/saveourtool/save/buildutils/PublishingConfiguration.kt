@@ -10,15 +10,24 @@
 package com.saveourtool.save.buildutils
 
 import io.github.gradlenexus.publishplugin.NexusPublishExtension
+import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput.Style.Failure
+import org.gradle.internal.logging.text.StyledTextOutput.Style.Success
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
+
+private fun Project.styledOut(logCategory: String): StyledTextOutput =
+        serviceOf<StyledTextOutputFactory>().create(logCategory)
 
 @Suppress("TOO_LONG_FUNCTION")
 internal fun Project.configurePublications() {
@@ -32,6 +41,10 @@ internal fun Project.configurePublications() {
             mavenLocal()
         }
         publications.withType<MavenPublication>().configureEach {
+            /*
+             * The content of this section will get executed only if
+             * a particular module has a `publishing {}` section.
+             */
             this.artifact(dokkaJar)
             this.pom {
                 name.set(project.name)
@@ -65,11 +78,25 @@ internal fun Project.configurePublications() {
     }
 }
 
-internal fun Project.configureSigning() {
-    configure<SigningExtension> {
-        useInMemoryPgpKeys(property("signingKey") as String?, property("signingPassword") as String?)
-        logger.lifecycle("The following publications are getting signed: ${extensions.getByType<PublishingExtension>().publications.map { it.name }}")
-        sign(*extensions.getByType<PublishingExtension>().publications.toTypedArray())
+/**
+ * Enables signing of the artifacts if the `signingKey` project property is set.
+ *
+ * Should be explicitly called after each custom `publishing {}` section.
+ */
+fun Project.configureSigning() {
+    if (hasProperty("signingKey")) {
+        configure<SigningExtension> {
+            useInMemoryPgpKeys(property("signingKey") as String?, property("signingPassword") as String?)
+            val publications = extensions.getByType<PublishingExtension>().publications
+            val publicationCount = publications.size
+            val message = "The following $publicationCount publication(s) are getting signed: ${publications.map(Named::getName)}"
+            val style = when (publicationCount) {
+                0 -> Failure
+                else -> Success
+            }
+            styledOut(logCategory = "signing").style(style).println(message)
+            sign(*publications.toTypedArray())
+        }
     }
 }
 

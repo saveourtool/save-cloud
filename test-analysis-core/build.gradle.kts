@@ -1,3 +1,4 @@
+import com.saveourtool.save.buildutils.configureSigning
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
@@ -51,3 +52,5 @@ publishing {
         }
     }
 }
+
+configureSigning()
