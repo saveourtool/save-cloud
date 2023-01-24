@@ -180,14 +180,14 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                         DemoStatus.NOT_CREATED ->
                             buttonBuilder(
                                 label = "Create",
-                                isDisabled =isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.OWNER)
+                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.OWNER)
                             ) {
                                 sendDemoCreationRequest()
                             }
                         DemoStatus.STARTING ->
                             buttonBuilder(
                                 label = "Reload",
-                                isDisabled = isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
                             ) {
                                 getDemoStatus()
                             }
