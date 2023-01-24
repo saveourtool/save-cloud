@@ -33,9 +33,15 @@ class TestsSourceSnapshot(
     )
 
     companion object {
+        val empty = TestsSourceSnapshot(
+            source = TestSuitesSource.empty,
+            commitId = "",
+            commitTime = LocalDateTime.MIN,
+        )
+
         /**
          * @param sourceResolver returns [TestSuitesSource] by ID
-         * @return [TestsSourceSnapshot] created from [TestSuitesSourceSnapshotDto]
+         * @return [TestsSourceSnapshot] created from [TestsSourceSnapshotDto]
          */
         fun TestsSourceSnapshotDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestsSourceSnapshot = TestsSourceSnapshot(
             source = sourceResolver(sourceId),

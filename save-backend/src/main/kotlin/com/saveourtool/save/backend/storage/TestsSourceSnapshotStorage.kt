@@ -2,15 +2,16 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
-import com.saveourtool.save.utils.ARCHIVE_EXTENSION
-import com.saveourtool.save.utils.extractZipHere
-import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.*
 
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -30,6 +31,8 @@ class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
+    private val testSuitesService: TestSuitesService,
+    private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
     Path.of(configProperties.fileStorage.location) / "testSuites", testsSourceSnapshotRepository) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
@@ -42,6 +45,10 @@ class TestsSourceSnapshotStorage(
         sourceId = dto.sourceId,
         commitId = dto.commitId,
     )
+
+    override fun beforeDelete(entity: TestsSourceSnapshot) {
+        executionService.unlinkTestSuitesFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
+    }
 
     /**
      * @param request
@@ -72,4 +79,12 @@ class TestsSourceSnapshotStorage(
                 result
             }
     }
+
+    /**
+     * @param testSuitesSource
+     * @return true if all [TestsSourceSnapshot] (found by [testSuitesSource]) deleted successfully, otherwise -- false
+     */
+    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> = blockingToFlux { repository.findAllBySource(testSuitesSource) }
+        .flatMap { delete(it.toDto()) }
+        .all { it }
 }

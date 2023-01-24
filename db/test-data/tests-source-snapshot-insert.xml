@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="tests-source-snapshot-insert" author="nulls" context="dev">
+        <loadData tableName="tests_source_snapshot" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/tests-source-snapshot.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="source_id" name="source_id" type="NUMERIC" />
+            <column header="commit_id" name="commit_id" type="varchar(100)" />
+            <column header="commit_time" name="commit_time" type="DATE" />
+        </loadData>
+    </changeSet>
+</databaseChangeLog>
