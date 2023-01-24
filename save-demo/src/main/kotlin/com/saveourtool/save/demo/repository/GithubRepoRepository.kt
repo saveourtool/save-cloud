@@ -16,9 +16,9 @@ interface GithubRepoRepository : BaseEntityRepository<GithubRepo> {
     fun findByOrganizationName(organizationName: String): List<GithubRepo>
 
     /**
-     * @param toolName
+     * @param projectName
      * @param organizationName
-     * @return [GithubRepo] if an entity with such [toolName] and [organizationName] was found in database, null otherwise
+     * @return [GithubRepo] if an entity with such [projectName] and [organizationName] was found in database, null otherwise
      */
-    fun findByToolNameAndOrganizationName(toolName: String, organizationName: String): GithubRepo?
+    fun findByProjectNameAndOrganizationName(projectName: String, organizationName: String): GithubRepo?
 }

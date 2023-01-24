@@ -2,25 +2,23 @@ package com.saveourtool.save.demo.entity
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.spring.entity.BaseEntity
-import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Table
 
 /**
  * @property organizationName
- * @property toolName
+ * @property projectName
  */
 @Entity
 @Table(name = "git_repo")
 class GithubRepo(
     var organizationName: String,
-    @Column(name = "project_name")
-    var toolName: String,
+    var projectName: String,
 ) : BaseEntity() {
     /**
      * @return pretty string that defines [GithubRepo]
      */
-    fun toPrettyString() = "$organizationName/$toolName"
+    fun toPrettyString() = "$organizationName/$projectName"
 }
 
 /**
