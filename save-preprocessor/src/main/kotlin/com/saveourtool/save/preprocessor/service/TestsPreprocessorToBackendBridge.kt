@@ -4,6 +4,8 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
@@ -20,8 +22,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import java.time.Instant
-
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
  */
@@ -36,23 +36,20 @@ class TestsPreprocessorToBackendBridge(
         .build()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @param creationTime
+     * @param snapshotDto
      * @param resourceWithContent
-     * @return empty response
+     * @return updated [snapshotDto]
      */
     fun saveTestsSuiteSourceSnapshot(
-        testSuitesSource: TestSuitesSourceDto,
-        version: String,
-        creationTime: Instant,
+        snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
-    ): Mono<Unit> = webClientBackend.post()
-        .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
-            testSuitesSource.organizationName, testSuitesSource.name,
-            version, creationTime.toEpochMilli())
+    ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
+        .uri("/test-suites-sources/upload-snapshot")
         .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(BodyInserters.fromMultipartData("content", resourceWithContent))
+        .body(
+            BodyInserters.fromMultipartData("content", resourceWithContent)
+                .with("snapshot", snapshotDto)
+        )
         .retrieve()
         .onStatus({ !it.is2xxSuccessful }) {
             Mono.error(
@@ -64,16 +61,26 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @return true if backend knows [version], otherwise -- false
+     * @param sourceId
+     * @param commitId
+     * @return [TestsSourceSnapshotDto] found by provided values
      */
-    fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
-            webClientBackend.get()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono()
+    fun findTestsSourceSnapshot(sourceId: Long, commitId: String): Mono<TestsSourceSnapshotDto> = webClientBackend.get()
+        .uri("/test-suites-sources/find-snapshot?sourceId={sourceId}&commitId={commitId}", sourceId, commitId)
+        .retrieve()
+        .bodyToMono()
+
+    /**
+     * @param testsSourceVersionDto
+     * @return empty response
+     */
+    fun saveTestsSourceVersion(testsSourceVersionDto: TestsSourceVersionDto): Mono<Unit> = webClientBackend
+        .post()
+        .uri("/test-suites-sources/save-version")
+        .bodyValue(testsSourceVersionDto)
+        .retrieve()
+        .toBodilessEntity()
+        .then(Mono.just(Unit))
 
     /**
      * @param testSuiteDto
@@ -84,25 +91,6 @@ class TestsPreprocessorToBackendBridge(
         .bodyValue(testSuiteDto)
         .retrieve()
         .bodyToMono()
-
-    /**
-     * @param testSuitesSource
-     * @param version
-     * @return empty response
-     */
-    fun deleteTestSuitesAndSourceSnapshot(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Unit> =
-            webClientBackend.delete()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-test-suites-and-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono<Boolean>()
-                .map { isDeleted ->
-                    with(testSuitesSource) {
-                        log.debug {
-                            "Result of delete operation for $name in $organizationName is $isDeleted"
-                        }
-                    }
-                }
 
     /**
      * @param tests

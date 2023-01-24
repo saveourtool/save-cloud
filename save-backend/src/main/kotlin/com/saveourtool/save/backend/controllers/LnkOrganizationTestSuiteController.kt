@@ -23,7 +23,7 @@ import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -85,7 +85,7 @@ class LnkOrganizationTestSuiteController(
         @RequestParam permission: Permission,
         @RequestParam(defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
+    ): Flux<TestSuiteVersioned> = getOrganizationIfParticipant(organizationName, authentication)
         .map { organization ->
             organization to (lnkOrganizationTestSuiteService.getAllTestSuitesByOrganization(organization) + testSuitesService.getPublicTestSuites())
                 .distinctBy { it.requiredId() }
@@ -100,7 +100,7 @@ class LnkOrganizationTestSuiteController(
                 )
             }
         }
-        .mapToDtos(isContest)
+        .mapToInfo(isContest)
 
     @GetMapping("/public")
     @PreAuthorize("permitAll()")
@@ -116,8 +116,8 @@ class LnkOrganizationTestSuiteController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched public test suites.")
     fun getPublicTestSuites(
         @RequestParam(defaultValue = "false") isContest: Boolean
-    ): Flux<TestSuiteDto> = testSuitesService.getPublicTestSuites().toMono()
-        .mapToDtos(isContest)
+    ): Flux<TestSuiteVersioned> = testSuitesService.getPublicTestSuites().toMono()
+        .mapToInfo(isContest)
 
     @PostMapping("/{organizationName}/get-by-ids")
     @RequiresAuthorizationSourceHeader
@@ -139,14 +139,14 @@ class LnkOrganizationTestSuiteController(
         @RequestBody testSuiteIds: List<Long>,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
+    ): Flux<TestSuiteVersioned> = getOrganizationIfParticipant(organizationName, authentication)
         .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
         .map { (organization, testSuites) ->
             testSuites.filter {
                 testSuitePermissionEvaluator.hasPermission(organization, it, Permission.READ, authentication)
             }
         }
-        .mapToDtos(isContest)
+        .mapToInfo(isContest)
 
     @GetMapping("/{organizationName}/filtered")
     @PreAuthorize("permitAll()")
@@ -170,14 +170,14 @@ class LnkOrganizationTestSuiteController(
         @RequestParam(required = false, defaultValue = "") language: String,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
+    ): Flux<TestSuiteVersioned> = getOrganizationIfParticipant(organizationName, authentication)
         .zipWith(TestSuiteFilters(name, language, tags).toMono())
         .map { (organization, testSuiteFilters) ->
             testSuitesService.findTestSuitesMatchingFilters(testSuiteFilters).filter {
                 testSuitePermissionEvaluator.hasPermission(organization, it, Permission.READ, authentication)
             }
         }
-        .mapToDtos(isContest)
+        .mapToInfo(isContest)
 
     @GetMapping("/{organizationName}/{testSuiteId}")
     @RequiresAuthorizationSourceHeader
@@ -462,7 +462,7 @@ class LnkOrganizationTestSuiteController(
             "Could not find test suite with id $testSuiteId."
         }
 
-    private fun Mono<List<TestSuite>>.mapToDtos(isContest: Boolean) = flatMapIterable {
+    private fun Mono<List<TestSuite>>.mapToInfo(isContest: Boolean) = flatMapIterable {
         it
     }
         .filter {
@@ -473,6 +473,6 @@ class LnkOrganizationTestSuiteController(
             }
         }
         .map {
-            it.toDto()
+            it.toVersioned()
         }
 }

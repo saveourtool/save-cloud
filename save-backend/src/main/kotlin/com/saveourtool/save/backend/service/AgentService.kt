@@ -24,6 +24,17 @@ class AgentService(
     private val executionService: ExecutionService,
 ) {
     /**
+     * @param executionId id of execution
+     * @return Unit
+     */
+    @Transactional
+    internal fun deleteAgentByExecutionId(executionId: Long) = lnkExecutionAgentRepository.findByExecutionId(executionId)
+        .map { it.agent }
+        .let {
+            agentRepository.deleteAll(it)
+        }
+
+    /**
      * @param executionIds list of ids
      * @return Unit
      */

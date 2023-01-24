@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.storage.NewFileStorage
 import com.saveourtool.save.backend.utils.ErrorMessage
 import com.saveourtool.save.backend.utils.getOrThrowBadRequest
 import com.saveourtool.save.domain.*
@@ -40,10 +39,12 @@ class ExecutionService(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
+    private val fileRepository: FileRepository,
     private val lnkExecutionFileRepository: LnkExecutionFileRepository,
+    private val lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository,
     @Lazy private val agentService: AgentService,
     private val agentStatusService: AgentStatusService,
-    @Lazy private val newFileStorage: NewFileStorage,
+    private val testAnalysisService: TestAnalysisService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -63,6 +64,19 @@ class ExecutionService(
      */
     fun getExecution(id: Long): Execution = findExecution(id).orNotFound {
         "Not found execution with id $id"
+    }
+
+    /**
+     * @param execution execution that is connected to testSuite
+     * @param testSuites list of manageable [TestSuite]
+     * @param files list of manageable [File]
+     */
+    @Transactional
+    fun save(execution: Execution, testSuites: Collection<TestSuite>, files: Collection<File> = emptyList()): Execution {
+        val newExecution = executionRepository.save(execution)
+        testSuites.map { LnkExecutionTestSuite(newExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
+        files.map { LnkExecutionFile(newExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
+        return newExecution
     }
 
     /**
@@ -104,6 +118,13 @@ class ExecutionService(
             }
         }
         executionRepository.save(updatedExecution)
+
+        /*
+         * Test analysis: update the in-memory statistics.
+         */
+        if (updatedExecution.status == ExecutionStatus.FINISHED) {
+            testAnalysisService.updateStatistics(updatedExecution)
+        }
     }
 
     /**
@@ -158,18 +179,10 @@ class ExecutionService(
     }
 
     /**
-     * Get all executions, which contains provided test suite id
-     *
-     * @param testSuiteId
-     * @return list of [Execution]'s
-     */
-    fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> =
-            lnkExecutionTestSuiteService.getAllExecutionsByTestSuiteId(testSuiteId)
-
-    /**
      * @param projectCoordinates
      * @param testSuiteIds
-     * @param fileKeys
+     * @param testsVersion
+     * @param fileIds
      * @param username
      * @param sdk
      * @param execCmd
@@ -183,7 +196,8 @@ class ExecutionService(
     fun createNew(
         projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        fileKeys: List<FileKey>,
+        testsVersion: String?,
+        fileIds: List<Long>,
         username: String,
         sdk: Sdk,
         execCmd: String?,
@@ -196,14 +210,18 @@ class ExecutionService(
                 "Not found project $projectName in $organizationName"
             }
         }
-        val files = fileKeys.map { newFileStorage.getFileEntityByFileKey(it) }
+        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         return doCreateNew(
             project = project,
-            testSuites = testSuiteIds.map { testSuitesService.getById(it) },
+            testSuites = testSuites,
+            testsVersion = testsVersion?.validateTestsVersion(testSuites),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            files = files,
+            files = fileIds.map { fileId ->
+                fileRepository.findByIdOrNull(fileId)
+                    .orNotFound { "File (id=$fileId) not found" }
+            },
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,
@@ -211,6 +229,13 @@ class ExecutionService(
             testingType = testingType,
             contestName,
         )
+    }
+
+    private fun String.validateTestsVersion(testSuites: Collection<TestSuite>): String {
+        require(testSuites.singleVersion().getOrThrowBadRequest() == this) {
+            "Provided tests version $this doesn't match to calculated version from test suties"
+        }
+        return this
     }
 
     /**
@@ -228,6 +253,7 @@ class ExecutionService(
         return doCreateNew(
             project = execution.project,
             testSuites = testSuites,
+            testsVersion = execution.version,
             allTests = execution.allTests,
             files = files,
             username = username,
@@ -244,6 +270,7 @@ class ExecutionService(
     private fun doCreateNew(
         project: Project,
         testSuites: List<TestSuite>,
+        testsVersion: String?,
         allTests: Long,
         files: List<File>,
         username: String,
@@ -263,7 +290,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
-            version = testSuites.singleVersion().getOrThrowBadRequest(),
+            version = testsVersion ?: testSuites.singleVersion().getOrThrowBadRequest(),
             allTests = allTests,
             runningTests = 0,
             passedTests = 0,
@@ -280,6 +307,7 @@ class ExecutionService(
             testSuiteSourceName = testSuites.singleSourceName().getOrThrowBadRequest(),
             score = null,
         )
+
         val savedExecution = executionRepository.save(execution)
         testSuites.map { LnkExecutionTestSuite(savedExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
         files.map { LnkExecutionFile(savedExecution, it) }.let { lnkExecutionFileRepository.saveAll(it) }
@@ -290,7 +318,7 @@ class ExecutionService(
                 }
             )
         }
-        log.info("Created a new execution id=${savedExecution.requiredId()} for project id=${project.id}")
+        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
         return savedExecution
     }
 
@@ -304,6 +332,29 @@ class ExecutionService(
         lnkExecutionFileRepository.findAllByFile(file)
             .also {
                 lnkExecutionFileRepository.deleteAll(it)
+            }
+            .map { it.execution }
+            .forEach {
+                updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
+            }
+    }
+
+    /**
+     * Unlink provided list of [TestSuite]s from all [Execution]s
+     *
+     * @param testSuites
+     */
+    @Transactional
+    fun unlinkTestSuiteFromAllExecution(testSuites: List<TestSuite>) {
+        lnkExecutionTestSuiteRepository.findAllByTestSuiteIn(testSuites)
+            .also { links ->
+                val linksByExecutions = lnkExecutionTestSuiteRepository.findByExecutionIdIn(links.map { it.execution.requiredId() })
+                require(
+                    linksByExecutions.isEmpty() || linksByExecutions.size == links.size
+                ) {
+                    "Expected that we remove all test suites related to a single execution at once"
+                }
+                lnkExecutionTestSuiteRepository.deleteAll(links)
             }
             .map { it.execution }
             .forEach {

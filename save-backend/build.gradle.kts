@@ -25,6 +25,8 @@ openApi {
 
     customBootRun {
         jvmArgs.add("-Dbackend.fileStorage.location=\${user.home}/cnb/files")
+        jvmArgs.add("-Dbackend.test-analysis-settings.replay-on-startup=false")
+        args.add("--debug")
     }
 }
 

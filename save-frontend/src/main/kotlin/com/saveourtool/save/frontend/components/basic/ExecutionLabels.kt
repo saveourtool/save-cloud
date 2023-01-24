@@ -96,7 +96,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.failedTests = executionDto?.failedTests?.toString() ?: "0"
         this.runningTests = executionDto?.runningTests?.toString() ?: "0"
         this.passRate = executionDto
-            ?.let { "${calculateRate(it.passedTests, it.allTests)}" }
+            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?.toString()
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
@@ -228,7 +229,7 @@ fun ChildrenBuilder.displayProjectVersion(
                 +(executionDto?.status?.name ?: "N/A")
                 div {
                     className = ClassName("text-white-50 small")
-                    +"Project version: ${executionDto?.version ?: "N/A"}"
+                    +"Tests version: ${executionDto?.version ?: "N/A"}"
                 }
             }
         }

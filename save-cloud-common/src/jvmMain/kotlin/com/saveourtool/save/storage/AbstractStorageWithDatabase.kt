@@ -23,9 +23,9 @@ import kotlin.io.path.name
  * @property storage some storage which uses [Long] ([DtoWithId.id]) as a key
  * @property repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>>(
+abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     private val storage: Storage<Long>,
-    private val repository: BaseEntityRepository<E>,
+    protected val repository: R,
 ) : Storage<K> {
     /**
      * Implementation using file-based storage
@@ -35,7 +35,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      */
     constructor(
         rootDir: Path,
-        repository: BaseEntityRepository<E>,
+        repository: R,
     ) : this(defaultFileBasedStorage(rootDir), repository)
 
     override fun list(): Flux<K> = blockingToFlux {
@@ -61,30 +61,33 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         .flatMap { entity ->
             storage.delete(entity.requiredId())
                 .asyncEffectIf({ this }) {
-                    blockingToMono {
-                        beforeDelete(entity)
-                        repository.delete(entity)
-                    }
+                    doDelete(entity)
                 }
         }
         .defaultIfEmpty(false)
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = blockingToMono {
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
+
+    /**
+     * @param key a key for provided content
+     * @param content
+     * @return updated key [K]
+     */
+    fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
+
+    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
         repository.save(createNewEntityFromDto(key))
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
-                .filter { it > 0 }
                 .flatMap { contentSize ->
                     blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .thenReturn(contentSize)
+                        .map {
+                            it.toDto() to contentSize
+                        }
                 }
-                .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
-                    "Failed to upload key $key: content is empty"
-                }
-                .doOnError {
-                    beforeDelete(entity)
-                    repository.delete(entity)
+                .onErrorResume { ex ->
+                    doDelete(entity).then(Mono.error(ex))
                 }
         }
 
@@ -99,6 +102,11 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
 
     private fun getIdAsMono(dto: K): Mono<Long> = blockingToMono { findEntity(dto)?.requiredId() }
         .switchIfEmptyToNotFound { "DTO $this is not saved: ID is not set and failed to find by default example" }
+
+    private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
+        beforeDelete(entity)
+        repository.delete(entity)
+    }
 
     /**
      * A default implementation uses Spring's [Example]

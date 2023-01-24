@@ -4,12 +4,8 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.service.GitService
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.service.TestSuitesSourceService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus
@@ -65,7 +61,8 @@ internal class OrganizationController(
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     config: ConfigProperties,
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
@@ -514,12 +511,12 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun cleanupStorageData(testSuite: TestSuite) = testSuitesSourceSnapshotStorage.findKey(
-        testSuite.source.organization.name,
-        testSuite.source.name,
-        testSuite.version,
-    ).flatMap { key ->
-        testSuitesSourceSnapshotStorage.delete(key)
+    private fun cleanupStorageData(testSuite: TestSuite) = blockingToMono {
+        testsSourceVersionService.delete(
+            testSuite.source.organization.name,
+            testSuite.source.name,
+            testSuite.version,
+        )
     }
 
     private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {

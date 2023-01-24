@@ -2,9 +2,10 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -31,7 +32,6 @@ class TestSuitesService(
     private val testRepository: TestRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
-    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     private val executionService: ExecutionService,
 ) {
     /**
@@ -53,16 +53,8 @@ class TestSuitesService(
                 latestFetchedVersion = testSuiteSourceVersion
             }
 
-        val testSuiteCandidate = TestSuite(
-            name = testSuiteDto.name,
-            description = testSuiteDto.description,
-            source = testSuiteSource,
-            version = testSuiteDto.version,
-            dateAdded = null,
-            language = testSuiteDto.language,
-            tags = testSuiteDto.tags?.let(TestSuite::tagsFromList),
-            plugins = TestSuite.pluginsByTypes(testSuiteDto.plugins)
-        )
+        val testSuiteCandidate = testSuiteDto.toEntity { testSuiteSource }
+            .apply { dateAdded = null }
         // try to find TestSuite in the DB based on all non-null properties of `testSuite`
         // NB: that's why `dateAdded` is null in the mapping above
         val description = testSuiteCandidate.description
@@ -138,6 +130,58 @@ class TestSuitesService(
     fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
 
     /**
+     * Creates copy of TestSuites found by provided values.
+     * New copies have a new version.
+     *
+     * @param sourceId
+     * @param originalVersion
+     * @param newVersion
+     */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun copyToNewVersion(
+        sourceId: Long,
+        originalVersion: String,
+        newVersion: String,
+    ) {
+        val existedTestSuites = testSuiteRepository.findAllBySourceIdAndVersion(
+            sourceId,
+            originalVersion
+        )
+        existedTestSuites.forEach { testSuite -> testSuite.copyWithNewVersion(newVersion) }
+    }
+
+    private fun TestSuite.copyWithNewVersion(
+        newVersion: String,
+    ) {
+        // a copy of existed one but with a new version
+        val newTestSuite = TestSuite(
+            name = this.name,
+            description = this.description,
+            source = this.source,
+            version = newVersion,
+            dateAdded = this.dateAdded,
+            language = this.language,
+            tags = this.tags,
+            plugins = this.plugins,
+            isPublic = this.isPublic,
+        )
+        val savedNewTestSuite = testSuiteRepository.save(newTestSuite)
+        // also copy all tests from old TestSuite to new one
+        testRepository.findAllByTestSuiteId(this.requiredId())
+            .map { test ->
+                Test(
+                    hash = test.hash,
+                    filePath = test.filePath,
+                    pluginName = test.pluginName,
+                    dateAdded = test.dateAdded,
+                    testSuite = savedNewTestSuite,
+                    additionalFiles = test.additionalFiles,
+                )
+            }
+            .let { testRepository.saveAll(it) }
+    }
+
+    /**
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suites
@@ -175,20 +219,7 @@ class TestSuitesService(
     }
 
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
-        val executions = testSuites.flatMap { testSuite ->
-            executionService.getExecutionsByTestSuiteId(testSuite.requiredId())
-        }.distinctBy { it.requiredId() }
-        val allTestSuiteIdsByExecutions = executions.flatMap { lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(it.requiredId()) }
-            .distinct()
-            .size
-        require(
-            allTestSuiteIdsByExecutions == testSuites.size || allTestSuiteIdsByExecutions == 0
-        ) {
-            "Expected that we remove all test suites related to a single execution at once"
-        }
-        executions.forEach {
-            executionService.updateExecutionStatus(it, ExecutionStatus.OBSOLETE)
-        }
+        executionService.unlinkTestSuiteFromAllExecution(testSuites)
 
         testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
