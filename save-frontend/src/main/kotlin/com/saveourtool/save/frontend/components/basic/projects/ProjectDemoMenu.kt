@@ -196,12 +196,18 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                                 // restart request here
                             }
 
-                            buttonBuilder("Stop") {
+                            buttonBuilder(
+                                label = "Stop",
+                                isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                            ) {
                                 setDemoStatus(DemoStatus.STOPPED)
                                 // stop request here
                             }
                         }
-                        DemoStatus.STOPPED -> buttonBuilder("Run") {
+                        DemoStatus.STOPPED -> buttonBuilder(
+                            label ="Run",
+                            isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
+                        ) {
                             setDemoStatus(DemoStatus.RUNNING)
                             // run request here
                         }
