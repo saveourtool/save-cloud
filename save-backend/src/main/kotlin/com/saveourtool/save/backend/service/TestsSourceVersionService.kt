@@ -88,7 +88,7 @@ class TestsSourceVersionService(
     ): Set<String> = versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(
         organizationName,
         sourceName
-    ).mapTo(HashSet(), TestsSourceVersion::name)
+    ).mapTo(LinkedHashSet(), TestsSourceVersion::name)
 
     /**
      * @param snapshotId
@@ -96,7 +96,7 @@ class TestsSourceVersionService(
      */
     fun getAllVersions(
         snapshotId: Long,
-    ): Set<String> = versionRepository.findAllBySnapshotId(snapshotId).mapTo(HashSet(), TestsSourceVersion::name)
+    ): Set<String> = versionRepository.findAllBySnapshotId(snapshotId).mapTo(LinkedHashSet(), TestsSourceVersion::name)
 
     /**
      * Deletes [TestsSourceVersionDto] and [TestsSourceSnapshotDto] if there are no another [TestsSourceVersionDto] related to it

@@ -8,9 +8,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteVersioned
-import com.saveourtool.save.utils.PRETTY_DELIMITER
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -25,9 +23,7 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
-@Suppress(
-    "TOO_LONG_FUNCTION", "LongMethod"
-)
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.showAvailableTestSuites(
     testSuites: List<TestSuiteVersioned>,
     selectedTestSuites: List<TestSuiteVersioned>,
