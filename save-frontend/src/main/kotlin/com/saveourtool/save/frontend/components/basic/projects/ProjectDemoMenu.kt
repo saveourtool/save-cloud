@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
@@ -176,11 +177,15 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 div {
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> buttonBuilder("Create") {
-                            sendDemoCreationRequest()
+                        DemoStatus.NOT_CREATED -> if (isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.OWNER)) {
+                            buttonBuilder("Create") {
+                                sendDemoCreationRequest()
+                            }
                         }
-                        DemoStatus.STARTING -> buttonBuilder("Reload") {
-                            getDemoStatus()
+                        DemoStatus.STARTING -> if (isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)) {
+                            buttonBuilder("Reload") {
+                                getDemoStatus()
+                            }
                         }
                         DemoStatus.RUNNING -> {
                             buttonBuilder("Restart") {
@@ -218,8 +223,38 @@ external interface ProjectDemoMenuProps : Props {
     var organizationName: String
 
     /**
+     * User project role
+     */
+    var projectRole: Role
+
+    /**
+     * User organization role
+     */
+    var organizationRole: Role
+
+    /**
+     * User global role
+     */
+    var globalRole: Role?
+
+    /**
      * Callback to show error message
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (String, String) -> Unit
 }
+
+/** Checking the user's rights to the action being performed
+ *
+ * @param globalRole is user global role
+ * @param organizationRole is user role in organization
+ * @param projectRole is user role in project
+ * @param expectedProjectRole is user expected role in project for current action
+ * @return true is user have permissions for this action, else false
+ */
+fun isUserHasPermissionHigherOrEqualCurrentProjectRole(
+    globalRole: Role?,
+    organizationRole: Role,
+    projectRole: Role,
+    expectedProjectRole: Role,
+) = globalRole.isSuperAdmin() || projectRole.isHigherOrEqualThan(expectedProjectRole) || organizationRole.isHigherOrEqualThan(Role.OWNER)
