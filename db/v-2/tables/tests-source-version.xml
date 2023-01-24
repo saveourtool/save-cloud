@@ -49,7 +49,7 @@
         <addColumn tableName="test_suite">
             <column name="source_snapshot_id" type="bigint"
                     valueComputed="(select tests_source_version.snapshot_id from tests_source_version where tests_source_version.snapshot_id in (select tests_source_snapshot.id from tests_source_snapshot where tests_source_snapshot.source_id = test_suite.source_id) and tests_source_version.name = test_suite.version)">
-                <constraints foreignKeyName="fk_test_suite_source_snapshot" references="tests_source_snapshot(id)" nullable="false" deleteCascade="true"/>
+                <constraints nullable="false" />
             </column>
         </addColumn>
         <delete tableName="test_suite">
@@ -58,6 +58,12 @@
         <dropForeignKeyConstraint baseTableName="test_suite" constraintName="fk_test_suite_test_suites_source"/>
         <dropColumn tableName="test_suite" columnName="source_id"/>
         <dropColumn tableName="test_suite" columnName="version"/>
+        <addForeignKeyConstraint baseTableName="test_suite"
+                                 baseColumnNames="source_snapshot_id"
+                                 constraintName="fk_test_suite_source_snapshot"
+                                 referencedTableName="tests_source_snapshot"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
     </changeSet>
 
 </databaseChangeLog>
