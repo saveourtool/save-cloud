@@ -3,8 +3,12 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.utils.getCurrentLocalDateTime
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -42,6 +46,7 @@ class TestDiscoveringServiceTest {
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
     private lateinit var testSuitesSourceDto: TestSuitesSourceDto
+    private lateinit var testsSourceSnapshot: TestsSourceSnapshotDto
 
     @MockBean
     private lateinit var configProperties: ConfigProperties
@@ -69,6 +74,12 @@ class TestDiscoveringServiceTest {
             "examples/kotlin-diktat",
             "aaaaaa",
         )
+        testsSourceSnapshot = TestsSourceSnapshotDto(
+            sourceId = 1L,
+            commitId = "1234567890",
+            commitTime = getCurrentLocalDateTime(),
+            id = 2L,
+        )
     }
 
     @AfterAll
@@ -80,8 +91,7 @@ class TestDiscoveringServiceTest {
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             rootTestConfig,
-            testSuitesSourceDto,
-            "not-provided"
+            testsSourceSnapshot,
         )
 
         logger.debug("Discovered test suites: $testSuites")
@@ -94,8 +104,7 @@ class TestDiscoveringServiceTest {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                testSuitesSourceDto,
-                "not-provided"
+                testsSourceSnapshot,
             )
         }
     }

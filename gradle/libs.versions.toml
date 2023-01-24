@@ -129,6 +129,7 @@ ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 
 # java core libraries
 validation-api = { module = "jakarta.validation:jakarta.validation-api"}
+annotation-api = { module = "jakarta.annotation:jakarta.annotation-api"}
 
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }

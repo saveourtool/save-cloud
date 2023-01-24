@@ -97,7 +97,7 @@ class TestSuitesSourceController(
     ): Mono<TestSuitesSourceDto> = getTestSuitesSource(organizationName, sourceName)
         .map { it.toDto() }
 
-    @GetMapping("/{organizationName}/{sourceName}/list-snapshot")
+    @GetMapping("/{organizationName}/{sourceName}/list-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -115,7 +115,7 @@ class TestSuitesSourceController(
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
     @ApiResponse(responseCode = "404", description = ".")
-    fun listSnapshotVersions(
+    fun listVersions(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
     ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
@@ -123,7 +123,7 @@ class TestSuitesSourceController(
             blockingToMono { testsSourceVersionService.getAllAsInfo(it.organizationName, it.name) }
         }
 
-    @GetMapping("/{organizationName}/list-snapshot")
+    @GetMapping("/{organizationName}/list-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -136,7 +136,7 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for all test suites sources in requested organization.")
     @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
-    fun listSnapshots(
+    fun listVersions(
         @PathVariable organizationName: String,
     ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
@@ -208,38 +208,7 @@ class TestSuitesSourceController(
             }
         }
 
-    @GetMapping("/{organizationName}/{sourceName}/get-test-suites")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "List of test suites in requested test suites source.",
-        description = "List of test suites in requested test suites source.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-    )
-    fun getTestSuiteDtos(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-    ): Mono<List<TestSuiteDto>> = getTestSuitesSource(organizationName, sourceName)
-        .map { testSuitesSource ->
-            testSuitesService.getBySourceAndVersion(
-                testSuitesSource,
-                version
-            ).map {
-                it.toDto()
-            }
-        }
-
-    @DeleteMapping("/{organizationName}/{sourceName}/delete-test-suites-and-snapshot")
+    @DeleteMapping("/{organizationName}/{sourceName}/delete-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -256,18 +225,13 @@ class TestSuitesSourceController(
         responseCode = "404",
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
-    fun deleteTestSuitesAndSnapshot(
+    fun deleteVersion(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<Boolean> = getTestSuitesSource(organizationName, sourceName)
-        .map {
-            testSuitesService.deleteTestSuite(it, version)
-        }
-        .then(
-            blockingToMono { testsSourceVersionService.delete(organizationName, sourceName, version) }
-                .thenReturn(true)
-        )
+    ): Mono<Unit> = blockingToMono {
+        testsSourceVersionService.delete(organizationName, sourceName, version)
+    }
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)

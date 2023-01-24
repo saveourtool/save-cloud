@@ -9,9 +9,9 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.collectPluginNames
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
@@ -40,25 +40,24 @@ class TestDiscoveringService(
 ) {
     /**
      * @param repositoryPath
-     * @param testSuitesSourceDto
-     * @param version
+     * @param testRootPath
+     * @param sourceSnapshot
      * @return list of [TestSuite] initialized from provided directory
      */
     fun detectAndSaveAllTestSuitesAndTests(
         repositoryPath: java.nio.file.Path,
-        testSuitesSourceDto: TestSuitesSourceDto,
-        version: String,
+        testRootPath: String,
+        sourceSnapshot: TestsSourceSnapshotDto,
     ): Mono<List<TestSuite>> {
         log.info { "Starting to save new test suites for root test config in $repositoryPath" }
         return Mono.just(repositoryPath)
-            .map { it.resolve(testSuitesSourceDto.testRootPath) }
+            .map { it.resolve(testRootPath) }
             .map { getRootTestConfig(it.absolutePathString()) }
             .zipWhen { rootTestConfig ->
                 log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
                 discoverAllTestSuites(
                     rootTestConfig,
-                    testSuitesSourceDto,
-                    version
+                    sourceSnapshot,
                 ).toMono()
             }
             .map { (rootTestConfig, testSuites) ->
@@ -87,16 +86,14 @@ class TestDiscoveringService(
      * Discover all test suites in the test suites source
      *
      * @param rootTestConfig root config of SAVE configs hierarchy
-     * @param source
-     * @param version
+     * @param sourceSnapshot tests snapshot
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTestSuites(
         rootTestConfig: TestConfig,
-        source: TestSuitesSourceDto,
-        version: String,
+        sourceSnapshot: TestsSourceSnapshotDto,
     ) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
@@ -108,8 +105,7 @@ class TestDiscoveringService(
             TestSuiteDto(
                 config.suiteName!!,
                 config.description,
-                source,
-                version,
+                sourceSnapshot,
                 config.language,
                 config.tags
             )
@@ -121,17 +117,15 @@ class TestDiscoveringService(
      * Discover all test suites in the project
      *
      * @param rootTestConfig root config of SAVE configs hierarchy
-     * @param source source with test suites
-     * @param version
+     * @param sourceSnapshot source snapshot with test suites
      * @return a list of saved [TestSuite]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @Suppress("UnsafeCallOnNullableType")
     fun discoverAllTestSuites(
         rootTestConfig: TestConfig,
-        source: TestSuitesSourceDto,
-        version: String,
-    ) = getAllTestSuites(rootTestConfig, source, version)
+        sourceSnapshot: TestsSourceSnapshotDto,
+    ) = getAllTestSuites(rootTestConfig, sourceSnapshot)
 
     private fun Path.getRelativePath(rootTestConfig: TestConfig) = this.toFile()
         .relativeTo(rootTestConfig.directory.toFile())
