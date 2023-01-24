@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import kotlin.io.path.*
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
@@ -82,14 +81,6 @@ class TestSuitesSourceService(
      * @return entity
      */
     fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
-
-    /**
-     * @param entity
-     */
-    @Transactional
-    fun delete(entity: TestSuitesSource) {
-        testSuitesSourceRepository.delete(entity)
-    }
 
     /**
      * Raw update

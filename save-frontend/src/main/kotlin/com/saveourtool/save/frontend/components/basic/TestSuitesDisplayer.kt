@@ -25,69 +25,19 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
+@Suppress(
+    "TOO_LONG_FUNCTION", "LongMethod"
+)
 fun ChildrenBuilder.showAvailableTestSuites(
     testSuites: List<TestSuiteVersioned>,
     selectedTestSuites: List<TestSuiteVersioned>,
     displayMode: TestSuiteSelectorMode?,
     onTestSuiteClick: (TestSuiteVersioned) -> Unit,
 ) {
-    doShowAvailableTestSuites(
-        testSuites,
-        onTestSuiteClick,
-        isSelected = { it in selectedTestSuites },
-        nameGetter = TestSuiteVersioned::name,
-        languageGetter = TestSuiteVersioned::language,
-        descriptionGetter = TestSuiteVersioned::description,
-        versionGetter = { testSuite -> testSuite.version.takeIf { displayMode.shouldDisplayVersion() } },
-        tagsGetter = TestSuiteVersioned::tags,
-        pluginsGetter = TestSuiteVersioned::plugins,
-    )
-}
-
-/**
- * @param testSuites
- * @param selectedTestSuiteId
- * @param onTestSuiteClick
- */
-fun ChildrenBuilder.showAvailableTestSuites(
-    testSuites: List<TestSuiteDto>,
-    selectedTestSuiteId: Long?,
-    onTestSuiteClick: (TestSuiteDto) -> Unit,
-) {
-    doShowAvailableTestSuites(
-        testSuites,
-        onTestSuiteClick,
-        isSelected = { it.requiredId() == selectedTestSuiteId },
-        nameGetter = TestSuiteDto::name,
-        languageGetter = { it.language.orEmpty() },
-        descriptionGetter = { it.description.orEmpty() },
-        versionGetter = { null },
-        tagsGetter = { it.tags?.joinToString(PRETTY_DELIMITER).orEmpty() },
-        pluginsGetter = { it.plugins.joinToString(PRETTY_DELIMITER) },
-    )
-}
-
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "TOO_MANY_PARAMETERS",
-    "LongParameterList"
-)
-private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
-    testSuites: List<T>,
-    onTestSuiteClick: (T) -> Unit,
-    isSelected: (T) -> Boolean,
-    nameGetter: (T) -> String,
-    languageGetter: (T) -> String,
-    descriptionGetter: (T) -> String,
-    versionGetter: (T) -> String?,
-    tagsGetter: (T) -> String,
-    pluginsGetter: (T) -> String,
-) {
     div {
         className = ClassName("list-group")
         testSuites.forEach { testSuite ->
-            val active = if (isSelected(testSuite)) {
+            val active = if (testSuite in selectedTestSuites) {
                 "active"
             } else {
                 ""
@@ -101,10 +51,10 @@ private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
                     className = ClassName("d-flex w-100 justify-content-between")
                     h5 {
                         className = ClassName("mb-1")
-                        +nameGetter(testSuite)
+                        +(testSuite.name)
                     }
                     small {
-                        +languageGetter(testSuite)
+                        +testSuite.language
                     }
                 }
                 div {
@@ -112,18 +62,17 @@ private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
                     div {
                         className = ClassName("float-left")
                         p {
-                            +descriptionGetter(testSuite)
+                            +testSuite.description
                         }
                     }
                     div {
                         className = ClassName("float-right")
-                        val version = versionGetter(testSuite)
-                        version?.run {
+                        if (displayMode.shouldDisplayVersion()) {
                             small {
                                 asDynamic()["data-toggle"] = "tooltip"
                                 asDynamic()["data-placement"] = "bottom"
                                 title = "Hash of commit/branch name/tag name"
-                                +this
+                                +testSuite.version
                             }
                         }
                     }
@@ -135,7 +84,7 @@ private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Test suite tags"
-                        +tagsGetter(testSuite)
+                        +testSuite.tags
                     }
 
                     small {
@@ -143,7 +92,7 @@ private fun <T> ChildrenBuilder.doShowAvailableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Plugin type"
-                        +pluginsGetter(testSuite)
+                        +testSuite.plugins
                     }
                 }
             }

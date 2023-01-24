@@ -65,12 +65,9 @@ class TestSuitesControllerTest {
                 .consumeWith {
                     val body = it.responseBody!!
                     assertEquals(testSuite.name, body.name)
-                    // FIXME
-//                    assertEquals(testSuite.source.name, body.source.name)
-//                    assertEquals(testSuite.source.organizationName, body.source.organization.name)
-//                    assertTrue(testSuite.source.latestFetchedVersion != body.source.latestFetchedVersion)
-//                    assertEquals(testSuite.version, body.source.latestFetchedVersion)
-//                    assertEquals(testSuite.version, body.version)
+                    assertEquals(testSuite.sourceSnapshot.sourceId, body.sourceSnapshot.source.requiredId())
+                    assertEquals(testSuite.sourceSnapshot.commitId, body.sourceSnapshot.commitId)
+                    assertTrue(body.sourceSnapshot.source.latestFetchedVersion == null)
                 }
         }
     }

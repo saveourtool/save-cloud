@@ -63,7 +63,7 @@ class TestSuitesService(
                 }
             }
         testSuiteRepository.save(testSuite)
-        lnkOrganizationTestSuiteService.setOrDeleteSelfRights(testSuite, Rights.MAINTAIN)
+        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuite.sourceSnapshot.source.organization, testSuite, Rights.MAINTAIN)
         return testSuite
     }
 
