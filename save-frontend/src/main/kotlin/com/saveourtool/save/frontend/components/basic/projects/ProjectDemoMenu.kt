@@ -205,7 +205,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                             }
                         }
                         DemoStatus.STOPPED -> buttonBuilder(
-                            label ="Run",
+                            label = "Run",
                             isDisabled = !isUserHasPermissionHigherOrEqualCurrentProjectRole(props.globalRole, props.organizationRole, props.projectRole, Role.VIEWER)
                         ) {
                             setDemoStatus(DemoStatus.RUNNING)
