@@ -1891,6 +1891,179 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/delete-file": {
+      "delete": {
+        "description": "Delete a file.",
+        "operationId": "deleteFile",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of file to be deleted",
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "manual"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fileName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Successfully deleted file."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Could not find project in organization."
+          }
+        },
+        "summary": "Delete a file.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/list-file": {
+      "get": {
+        "description": "Get list of files attached to requested version of saveourtool project demo.",
+        "operationId": "listFiles",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "version of files, manual by default",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "manual"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of files."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileDto"
+                  }
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileDto"
+                  }
+                }
+              }
+            },
+            "description": "Could not find project in organization."
+          }
+        },
+        "summary": "Get list of files.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/demo/{organizationName}/{projectName}/status": {
       "get": {
         "description": "Get demo status.",
@@ -2001,12 +2174,13 @@
             }
           },
           {
-            "description": "version to attach the file to",
+            "description": "version to attach the file to, manual by default",
             "in": "query",
             "name": "version",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "manual"
             }
           },
           {
@@ -2024,7 +2198,7 @@
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -2046,19 +2220,17 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int64"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               }
             },
-            "description": "Successfully added demo."
+            "description": "Successfully uploaded file to demo."
           },
           "403": {
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int64"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               }
             },
@@ -2068,8 +2240,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int64"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               }
             },
