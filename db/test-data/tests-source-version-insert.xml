@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="tests-source-version-insert" author="nulls" context="dev">
+        <loadData tableName="tests_source_version" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/tests-source-version.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="snapshot_id" name="snapshot_id" type="NUMERIC" />
+            <column header="name" name="name" type="varchar(100)" />
+            <column header="type" name="type" type="varchar(50)" />
+            <column header="created_by_user_id" name="created_by_user_id" type="NUMERIC" />
+            <column header="creation_time" name="creation_time" type="DATE" />
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

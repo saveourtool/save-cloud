@@ -5,6 +5,7 @@ import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
 
+import org.slf4j.Logger
 import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -14,19 +15,26 @@ import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.time.Instant
+import javax.annotation.PostConstruct
 
+import kotlin.io.path.div
 import kotlin.io.path.name
+import kotlinx.datetime.Clock
 
 /**
  * Implementation of storage which stores keys in database
  *
  * @property storage some storage which uses [Long] ([DtoWithId.id]) as a key
+ * @property backupStorageCreator creator for some storage which uses [Long] as a key, should be unique per each creation (to avoid duplication in backups)
  * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     private val storage: Storage<Long>,
+    private val backupStorageCreator: () -> Storage<Long>,
     protected val repository: R,
 ) : Storage<K> {
+    private val log: Logger = getLogger(this.javaClass)
+
     /**
      * Implementation using file-based storage
      *
@@ -36,7 +44,39 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     constructor(
         rootDir: Path,
         repository: R,
-    ) : this(defaultFileBasedStorage(rootDir), repository)
+    ) : this(defaultFileBasedStorage(rootDir), { defaultFileBasedStorage(rootDir / "backup-${Clock.System.now().epochSeconds}") }, repository)
+
+    /**
+     * Init method to back up unexpected ids which are detected in storage,but missed in database
+     */
+    @PostConstruct
+    fun backupUnexpectedIds() {
+        storage.list()
+            .filterWhen { id ->
+                blockingToMono {
+                    repository.findById(id).isEmpty
+                }
+            }
+            .collectList()
+            .flatMapIterable { unexpectedIds ->
+                if (unexpectedIds.isNotEmpty()) {
+                    val backupStorage = backupStorageCreator()
+                    log.warn {
+                        "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
+                    }
+                    generateSequence { backupStorage }.take(unexpectedIds.size)
+                        .toList()
+                        .zip(unexpectedIds)
+                } else {
+                    emptyList()
+                }
+            }
+            .flatMap { (backupStorage, id) ->
+                backupStorage.upload(id, storage.download(id))
+                    .then(storage.delete(id))
+            }
+            .subscribe()
+    }
 
     override fun list(): Flux<K> = blockingToFlux {
         repository.findAll()

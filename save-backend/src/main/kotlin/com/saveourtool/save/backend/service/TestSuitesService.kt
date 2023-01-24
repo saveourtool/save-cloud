@@ -1,18 +1,16 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuite.Companion.toEntity
-import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.orNotFound
 
-import org.slf4j.LoggerFactory
+import com.saveourtool.save.utils.orNotFound
+import org.springframework.context.annotation.Lazy
+
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
@@ -29,10 +27,9 @@ import java.time.LocalDateTime
 @Suppress("LongParameterList")
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
-    private val testRepository: TestRepository,
-    private val testSuitesSourceService: TestSuitesSourceService,
+    @Lazy
+    private val testsSourceVersionService: TestsSourceVersionService,
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
-    private val executionService: ExecutionService,
 ) {
     /**
      * Save new test suites to DB
@@ -47,14 +44,10 @@ class TestSuitesService(
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
 
-        val testSuiteSourceVersion = testSuiteDto.version
-        val testSuiteSource = testSuitesSourceService.getByName(testSuiteDto.source.organizationName, testSuiteDto.source.name)
+        val testSuiteCandidate = testSuiteDto.toEntity(testsSourceVersionService::getSnapshotEntity)
             .apply {
-                latestFetchedVersion = testSuiteSourceVersion
+                dateAdded = null
             }
-
-        val testSuiteCandidate = testSuiteDto.toEntity { testSuiteSource }
-            .apply { dateAdded = null }
         // try to find TestSuite in the DB based on all non-null properties of `testSuite`
         // NB: that's why `dateAdded` is null in the mapping above
         val description = testSuiteCandidate.description
@@ -70,8 +63,7 @@ class TestSuitesService(
                 }
             }
         testSuiteRepository.save(testSuite)
-        testSuitesSourceService.update(testSuiteSource)
-        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuiteSource.organization, testSuite, Rights.MAINTAIN)
+        lnkOrganizationTestSuiteService.setOrDeleteRights(testSuite.sourceSnapshot.source.organization, testSuite, Rights.MAINTAIN)
         return testSuite
     }
 
@@ -105,8 +97,7 @@ class TestSuitesService(
                         TestSuite(
                             filters.name,
                             "",
-                            TestSuitesSource.empty,
-                            "",
+                            TestsSourceSnapshot.empty,
                             null,
                             filters.language,
                             filters.tags
@@ -130,126 +121,16 @@ class TestSuitesService(
     fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
 
     /**
-     * Creates copy of TestSuites found by provided values.
-     * New copies have a new version.
-     *
-     * @param sourceId
-     * @param originalVersion
-     * @param newVersion
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun copyToNewVersion(
-        sourceId: Long,
-        originalVersion: String,
-        newVersion: String,
-    ) {
-        val existedTestSuites = testSuiteRepository.findAllBySourceIdAndVersion(
-            sourceId,
-            originalVersion
-        )
-        existedTestSuites.forEach { testSuite -> testSuite.copyWithNewVersion(newVersion) }
-    }
-
-    private fun TestSuite.copyWithNewVersion(
-        newVersion: String,
-    ) {
-        // a copy of existed one but with a new version
-        val newTestSuite = TestSuite(
-            name = this.name,
-            description = this.description,
-            source = this.source,
-            version = newVersion,
-            dateAdded = this.dateAdded,
-            language = this.language,
-            tags = this.tags,
-            plugins = this.plugins,
-            isPublic = this.isPublic,
-        )
-        val savedNewTestSuite = testSuiteRepository.save(newTestSuite)
-        // also copy all tests from old TestSuite to new one
-        testRepository.findAllByTestSuiteId(this.requiredId())
-            .map { test ->
-                Test(
-                    hash = test.hash,
-                    filePath = test.filePath,
-                    pluginName = test.pluginName,
-                    dateAdded = test.dateAdded,
-                    testSuite = savedNewTestSuite,
-                    additionalFiles = test.additionalFiles,
-                )
-            }
-            .let { testRepository.saveAll(it) }
-    }
-
-    /**
-     * @param source source of the test suite
-     * @param version version of snapshot of source
+     * @param sourceSnapshot source snapshot of the test suite
      * @return matched test suites
      */
-    fun getBySourceAndVersion(
-        source: TestSuitesSource,
-        version: String
-    ): List<TestSuite> = testSuiteRepository.findAllBySourceAndVersion(source, version)
-
-    /**
-     * @param source source of the test suite
-     * @return matched test suites
-     */
-    fun getBySource(
-        source: TestSuitesSource,
-    ): List<TestSuite> = testSuiteRepository.findAllBySource(source)
-
-    /**
-     * Delete testSuites and related tests & test executions from DB
-     *
-     * @param testSuiteDtos suites, which need to be deleted
-     */
-    fun deleteTestSuitesDto(testSuiteDtos: List<TestSuiteDto>) {
-        doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
-    }
-
-    /**
-     * Delete testSuites and related tests & test executions from DB
-     *
-     * @param source
-     * @param version
-     */
-    fun deleteTestSuite(source: TestSuitesSource, version: String) {
-        doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
-    }
-
-    private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
-        executionService.unlinkTestSuiteFromAllExecution(testSuites)
-
-        testSuites.forEach { testSuite ->
-            // Get test ids related to the current testSuiteId
-            val testIds = testRepository.findAllByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
-            testIds.forEach { testId ->
-                // Delete tests
-                log.debug { "Delete test with id $testId" }
-                testRepository.deleteById(testId)
-            }
-            log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
-            testSuiteRepository.deleteById(testSuite.requiredId())
-        }
-    }
-
-    private fun getSavedEntityByDto(
-        dto: TestSuiteDto,
-    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
-        dto.name,
-        dto.tags?.let(TestSuite::tagsFromList),
-        testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
-        dto.version
-    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+    fun getBySourceSnapshot(
+        sourceSnapshot: TestsSourceSnapshot,
+    ): List<TestSuite> = testSuiteRepository.findAllBySourceSnapshot(sourceSnapshot)
 
     /**
      * @param testSuites list of test suites to be updated
      * @return saved [testSuites]
      */
     fun updateTestSuites(testSuites: List<TestSuite>): List<TestSuite> = testSuiteRepository.saveAll(testSuites)
-
-    companion object {
-        private val log = LoggerFactory.getLogger(TestSuitesService::class.java)
-    }
 }

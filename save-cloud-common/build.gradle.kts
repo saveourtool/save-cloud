@@ -1,3 +1,5 @@
+import com.saveourtool.save.buildutils.configureSigning
+
 @Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
@@ -61,6 +63,7 @@ kotlin {
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
+                implementation(libs.annotation.api)
             }
         }
         val jvmTest by getting {
@@ -76,3 +79,5 @@ kotlin {
         }
     }
 }
+
+configureSigning()

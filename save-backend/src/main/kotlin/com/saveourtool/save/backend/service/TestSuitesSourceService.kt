@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
@@ -30,7 +29,6 @@ class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
     private val testsSourceVersionService: TestsSourceVersionService,
-    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -83,12 +81,6 @@ class TestSuitesSourceService(
      * @return entity
      */
     fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
-
-    /**
-     * @param entity
-     */
-    @Transactional
-    fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
 
     /**
      * Raw update

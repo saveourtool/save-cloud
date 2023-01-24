@@ -17,8 +17,7 @@ import javax.persistence.ManyToOne
 /**
  * @property name name of the test suite
  * @property description description of the test suite
- * @property source source, which this test suite is created from
- * @property version version of source, which this test suite is created from
+ * @property sourceSnapshot snapshot of source, which this test suite is created from
  * @property dateAdded date and time, when this test suite was added to the project
  * @property language
  * @property tags
@@ -33,10 +32,8 @@ class TestSuite(
     var description: String? = "Undefined",
 
     @ManyToOne
-    @JoinColumn(name = "source_id")
-    var source: TestSuitesSource,
-
-    var version: String,
+    @JoinColumn(name = "source_snapshot_id")
+    var sourceSnapshot: TestsSourceSnapshot,
 
     var dateAdded: LocalDateTime? = null,
 
@@ -69,8 +66,7 @@ class TestSuite(
             TestSuiteDto(
                 this.name,
                 this.description,
-                this.source.toDto(),
-                this.version,
+                this.sourceSnapshot.toDto(),
                 this.language,
                 this.tagsAsList(),
                 this.id,
@@ -79,14 +75,17 @@ class TestSuite(
             )
 
     /**
-     * @return [TestSuiteVersioned] created from [TestSuite]
+     * @param version
+     * @return [TestSuiteVersioned] created from [TestSuiteDto]
      */
-    fun toVersioned(): TestSuiteVersioned = TestSuiteVersioned(
+    fun toVersioned(
+        version: String,
+    ): TestSuiteVersioned = TestSuiteVersioned(
         id = requiredId(),
         name = name,
-        sourceName = source.name,
-        organizationName = source.organization.name,
-        isLatestFetchedVersion = version == source.latestFetchedVersion,
+        sourceName = sourceSnapshot.source.name,
+        organizationName = sourceSnapshot.source.organization.name,
+        isLatestFetchedVersion = version == sourceSnapshot.source.latestFetchedVersion,
         description = description.orEmpty(),
         version = version,
         language = language.orEmpty(),
@@ -120,14 +119,13 @@ class TestSuite(
         fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
 
         /**
-         * @param sourceResolver
+         * @param sourceSnapshotResolver
          * @return [TestSuite] created from [TestSuiteDto]
          */
-        fun TestSuiteDto.toEntity(sourceResolver: (Long) -> TestSuitesSource): TestSuite = TestSuite(
+        fun TestSuiteDto.toEntity(sourceSnapshotResolver: (Long) -> TestsSourceSnapshot): TestSuite = TestSuite(
             name = name,
             description = description,
-            source = sourceResolver(source.requiredId()),
-            version = version,
+            sourceSnapshot = sourceSnapshotResolver(sourceSnapshot.requiredId()),
             dateAdded = null,
             language = language,
             tags = tags?.let(TestSuite::tagsFromList),

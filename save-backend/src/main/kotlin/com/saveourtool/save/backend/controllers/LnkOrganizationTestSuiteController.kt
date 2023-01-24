@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.service.TestsSourceVersionService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
@@ -63,6 +64,7 @@ class LnkOrganizationTestSuiteController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val testSuitesService: TestSuitesService,
     private val testSuitePermissionEvaluator: TestSuitePermissionEvaluator,
+    private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     @GetMapping("/{organizationName}/available")
     @RequiresAuthorizationSourceHeader
@@ -472,7 +474,8 @@ class LnkOrganizationTestSuiteController(
                 it.pluginsAsListOfPluginType().isNotEmpty()
             }
         }
-        .map {
-            it.toVersioned()
+        .flatMapIterable { testSuite ->
+            testsSourceVersionService.getAllVersions(testSuite.sourceSnapshot.requiredId())
+                .map { version -> testSuite.toVersioned(version) }
         }
 }
