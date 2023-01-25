@@ -64,6 +64,9 @@ kotlin {
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
                 implementation(libs.annotation.api)
+                implementation(project.dependencies.platform(libs.aws.sdk.bom))
+                implementation(libs.aws.sdk.s3)
+                implementation(libs.aws.sdk.netty.nio)
             }
         }
         val jvmTest by getting {
