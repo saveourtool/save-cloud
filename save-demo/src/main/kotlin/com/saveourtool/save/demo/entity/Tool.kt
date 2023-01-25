@@ -22,7 +22,7 @@ class Tool(
      */
     fun toToolKey() = ToolKey(
         githubRepo.organizationName,
-        githubRepo.toolName,
+        githubRepo.projectName,
         snapshot.version,
         snapshot.executableName,
     )

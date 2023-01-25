@@ -61,4 +61,35 @@ class DemoService(
         ToolKey(organizationName, projectName, version, filePart.filename()),
         filePart,
     )
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of a tool that the file is connected to
+     * @return list of files present in storage for required version
+     */
+    fun getFilesFromStorage(
+        organizationName: String,
+        projectName: String,
+        version: String,
+    ) = toolStorage.list()
+        .filter {
+            it.organizationName == organizationName && it.projectName == projectName && it.version == version
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of a tool that the file is connected to
+     * @param fileName name of a file to be deleted
+     * @return true if file is successfully deleted, false otherwise
+     */
+    fun deleteFileFromStorage(
+        organizationName: String,
+        projectName: String,
+        version: String,
+        fileName: String,
+    ) = toolStorage.delete(
+        ToolKey(organizationName, projectName, version, fileName)
+    )
 }

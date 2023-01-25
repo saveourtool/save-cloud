@@ -36,7 +36,7 @@ class ToolService(
         val snapshotFromDb = snapshotService.saveIfNotPresent(snapshot)
         return toolRepository.findByGithubRepoAndSnapshot(githubRepoFromDb, snapshotFromDb)?.let {
             throw IllegalStateException(
-                "Tool ${githubRepo.organizationName}/${githubRepo.toolName} of version ${snapshot.version} is already present in DB."
+                "Tool ${githubRepo.organizationName}/${githubRepo.projectName} of version ${snapshot.version} is already present in DB."
             )
         } ?: save(githubRepoFromDb, snapshotFromDb)
     }

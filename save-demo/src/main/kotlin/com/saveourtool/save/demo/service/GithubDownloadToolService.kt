@@ -5,7 +5,6 @@ import com.saveourtool.save.demo.entity.ReleaseAsset
 import com.saveourtool.save.demo.entity.ReleaseMetadata
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
-import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.toByteBufferFlux
 import com.saveourtool.save.utils.getLogger
 
@@ -50,7 +49,7 @@ class GithubDownloadToolService(
         "tags/$vcsTagName"
     }
         .let { release ->
-            "$GITHUB_API_URL/${repo.organizationName}/${repo.toolName}/releases/$release"
+            "$GITHUB_API_URL/${repo.organizationName}/${repo.projectName}/releases/$release"
         }
 
     private fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata {
@@ -85,8 +84,8 @@ class GithubDownloadToolService(
     fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                toolStorage.upload(
-                    ToolKey(repo.organizationName, repo.toolName, vcsTagName, asset.name),
+                toolStorage.overwrite(
+                    ToolKey(repo.organizationName, repo.projectName, vcsTagName, asset.name),
                     downloadAsset(asset),
                 ).subscribe()
             }
@@ -119,8 +118,8 @@ class GithubDownloadToolService(
         }
         .flatMap { key ->
             downloadFromGithubAndUploadToStorage(
-                GithubRepo(key.ownerName, key.toolName),
-                key.vcsTagName,
+                GithubRepo(key.organizationName, key.projectName),
+                key.version,
             ).toMono()
         }
         .subscribe()
