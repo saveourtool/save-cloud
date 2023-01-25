@@ -21,7 +21,6 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
