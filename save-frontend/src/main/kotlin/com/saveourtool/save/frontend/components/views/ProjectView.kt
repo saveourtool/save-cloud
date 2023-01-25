@@ -80,6 +80,16 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
     var latestExecutionId: Long?
 
     /**
+     * User role in project
+     */
+    var projectRole: Role
+
+    /**
+     * User role in organization
+     */
+    var organizationRole: Role
+
+    /**
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
@@ -148,6 +158,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
+                projectRole = currentUserRoleInProject
+                organizationRole = currentUserRoleInOrganization
             }
 
             urlAnalysis(ProjectMenuBar, role, false)
@@ -214,6 +226,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectDemoMenu {
             projectName = props.name
             organizationName = props.owner
+            userProjectRole = calculateUserRoleToProject()
             updateErrorMessage = { label, message ->
                 setState {
                     errorLabel = label
@@ -294,6 +307,12 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 }
             }
         }
+    }
+
+    private fun calculateUserRoleToProject() = when {
+        props.currentUserInfo?.globalRole.isSuperAdmin() -> Role.SUPER_ADMIN
+        state.organizationRole.isHigherOrEqualThan(Role.OWNER) -> state.organizationRole
+        else -> state.projectRole
     }
 
     private suspend fun fetchLatestExecutionId() {

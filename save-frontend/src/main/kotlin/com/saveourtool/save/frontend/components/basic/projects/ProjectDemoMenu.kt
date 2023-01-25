@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.utils.*
@@ -176,23 +177,37 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 div {
                     className = ClassName("flex-wrap d-flex justify-content-around")
                     when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> buttonBuilder("Create") {
-                            sendDemoCreationRequest()
-                        }
-                        DemoStatus.STARTING -> buttonBuilder("Reload") {
-                            getDemoStatus()
-                        }
+                        DemoStatus.NOT_CREATED ->
+                            buttonBuilder(
+                                label = "Create",
+                                isDisabled = props.userProjectRole.isLowerThan(Role.OWNER)
+                            ) {
+                                sendDemoCreationRequest()
+                            }
+                        DemoStatus.STARTING ->
+                            buttonBuilder(
+                                label = "Reload",
+                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
+                            ) {
+                                getDemoStatus()
+                            }
                         DemoStatus.RUNNING -> {
                             buttonBuilder("Restart") {
                                 // restart request here
                             }
 
-                            buttonBuilder("Stop") {
+                            buttonBuilder(
+                                label = "Stop",
+                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
+                            ) {
                                 setDemoStatus(DemoStatus.STOPPED)
                                 // stop request here
                             }
                         }
-                        DemoStatus.STOPPED -> buttonBuilder("Run") {
+                        DemoStatus.STOPPED -> buttonBuilder(
+                            label = "Run",
+                            isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
+                        ) {
                             setDemoStatus(DemoStatus.RUNNING)
                             // run request here
                         }
@@ -216,6 +231,11 @@ external interface ProjectDemoMenuProps : Props {
      * Organization name
      */
     var organizationName: String
+
+    /**
+     * User role in project
+     */
+    var userProjectRole: Role
 
     /**
      * Callback to show error message
