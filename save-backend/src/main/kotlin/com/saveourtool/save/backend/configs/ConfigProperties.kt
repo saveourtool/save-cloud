@@ -3,6 +3,8 @@ package com.saveourtool.save.backend.configs
 import com.saveourtool.save.service.LokiConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentials
 
 /**
  * Class for properties
@@ -36,6 +38,26 @@ data class ConfigProperties(
     data class FileStorageConfig(
         val location: String,
     )
+
+    data class S3StorageConfig(
+        val bucketName: String,
+        val prefix: String = "",
+        val credentials: S3Credentials,
+    )
+
+    /**
+     * @property [AwsCredentials.accessKeyId]
+     * @property [AwsCredentials.secretAccessKey]
+     */
+    data class S3Credentials(
+        val accessKeyId: String,
+        val secretAccessKey: String,
+    ) {
+        /**
+         * @return [AwsCredentials] created from this object
+         */
+        fun toAwsCredentials(): AwsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+    }
 
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)

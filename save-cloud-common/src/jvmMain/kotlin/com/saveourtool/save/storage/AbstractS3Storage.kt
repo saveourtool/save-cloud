@@ -16,18 +16,26 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
 
+/**
+ * S3 implementation of Storage
+ *
+ * @param s3Client async S3 client to operate with S3 storage
+ * @param bucketName
+ * @param prefix a common prefix for all keys in S3 storage for this storage
+ * @param K type of key
+ */
 abstract class AbstractS3Storage<K>(
     private val s3Client: S3AsyncClient,
     private val bucketName: String,
     prefix: String,
 ): Storage<K> {
     private val log: Logger = getLogger(this::class)
-    private val prefixWithPathDelimiterEnding = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
+    private val prefix = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
 
     override fun list(): Flux<K> = listObjectsV2()
         .flatMapIterable { response ->
             response.contents().map {
-                buildKey(it.key().removePrefix(prefixWithPathDelimiterEnding))
+                buildKey(it.key().removePrefix(prefix))
             }
         }
 
@@ -42,7 +50,7 @@ abstract class AbstractS3Storage<K>(
     private fun doListObjectsV2(continuationToken: String? = null): Mono<ListObjectsV2Response> {
         return ListObjectsV2Request.builder()
             .bucket(bucketName)
-            .prefix(prefixWithPathDelimiterEnding)
+            .prefix(prefix)
             .let { builder ->
                 continuationToken?.let { builder.continuationToken(it) } ?: builder
             }
@@ -74,41 +82,44 @@ abstract class AbstractS3Storage<K>(
         return s3Client.createMultipartUpload(request)
             .toMono()
             .flatMap { response ->
-                content.index().flatMap { (index, buffer) ->
-                    val nextPartRequest = UploadPartRequest.builder()
-                        .bucket(response.bucket())
-                        .key(response.key())
-                        .uploadId(response.uploadId())
-                        .partNumber(index.toInt())
-//                        .contentLength(buffer.capacity().toLong())
-                        .build()
-                    s3Client.uploadPart(nextPartRequest, AsyncRequestBody.fromByteBuffer(buffer))
-                        .toMono()
-                        .map { partResponse ->
-                            CompletedPart.builder()
-                                .eTag(partResponse.eTag())
-                                .partNumber(index.toInt())
-                                .build()
-                        }
-                }
+                content.index()
+                    .flatMap { (index, buffer) ->
+                        response.uploadPart(index, buffer)
+                    }
                     .collectList()
                     .flatMap { completedParts ->
                         val completeRequest = CompleteMultipartUploadRequest.builder()
                             .bucket(response.bucket())
                             .key(response.key())
                             .uploadId(response.uploadId())
-                            .multipartUpload {
-                                it.parts(completedParts)
+                            .multipartUpload { builder ->
+                                builder.parts(completedParts)
                             }
                             .build()
                         s3Client.completeMultipartUpload(completeRequest)
                             .toMono()
                     }
             }
-            .flatMap { response ->
-                s3Client.headObject {
-                    it.bucket(response.bucket()).key(response.key())
-                }.toMono().map { it.contentLength() }
+            .flatMap {
+                contentSize(key)
+            }
+    }
+
+    private fun CreateMultipartUploadResponse.uploadPart(index: Long, contentPart: ByteBuffer): Mono<CompletedPart> {
+        val nextPartRequest = UploadPartRequest.builder()
+            .bucket(bucket())
+            .key(key())
+            .uploadId(uploadId())
+            .partNumber(index.toInt())
+            .build()
+        val nextPartRequestBody = AsyncRequestBody.fromByteBuffer(contentPart)
+        return s3Client.uploadPart(nextPartRequest, nextPartRequestBody)
+            .toMono()
+            .map { partResponse ->
+                CompletedPart.builder()
+                    .eTag(partResponse.eTag())
+                    .partNumber(index.toInt())
+                    .build()
             }
     }
 
@@ -120,12 +131,6 @@ abstract class AbstractS3Storage<K>(
         return s3Client.deleteObject(request)
             .toMono()
             .thenReturn(true)
-            .onErrorResume { ex ->
-                log.warn(ex) {
-                    "Failed to delete key $key"
-                }
-                false.toMono()
-            }
     }
 
     override fun lastModified(key: K): Mono<Instant> = headObjectAsMono(key)
@@ -149,13 +154,34 @@ abstract class AbstractS3Storage<K>(
         .let { s3Client.headObject(it) }
         .toMono()
 
+    /**
+     * @param s3KeySuffix cannot start with [PATH_DELIMITER]
+     * @return [K] is built from [s3KeySuffix]
+     */
     protected abstract fun buildKey(s3KeySuffix: String): K
 
+    /**
+     * @param key
+     * @return suffix for s3 key, cannot start with [PATH_DELIMITER]
+     */
     protected abstract fun buildS3KeySuffix(key: K): String
 
-    private fun buildS3Key(key: K) = prefixWithPathDelimiterEnding + buildS3KeySuffix(key)
+    private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
         const val PATH_DELIMITER = "/"
+
+        /**
+         * @param prefix
+         * @param suffix
+         * @return s3 key as concat of [prefix] and [suffix] with [PATH_DELIMITER] between them if it's required
+         */
+        fun concatS3Key(prefix: String, suffix: String) = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER + suffix.removePrefix(PATH_DELIMITER)
+
+        private fun String.validateSuffix(): String = also { suffix ->
+            require(!suffix.startsWith(PATH_DELIMITER)) {
+                "Suffix cannot start with $PATH_DELIMITER: $suffix"
+            }
+        }
     }
 }
