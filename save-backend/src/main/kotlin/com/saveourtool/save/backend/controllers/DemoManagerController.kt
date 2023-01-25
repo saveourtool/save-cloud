@@ -28,10 +28,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.body
-import org.springframework.web.reactive.function.client.bodyToFlux
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.reactive.function.client.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -68,7 +65,7 @@ class DemoManagerController(
     @ApiResponse(responseCode = "200", description = "Successfully added demo.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
-    @ApiResponse(responseCode = "409", description = "Please provide github repository")
+    @ApiResponse(responseCode = "409", description = "Invalid demo creation request.")
     fun addDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -86,7 +83,7 @@ class DemoManagerController(
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
-        .flatMap { project ->
+        .asyncEffect { project ->
             blockingToMono {
                 demoDto.githubProjectCoordinates?.let { githubCoordinates ->
                     lnkProjectGithubService.saveIfNotPresent(
@@ -97,16 +94,20 @@ class DemoManagerController(
                 }
             }
         }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            // todo: will be removed when uploading files will be implemented
-            "Right now save-demo requires github repository to download tool. Please provide github repository."
-        }
         .flatMap {
             webClientDemo.post()
                 .uri("/demo/internal/add-tool")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoDto)
                 .retrieve()
+                .onStatus({ it == HttpStatus.CONFLICT }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "Demo creation request is invalid: fill project coordinates, run command and file name.",
+                        )
+                    )
+                }
                 .toBodilessEntity()
         }
 
