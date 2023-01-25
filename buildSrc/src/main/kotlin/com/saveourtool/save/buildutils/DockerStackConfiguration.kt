@@ -7,18 +7,21 @@ package com.saveourtool.save.buildutils
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStreamWriter
 import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
 @Suppress("CONSTANT_UPPERCASE")
 const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
+const val MINIO_STARTUP_DELAY_MILLIS = 5_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 /**
@@ -87,7 +90,30 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-                           |  
+                           |
+                           |  minio:
+                           |    image: minio/minio:latest
+                           |    container_name: minio
+                           |    command: server /data --console-address ":9090"
+                           |    ports:
+                           |      - 9000:9000
+                           |      - 9090:9090
+                           |    environment:
+                           |      MINIO_ROOT_USER: admin
+                           |      MINIO_ROOT_PASSWORD: 12345678
+                           |
+                           |  miniocreatebucket:
+                           |    image: minio/mc:latest
+                           |    depends_on:
+                           |      - minio
+                           |    entrypoint:
+                           |      - /bin/sh
+                           |      - -c
+                           |      - |
+                           |        /usr/bin/mc alias set minio http://minio:9000 admin 12345678
+                           |        /usr/bin/mc mb --ignore-existing minio/cnb
+                           |        /usr/bin/mc policy set public minio/cnb
+                           |
                            |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
@@ -185,53 +211,26 @@ fun Project.createStackDeployTask(profile: String) {
     }
 
     // in case you are running it on MAC, first do the following: docker pull --platform linux/x86_64 mysql
-    tasks.register<Exec>("startMysqlDbService") {
-        dependsOn("generateComposeFile")
-        doFirst {
-            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
-        }
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
-        errorOutput = ByteArrayOutputStream()
-        doLast {
-            logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
-            Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
-        }
-    }
+    val mysqlTaskName = registerService("mysql", MYSQL_STARTUP_DELAY_MILLIS)
     tasks.named("liquibaseUpdate") {
-        mustRunAfter("startMysqlDbService")
+        mustRunAfter(mysqlTaskName)
     }
     tasks.register("startMysqlDb") {
         dependsOn("liquibaseUpdate")
-        dependsOn("startMysqlDbService")
+        dependsOn(mysqlTaskName)
     }
 
-    tasks.register<Exec>("startNeo4jService") {
-        dependsOn("generateComposeFile")
-        doFirst {
-            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d neo4j]")
-        }
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "neo4j")
-        errorOutput = ByteArrayOutputStream()
-        doLast {
-            logger.lifecycle("Waiting $NEO4J_STARTUP_DELAY_MILLIS millis for neo4j to start")
-            Thread.sleep(NEO4J_STARTUP_DELAY_MILLIS)
-        }
-    }
-    tasks.register("startNeo4jDb") {
-        dependsOn("startNeo4jService")
+    registerService("neo4j", NEO4J_STARTUP_DELAY_MILLIS)
+
+    val kafkaTaskName = registerService("kafka", KAFKA_STARTUP_DELAY_MILLIS)
+    tasks.register("startKafka") {
+        dependsOn(kafkaTaskName)
     }
 
-    tasks.register<Exec>("startKafka") {
-        dependsOn("generateComposeFile")
-        doFirst {
-            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d kafka]")
-        }
-        errorOutput = ByteArrayOutputStream()
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "kafka")
-        doLast {
-            logger.lifecycle("Waiting $KAFKA_STARTUP_DELAY_MILLIS millis for kafka to start")
-            Thread.sleep(KAFKA_STARTUP_DELAY_MILLIS)  // wait for kafka to start, can be manually increased when needed
-        }
+    val minioCreateBucketTaskName = registerService("miniocreatebucket", MINIO_STARTUP_DELAY_MILLIS)
+    tasks.register<Exec>("startMinio") {
+        dependsOn(minioCreateBucketTaskName)
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "miniocreatebucket")
     }
 
     tasks.register<Exec>("restartMysqlDb") {
@@ -306,3 +305,30 @@ private fun Project.declareDexService() =
 fun Project.versionForDockerImages(): String =
     (project.findProperty("build.dockerTag") as String? ?: version.toString())
         .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
+
+private fun Project.registerService(serviceName: String, startupDelayInMillis: Long): String {
+    val taskName = "start${serviceName.capitalized()}Service"
+    tasks.register<Exec>(taskName) {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d $serviceName]")
+        }
+        standardOutput = ByteArrayOutputStream()
+        errorOutput = ByteArrayOutputStream()
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", serviceName)
+        isIgnoreExitValue = true
+        doLast {
+            val execResult = executionResult.get()
+            if (execResult.exitValue != 0) {
+                logger.lifecycle("$taskName failed with following output:")
+                logger.info(standardOutput.toString())
+                logger.error(errorOutput.toString())
+                execResult.assertNormalExitValue()
+                execResult.rethrowFailure()
+            }
+            logger.lifecycle("Waiting $startupDelayInMillis millis for $serviceName to start")
+            Thread.sleep(startupDelayInMillis)
+        }
+    }
+    return taskName
+}
