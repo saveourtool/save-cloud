@@ -20,6 +20,7 @@ import javax.annotation.PostConstruct
 import kotlin.io.path.div
 import kotlin.io.path.name
 import kotlinx.datetime.Clock
+import software.amazon.awssdk.services.s3.S3AsyncClient
 
 /**
  * Implementation of storage which stores keys in database
@@ -45,6 +46,19 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         rootDir: Path,
         repository: R,
     ) : this(defaultFileBasedStorage(rootDir), { defaultFileBasedStorage(rootDir / "backup-${Clock.System.now().epochSeconds}") }, repository)
+
+    /**
+     * Implementation using S3 storage
+     *
+     * @property rootDir root directory for storage
+     * @property repository repository for [E] which is entity for [K]
+     */
+    constructor(
+        s3Client: S3AsyncClient,
+        bucketName: String,
+        prefix: String,
+        repository: R,
+    ) : this(defaultS3Storage(s3Client, bucketName, prefix), { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix("/") + "-backup-${Clock.System.now().epochSeconds}") }, repository)
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
@@ -180,6 +194,10 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         private fun defaultFileBasedStorage(rootDir: Path): Storage<Long> = object : AbstractFileBasedStorage<Long>(rootDir, 1) {
             override fun buildKey(rootDir: Path, pathToContent: Path): Long = pathToContent.name.toLong()
             override fun buildPathToContent(rootDir: Path, key: Long): Path = rootDir.resolve(key.toString())
+        }
+        private fun defaultS3Storage(s3Client: S3AsyncClient, bucketName: String, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Client, bucketName, prefix) {
+            override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+            override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
     }
 }

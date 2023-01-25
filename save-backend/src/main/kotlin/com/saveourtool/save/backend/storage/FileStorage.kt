@@ -17,6 +17,8 @@ import java.nio.file.Path
 
 import kotlin.io.path.div
 import kotlinx.datetime.toJavaLocalDateTime
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Client
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -24,11 +26,13 @@ import kotlinx.datetime.toJavaLocalDateTime
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
+    s3Client: S3AsyncClient,
     fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
-    Path.of(configProperties.fileStorage.location) / "storage", fileRepository) {
+    s3Client, "cnb", "file/storage", fileRepository
+) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)
             .orNotFound {
