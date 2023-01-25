@@ -8,6 +8,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
@@ -26,9 +27,13 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.body
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -105,13 +110,13 @@ class DemoManagerController(
                 .toBodilessEntity()
         }
 
-    @PostMapping("/{organizationName}/{projectName}/upload-file")
+    @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
-        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to attach the file to", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to attach the file to, manual by default", required = false),
         Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file to upload", required = true),
     )
     @Operation(
@@ -119,16 +124,16 @@ class DemoManagerController(
         summary = "Attach file to demo.",
         description = "Attach file to demo.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully added demo.")
+    @ApiResponse(responseCode = "200", description = "Successfully uploaded file to demo.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
     fun uploadFile(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestParam version: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
         @RequestPart file: FilePart,
         authentication: Authentication,
-    ): Mono<Long> = blockingToMono {
+    ): Mono<FileDto> = blockingToMono {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(
             projectName,
             organizationName,
@@ -144,8 +149,114 @@ class DemoManagerController(
             webClientDemo.post()
                 .uri("/demo/internal/$organizationName/$projectName/upload-file?version=$version")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .bodyValue(file)
+                .body(BodyInserters.fromMultipartData("file", file))
                 .retrieve()
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Demo for $organizationName/$projectName is not found.",
+                        )
+                    )
+                }
+                .bodyToMono()
+        }
+
+    @GetMapping("/{organizationName}/{projectName}/list-file")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of files, manual by default", required = false),
+    )
+    @Operation(
+        method = "GET",
+        summary = "Get list of files.",
+        description = "Get list of files attached to requested version of saveourtool project demo.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of files.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
+    fun listFiles(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+        authentication: Authentication,
+    ): Flux<FileDto> = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(
+            projectName,
+            organizationName,
+        )
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName."
+        }
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
+        }
+        .flatMapMany {
+            webClientDemo.get()
+                .uri("/demo/internal/$organizationName/$projectName/list-file?version=$version")
+                .retrieve()
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Demo for $organizationName/$projectName is not found.",
+                        )
+                    )
+                }
+                .bodyToFlux()
+        }
+
+    @DeleteMapping("/{organizationName}/{projectName}/delete-file")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of file, manual by default", required = false),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "name of file to be deleted", required = true),
+    )
+    @Operation(
+        method = "DELETE",
+        summary = "Delete a file.",
+        description = "Delete a file.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully deleted file.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
+    @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
+    fun deleteFile(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+        @RequestParam fileName: String,
+        authentication: Authentication,
+    ): Mono<Boolean> = blockingToMono {
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(
+            projectName,
+            organizationName,
+        )
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find project $projectName in organization $organizationName."
+        }
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing given project."
+        }
+        .flatMap {
+            webClientDemo.delete()
+                .uri("/demo/internal/$organizationName/$projectName/delete-file?version=$version&fileName=$fileName")
+                .retrieve()
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Demo for $organizationName/$projectName is not found.",
+                        )
+                    )
+                }
                 .bodyToMono()
         }
 
@@ -180,7 +291,7 @@ class DemoManagerController(
             webClientDemo.get()
                 .uri("/demo/internal/$organizationName/$projectName/status")
                 .retrieve()
-                .onStatus({ !it.is2xxSuccessful }) {
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
                         ResponseStatusException(
                             HttpStatus.NOT_FOUND,
@@ -224,7 +335,7 @@ class DemoManagerController(
             webClientDemo.get()
                 .uri("/demo/internal/$organizationName/$projectName")
                 .retrieve()
-                .onStatus({ !it.is2xxSuccessful }) {
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
                         ResponseStatusException(
                             HttpStatus.NOT_FOUND,
