@@ -18,11 +18,17 @@ class GithubRepoService(
     fun getRepos(): List<GithubRepo> = githubRepoRepository.findAll()
 
     /**
-     * @param ownerName name of GitHub user/organization
-     * @param repoName name of GitHub repository
+     * @param githubOrganizationName name of GitHub user/organization
+     * @param githubProjectName name of GitHub repository
      * @return [GithubRepo] entity
      */
-    fun find(ownerName: String, repoName: String): GithubRepo? = githubRepoRepository.findByToolNameAndOrganizationName(repoName, ownerName)
+    fun find(
+        githubOrganizationName: String,
+        githubProjectName: String,
+    ): GithubRepo? = githubRepoRepository.findByProjectNameAndOrganizationName(
+        githubProjectName,
+        githubOrganizationName,
+    )
 
     private fun save(githubRepo: GithubRepo): GithubRepo = githubRepoRepository.save(githubRepo)
 
@@ -31,8 +37,8 @@ class GithubRepoService(
      * @return [GithubRepo] entity saved to database
      */
     @Transactional
-    fun saveIfNotPresent(githubRepo: GithubRepo): GithubRepo = githubRepoRepository.findByToolNameAndOrganizationName(
-        githubRepo.toolName,
+    fun saveIfNotPresent(githubRepo: GithubRepo): GithubRepo = githubRepoRepository.findByProjectNameAndOrganizationName(
+        githubRepo.projectName,
         githubRepo.organizationName,
     ) ?: save(githubRepo)
 }

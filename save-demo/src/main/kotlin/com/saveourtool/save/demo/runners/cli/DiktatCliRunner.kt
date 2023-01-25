@@ -69,8 +69,8 @@ class DiktatCliRunner(
         .flatMapMany { (key, _) ->
             toolStorage.download(key)
         }
-        .collectToFile(workingDir / key.executableName)
-        .thenReturn(workingDir / key.executableName)
+        .collectToFile(workingDir / key.fileName)
+        .thenReturn(workingDir / key.fileName)
         .block()
         .let { requireNotNull(it) }
         .apply {

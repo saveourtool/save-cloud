@@ -5,6 +5,8 @@ import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
+import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -12,9 +14,14 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.http.HttpStatus
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
+import java.time.LocalDateTime
+
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * Internal controller that allows to create demos
@@ -70,15 +77,15 @@ class ManagementController(
      * @param projectName saveourtool project name
      * @param version version to attach [file] to
      * @param file file that should be uploaded to storage of [organizationName]/[projectName] with [version]
-     * @return amount of bytes loaded, wrapped into [Mono]
+     * @return [FileDto] wrapped into [Mono]
      */
-    @GetMapping("/{organizationName}/{projectName}/upload-file")
+    @PostMapping("/{organizationName}/{projectName}/upload-file")
     fun uploadFile(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
         @RequestPart file: FilePart,
-    ): Mono<Long> = blockingToMono {
+    ): Mono<FileDto> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
         .switchIfEmptyToNotFound {
@@ -86,6 +93,64 @@ class ManagementController(
         }
         .flatMap {
             demoService.loadFileToStorage(organizationName, projectName, version, file)
+        }
+        .map {
+            FileDto(
+                ProjectCoordinates(organizationName, projectName),
+                file.filename(),
+                LocalDateTime.now().toKotlinLocalDateTime(),
+            )
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version
+     * @return [Flux] of files present in storage
+     */
+    @GetMapping("/{organizationName}/{projectName}/list-file")
+    fun listFiles(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+    ): Flux<FileDto> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .flatMapMany {
+            demoService.getFilesFromStorage(organizationName, projectName, version)
+        }
+        .map {
+            FileDto(
+                ProjectCoordinates(organizationName, projectName),
+                it.fileName,
+                LocalDateTime.now().toKotlinLocalDateTime(),
+            )
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of a file to be deleted
+     * @param fileName name of a file to be deleted
+     * @return true if file is successfully deleted, false otherwise
+     */
+    @DeleteMapping("/{organizationName}/{projectName}/delete-file")
+    fun deleteFile(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+        @RequestParam fileName: String,
+    ): Mono<Boolean> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
+    }
+        .switchIfEmptyToNotFound {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        .flatMap {
+            demoService.deleteFileFromStorage(organizationName, projectName, version, fileName)
         }
 
     /**
