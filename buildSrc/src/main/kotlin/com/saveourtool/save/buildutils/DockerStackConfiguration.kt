@@ -14,7 +14,6 @@ import org.gradle.kotlin.dsl.withType
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.OutputStreamWriter
 import java.nio.file.Files
 import java.nio.file.Paths
 
