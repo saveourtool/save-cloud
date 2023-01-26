@@ -81,7 +81,7 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(eq(testsSourceSnapshotDtoCandidate), any()))
             .thenReturn(Mono.just(testsSourceSnapshotDto))
         whenever(testsPreprocessorToBackendBridge.saveTestsSourceVersion(any()))
-            .thenReturn(Mono.just(Unit))
+            .thenReturn(Mono.just(true))
 
         whenever(testDiscoveringService.detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testRootPath), any()))
             .thenReturn(Mono.just(emptyList()))
