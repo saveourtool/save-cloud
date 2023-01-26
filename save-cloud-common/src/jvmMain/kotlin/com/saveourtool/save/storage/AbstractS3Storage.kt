@@ -83,7 +83,7 @@ abstract class AbstractS3Storage<K>(
             .flatMap { response ->
                 content.index()
                     .flatMap { (index, buffer) ->
-                        response.uploadPart(index, buffer)
+                        response.uploadPart(index + 1, buffer)
                     }
                     .collectList()
                     .flatMap { completedParts ->

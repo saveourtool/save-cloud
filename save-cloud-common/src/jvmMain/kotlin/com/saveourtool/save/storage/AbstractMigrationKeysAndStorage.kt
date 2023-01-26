@@ -25,6 +25,11 @@ abstract class AbstractMigrationKeysAndStorage<O : Any, N : Any>(
     private val isMigrationFinished = AtomicBoolean(false)
 
     /**
+     * @return true if migration is done, otherwise --false
+     */
+    fun isMigrated(): Boolean = isMigrationFinished.get()
+
+    /**
      * Init method which copies file from one storage to another
      */
     @PostConstruct
