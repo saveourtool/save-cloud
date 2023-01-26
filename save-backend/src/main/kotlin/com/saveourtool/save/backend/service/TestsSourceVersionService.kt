@@ -151,7 +151,7 @@ class TestsSourceVersionService(
     ): Boolean {
         versionRepository.findBySnapshotIdAndName(dto.snapshotId, dto.name)?.run {
             require(snapshot.requiredId() == dto.snapshotId) {
-                "Try to save a new $dto, but already exited another one linked to another snapshotId: ${toDto()}"
+                "Try to save a new $dto, but already existed another one linked to another snapshotId: ${toDto()}"
             }
             return false
         }
