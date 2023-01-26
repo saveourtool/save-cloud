@@ -168,8 +168,6 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
-        const val PATH_DELIMITER = "/"
-
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"

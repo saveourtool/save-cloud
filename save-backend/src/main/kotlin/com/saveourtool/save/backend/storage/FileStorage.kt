@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 
 import org.springframework.data.repository.findByIdOrNull
@@ -15,6 +16,8 @@ import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import kotlinx.datetime.toJavaLocalDateTime
+import java.nio.file.Paths
+import kotlin.io.path.div
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -27,9 +30,10 @@ class FileStorage(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
+    Paths.get(configProperties.fileStorage.location) / "storage",
     s3Client,
-    "cnb",
-    "file/storage",
+    configProperties.s3Storage.bucketName,
+    concatS3Key(configProperties.s3Storage.prefix, "storage"),
     fileRepository
 ) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {

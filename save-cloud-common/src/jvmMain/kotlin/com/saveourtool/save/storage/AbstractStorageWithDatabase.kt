@@ -66,7 +66,28 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         repository: R,
     ) : this(
         storage = defaultS3Storage(s3Client, bucketName, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(AbstractS3Storage.PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
+        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
+        repository = repository,
+    )
+
+    /**
+     * Implementation using migration storage from file-based to S3
+     *
+     * @property rootDir root directory for storage
+     * @property s3Client async S3 client to operate with S3 storage
+     * @property bucketName
+     * @property prefix a common prefix for all keys in S3 storage for this storage
+     * @property repository repository for [E] which is entity for [K]
+     */
+    constructor(
+        rootDir: Path,
+        s3Client: S3AsyncClient,
+        bucketName: String,
+        prefix: String,
+        repository: R,
+    ) : this(
+        storage = defaultStorage(rootDir, s3Client, bucketName, prefix),
+        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
         repository = repository,
     )
 
@@ -209,5 +230,12 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
+        private fun defaultStorage(
+            rootDir: Path,
+            s3Client: S3AsyncClient, bucketName: String, prefix: String,
+        ): Storage<Long> = object : AbstractMigrationStorage<Long>(
+            oldStorage = defaultFileBasedStorage(rootDir),
+            newStorage = defaultS3Storage(s3Client,  bucketName, prefix),
+        ) { }
     }
 }
