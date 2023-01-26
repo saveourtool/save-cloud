@@ -12,13 +12,9 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
-import java.nio.file.Path
-
-import kotlin.io.path.div
-import kotlinx.datetime.toJavaLocalDateTime
 import software.amazon.awssdk.services.s3.S3AsyncClient
-import software.amazon.awssdk.services.s3.S3Client
+
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -31,7 +27,10 @@ class FileStorage(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
-    s3Client, "cnb", "file/storage", fileRepository
+    s3Client,
+    "cnb",
+    "file/storage",
+    fileRepository
 ) {
     override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
         projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)

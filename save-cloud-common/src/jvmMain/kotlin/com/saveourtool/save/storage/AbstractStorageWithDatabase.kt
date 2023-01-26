@@ -11,6 +11,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.nio.ByteBuffer
 import java.nio.file.Path
@@ -20,7 +21,6 @@ import javax.annotation.PostConstruct
 import kotlin.io.path.div
 import kotlin.io.path.name
 import kotlinx.datetime.Clock
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 /**
  * Implementation of storage which stores keys in database

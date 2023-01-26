@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.service.LokiConfig
-import com.saveourtool.save.storage.AbstractS3Storage
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -21,6 +20,7 @@ import java.net.URI
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
+ * @property s3Storage
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -57,8 +57,8 @@ data class ConfigProperties(
     )
 
     /**
-     * @property [AwsCredentials.accessKeyId]
-     * @property [AwsCredentials.secretAccessKey]
+     * @property accessKeyId [AwsCredentials.accessKeyId]
+     * @property secretAccessKey [AwsCredentials.secretAccessKey]
      */
     data class S3Credentials(
         val accessKeyId: String,

@@ -1,19 +1,21 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.getLogger
+
 import org.slf4j.Logger
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import software.amazon.awssdk.core.async.AsyncResponseTransformer
-import software.amazon.awssdk.services.s3.S3AsyncClient
-import software.amazon.awssdk.services.s3.model.*
-import java.nio.ByteBuffer
-import java.time.Instant
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.*
+
+import java.nio.ByteBuffer
+import java.time.Instant
 
 /**
  * S3 implementation of Storage
@@ -27,7 +29,7 @@ abstract class AbstractS3Storage<K>(
     private val s3Client: S3AsyncClient,
     private val bucketName: String,
     prefix: String,
-): Storage<K> {
+) : Storage<K> {
     private val log: Logger = getLogger(this::class)
     private val prefix = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
 
@@ -46,18 +48,16 @@ abstract class AbstractS3Storage<K>(
         }
     }
 
-    private fun doListObjectsV2(continuationToken: String? = null): Mono<ListObjectsV2Response> {
-        return ListObjectsV2Request.builder()
-            .bucket(bucketName)
-            .prefix(prefix)
-            .let { builder ->
-                continuationToken?.let { builder.continuationToken(it) } ?: builder
-            }
-            .build()
-            .let {
-                s3Client.listObjectsV2(it).toMono()
-            }
-    }
+    private fun doListObjectsV2(continuationToken: String? = null): Mono<ListObjectsV2Response> = ListObjectsV2Request.builder()
+        .bucket(bucketName)
+        .prefix(prefix)
+        .let { builder ->
+            continuationToken?.let { builder.continuationToken(it) } ?: builder
+        }
+        .build()
+        .let {
+            s3Client.listObjectsV2(it).toMono()
+        }
 
     override fun download(key: K): Flux<ByteBuffer> {
         val request = GetObjectRequest.builder()

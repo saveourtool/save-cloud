@@ -13,6 +13,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 class S3Configuration(
     private val configProperties: ConfigProperties,
 ) {
+    /**
+     * @return [S3AsyncClient] as a Spring's bean
+     */
     @Bean
     fun s3Client(): S3AsyncClient = S3AsyncClient.builder()
         .credentialsProvider(StaticCredentialsProvider.create(
