@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -25,9 +26,14 @@ import kotlinx.serialization.json.Json
 
 private val demoInfoCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false)
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "EMPTY_BLOCK_STRUCTURE_ERROR")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "EMPTY_BLOCK_STRUCTURE_ERROR",
+    "MAGIC_NUMBER"
+)
 val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
-    val (demoDto, setDemoToolRequest) = useState(
+    val (demoDto, setDemoDto) = useState(
         DemoDto.emptyForProject(props.organizationName, props.projectName)
     )
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
@@ -35,8 +41,8 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
 
     val sendDemoCreationRequest = useDeferredRequest {
-        if (githubProjectCoordinates.consideredEmpty()) {
-            demoDto
+        if (githubProjectCoordinates.consideredBlank()) {
+            demoDto.copy(githubProjectCoordinates = null)
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
         }
@@ -50,7 +56,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 )
                     .let {
                         if (it.ok) {
-                            setDemoStatus(DemoStatus.STARTING)
+                            setDemoStatus(DemoStatus.STOPPED)
                         } else {
                             props.updateErrorMessage(it.statusText, it.unpackMessage())
                         }
@@ -73,6 +79,8 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
+    val stopDemo = useDeferredRequest {}
+
     useRequest {
         val infoResponse = get(
             "$apiUrl/demo/${props.organizationName}/${props.projectName}",
@@ -83,9 +91,9 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (infoResponse.ok) {
             val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
             setDemoStatus(demoInfo.demoStatus)
-            setDemoToolRequest(demoInfo.demoDto)
+            setDemoDto(demoInfo.demoDto)
             setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
-        } else {
+        } else if (infoResponse.status != 404.toShort()) {
             props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
             setDemoStatus(DemoStatus.NOT_CREATED)
         }
@@ -96,123 +104,22 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     }
 
     div {
-        className = ClassName("d-flex justify-content-center p-2")
+        className = ClassName("d-flex justify-content-center align-items-center p-2")
         div {
+            className = ClassName("col-5")
             demoInfoCard {
                 div {
-                    val borderStyle = when (demoStatus) {
-                        DemoStatus.NOT_CREATED -> "border-dark"
-                        DemoStatus.STARTING -> "border-warning"
-                        DemoStatus.RUNNING -> "border-success"
-                        DemoStatus.STOPPED -> "border-danger"
-                    }
-                    className = ClassName("border $borderStyle rounded-pill row m-3")
-                    label {
-                        className = ClassName("col m-3")
-                        +"Status"
-                    }
-                    label {
-                        className = ClassName("col m-3")
-                        +demoStatus.name
-                    }
+                    className = ClassName("d-flex justify-content-center")
+                    renderStatusLabel(demoStatus)
                 }
                 hr { }
-                input {
-                    className = ClassName("form-control col mb-2")
-                    autoComplete = AutoComplete.off
-                    placeholder = "GitHub organization name"
-                    value = githubProjectCoordinates.organizationName
-                    onChange = { event ->
-                        setGithubProjectCoordinates {
-                            it.copy(organizationName = event.target.value)
-                        }
-                    }
-                }
-                input {
-                    className = ClassName("form-control col mb-2")
-                    autoComplete = AutoComplete.off
-                    placeholder = "GitHub project name"
-                    value = githubProjectCoordinates.projectName
-                    onChange = { event ->
-                        setGithubProjectCoordinates {
-                            it.copy(projectName = event.target.value)
-                        }
-                    }
-                }
-                input {
-                    className = ClassName("form-control col")
-                    autoComplete = AutoComplete.off
-                    placeholder = "Release tag"
-                    value = demoDto.vcsTagName
-                    onChange = { event ->
-                        setDemoToolRequest { request ->
-                            request.copy(vcsTagName = event.target.value)
-                        }
-                    }
-                }
+                renderFileUploading(demoStatus, demoDto, setDemoDto, githubProjectCoordinates, setGithubProjectCoordinates)
                 hr { }
-                input {
-                    className = ClassName("form-control col mb-2")
-                    autoComplete = AutoComplete.off
-                    placeholder = "Run command"
-                    value = demoDto.runCommand
-                    onChange = { event ->
-                        setDemoToolRequest { request ->
-                            request.copy(runCommand = event.target.value)
-                        }
-                    }
-                }
-                input {
-                    className = ClassName("form-control col")
-                    autoComplete = AutoComplete.off
-                    placeholder = "Test file name"
-                    value = demoDto.fileName
-                    onChange = { event ->
-                        setDemoToolRequest { request ->
-                            request.copy(fileName = event.target.value)
-                        }
-                    }
-                }
+                renderRunSettings(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
                 hr { }
-                div {
-                    className = ClassName("flex-wrap d-flex justify-content-around")
-                    when (demoStatus) {
-                        DemoStatus.NOT_CREATED ->
-                            buttonBuilder(
-                                label = "Create",
-                                isDisabled = props.userProjectRole.isLowerThan(Role.OWNER)
-                            ) {
-                                sendDemoCreationRequest()
-                            }
-                        DemoStatus.STARTING ->
-                            buttonBuilder(
-                                label = "Reload",
-                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
-                            ) {
-                                getDemoStatus()
-                            }
-                        DemoStatus.RUNNING -> {
-                            buttonBuilder("Restart") {
-                                // restart request here
-                            }
-
-                            buttonBuilder(
-                                label = "Stop",
-                                isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
-                            ) {
-                                setDemoStatus(DemoStatus.STOPPED)
-                                // stop request here
-                            }
-                        }
-                        DemoStatus.STOPPED -> buttonBuilder(
-                            label = "Run",
-                            isDisabled = props.userProjectRole.isLowerThan(Role.VIEWER)
-                        ) {
-                            setDemoStatus(DemoStatus.RUNNING)
-                            // run request here
-                        }
-                    }
-                }
+                renderSdkSelector(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
+                hr { }
+                renderButtons(demoStatus, props.userProjectRole, sendDemoCreationRequest, stopDemo, getDemoStatus)
             }
         }
     }
@@ -242,4 +149,215 @@ external interface ProjectDemoMenuProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (String, String) -> Unit
+}
+
+private fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
+    div {
+        className = ClassName("col-6 d-flex justify-content-center")
+        div {
+            val borderStyle = when (demoStatus) {
+                DemoStatus.NOT_CREATED -> "border-dark"
+                DemoStatus.STARTING -> "border-warning"
+                DemoStatus.RUNNING -> "border-success"
+                DemoStatus.STOPPED -> "border-danger"
+            }
+            className =
+                    ClassName("border $borderStyle d-flex align-items-center justify-content-between rounded-pill m-3")
+            div {
+                className = ClassName("col m-3 flex-wrap")
+                label {
+                    className = ClassName("m-0")
+                    +"Status"
+                }
+            }
+            div {
+                className = ClassName("col m-3 flex-wrap")
+                label {
+                    className = ClassName("m-0")
+                    +demoStatus.name
+                }
+            }
+        }
+    }
+}
+
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+private fun ChildrenBuilder.renderFileUploading(
+    demoStatus: DemoStatus,
+    demoDto: DemoDto,
+    setDemoToolRequest: StateSetter<DemoDto>,
+    githubProjectCoordinates: ProjectCoordinates,
+    setGithubProjectCoordinates: StateSetter<ProjectCoordinates>,
+) {
+    div {
+        className = ClassName("d-flex justify-content-between align-items-center")
+        div {
+            className = ClassName("col pl-0")
+            input {
+                className = ClassName("form-control col mb-2")
+                autoComplete = AutoComplete.off
+                placeholder = "GitHub organization name"
+                value = githubProjectCoordinates.organizationName
+                disabled = demoStatus != DemoStatus.NOT_CREATED && demoStatus != DemoStatus.STOPPED
+                onChange = { event ->
+                    setGithubProjectCoordinates {
+                        it.copy(organizationName = event.target.value)
+                    }
+                }
+            }
+            input {
+                className = ClassName("form-control col mb-2")
+                autoComplete = AutoComplete.off
+                placeholder = "GitHub project name"
+                value = githubProjectCoordinates.projectName
+                disabled = demoStatus != DemoStatus.NOT_CREATED && demoStatus != DemoStatus.STOPPED
+                onChange = { event ->
+                    setGithubProjectCoordinates {
+                        it.copy(projectName = event.target.value)
+                    }
+                }
+            }
+            input {
+                className = ClassName("form-control col")
+                autoComplete = AutoComplete.off
+                placeholder = "Release tag"
+                value = demoDto.vcsTagName
+                disabled = demoStatus != DemoStatus.NOT_CREATED && demoStatus != DemoStatus.STOPPED
+                onChange = { event ->
+                    setDemoToolRequest { request ->
+                        request.copy(vcsTagName = event.target.value)
+                    }
+                }
+            }
+        }
+        div {
+            +" or "
+        }
+        div {
+            className = ClassName("col pr-0")
+            div {
+                simpleFileUploader {
+                    buttonLabel = " Upload files"
+                    getUrlForAvailableFilesFetch = {
+                        with(demoDto) {
+                            "$apiUrl/demo/$projectCoordinates/list-file"
+                        }
+                    }
+                    getUrlForFileDeletion = {
+                        with(demoDto) {
+                            "$apiUrl/demo/$projectCoordinates/delete-file?fileName=${it.name}"
+                        }
+                    }
+                    getUrlForFileUpload = {
+                        with(demoDto) {
+                            "$apiUrl/demo/$projectCoordinates/upload-file"
+                        }
+                    }
+                    isDisabled = demoStatus != DemoStatus.STOPPED
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderRunSettings(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, disabled: Boolean) {
+    div {
+        div {
+            input {
+                className = ClassName("form-control col mb-2")
+                autoComplete = AutoComplete.off
+                placeholder = "Run command"
+                value = demoDto.runCommand
+                this.disabled = disabled
+                onChange = { event ->
+                    setDemoDto { request ->
+                        request.copy(runCommand = event.target.value)
+                    }
+                }
+            }
+        }
+        div {
+            className = ClassName("d-flex justify-content-between")
+            input {
+                className = ClassName("form-control col mr-1")
+                autoComplete = AutoComplete.off
+                placeholder = "Test file name"
+                value = demoDto.fileName
+                this.disabled = disabled
+                onChange = { event ->
+                    setDemoDto { request ->
+                        request.copy(fileName = event.target.value)
+                    }
+                }
+            }
+            input {
+                className = ClassName("form-control col ml-1")
+                autoComplete = AutoComplete.off
+                placeholder = "Config name"
+                value = demoDto.configName
+                this.disabled = disabled
+                onChange = { event ->
+                    setDemoDto { request ->
+                        request.copy(configName = event.target.value.ifBlank { null })
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderSdkSelector(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, disabled: Boolean) {
+    div {
+        sdkSelection {
+            title = ""
+            isDisabled = disabled
+            selectedSdk = demoDto.sdk
+            onSdkChange = { newSdk ->
+                setDemoDto { oldDemoDto ->
+                    oldDemoDto.copy(sdk = newSdk)
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderButtons(
+    demoStatus: DemoStatus,
+    userRole: Role,
+    sendDemoCreationRequest: () -> Unit,
+    stopDemo: () -> Unit,
+    getDemoStatus: () -> Unit,
+) {
+    div {
+        className = ClassName("flex-wrap d-flex justify-content-around")
+        when (demoStatus) {
+            DemoStatus.NOT_CREATED -> buttonBuilder("Create", isDisabled = userRole.isLowerThan(Role.OWNER)) {
+                sendDemoCreationRequest()
+            }
+
+            DemoStatus.STARTING -> {
+                buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
+                    getDemoStatus()
+                }
+
+                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    stopDemo()
+                }
+            }
+
+            DemoStatus.RUNNING -> buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                stopDemo()
+            }
+
+            DemoStatus.STOPPED -> {
+                buttonBuilder("Run", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    // run request here
+                }
+
+                buttonBuilder("Update configuration", style = "info", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    // run request here
+                }
+            }
+        }
+    }
 }

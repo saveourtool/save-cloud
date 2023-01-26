@@ -11,7 +11,7 @@ import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
-import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
+import com.saveourtool.save.frontend.components.basic.fileuploader.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle

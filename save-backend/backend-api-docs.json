@@ -1882,7 +1882,7 @@
             "description": "Could not find project in organization."
           },
           "409": {
-            "description": "Please provide github repository"
+            "description": "Invalid demo creation request."
           }
         },
         "summary": "Add demo for a tool.",

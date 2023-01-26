@@ -17,9 +17,9 @@ data class ProjectCoordinates(
     override fun toString() = "$organizationName/$projectName"
 
     /**
-     * @return true if both [organizationName] and [projectName] are empty, false otherwise
+     * @return true if both [organizationName] and [projectName] are blank, false otherwise
      */
-    fun consideredEmpty() = organizationName.isEmpty() && projectName.isEmpty()
+    fun consideredBlank() = organizationName.isBlank() || projectName.isBlank()
 
     companion object {
         val empty = ProjectCoordinates("", "")
