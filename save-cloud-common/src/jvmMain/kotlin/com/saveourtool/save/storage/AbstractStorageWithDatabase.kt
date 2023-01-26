@@ -20,7 +20,6 @@ import javax.annotation.PostConstruct
 
 import kotlin.io.path.div
 import kotlin.io.path.name
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 
 /**
@@ -97,17 +96,12 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      */
     @PostConstruct
     fun backupUnexpectedIds() {
-        if (storage is AbstractMigrationKeysAndStorage<*, *>) {
-            waitReactivelyUntil(INTERVAL_BEFORE_BACKUP_IN_SEC.seconds, NUM_CHECKS_BEFORE_BACKUP) { storage.isMigrated() }
+        if (storage is AbstractMigrationStorage<*, *>) {
+            storage.migrateAsync()
         } else {
-            Mono.just(true)
+            Mono.just(Unit)
         }
-            .flatMapMany { isMigrated ->
-                if (!isMigrated) {
-                    log.warn {
-                        "Migration takes a lot of time, backup will fail..."
-                    }
-                }
+            .flatMapMany {
                 storage.list()
             }
             .filterWhen { id ->
@@ -235,9 +229,6 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
     companion object {
-        private const val INTERVAL_BEFORE_BACKUP_IN_SEC = 1
-        private const val NUM_CHECKS_BEFORE_BACKUP = 3L
-
         private fun defaultFileBasedStorage(rootDir: Path): Storage<Long> = object : AbstractFileBasedStorage<Long>(rootDir, 1) {
             override fun buildKey(rootDir: Path, pathToContent: Path): Long = pathToContent.name.toLong()
             override fun buildPathToContent(rootDir: Path, key: Long): Path = rootDir.resolve(key.toString())
@@ -251,11 +242,12 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             s3Client: S3AsyncClient,
             bucketName: String,
             prefix: String,
-        ): Storage<Long> = object : AbstractMigrationStorage<Long>(
+        ): Storage<Long> = object : AbstractMigrationStorage<Long, Long>(
             oldStorage = defaultFileBasedStorage(rootDir),
             newStorage = defaultS3Storage(s3Client, bucketName, prefix),
         ) {
-            // empty block
+            override fun Long.toNewKey(): Long = this
+            override fun Long.toOldKey(): Long = this
         }
     }
 }
