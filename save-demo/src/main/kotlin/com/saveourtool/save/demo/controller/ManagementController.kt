@@ -7,6 +7,7 @@ import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.utils.asyncEffect
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -16,6 +17,7 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -30,8 +32,6 @@ import kotlinx.datetime.toKotlinLocalDateTime
 @RequestMapping("/demo/internal")
 class ManagementController(
     private val toolService: ToolService,
-    private val githubRepoService: GithubRepoService,
-    private val snapshotService: SnapshotService,
     private val githubDownloadToolService: GithubDownloadToolService,
     private val demoService: DemoService,
 ) {
@@ -40,36 +40,14 @@ class ManagementController(
      * @return [Mono] of [DemoDto] entity
      */
     @PostMapping("/add-tool")
-    fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.githubProjectCoordinates
-        ?.toGithubRepo()
-        .let { repo ->
-            blockingToMono {
-                repo?.let {
-                    githubRepoService.saveIfNotPresent(repo)
-                }
-            }
-        }
+    fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
+        .asyncEffect { githubDownloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
+        .filter { it.validate() }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            // todo: will be removed when uploading files will be implemented
-            "Right now save-demo requires github repository to download tool. Please provide github repository."
+            "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
-        .zipWhen { repo ->
-            val vcsTagName = demoDto.vcsTagName
-            Snapshot(vcsTagName, githubDownloadToolService.getExecutableName(repo, vcsTagName))
-                .let {
-                    blockingToMono {
-                        snapshotService.saveIfNotPresent(it)
-                    }
-                }
-        }
-        .map { (repo, snapshot) ->
-            toolService.saveIfNotPresent(repo, snapshot)
-        }
-        .map {
-            githubDownloadToolService.downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version)
-        }
-        .map {
-            demoDto.also { demoService.saveIfNotPresent(it.toDemo()) }
+        .asyncEffect { demo ->
+            blockingToMono { demoService.saveIfNotPresent(demo.toDemo()) }
         }
 
     /**
@@ -162,7 +140,7 @@ class ManagementController(
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoStatus> = Mono.just(DemoStatus.STARTING)
+    ): Mono<DemoStatus> = Mono.just(DemoStatus.STOPPED)
 
     /**
      * @param organizationName name of GitHub user/organization

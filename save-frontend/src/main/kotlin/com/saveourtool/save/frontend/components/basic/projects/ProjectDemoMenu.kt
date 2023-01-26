@@ -35,7 +35,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
 
     val sendDemoCreationRequest = useDeferredRequest {
-        if (githubProjectCoordinates.consideredEmpty()) {
+        if (githubProjectCoordinates.consideredBlank()) {
             demoDto
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)

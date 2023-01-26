@@ -1,11 +1,12 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.entity.GithubRepo
-import com.saveourtool.save.demo.entity.ReleaseAsset
-import com.saveourtool.save.demo.entity.ReleaseMetadata
+import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.utils.toByteBufferFlux
+import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.utils.asyncEffect
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
 import io.ktor.client.*
@@ -17,6 +18,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -36,6 +38,8 @@ import kotlinx.serialization.json.Json
 class GithubDownloadToolService(
     private val toolStorage: ToolStorage,
     private val toolService: ToolService,
+    private val githubRepoService: GithubRepoService,
+    private val snapshotService: SnapshotService,
 ) {
     private val jsonSerializer = Json { ignoreUnknownKeys = true }
 
@@ -127,6 +131,27 @@ class GithubDownloadToolService(
     private fun getExecutable(repo: GithubRepo, vcsTagName: String) = getMetadata(repo, vcsTagName).assets
         .filterNot(ReleaseAsset::isDigest)
         .first()
+
+    /**
+     * Perform GitHub tool download if [githubProjectCoordinates] is not null
+     *
+     * @param githubProjectCoordinates
+     * @param vcsTagName
+     * @return [Tool] that has been downloaded
+     */
+    fun initializeGithubDownload(githubProjectCoordinates: ProjectCoordinates?, vcsTagName: String): Mono<Tool> = blockingToMono {
+        githubProjectCoordinates?.toGithubRepo()?.let { githubRepoService.saveIfNotPresent(it) }
+    }
+        .zipWhen { repo ->
+            Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
+                .let { blockingToMono { snapshotService.saveIfNotPresent(it) } }
+        }
+        .map { (repo, snapshot) ->
+            toolService.saveIfNotPresent(repo, snapshot)
+        }
+        .asyncEffect {
+            blockingToMono { downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version) }
+        }
 
     /**
      * @param repo
