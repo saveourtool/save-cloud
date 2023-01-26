@@ -142,20 +142,23 @@ class TestsSourceVersionService(
     /**
      * Saves [TestsSourceVersion] created from provided [TestsSourceVersionDto]
      *
-     * @param dto
+     * @param version the version to save.
+     * @return `true` if the [version] was saved, `false` if the version with
+     *   the same [name][TestsSourceVersionDto.name] and numeric
+     *   [snapshot id][TestsSourceVersionDto.snapshotId] already exists.
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
     fun save(
-        dto: TestsSourceVersionDto,
+        version: TestsSourceVersionDto,
     ): Boolean {
-        versionRepository.findBySnapshotIdAndName(dto.snapshotId, dto.name)?.run {
-            require(snapshot.requiredId() == dto.snapshotId) {
-                "Try to save a new $dto, but already existed another one linked to another snapshotId: ${toDto()}"
+        versionRepository.findBySnapshotIdAndName(version.snapshotId, version.name)?.run {
+            require(snapshot.requiredId() == version.snapshotId) {
+                "Try to save a new $version, but already existed another one linked to another snapshotId: ${toDto()}"
             }
             return false
         }
-        val entity = dto.toEntity(
+        val entity = version.toEntity(
             snapshotResolver = snapshotRepository::getByIdOrNotFound,
             userResolver = userRepository::getByIdOrNotFound
         )
