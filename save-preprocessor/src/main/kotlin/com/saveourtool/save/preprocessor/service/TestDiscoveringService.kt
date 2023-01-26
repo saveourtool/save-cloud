@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.core.files.ConfigDetector
 import com.saveourtool.save.core.plugin.GeneralConfig
+import com.saveourtool.save.core.plugin.PluginException
 import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.TestSuite
@@ -13,6 +14,7 @@ import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.collectPluginNames
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.thenJust
@@ -20,6 +22,8 @@ import com.saveourtool.save.utils.thenJust
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import org.jetbrains.annotations.Blocking
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -52,18 +56,22 @@ class TestDiscoveringService(
         log.info { "Starting to save new test suites for root test config in $repositoryPath" }
         return Mono.just(repositoryPath)
             .map { it.resolve(testRootPath) }
-            .map { getRootTestConfig(it.absolutePathString()) }
+            .flatMap { blockingToMono { getRootTestConfig(it.absolutePathString()) } }
             .zipWhen { rootTestConfig ->
-                log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
-                discoverAllTestSuites(
-                    rootTestConfig,
-                    sourceSnapshot,
-                ).toMono()
+                {
+                    log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
+                    discoverAllTestSuites(
+                        rootTestConfig,
+                        sourceSnapshot,
+                    )
+                }.toMono()
             }
-            .map { (rootTestConfig, testSuites) ->
-                log.info { "Test suites size = ${testSuites.size}" }
-                log.info { "Starting to save new tests for config test root $repositoryPath" }
-                discoverAllTestsIntoMap(rootTestConfig, testSuites)
+            .flatMap { (rootTestConfig, testSuites) ->
+                blockingToMono {
+                    log.info { "Test suites size = ${testSuites.size}" }
+                    log.info { "Starting to save new tests for config test root $repositoryPath" }
+                    discoverAllTestsIntoMap(rootTestConfig, testSuites)
+                }
             }
             .saveTestSuitesAndTests()
     }
@@ -75,6 +83,7 @@ class TestDiscoveringService(
      * @return a root [TestConfig]
      * @throws IllegalArgumentException in case of invalid testConfig file
      */
+    @Blocking
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
             ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
                 getAllTestConfigs().onEach {
@@ -90,6 +99,7 @@ class TestDiscoveringService(
      * @return a list of [TestSuiteDto]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
+    @NonBlocking
     @Suppress("UnsafeCallOnNullableType")
     fun getAllTestSuites(
         rootTestConfig: TestConfig,
@@ -121,6 +131,7 @@ class TestDiscoveringService(
      * @return a list of saved [TestSuite]s
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
+    @NonBlocking
     @Suppress("UnsafeCallOnNullableType")
     fun discoverAllTestSuites(
         rootTestConfig: TestConfig,
@@ -139,6 +150,7 @@ class TestDiscoveringService(
      * @return a list of [TestDto]s
      * @throws PluginException if configs use unknown plugin
      */
+    @Blocking
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuiteDto>) = rootTestConfig
         .getAllTestConfigs()
@@ -184,12 +196,14 @@ class TestDiscoveringService(
      * @return a list of [TestDto]s
      * @throws PluginException if configs use unknown plugin
      */
+    @Blocking
     @Suppress("UnsafeCallOnNullableType")
     fun discoverAllTestsIntoMap(
         rootTestConfig: TestConfig,
         testSuites: List<TestSuiteDto>,
     ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
 
+    @NonBlocking
     @Suppress("TYPE_ALIAS")
     private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap {
         it.saveTestSuites()
@@ -205,6 +219,7 @@ class TestDiscoveringService(
             .thenJust(testsMaps.keys.toList())
     }
 
+    @NonBlocking
     @Suppress("TYPE_ALIAS")
     private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = entries
         .toFlux()
@@ -242,11 +257,13 @@ class TestDiscoveringService(
     /**
      * Save test suites via backend
      */
+    @NonBlocking
     private fun TestSuiteDto.save(): Mono<TestSuite> = testsPreprocessorToBackendBridge.saveTestSuite(this)
 
     /**
      * Save tests via backend
      */
+    @NonBlocking
     private fun Flux<TestDto>.save(): Flux<EmptyResponse> = testsPreprocessorToBackendBridge.saveTests(this)
 
     companion object {
