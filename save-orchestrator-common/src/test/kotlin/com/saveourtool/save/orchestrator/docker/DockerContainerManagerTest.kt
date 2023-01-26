@@ -53,7 +53,7 @@ class DockerContainerManagerTest {
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
         dockerAgentRunner.createAndStart(
-            executionId = 42,
+            executionId = 43,
             configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
@@ -63,7 +63,7 @@ class DockerContainerManagerTest {
             replicas = 1,
         )
         testContainerId = dockerClient.listContainersCmd()
-            .withNameFilter(listOf("-42-"))
+            .withNameFilter(listOf("-43-"))
             .exec()
             .map { it.id }
             .single()
@@ -77,7 +77,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42"))
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-43"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
