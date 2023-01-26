@@ -45,12 +45,18 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     constructor(
         rootDir: Path,
         repository: R,
-    ) : this(defaultFileBasedStorage(rootDir), { defaultFileBasedStorage(rootDir / "backup-${Clock.System.now().epochSeconds}") }, repository)
+    ) : this(
+        storage = defaultFileBasedStorage(rootDir),
+        backupStorageCreator = { defaultFileBasedStorage(rootDir / "backup-${Clock.System.now().epochSeconds}") },
+        repository = repository,
+    )
 
     /**
      * Implementation using S3 storage
      *
-     * @property rootDir root directory for storage
+     * @property s3Client async S3 client to operate with S3 storage
+     * @property bucketName
+     * @property prefix a common prefix for all keys in S3 storage for this storage
      * @property repository repository for [E] which is entity for [K]
      */
     constructor(
@@ -58,7 +64,11 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         bucketName: String,
         prefix: String,
         repository: R,
-    ) : this(defaultS3Storage(s3Client, bucketName, prefix), { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix("/") + "-backup-${Clock.System.now().epochSeconds}") }, repository)
+    ) : this(
+        storage = defaultS3Storage(s3Client, bucketName, prefix),
+        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(AbstractS3Storage.PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
+        repository = repository,
+    )
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database

@@ -1,22 +1,25 @@
 package com.saveourtool.save.backend.configs
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
+/**
+ * Configuration for S3
+ */
 @Configuration
-class S3Configuration {
+class S3Configuration(
+    private val configProperties: ConfigProperties,
+) {
     @Bean
     fun s3Client(): S3AsyncClient = S3AsyncClient.builder()
         .credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create("admin", "12345678")
+            configProperties.s3Storage.credentials.toAwsCredentials()
         ))
         .region(Region.AWS_ISO_GLOBAL)
         .forcePathStyle(true)
-        .endpointOverride("http://localhost:9000".toHttpUrl().toUri())
+        .endpointOverride(configProperties.s3Storage.endpoint)
         .build()
 }

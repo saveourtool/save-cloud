@@ -1,7 +1,6 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.warn
 import org.slf4j.Logger
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
@@ -170,13 +169,6 @@ abstract class AbstractS3Storage<K>(
 
     companion object {
         const val PATH_DELIMITER = "/"
-
-        /**
-         * @param prefix
-         * @param suffix
-         * @return s3 key as concat of [prefix] and [suffix] with [PATH_DELIMITER] between them if it's required
-         */
-        fun concatS3Key(prefix: String, suffix: String) = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER + suffix.removePrefix(PATH_DELIMITER)
 
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
