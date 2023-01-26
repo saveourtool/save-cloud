@@ -35,6 +35,8 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
 
     /**
      * Async method which copies file from one storage to another
+     *
+     * @return [Mono] without value
      */
     fun migrateAsync(): Mono<Unit> {
         require(!isMigrationStarted.compareAndExchange(false, true)) {
