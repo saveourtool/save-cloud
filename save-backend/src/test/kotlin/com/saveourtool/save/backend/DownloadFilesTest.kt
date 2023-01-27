@@ -17,17 +17,13 @@ import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -49,12 +45,12 @@ import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toMono
+import java.nio.ByteBuffer
 
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -62,7 +58,6 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    FileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
     ExecutionInfoStorage::class,
@@ -98,7 +93,7 @@ class DownloadFilesTest {
         project = testProject,
         name = "test-1.txt",
         uploadedTime = LocalDateTime.now(),
-        sizeBytes = -1L,
+        sizeBytes = 11L,
         isExecutable = false,
     ).apply {
         id = 1L
@@ -107,7 +102,7 @@ class DownloadFilesTest {
         project = testProject2,
         name = "test-2.txt",
         uploadedTime = LocalDateTime.now(),
-        sizeBytes = -1L,
+        sizeBytes = 22L,
         isExecutable = false,
     ).apply {
         id = 2L
@@ -116,14 +111,11 @@ class DownloadFilesTest {
     @Autowired
     lateinit var webTestClient: WebTestClient
 
-    @Autowired
+    @MockBean
     private lateinit var fileStorage: FileStorage
 
     @MockBean
     private lateinit var projectService: ProjectService
-
-    @MockBean
-    private lateinit var fileRepository: FileRepository
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")
@@ -133,36 +125,30 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
-        mockFileRepository(file1)
+        val fileContent = "Lorem ipsum"
+        whenever(fileStorage.doesExist(file1.toDto()))
+            .thenReturn(true.toMono())
+        whenever(fileStorage.getFileById(eq(file1.requiredId())))
+            .thenReturn(Mono.just(file1.toDto()))
+        whenever(fileStorage.download(eq(file1.toDto())))
+            .thenReturn(Flux.just(ByteBuffer.wrap(fileContent.toByteArray())))
+        whenever(fileStorage.listByProject(eq(file1.project)))
+            .thenReturn(Flux.just(file1.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject.name), eq(organization.name)))
             .thenReturn(testProject)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
 
-        val tmpFile = (createTempDirectory() / file1.name).createFile()
-            .writeLines("Lorem ipsum".lines())
-
-        val sampleFileDto = tmpFile.toFileDto(testProject.toProjectCoordinates())
-            .also { fileDto ->
-                fileStorage.delete(fileDto)
-                    .block()
-            }
-            .let { fileDto ->
-                fileStorage.uploadAndReturnUpdatedKey(fileDto, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
-                    .subscribeOn(Schedulers.immediate())
-                    .block()
-            }!!
-
         webTestClient.get()
-            .uri("/api/$v1/files/download?fileId={fileId}", sampleFileDto.requiredId())
+            .uri("/api/$v1/files/download?fileId={fileId}", file1.requiredId())
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
             .isOk
             .expectBody()
             .consumeWith {
-                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+                Assertions.assertArrayEquals(fileContent.toByteArray(), it.responseBody)
             }
 
         webTestClient.get()
@@ -174,10 +160,7 @@ class DownloadFilesTest {
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileDto>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().name
-                )
-                Assertions.assertTrue(
-                    it.responseBody!!.first().sizeBytes > 0
+                    listOf(file1.toDto()), it.responseBody
                 )
             }
     }
@@ -199,18 +182,22 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
-        mockFileRepository(file2)
+        val fileContent = "Some content"
+        whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
+            .thenReturn(Mono.just(false))
+        whenever(fileStorage.uploadAndReturnUpdatedKey(argThat { candidateTo(file2) }, argThat { collectToString() == fileContent }))
+            .thenReturn(Mono.just(file2.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
             .thenReturn(testProject2)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
 
-        val tmpFile = (createTempDirectory() / file2.name).createFile()
-            .writeLines("Lorem ipsum".lines())
-
         val body = MultipartBodyBuilder().apply {
-            part("file", FileSystemResource(tmpFile))
+            val resource = (createTempDirectory() / file2.name).createFile()
+                .also { it.writeText(fileContent) }
+                .let { FileSystemResource(it) }
+            part("file", resource)
         }
             .build()
 
@@ -223,13 +210,9 @@ class DownloadFilesTest {
             .isOk
             .expectBody<FileDto>()
             .consumeWith { result ->
-                Assertions.assertTrue(
-                    Flux.just(result.responseBody!!)
-                        .flatMap { fileStorage.contentSize(it) }
-                        .single()
-                        .subscribeOn(Schedulers.immediate())
-                        .toFuture()
-                        .get() > 0
+                Assertions.assertEquals(
+                    file2.toDto(),
+                    result.responseBody
                 )
             }
     }
@@ -302,54 +285,6 @@ class DownloadFilesTest {
             }
     }
 
-    private fun mockFileRepository(file: File) {
-        val saveCallCount = AtomicInteger()
-        val isSaved: () -> Boolean = { saveCallCount.get() != 0 }
-        whenever(fileRepository.save(any()))
-            .thenAnswer {
-                assert(saveCallCount.incrementAndGet() <= 2) {
-                    "Too many times save() is called"
-                }
-                file
-            }
-        whenever(fileRepository.findById(file.requiredId()))
-            .thenAnswer {
-                if (isSaved()) {
-                    Optional.of(file)
-                } else {
-                    Optional.empty()
-                }
-            }
-        whenever(fileRepository.findAll())
-            .thenAnswer {
-                if (isSaved()) {
-                    listOf(file)
-                } else {
-                    emptyList()
-                }
-            }
-        whenever(fileRepository.findAllByProject(eq(file.project)))
-            .thenAnswer {
-                if (isSaved()) {
-                    listOf(file)
-                } else {
-                    emptyList()
-                }
-            }
-        whenever(fileRepository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
-            eq(file.project.organization.name),
-            eq(file.project.name),
-            eq(file.name),
-            any()
-        )).thenAnswer {
-            if (isSaved()) {
-                file
-            } else {
-                null
-            }
-        }
-    }
-
     companion object {
         @TempDir internal lateinit var tmpDir: Path
 
@@ -360,5 +295,11 @@ class DownloadFilesTest {
                 tmpDir.absolutePathString()
             }
         }
+
+        private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
+
+        private fun Flux<ByteBuffer>.collectToString(): String? = mapToInputStream()
+            .map { it.bufferedReader().readText() }
+            .block()
     }
 }
