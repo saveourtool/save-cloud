@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-import java.nio.file.Paths
+import java.nio.file.Path
 
 import kotlin.io.path.div
 import kotlinx.datetime.toJavaLocalDateTime
@@ -31,7 +31,7 @@ class FileStorage(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
-    Paths.get(configProperties.fileStorage.location) / "storage",
+    Path.of(configProperties.fileStorage.location) / "storage",
     s3Client,
     configProperties.s3Storage.bucketName,
     concatS3Key(configProperties.s3Storage.prefix, "storage"),
