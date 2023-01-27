@@ -101,7 +101,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      MINIO_ROOT_USER: admin
                            |      MINIO_ROOT_PASSWORD: 12345678
                            |
-                           |  miniocreatebucket:
+                           |  minio-create-bucket:
                            |    image: minio/mc:latest
                            |    depends_on:
                            |      - minio
@@ -226,10 +226,10 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(kafkaTaskName)
     }
 
-    val minioCreateBucketTaskName = registerService("miniocreatebucket", MINIO_STARTUP_DELAY_MILLIS)
+    val minioCreateBucketTaskName = registerService("minio-create-bucket", MINIO_STARTUP_DELAY_MILLIS)
     tasks.register<Exec>("startMinio") {
         dependsOn(minioCreateBucketTaskName)
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "miniocreatebucket")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "minio-create-bucket")
     }
 
     tasks.register<Exec>("restartMysqlDb") {
