@@ -71,16 +71,17 @@ class TestsPreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
-     * @param testsSourceVersionDto
-     * @return empty response
+     * @param testsSourceVersionDto the version to save.
+     * @return `true` if the [version][testsSourceVersionDto] was saved, `false`
+     *   if the version with the same [name][TestsSourceVersionDto.name] and
+     *   numeric [snapshot id][TestsSourceVersionDto.snapshotId] already exists.
      */
-    fun saveTestsSourceVersion(testsSourceVersionDto: TestsSourceVersionDto): Mono<Unit> = webClientBackend
+    fun saveTestsSourceVersion(testsSourceVersionDto: TestsSourceVersionDto): Mono<Boolean> = webClientBackend
         .post()
         .uri("/test-suites-sources/save-version")
         .bodyValue(testsSourceVersionDto)
         .retrieve()
-        .toBodilessEntity()
-        .then(Mono.just(Unit))
+        .bodyToMono()
 
     /**
      * @param testSuiteDto

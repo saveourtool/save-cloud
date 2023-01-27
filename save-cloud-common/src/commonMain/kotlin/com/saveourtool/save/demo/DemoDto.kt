@@ -24,6 +24,12 @@ data class DemoDto(
     val configName: String? = null,
     val githubProjectCoordinates: ProjectCoordinates? = null,
 ) {
+    /**
+     * @return true of [DemoDto] is valid, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun validate(): Boolean = !projectCoordinates.consideredBlank() && runCommand.isNotBlank() && fileName.isNotBlank()
+
     companion object {
         val empty = emptyForProject("", "")
 
