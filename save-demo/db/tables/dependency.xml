@@ -37,4 +37,24 @@
         <dropTable tableName="dependency"/>
     </changeSet>
 
+    <changeSet id="dependency-2" author="sanyavertolet" context="dev or prod">
+        <createTable tableName="dependency">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="demo_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_dependency_demo" references="demo(id)" deleteCascade="true"/>
+            </column>
+            <column name="version" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>
