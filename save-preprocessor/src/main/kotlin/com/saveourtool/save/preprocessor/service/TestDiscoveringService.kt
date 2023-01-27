@@ -1,3 +1,5 @@
+@file:Suppress("FILE_UNORDERED_IMPORTS")
+
 package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.core.config.TestConfig
@@ -17,11 +19,12 @@ import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.requireIsAbsolute
 import com.saveourtool.save.utils.thenJust
 
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
+import okio.Path.Companion.toOkioPath
 import org.jetbrains.annotations.Blocking
 import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
@@ -32,8 +35,10 @@ import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import kotlin.io.path.absolute
+import kotlin.io.path.div
 
-import kotlin.io.path.absolutePathString
+import java.nio.file.Path as NioPath
 
 /**
  * A service that call SAVE core to discover test suites and tests
@@ -49,14 +54,14 @@ class TestDiscoveringService(
      * @return list of [TestSuite] initialized from provided directory
      */
     fun detectAndSaveAllTestSuitesAndTests(
-        repositoryPath: java.nio.file.Path,
+        repositoryPath: NioPath,
         testRootPath: String,
         sourceSnapshot: TestsSourceSnapshotDto,
     ): Mono<List<TestSuite>> {
         log.info { "Starting to save new test suites for root test config in $repositoryPath" }
-        return Mono.just(repositoryPath)
-            .map { it.resolve(testRootPath) }
-            .flatMap { blockingToMono { getRootTestConfig(it.absolutePathString()) } }
+        return blockingToMono {
+            getRootTestConfig((repositoryPath / testRootPath).absolute().normalize())
+        }
             .zipWhen { rootTestConfig ->
                 {
                     log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
@@ -84,8 +89,8 @@ class TestDiscoveringService(
      * @throws IllegalArgumentException in case of invalid testConfig file
      */
     @Blocking
-    fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
-            ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
+    fun getRootTestConfig(testResourcesRootAbsolutePath: NioPath): TestConfig =
+            ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.requireIsAbsolute().toOkioPath()).apply {
                 getAllTestConfigs().onEach {
                     it.processInPlace()
                 }
