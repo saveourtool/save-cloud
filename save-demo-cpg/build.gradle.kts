@@ -1,3 +1,6 @@
+import com.saveourtool.save.buildutils.isLinux
+import com.saveourtool.save.buildutils.isMac
+import com.saveourtool.save.buildutils.isWindows
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 @Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
@@ -20,6 +23,12 @@ repositories {
     }
     mavenCentral()
 }
+val jepArchive by configurations.creating
+
+val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
+    destinationDir = file("${buildDir}/distros/jep-distro")
+    from (tarTree(jepArchive.singleFile) )
+}
 
 dependencies {
     implementation(projects.saveCloudCommon)
@@ -34,20 +43,30 @@ dependencies {
     implementation(libs.cpg.python) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
     }
+
+    jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
+    runtimeOnly(fileTree("${buildDir}/distros/jep-distro").apply {
+        builtBy(resolveJep)
+    })
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
-val os = System.getProperty("os.name")
 run {
-    if (os.contains("mac", ignoreCase = true)) {
-        tasks.withType<BootRun> {
-            environment("CPG_JEP_LIBRARY", "/opt/homebrew/lib/python3.10/site-packages/jep/libjep.jnilib")
-        }
+    val jepLibraryPath = when {
+        isMac() -> "${buildDir}/distros/jep-distro/jep/libjep.jnilib"
+        isWindows() -> "${buildDir}/distros/jep-distro/jep/jep.dll"
+        isLinux() -> "${buildDir}/distros/jep-distro/jep/libjep.so"
+        else -> throw Exception("Unknown operation system: ${System.getProperty("os.name")}")
+    }
+
+    tasks.withType<BootRun> {
+        environment("CPG_JEP_LIBRARY", jepLibraryPath)
     }
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar>().configureEach {
     from("requirements.txt")
+    from("${buildDir}/distros")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().configureEach {
@@ -59,7 +78,7 @@ tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().
             "paketo-buildpacks/pip",
         )
     )
-    environment["BPE_CPG_JEP_LIBRARY"] = "/layers/paketo-buildpacks_pip-install/packages/lib/python3.10/site-packages/jep/libjep.so"
+    environment["BPE_CPG_JEP_LIBRARY"] = "jep-distro/jep/libjep.so"
     environment["BP_CPYTHON_VERSION"] = "3.10"
     environment["BP_JVM_TYPE"] = "JDK"
 }
