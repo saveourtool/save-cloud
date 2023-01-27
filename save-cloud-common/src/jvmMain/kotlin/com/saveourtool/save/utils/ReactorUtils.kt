@@ -180,29 +180,6 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
 fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
 
 /**
- * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
- *
- * @param supplier blocking operation like JDBC
- * @return [Mono] from result of blocking operation [T]
- * @see blockingToFlux
- * @see ResponseSpec.blockingBodyToMono
- * @see ResponseSpec.blockingToBodilessEntity
- */
-@NonBlocking
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
-
-/**
- * @param supplier blocking operation like JDBC
- * @return [Flux] from result of blocking operation [List] of [T]
- * @see blockingToMono
- * @see ResponseSpec.blockingBodyToMono
- * @see ResponseSpec.blockingToBodilessEntity
- */
-@NonBlocking
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
-
-/**
  * A [ResponseSpec.bodyToMono] version which requests [Mono.subscribeOn] using
  * [Schedulers.boundedElastic].
  *
@@ -235,6 +212,29 @@ inline fun <reified T : Any> ResponseSpec.blockingBodyToMono(): Mono<T> =
 fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
         toBodilessEntity()
             .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
+ *
+ * @param supplier blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [T]
+ * @see blockingToFlux
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ */
+@NonBlocking
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
+    .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * @param supplier blocking operation like JDBC
+ * @return [Flux] from result of blocking operation [List] of [T]
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ */
+@NonBlocking
+fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
 
 /**
  * @param interval how long to wait between checks
