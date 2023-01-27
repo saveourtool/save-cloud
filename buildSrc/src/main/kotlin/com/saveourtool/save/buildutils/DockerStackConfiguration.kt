@@ -226,10 +226,9 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(kafkaTaskName)
     }
 
-    val minioCreateBucketTaskName = registerService("minio-create-bucket", MINIO_STARTUP_DELAY_MILLIS)
-    tasks.register<Exec>("startMinio") {
-        dependsOn(minioCreateBucketTaskName)
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "minio-create-bucket")
+    val minioTaskName = registerService("minio-create-bucket", MINIO_STARTUP_DELAY_MILLIS, "startMinioService")
+    tasks.register("startMinio") {
+        dependsOn(minioTaskName)
     }
 
     tasks.register<Exec>("restartMysqlDb") {
@@ -243,6 +242,12 @@ fun Project.createStackDeployTask(profile: String) {
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
         finalizedBy("startKafka")
+    }
+
+    tasks.register<Exec>("restartMinio") {
+        dependsOn("generateComposeFile")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "minio")
+        finalizedBy("startMinio")
     }
 
     tasks.register<Exec>("deployLocal") {
@@ -305,8 +310,8 @@ fun Project.versionForDockerImages(): String =
     (project.findProperty("build.dockerTag") as String? ?: version.toString())
         .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
 
-private fun Project.registerService(serviceName: String, startupDelayInMillis: Long): String {
-    val taskName = "start${serviceName.capitalized()}Service"
+private fun Project.registerService(serviceName: String, startupDelayInMillis: Long, overrideTaskName: String? = null): String {
+    val taskName = overrideTaskName ?: "start${serviceName.capitalized()}Service"
     tasks.register<Exec>(taskName) {
         dependsOn("generateComposeFile")
         doFirst {
