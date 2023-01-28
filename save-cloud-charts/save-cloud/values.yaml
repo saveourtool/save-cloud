@@ -18,6 +18,7 @@ backend:
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
+  s3SecretFile: /home/cnb/secrets/s3_secrets
 frontend:
   name: frontend
   imageName: save-frontend
