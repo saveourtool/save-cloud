@@ -8,10 +8,10 @@ import com.saveourtool.save.preprocessor.utils.cloneCommitToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
 import com.saveourtool.save.utils.*
 import org.eclipse.jgit.util.FileUtils
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -92,6 +92,11 @@ class GitPreprocessorService(
         cloneCommitToDirectory(commitId, it)
     }
 
+    /**
+     * @param doCloneToDirectory a blocking `git-clone` action (will be wrapped
+     * with [blockingToMono]).
+     */
+    @NonBlocking
     @Suppress("TooGenericExceptionCaught")
     private fun <T> doCloneAndProcessDirectory(
         gitDto: GitDto,
@@ -110,7 +115,7 @@ class GitPreprocessorService(
             tmpDir to gitCommitInfo
         }
         return Mono.usingWhen(
-            Mono.fromSupplier(cloneAction),
+            blockingToMono(cloneAction),
             { (directory, gitCommitInfo) -> repositoryProcessor(directory, gitCommitInfo) },
             { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
         )
@@ -123,6 +128,7 @@ class GitPreprocessorService(
      * @throws IOException
      * @throws Exception
      */
+    @NonBlocking
     @Suppress("TooGenericExceptionCaught")
     fun <T> archiveToTar(
         pathToRepository: Path,
@@ -140,14 +146,14 @@ class GitPreprocessorService(
             tmpFile
         }
         return Mono.usingWhen(
-            Mono.fromSupplier(archiveAction),
+            blockingToMono(archiveAction),
             { tmpFile -> archiveProcessor(tmpFile) },
             { tmpFile -> tmpFile.deleteRecursivelySafelyAsync() }
         )
     }
 
-    private fun Path.deleteRecursivelySafelyAsync() = Mono.fromCallable { deleteRecursivelySafely() }
-        .subscribeOn(Schedulers.boundedElastic())
+    @NonBlocking
+    private fun Path.deleteRecursivelySafelyAsync() = blockingToMono { deleteRecursivelySafely() }
 
     @Suppress("TooGenericExceptionCaught")
     private fun Path.deleteRecursivelySafely() {

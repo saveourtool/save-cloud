@@ -11,6 +11,7 @@ import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
 
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.Logger
 import org.springframework.core.io.FileSystemResource
 import org.springframework.web.bind.annotation.PostMapping
@@ -56,6 +57,7 @@ class TestSuitesPreprocessorController(
         }
     )
 
+    @NonBlocking
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
@@ -83,6 +85,7 @@ class TestSuitesPreprocessorController(
             }.thenReturn(Unit)
     }
 
+    @NonBlocking
     private fun doFetchTests(
         repositoryDirectory: Path,
         gitCommitInfo: GitCommitInfo,
