@@ -22,6 +22,7 @@ data class DemoDto(
     val fileName: String,
     val sdk: Sdk = Sdk.Default,
     val configName: String? = null,
+    val outputFileName: String? = null,
     val githubProjectCoordinates: ProjectCoordinates? = null,
 ) {
     /**
@@ -44,6 +45,7 @@ data class DemoDto(
             "",
             "",
             Sdk.Default,
+            null,
             null,
             ProjectCoordinates("", ""),
         )

@@ -39,4 +39,12 @@
         <addUniqueConstraint tableName="demo" columnNames="organization_name, project_name" constraintName="unq_demo_organization_project"/>
     </changeSet>
 
+    <changeSet id="demo-add_output_file_name" author="argentum" context="dev or prod">
+        <addColumn tableName="demo">
+            <column name="output_file_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -16,6 +16,7 @@ import javax.persistence.Entity
  * @property runCommand command that runs the tool on test file with name [fileName]
  * @property fileName name that the tested input file should have
  * @property configName name of tool config file (or null if no config is needed)
+ * @property outputFileName name of
  * @property githubOrganizationName name of organization from GitHub
  * @property githubProjectName name of project from GitHub
  */
@@ -28,6 +29,7 @@ class Demo(
     var runCommand: String,
     var fileName: String,
     var configName: String?,
+    var outputFileName: String?,
     @Column(name = "github_organization")
     var githubOrganizationName: String?,
     @Column(name = "github_project")
@@ -54,6 +56,7 @@ class Demo(
         fileName,
         sdk.toSdk(),
         configName,
+        outputFileName,
         githubProjectCoordinates(),
     )
 }
@@ -69,5 +72,6 @@ fun DemoDto.toDemo() = Demo(
     fileName,
     configName,
     githubProjectCoordinates?.organizationName,
+    outputFileName,
     githubProjectCoordinates?.projectName,
 )
