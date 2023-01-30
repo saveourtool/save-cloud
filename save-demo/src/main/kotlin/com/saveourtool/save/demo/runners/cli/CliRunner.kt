@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.DemoAdditionalParams
+import com.saveourtool.save.demo.diktat.DiktatAdditionalParams
 import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.runners.Runner
 import com.saveourtool.save.demo.utils.isWindows
@@ -11,12 +11,12 @@ import kotlin.io.path.*
 /**
  * Interface that should be implemented by all the runners that use [ProcessBuilder] in order to run tools for demo.
  *
- * @param P additional params that are required for demo run - should implement [DemoAdditionalParams]
+ * @param P additional params that are required for demo run - should implement [DiktatAdditionalParams]
  * @param K storage key needed to let runner download tools from ToolStorage
- * @param R result of demo run - should implement [DemoAdditionalParams]
+ * @param R result of demo run - should implement [DiktatAdditionalParams]
  */
 @Component
-interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DiktatDemoResult> : Runner<P, K, R> {
+interface CliRunner <in P : DiktatAdditionalParams, in K : Any, out R : DiktatDemoResult> : Runner<P, K, R> {
     /**
      * Save [lines] into file with [filePath]
      *
@@ -42,7 +42,7 @@ interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DiktatDemo
      * @param testPath path to test file
      * @param outputPath path to file with tool run report
      * @param configPath path to config file, if null, default config is used
-     * @param params additional params of type [DemoAdditionalParams]
+     * @param params additional params of type [DiktatAdditionalParams]
      * @return run command that depends on the system it is run on
      */
     fun getRunCommand(
@@ -65,7 +65,7 @@ interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DiktatDemo
 
     /**
      * @param testLines code that will be consumed by the tool
-     * @param params additional params of type [DemoAdditionalParams]
+     * @param params additional params of type [DiktatAdditionalParams]
      * @param tempRootDir path to root of temp directories (somewhere in storage)
      * @param testFileName test file name that should be
      * @param additionalDirectoryTree additional directory names that should be in directory hierarchy to working dir (below randomly generated dir)
