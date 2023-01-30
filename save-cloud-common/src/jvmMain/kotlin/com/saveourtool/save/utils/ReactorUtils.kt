@@ -6,9 +6,12 @@ package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
+import org.springframework.web.reactive.function.client.WebClient.ResponseSpec
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -177,18 +180,60 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
 fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
 
 /**
+ * A [ResponseSpec.bodyToMono] version which requests [Mono.subscribeOn] using
+ * [Schedulers.boundedElastic].
+ *
+ * @return a [Mono] requesting asynchronously.
+ * @see ResponseSpec.bodyToMono
+ * @see Mono.subscribeOn
+ * @see Schedulers.boundedElastic
+ * @see blockingToMono
+ * @see blockingToFlux
+ * @see ResponseSpec.blockingToBodilessEntity
+ */
+@NonBlocking
+inline fun <reified T : Any> ResponseSpec.blockingBodyToMono(): Mono<T> =
+        bodyToMono<T>()
+            .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * A [ResponseSpec.toBodilessEntity] version which requests [Mono.subscribeOn]
+ * using [Schedulers.boundedElastic].
+ *
+ * @return a [Mono] requesting asynchronously.
+ * @see ResponseSpec.toBodilessEntity
+ * @see Mono.subscribeOn
+ * @see Schedulers.boundedElastic
+ * @see blockingToMono
+ * @see blockingToFlux
+ * @see ResponseSpec.blockingBodyToMono
+ */
+@NonBlocking
+fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
+        toBodilessEntity()
+            .subscribeOn(Schedulers.boundedElastic())
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
  * @return [Mono] from result of blocking operation [T]
+ * @see blockingToFlux
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
  */
+@NonBlocking
 fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
     .subscribeOn(Schedulers.boundedElastic())
 
 /**
  * @param supplier blocking operation like JDBC
  * @return [Flux] from result of blocking operation [List] of [T]
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
  */
+@NonBlocking
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
 
 /**

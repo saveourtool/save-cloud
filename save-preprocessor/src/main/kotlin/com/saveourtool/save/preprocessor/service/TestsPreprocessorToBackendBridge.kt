@@ -8,8 +8,11 @@ import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.utils.blockingBodyToMono
+import com.saveourtool.save.utils.blockingToBodilessEntity
 import com.saveourtool.save.utils.debug
 
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.Resource
@@ -17,13 +20,12 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
- * A bridge from preprocesor to backend (rest api wrapper)
+ * A bridge from preprocessor to backend (rest api wrapper)
  */
 @Service
 class TestsPreprocessorToBackendBridge(
@@ -40,6 +42,7 @@ class TestsPreprocessorToBackendBridge(
      * @param resourceWithContent
      * @return updated [snapshotDto]
      */
+    @NonBlocking
     fun saveTestsSuiteSourceSnapshot(
         snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
@@ -58,17 +61,18 @@ class TestsPreprocessorToBackendBridge(
                 )
             )
         }
-        .bodyToMono()
+        .blockingBodyToMono()
 
     /**
      * @param sourceId
      * @param commitId
      * @return [TestsSourceSnapshotDto] found by provided values
      */
+    @NonBlocking
     fun findTestsSourceSnapshot(sourceId: Long, commitId: String): Mono<TestsSourceSnapshotDto> = webClientBackend.get()
         .uri("/test-suites-sources/find-snapshot?sourceId={sourceId}&commitId={commitId}", sourceId, commitId)
         .retrieve()
-        .bodyToMono()
+        .blockingBodyToMono()
 
     /**
      * @param testsSourceVersionDto the version to save.
@@ -76,27 +80,30 @@ class TestsPreprocessorToBackendBridge(
      *   if the version with the same [name][TestsSourceVersionDto.name] and
      *   numeric [snapshot id][TestsSourceVersionDto.snapshotId] already exists.
      */
+    @NonBlocking
     fun saveTestsSourceVersion(testsSourceVersionDto: TestsSourceVersionDto): Mono<Boolean> = webClientBackend
         .post()
         .uri("/test-suites-sources/save-version")
         .bodyValue(testsSourceVersionDto)
         .retrieve()
-        .bodyToMono()
+        .blockingBodyToMono()
 
     /**
      * @param testSuiteDto
      * @return saved [TestSuite]
      */
+    @NonBlocking
     fun saveTestSuite(testSuiteDto: TestSuiteDto): Mono<TestSuite> = webClientBackend.post()
         .uri("/test-suites/save")
         .bodyValue(testSuiteDto)
         .retrieve()
-        .bodyToMono()
+        .blockingBodyToMono()
 
     /**
      * @param tests
      * @return empty response
      */
+    @NonBlocking
     fun saveTests(tests: Flux<TestDto>): Flux<EmptyResponse> = tests
         .buffer(TESTS_BUFFER_SIZE)
         .doOnNext {
@@ -107,7 +114,7 @@ class TestsPreprocessorToBackendBridge(
                 .uri("/initializeTests")
                 .bodyValue(chunk)
                 .retrieve()
-                .toBodilessEntity()
+                .blockingToBodilessEntity()
         }
 
     companion object {

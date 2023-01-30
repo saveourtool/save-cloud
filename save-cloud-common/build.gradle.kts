@@ -59,6 +59,7 @@ kotlin {
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
+                api(libs.jetbrains.annotations)
                 implementation(libs.reactor.kotlin.extensions)
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
