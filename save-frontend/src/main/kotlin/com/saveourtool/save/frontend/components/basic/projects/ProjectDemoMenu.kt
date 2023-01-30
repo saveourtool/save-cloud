@@ -23,6 +23,7 @@ import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -99,7 +100,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     }
 
     useOnce {
-        // window.alert("This is just a preview, nothing on this view works for now.")
+        window.alert("This is just a preview, nothing on this view works for now.")
     }
 
     div {

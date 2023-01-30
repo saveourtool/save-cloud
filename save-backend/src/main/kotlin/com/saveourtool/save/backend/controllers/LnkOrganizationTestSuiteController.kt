@@ -7,7 +7,6 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
@@ -25,6 +24,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
