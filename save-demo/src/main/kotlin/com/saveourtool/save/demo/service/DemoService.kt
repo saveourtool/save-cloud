@@ -2,10 +2,9 @@ package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
-import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
-import com.saveourtool.save.utils.overwrite
-import org.springframework.http.codec.multipart.FilePart
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -48,48 +47,14 @@ class DemoService(
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
-     * @param version version of a tool that the file is connected to
-     * @param filePart file to be saved under required [version] in [organizationName]/[projectName]
-     * @return amount of bytes loaded, wrapped into [Mono]
+     * @param lazyMessage
+     * @return [Demo] or Mono filled with error (not found)
      */
-    fun loadFileToStorage(
+    fun findBySaveourtoolProjectOrNotFound(
         organizationName: String,
         projectName: String,
-        version: String,
-        filePart: FilePart,
-    ) = toolStorage.overwrite(
-        ToolKey(organizationName, projectName, version, filePart.filename()),
-        filePart,
-    )
-
-    /**
-     * @param organizationName saveourtool organization name
-     * @param projectName saveourtool project name
-     * @param version version of a tool that the file is connected to
-     * @return list of files present in storage for required version
-     */
-    fun getFilesFromStorage(
-        organizationName: String,
-        projectName: String,
-        version: String,
-    ) = toolStorage.list()
-        .filter {
-            it.organizationName == organizationName && it.projectName == projectName && it.version == version
-        }
-
-    /**
-     * @param organizationName saveourtool organization name
-     * @param projectName saveourtool project name
-     * @param version version of a tool that the file is connected to
-     * @param fileName name of a file to be deleted
-     * @return true if file is successfully deleted, false otherwise
-     */
-    fun deleteFileFromStorage(
-        organizationName: String,
-        projectName: String,
-        version: String,
-        fileName: String,
-    ) = toolStorage.delete(
-        ToolKey(organizationName, projectName, version, fileName)
-    )
+        lazyMessage: () -> String,
+    ): Mono<Demo> = blockingToMono {
+        findBySaveourtoolProject(organizationName, projectName)
+    }.switchIfEmptyToNotFound(lazyMessage)
 }

@@ -4,7 +4,9 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
@@ -12,7 +14,6 @@ import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -42,6 +43,7 @@ class DemoManagerController(
     private val projectService: ProjectService,
     private val lnkProjectGithubService: LnkProjectGithubService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val fileStorage: FileStorage,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -69,23 +71,17 @@ class DemoManagerController(
     fun addDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestBody demoDto: DemoDto,
+        @RequestBody demoCreationRequest: DemoCreationRequest,
         authentication: Authentication,
-    ): Mono<EmptyResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(
-            projectName,
-            organizationName,
-        )
+    ): Mono<EmptyResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
         .asyncEffect { project ->
             blockingToMono {
-                demoDto.githubProjectCoordinates?.let { githubCoordinates ->
+                demoCreationRequest.demoDto.githubProjectCoordinates?.let { githubCoordinates ->
                     lnkProjectGithubService.saveIfNotPresent(
                         project,
                         githubCoordinates.organizationName,
@@ -98,7 +94,7 @@ class DemoManagerController(
             webClientDemo.post()
                 .uri("/demo/internal/add-tool")
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(demoDto)
+                .bodyValue(demoCreationRequest.demoDto)
                 .retrieve()
                 .onStatus({ it == HttpStatus.CONFLICT }) {
                     Mono.error(
@@ -108,6 +104,14 @@ class DemoManagerController(
                         )
                     )
                 }
+                .toBodilessEntity()
+        }
+        .flatMap {
+            webClientDemo.post()
+                .uri("/demo/internal/${demoCreationRequest.demoDto.projectCoordinates}/upload-files?version=manual")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(demoCreationRequest.manuallyUploadedFileDtos)
+                .retrieve()
                 .toBodilessEntity()
         }
 
@@ -134,15 +138,9 @@ class DemoManagerController(
         @RequestParam(required = false, defaultValue = "manual") version: String,
         @RequestPart file: FilePart,
         authentication: Authentication,
-    ): Mono<FileDto> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(
-            projectName,
-            organizationName,
-        )
+    ): Mono<FileDto> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
@@ -184,15 +182,9 @@ class DemoManagerController(
         @PathVariable projectName: String,
         @RequestParam(required = false, defaultValue = "manual") version: String,
         authentication: Authentication,
-    ): Flux<FileDto> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(
-            projectName,
-            organizationName,
-        )
+    ): Flux<FileDto> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
@@ -234,15 +226,9 @@ class DemoManagerController(
         @RequestParam(required = false, defaultValue = "manual") version: String,
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<Boolean> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(
-            projectName,
-            organizationName,
-        )
+    ): Mono<Boolean> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
@@ -279,12 +265,9 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+    ): Mono<DemoStatus> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.READ) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
@@ -323,12 +306,9 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoInfo> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+    ): Mono<DemoInfo> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find project $projectName in organization $organizationName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find project $projectName in organization $organizationName."
-        }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.WRITE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }

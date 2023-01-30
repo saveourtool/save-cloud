@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*

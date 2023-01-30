@@ -8,13 +8,13 @@ import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
@@ -41,8 +41,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-
-typealias StringResponse = ResponseEntity<String>
 
 @EnableWebFluxSecurity
 @Suppress(
