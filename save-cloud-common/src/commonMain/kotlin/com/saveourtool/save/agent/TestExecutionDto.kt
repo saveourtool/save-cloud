@@ -1,6 +1,7 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.test.analysis.results.AnalysisResult
@@ -41,18 +42,22 @@ data class TestExecutionDto(
     val unexpected: Long?,
     val hasDebugInfo: Boolean? = null,
     val executionId: Long? = null,
-) {
+    override val id: Long? = null,
+): DtoWithId() {
     /**
+     * @param hasDebugInfo whether debug info data is available for this test execution
      * @param testMetrics scalar test metrics.
      * @param analysisResults test analysis results.
      * @return an "extended" version of this test execution with extra information.
      */
     fun toExtended(
+        hasDebugInfo: Boolean? = null,
         testMetrics: TestMetrics = NoDataAvailable.instance,
         analysisResults: List<AnalysisResult> = emptyList(),
     ): TestExecutionExtDto =
             TestExecutionExtDto(
                 this,
+                hasDebugInfo,
                 testMetrics,
                 analysisResults,
             )

@@ -13,12 +13,10 @@ import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
-import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
@@ -44,6 +42,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.extra.bool.logicalOr
@@ -124,17 +123,6 @@ class TestExecutionController(
             metadata.extendWith(testExecution)
         }
         .mapLeft(TestExecution::toDto)
-        .runIf({ checkDebugInfo }) {
-            flatMap { (testExecutionDto, metadata) ->
-                debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
-                    .logicalOr(executionInfoStorage.doesExist(executionId))
-                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                        "Failure while checking for debug info availability."
-                    }.map { hasDebugInfo ->
-                        testExecutionDto.copy(hasDebugInfo = hasDebugInfo) to metadata
-                    }
-            }
-        }
         .mapRight(testIdGenerator::testId)
         .run {
             when {
@@ -151,8 +139,18 @@ class TestExecutionController(
                             testAnalysisService.analyze(testId).collectList(),
                             Pair<TestExecutionDto, TestMetrics>::plus,
                         )
-                }.map { (testExecution, metrics, results) ->
-                    testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                }.flatMap { (testExecution, metrics, results) ->
+                    if (checkDebugInfo) {
+                        testExecution
+                            .toMono()
+                            .zipWithHasDebugInfo()
+                            .map { (testExecution, hasDebugInfo) ->
+                                testExecution.toExtended(testMetrics = metrics, analysisResults = results, hasDebugInfo = hasDebugInfo)
+                            }
+                    } else {
+                        testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                            .toMono()
+                    }
                 }
 
                 else -> map { (testExecution, _) ->
@@ -160,6 +158,11 @@ class TestExecutionController(
                 }
             }
         }
+
+    private fun Mono<TestExecutionDto>.zipWithHasDebugInfo() = zipWhen { testExecutionDto ->
+        debugInfoStorage.doesExist(testExecutionDto.requiredId())
+            .logicalOr(executionInfoStorage.doesExist(testExecutionDto.executionId!!))
+    }
 
     /**
      * @param executionId an ID of Execution to group TestExecutions

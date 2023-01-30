@@ -179,7 +179,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                             // debug info is provided by agent after the execution
                             // possibly there can be cases when this info is not available
-                            if (cellContext.value.testExecution.hasDebugInfo == true) {
+                            if (cellContext.value.hasDebugInfo == true) {
                                 style = jso {
                                     textDecoration = "underline".unsafeCast<TextDecoration>()
                                     color = "blue".unsafeCast<Color>()

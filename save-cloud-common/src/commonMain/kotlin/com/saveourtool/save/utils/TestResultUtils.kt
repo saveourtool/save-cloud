@@ -40,8 +40,7 @@ fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String):
         TestResultLocation(
             testSuiteName,
             pluginName,
-            location,
-            resources.test.name
+            resources.test.toString(),
         ),
         debugInfo,
         status,

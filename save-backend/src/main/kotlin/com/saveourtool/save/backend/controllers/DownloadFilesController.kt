@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.from
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -138,22 +139,17 @@ class DownloadFilesController(
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
     @PostMapping(path = ["/api/$v1/files/get-debug-info"])
     fun getDebugInfo(
-        @RequestBody testExecutionDto: TestExecutionDto,
-    ): Flux<ByteBuffer> {
-        val executionId = getExecutionId(testExecutionDto)
-        val testResultLocation = TestResultLocation.from(testExecutionDto)
-
-        return debugInfoStorage.download(DebugInfoStorageKey(executionId, testResultLocation))
-            .switchIfEmpty(
-                Mono.fromCallable {
-                    logger.warn("Additional file for $executionId and $testResultLocation not found")
+        @RequestParam testExecutionId: Long,
+    ): Flux<ByteBuffer> = debugInfoStorage.download(testExecutionId)
+        .switchIfEmpty(
+            Mono.fromCallable {
+                logger.warn("Additional file for ${TestExecution::class.simpleName} with id $testExecutionId not found")
+            }
+                .toFlux()
+                .flatMap {
+                    Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"))
                 }
-                    .toFlux()
-                    .flatMap {
-                        Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"))
-                    }
-            )
-    }
+        )
 
     private fun getExecutionId(testExecutionDto: TestExecutionDto): Long {
         testExecutionDto.executionId?.let { return it }
@@ -196,9 +192,9 @@ class DownloadFilesController(
      */
     @PostMapping(value = ["/internal/files/debug-info"])
     fun uploadDebugInfo(
-        @RequestParam executionId: Long,
+        @RequestParam testExecutionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = debugInfoStorage.save(executionId, testResultDebugInfo)
+    ): Mono<Long> = debugInfoStorage.upload(executionId, testResultDebugInfo)
 
     companion object {
         private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)

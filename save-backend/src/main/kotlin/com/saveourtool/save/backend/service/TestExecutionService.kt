@@ -232,6 +232,14 @@ class TestExecutionService(
         return lostTests
     }
 
+    fun getTestExecutionId(executionId: Long, testResultLocation: TestResultLocation): Long {
+        testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
+            executionId,
+            testResultLocation.pluginName,
+            testResultLocation.testLocation
+        )
+    }
+
     /**
      * @param execution the [Execution], during which these tests will be executed
      * @param tests the tests, which will be executed
