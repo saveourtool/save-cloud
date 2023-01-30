@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.diktat
 
-import com.saveourtool.save.demo.DemoResult
 import kotlinx.serialization.Serializable
 
 /**
@@ -17,7 +16,7 @@ data class DiktatDemoResult(
     val outputText: List<String>,
     val logs: List<String>,
     val terminationCode: Int,
-) : DemoResult {
+) {
     companion object {
         val empty = DiktatDemoResult(emptyList(), emptyList(), emptyList(), -1)
     }

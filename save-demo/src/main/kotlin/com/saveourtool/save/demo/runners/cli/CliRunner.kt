@@ -1,7 +1,7 @@
 package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoAdditionalParams
-import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.diktat.DiktatDemoResult
 import com.saveourtool.save.demo.runners.Runner
 import com.saveourtool.save.demo.utils.isWindows
 import org.springframework.stereotype.Component
@@ -16,7 +16,7 @@ import kotlin.io.path.*
  * @param R result of demo run - should implement [DemoAdditionalParams]
  */
 @Component
-interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DemoResult> : Runner<P, K, R> {
+interface CliRunner <in P : DemoAdditionalParams, in K : Any, out R : DiktatDemoResult> : Runner<P, K, R> {
     /**
      * Save [lines] into file with [filePath]
      *
