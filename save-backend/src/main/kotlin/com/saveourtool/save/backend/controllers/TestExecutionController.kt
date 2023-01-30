@@ -136,11 +136,7 @@ class TestExecutionController(
                         )
                 }.flatMap { (testExecution, metrics, results) ->
                     if (checkDebugInfo) {
-                        debugInfoStorage.doesExist(testExecution.requiredId())
-                            .logicalOr(executionInfoStorage.doesExist(testExecution.executionId))
-                            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                                "Failure while checking for debug info availability."
-                            }
+                        testExecution.hasDebugInfoAsMono()
                             .map { hasDebugInfo ->
                                 testExecution.toExtended(testMetrics = metrics, analysisResults = results, hasDebugInfo = hasDebugInfo)
                             }
@@ -150,10 +146,19 @@ class TestExecutionController(
                     }
                 }
 
-                else -> map { (testExecution, _) ->
-                    testExecution.toExtended()
+                else -> flatMap { (testExecution, _) ->
+                    testExecution.hasDebugInfoAsMono()
+                        .map { hasDebugInfo ->
+                            testExecution.toExtended(hasDebugInfo = hasDebugInfo)
+                        }
                 }
             }
+        }
+
+    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
+        .logicalOr(executionInfoStorage.doesExist(executionId))
+        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+            "Failure while checking for debug info availability."
         }
 
     /**

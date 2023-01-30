@@ -13,11 +13,12 @@ import kotlin.io.path.name
  * @param testExecutionDto
  * @return a new [TestResultLocation]
  */
-fun TestResultLocation.Companion.from(testExecutionDto: TestExecutionDto): TestResultLocation {
+fun TestResultLocation.Companion.from2(testExecutionDto: TestExecutionDto): TestResultLocation {
     val path = Paths.get(testExecutionDto.filePath)
     return TestResultLocation(
         testExecutionDto.testSuiteName,
         testExecutionDto.pluginName,
+        testExecutionDto.filePath,
         (path.parent ?: ".").toString(),
         path.name,
     )

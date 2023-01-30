@@ -227,7 +227,7 @@ class DownloadFilesTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(
-                    TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
+                    TestResultLocation("suite1", "plugin1", "path/to/test/Test.test", "path/to/test", "Test.test"),
                     DebugInfo("./a.out", "stdout", "stderr", 42L),
                     Pass(null),
                 )

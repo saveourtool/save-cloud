@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
-import java.nio.file.Paths
 import java.time.LocalDateTime
-
-import kotlin.io.path.pathString
 
 /**
  * Service for test result
@@ -112,7 +109,7 @@ class TestExecutionService(
      */
     internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId, pluginName, FilenameUtils.separatorsToUnix(Paths.get(testLocation, testName).pathString)
+            executionId, pluginName, FilenameUtils.separatorsToUnix(testPath)
         )
     }
 
