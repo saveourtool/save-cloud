@@ -11,6 +11,7 @@ import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
 
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.Logger
 import org.springframework.core.io.FileSystemResource
 import org.springframework.web.bind.annotation.PostMapping
@@ -56,6 +57,7 @@ class TestSuitesPreprocessorController(
         }
     )
 
+    @NonBlocking
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
@@ -69,9 +71,21 @@ class TestSuitesPreprocessorController(
             }
             .flatMap { snapshot ->
                 testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
-            }
+            }.doOnNext { isSaved: Boolean ->
+                log.info {
+                    val messagePrefix = "Tests from ${request.source.gitDto.url}"
+                    val status = when {
+                        isSaved -> "saved"
+                        else -> "not saved: the snapshot already exists"
+                    }
+                    val messageSuffix = "(version \"${request.version}\"; commit ${gitCommitInfo.id})."
+
+                    "$messagePrefix $status $messageSuffix"
+                }
+            }.thenReturn(Unit)
     }
 
+    @NonBlocking
     private fun doFetchTests(
         repositoryDirectory: Path,
         gitCommitInfo: GitCommitInfo,

@@ -7,13 +7,9 @@ import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.utils.asyncEffect
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 
 import org.springframework.http.HttpStatus
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -32,8 +28,9 @@ import kotlinx.datetime.toKotlinLocalDateTime
 @RequestMapping("/demo/internal")
 class ManagementController(
     private val toolService: ToolService,
-    private val githubDownloadToolService: GithubDownloadToolService,
+    private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
+    private val dependencyService: DependencyService,
 ) {
     /**
      * @param demoDto
@@ -41,44 +38,11 @@ class ManagementController(
      */
     @PostMapping("/add-tool")
     fun addTool(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
-        .asyncEffect { githubDownloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
-        .filter { it.validate() }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
+        .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
-        .asyncEffect { demo ->
-            blockingToMono { demoService.saveIfNotPresent(demo.toDemo()) }
-        }
-
-    /**
-     * @param organizationName saveourtool organization name
-     * @param projectName saveourtool project name
-     * @param version version to attach [file] to
-     * @param file file that should be uploaded to storage of [organizationName]/[projectName] with [version]
-     * @return [FileDto] wrapped into [Mono]
-     */
-    @PostMapping("/{organizationName}/{projectName}/upload-file")
-    fun uploadFile(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        @RequestParam version: String,
-        @RequestPart file: FilePart,
-    ): Mono<FileDto> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
-    }
-        .switchIfEmptyToNotFound {
-            "Could not find demo for $organizationName/$projectName."
-        }
-        .flatMap {
-            demoService.loadFileToStorage(organizationName, projectName, version, file)
-        }
-        .map {
-            FileDto(
-                ProjectCoordinates(organizationName, projectName),
-                file.filename(),
-                LocalDateTime.now().toKotlinLocalDateTime(),
-            )
-        }
+        .asyncEffect { blockingToMono { demoService.saveIfNotPresent(it.toDemo()) } }
 
     /**
      * @param organizationName saveourtool organization name
@@ -91,20 +55,18 @@ class ManagementController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
-    ): Flux<FileDto> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
+    ): Flux<FileDto> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find demo for $organizationName/$projectName."
-        }
         .flatMapMany {
-            demoService.getFilesFromStorage(organizationName, projectName, version)
+            blockingToFlux { dependencyService.getDependencies(it, version) }
         }
-        .map {
+        .map { dependency ->
             FileDto(
-                ProjectCoordinates(organizationName, projectName),
-                it.fileName,
+                ProjectCoordinates(dependency.demo.organizationName, dependency.demo.projectName),
+                dependency.fileName,
                 LocalDateTime.now().toKotlinLocalDateTime(),
+                id = dependency.fileId
             )
         }
 
@@ -121,15 +83,10 @@ class ManagementController(
         @PathVariable projectName: String,
         @RequestParam version: String,
         @RequestParam fileName: String,
-    ): Mono<Boolean> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
+    ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find demo for $organizationName/$projectName."
-        }
-        .flatMap {
-            demoService.deleteFileFromStorage(organizationName, projectName, version, fileName)
-        }
+        .flatMap { dependencyService.deleteDependency(it, projectName, version) }
 
     /**
      * @param organizationName name of GitHub user/organization
@@ -151,12 +108,9 @@ class ManagementController(
     fun getDemoInfo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoInfo> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
+    ): Mono<DemoInfo> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
     }
-        .switchIfEmptyToNotFound {
-            "Could not find demo for $organizationName/$projectName."
-        }
         .zipWith(getDemoStatus(organizationName, projectName))
         .map { (demo, status) ->
             DemoInfo(
@@ -180,5 +134,30 @@ class ManagementController(
                     vcsTagName = currentVersion
                 )
             )
+        }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version to attach [zip] to
+     * @param fileDtos list of [FileDto] containing information required for file download
+     * @return [StringResponse] with response
+     */
+    @PostMapping("/{organizationName}/{projectName}/upload-files")
+    fun uploadFiles(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+        @RequestBody fileDtos: List<FileDto>,
+    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .map { demo ->
+            dependencyService.saveDependencies(demo, version, fileDtos)
+        }
+        .map { dependencies ->
+            downloadToolService.downloadToStorage(dependencies).let { size ->
+                StringResponse("Successfully saved $size files to demo storage.", HttpStatus.OK)
+            }
         }
 }

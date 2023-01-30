@@ -8,6 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class DemoStatus {
     /**
+     * Demo is created but stopped by error
+     */
+    ERROR,
+
+    /**
      * No demo created yet
      */
     NOT_CREATED,
@@ -23,7 +28,7 @@ enum class DemoStatus {
     STARTING,
 
     /**
-     * Demo is created but stopped by owner/error
+     * Demo is created but stopped by owner
      */
     STOPPED,
     ;

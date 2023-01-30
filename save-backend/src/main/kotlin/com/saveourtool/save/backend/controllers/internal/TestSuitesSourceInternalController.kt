@@ -40,8 +40,10 @@ class TestSuitesSourceInternalController(
     }
 
     /**
-     * @param versionDto
-     * @return [Mono] without value
+     * @param versionDto the version to save.
+     * @return `true` if the [version][versionDto] was saved, `false` if the
+     *   version with the same [name][TestsSourceVersionDto.name] and numeric
+     *   [snapshot id][TestsSourceVersionDto.snapshotId] already exists.
      */
     @PostMapping("/save-version")
     fun saveVersion(

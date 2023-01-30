@@ -8,7 +8,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.postJsonAndAssert
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
@@ -38,7 +38,7 @@ import java.util.Optional
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient(timeout = "60000")
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
 )
 class DeleteEntitiesTest {

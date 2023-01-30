@@ -1,5 +1,5 @@
 /**
- * Component for uploading files
+ * Component for uploading files (FileDtos)
  */
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
@@ -16,9 +16,7 @@ import csstype.ClassName
 import js.core.asList
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
@@ -28,8 +26,6 @@ import react.dom.html.ReactHTML.ul
 import web.file.File
 import web.http.FormData
 
-import kotlinx.browser.window
-
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
@@ -38,9 +34,17 @@ import kotlinx.browser.window
 )
 val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
     val (selectedFiles, setSelectedFiles) = useState<List<FileDto>>(emptyList())
+    val (availableFiles, setAvailableFiles) = useState<List<FileDto>>(emptyList())
+
+    useEffect(selectedFiles) {
+        props.updateFileDtos {
+            selectedFiles
+        }
+    }
+
     useRequest {
         val response = get(
-            props.getUrlForAvailableFilesFetch(),
+            props.getUrlForDemoFilesFetch(),
             jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -50,20 +54,23 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
         }
     }
 
-    val (fileToDelete, setFileToDelete) = useState<FileDto?>(null)
-    val deleteFile = useDeferredRequest {
-        fileToDelete?.let {
-            val response = delete(
-                props.getUrlForFileDeletion(fileToDelete),
+    useRequest {
+        props.getUrlForAvailableFilesFetch?.invoke()?.let { url ->
+            val response = get(
+                url,
                 jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
-
             if (response.ok) {
-                setSelectedFiles {
-                    it.minus(fileToDelete)
-                }
-                setFileToDelete(null)
+                val presentIndices = selectedFiles.map { it.id }
+                response.decodeFromJsonString<List<FileDto>>()
+                    .let { fileDtos ->
+                        fileDtos.filter { fileDto ->
+                            fileDto.id !in presentIndices
+                        }
+                    }
+                    .let { setAvailableFiles(it) }
             }
         }
     }
@@ -85,6 +92,9 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
                     setSelectedFiles { files ->
                         files.plus(fileDto)
                     }
+                    props.updateFileDtos { fileDtos ->
+                        fileDtos.plus(fileDto)
+                    }
                 }
         }
     }
@@ -92,6 +102,22 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
     div {
         ul {
             className = ClassName("list-group")
+
+            // ===== SELECTOR =====
+            li {
+                className = ClassName("list-group-item d-flex justify-content-between align-items-center")
+                selectorBuilder(
+                    "Select a file from existing",
+                    availableFiles.map { it.name }.plus("Select a file from existing"),
+                    classes = "form-control custom-select"
+                ) { event ->
+                    val availableFile = availableFiles.first {
+                        it.name == event.target.value
+                    }
+                    setSelectedFiles { it.plus(availableFile) }
+                    setAvailableFiles { it.minus(availableFile) }
+                }
+            }
 
             // ===== UPLOAD FILES BUTTON =====
             li {
@@ -121,19 +147,9 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
             selectedFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn")
-                        fontAwesomeIcon(icon = faTrash)
-                        onClick = {
-                            val confirm = window.confirm(
-                                "Are you sure you want to delete ${file.name} file?"
-                            )
-                            if (confirm) {
-                                setFileToDelete(file)
-                                deleteFile()
-                            }
-                        }
+                    buttonBuilder(faTrash, null) {
+                        setSelectedFiles { it.minus(file) }
+                        setAvailableFiles { it.plus(file) }
                     }
                     +file.name
                 }
@@ -143,6 +159,8 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
     useTooltip()
 }
 
+typealias FileDtosSetter = ((List<FileDto>) -> List<FileDto>) -> Unit
+
 /**
  * Props for simpleFileUploader
  */
@@ -150,7 +168,12 @@ external interface SimpleFileUploaderProps : Props {
     /**
      * Callback to get url to get available files
      */
-    var getUrlForAvailableFilesFetch: () -> String
+    var getUrlForAvailableFilesFetch: (() -> String)?
+
+    /**
+     * Callback to get url to get files that are already present in demo
+     */
+    var getUrlForDemoFilesFetch: () -> String
 
     /**
      * Callback to delete file
@@ -161,6 +184,11 @@ external interface SimpleFileUploaderProps : Props {
      * Callback to get url to upload file
      */
     var getUrlForFileUpload: () -> String
+
+    /**
+     * Callback to update list of selected file ids
+     */
+    var updateFileDtos: FileDtosSetter
 
     /**
      * Flag that defines if the upload button is disabled
