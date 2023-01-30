@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.diktat
 
-import com.saveourtool.save.demo.DemoAdditionalParams
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,7 +12,7 @@ data class DiktatAdditionalParams(
     val mode: DiktatDemoMode = DiktatDemoMode.WARN,
     val tool: DiktatDemoTool = DiktatDemoTool.DIKTAT,
     val config: List<String> = defaultDiktatConfig,
-) : DemoAdditionalParams {
+) {
     companion object {
         /**
          * Default config for [DiktatDemoTool.DIKTAT]
