@@ -1,9 +1,11 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.config.ConfigProperties
+import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.toByteBufferFlux
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.asyncEffectIf
@@ -122,6 +124,8 @@ class DownloadToolService(
         .zipWith(toolService.getSupportedTools().toMono())
         .flatMapIterable { (availableFiles, supportedTools) ->
             supportedTools.map { it.toToolKey() }
+                .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+                .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
                 .filter { it !in availableFiles }
                 .also { tools ->
                     if (tools.isEmpty()) {
