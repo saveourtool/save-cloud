@@ -6,8 +6,8 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.storage.AbstractMigrationStorage
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
@@ -27,6 +27,7 @@ class DebugInfoStorage(
     configProperties: ConfigProperties,
     s3Client: S3AsyncClient,
     private val objectMapper: ObjectMapper,
+    private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
 ) : AbstractS3Storage<Long>(
     s3Client,
@@ -44,16 +45,22 @@ class DebugInfoStorage(
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]
      *
-     * @param testExecutionId
+     * @param executionId
      * @param testResultDebugInfo
      * @return count of saved bytes
      */
     fun upload(
-        testExecutionId: Long,
+        executionId: Long,
         testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> {
-        log.debug { "Writing debug info for $testExecutionId" }
-        return upload(testExecutionId, testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+        return blockingToMono { testExecutionService.getTestExecution(executionId, testResultDebugInfo.testResultLocation)?.requiredId() }
+            .switchIfEmptyToNotFound {
+                "Not found ${TestExecution::class.simpleName} by executionId $executionId and testResultLocation: ${testResultDebugInfo.testResultLocation}"
+            }
+            .flatMap { testExecutionId ->
+                log.debug { "Writing debug info for $testExecutionId" }
+                upload(testExecutionId, testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+            }
     }
 
     override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()

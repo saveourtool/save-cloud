@@ -167,17 +167,15 @@ class TestExecutionService(
                 testExecDto.pluginName,
                 testExecDto.filePath
             )
-            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
-            foundTestExec.also {
-                if (it.isEmpty) {
-                    log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
-                }
+            val testExecutionId: Long? = foundTestExec?.requiredId()
+            foundTestExec ?: run {
+                log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
             }
-                .filter {
+            foundTestExec?.takeIf {
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
-                .ifPresentOrElse({
+                ?.let {
                     it.startTime = testExecDto.startTimeSeconds?.secondsToJLocalDateTime()
                     it.endTime = testExecDto.endTimeSeconds?.secondsToJLocalDateTime()
                     it.status = testExecDto.status
@@ -199,11 +197,11 @@ class TestExecutionService(
                     }
 
                     testExecutionRepository.save(it)
-                },
-                    {
-                        lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
-                    })
+                }
+                ?: run {
+                    lostTests.add(testExecDto)
+                    log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
+                }
         }
         val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         execution.apply {
@@ -230,14 +228,6 @@ class TestExecutionService(
         }
         executionRepository.save(execution)
         return lostTests
-    }
-
-    fun getTestExecutionId(executionId: Long, testResultLocation: TestResultLocation): Long {
-        testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId,
-            testResultLocation.pluginName,
-            testResultLocation.testLocation
-        )
     }
 
     /**
@@ -291,11 +281,11 @@ class TestExecutionService(
                 executionId,
                 test.pluginName,
                 test.filePath
-            )
-                .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
-                    NoSuchElementException()
-                }
+            ).orNotFound {
+                val errorMessage = "Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}"
+                log.error(errorMessage)
+                errorMessage
+            }
             testExecutionRepository.save(testExecution.apply {
                 this.agent = agent
             })

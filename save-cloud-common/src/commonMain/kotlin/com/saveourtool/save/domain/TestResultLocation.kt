@@ -14,13 +14,15 @@ import kotlinx.serialization.Serializable
  *
  * @property testSuiteName name of test suite
  * @property pluginName name of the plugin, which executes this test
- * @property testLocation path to the test file
+ * @property testLocation path to the directory with test
+ * @property testName name of the test file
  */
 @Serializable
 data class TestResultLocation(
     val testSuiteName: String,
     val pluginName: String,
     val testLocation: String,
+    val testName: String,
 )
 
 /**

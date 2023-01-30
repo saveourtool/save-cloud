@@ -132,24 +132,19 @@ class DownloadFilesController(
     }
 
     /**
-     * @param testExecutionDto
+     * @param testExecutionId [com.saveourtool.save.entities.TestExecution.id]
      * @return [Mono] with content of DebugInfo
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
-    @PostMapping(path = ["/api/$v1/files/get-debug-info"])
+    @GetMapping(path = ["/api/$v1/files/get-debug-info"])
     fun getDebugInfo(
         @RequestParam testExecutionId: Long,
     ): Flux<ByteBuffer> = debugInfoStorage.download(testExecutionId)
-        .switchIfEmpty(
-            Mono.fromCallable {
-                logger.warn("Additional file for ${TestExecution::class.simpleName} with id $testExecutionId not found")
-            }
-                .toFlux()
-                .flatMap {
-                    Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"))
-                }
-        )
+        .switchIfEmptyToNotFound {
+            logger.warn("Additional file for ${TestExecution::class.simpleName} with id $testExecutionId not found")
+            "File not found"
+        }
 
     private fun getExecutionId(testExecutionDto: TestExecutionDto): Long {
         testExecutionDto.executionId?.let { return it }
@@ -162,39 +157,19 @@ class DownloadFilesController(
     }
 
     /**
-     * @param testExecutionDto
+     * @param executionId [com.saveourtool.save.entities.Execution.id]
      * @return [Mono] with response
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
-    @PostMapping(path = ["/api/$v1/files/get-execution-info"])
+    @GetMapping(path = ["/api/$v1/files/get-execution-info"])
     fun getExecutionInfo(
-        @RequestBody testExecutionDto: TestExecutionDto,
-    ): Flux<ByteBuffer> {
-        logger.debug("Processing getExecutionInfo : $testExecutionDto")
-        val executionId = getExecutionId(testExecutionDto)
-        return executionInfoStorage.download(executionId)
-            .switchIfEmpty(
-                Mono.fromCallable {
-                    logger.debug("ExecutionInfo for $executionId not found")
-                }
-                    .toFlux()
-                    .flatMap {
-                        Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"))
-                    }
-            )
-    }
-
-    /**
-     * @param executionId ID of execution that was executed for the test
-     * @param testResultDebugInfo additional info that should be stored
-     * @return [Mono] with count of uploaded bytes
-     */
-    @PostMapping(value = ["/internal/files/debug-info"])
-    fun uploadDebugInfo(
-        @RequestParam testExecutionId: Long,
-        @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = debugInfoStorage.upload(executionId, testResultDebugInfo)
+        @RequestParam executionId: Long,
+    ): Flux<ByteBuffer> = executionInfoStorage.download(executionId)
+        .switchIfEmptyToNotFound {
+            logger.debug("ExecutionInfo for $executionId not found")
+            "File not found"
+        }
 
     companion object {
         private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
