@@ -208,7 +208,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 column(id = "suiteName", header = "Test suite", { testExecution.testSuiteName }) {
                     Fragment.create {
                         td {
-                            +"${it.value}"
+                            +it.value
                         }
                     }
                 }

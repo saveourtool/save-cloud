@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -8,6 +7,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.agent.TestExecutionResult
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.Resource
@@ -137,12 +137,12 @@ class SandboxInternalController(
             }
 
     /**
-     * @param testExecutionsDto
+     * @param testExecutionResults
      * @return response with text value
      */
     @PostMapping("/upload-execution-data")
     fun saveExecutionData(
-        @RequestBody testExecutionsDto: List<TestExecutionDto>
+        @RequestBody testExecutionResults: List<TestExecutionResult>
     ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
         .toMono()
 

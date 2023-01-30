@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property cliArgs command line arguments for SAVE launch
- * @property executionDataUploadUrl an url to upload execution data ([List] of [TestExecutionDto])
+ * @property executionDataUploadUrl an url to upload execution data ([List] of [TestExecutionResult])
  * @property debugInfoUploadUrl an url to upload debug info ([TestResultDebugInfo])
  */
 @Serializable

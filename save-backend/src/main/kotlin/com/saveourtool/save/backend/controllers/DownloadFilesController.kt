@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.service.AgentService
@@ -10,7 +9,6 @@ import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.from
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -145,16 +143,6 @@ class DownloadFilesController(
             logger.warn("Additional file for ${TestExecution::class.simpleName} with id $testExecutionId not found")
             "File not found"
         }
-
-    private fun getExecutionId(testExecutionDto: TestExecutionDto): Long {
-        testExecutionDto.executionId?.let { return it }
-
-        val agentContainerId = testExecutionDto.agentContainerId
-            .orResponseStatusException(HttpStatus.BAD_REQUEST) {
-                "Request body should contain agentContainerId"
-            }
-        return agentService.getExecutionByContainerId(agentContainerId).requiredId()
-    }
 
     /**
      * @param executionId [com.saveourtool.save.entities.Execution.id]

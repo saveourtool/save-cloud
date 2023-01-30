@@ -16,7 +16,7 @@ import kotlin.io.path.name
 fun TestResultLocation.Companion.from(testExecutionDto: TestExecutionDto): TestResultLocation {
     val path = Paths.get(testExecutionDto.filePath)
     return TestResultLocation(
-        testExecutionDto.testSuiteName!!,
+        testExecutionDto.testSuiteName,
         testExecutionDto.pluginName,
         (path.parent ?: ".").toString(),
         path.name,

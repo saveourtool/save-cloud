@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
@@ -135,7 +136,7 @@ class TestExecutionService(
             testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
-     * @param testExecutionsDtos
+     * @param testExecutionResults
      * @return list of lost tests
      */
     @Suppress(
@@ -148,59 +149,59 @@ class TestExecutionService(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
-        log.debug { "Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}" }
+    fun saveTestResult(testExecutionResults: List<TestExecutionResult>): List<TestExecutionResult> {
+        log.debug { "Saving ${testExecutionResults.size} test results from agent ${testExecutionResults.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
-        val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
-            "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
+        val agentContainerId = requireNotNull(testExecutionResults.first().agentContainerId) {
+            "Attempt to save test results without assigned agent. testExecutionResults=$testExecutionResults"
         }
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
 
         val executionId = agentService.getExecution(agent).requiredId()
-        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        val lostTests: MutableList<TestExecutionResult> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { testExecDto ->
+        testExecutionResults.forEach { testExecutionResult ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
-                testExecDto.pluginName,
-                testExecDto.filePath
+                testExecutionResult.pluginName,
+                testExecutionResult.filePath
             )
             val testExecutionId: Long? = foundTestExec?.requiredId()
             foundTestExec ?: run {
-                log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
+                log.error("Test execution $testExecutionResult for execution id=$executionId was not found in the DB")
             }
             foundTestExec?.takeIf {
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
                 ?.let {
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToJLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToJLocalDateTime()
-                    it.status = testExecDto.status
-                    when (testExecDto.status) {
+                    it.startTime = testExecutionResult.startTimeSeconds?.secondsToJLocalDateTime()
+                    it.endTime = testExecutionResult.endTimeSeconds?.secondsToJLocalDateTime()
+                    it.status = testExecutionResult.status
+                    when (testExecutionResult.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
                         else -> counters.skipped++
                     }
-                    it.unmatched = testExecDto.unmatched
-                    it.matched = testExecDto.matched
-                    it.expected = testExecDto.expected
-                    it.unexpected = testExecDto.unexpected
+                    it.unmatched = testExecutionResult.unmatched
+                    it.matched = testExecutionResult.matched
+                    it.expected = testExecutionResult.expected
+                    it.unexpected = testExecutionResult.unexpected
 
                     with(counters) {
-                        unmatchedChecks += testExecDto.unmatched.orZeroIfNotApplicable()
-                        matchedChecks += testExecDto.matched.orZeroIfNotApplicable()
-                        expectedChecks += testExecDto.expected.orZeroIfNotApplicable()
-                        unexpectedChecks += testExecDto.unexpected.orZeroIfNotApplicable()
+                        unmatchedChecks += testExecutionResult.unmatched.orZeroIfNotApplicable()
+                        matchedChecks += testExecutionResult.matched.orZeroIfNotApplicable()
+                        expectedChecks += testExecutionResult.expected.orZeroIfNotApplicable()
+                        unexpectedChecks += testExecutionResult.unexpected.orZeroIfNotApplicable()
                     }
 
                     testExecutionRepository.save(it)
                 }
                 ?: run {
-                    lostTests.add(testExecDto)
-                    log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
+                    lostTests.add(testExecutionResult)
+                    log.error("Test execution $testExecutionResult with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                 }
         }
         val execution = executionRepository.findWithLockingById(executionId).orNotFound()
