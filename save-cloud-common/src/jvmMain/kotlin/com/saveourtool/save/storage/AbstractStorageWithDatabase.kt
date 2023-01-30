@@ -101,27 +101,17 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         } else {
             Mono.just(Unit)
         }
-            .flatMapMany {
-                storage.list()
+            .flatMap {
+                storage.detectAsyncUnexpectedIds(repository)
             }
-            .filterWhen { id ->
-                blockingToMono {
-                    repository.findById(id).isEmpty
-                }
-            }
-            .collectList()
             .flatMapIterable { unexpectedIds ->
-                if (unexpectedIds.isNotEmpty()) {
-                    val backupStorage = backupStorageCreator()
-                    log.warn {
-                        "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
-                    }
-                    generateSequence { backupStorage }.take(unexpectedIds.size)
-                        .toList()
-                        .zip(unexpectedIds)
-                } else {
-                    emptyList()
+                val backupStorage = backupStorageCreator()
+                log.warn {
+                    "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
                 }
+                generateSequence { backupStorage }.take(unexpectedIds.size)
+                    .toList()
+                    .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
                 backupStorage.upload(id, storage.download(id))
