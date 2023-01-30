@@ -19,6 +19,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.v1
+import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -45,12 +46,14 @@ import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import java.nio.ByteBuffer
 
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.Future
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
@@ -298,8 +301,25 @@ class DownloadFilesTest {
 
         private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
 
+        /**
+         * Sometimes, the [block][Mono.block] operation of the resulting [Mono]
+         * may get executed using a non-blocking scheduler, such as
+         * [Schedulers.single] or [Schedulers.parallel], resulting in a failure
+         * at [reactor.core.publisher.BlockingSingleSubscriber.blockingGet].
+         *
+         * As a workaround, we first convert the [Mono] to a [Future].
+         *
+         * See [#1787](https://github.com/saveourtool/save-cloud/pull/1787) for details.
+         *
+         * @see Mono.block
+         * @see Schedulers.single
+         * @see Schedulers.parallel
+         * @see reactor.core.publisher.BlockingSingleSubscriber.blockingGet
+         */
+        @Blocking
         private fun Flux<ByteBuffer>.collectToString(): String? = mapToInputStream()
             .map { it.bufferedReader().readText() }
-            .block()
+            .toFuture()
+            .get()
     }
 }
