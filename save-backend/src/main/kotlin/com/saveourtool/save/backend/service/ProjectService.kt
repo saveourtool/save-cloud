@@ -7,6 +7,8 @@ import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -203,4 +205,19 @@ class ProjectService(
      * @return [Project] with given [id]
      */
     fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param lazyMessage
+     * @return [Mono] of [Project] or [Mono.error] if [Project] is not found
+     */
+    fun projectByCoordinatesOrNotFound(
+        name: String,
+        organizationName: String,
+        lazyMessage: () -> String,
+    ): Mono<Project> = blockingToMono {
+        findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
+    }
+        .switchIfEmptyToNotFound(lazyMessage)
 }

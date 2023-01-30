@@ -1,11 +1,12 @@
 package com.saveourtool.save.demo.service
 
+import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.utils.toByteBufferFlux
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.utils.asyncEffect
+import com.saveourtool.save.utils.asyncEffectIf
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
@@ -13,6 +14,8 @@ import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
@@ -35,11 +38,12 @@ import kotlinx.serialization.json.Json
  * Service that downloads tools from GitHub when starting
  */
 @Service
-class GithubDownloadToolService(
+class DownloadToolService(
     private val toolStorage: ToolStorage,
     private val toolService: ToolService,
     private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
+    private val configProperties: ConfigProperties,
 ) {
     private val jsonSerializer = Json { ignoreUnknownKeys = true }
 
@@ -76,6 +80,14 @@ class GithubDownloadToolService(
     private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
         url(asset.downloadUrl)
         accept(asset.contentType())
+    }
+        .bodyAsChannel()
+        .toByteBufferFlux()
+
+    @Suppress("ReactiveStreamsUnusedPublisher")
+    private suspend fun downloadFileByFileId(fileId: Long): Flux<ByteBuffer> = httpClient.post {
+        url("${configProperties.backend}/files/download?fileId=$fileId")
+        accept(ContentType.Application.OctetStream)
     }
         .bodyAsChannel()
         .toByteBufferFlux()
@@ -149,20 +161,49 @@ class GithubDownloadToolService(
         .map { (repo, snapshot) ->
             toolService.saveIfNotPresent(repo, snapshot)
         }
-        .asyncEffect {
+        .asyncEffectIf({ this.id != null }) {
             blockingToMono { downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version) }
         }
 
     /**
-     * @param repo
-     * @param vcsTagName
+     * Get name of GitHub downloaded asset
+     *
+     * @param repo GitHub repo coordinates
+     * @param vcsTagName string that represents the version control system tag
      * @return executable name
      */
     fun getExecutableName(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName).name
 
+    /**
+     * Upload several [dependencies] to storage (will be overwritten if already present)
+     *
+     * @param dependencies list of [Dependency] to store in [toolStorage]
+     * @return number of dependencies that has been downloaded
+     */
+    fun downloadToStorage(dependencies: List<Dependency>) = dependencies.map { downloadToStorage(it) }
+        .size
+        .also { logger.info("Successfully downloaded $it files from file storage.") }
+
+    /**
+     * Upload [dependency] to storage (will be overwritten if already present)
+     *
+     * @param dependency that should be saved to [toolStorage]
+     * @return [Job]
+     */
+    fun downloadToStorage(dependency: Dependency) = scope.launch {
+        downloadFileByFileId(dependency.fileId)
+            .let { byteBuffers ->
+                with(dependency) {
+                    toolStorage.overwrite(ToolKey(demo.organizationName, demo.projectName, version, fileName), byteBuffers)
+                        .subscribe()
+                        .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
+                }
+            }
+    }
+
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        private val logger = getLogger<GithubDownloadToolService>()
+        private val logger = getLogger<DownloadToolService>()
         private const val GITHUB_API_URL = "https://api.github.com/repos"
         private const val LATEST_VERSION = "latest"
         private fun httpClient(): HttpClient = HttpClient {

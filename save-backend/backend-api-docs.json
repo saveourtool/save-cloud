@@ -1865,7 +1865,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DemoDto"
+                "$ref": "#/components/schemas/DemoCreationRequest"
               }
             }
           },
@@ -2101,6 +2101,7 @@
                 "schema": {
                   "type": "string",
                   "enum": [
+                    "ERROR",
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
@@ -2117,6 +2118,7 @@
                 "schema": {
                   "type": "string",
                   "enum": [
+                    "ERROR",
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
@@ -2133,6 +2135,7 @@
                 "schema": {
                   "type": "string",
                   "enum": [
+                    "ERROR",
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
@@ -8315,6 +8318,24 @@
           }
         }
       },
+      "DemoCreationRequest": {
+        "required": [
+          "demoDto",
+          "manuallyUploadedFileDtos"
+        ],
+        "type": "object",
+        "properties": {
+          "demoDto": {
+            "$ref": "#/components/schemas/DemoDto"
+          },
+          "manuallyUploadedFileDtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileDto"
+            }
+          }
+        }
+      },
       "DemoDto": {
         "required": [
           "fileName",
@@ -8361,6 +8382,7 @@
           "demoStatus": {
             "type": "string",
             "enum": [
+              "ERROR",
               "NOT_CREATED",
               "RUNNING",
               "STARTING",
