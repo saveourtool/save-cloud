@@ -17,9 +17,6 @@ import web.file.File
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
 
 /**
  * @param name
@@ -123,19 +120,6 @@ suspend fun WithRequestStatusContext.getDebugInfoFor(
     testExecutionDto: TestExecutionDto,
 ) = getDebugInfoFor(testExecutionDto, this::get)
 
-private suspend fun getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
-    get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
-) = get(
-        "$apiUrl/files/get-debug-info",
-        jso {
-            testExecutionId = testExecutionDto.requiredId()
-        },
-        jsonHeaders,
-        ::noopLoadingHandler,
-        ::noopResponseHandler,
-)
-
 /**
  * Fetch execution info for test execution
  *
@@ -153,4 +137,18 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler
+)
+
+@Suppress("TYPE_ALIAS")
+private suspend fun getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+    get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
+) = get(
+    "$apiUrl/files/get-debug-info",
+    jso {
+        testExecutionId = testExecutionDto.requiredId()
+    },
+    jsonHeaders,
+    ::noopLoadingHandler,
+    ::noopResponseHandler,
 )

@@ -168,11 +168,10 @@ class TestExecutionService(
                 testExecutionResult.pluginName,
                 testExecutionResult.filePath
             )
-            val testExecutionId: Long? = foundTestExec?.requiredId()
-            foundTestExec ?: run {
-                log.error("Test execution $testExecutionResult for execution id=$executionId was not found in the DB")
+            foundTestExec.also {
+                it ?: log.error("Test execution $testExecutionResult for execution id=$executionId was not found in the DB")
             }
-            foundTestExec?.takeIf {
+                ?.takeIf {
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
@@ -201,6 +200,7 @@ class TestExecutionService(
                 }
                 ?: run {
                     lostTests.add(testExecutionResult)
+                    val testExecutionId = foundTestExec?.requiredId()
                     log.error("Test execution $testExecutionResult with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
                 }
         }

@@ -1,17 +1,17 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
-import com.saveourtool.save.domain.TestResultDebugInfo
-
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
+import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
 import com.saveourtool.save.utils.*
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -52,16 +52,14 @@ class DebugInfoStorage(
     fun upload(
         executionId: Long,
         testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> {
-        return blockingToMono { testExecutionService.getTestExecution(executionId, testResultDebugInfo.testResultLocation)?.requiredId() }
-            .switchIfEmptyToNotFound {
-                "Not found ${TestExecution::class.simpleName} by executionId $executionId and testResultLocation: ${testResultDebugInfo.testResultLocation}"
-            }
-            .flatMap { testExecutionId ->
-                log.debug { "Writing debug info for $testExecutionId" }
-                upload(testExecutionId, testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
-            }
-    }
+    ): Mono<Long> = blockingToMono { testExecutionService.getTestExecution(executionId, testResultDebugInfo.testResultLocation)?.requiredId() }
+        .switchIfEmptyToNotFound {
+            "Not found ${TestExecution::class.simpleName} by executionId $executionId and testResultLocation: ${testResultDebugInfo.testResultLocation}"
+        }
+        .flatMap { testExecutionId ->
+            log.debug { "Writing debug info for $testExecutionId" }
+            upload(testExecutionId, testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+        }
 
     override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun buildS3KeySuffix(key: Long): String = key.toString()

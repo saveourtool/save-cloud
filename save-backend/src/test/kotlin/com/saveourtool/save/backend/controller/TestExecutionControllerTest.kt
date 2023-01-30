@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
@@ -118,7 +119,7 @@ class TestExecutionControllerTest {
     @WithMockUser
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
-        val testExecutionDtoFirst = TestExecutionDto(
+        val testExecutionDtoFirst = TestExecutionResult(
             "testPath29",
             "WarnPlugin",
             "container-3",
@@ -131,7 +132,7 @@ class TestExecutionControllerTest {
             expected = 0,
             unexpected = 0,
         )
-        val testExecutionDtoSecond = TestExecutionDto(
+        val testExecutionDtoSecond = TestExecutionResult(
             "testPath30",
             "WarnPlugin",
             "container-3",
@@ -177,7 +178,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should not save data if provided fields are invalid`() {
-        val testExecutionDto = TestExecutionDto(
+        val testExecutionDto = TestExecutionResult(
             "test-not-exists",
             "WarnPlugin",
             "container-1",

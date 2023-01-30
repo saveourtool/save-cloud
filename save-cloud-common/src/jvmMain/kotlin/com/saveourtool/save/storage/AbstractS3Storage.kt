@@ -144,7 +144,7 @@ abstract class AbstractS3Storage<K>(
 
     override fun doesExist(key: K): Mono<Boolean> = headObjectAsMono(key)
         .map { true }
-        .defaultIfEmpty(false)
+        .onErrorReturn(NoSuchKeyException::class.java, false)
 
     private fun headObjectAsMono(key: K) = HeadObjectRequest.builder()
         .bucket(bucketName)

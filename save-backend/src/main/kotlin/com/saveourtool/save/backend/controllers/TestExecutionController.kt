@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
@@ -21,11 +22,10 @@ import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import arrow.core.plus
-import com.saveourtool.save.agent.TestExecutionResult
-import com.saveourtool.save.utils.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
@@ -138,6 +138,9 @@ class TestExecutionController(
                     if (checkDebugInfo) {
                         debugInfoStorage.doesExist(testExecution.requiredId())
                             .logicalOr(executionInfoStorage.doesExist(testExecution.executionId))
+                            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                                "Failure while checking for debug info availability."
+                            }
                             .map { hasDebugInfo ->
                                 testExecution.toExtended(testMetrics = metrics, analysisResults = results, hasDebugInfo = hasDebugInfo)
                             }

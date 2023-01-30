@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
  * @property expected number of all checks/validations in test (unmatched + matched)
  * @property unexpected number of matched,but not expected checks/validations in test (false positive results)
  * @property executionId
+ * @property id ID of saved entity or null
  */
 @Serializable
 data class TestExecutionDto(
@@ -41,7 +42,7 @@ data class TestExecutionDto(
     val unexpected: Long?,
     val executionId: Long,
     override val id: Long? = null,
-): DtoWithId() {
+) : DtoWithId() {
     /**
      * @param hasDebugInfo whether debug info data is available for this test execution
      * @param testMetrics scalar test metrics.
