@@ -3,9 +3,9 @@ rootProject.name = "save-cloud"
 dependencyResolutionManagement {
     repositories {
         maven {
-            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")   
+            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             content {
-                includeGroup("com.saveourtool.save")
+                includeGroup("com.saveourtool.sarifutils")
             }
         }
         mavenCentral()
