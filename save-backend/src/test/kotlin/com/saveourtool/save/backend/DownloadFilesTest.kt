@@ -19,6 +19,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.v1
+import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -298,6 +299,7 @@ class DownloadFilesTest {
 
         private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
 
+        @Blocking
         private fun Flux<ByteBuffer>.collectToString(): String? = mapToInputStream()
             .map { it.bufferedReader().readText() }
             .block()
