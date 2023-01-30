@@ -3,6 +3,9 @@ package com.saveourtool.save.backend.configs
 import com.saveourtool.save.service.LokiConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentials
+import java.net.URI
 
 /**
  * Class for properties
@@ -12,10 +15,12 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property demoUrl url of save-demo
  * @property initialBatchSize initial size of tests batch (for further scaling)
  * @property fileStorage configuration of file storage
+ * @property fileStorage configuration of S3 storage
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
+ * @property s3Storage
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -25,6 +30,7 @@ data class ConfigProperties(
     val demoUrl: String,
     val initialBatchSize: Int,
     val fileStorage: FileStorageConfig,
+    val s3Storage: S3StorageConfig,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
     val testAnalysisSettings: TestAnalysisSettings = TestAnalysisSettings(),
@@ -36,6 +42,33 @@ data class ConfigProperties(
     data class FileStorageConfig(
         val location: String,
     )
+
+    /**
+     * @property endpoint S3 endpoint (URI)
+     * @property bucketName bucket name for all S3 storages
+     * @property prefix a common prefix for all S3 storages
+     * @property credentials credentials to S3
+     */
+    data class S3StorageConfig(
+        val endpoint: URI,
+        val bucketName: String,
+        val prefix: String = "",
+        val credentials: S3Credentials,
+    )
+
+    /**
+     * @property accessKeyId [AwsCredentials.accessKeyId]
+     * @property secretAccessKey [AwsCredentials.secretAccessKey]
+     */
+    data class S3Credentials(
+        val accessKeyId: String,
+        val secretAccessKey: String,
+    ) {
+        /**
+         * @return [AwsCredentials] created from this object
+         */
+        fun toAwsCredentials(): AwsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+    }
 
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)

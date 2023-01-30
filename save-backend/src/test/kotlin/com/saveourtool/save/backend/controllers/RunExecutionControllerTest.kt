@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.request.CreateExecutionRequest
@@ -44,7 +44,7 @@ import kotlin.io.path.writeText
 @SpringBootTest(classes = [SaveApplication::class])
 @EnableConfigurationProperties(ConfigProperties::class)
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @Suppress("TOO_LONG_FUNCTION")
 class RunExecutionControllerTest(
     @Autowired private var webClient: WebTestClient,
