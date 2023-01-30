@@ -1,5 +1,6 @@
 package com.saveourtool.save.sandbox.controller
 
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -7,7 +8,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.agent.TestExecutionResult
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.Resource
