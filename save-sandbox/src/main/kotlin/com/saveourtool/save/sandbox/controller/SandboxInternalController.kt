@@ -26,7 +26,6 @@ import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
 
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
-typealias StringResponse = ResponseEntity<String>
 
 /**
  * Sandbox implementation of endpoints which are required for save-agent
