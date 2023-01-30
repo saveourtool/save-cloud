@@ -25,9 +25,10 @@ repositories {
 }
 val jepArchive by configurations.creating
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
-    destinationDir = file("${buildDir}/distros/jep-distro")
-    from (tarTree(jepArchive.singleFile) )
+    destinationDir = file("$buildDir/distros/jep-distro")
+    from(tarTree(jepArchive.singleFile))
 }
 
 dependencies {
@@ -45,28 +46,28 @@ dependencies {
     }
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
-    runtimeOnly(fileTree("${buildDir}/distros/jep-distro").apply {
+    runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 run {
-    val jepLibraryPath = when {
-        isMac() -> "${buildDir}/distros/jep-distro/jep/libjep.jnilib"
-        isWindows() -> "${buildDir}/distros/jep-distro/jep/jep.dll"
-        isLinux() -> "${buildDir}/distros/jep-distro/jep/libjep.so"
+    val jepLibraryFile = when {
+        isMac() -> "libjep.jnilib"
+        isWindows() -> "jep.dll"
+        isLinux() -> "libjep.so"
         else -> throw Exception("Unknown operation system: ${System.getProperty("os.name")}")
     }
 
     tasks.withType<BootRun> {
-        environment("CPG_JEP_LIBRARY", jepLibraryPath)
+        environment("CPG_JEP_LIBRARY", "$buildDir/distros/jep-distro/jep/$jepLibraryFile")
     }
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar>().configureEach {
     from("requirements.txt")
-    from("${buildDir}/distros")
+    from("$buildDir/distros")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>().configureEach {
