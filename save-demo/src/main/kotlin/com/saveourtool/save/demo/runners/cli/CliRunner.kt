@@ -69,7 +69,7 @@ interface CliRunner <in P : DiktatAdditionalParams, in K : Any, out R : DiktatDe
      * @param tempRootDir path to root of temp directories (somewhere in storage)
      * @param testFileName test file name that should be
      * @param additionalDirectoryTree additional directory names that should be in directory hierarchy to working dir (below randomly generated dir)
-     * @return result as [DemoResult]
+     * @return result as [DiktatDemoResult]
      */
     fun runInTempDir(
         testLines: String,
