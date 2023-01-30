@@ -145,8 +145,8 @@ class TestExecutionControllerTest {
             expected = 0,
             unexpected = 0,
         )
-        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
-        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
+        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId, true)
+        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId, false)
         webClient.post()
             .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -155,10 +155,10 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = getAllTestExecutions()
-        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
-        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToJLocalDateTime().withNano(0) })
+        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId, true)
+        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId, false)
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds.secondsToJLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds.secondsToJLocalDateTime().withNano(0) })
         assertEquals(passedTestsBefore, passedTestsAfter - 1)
         assertEquals(failedTestsBefore, failedTestsAfter - 1)
         assertTrue(tests.any {

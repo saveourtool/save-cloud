@@ -173,8 +173,8 @@ class TestExecutionService(
                     it.status == TestResultStatus.RUNNING
                 }
                 ?.let {
-                    it.startTime = testExecutionResult.startTimeSeconds?.secondsToJLocalDateTime()
-                    it.endTime = testExecutionResult.endTimeSeconds?.secondsToJLocalDateTime()
+                    it.startTime = testExecutionResult.startTimeSeconds.secondsToJLocalDateTime()
+                    it.endTime = testExecutionResult.endTimeSeconds.secondsToJLocalDateTime()
                     it.status = testExecutionResult.status
                     when (testExecutionResult.status) {
                         TestResultStatus.PASSED -> counters.passed++

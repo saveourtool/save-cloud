@@ -49,7 +49,7 @@ class ExecutionInfoStorage(
      */
     fun upsertIfRequired(executionInfo: ExecutionUpdateDto): Mono<Unit> = executionInfo.failReason?.let {
         upsert(executionInfo)
-    } ?: Mono.empty()
+    } ?: Mono.just(Unit)
 
     private fun upsert(executionInfo: ExecutionUpdateDto): Mono<Unit> = doesExist(executionInfo.id)
         .flatMap { exists ->

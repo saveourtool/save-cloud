@@ -67,6 +67,7 @@ abstract class AbstractS3Storage<K>(
 
         return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
             .toMono()
+            .handleNoSuchKeyException()
             .flatMapMany { response ->
                 Flux.from(response)
             }
@@ -129,7 +130,9 @@ abstract class AbstractS3Storage<K>(
             .build()
         return s3Client.deleteObject(request)
             .toMono()
+            .handleNoSuchKeyException()
             .thenReturn(true)
+            .defaultIfEmpty(false)
     }
 
     override fun lastModified(key: K): Mono<Instant> = headObjectAsMono(key)
@@ -145,7 +148,6 @@ abstract class AbstractS3Storage<K>(
     override fun doesExist(key: K): Mono<Boolean> = headObjectAsMono(key)
         .map { true }
         .defaultIfEmpty(false)
-        .onErrorReturn(NoSuchKeyException::class.java, false)
 
     private fun headObjectAsMono(key: K) = HeadObjectRequest.builder()
         .bucket(bucketName)
@@ -153,6 +155,7 @@ abstract class AbstractS3Storage<K>(
         .build()
         .let { s3Client.headObject(it) }
         .toMono()
+        .handleNoSuchKeyException()
 
     /**
      * @param s3KeySuffix cannot start with [PATH_DELIMITER]
@@ -173,6 +176,10 @@ abstract class AbstractS3Storage<K>(
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
+        }
+
+        private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
+            Mono.empty()
         }
     }
 }
