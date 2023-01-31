@@ -33,6 +33,8 @@ kotlin {
                 implementation(libs.save.common)
                 implementation(libs.kotlinx.coroutines.core)
 
+                implementation(libs.kotlinx.serialization.properties)
+
                 implementation(libs.ktor.server.core)
                 implementation(libs.ktor.server.cio)
 
