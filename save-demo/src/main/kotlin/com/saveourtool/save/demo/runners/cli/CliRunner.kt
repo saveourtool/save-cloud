@@ -61,7 +61,6 @@ interface CliRunner : Runner {
     }
 
     /**
-     * @param testLines code that will be consumed by the tool
      * @param demoRunRequest params of type [DemoRunRequest]
      * @param tempRootDir path to root of temp directories (somewhere in storage)
      * @param testFileName test file name that should be
@@ -69,7 +68,6 @@ interface CliRunner : Runner {
      * @return result as [DemoResult]
      */
     fun runInTempDir(
-        testLines: String,
         demoRunRequest: DemoRunRequest,
         tempRootDir: Path,
         testFileName: String,
@@ -90,7 +88,7 @@ interface CliRunner : Runner {
         }
         .let { (createdTempDir, workingDir) ->
             try {
-                val testPath = requireNotNull(prepareFile(workingDir / testFileName, testLines))
+                val testPath = requireNotNull(prepareFile(workingDir / testFileName, demoRunRequest.codeLines.joinToString("\n")))
                 run(testPath, demoRunRequest)
             } finally {
                 createdTempDir.toFile().deleteRecursively()
