@@ -1,24 +1,20 @@
 package com.saveourtool.save.demo.runners
 
-import com.saveourtool.save.demo.diktat.DiktatAdditionalParams
-import com.saveourtool.save.demo.diktat.DiktatDemoResult
+import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import java.nio.file.Path
 
 /**
  * Interface should be implemented by all the runners.
- *
- * @param P additional params that are required for demo run - should implement [DiktatAdditionalParams]
- * @param K storage key needed to let runner download tools from ToolStorage
- * @param R result of demo run - should implement [DiktatAdditionalParams]
  */
-interface Runner<in P : DiktatAdditionalParams, in K : Any, out R : DiktatDemoResult> {
+interface Runner {
     /**
      * @param testPath path to the test file
-     * @param params additional params of type [DiktatAdditionalParams]
-     * @return tool's report as [DiktatAdditionalParams]
+     * @param demoRunRequest params of type [DemoRunRequest]
+     * @return tool's report as [DemoResult]
      */
     fun run(
         testPath: Path,
-        params: P,
-    ): R
+        demoRunRequest: DemoRunRequest,
+    ): DemoResult
 }

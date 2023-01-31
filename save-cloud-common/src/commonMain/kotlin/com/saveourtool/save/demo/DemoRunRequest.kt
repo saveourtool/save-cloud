@@ -1,24 +1,29 @@
-package com.saveourtool.save.demo.diktat
+package com.saveourtool.save.demo
 
+import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import kotlinx.serialization.Serializable
 
 /**
- * @property mode to tell if the analysis should be performed in [DiktatDemoMode.WARN] or in [DiktatDemoMode.FIX]
- * @property tool to tell if the analysis should be performed by [DiktatDemoTool.DIKTAT] or [DiktatDemoTool.KTLINT]
- * @property config additional configuration file for [DiktatDemoTool.DIKTAT]
+ * @property codeLines file as String that contains code requested for diktat demo run
+ * @property mode
+ * @property config
  */
+
 @Serializable
-data class DiktatAdditionalParams(
-    val mode: DiktatDemoMode = DiktatDemoMode.WARN,
-    val tool: DiktatDemoTool = DiktatDemoTool.DIKTAT,
-    val config: List<String> = defaultDiktatConfig,
+data class DemoRunRequest(
+    val codeLines: List<String>,
+    val mode: DemoMode?,
+    val config: List<String>?,
 ) {
     companion object {
+        val empty = DemoRunRequest(emptyList(), null, null)
+
         /**
          * Default config for [DiktatDemoTool.DIKTAT]
          * // TODO: move me to storage
          */
-        val defaultDiktatConfig = """
+
+        private val defaultDiktatConfig = """
             |- name: DIKTAT_COMMON
             |  enabled: true
             |  configuration:
@@ -118,5 +123,7 @@ data class DiktatAdditionalParams(
             |- name: COMPLEX_EXPRESSION
             |  enabled: true
         """.trimMargin().split("\n")
+
+        val diktat = DemoRunRequest(emptyList(), DemoMode.WARN, defaultDiktatConfig)
     }
 }

@@ -1,4 +1,4 @@
-package com.saveourtool.save.demo.diktat
+package com.saveourtool.save.demo
 
 import kotlinx.serialization.Serializable
 
@@ -11,13 +11,13 @@ import kotlinx.serialization.Serializable
  * @property terminationCode termination code of a tool running process
  */
 @Serializable
-data class DiktatDemoResult(
+data class DemoResult(
     val warnings: List<String>,
     val outputText: List<String>,
     val logs: List<String>,
     val terminationCode: Int,
 ) {
     companion object {
-        val empty = DiktatDemoResult(emptyList(), emptyList(), emptyList(), -1)
+        val empty = DemoResult(emptyList(), emptyList(), emptyList(), -1)
     }
 }
