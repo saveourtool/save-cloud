@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.cpg
 
-import com.saveourtool.save.demo.DemoResult
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
@@ -15,7 +14,7 @@ data class CpgResult(
     val cpgGraph: CpgGraph,
     val applicationName: String,
     val logs: List<String>,
-) : DemoResult {
+) {
     companion object {
         val empty = CpgResult(CpgGraph.placeholder, "", emptyList())
     }
