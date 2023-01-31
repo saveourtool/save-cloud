@@ -42,7 +42,7 @@
     <changeSet id="demo-add_output_file_name" author="argentum" context="dev or prod">
         <addColumn tableName="demo">
             <column name="output_file_name" type="varchar(256)">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
         </addColumn>
     </changeSet>
