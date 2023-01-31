@@ -1,9 +1,9 @@
-package com.saveourtool.save.demo.diktat
+package com.saveourtool.save.demo
 
 /**
  * Enum that represents possible demo modes in diktat-demo
  */
-enum class DiktatDemoMode {
+enum class DemoMode {
     /**
      * Run demo in fix mode
      */

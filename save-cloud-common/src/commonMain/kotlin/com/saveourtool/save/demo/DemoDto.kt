@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  * @property fileName name of an input file
  * @property sdk required sdk for tool run
  * @property configName name of config file or null if no config file is consumed
- * @property projectCoordinates GitHub project coordinates
- * @property githubProjectCoordinates
+ * @property outputFileName name of output file (or null if [outputFileName] is [fileName])
+ * @property githubProjectCoordinates GitHub project coordinates
  */
 @Serializable
 data class DemoDto(
@@ -22,6 +22,7 @@ data class DemoDto(
     val fileName: String,
     val sdk: Sdk = Sdk.Default,
     val configName: String? = null,
+    val outputFileName: String? = null,
     val githubProjectCoordinates: ProjectCoordinates? = null,
 ) {
     /**
@@ -44,6 +45,7 @@ data class DemoDto(
             "",
             "",
             Sdk.Default,
+            null,
             null,
             ProjectCoordinates("", ""),
         )

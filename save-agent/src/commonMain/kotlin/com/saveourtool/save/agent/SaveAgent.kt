@@ -304,7 +304,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TYPE_ALIAS")
-    private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionDto>> {
+    private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionResult>> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         return reports.flatMap { report ->
@@ -312,14 +312,14 @@ class SaveAgent(private val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     val testResultStatus = tr.status.toTestResultStatus()
-                    debugInfo to TestExecutionDto(
-                        tr.resources.test.toString(),
-                        pluginExecution.plugin,
-                        config.info.containerId,
-                        config.info.containerName,
-                        testResultStatus,
-                        executionStartSeconds.get(),
-                        currentTime.epochSeconds,
+                    debugInfo to TestExecutionResult(
+                        filePath = tr.resources.test.toString(),
+                        pluginName = pluginExecution.plugin,
+                        agentContainerId = config.info.containerId,
+                        agentContainerName = config.info.containerName,
+                        status = testResultStatus,
+                        startTimeSeconds = executionStartSeconds.get(),
+                        endTimeSeconds = currentTime.epochSeconds,
                         unmatched = debugInfo.getCountWarningsAsLong { it.unmatched },
                         matched = debugInfo.getCountWarningsAsLong { it.matched },
                         expected = debugInfo.getCountWarningsAsLong { it.expected },
@@ -390,11 +390,11 @@ class SaveAgent(private val config: AgentConfiguration,
             .body()
     }
 
-    private suspend fun postExecutionData(executionDataUploadUrl: String, testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
-        logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
+    private suspend fun postExecutionData(executionDataUploadUrl: String, testExecutionResults: List<TestExecutionResult>) = httpClient.post {
+        logInfoCustom("Posting execution data to backend, ${testExecutionResults.size} test executions")
         url(executionDataUploadUrl)
         contentType(ContentType.Application.Json)
-        setBody(testExecutionDtos)
+        setBody(testExecutionResults)
     }
 
     private suspend fun sendReport(debugInfoUploadUrl: String, testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
