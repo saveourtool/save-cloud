@@ -12,10 +12,10 @@ import kotlinx.serialization.Serializable
 data class DemoRunRequest(
     val codeLines: List<String>,
     val mode: DemoMode?,
-    val config: List<String>,
+    val config: List<String>?,
 ) {
     companion object {
-        val empty = DemoRunRequest(emptyList(), null, emptyList())
+        val empty = DemoRunRequest(emptyList(), null, null)
 
         /**
          * Default config for [DiktatDemoTool.DIKTAT]
@@ -121,6 +121,6 @@ data class DemoRunRequest(
             |- name: COMPLEX_EXPRESSION
             |  enabled: true
         """.trimMargin().split("\n")
-        val diktat = DemoRunRequest(emptyList(), DemoMode.WARN, defaultDiktatConfig)
+        val diktatDemoRunRequest = DemoRunRequest(emptyList(), DemoMode.WARN, defaultDiktatConfig)
     }
 }

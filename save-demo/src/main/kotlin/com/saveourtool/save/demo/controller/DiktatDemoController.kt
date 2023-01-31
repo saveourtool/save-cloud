@@ -32,6 +32,6 @@ class DiktatDemoController(
     fun runCheckDemo(
         @RequestBody demoRunRequest: DemoRunRequest,
     ): Mono<DemoResult> = blockingToMono {
-        diktatDemoService.launch(demoRunRequest.codeLines, demoRunRequest)
+        diktatDemoService.launch(demoRunRequest)
     }
 }

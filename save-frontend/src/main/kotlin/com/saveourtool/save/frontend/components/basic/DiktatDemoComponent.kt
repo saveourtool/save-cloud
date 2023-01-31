@@ -125,7 +125,7 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWa
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest.diktat)
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest.diktatDemoRunRequest)
     val (diktatResult, setDiktatResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
@@ -202,7 +202,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                         setDiktatRunRequest { runRequest ->
                             (event.target.asDynamic()["result"] as String?)?.let {
                                 runRequest.copy(
-                                    config = (it.split("\n"))
+                                    config = it.split("\n")
                                 )
                             } ?: runRequest
                         }
@@ -221,7 +221,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                     }
                 }
                 fontAwesomeIcon(icon = faUpload)
-                val uploadOrReplace = if (diktatRunRequest.config
+                val uploadOrReplace = if (diktatRunRequest.config.orEmpty()
                     .isEmpty()) {
                     "Upload"
                 } else {

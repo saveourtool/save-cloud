@@ -11,11 +11,10 @@ abstract class AbstractDemoService(
     private val runner: Runner,
 ) {
     /**
-     * Run demo on [demoFileLines] with [runRequest] and return result as [DemoResult]
+     * Run demo on [runRequest] and return result as [DemoResult]
      *
-     * @param demoFileLines list of lines of input file that will be used for demo
      * @param runRequest additional params as [DemoRunRequest]
      * @return report as [DemoResult]
      */
-    abstract fun launch(demoFileLines: List<String>, runRequest: DemoRunRequest = DemoRunRequest.empty): DemoResult
+    abstract fun launch(runRequest: DemoRunRequest = DemoRunRequest.empty): DemoResult
 }

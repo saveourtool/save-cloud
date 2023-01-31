@@ -23,11 +23,9 @@ class DiktatDemoService(
     private val tmpDir = Path.of(configProperties.fileStorage.location) / "tmp"
 
     /**
-     * @param demoFileLines kotlin file to be checked
      * @param runRequest instance of [DemoRunRequest]
      */
-    override fun launch(demoFileLines: List<String>, runRequest: DemoRunRequest): DemoResult = diktatCliRunner.runInTempDir(
-        demoFileLines.joinToString("\n"),
+    override fun launch(runRequest: DemoRunRequest): DemoResult = diktatCliRunner.runInTempDir(
         runRequest,
         tmpDir,
         testFileName = KOTLIN_TEST_NAME,
