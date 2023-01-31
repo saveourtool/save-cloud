@@ -221,7 +221,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                     }
                 }
                 fontAwesomeIcon(icon = faUpload)
-                val uploadOrReplace = if (diktatRunRequest.config.orEmpty()
+                val uploadOrReplace = if (diktatRunRequest.config
                     .isEmpty()) {
                     "Upload"
                 } else {

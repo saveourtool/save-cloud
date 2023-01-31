@@ -80,7 +80,7 @@ class DiktatCliRunner(
     override fun run(testPath: Path, demoRunRequest: DemoRunRequest): DemoResult {
         val workingDir = testPath.parent
         val outputPath = workingDir / REPORT_FILE_NAME
-        val configPath = prepareFile(workingDir / DIKTAT_CONFIG_NAME, demoRunRequest.config?.joinToString("\n"))
+        val configPath = prepareFile(workingDir / DIKTAT_CONFIG_NAME, demoRunRequest.config.joinToString("\n"))
         val launchLogPath = workingDir / LOG_FILE_NAME
         val command = getRunCommand(workingDir, testPath, outputPath, configPath, demoRunRequest)
         val processBuilder = createProcessBuilder(command).apply {

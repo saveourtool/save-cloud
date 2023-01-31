@@ -4,18 +4,18 @@ import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import kotlinx.serialization.Serializable
 
 /**
- * @property codeLines file as String that contains code requested for diktat demo run
- * @property mode
- * @property config
+ * @property codeLines file as String that contains code requested for demo run
+ * @property mode mode to tell if the analysis should be performed in [DemoMode.WARN] or in [DemoMode.FIX]
+ * @property config additional configuration file for demo
  */
 @Serializable
 data class DemoRunRequest(
     val codeLines: List<String>,
     val mode: DemoMode?,
-    val config: List<String>?,
+    val config: List<String>,
 ) {
     companion object {
-        val empty = DemoRunRequest(emptyList(), null, null)
+        val empty = DemoRunRequest(emptyList(), null, emptyList())
 
         /**
          * Default config for [DiktatDemoTool.DIKTAT]
