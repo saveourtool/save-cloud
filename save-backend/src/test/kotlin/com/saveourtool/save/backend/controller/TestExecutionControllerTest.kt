@@ -10,6 +10,8 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.storage.DebugInfoStorage
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
@@ -21,6 +23,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -34,6 +38,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.kotlin.core.publisher.toMono
 import java.time.Instant
 
 @SpringBootTest(classes = [SaveApplication::class])
@@ -58,9 +63,17 @@ class TestExecutionControllerTest {
     @Autowired
     private lateinit var transactionManager: PlatformTransactionManager
 
+    @MockBean
+    private lateinit var debugInfoStorage: DebugInfoStorage
+
+    @MockBean
+    private lateinit var executionInfoStorage: ExecutionInfoStorage
+
     @BeforeEach
     fun setUp() {
         transactionTemplate = TransactionTemplate(transactionManager)
+        whenever(debugInfoStorage.doesExist(any())).thenReturn(false.toMono())
+        whenever(executionInfoStorage.doesExist(any())).thenReturn(false.toMono())
     }
 
     @Test
