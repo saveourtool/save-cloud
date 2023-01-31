@@ -37,6 +37,8 @@ spec:
               mountPath: {{ include "backend.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
+            - name: s3-secrets
+              mountPath: {{ .Values.backend.s3SecretFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -100,8 +102,6 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
-            - mountPath: {{ .Values.backend.s3SecretFile }}
-              name: s3-secrets
       {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
@@ -111,7 +111,7 @@ spec:
         - name: database-secret
           secret:
             secretName: db-secrets
-        - name: s3-secret
+        - name: s3-secrets
           secret:
             secretName: s3-secrets
         - name: migrations-data
