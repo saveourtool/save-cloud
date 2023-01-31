@@ -101,9 +101,11 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         } else {
             Mono.just(Unit)
         }
-            .flatMap {
+            .flatMapMany {
                 storage.detectAsyncUnexpectedIds(repository)
             }
+            .collectList()
+            .filter { it.isNotEmpty() }
             .flatMapIterable { unexpectedIds ->
                 val backupStorage = backupStorageCreator()
                 log.warn {

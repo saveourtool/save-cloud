@@ -62,8 +62,6 @@ import kotlin.io.path.*
     WebConfig::class,
     NoopWebSecurityConfig::class,
     AvatarStorage::class,
-    DebugInfoStorage::class,
-    ExecutionInfoStorage::class,
     S11nTestConfig::class,
 )
 @AutoConfigureWebTestClient
@@ -74,6 +72,8 @@ import kotlin.io.path.*
     MockBean(ExecutionService::class),
     MockBean(AgentService::class),
     MockBean(ProjectPermissionEvaluator::class),
+    MockBean(DebugInfoStorage::class),
+    MockBean(ExecutionInfoStorage::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {

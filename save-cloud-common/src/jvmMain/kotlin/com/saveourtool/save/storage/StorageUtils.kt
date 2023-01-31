@@ -9,19 +9,17 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.info
 import org.slf4j.Logger
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
  * @param repository repository for [E] to check that corresponded [E] exists
- * @return [Mono] without body
+ * @return [Flux] with unexpected ids
  */
 fun <S : Storage<Long>, E : BaseEntity> S.detectAsyncUnexpectedIds(
     repository: BaseEntityRepository<E>,
-): Mono<List<Long>> = list()
+): Flux<Long> = list()
     .filterWhen { id -> blockingToMono { repository.findById(id).isEmpty } }
-    .flatMap { unexpectedId -> delete(unexpectedId).map { unexpectedId } }
-    .collectList()
-    .filter { it.isNotEmpty() }
 
 /**
  * @param repository repository for [E] to check that corresponded [E] exists
@@ -32,6 +30,9 @@ inline fun <S : Storage<Long>, reified E : BaseEntity> S.deleteAsyncUnexpectedId
     repository: BaseEntityRepository<E>,
     log: Logger,
 ): Mono<Unit> = detectAsyncUnexpectedIds(repository)
+    .flatMap { unexpectedId -> delete(unexpectedId).map { unexpectedId } }
+    .collectList()
+    .filter { it.isNotEmpty() }
     .map { unexpectedIds ->
         log.info {
             "Deleted unexpected ids $unexpectedIds from storage ${this::class.simpleName} since associated ${E::class.simpleName} don't exist"
