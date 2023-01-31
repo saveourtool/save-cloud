@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
@@ -12,23 +13,16 @@ import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
-import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.mapLeft
-import com.saveourtool.save.utils.mapRight
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import arrow.core.plus
@@ -41,9 +35,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.extra.bool.logicalOr
@@ -124,17 +118,6 @@ class TestExecutionController(
             metadata.extendWith(testExecution)
         }
         .mapLeft(TestExecution::toDto)
-        .runIf({ checkDebugInfo }) {
-            flatMap { (testExecutionDto, metadata) ->
-                debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
-                    .logicalOr(executionInfoStorage.doesExist(executionId))
-                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                        "Failure while checking for debug info availability."
-                    }.map { hasDebugInfo ->
-                        testExecutionDto.copy(hasDebugInfo = hasDebugInfo) to metadata
-                    }
-            }
-        }
         .mapRight(testIdGenerator::testId)
         .run {
             when {
@@ -151,14 +134,31 @@ class TestExecutionController(
                             testAnalysisService.analyze(testId).collectList(),
                             Pair<TestExecutionDto, TestMetrics>::plus,
                         )
-                }.map { (testExecution, metrics, results) ->
-                    testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                }.flatMap { (testExecution, metrics, results) ->
+                    if (checkDebugInfo) {
+                        testExecution.hasDebugInfoAsMono()
+                            .map { hasDebugInfo ->
+                                testExecution.toExtended(testMetrics = metrics, analysisResults = results, hasDebugInfo = hasDebugInfo)
+                            }
+                    } else {
+                        testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                            .toMono()
+                    }
                 }
 
-                else -> map { (testExecution, _) ->
-                    testExecution.toExtended()
+                else -> flatMap { (testExecution, _) ->
+                    testExecution.hasDebugInfoAsMono()
+                        .map { hasDebugInfo ->
+                            testExecution.toExtended(hasDebugInfo = hasDebugInfo)
+                        }
                 }
             }
+        }
+
+    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
+        .logicalOr(executionInfoStorage.doesExist(executionId))
+        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+            "Failure while checking for debug info availability."
         }
 
     /**
@@ -216,12 +216,9 @@ class TestExecutionController(
         }
         .map {
             testExecutionService.getTestExecution(executionId, testResultLocation)
-                .map { it.toDto() }
-                .orElseThrow {
-                    ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Test execution not found for executionId=$executionId and $testResultLocation"
-                    )
+                ?.toDto()
+                .orNotFound {
+                    "Test execution not found for executionId=$executionId and $testResultLocation"
                 }
         }
 
@@ -278,14 +275,14 @@ class TestExecutionController(
     ) = testExecutionService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
 
     /**
-     * @param testExecutionsDto
+     * @param testExecutionResults
      * @return response
      */
     @PostMapping(value = ["/internal/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>): ResponseEntity<String> = try {
-        if (testExecutionsDto.isEmpty()) {
+    fun saveTestResult(@RequestBody testExecutionResults: List<TestExecutionResult>): ResponseEntity<String> = try {
+        if (testExecutionResults.isEmpty()) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
-        } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
+        } else if (testExecutionService.saveTestResult(testExecutionResults).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")
