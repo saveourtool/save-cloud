@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
  * @property mode
  * @property config
  */
-
 @Serializable
 data class DemoRunRequest(
     val codeLines: List<String>,
@@ -22,7 +21,6 @@ data class DemoRunRequest(
          * Default config for [DiktatDemoTool.DIKTAT]
          * // TODO: move me to storage
          */
-
         private val defaultDiktatConfig = """
             |- name: DIKTAT_COMMON
             |  enabled: true
@@ -123,7 +121,6 @@ data class DemoRunRequest(
             |- name: COMPLEX_EXPRESSION
             |  enabled: true
         """.trimMargin().split("\n")
-
         val diktat = DemoRunRequest(emptyList(), DemoMode.WARN, defaultDiktatConfig)
     }
 }

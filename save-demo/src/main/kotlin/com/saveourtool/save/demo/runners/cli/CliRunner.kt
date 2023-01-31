@@ -30,7 +30,7 @@ interface CliRunner : Runner {
     /**
      * @param workingDir the directory where the tool is run
      * @param toolKey storage key to find requested tool
-     * @return executable file (diktat or ktlint)
+     * @return executable file diktat
      */
     fun getExecutable(workingDir: Path, toolKey: ToolKey): Path
 
