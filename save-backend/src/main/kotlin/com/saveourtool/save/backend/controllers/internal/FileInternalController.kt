@@ -1,15 +1,14 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 /**
@@ -21,6 +20,7 @@ import reactor.core.publisher.Mono
 @RequestMapping("/internal/files")
 class FileInternalController(
     private val fileStorage: FileStorage,
+    private val debugInfoStorage: DebugInfoStorage,
 ) {
     /**
      * @param fileId
@@ -43,6 +43,17 @@ class FileInternalController(
                         .body(fileStorage.download(fileDto))
                 }
         }
+
+    /**
+     * @param executionId ID of execution that was executed for the test
+     * @param testResultDebugInfo additional info that should be stored
+     * @return [Mono] with count of uploaded bytes
+     */
+    @PostMapping(value = ["/debug-info"])
+    fun uploadDebugInfo(
+        @RequestParam executionId: Long,
+        @RequestBody testResultDebugInfo: TestResultDebugInfo,
+    ): Mono<Long> = debugInfoStorage.upload(executionId, testResultDebugInfo)
 
     companion object {
         private val log = LoggerFactory.getLogger(FileInternalController::class.java)

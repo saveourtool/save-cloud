@@ -288,17 +288,21 @@ class HeartbeatControllerTest {
         // that's mean, that part of results is lost
         val testExecutions: List<TestExecutionDto> = listOf(
             TestExecutionDto(
-                "testPath63",
-                "WarnPlugin",
-                "test",
-                "test",
-                TestResultStatus.READY_FOR_TESTING,
-                0,
-                0,
+                filePath = "testPath63",
+                pluginName = "WarnPlugin",
+                agentContainerId = "test",
+                agentContainerName = "test",
+                status = TestResultStatus.READY_FOR_TESTING,
+                startTimeSeconds = 0,
+                endTimeSeconds = 0,
+                testSuiteName = "N/A",
+                tags = emptyList(),
                 unmatched = 3,
                 matched = 2,
                 expected = 0,
                 unexpected = 0,
+                executionId = -1L,
+                id = -1L,
             )
         )
 

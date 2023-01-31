@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.cpg
 
-import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.utils.Languages
 import kotlinx.serialization.Serializable
 
@@ -12,4 +11,4 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CpgAdditionalParams(
     val language: Languages = Languages.KOTLIN,
-) : DemoAdditionalParams
+)
