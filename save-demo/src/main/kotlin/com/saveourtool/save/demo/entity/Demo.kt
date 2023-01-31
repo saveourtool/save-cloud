@@ -16,7 +16,7 @@ import javax.persistence.Entity
  * @property runCommand command that runs the tool on test file with name [fileName]
  * @property fileName name that the tested input file should have
  * @property configName name of tool config file (or null if no config is needed)
- * @property outputFileName name of
+ * @property outputFileName name of output file
  * @property githubOrganizationName name of organization from GitHub
  * @property githubProjectName name of project from GitHub
  */
@@ -71,7 +71,7 @@ fun DemoDto.toDemo() = Demo(
     runCommand,
     fileName,
     configName,
-    githubProjectCoordinates?.organizationName,
     outputFileName,
+    githubProjectCoordinates?.organizationName,
     githubProjectCoordinates?.projectName,
 )

@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  * @property fileName name of an input file
  * @property sdk required sdk for tool run
  * @property configName name of config file or null if no config file is consumed
- * @property projectCoordinates GitHub project coordinates
- * @property githubProjectCoordinates
+ * @property outputFileName name output file
+ * @property githubProjectCoordinates GitHub project coordinates
  */
 @Serializable
 data class DemoDto(

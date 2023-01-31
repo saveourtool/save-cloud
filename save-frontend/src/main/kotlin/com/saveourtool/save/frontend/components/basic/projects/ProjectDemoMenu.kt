@@ -274,6 +274,7 @@ private fun ChildrenBuilder.renderFileUploading(
     }
 }
 
+@Suppress("TOO_LONG_FUNCTION")
 private fun ChildrenBuilder.renderRunSettings(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, disabled: Boolean) {
     div {
         div {
@@ -286,6 +287,20 @@ private fun ChildrenBuilder.renderRunSettings(demoDto: DemoDto, setDemoDto: Stat
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(runCommand = event.target.value)
+                    }
+                }
+            }
+        }
+        div {
+            input {
+                className = ClassName("form-control col mb-2")
+                autoComplete = AutoComplete.off
+                placeholder = "Config name"
+                value = demoDto.configName
+                this.disabled = disabled
+                onChange = { event ->
+                    setDemoDto { request ->
+                        request.copy(configName = event.target.value.ifBlank { null })
                     }
                 }
             }
@@ -307,12 +322,12 @@ private fun ChildrenBuilder.renderRunSettings(demoDto: DemoDto, setDemoDto: Stat
             input {
                 className = ClassName("form-control col ml-1")
                 autoComplete = AutoComplete.off
-                placeholder = "Config name"
-                value = demoDto.configName
+                placeholder = "Output file name"
+                value = demoDto.outputFileName
                 this.disabled = disabled
                 onChange = { event ->
                     setDemoDto { request ->
-                        request.copy(configName = event.target.value.ifBlank { null })
+                        request.copy(outputFileName = event.target.value.ifBlank { null })
                     }
                 }
             }
