@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DemoRunRequest(
     val codeLines: List<String>,
-    val mode: DemoMode?,
-    val config: List<String>?,
+    val mode: DemoMode? = null,
+    val config: List<String>? = null,
 ) {
     companion object {
         val empty = DemoRunRequest(emptyList(), null, null)
