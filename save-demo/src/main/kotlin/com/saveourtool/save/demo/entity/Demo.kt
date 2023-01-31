@@ -16,7 +16,7 @@ import javax.persistence.Entity
  * @property runCommand command that runs the tool on test file with name [fileName]
  * @property fileName name that the tested input file should have
  * @property configName name of tool config file (or null if no config is needed)
- * @property outputFileName name of output file
+ * @property outputFileName name of output file (or null if [outputFileName] is [fileName])
  * @property githubOrganizationName name of organization from GitHub
  * @property githubProjectName name of project from GitHub
  */
