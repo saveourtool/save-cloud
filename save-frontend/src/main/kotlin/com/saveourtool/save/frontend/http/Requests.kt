@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
+import js.core.jso
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -16,26 +17,6 @@ import web.file.File
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
-/**
- * @param testExecutionDto
- */
-suspend fun ComponentWithScope<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(testExecutionDto, this::post)
-
-/**
- * @param testExecutionDto
- */
-suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(testExecutionDto: TestExecutionDto) =
-        getExecutionInfoFor(testExecutionDto, this::post)
-
-/**
- * @param testExecutionDto
- */
-suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(testExecutionDto, this::post)
 
 /**
  * @param name
@@ -122,40 +103,52 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
  * Fetch debug info for test execution
  *
  * @param testExecutionDto
- * @param post
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
-private suspend fun getDebugInfoFor(
+suspend fun ComponentWithScope<*, *>.getDebugInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
-) = post(
-    "$apiUrl/files/get-debug-info",
-    Headers().apply {
-        set("Content-Type", "application/json")
-    },
-    Json.encodeToString(testExecutionDto),
-    ::noopLoadingHandler,
-    ::noopResponseHandler
-)
+) = getDebugInfoFor(testExecutionDto, this::get)
+
+/**
+ * Fetch debug info for test execution
+ *
+ * @param testExecutionDto
+ * @return Response
+ */
+suspend fun WithRequestStatusContext.getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+) = getDebugInfoFor(testExecutionDto, this::get)
 
 /**
  * Fetch execution info for test execution
  *
  * @param testExecutionDto
- * @param post
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
-private suspend fun getExecutionInfoFor(
+suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
-) = post(
+) = get(
     "$apiUrl/files/get-execution-info",
-    Headers().apply {
-        set("Content-Type", "application/json")
+    params = jso<dynamic> {
+        executionId = testExecutionDto.executionId
     },
-    Json.encodeToString(testExecutionDto),
+    jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler
+)
+
+@Suppress("TYPE_ALIAS")
+private suspend fun getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+    get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
+) = get(
+    "$apiUrl/files/get-debug-info",
+    jso {
+        testExecutionId = testExecutionDto.requiredId()
+    },
+    jsonHeaders,
+    ::noopLoadingHandler,
+    ::noopResponseHandler,
 )

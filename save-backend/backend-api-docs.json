@@ -2661,18 +2661,19 @@
       }
     },
     "/api/v1/files/get-debug-info": {
-      "post": {
+      "get": {
         "operationId": "getDebugInfo",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TestExecutionDto"
-              }
+        "parameters": [
+          {
+            "in": "query",
+            "name": "testExecutionId",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "401": {
             "content": {
@@ -2730,18 +2731,19 @@
       }
     },
     "/api/v1/files/get-execution-info": {
-      "post": {
+      "get": {
         "operationId": "getExecutionInfo",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TestExecutionDto"
-              }
+        "parameters": [
+          {
+            "in": "query",
+            "name": "executionId",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "401": {
             "content": {
@@ -9244,10 +9246,12 @@
       },
       "TestExecutionDto": {
         "required": [
+          "executionId",
           "filePath",
           "pluginName",
           "status",
-          "tags"
+          "tags",
+          "testSuiteName"
         ],
         "type": "object",
         "properties": {
@@ -9272,8 +9276,9 @@
           "filePath": {
             "type": "string"
           },
-          "hasDebugInfo": {
-            "type": "boolean"
+          "id": {
+            "type": "integer",
+            "format": "int64"
           },
           "matched": {
             "type": "integer",
@@ -9330,6 +9335,9 @@
             "items": {
               "$ref": "#/components/schemas/AnalysisResult"
             }
+          },
+          "hasDebugInfo": {
+            "type": "boolean"
           },
           "testExecution": {
             "$ref": "#/components/schemas/TestExecutionDto"
@@ -9401,8 +9409,7 @@
       "TestResultLocation": {
         "required": [
           "pluginName",
-          "testLocation",
-          "testName",
+          "testPath",
           "testSuiteName"
         ],
         "type": "object",
@@ -9410,10 +9417,7 @@
           "pluginName": {
             "type": "string"
           },
-          "testLocation": {
-            "type": "string"
-          },
-          "testName": {
+          "testPath": {
             "type": "string"
           },
           "testSuiteName": {
