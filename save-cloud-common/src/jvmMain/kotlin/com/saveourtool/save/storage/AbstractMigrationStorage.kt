@@ -4,6 +4,7 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,11 +30,21 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
      */
     @PostConstruct
     fun migrate() {
+        migrateAsync().subscribe()
+    }
+
+    /**
+     * Async method which copies file from one storage to another
+     *
+     * @return [Mono] without value
+     */
+    fun migrateAsync(): Mono<Unit> {
         require(!isMigrationStarted.compareAndExchange(false, true)) {
             "Migration cannot be called more than 1 time, migration is in progress"
         }
-        oldStorage.list()
-            .flatMap { doMigrate(it) }
+        return oldStorage.list()
+            .flatMap { migrateKey(it) }
+            .switchIfEmpty(true.toMono())
             .then(
                 Mono.fromCallable {
                     require(!isMigrationFinished.compareAndExchange(false, true)) {
@@ -44,10 +55,9 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                     }
                 }
             )
-            .subscribe()
     }
 
-    private fun doMigrate(oldKey: O): Mono<Boolean> = blockingToMono { oldKey.toNewKey() }
+    private fun migrateKey(oldKey: O): Mono<Boolean> = blockingToMono { oldKey.toNewKey() }
         .filterWhen { newKey ->
             newStorage.doesExist(newKey)
                 .map { existedInNewStorage ->

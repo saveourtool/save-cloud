@@ -14,6 +14,7 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.TagOpt
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.jetbrains.annotations.Blocking
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
@@ -42,6 +43,7 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
  * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
+@Blocking
 fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = branch to Constants.R_HEADS)
 
 /**
@@ -50,6 +52,7 @@ fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): GitCom
  * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
+@Blocking
 fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
 
 /**
@@ -58,6 +61,7 @@ fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): GitCommi
  * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
+@Blocking
 fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
 
 /**
@@ -105,6 +109,7 @@ private fun Map<String, Ref>.findDefaultBranchName(): String? = this[Constants.H
     ?.name
     ?.replace(Constants.R_HEADS, "")
 
+@Blocking
 private fun GitDto.doCloneToDirectory(
     pathToDirectory: Path,
     branchWithPrefix: Pair<String, String>? = null,

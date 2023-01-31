@@ -59,11 +59,15 @@ kotlin {
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
+                api(libs.jetbrains.annotations)
                 implementation(libs.reactor.kotlin.extensions)
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
                 implementation(libs.annotation.api)
+                implementation(project.dependencies.platform(libs.aws.sdk.bom))
+                implementation(libs.aws.sdk.s3)
+                implementation(libs.aws.sdk.netty.nio)
             }
         }
         val jvmTest by getting {

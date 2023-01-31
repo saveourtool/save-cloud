@@ -20,6 +20,7 @@ import java.util.stream.Collectors
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
+import kotlin.jvm.Throws
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
@@ -87,6 +88,21 @@ fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::
     .takeWhile { it != stop }
     .map { it.name }
     .toList()
+
+/**
+ * Requires that this path is absolute, throwing an [IllegalArgumentException]
+ * if it's not.
+ *
+ * @return this path.
+ * @throws IllegalArgumentException if this path is relative.
+ */
+@Throws(IllegalArgumentException::class)
+fun Path.requireIsAbsolute(): Path =
+        apply {
+            require(isAbsolute) {
+                "The path is not absolute: $this"
+            }
+        }
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes
