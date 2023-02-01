@@ -58,7 +58,7 @@ data class ConfigProperties(
         val bucketName: String,
         val prefix: String = "",
         val credentials: S3Credentials,
-        val httpClient: S3HttpClientConfig,
+        val httpClient: S3HttpClientConfig = S3HttpClientConfig(),
     )
 
     /**
