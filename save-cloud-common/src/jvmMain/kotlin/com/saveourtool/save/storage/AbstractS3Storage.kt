@@ -93,7 +93,7 @@ abstract class AbstractS3Storage<K>(
                             .key(response.key())
                             .uploadId(response.uploadId())
                             .multipartUpload { builder ->
-                                builder.parts(completedParts)
+                                builder.parts(completedParts.sortedBy { it.partNumber() })
                             }
                             .build()
                         s3Client.completeMultipartUpload(completeRequest)
