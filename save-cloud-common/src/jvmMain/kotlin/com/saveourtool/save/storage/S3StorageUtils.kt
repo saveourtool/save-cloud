@@ -10,6 +10,12 @@ package com.saveourtool.save.storage
 const val PATH_DELIMITER = "/"
 
 /**
+ * @receiver key in S3 as [String]
+ * @return parts [this] split by [PATH_DELIMITER]
+ */
+fun String.s3KeyToParts(): List<String> = removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
+
+/**
  * @param parts should not end or start with [PATH_DELIMITER] -- will be deleted
  * @return a s3 key by concat [parts] and a single [PATH_DELIMITER] between them
  */
@@ -21,9 +27,3 @@ fun concatS3Key(vararg parts: String): String = parts.map { it.removePrefix(PATH
         }
     }
     .joinToString(PATH_DELIMITER)
-
-/**
- * @receiver key in S3 as [String]
- * @return parts [this] split by [PATH_DELIMITER]
- */
-fun String.s3KeyToParts(): List<String> = removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)

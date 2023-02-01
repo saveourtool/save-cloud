@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Types of avatar
+ * @property folder
  */
 @Serializable
 enum class AvatarType(val folder: String) {

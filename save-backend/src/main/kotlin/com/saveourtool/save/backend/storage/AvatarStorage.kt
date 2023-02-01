@@ -56,4 +56,3 @@ class AvatarStorage(configProperties: ConfigProperties) :
     override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir.resolve(key.type.folder)
         .resolve(key.objectName)
 }
-

@@ -36,9 +36,7 @@ class AvatarS3Storage(
         )
     }
 
-    override fun buildS3KeySuffix(key: AvatarKey): String {
-        return concatS3Key(key.type.folder, key.objectName)
-    }
+    override fun buildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.folder, key.objectName)
 
     /**
      * @param key
@@ -52,4 +50,3 @@ class AvatarS3Storage(
         .switchIfEmpty(Mono.just(true))
         .flatMap { upload(key, content) }
 }
-

@@ -18,6 +18,11 @@ class S3StorageUtilsKtTest {
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             concatS3Key("", "")
         }
+
+        Assertions.assertEquals(
+            "prefix/middle/suffix",
+            concatS3Key("prefix", "/middle", "/suffix")
+        )
     }
 
     private fun doTestConcatS3Key(prefix: String, suffix: String, expectedValue: String) {
