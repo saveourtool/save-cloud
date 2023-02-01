@@ -40,10 +40,9 @@ import java.nio.ByteBuffer
 )
 @Suppress("LongParameterList")
 class DownloadFilesController(
-    private val avatarStorage: AvatarStorage,
+    private val avatarStorage: MigrationAvatarStorage,
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
-    private val agentService: AgentService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
 ) {
