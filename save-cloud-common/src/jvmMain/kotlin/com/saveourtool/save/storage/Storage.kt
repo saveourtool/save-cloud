@@ -49,6 +49,14 @@ interface Storage<K> {
 
     /**
      * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return count of written bytes
+     */
+    fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
+
+    /**
+     * @param key a key for provided content
      * @param content
      * @return count of written bytes
      */

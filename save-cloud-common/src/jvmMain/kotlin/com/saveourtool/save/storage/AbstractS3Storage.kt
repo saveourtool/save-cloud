@@ -4,8 +4,11 @@ import com.saveourtool.save.utils.getLogger
 
 import org.slf4j.Logger
 import org.springframework.http.MediaType
+import org.springframework.web.reactive.function.BodyExtractors.toFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -16,6 +19,7 @@ import software.amazon.awssdk.services.s3.model.*
 
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 /**
  * S3 implementation of Storage
@@ -56,7 +60,7 @@ abstract class AbstractS3Storage<K>(
         }
         .build()
         .let {
-            s3Client.listObjectsV2(it).toMono()
+            s3Client.listObjectsV2(it).toMonoAndPublishOn()
         }
 
     override fun download(key: K): Flux<ByteBuffer> {
@@ -66,10 +70,10 @@ abstract class AbstractS3Storage<K>(
             .build()
 
         return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
-            .toMono()
+            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
             .flatMapMany { response ->
-                Flux.from(response)
+                response.toFlux()
             }
     }
 
@@ -80,7 +84,7 @@ abstract class AbstractS3Storage<K>(
             .key(buildS3Key(key))
             .build()
         return s3Client.createMultipartUpload(request)
-            .toMono()
+            .toMonoAndPublishOn()
             .flatMap { response ->
                 content.index()
                     .flatMap { (index, buffer) ->
@@ -97,7 +101,7 @@ abstract class AbstractS3Storage<K>(
                             }
                             .build()
                         s3Client.completeMultipartUpload(completeRequest)
-                            .toMono()
+                            .toMonoAndPublishOn()
                     }
             }
             .flatMap {
@@ -114,7 +118,7 @@ abstract class AbstractS3Storage<K>(
             .build()
         val nextPartRequestBody = AsyncRequestBody.fromByteBuffer(contentPart)
         return s3Client.uploadPart(nextPartRequest, nextPartRequestBody)
-            .toMono()
+            .toMonoAndPublishOn()
             .map { partResponse ->
                 CompletedPart.builder()
                     .eTag(partResponse.eTag())
@@ -129,7 +133,7 @@ abstract class AbstractS3Storage<K>(
             .key(buildS3Key(key))
             .build()
         return s3Client.deleteObject(request)
-            .toMono()
+            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
             .thenReturn(true)
             .defaultIfEmpty(false)
@@ -154,7 +158,7 @@ abstract class AbstractS3Storage<K>(
         .key(buildS3Key(key))
         .build()
         .let { s3Client.headObject(it) }
-        .toMono()
+        .toMonoAndPublishOn()
         .handleNoSuchKeyException()
 
     /**
@@ -172,11 +176,15 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
+        private val scheduler = Schedulers.newBoundedElastic(5, 1000, "s3-storage")
+
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
         }
+
+        private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
 
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()

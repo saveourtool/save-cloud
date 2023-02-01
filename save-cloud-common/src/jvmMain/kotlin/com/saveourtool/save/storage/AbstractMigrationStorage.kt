@@ -114,6 +114,8 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
 
     override fun upload(key: O, content: Flux<ByteBuffer>): Mono<Long> = validateAndRun { newStorage.upload(key.toNewKey(), content) }
 
+    override fun upload(key: O, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = validateAndRun { newStorage.upload(key.toNewKey(), contentLength, content) }
+
     override fun delete(key: O): Mono<Boolean> = validateAndRun { newStorage.delete(key.toNewKey()) }
 
     override fun lastModified(key: O): Mono<Instant> = validateAndRun { newStorage.lastModified(key.toNewKey()) }
