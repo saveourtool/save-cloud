@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // Using dependencies with Kotlin 1.8 requires compatible embedded Kotlin in Gradle.
     // Gradle >= 7.6.0 (containing `kotlin-dsl` >= 2.4.0) is compatible; Gradle 7.5.x still embeds Kotlin 1.6.x.
@@ -21,4 +23,11 @@ dependencies {
     implementation(libs.diktat.gradle.plugin)
     implementation(libs.gradle.plugin.spotless)
     implementation(libs.publish.gradle.plugin)
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
+    }
 }
