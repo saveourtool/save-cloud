@@ -29,7 +29,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return [AvatarKey] object is built by [Path]
      */
     override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey = AvatarKey(
-        type = AvatarType.findByFolder(pathToContent.parent.name)
+        type = AvatarType.findByUrlPath(pathToContent.parent.name)
             .orNotFound {
                 "Not supported type for path: ${pathToContent.parent.name}"
             },
@@ -53,6 +53,6 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @param key
      * @return [Path] is built by [AvatarKey] object
      */
-    override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir.resolve(key.type.folder)
+    override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir.resolve(key.type.urlPath)
         .resolve(key.objectName)
 }

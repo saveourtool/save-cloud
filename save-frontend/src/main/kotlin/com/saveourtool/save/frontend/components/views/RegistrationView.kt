@@ -243,7 +243,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             scope.launch {
                 element.files!!.asList().single().let { file ->
                     val response = post(
-                        "$apiUrl/image/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
+                        "$apiUrl/avatar/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
                         Headers(),
                         FormData().apply {
                             append("file", file)

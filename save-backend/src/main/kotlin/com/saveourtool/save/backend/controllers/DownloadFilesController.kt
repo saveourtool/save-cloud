@@ -1,8 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.domain.*
@@ -18,10 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -39,11 +34,8 @@ import java.nio.ByteBuffer
 )
 @Suppress("LongParameterList")
 class DownloadFilesController(
-    private val avatarStorage: MigrationAvatarStorage,
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
-    private val organizationService: OrganizationService,
-    private val userDetailsService: UserDetailsService,
 ) {
     @Operation(
         method = "GET",
@@ -94,36 +86,6 @@ class DownloadFilesController(
                     "Can't find $executable with the requested version $version"
                 }
             }
-
-    /**
-     * @param partMono image to be uploaded
-     * @param owner owner name
-     * @param type type of avatar
-     * @return [Mono] with response
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    @PostMapping(path = ["/api/$v1/image/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadImage(
-        @RequestPart("file") partMono: Mono<FilePart>,
-        @RequestParam owner: String,
-        @RequestParam type: AvatarType
-    ): Mono<StringResponse> = partMono.flatMap { part ->
-        val avatarKey = AvatarKey(
-            type,
-            owner,
-        )
-        val content = part.content().map { it.asByteBuffer() }
-        avatarStorage.upsert(avatarKey, content).map {
-            logger.info("Saved $it bytes of $avatarKey")
-            avatarKey.getRelativePath()
-        }
-    }.map { path ->
-        when (type) {
-            AvatarType.ORGANIZATION -> organizationService.saveAvatar(owner, path)
-            AvatarType.USER -> userDetailsService.saveAvatar(owner, path)
-        }
-        ResponseEntity.status(HttpStatus.OK).body("Image was successfully uploaded")
-    }
 
     /**
      * @param testExecutionId [com.saveourtool.save.entities.TestExecution.id]

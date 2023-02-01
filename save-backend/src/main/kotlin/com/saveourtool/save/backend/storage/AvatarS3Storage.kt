@@ -28,7 +28,7 @@ class AvatarS3Storage(
     override fun buildKey(s3KeySuffix: String): AvatarKey {
         val (typeStr, objectName) = s3KeySuffix.s3KeyToParts()
         return AvatarKey(
-            type = AvatarType.findByFolder(typeStr)
+            type = AvatarType.findByUrlPath(typeStr)
                 .orNotFound {
                     "Not supported type for path: $typeStr"
                 },
@@ -36,7 +36,7 @@ class AvatarS3Storage(
         )
     }
 
-    override fun buildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.folder, key.objectName)
+    override fun buildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.urlPath, key.objectName)
 
     /**
      * @param key
