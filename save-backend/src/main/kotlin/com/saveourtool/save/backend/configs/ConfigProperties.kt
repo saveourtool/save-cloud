@@ -6,6 +6,9 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import java.net.URI
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * Class for properties
@@ -48,12 +51,14 @@ data class ConfigProperties(
      * @property bucketName bucket name for all S3 storages
      * @property prefix a common prefix for all S3 storages
      * @property credentials credentials to S3
+     * @property httpClient configuration for http client to S3
      */
     data class S3StorageConfig(
         val endpoint: URI,
         val bucketName: String,
         val prefix: String = "",
         val credentials: S3Credentials,
+        val httpClient: S3HttpClientConfig = S3HttpClientConfig(),
     )
 
     /**
@@ -69,6 +74,15 @@ data class ConfigProperties(
          */
         fun toAwsCredentials(): AwsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
     }
+
+    /**
+     * @property maxConnections
+     * @property connectionTimeout
+     */
+    data class S3HttpClientConfig(
+        val maxConnections: Int = 5,
+        val connectionTimeout: Duration = 30.seconds.toJavaDuration()
+    )
 
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)
