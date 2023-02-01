@@ -288,16 +288,6 @@ class DownloadFilesTest {
     }
 
     companion object {
-        @TempDir internal lateinit var tmpDir: Path
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("backend.fileStorage.location") {
-                tmpDir.absolutePathString()
-            }
-        }
-
         private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
 
         /**

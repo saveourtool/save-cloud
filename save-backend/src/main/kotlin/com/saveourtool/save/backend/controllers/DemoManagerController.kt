@@ -43,7 +43,6 @@ class DemoManagerController(
     private val projectService: ProjectService,
     private val lnkProjectGithubService: LnkProjectGithubService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-    private val fileStorage: FileStorage,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
