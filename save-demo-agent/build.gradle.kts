@@ -8,18 +8,18 @@ plugins {
 }
 
 kotlin {
-    val configureNative: Action<KotlinNativeTargetWithHostTests> = Action<KotlinNativeTargetWithHostTests> {
-            binaries {
-                all {
-                    binaryOptions["memoryModel"] = "experimental"
-                    freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
-                }
-                executable {
-                    entryPoint = "com.saveourtool.save.demo.agent.main"
-                    baseName = "save-demo-agent"
-                }
+    val configureNative: Action<KotlinNativeTargetWithHostTests> = Action {
+        binaries {
+            all {
+                binaryOptions["memoryModel"] = "experimental"
+                freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
+            }
+            executable {
+                entryPoint = "com.saveourtool.save.demo.agent.main"
+                baseName = "save-demo-agent"
             }
         }
+    }
     macosX64(configureNative)
     linuxX64(configureNative)
 
