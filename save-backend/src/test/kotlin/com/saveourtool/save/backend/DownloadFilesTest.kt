@@ -61,7 +61,6 @@ import kotlin.io.path.*
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    AvatarStorage::class,
     S11nTestConfig::class,
 )
 @AutoConfigureWebTestClient

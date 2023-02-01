@@ -37,7 +37,6 @@ class TestsSourceSnapshotStorage(
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
-    Path.of(configProperties.fileStorage.location) / "testSuites",
     s3Client,
     configProperties.s3Storage.bucketName,
     concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),

@@ -31,7 +31,6 @@ class FileStorage(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
-    Path.of(configProperties.fileStorage.location) / "storage",
     s3Client,
     configProperties.s3Storage.bucketName,
     concatS3Key(configProperties.s3Storage.prefix, "storage"),

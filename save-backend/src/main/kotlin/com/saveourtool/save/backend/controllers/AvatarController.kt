@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.AvatarKey
-import com.saveourtool.save.backend.storage.MigrationAvatarStorage
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -37,7 +37,7 @@ import kotlin.time.toJavaDuration
 @RestController
 @RequestMapping(path = ["/api/$v1/avatar"])
 internal class AvatarController(
-    private val avatarStorage: MigrationAvatarStorage,
+    private val avatarStorage: AvatarStorage,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
 ) {
