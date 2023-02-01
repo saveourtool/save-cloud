@@ -11,111 +11,74 @@
     }
   ],
   "paths": {
-    "/api/v1/avatar/organizations/{organizationName}": {
-      "get": {
-        "description": "Download an avatar for organization.",
-        "operationId": "forOrganization",
+    "/api/v1/avatar/upload": {
+      "post": {
+        "description": "Upload an avatar for user or organization.",
+        "operationId": "uploadImage",
         "parameters": [
           {
-            "description": "organization name",
-            "in": "path",
-            "name": "organizationName",
+            "description": "user name or organization name",
+            "in": "query",
+            "name": "owner",
             "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "description": "image name of avatar",
-            "in": "path",
-            "name": "imageName",
+            "description": "type of avatar",
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "USER"
+              ]
+            }
+          },
+          {
+            "description": "body of avatar",
+            "in": "query",
+            "name": "file",
             "required": true
           }
         ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
+                  "type": "string"
                 }
               }
             },
-            "description": "Returns content of the file."
+            "description": "Avatar uploaded successfully."
           },
           "401": {
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
+                  "type": "string"
                 }
               }
             },
@@ -125,45 +88,11 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
+                  "type": "string"
                 }
               }
             },
-            "description": "Execution with provided ID is not found."
+            "description": "User or organization not found."
           }
         },
         "security": [
@@ -171,30 +100,38 @@
             "basic": []
           }
         ],
-        "summary": "Download an avatar for organization.",
+        "summary": "Upload an avatar for user or organization.",
         "tags": [
           "avatars"
         ]
       }
     },
-    "/api/v1/avatar/users/{userName}": {
+    "/api/v1/avatar/{typeStr}/{owner}": {
       "get": {
-        "description": "Download an avatar for user.",
-        "operationId": "forUser",
+        "description": "Download an avatar for user or organization.",
+        "operationId": "getImage",
         "parameters": [
           {
-            "description": "user name",
             "in": "path",
-            "name": "userName",
+            "name": "typeStr",
             "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "description": "image name of avatar",
+            "description": "user name or organization name",
             "in": "path",
-            "name": "imageName",
+            "name": "owner",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "type of avatar",
+            "in": "path",
+            "name": "type",
             "required": true
           }
         ],
@@ -329,7 +266,7 @@
                 }
               }
             },
-            "description": "Execution with provided ID is not found."
+            "description": "User not found."
           }
         },
         "security": [
@@ -337,7 +274,7 @@
             "basic": []
           }
         ],
-        "summary": "Download an avatar for user.",
+        "summary": "Download an avatar for user or organization.",
         "tags": [
           "avatars"
         ]
@@ -2962,71 +2899,6 @@
           }
         ],
         "summary": "Upload a file by project coordinates, name and uploaded time in millis.",
-        "tags": [
-          "files"
-        ]
-      }
-    },
-    "/api/v1/image/upload": {
-      "post": {
-        "operationId": "uploadImage",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "owner",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "type",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ORGANIZATION",
-                "USER"
-              ]
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": [
-                  "file"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
         "tags": [
           "files"
         ]
