@@ -1,4 +1,4 @@
-
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithHostTests
 
 @Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
@@ -8,27 +8,23 @@ plugins {
 }
 
 kotlin {
-    val nativeTarget = when (System.getProperty("os.name")) {
-        "Mac OS X" -> macosX64("native")
-        "Linux" -> linuxX64("native")
-        else -> throw GradleException("Host OS is not supported.")
-    }
-
-    nativeTarget.apply {
-        binaries {
-            all {
-                binaryOptions["memoryModel"] = "experimental"
-                freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
-            }
-            executable {
-                entryPoint = "com.saveourtool.save.demo.agent.main"
-                baseName = "save-demo-agent"
+    val configureNative: Action<KotlinNativeTargetWithHostTests> = Action<KotlinNativeTargetWithHostTests> {
+            binaries {
+                all {
+                    binaryOptions["memoryModel"] = "experimental"
+                    freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
+                }
+                executable {
+                    entryPoint = "com.saveourtool.save.demo.agent.main"
+                    baseName = "save-demo-agent"
+                }
             }
         }
-    }
+    macosX64(configureNative)
+    linuxX64(configureNative)
 
     sourceSets {
-        val nativeMain by getting {
+        val nativeMain by creating {
             dependencies {
                 implementation(libs.save.common)
                 implementation(libs.kotlinx.coroutines.core)
@@ -40,11 +36,25 @@ kotlin {
                 implementation(libs.ktor.client.cio)
             }
         }
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
 
-        val nativeTest by getting {
+        val nativeTest by creating {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
+        }
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
     }
 }
+
+
