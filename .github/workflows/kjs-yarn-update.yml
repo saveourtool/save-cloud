@@ -29,7 +29,7 @@ jobs:
         with:
           gradle-version: wrapper
           arguments: |
-            kotlinStoreYarnLock
+            kotlinUpgradeYarnLock
             --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
