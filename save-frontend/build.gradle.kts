@@ -49,7 +49,9 @@ kotlin {
                 }
             }
             commonWebpackConfig {
-                cssSupport.enabled = true
+                cssSupport {
+                    enabled = true
+                }
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
