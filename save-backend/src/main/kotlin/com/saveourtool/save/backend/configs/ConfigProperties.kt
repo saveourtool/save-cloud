@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import java.net.URI
 import java.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -76,12 +77,14 @@ data class ConfigProperties(
     }
 
     /**
-     * @property maxConnections
+     * @property maxConcurrency
      * @property connectionTimeout
+     * @property connectionAcquisitionTimeout
      */
     data class S3HttpClientConfig(
-        val maxConnections: Int = 5,
-        val connectionTimeout: Duration = 30.seconds.toJavaDuration()
+        val maxConcurrency: Int = 5,
+        val connectionTimeout: Duration = 30.seconds.toJavaDuration(),
+        val connectionAcquisitionTimeout: Duration = 1.minutes.toJavaDuration(),
     )
 
     /**
