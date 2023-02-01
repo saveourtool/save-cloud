@@ -8357,6 +8357,9 @@
           "githubProjectCoordinates": {
             "$ref": "#/components/schemas/ProjectCoordinates"
           },
+          "outputFileName": {
+            "type": "string"
+          },
           "projectCoordinates": {
             "$ref": "#/components/schemas/ProjectCoordinates"
           },
