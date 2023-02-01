@@ -11,16 +11,27 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.v1
 
+import js.buffer.ArrayBuffer
 import js.core.jso
+import js.typedarrays.Int8Array
+import js.typedarrays.Uint8Array
 import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
+import web.streams.ReadableStream
+import web.streams.ReadableStreamDefaultReadValueResult
 
-import kotlin.js.undefined
+import kotlin.js.Promise
 import kotlinx.browser.window
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
@@ -530,6 +541,122 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
  */
 @Suppress("MAGIC_NUMBER")
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
+
+/**
+ * Reads the HTTP response body as a flow of strings.
+ *
+ * @return the string  flow produced from the body of this HTTP response.
+ * @see Response.inputStream
+ */
+suspend fun Response.readLines(): Flow<String> =
+        inputStream().decodeToString()
+
+/**
+ * Reads the HTTP response body as a byte flow.
+ *
+ * @return the byte flow produced from the body of this HTTP response.
+ * @see Response.readLines
+ */
+@OptIn(FlowPreview::class)
+suspend fun Response.inputStream(): Flow<Byte> {
+    val reader = body.unsafeCast<ReadableStream<Uint8Array>>().getReader()
+
+    return flow {
+        /*
+         * Read the response body in byte chunks, emitting each chunk as it's
+         * available.
+         */
+        while (true) {
+            @Suppress(
+                "GENERIC_VARIABLE_WRONG_DECLARATION",
+                "TYPE_ALIAS",
+            )
+            val resultAsync = reader
+                .read()
+                .unsafeCast<Promise<ReadableStreamDefaultReadValueResult<Uint8Array>>>()
+
+            val result = resultAsync.await()
+
+            val jsBytes: Uint8Array = result.value
+
+            if (jsBytes == undefined || result.done) {
+                break
+            }
+
+            emit(jsBytes.asByteArray())
+        }
+    }
+        .flatMapConcat { bytes ->
+            /*
+             * Concatenate all chunks into a byte flow.
+             */
+            bytes.asSequence().asFlow()
+        }
+        .onCompletion {
+            /*
+             * Wait for the stream to get closed.
+             */
+            reader.closed.asDeferred().await()
+
+            /*
+             * Release the reader's lock on the stream.
+             * See https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/releaseLock
+             */
+            reader.releaseLock()
+        }
+}
+
+/**
+ * Decodes this byte flow into a flow of strings, assuming UTF-8 encoding.
+ *
+ * Malformed byte sequences are replaced with `\uFFFD`.
+ *
+ * @see ByteArray.decodeToString
+ */
+fun Flow<Byte>.decodeToString(): Flow<String> =
+        flow {
+            var accumulator: MutableList<Byte> = arrayListOf()
+
+            collect { value ->
+                accumulator = when (value) {
+                    /*
+                     * Ignore.
+                     */
+                    '\r'.code.toByte() -> accumulator
+
+                    '\n'.code.toByte() -> {
+                        emit(accumulator)
+                        arrayListOf()
+                    }
+
+                    else -> accumulator.apply {
+                        add(value)
+                    }
+                }
+            }
+
+            emit(accumulator)
+        }
+            .map(Collection<Byte>::toByteArray)
+            .map(ByteArray::decodeToString)
+
+/**
+ * Converts this [Uint8Array] (most probably obtained by reading an HTTP
+ * response body) to the standard [ByteArray].
+ *
+ * Conversion from an `Uint8Array` to an `Int8Array` is necessary &mdash;
+ * otherwise, non-ASCII data will get corrupted.
+ *
+ * @return the converted instance.
+ */
+@Suppress("UnsafeCastFromDynamic")
+fun Uint8Array.asByteArray(): ByteArray =
+        Int8Array(
+            buffer = buffer.unsafeCast<ArrayBuffer>(),
+            byteOffset = byteOffset,
+            length = length,
+        )
+            .asDynamic()
 
 /**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
