@@ -5,6 +5,8 @@ import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
@@ -69,8 +71,9 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                     !existedInNewStorage
                 }
         }
-        .flatMap { newKey ->
-            newStorage.upload(newKey, oldStorage.download(oldKey))
+        .zipWith(oldStorage.contentSize(oldKey))
+        .flatMap { (newKey, contentSize) ->
+            newStorage.upload(newKey, contentSize, oldStorage.download(oldKey))
                 .map {
                     log.info {
                         "Copied $oldKey to new storage with key $newKey"
@@ -113,6 +116,8 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     override fun download(key: O): Flux<ByteBuffer> = validateAndRun { newStorage.download(key.toNewKey()) }
 
     override fun upload(key: O, content: Flux<ByteBuffer>): Mono<Long> = validateAndRun { newStorage.upload(key.toNewKey(), content) }
+
+    override fun upload(key: O, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = validateAndRun { newStorage.upload(key.toNewKey(), contentLength, content) }
 
     override fun delete(key: O): Mono<Boolean> = validateAndRun { newStorage.delete(key.toNewKey()) }
 
