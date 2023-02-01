@@ -7,6 +7,7 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -17,7 +18,7 @@ import kotlin.io.path.name
 
 /**
  * Storage for Avatars
- * Currently, key is (AvatarType, ImageName, Filename) -- can be refactored to avoid filename
+ * Currently, key is (AvatarType, ObjectName)
  */
 @Service
 class AvatarStorage(configProperties: ConfigProperties) :
@@ -28,12 +29,11 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return [AvatarKey] object is built by [Path]
      */
     override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey = AvatarKey(
-        when (pathToContent.parent.name) {
-            USERS_DIRECTORY -> AvatarType.USER
-            ORGANIZATIONS_DIRECTORY -> AvatarType.ORGANIZATION
-            else -> throw IllegalStateException("Not supported type for path: ${pathToContent.parent.name}")
-        },
-        pathToContent.name,
+        type = AvatarType.findByUrlPath(pathToContent.parent.name)
+            .orNotFound {
+                "Not supported type for path: ${pathToContent.parent.name}"
+            },
+        objectName = pathToContent.name,
     )
 
     /**
@@ -53,38 +53,6 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @param key
      * @return [Path] is built by [AvatarKey] object
      */
-    override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir
-        .let {
-            when (key.type) {
-                AvatarType.USER -> it.resolve(USERS_DIRECTORY)
-                AvatarType.ORGANIZATION -> it.resolve(ORGANIZATIONS_DIRECTORY)
-                else -> throw IllegalStateException("Not supported type: ${key.type}")
-            }
-        }
+    override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir.resolve(key.type.urlPath)
         .resolve(key.objectName)
-
-    companion object {
-        const val ORGANIZATIONS_DIRECTORY = "organizations"
-        const val USERS_DIRECTORY = "users"
-    }
-}
-
-/**
- * @property type
- * @property objectName
- */
-data class AvatarKey(
-    val type: AvatarType,
-    val objectName: String,
-) {
-    /**
-     * Added for backward compatibility
-     *
-     * @return relative path to avatar image
-     */
-    fun getRelativePath(): String = when (type) {
-        AvatarType.ORGANIZATION -> "/${AvatarStorage.ORGANIZATIONS_DIRECTORY}/$objectName"
-        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$objectName"
-        else -> throw IllegalStateException("Not supported type: $type")
-    }
 }
