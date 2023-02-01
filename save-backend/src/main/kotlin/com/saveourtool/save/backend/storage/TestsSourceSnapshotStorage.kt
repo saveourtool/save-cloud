@@ -21,8 +21,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-import java.nio.file.Path
-
 import kotlin.io.path.*
 
 /**
@@ -37,14 +35,11 @@ class TestsSourceSnapshotStorage(
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
-    Path.of(configProperties.fileStorage.location) / "testSuites",
     s3Client,
     configProperties.s3Storage.bucketName,
     concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
     testsSourceSnapshotRepository
 ) {
-    private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
-
     override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
     override fun findByDto(
@@ -63,7 +58,7 @@ class TestsSourceSnapshotStorage(
      * @return [TestFilesContent] filled with test files
      */
     fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> {
-        val tmpSourceDir = createTempDirectory(tmpDir, "source-")
+        val tmpSourceDir = createTempDirectory("source-")
         val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
         val sourceContent = download(request.testsSourceSnapshot)
             .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }

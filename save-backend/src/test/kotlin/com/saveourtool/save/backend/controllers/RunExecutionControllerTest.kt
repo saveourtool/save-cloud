@@ -20,7 +20,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.io.TempDir
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -33,12 +32,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createFile
-import kotlin.io.path.div
-import kotlin.io.path.writeText
 
 @ActiveProfiles("test")
 @SpringBootTest(classes = [SaveApplication::class])
@@ -212,16 +206,8 @@ class RunExecutionControllerTest(
         private const val PROJECT_ID = 1L
         private const val FILE_ID = 1L
 
-        @TempDir
-        internal lateinit var tmpDir: Path
-
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
-
-        @BeforeAll
-        fun setup() {
-            (tmpDir / "storage" / FILE_ID.toString()).createFile().writeText("TEST")
-        }
 
         @AfterEach
         fun cleanup() {
@@ -240,7 +226,6 @@ class RunExecutionControllerTest(
             mockServerOrchestrator = createMockWebServer()
             mockServerOrchestrator.start()
             registry.add("backend.orchestratorUrl") { "http://localhost:${mockServerOrchestrator.port}" }
-            registry.add("backend.fileStorage.location") { tmpDir.absolutePathString() }
         }
     }
 
