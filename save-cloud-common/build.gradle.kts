@@ -29,16 +29,20 @@ kotlin {
 
     // setup native compilation
     linuxX64()
+    macosX64()
+    mingwX64()
 
     sourceSets {
         sourceSets.all {
             languageSettings.optIn("kotlin.RequiresOptIn")
         }
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.datetime)
+
+                implementation(libs.okio)
             }
         }
         commonTest {
@@ -68,6 +72,8 @@ kotlin {
                 implementation(project.dependencies.platform(libs.aws.sdk.bom))
                 implementation(libs.aws.sdk.s3)
                 implementation(libs.aws.sdk.netty.nio)
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.file)
             }
         }
         val jvmTest by getting {
@@ -79,6 +85,22 @@ kotlin {
                 api(libs.junit.jupiter.api)
                 api(libs.junit.jupiter.params)
                 runtimeOnly(libs.junit.jupiter.engine)
+            }
+        }
+
+        val linuxX64Main by getting
+        val macosX64Main by getting
+        val mingwX64Main by getting
+
+        val nativeMain by creating {
+            dependsOn(commonMain)
+            linuxX64Main.dependsOn(this)
+            macosX64Main.dependsOn(this)
+            mingwX64Main.dependsOn(this)
+
+            dependencies {
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.file)
             }
         }
     }
