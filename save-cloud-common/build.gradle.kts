@@ -43,8 +43,6 @@ kotlin {
                 api(libs.kotlinx.datetime)
 
                 implementation(libs.okio)
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.file)
             }
         }
         commonTest {
@@ -74,6 +72,8 @@ kotlin {
                 implementation(project.dependencies.platform(libs.aws.sdk.bom))
                 implementation(libs.aws.sdk.s3)
                 implementation(libs.aws.sdk.netty.nio)
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.file)
             }
         }
         val jvmTest by getting {
@@ -97,6 +97,11 @@ kotlin {
             linuxX64Main.dependsOn(this)
             macosX64Main.dependsOn(this)
             mingwX64Main.dependsOn(this)
+
+            dependencies {
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.file)
+            }
         }
     }
 }
