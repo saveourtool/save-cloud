@@ -10,7 +10,6 @@ import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
-import software.amazon.awssdk.core.async.ResponsePublisher
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
@@ -79,7 +78,7 @@ class DefaultS3Operations(
             s3Client.listObjectsV2(it).toMonoAndPublishOn()
         }
 
-    override fun getObject(s3Key: String): Mono<ResponsePublisher<GetObjectResponse>> {
+    override fun getObject(s3Key: String): Mono<GetObjectResponsePublisher> {
         val request = GetObjectRequest.builder()
             .bucket(bucketName)
             .key(s3Key)
