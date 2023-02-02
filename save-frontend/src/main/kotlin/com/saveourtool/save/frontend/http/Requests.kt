@@ -87,7 +87,7 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
     type: AvatarType,
 ) {
     val response = post(
-        "$apiUrl/image/upload?owner=$name&type=$type",
+        "$apiUrl/avatar/upload?owner=$name&type=$type",
         Headers(),
         FormData().apply {
             append("file", file)

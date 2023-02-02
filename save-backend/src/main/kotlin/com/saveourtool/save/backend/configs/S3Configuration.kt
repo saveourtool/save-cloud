@@ -27,8 +27,9 @@ class S3Configuration(
             )
             .httpClientBuilder(
                 NettyNioAsyncHttpClient.builder()
-                    .maxConcurrency(httpClient.maxConnections)
+                    .maxConcurrency(httpClient.maxConcurrency)
                     .connectionTimeout(httpClient.connectionTimeout)
+                    .connectionAcquisitionTimeout(httpClient.connectionAcquisitionTimeout)
             )
             .region(Region.AWS_ISO_GLOBAL)
             .forcePathStyle(true)

@@ -9,11 +9,4 @@ import com.saveourtool.save.utils.AvatarType
 data class AvatarKey(
     val type: AvatarType,
     val objectName: String,
-) {
-    /**
-     * Added for backward compatibility
-     *
-     * @return relative path to avatar image
-     */
-    fun getRelativePath(): String = "/${type.folder}/$objectName"
-}
+)

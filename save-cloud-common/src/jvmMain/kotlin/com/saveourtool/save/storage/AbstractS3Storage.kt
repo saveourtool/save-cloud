@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import org.slf4j.Logger
@@ -8,6 +9,7 @@ import org.springframework.web.reactive.function.BodyExtractors.toFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -124,6 +126,20 @@ abstract class AbstractS3Storage<K>(
                     .eTag(partResponse.eTag())
                     .partNumber(index.toInt())
                     .build()
+            }
+    }
+
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> {
+        val request = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            .key(buildS3Key(key))
+            .contentLength(contentLength)
+            .build()
+        return s3Client.putObject(request, AsyncRequestBody.fromPublisher(content))
+            .toMono()
+            .map { response ->
+                log.debug { "Uploaded ${request.bucket()}/${request.key()} with versionId: ${response.versionId()}" }
             }
     }
 

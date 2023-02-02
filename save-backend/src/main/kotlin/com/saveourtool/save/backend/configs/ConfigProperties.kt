@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import java.net.URI
 import java.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -17,13 +18,11 @@ import kotlin.time.toJavaDuration
  * @property orchestratorUrl url of save-orchestrator
  * @property demoUrl url of save-demo
  * @property initialBatchSize initial size of tests batch (for further scaling)
- * @property fileStorage configuration of file storage
- * @property fileStorage configuration of S3 storage
+ * @property s3Storage configuration of S3 storage
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
- * @property s3Storage
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -32,20 +31,12 @@ data class ConfigProperties(
     val orchestratorUrl: String,
     val demoUrl: String,
     val initialBatchSize: Int,
-    val fileStorage: FileStorageConfig,
     val s3Storage: S3StorageConfig,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
     val testAnalysisSettings: TestAnalysisSettings = TestAnalysisSettings(),
     val loki: LokiConfig? = null,
 ) {
-    /**
-     * @property location location of file storage
-     */
-    data class FileStorageConfig(
-        val location: String,
-    )
-
     /**
      * @property endpoint S3 endpoint (URI)
      * @property bucketName bucket name for all S3 storages
@@ -76,12 +67,14 @@ data class ConfigProperties(
     }
 
     /**
-     * @property maxConnections
+     * @property maxConcurrency
      * @property connectionTimeout
+     * @property connectionAcquisitionTimeout
      */
     data class S3HttpClientConfig(
-        val maxConnections: Int = 5,
-        val connectionTimeout: Duration = 30.seconds.toJavaDuration()
+        val maxConcurrency: Int = 5,
+        val connectionTimeout: Duration = 30.seconds.toJavaDuration(),
+        val connectionAcquisitionTimeout: Duration = 1.minutes.toJavaDuration(),
     )
 
     /**
