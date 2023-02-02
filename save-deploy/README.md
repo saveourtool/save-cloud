@@ -12,7 +12,7 @@ save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for s
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
 
-Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
+Deployment is performed on server via docker swarm or locally via docker compose. See detailed information below.
 
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
@@ -66,7 +66,7 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
   
 ## Local deployment
 Usually, not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
-* Ensure that docker daemon is running and docker-compose is installed.
+* Ensure that docker daemon is running and docker compose is installed.
   * If running on a system without Unix socket connection to the Docker Daemon (e.g. with Docker for Windows), docker daemon should have HTTP
     port enabled. Then, `docker-tcp` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
