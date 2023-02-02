@@ -1,11 +1,14 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import org.slf4j.Logger
 import org.springframework.http.MediaType
+import org.springframework.web.reactive.function.BodyExtractors.toFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -67,8 +70,9 @@ abstract class AbstractS3Storage<K>(
 
         return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
             .toMono()
+            .handleNoSuchKeyException()
             .flatMapMany { response ->
-                Flux.from(response)
+                response.toFlux()
             }
     }
 
@@ -92,7 +96,7 @@ abstract class AbstractS3Storage<K>(
                             .key(response.key())
                             .uploadId(response.uploadId())
                             .multipartUpload { builder ->
-                                builder.parts(completedParts)
+                                builder.parts(completedParts.sortedBy { it.partNumber() })
                             }
                             .build()
                         s3Client.completeMultipartUpload(completeRequest)
@@ -122,6 +126,20 @@ abstract class AbstractS3Storage<K>(
             }
     }
 
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> {
+        val request = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            .key(buildS3Key(key))
+            .contentLength(contentLength)
+            .build()
+        return s3Client.putObject(request, AsyncRequestBody.fromPublisher(content))
+            .toMono()
+            .map { response ->
+                log.debug { "Uploaded ${request.bucket()}/${request.key()} with versionId: ${response.versionId()}" }
+            }
+    }
+
     override fun delete(key: K): Mono<Boolean> {
         val request = DeleteObjectRequest.builder()
             .bucket(bucketName)
@@ -129,7 +147,9 @@ abstract class AbstractS3Storage<K>(
             .build()
         return s3Client.deleteObject(request)
             .toMono()
+            .handleNoSuchKeyException()
             .thenReturn(true)
+            .defaultIfEmpty(false)
     }
 
     override fun lastModified(key: K): Mono<Instant> = headObjectAsMono(key)
@@ -152,6 +172,7 @@ abstract class AbstractS3Storage<K>(
         .build()
         .let { s3Client.headObject(it) }
         .toMono()
+        .handleNoSuchKeyException()
 
     /**
      * @param s3KeySuffix cannot start with [PATH_DELIMITER]
@@ -172,6 +193,10 @@ abstract class AbstractS3Storage<K>(
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
+        }
+
+        private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
+            Mono.empty()
         }
     }
 }

@@ -2,7 +2,9 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.countPartsTill
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.utils.toDataBufferFlux
+import org.springframework.http.HttpStatus
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -71,6 +73,13 @@ abstract class AbstractFileBasedStorage<K>(
             content.collectToFile(contentPath)
         }.map { it.toLong() }
     }
+
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = upload(key, content)
+        .filter { it == contentLength }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Invalid contentLength provided"
+        }
+        .thenReturn(Unit)
 
     override fun download(key: K): Flux<ByteBuffer> = buildPathToContent(key).toDataBufferFlux()
         .map { it.asByteBuffer() }

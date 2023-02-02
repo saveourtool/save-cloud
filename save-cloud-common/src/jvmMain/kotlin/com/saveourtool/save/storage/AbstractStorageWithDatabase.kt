@@ -102,26 +102,18 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             Mono.just(Unit)
         }
             .flatMapMany {
-                storage.list()
-            }
-            .filterWhen { id ->
-                blockingToMono {
-                    repository.findById(id).isEmpty
-                }
+                storage.detectAsyncUnexpectedIds(repository)
             }
             .collectList()
+            .filter { it.isNotEmpty() }
             .flatMapIterable { unexpectedIds ->
-                if (unexpectedIds.isNotEmpty()) {
-                    val backupStorage = backupStorageCreator()
-                    log.warn {
-                        "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
-                    }
-                    generateSequence { backupStorage }.take(unexpectedIds.size)
-                        .toList()
-                        .zip(unexpectedIds)
-                } else {
-                    emptyList()
+                val backupStorage = backupStorageCreator()
+                log.warn {
+                    "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
                 }
+                generateSequence { backupStorage }.take(unexpectedIds.size)
+                    .toList()
+                    .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
                 backupStorage.upload(id, storage.download(id))
@@ -160,12 +152,31 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
 
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = uploadAndReturnUpdatedKey(key, contentLength, content).thenReturn(Unit)
+
     /**
      * @param key a key for provided content
      * @param content
      * @return updated key [K]
      */
     open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return updated key [K]
+     */
+    open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
+        repository.save(createNewEntityFromDto(key))
+    }
+        .flatMap { entity ->
+            storage.upload(entity.requiredId(), contentLength, content)
+                .map { entity.toDto() }
+                .onErrorResume { ex ->
+                    doDelete(entity).then(Mono.error(ex))
+                }
+        }
 
     private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
         repository.save(createNewEntityFromDto(key))

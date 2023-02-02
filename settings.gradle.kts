@@ -40,6 +40,7 @@ include("authentication-service")
 include("save-demo")
 include("save-demo-cpg")
 include("test-analysis-core")
+include("save-demo-agent")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

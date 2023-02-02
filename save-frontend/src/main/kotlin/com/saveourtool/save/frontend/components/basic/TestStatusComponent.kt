@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
-import okio.Path.Companion.toPath
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -43,9 +42,7 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
     val numColumns = tableInstance.visibleColumnsCount()
     val testSuiteName = testResultDebugInfo.testResultLocation.testSuiteName
     val pluginName = testResultDebugInfo.testResultLocation.pluginName
-    val testFilePath = with(testResultDebugInfo.testResultLocation) {
-        testLocation.toPath() / testName
-    }
+    val testPath = testResultDebugInfo.testResultLocation.testPath
     tr {
         className = ClassName("table-sm")
         td {
@@ -70,7 +67,7 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
                 // Trim location if it is present some filter at the end, like `?status=PASSED`,
                 // it is the situation, when user got to this page by clicking corresponding table column on history view
                 val baseLocation = window.location.toString().substringBefore('?')
-                href = "$baseLocation/details/$testSuiteName/$pluginName/$testFilePath"
+                href = "$baseLocation/details/$testSuiteName/$pluginName/$testPath"
                 +"additional info "
                 fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
             }

@@ -1,6 +1,4 @@
-import com.saveourtool.save.buildutils.isLinux
-import com.saveourtool.save.buildutils.isMac
-import com.saveourtool.save.buildutils.isWindows
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 @Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
@@ -53,12 +51,15 @@ dependencies {
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
 run {
-    val jepLibraryFile = when {
-        isMac() -> "libjep.jnilib"
-        isWindows() -> "jep.dll"
-        isLinux() -> "libjep.so"
-        else -> throw Exception("Unknown operation system: ${System.getProperty("os.name")}")
-    }
+    val jepLibraryFile =
+            with(DefaultNativePlatform.getCurrentOperatingSystem()) {
+                when {
+                    isMacOsX -> "libjep.jnilib"
+                    isWindows -> "jep.dll"
+                    isLinux -> "libjep.so"
+                    else -> throw Exception("Unsupported operating system: ${System.getProperty("os.name")}")
+                }
+            }
 
     tasks.withType<BootRun> {
         environment("CPG_JEP_LIBRARY", "$buildDir/distros/jep-distro/jep/$jepLibraryFile")
