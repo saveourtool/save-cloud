@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
-import dom.html.HTMLAnchorElement
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
@@ -31,6 +30,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
+import web.html.HTMLAnchorElement
 
 /**
  * Class contains all execution statistics values for rending

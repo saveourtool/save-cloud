@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.*
 
 import csstype.ClassName
-import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren
@@ -18,6 +17,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.useState
+import web.html.HTMLSelectElement
 
 /**
  * Component for sdk selection

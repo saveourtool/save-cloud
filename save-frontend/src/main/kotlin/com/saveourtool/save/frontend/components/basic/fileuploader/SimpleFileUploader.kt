@@ -16,7 +16,6 @@ import csstype.ClassName
 import js.core.asList
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
@@ -24,6 +23,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 import web.file.File
+import web.html.InputType
 import web.http.FormData
 
 @Suppress(

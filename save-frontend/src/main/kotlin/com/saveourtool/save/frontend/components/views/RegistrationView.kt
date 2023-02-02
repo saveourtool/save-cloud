@@ -18,14 +18,12 @@ import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
 import csstype.rem
-import dom.html.HTMLInputElement
 import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -35,6 +33,8 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.html.HTMLInputElement
+import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window

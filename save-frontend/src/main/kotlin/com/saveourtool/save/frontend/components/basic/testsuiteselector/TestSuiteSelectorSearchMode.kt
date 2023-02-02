@@ -16,13 +16,13 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
-import dom.html.HTMLInputElement
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.html.HTMLInputElement
+import web.html.InputType
 
 val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
 

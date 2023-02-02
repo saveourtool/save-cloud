@@ -18,16 +18,15 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import browser.document
 import csstype.ClassName
-import dom.html.HTMLElement
-import js.core.get
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
 import react.router.Navigate
 import react.router.Route
 import react.router.dom.HashRouter
+import web.dom.document
+import web.html.HTMLElement
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
