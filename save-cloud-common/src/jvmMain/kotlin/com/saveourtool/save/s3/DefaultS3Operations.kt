@@ -3,6 +3,8 @@ package com.saveourtool.save.s3
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.BoundedElasticScheduler
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -12,7 +14,7 @@ import software.amazon.awssdk.core.async.ResponsePublisher
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.*
 import java.nio.ByteBuffer
-import java.util.concurrent.Flow.Publisher
+import java.util.concurrent.*
 
 /**
  * Default implementation of [S3Operations]
@@ -24,6 +26,17 @@ class DefaultS3Operations(
     private val s3Client: S3AsyncClient,
     private val bucketName: String,
 ) : S3Operations {
+
+    private val executor = ThreadPoolExecutor(
+        Schedulers.DEFAULT_POOL_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        BoundedElasticScheduler.DEFAULT_TTL_SECONDS,
+        TimeUnit.SECONDS,
+        LinkedBlockingQueue(Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE)
+    )
+
+    private val test = Executors.newFixedThreadPool(4)
+
     override fun listObjectsV2(prefix: String): Flux<ListObjectsV2Response> = doListObjectsV2(prefix).expand { lastResponse ->
         if (lastResponse.isTruncated) {
             doListObjectsV2(prefix, lastResponse.nextContinuationToken())
@@ -40,7 +53,7 @@ class DefaultS3Operations(
         }
         .build()
         .let {
-            s3Client.listObjectsV2(it).toMono()
+            s3Client.listObjectsV2(it).toMonoAndPublishOn()
         }
 
     override fun getObject(s3Key: String): Mono<ResponsePublisher<GetObjectResponse>> {
@@ -50,7 +63,7 @@ class DefaultS3Operations(
             .build()
 
         return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
-            .toMono()
+            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
     }
 
@@ -61,7 +74,7 @@ class DefaultS3Operations(
             .key(s3Key)
             .build()
         return s3Client.createMultipartUpload(request)
-            .toMono()
+            .toMonoAndPublishOn()
             .flatMap { response ->
                 content.index()
                     .flatMap { (index, buffer) ->
@@ -78,7 +91,7 @@ class DefaultS3Operations(
                             }
                             .build()
                         s3Client.completeMultipartUpload(completeRequest)
-                            .toMono()
+                            .toMonoAndPublishOn()
                     }
             }
     }
@@ -92,7 +105,7 @@ class DefaultS3Operations(
             .build()
         val nextPartRequestBody = AsyncRequestBody.fromByteBuffer(contentPart)
         return s3Client.uploadPart(nextPartRequest, nextPartRequestBody)
-            .toMono()
+            .toMonoAndPublishOn()
             .map { partResponse ->
                 CompletedPart.builder()
                     .eTag(partResponse.eTag())
@@ -109,7 +122,7 @@ class DefaultS3Operations(
             .contentLength(contentLength)
             .build()
         return s3Client.putObject(request, AsyncRequestBody.fromPublisher(content))
-            .toMono()
+            .toMonoAndPublishOn()
     }
 
     override fun deleteObject(s3key: String): Mono<DeleteObjectResponse> {
@@ -118,7 +131,7 @@ class DefaultS3Operations(
             .key(s3key)
             .build()
         return s3Client.deleteObject(request)
-            .toMono()
+            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
     }
 
@@ -127,12 +140,16 @@ class DefaultS3Operations(
         .key(s3key)
         .build()
         .let { s3Client.headObject(it) }
-        .toMono()
+        .toMonoAndPublishOn()
         .handleNoSuchKeyException()
 
     companion object {
+        private val scheduler = Schedulers.newBoundedElastic(5, 1000, "s3-storage")
+
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
+
+        private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
     }
 }

@@ -92,14 +92,10 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
-        private val scheduler = Schedulers.newBoundedElastic(5, 1000, "s3-storage")
-
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
         }
-
-        private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
     }
 }
