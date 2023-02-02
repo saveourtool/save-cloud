@@ -1,4 +1,3 @@
-@file:Suppress("MagicNumber")
 package com.saveoourtool.save.demo.agent
 
 import com.saveourtool.save.demo.agent.ServerConfiguration
@@ -40,6 +39,6 @@ class ServerTest {
     companion object {
         private val coroutineScope = CoroutineScope(Dispatchers.Default)
         private const val TIMEOUT_MILLIS = 500L
-        private fun httpClient() = HttpClient(CIO) { engine { requestTimeout = TIMEOUT } }
+        private fun httpClient() = HttpClient(CIO) { engine { requestTimeout = TIMEOUT_MILLIS } }
     }
 }

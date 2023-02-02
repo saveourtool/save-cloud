@@ -16,10 +16,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class DemoAgentConfig(
+    val demoUrl: String,
     val demoConfiguration: DemoConfiguration,
     val runConfiguration: RunConfiguration,
     val serverConfiguration: ServerConfiguration = ServerConfiguration(),
-    val demoUrl: String = "http://demo:5421/internal",
 )
 
 /**

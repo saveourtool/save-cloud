@@ -18,6 +18,8 @@ internal val fs = FileSystem.SYSTEM
 
 /**
  * Parse config file
+ * todo: move config parsing to save-cloud-common
+ * todo: replace .properties with .toml both for save-agent and save-demo-agent
  *
  * @param configName name of a config file, agent.properties by default
  * @return [DemoAgentConfig] filled with configuration information
