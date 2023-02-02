@@ -6,6 +6,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
 import java.net.URI
+import java.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * Class for properties
@@ -14,13 +18,11 @@ import java.net.URI
  * @property orchestratorUrl url of save-orchestrator
  * @property demoUrl url of save-demo
  * @property initialBatchSize initial size of tests batch (for further scaling)
- * @property fileStorage configuration of file storage
- * @property fileStorage configuration of S3 storage
+ * @property s3Storage configuration of S3 storage
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
- * @property s3Storage
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -29,7 +31,6 @@ data class ConfigProperties(
     val orchestratorUrl: String,
     val demoUrl: String,
     val initialBatchSize: Int,
-    val fileStorage: FileStorageConfig,
     val s3Storage: S3StorageConfig,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
@@ -37,23 +38,18 @@ data class ConfigProperties(
     val loki: LokiConfig? = null,
 ) {
     /**
-     * @property location location of file storage
-     */
-    data class FileStorageConfig(
-        val location: String,
-    )
-
-    /**
      * @property endpoint S3 endpoint (URI)
      * @property bucketName bucket name for all S3 storages
      * @property prefix a common prefix for all S3 storages
      * @property credentials credentials to S3
+     * @property httpClient configuration for http client to S3
      */
     data class S3StorageConfig(
         val endpoint: URI,
         val bucketName: String,
         val prefix: String = "",
         val credentials: S3Credentials,
+        val httpClient: S3HttpClientConfig = S3HttpClientConfig(),
     )
 
     /**
@@ -69,6 +65,17 @@ data class ConfigProperties(
          */
         fun toAwsCredentials(): AwsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
     }
+
+    /**
+     * @property maxConcurrency
+     * @property connectionTimeout
+     * @property connectionAcquisitionTimeout
+     */
+    data class S3HttpClientConfig(
+        val maxConcurrency: Int = 5,
+        val connectionTimeout: Duration = 30.seconds.toJavaDuration(),
+        val connectionAcquisitionTimeout: Duration = 1.minutes.toJavaDuration(),
+    )
 
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)

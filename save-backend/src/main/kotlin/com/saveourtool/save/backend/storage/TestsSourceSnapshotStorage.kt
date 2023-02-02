@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
@@ -18,8 +19,7 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-
-import java.nio.file.Path
+import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import kotlin.io.path.*
 
@@ -29,14 +29,17 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
+    s3Client: S3AsyncClient,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
-    Path.of(configProperties.fileStorage.location) / "testSuites", testsSourceSnapshotRepository) {
-    private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
-
+    s3Client,
+    configProperties.s3Storage.bucketName,
+    concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
+    testsSourceSnapshotRepository
+) {
     override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 
     override fun findByDto(
@@ -55,7 +58,7 @@ class TestsSourceSnapshotStorage(
      * @return [TestFilesContent] filled with test files
      */
     fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> {
-        val tmpSourceDir = createTempDirectory(tmpDir, "source-")
+        val tmpSourceDir = createTempDirectory("source-")
         val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
         val sourceContent = download(request.testsSourceSnapshot)
             .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
