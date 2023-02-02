@@ -92,7 +92,7 @@ kotlin {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
         from(linkTask.flatMap { it.outputFile })
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/linuxX64Main/resources/agent.toml"))
     }
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {

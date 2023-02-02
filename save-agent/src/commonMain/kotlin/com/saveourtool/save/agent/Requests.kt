@@ -10,6 +10,7 @@ import com.saveourtool.save.agent.utils.markAsExecutable
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.utils.fs
 
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
