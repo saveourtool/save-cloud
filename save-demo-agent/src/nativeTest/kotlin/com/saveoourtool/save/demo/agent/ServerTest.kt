@@ -39,7 +39,7 @@ class ServerTest {
 
     companion object {
         private val coroutineScope = CoroutineScope(Dispatchers.Default)
-        private const val TIMEOUT = 500L
+        private const val TIMEOUT_MILLIS = 500L
         private fun httpClient() = HttpClient(CIO) { engine { requestTimeout = TIMEOUT } }
     }
 }
