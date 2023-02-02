@@ -2,6 +2,12 @@ rootProject.name = "save-cloud"
 
 dependencyResolutionManagement {
     repositories {
+        maven {
+            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            content {
+                includeGroup("com.saveourtool.sarifutils")
+            }
+        }
         mavenCentral()
     }
 }
@@ -14,7 +20,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version "3.12.2"
+    id("com.gradle.enterprise") version "3.12.3"
 }
 
 includeBuild("gradle/plugins")

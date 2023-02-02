@@ -5,11 +5,11 @@ package com.saveourtool.save.frontend.components.inputform
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaDescribedBy
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
+import web.html.InputType
 
 /**
  * @param form
