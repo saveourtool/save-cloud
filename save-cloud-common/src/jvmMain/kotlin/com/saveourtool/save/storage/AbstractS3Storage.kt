@@ -8,6 +8,8 @@ import org.slf4j.Logger
 import org.springframework.web.reactive.function.BodyExtractors.toFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
@@ -16,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.*
 
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 /**
  * S3 implementation of Storage
@@ -89,10 +92,14 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
+        private val scheduler = Schedulers.newBoundedElastic(5, 1000, "s3-storage")
+
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
         }
+
+        private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
     }
 }
