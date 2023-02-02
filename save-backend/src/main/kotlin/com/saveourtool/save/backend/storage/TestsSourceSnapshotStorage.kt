@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
@@ -19,7 +20,6 @@ import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import kotlin.io.path.*
 
@@ -29,14 +29,13 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
-    s3Client: S3AsyncClient,
+    s3Operations: S3Operations,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
-    s3Client,
-    configProperties.s3Storage.bucketName,
+    s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
     testsSourceSnapshotRepository
 ) {

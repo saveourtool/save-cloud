@@ -3,14 +3,17 @@ package com.saveourtool.save.s3
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.BoundedElasticScheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.async.ResponsePublisher
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.*
 import java.nio.ByteBuffer
@@ -19,23 +22,43 @@ import java.util.concurrent.*
 /**
  * Default implementation of [S3Operations]
  *
- * @param s3Client async S3 client to operate with S3
- * @param bucketName a bucket name for all keys in this [S3Operations]
+ * @param properties S3 properties
  */
 class DefaultS3Operations(
-    private val s3Client: S3AsyncClient,
-    private val bucketName: String,
+    properties: S3OperationsProperties,
 ) : S3Operations {
-
-    private val executor = ThreadPoolExecutor(
-        Schedulers.DEFAULT_POOL_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        BoundedElasticScheduler.DEFAULT_TTL_SECONDS,
-        TimeUnit.SECONDS,
-        LinkedBlockingQueue(Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE)
-    )
-
-    private val test = Executors.newFixedThreadPool(4)
+    private val bucketName = properties.bucketName
+    private val executorService = with(properties.async) {
+        ThreadPoolExecutor(
+            minPoolSize,
+            maxPoolSize,
+            ttl.toNanos(),
+            TimeUnit.NANOSECONDS,
+            LinkedBlockingQueue(queueSize),
+        )
+    }
+    private val scheduler = Schedulers.fromExecutorService(executorService, "s3-operations-${properties.bucketName}-")
+    private val s3Client: S3AsyncClient = with(properties) {
+        S3AsyncClient.builder()
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    credentials.toAwsCredentials()
+                )
+            )
+            .httpClientBuilder(
+                NettyNioAsyncHttpClient.builder()
+                    .maxConcurrency(httpClient.maxConcurrency)
+                    .connectionTimeout(httpClient.connectionTimeout)
+                    .connectionAcquisitionTimeout(httpClient.connectionAcquisitionTimeout)
+            )
+            .asyncConfiguration { builder ->
+                builder.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executorService)
+            }
+            .region(Region.AWS_ISO_GLOBAL)
+            .forcePathStyle(true)
+            .endpointOverride(endpoint)
+            .build()
+    }
 
     override fun listObjectsV2(prefix: String): Flux<ListObjectsV2Response> = doListObjectsV2(prefix).expand { lastResponse ->
         if (lastResponse.isTruncated) {
@@ -143,13 +166,11 @@ class DefaultS3Operations(
         .toMonoAndPublishOn()
         .handleNoSuchKeyException()
 
-    companion object {
-        private val scheduler = Schedulers.newBoundedElastic(5, 1000, "s3-storage")
+    private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
 
+    companion object {
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
-
-        private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
     }
 }

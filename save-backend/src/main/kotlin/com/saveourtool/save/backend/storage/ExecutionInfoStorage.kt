@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.utils.readAsJson
 import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
@@ -15,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import javax.annotation.PostConstruct
 
@@ -25,12 +25,11 @@ import javax.annotation.PostConstruct
 @Service
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
-    s3Client: S3AsyncClient,
+    s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
 ) : AbstractS3Storage<Long>(
-    s3Client,
-    configProperties.s3Storage.bucketName,
+    s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "executionInfo"),
 ) {
     /**

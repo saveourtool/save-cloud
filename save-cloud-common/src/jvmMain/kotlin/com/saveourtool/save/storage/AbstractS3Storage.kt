@@ -3,22 +3,12 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
-
 import org.slf4j.Logger
-import org.springframework.web.reactive.function.BodyExtractors.toFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
-import software.amazon.awssdk.core.async.AsyncResponseTransformer
-import software.amazon.awssdk.services.s3.S3AsyncClient
-import software.amazon.awssdk.services.s3.model.*
-
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.util.concurrent.CompletableFuture
 
 /**
  * S3 implementation of Storage
@@ -28,7 +18,6 @@ import java.util.concurrent.CompletableFuture
  * @param K type of key
  */
 abstract class AbstractS3Storage<K>(
-    private val s3Client: S3AsyncClient,
     private val s3Operations: S3Operations,
     prefix: String,
 ) : Storage<K> {
@@ -54,10 +43,10 @@ abstract class AbstractS3Storage<K>(
                 }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
-        s3Operations.uploadObject(buildS3Key(key), contentLength, content)
-            .map { response ->
-                log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
-            }
+            s3Operations.uploadObject(buildS3Key(key), contentLength, content)
+                .map { response ->
+                    log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
+                }
 
     override fun delete(key: K): Mono<Boolean> = s3Operations.deleteObject(buildS3Key(key))
         .thenReturn(true)

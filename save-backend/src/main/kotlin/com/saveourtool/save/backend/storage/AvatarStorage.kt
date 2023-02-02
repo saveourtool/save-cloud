@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.s3KeyToParts
@@ -9,7 +10,6 @@ import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import software.amazon.awssdk.services.s3.S3AsyncClient
 import java.nio.ByteBuffer
 
 /**
@@ -19,10 +19,9 @@ import java.nio.ByteBuffer
 @Service
 class AvatarStorage(
     configProperties: ConfigProperties,
-    s3Client: S3AsyncClient,
+    s3Operations: S3Operations,
 ) : AbstractS3Storage<AvatarKey>(
-    s3Client,
-    configProperties.s3Storage.bucketName,
+    s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "images", "avatars")
 ) {
     override fun buildKey(s3KeySuffix: String): AvatarKey {

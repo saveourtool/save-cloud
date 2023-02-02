@@ -1,6 +1,7 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.entities.DtoWithId
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
@@ -11,7 +12,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.nio.ByteBuffer
 import java.nio.file.Path
@@ -54,19 +54,17 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     /**
      * Implementation using S3 storage
      *
-     * @property s3Client async S3 client to operate with S3 storage
-     * @property bucketName
+     * @property s3Operations interface to operate with S3 storage
      * @property prefix a common prefix for all keys in S3 storage for this storage
      * @property repository repository for [E] which is entity for [K]
      */
     constructor(
-        s3Client: S3AsyncClient,
-        bucketName: String,
+        s3Operations: S3Operations,
         prefix: String,
         repository: R,
     ) : this(
-        storage = defaultS3Storage(s3Client, bucketName, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
+        storage = defaultS3Storage(s3Operations, prefix),
+        backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
         repository = repository,
     )
 
@@ -74,20 +72,18 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      * Implementation using migration storage from file-based to S3
      *
      * @property rootDir root directory for storage
-     * @property s3Client async S3 client to operate with S3 storage
-     * @property bucketName
+     * @property s3Operations interface to operate with S3 storage
      * @property prefix a common prefix for all keys in S3 storage for this storage
      * @property repository repository for [E] which is entity for [K]
      */
     constructor(
         rootDir: Path,
-        s3Client: S3AsyncClient,
-        bucketName: String,
+        s3Operations: S3Operations,
         prefix: String,
         repository: R,
     ) : this(
-        storage = defaultStorage(rootDir, s3Client, bucketName, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Client, bucketName, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
+        storage = defaultStorage(rootDir, s3Operations, prefix),
+        backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
         repository = repository,
     )
 
@@ -244,18 +240,17 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             override fun buildKey(rootDir: Path, pathToContent: Path): Long = pathToContent.name.toLong()
             override fun buildPathToContent(rootDir: Path, key: Long): Path = rootDir.resolve(key.toString())
         }
-        private fun defaultS3Storage(s3Client: S3AsyncClient, bucketName: String, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Client, bucketName, prefix) {
+        private fun defaultS3Storage(s3Operations: S3Operations, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Operations, prefix) {
             override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
         private fun defaultStorage(
             rootDir: Path,
-            s3Client: S3AsyncClient,
-            bucketName: String,
+            s3Operations: S3Operations,
             prefix: String,
         ): Storage<Long> = object : AbstractMigrationStorage<Long, Long>(
             oldStorage = defaultFileBasedStorage(rootDir),
-            newStorage = defaultS3Storage(s3Client, bucketName, prefix),
+            newStorage = defaultS3Storage(s3Operations, prefix),
         ) {
             override fun Long.toNewKey(): Long = this
             override fun Long.toOldKey(): Long = this
