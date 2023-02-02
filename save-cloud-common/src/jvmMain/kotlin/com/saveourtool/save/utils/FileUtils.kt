@@ -1,13 +1,19 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
+@file:JvmName("FileUtilsJVM")
+
 package com.saveourtool.save.utils
 
+import com.akuleshov7.ktoml.file.TomlFileReader
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -17,12 +23,16 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.util.stream.Collectors
+
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
 import kotlin.jvm.Throws
+import kotlinx.serialization.serializer
 
 private const val DEFAULT_BUFFER_SIZE = 4096
+
+actual val fs: FileSystem = FileSystem.SYSTEM
 
 /**
  * @return content of file as [Flux] of [DataBuffer]
@@ -97,12 +107,16 @@ fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::
  * @throws IllegalArgumentException if this path is relative.
  */
 @Throws(IllegalArgumentException::class)
-fun Path.requireIsAbsolute(): Path =
-        apply {
-            require(isAbsolute) {
-                "The path is not absolute: $this"
-            }
-        }
+fun Path.requireIsAbsolute(): Path = apply {
+    require(isAbsolute) {
+        "The path is not absolute: $this"
+    }
+}
+
+actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C {
+    require(fs.exists(configPath)) { "Could not find $configPath file." }
+    return TomlFileReader.decodeFromFile(serializer(), configPath.toString())
+}
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

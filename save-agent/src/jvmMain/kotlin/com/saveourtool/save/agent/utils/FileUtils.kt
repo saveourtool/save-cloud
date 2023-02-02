@@ -6,15 +6,13 @@
 
 package com.saveourtool.save.agent.utils
 
-import okio.FileSystem
+import com.saveourtool.save.utils.fs
 import okio.Path
 import okio.Path.Companion.toPath
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.examples.Expander
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
-
-internal actual val fs = FileSystem.SYSTEM
 
 private val expander = Expander()
 
