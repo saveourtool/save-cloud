@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorCron cron expression for heartbeat inspector to look for crashed agents
- * @property agentSettings if set, this will override defaults in agent.properties
+ * @property agentSettings if set, this will override defaults in agent.toml
  * @property agentsStartTimeoutMillis interval in milliseconds, which indicates how much time is given to agents for starting, if time's up - mark execution with internal error
  * @property agentsStartCheckIntervalMillis interval in milliseconds, within which agents will be checked, whether they are started
  */
