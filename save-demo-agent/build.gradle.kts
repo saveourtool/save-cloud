@@ -22,16 +22,13 @@ kotlin {
     }
     macosX64(configureNative)
     linuxX64(configureNative)
-    mingwX64(configureNative)
 
     sourceSets {
         val macosX64Main by getting
-        val mingwX64Main by getting
         val linuxX64Main by getting
 
         val nativeMain by creating {
             macosX64Main.dependsOn(this)
-            mingwX64Main.dependsOn(this)
             linuxX64Main.dependsOn(this)
 
             dependencies {
@@ -48,12 +45,10 @@ kotlin {
         }
 
         val macosX64Test by getting
-        val mingwX64Test by getting
         val linuxX64Test by getting
 
         val nativeTest by creating {
             macosX64Test.dependsOn(this)
-            mingwX64Test.dependsOn(this)
             linuxX64Test.dependsOn(this)
             dependencies {
                 implementation(kotlin("test"))
