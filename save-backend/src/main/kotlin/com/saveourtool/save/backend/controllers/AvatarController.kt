@@ -40,6 +40,8 @@ internal class AvatarController(
     private val avatarStorage: MigrationAvatarStorage,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
+    private val organizationService: OrganizationService,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param partMono image to be uploaded
