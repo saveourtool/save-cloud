@@ -3,7 +3,7 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.frontend.externals.findByTextAndCast
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
-import dom.html.HTMLHeadingElement
+import web.html.HTMLHeadingElement
 import react.create
 import react.react
 import kotlin.js.Promise

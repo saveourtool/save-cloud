@@ -8,7 +8,7 @@ plugins {
     id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
-    id("org.gradle.test-retry") version "1.5.0"
+    id("org.gradle.test-retry") version "1.5.1"
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
 }

@@ -29,11 +29,11 @@ import csstype.Background
 import csstype.ClassName
 import js.core.jso
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import web.html.InputType
 
 import kotlin.js.Date
 import kotlinx.browser.window

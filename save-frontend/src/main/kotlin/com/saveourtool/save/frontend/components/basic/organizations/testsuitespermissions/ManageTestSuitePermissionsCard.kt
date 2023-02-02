@@ -24,11 +24,11 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
+import web.html.InputType
 
 import kotlinx.coroutines.await
 import kotlinx.serialization.encodeToString
