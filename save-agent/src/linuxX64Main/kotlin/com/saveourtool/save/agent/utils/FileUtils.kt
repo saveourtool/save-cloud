@@ -4,15 +4,13 @@
 
 package com.saveourtool.save.agent.utils
 
-import okio.FileSystem
+import com.saveourtool.save.utils.fs
 import okio.Path
 import platform.posix.S_IRGRP
 import platform.posix.S_IROTH
 import platform.posix.S_IRUSR
 import platform.posix.S_IWUSR
 import platform.posix.S_IXUSR
-
-internal actual val fs = FileSystem.SYSTEM
 
 internal actual fun Path.extractZipTo(targetPath: Path) {
     require(fs.metadata(targetPath).isDirectory)
