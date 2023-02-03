@@ -50,7 +50,7 @@ abstract class AbstractFileBasedStorage<K>(
 
     override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
 
-    override fun contentSize(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
+    override fun contentLength(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
 
     override fun lastModified(key: K): Mono<Instant> = Mono.fromCallable { buildPathToContent(key).getLastModifiedTime().toInstant() }
 

@@ -88,7 +88,7 @@ class SandboxController(
         .flatMap {
             Mono.zip(
                 it.toMono(),
-                storage.contentSize(it),
+                storage.contentLength(it),
             )
         }
         .map { (storageKey, size) ->

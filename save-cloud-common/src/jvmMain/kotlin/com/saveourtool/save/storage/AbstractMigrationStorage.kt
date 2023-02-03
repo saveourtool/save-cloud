@@ -71,7 +71,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
                     !existedInNewStorage
                 }
         }
-        .zipWith(oldStorage.contentSize(oldKey))
+        .zipWith(oldStorage.contentLength(oldKey))
         .flatMap { (newKey, contentSize) ->
             newStorage.upload(newKey, contentSize, oldStorage.download(oldKey))
                 .map {
@@ -123,7 +123,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
 
     override fun lastModified(key: O): Mono<Instant> = validateAndRun { newStorage.lastModified(key.toNewKey()) }
 
-    override fun contentSize(key: O): Mono<Long> = validateAndRun { newStorage.contentSize(key.toNewKey()) }
+    override fun contentLength(key: O): Mono<Long> = validateAndRun { newStorage.contentLength(key.toNewKey()) }
 
     override fun doesExist(key: O): Mono<Boolean> = validateAndRun { newStorage.doesExist(key.toNewKey()) }
 

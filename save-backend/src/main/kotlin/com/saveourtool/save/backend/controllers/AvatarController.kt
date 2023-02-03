@@ -66,7 +66,6 @@ internal class AvatarController(
     fun uploadImage(
         @RequestPart("file") partMono: Mono<FilePart>,
         @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
-        @RequestHeader httpHeaders: HttpHeaders,
         @RequestParam owner: String,
         @RequestParam type: AvatarType,
     ): Mono<StringResponse> = partMono

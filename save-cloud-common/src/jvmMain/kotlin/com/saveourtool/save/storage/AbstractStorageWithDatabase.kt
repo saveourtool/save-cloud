@@ -112,7 +112,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                     .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
-                storage.contentSize(id)
+                storage.contentLength(id)
                     .flatMap { contentLength ->
                         backupStorage.upload(id, contentLength, storage.download(id))
                     }
@@ -136,7 +136,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         }
         .defaultIfEmpty(false)
 
-    override fun contentSize(key: K): Mono<Long> = getIdAsMono(key).flatMap { storage.contentSize(it) }
+    override fun contentLength(key: K): Mono<Long> = getIdAsMono(key).flatMap { storage.contentLength(it) }
 
     override fun lastModified(key: K): Mono<Instant> = getIdAsMono(key).flatMap { storage.lastModified(it) }
 

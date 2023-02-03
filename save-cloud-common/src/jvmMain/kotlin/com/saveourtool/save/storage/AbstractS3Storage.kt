@@ -39,7 +39,7 @@ abstract class AbstractS3Storage<K>(
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
             s3Operations.uploadObject(buildS3Key(key), content)
                 .flatMap {
-                    contentSize(key)
+                    contentLength(key)
                 }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
@@ -63,7 +63,7 @@ abstract class AbstractS3Storage<K>(
             response.lastModified()
         }
 
-    override fun contentSize(key: K): Mono<Long> = s3Operations.headObject(buildS3Key(key))
+    override fun contentLength(key: K): Mono<Long> = s3Operations.headObject(buildS3Key(key))
         .map { response ->
             response.contentLength()
         }

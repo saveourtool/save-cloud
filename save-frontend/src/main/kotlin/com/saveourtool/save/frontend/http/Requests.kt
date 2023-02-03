@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import js.core.jso
 
 import org.w3c.fetch.Headers
@@ -91,10 +92,9 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
     val response = post(
         "$apiUrl/avatar/upload?owner=$name&type=$type",
         Headers().apply {
-            append("Content-Length-Custom", file.size.toString())
+            append(CONTENT_LENGTH_CUSTOM, file.size.toString())
         },
         FormData().apply {
-            // set("file-size", file.size.toString())
             set("file", file)
         },
         loadingHandler = loadingHandler,

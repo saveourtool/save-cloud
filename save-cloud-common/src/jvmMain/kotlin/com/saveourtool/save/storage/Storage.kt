@@ -26,7 +26,7 @@ interface Storage<K> {
      * @param key a key to be checked
      * @return content size in bytes
      */
-    fun contentSize(key: K): Mono<Long>
+    fun contentLength(key: K): Mono<Long>
 
     /**
      * @param key a key to be checked
