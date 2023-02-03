@@ -29,7 +29,6 @@ class FileStorage(
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
     s3Operations,
-    configProperties.s3Storage.bucketName,
     concatS3Key(configProperties.s3Storage.prefix, "storage"),
     fileRepository
 ) {
