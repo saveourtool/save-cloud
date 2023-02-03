@@ -94,7 +94,7 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
             append("Content-Length-Custom", file.size.toString())
         },
         FormData().apply {
-//            set("file-size", file.size.toString())
+            // set("file-size", file.size.toString())
             set("file", file)
         },
         loadingHandler = loadingHandler,

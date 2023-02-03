@@ -112,7 +112,10 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                     .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
-                backupStorage.upload(id, storage.download(id))
+                storage.contentSize(id)
+                    .flatMap { contentLength ->
+                        backupStorage.upload(id, contentLength, storage.download(id))
+                    }
                     .then(storage.delete(id))
             }
             .subscribe()
@@ -189,6 +192,8 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
                     doDelete(entity).then(Mono.error(ex))
                 }
         }
+
+    override fun move(source: K, target: K): Mono<Boolean> = throw UnsupportedOperationException("${AbstractStorageWithDatabase::class.simpleName} storage doesn't support moving")
 
     override fun download(key: K): Flux<ByteBuffer> = getIdAsMono(key).flatMapMany { storage.download(it) }
 

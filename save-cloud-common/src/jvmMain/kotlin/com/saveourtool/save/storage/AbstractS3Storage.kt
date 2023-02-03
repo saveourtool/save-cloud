@@ -48,6 +48,22 @@ abstract class AbstractS3Storage<K>(
                     log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
                 }
 
+    override fun move(source: K, target: K): Mono<Boolean> {
+        val request = CopyObjectRequest.builder()
+            .sourceBucket(bucketName)
+            .sourceKey(buildS3Key(source))
+            .destinationBucket(bucketName)
+            .destinationKey(buildS3Key(target))
+            .build()
+        return s3Client.copyObject(request)
+            .toMono()
+            .handleNoSuchKeyException()
+            .flatMap {
+                delete(source)
+            }
+            .defaultIfEmpty(false)
+    }
+
     override fun delete(key: K): Mono<Boolean> = s3Operations.deleteObject(buildS3Key(key))
         .thenReturn(true)
         .defaultIfEmpty(false)

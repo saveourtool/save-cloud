@@ -40,6 +40,7 @@ class AvatarStorage(
     /**
      * @param key
      * @param content
+     * @param contentLength
      * @return `Mono` with file size
      */
     fun upsert(key: AvatarKey, contentLength: Long, content: Flux<ByteBuffer>): Mono<Long> = list()

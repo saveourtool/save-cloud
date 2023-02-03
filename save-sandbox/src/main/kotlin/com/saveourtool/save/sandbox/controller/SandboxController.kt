@@ -108,17 +108,19 @@ class SandboxController(
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
         @RequestPart file: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         authentication: Authentication,
     ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
         getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
                 storage.overwrite(
                     key = key,
-                    content = filePart
+                    content = filePart,
+                    contentLength = contentLength,
                 )
             }
             .map {
-                SandboxFileInfo(filePart.filename(), it)
+                SandboxFileInfo(filePart.filename(), contentLength)
             }
     }
 
@@ -224,7 +226,7 @@ class SandboxController(
         .flatMap { key ->
             storage.overwrite(
                 key = key,
-                content = Flux.just(ByteBuffer.wrap(content.replace("\r\n?".toRegex(), "\n").toByteArray()))
+                contentBytes = content.replace("\r\n?".toRegex(), "\n").toByteArray(),
             )
         }
         .map {

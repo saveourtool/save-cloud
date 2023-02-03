@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 
 import csstype.ClassName
 import csstype.Width
@@ -166,12 +167,10 @@ internal fun <F : Any> heavyFileUploader() = FC<HeavyFileUploaderProps<F>> { pro
                 val response = post(
                     props.getUrlForFileUpload(),
                     Headers().apply {
-                        console.info("size: ${fileForUploading.size.toLong()}")
-                        append("Content-Length", fileForUploading.size.toLong().toString())
+                        append(CONTENT_LENGTH_CUSTOM, fileForUploading.size.toLong().toString())
                     },
                     FormData().apply {
                         append("file", fileForUploading)
-//                        append("file-size", "${fileForUploading.size.toLong()}")
                     },
                     loadingHandler = if (props.isSandboxMode) ::loadingHandler else ::noopLoadingHandler,
                 )

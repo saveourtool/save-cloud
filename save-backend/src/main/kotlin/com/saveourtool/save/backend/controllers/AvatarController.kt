@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -21,10 +22,11 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import kotlin.time.Duration.Companion.days
-import kotlin.time.toJavaDuration
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
+import kotlin.time.Duration.Companion.days
+import kotlin.time.toJavaDuration
 
 /**
  * Controller for working with avatars.
@@ -44,6 +46,8 @@ internal class AvatarController(
      * @param partMono image to be uploaded
      * @param owner owner name
      * @param type type of avatar
+     * @param contentLength
+     * @param httpHeaders
      * @return [Mono] with response
      */
     @Operation(

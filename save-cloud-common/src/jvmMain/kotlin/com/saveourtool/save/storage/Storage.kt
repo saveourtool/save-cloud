@@ -81,16 +81,7 @@ interface Storage<K> {
     /**
      * @param source a key of source
      * @param target a key of target
-     * @return count of copied bytes
-     */
-    fun copy(source: K, target: K): Mono<Long> =
-            upload(target, download(source))
-
-    /**
-     * @param source a key of source
-     * @param target a key of target
      * @return true if the [source] deleted, otherwise false
      */
-    fun move(source: K, target: K): Mono<Boolean> =
-            copy(source, target).then(delete(source))
+    fun move(source: K, target: K): Mono<Boolean>
 }

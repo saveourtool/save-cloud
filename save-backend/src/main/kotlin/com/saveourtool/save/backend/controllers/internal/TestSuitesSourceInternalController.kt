@@ -28,6 +28,7 @@ class TestSuitesSourceInternalController(
     /**
      * @param snapshotDto
      * @param contentAsMonoPart
+     * @param contentLength
      * @return [Mono] with updated [snapshotDto]
      */
     @PostMapping("/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

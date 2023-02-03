@@ -126,4 +126,6 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     override fun contentSize(key: O): Mono<Long> = validateAndRun { newStorage.contentSize(key.toNewKey()) }
 
     override fun doesExist(key: O): Mono<Boolean> = validateAndRun { newStorage.doesExist(key.toNewKey()) }
+
+    override fun move(source: O, target: O): Mono<Boolean> = validateAndRun { newStorage.move(source.toNewKey(), target.toNewKey()) }
 }
