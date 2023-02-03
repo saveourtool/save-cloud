@@ -101,7 +101,8 @@ class SandboxController(
         description = "Upload a file for provided user",
     )
     @Parameters(
-        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
+        Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.DEFAULT, description = "size in bytes of a file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Uploaded bytes")
     @ApiResponse(responseCode = "404", description = "User with such name was not found")

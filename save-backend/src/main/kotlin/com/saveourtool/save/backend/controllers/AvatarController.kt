@@ -57,13 +57,14 @@ internal class AvatarController(
     @Parameters(
         Parameter(name = "owner", `in` = ParameterIn.QUERY, description = "user name or organization name", required = true),
         Parameter(name = "type", `in` = ParameterIn.QUERY, description = "type of avatar", required = true),
-        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "body of avatar", required = true)
+        Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "body of avatar", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.DEFAULT, description = "size in bytes of avatar", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Avatar uploaded successfully.")
     @ApiResponse(responseCode = "404", description = "User or organization not found.")
     @PostMapping(path = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadImage(
-        @RequestPart("file") partMono: Mono<FilePart>,
+        @RequestPart(FILE_PART_NAME) partMono: Mono<FilePart>,
         @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         @RequestParam owner: String,
         @RequestParam type: AvatarType,
