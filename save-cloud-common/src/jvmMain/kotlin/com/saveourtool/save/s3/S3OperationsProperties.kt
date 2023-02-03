@@ -54,13 +54,12 @@ data class S3OperationsProperties(
      * @property minPoolSize
      * @property maxPoolSize
      * @property queueSize
-     * @property ttl
+     * @property ttl time to live, default value took from [reactor.core.scheduler.BoundedElasticScheduler.DEFAULT_TTL_SECONDS]
      */
     data class AsyncProperties(
         val minPoolSize: Int = Schedulers.DEFAULT_POOL_SIZE,
         val maxPoolSize: Int = Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         val queueSize: Int = Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         val ttl: Duration = 60.seconds.toJavaDuration(),
-        // reactor.core.scheduler.BoundedElasticScheduler.DEFAULT_TTL_SECONDS
     )
 }

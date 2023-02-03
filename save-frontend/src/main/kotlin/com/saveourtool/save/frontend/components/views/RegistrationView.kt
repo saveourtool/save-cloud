@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -20,7 +21,6 @@ import csstype.ClassName
 import csstype.rem
 import js.core.asList
 import js.core.jso
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
@@ -35,7 +35,6 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import web.html.HTMLInputElement
 import web.html.InputType
-import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -182,7 +181,11 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 type = InputType.file
                 hidden = true
                 onChange = { event ->
-                    postImageUpload(event.target)
+                    scope.launch {
+                        event.target.files!!.asList().single().let { file ->
+                            postImageUpload(file, props.userInfo?.name!!, AvatarType.USER, ::classLoadingHandler)
+                        }
+                    }
                 }
             }
             img {
@@ -238,21 +241,4 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             }
         }
     }
-
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                element.files!!.asList().single().let { file ->
-                    val response = post(
-                        "$apiUrl/avatar/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::classLoadingHandler,
-                    )
-                    if (response.ok) {
-                        window.location.reload()
-                    }
-                }
-            }
 }

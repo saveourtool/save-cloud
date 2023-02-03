@@ -9,6 +9,8 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
 import js.core.jso
 
 import org.w3c.fetch.Headers
@@ -80,24 +82,53 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
  * @param file image file
  * @param name avatar owner name
  * @param type avatar type
+ * @param loadingHandler
  */
 suspend fun ComponentWithScope<*, *>.postImageUpload(
     file: File,
     name: String,
     type: AvatarType,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
 ) {
     val response = post(
-        "$apiUrl/avatar/upload?owner=$name&type=$type",
-        Headers(),
-        FormData().apply {
-            append("file", file)
+        url = "$apiUrl/avatar/upload",
+        params = jso<dynamic> {
+            owner = name
+            this.type = type
         },
-        loadingHandler = ::noopLoadingHandler,
+        Headers().apply {
+            append(CONTENT_LENGTH_CUSTOM, file.size.toString())
+        },
+        FormData().apply {
+            set(FILE_PART_NAME, file)
+        },
+        loadingHandler,
     )
     if (response.ok) {
         window.location.reload()
     }
 }
+
+/**
+ * @param url url to upload a file
+ * @param file a file which needs to be uploaded
+ * @param loadingHandler
+ * @return response of operation
+ */
+suspend fun WithRequestStatusContext.postUploadFile(
+    url: String,
+    file: File,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+): Response = post(
+    url,
+    Headers().apply {
+        append(CONTENT_LENGTH_CUSTOM, file.size.toString())
+    },
+    FormData().apply {
+        set(FILE_PART_NAME, file)
+    },
+    loadingHandler = loadingHandler,
+)
 
 /**
  * Fetch debug info for test execution

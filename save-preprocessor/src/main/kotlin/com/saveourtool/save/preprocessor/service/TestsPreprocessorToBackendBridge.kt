@@ -7,10 +7,7 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.EmptyResponse
-import com.saveourtool.save.utils.blockingBodyToMono
-import com.saveourtool.save.utils.blockingToBodilessEntity
-import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.*
 
 import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
@@ -53,6 +50,7 @@ class TestsPreprocessorToBackendBridge(
             BodyInserters.fromMultipartData("content", resourceWithContent)
                 .with("snapshot", snapshotDto)
         )
+        .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
         .retrieve()
         .onStatus({ !it.is2xxSuccessful }) {
             Mono.error(

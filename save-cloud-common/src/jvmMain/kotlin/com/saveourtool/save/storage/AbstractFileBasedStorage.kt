@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import java.io.IOException
 
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -49,7 +50,7 @@ abstract class AbstractFileBasedStorage<K>(
 
     override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
 
-    override fun contentSize(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
+    override fun contentLength(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
 
     override fun lastModified(key: K): Mono<Instant> = Mono.fromCallable { buildPathToContent(key).getLastModifiedTime().toInstant() }
 
@@ -72,6 +73,17 @@ abstract class AbstractFileBasedStorage<K>(
         }.flatMap {
             content.collectToFile(contentPath)
         }.map { it.toLong() }
+    }
+
+    override fun move(source: K, target: K): Mono<Boolean> {
+        val sourceContentPath = buildPathToContent(source)
+        val targetContentPath = buildPathToContent(target)
+        return Mono.fromCallable {
+            targetContentPath.parent.createDirectoriesIfRequired()
+            sourceContentPath.moveTo(targetContentPath)
+        }
+            .thenReturn(true)
+            .onErrorReturn(IOException::class.java, false)
     }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = upload(key, content)

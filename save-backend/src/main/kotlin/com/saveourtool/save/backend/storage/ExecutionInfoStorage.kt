@@ -2,8 +2,7 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.utils.readAsJson
-import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
+import com.saveourtool.save.backend.utils.collectAsJsonTo
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractS3Storage
@@ -11,6 +10,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
@@ -54,7 +54,7 @@ class ExecutionInfoStorage(
         .flatMap { exists ->
             if (exists) {
                 download(executionInfo.id)
-                    .readAsJson<ExecutionUpdateDto>(objectMapper)
+                    .collectAsJsonTo<ExecutionUpdateDto>(objectMapper)
                     .map {
                         it.copy(failReason = "${it.failReason}, ${executionInfo.failReason}")
                     }
@@ -67,7 +67,7 @@ class ExecutionInfoStorage(
         }
         .flatMap { executionInfoToSafe ->
             log.debug { "Writing debug info for ${executionInfoToSafe.id} to storage" }
-            upload(executionInfoToSafe.id, executionInfoToSafe.toFluxByteBufferAsJson(objectMapper))
+            upload(executionInfoToSafe.id, objectMapper.writeValueAsBytes(executionInfoToSafe))
         }.map { bytesCount ->
             log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
         }
@@ -77,6 +77,5 @@ class ExecutionInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<ExecutionInfoStorage>()
-        private const val FILE_NAME = "execution-info.json"
     }
 }

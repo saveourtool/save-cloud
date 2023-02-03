@@ -140,13 +140,15 @@ class FileController(
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of a file key", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of a file key", required = true),
-        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file to upload", required = true),
+        Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "a file to upload", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.HEADER, description = "size in bytes of a file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "The file uploaded successfully.")
     @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
     @PostMapping(path = ["/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
-        @RequestPart("file") filePartMono: Mono<FilePart>,
+        @RequestPart(FILE_PART_NAME) filePartMono: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
@@ -162,12 +164,13 @@ class FileController(
                     projectCoordinates = project.toProjectCoordinates(),
                     name = filePart.filename(),
                     uploadedTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
+                    sizeBytes = contentLength,
                 )
                 fileStorage.doesExist(fileDto)
                     .filter { !it }
                     .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
                     .flatMap {
-                        fileStorage.uploadAndReturnUpdatedKey(fileDto, filePart.content().map { it.asByteBuffer() })
+                        fileStorage.uploadAndReturnUpdatedKey(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() })
                     }
                     .filter { it.sizeBytes > 0 }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)

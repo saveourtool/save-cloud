@@ -40,6 +40,13 @@ interface S3Operations {
     fun uploadObject(s3key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse>
 
     /**
+     * @param sourceS3Key
+     * @param targetS3Key
+     * @return [Mono] with response
+     */
+    fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse>
+
+    /**
      * @param s3key
      * @return [Mono] with response
      */
