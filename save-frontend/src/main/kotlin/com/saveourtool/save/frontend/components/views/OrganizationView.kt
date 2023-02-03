@@ -506,7 +506,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
             imageUpload = { file ->
                 scope.launch {
-                    postImageUpload(file, props.organizationName, AvatarType.ORGANIZATION)
+                    postImageUpload(file, props.organizationName, AvatarType.ORGANIZATION, ::noopLoadingHandler)
                 }
             }
         }

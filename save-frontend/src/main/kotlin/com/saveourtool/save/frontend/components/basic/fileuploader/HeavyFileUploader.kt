@@ -165,9 +165,13 @@ internal fun <F : Any> heavyFileUploader() = FC<HeavyFileUploaderProps<F>> { pro
             if (!props.isSandboxMode || fileForUploading.name != FileType.SETUP_SH.fileName) {
                 val response = post(
                     props.getUrlForFileUpload(),
-                    Headers(),
+                    Headers().apply {
+                        console.info("size: ${fileForUploading.size.toLong()}")
+                        append("Content-Length", fileForUploading.size.toLong().toString())
+                    },
                     FormData().apply {
                         append("file", fileForUploading)
+//                        append("file-size", "${fileForUploading.size.toLong()}")
                     },
                     loadingHandler = if (props.isSandboxMode) ::loadingHandler else ::noopLoadingHandler,
                 )

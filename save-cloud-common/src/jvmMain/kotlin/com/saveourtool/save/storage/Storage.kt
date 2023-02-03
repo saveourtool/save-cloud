@@ -64,6 +64,15 @@ interface Storage<K> {
         .flatMap { upload(key, content) }
 
     /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return [Mono] without value
+     */
+    fun overwrite(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = delete(key)
+        .flatMap { upload(key, contentLength, content) }
+
+    /**
      * @param key a key to download content
      * @return downloaded content
      */

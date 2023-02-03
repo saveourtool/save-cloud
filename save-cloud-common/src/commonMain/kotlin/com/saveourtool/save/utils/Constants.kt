@@ -38,3 +38,8 @@ const val DEBOUNCE_PERIOD_FOR_EDITORS = 250
  * Number of characters of git commit hash that should be displayed
  */
 const val GIT_HASH_PREFIX_LENGTH = 6
+
+/**
+ * A custom header for `Content-Length`
+ */
+const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"

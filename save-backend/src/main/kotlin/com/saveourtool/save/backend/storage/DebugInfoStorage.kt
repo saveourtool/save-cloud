@@ -3,14 +3,17 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.TestExecutionService
-import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
-import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.upload
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
@@ -57,7 +60,7 @@ class DebugInfoStorage(
         }
         .flatMap { testExecutionId ->
             log.debug { "Writing debug info for $testExecutionId" }
-            upload(testExecutionId, testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+            upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
     override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()

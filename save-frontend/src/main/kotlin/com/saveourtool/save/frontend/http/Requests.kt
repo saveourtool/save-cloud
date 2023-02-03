@@ -80,19 +80,24 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
  * @param file image file
  * @param name avatar owner name
  * @param type avatar type
+ * @param loadingHandler
  */
 suspend fun ComponentWithScope<*, *>.postImageUpload(
     file: File,
     name: String,
     type: AvatarType,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
 ) {
     val response = post(
         "$apiUrl/avatar/upload?owner=$name&type=$type",
-        Headers(),
-        FormData().apply {
-            append("file", file)
+        Headers().apply {
+            append("Content-Length-Custom", file.size.toString())
         },
-        loadingHandler = ::noopLoadingHandler,
+        FormData().apply {
+//            set("file-size", file.size.toString())
+            set("file", file)
+        },
+        loadingHandler = loadingHandler,
     )
     if (response.ok) {
         window.location.reload()

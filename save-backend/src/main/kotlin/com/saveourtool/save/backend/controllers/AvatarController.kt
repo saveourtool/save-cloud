@@ -16,16 +16,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.Logger
-import org.springframework.http.CacheControl
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller for working with avatars.
@@ -62,8 +61,10 @@ internal class AvatarController(
     @PostMapping(path = ["/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadImage(
         @RequestPart("file") partMono: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
+        @RequestHeader httpHeaders: HttpHeaders,
         @RequestParam owner: String,
-        @RequestParam type: AvatarType
+        @RequestParam type: AvatarType,
     ): Mono<StringResponse> = partMono
         .flatMap { part ->
             val avatarKey = AvatarKey(
@@ -71,7 +72,7 @@ internal class AvatarController(
                 owner,
             )
             val content = part.content().map { it.asByteBuffer() }
-            avatarStorage.upsert(avatarKey, content).map {
+            avatarStorage.upsert(avatarKey, contentLength, content).map {
                 log.info("Saved $it bytes of $avatarKey")
             }
         }

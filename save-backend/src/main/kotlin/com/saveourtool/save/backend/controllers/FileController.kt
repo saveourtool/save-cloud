@@ -147,6 +147,7 @@ class FileController(
     @PostMapping(path = ["/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestPart("file") filePartMono: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
@@ -162,12 +163,13 @@ class FileController(
                     projectCoordinates = project.toProjectCoordinates(),
                     name = filePart.filename(),
                     uploadedTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
+                    sizeBytes = contentLength,
                 )
                 fileStorage.doesExist(fileDto)
                     .filter { !it }
                     .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
                     .flatMap {
-                        fileStorage.uploadAndReturnUpdatedKey(fileDto, filePart.content().map { it.asByteBuffer() })
+                        fileStorage.uploadAndReturnUpdatedKey(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() })
                     }
                     .filter { it.sizeBytes > 0 }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)

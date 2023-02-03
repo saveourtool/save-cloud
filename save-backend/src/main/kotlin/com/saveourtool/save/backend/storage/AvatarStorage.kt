@@ -42,10 +42,11 @@ class AvatarStorage(
      * @param content
      * @return `Mono` with file size
      */
-    fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> = list()
+    fun upsert(key: AvatarKey, contentLength: Long, content: Flux<ByteBuffer>): Mono<Long> = list()
         .filter { it == key }
         .singleOrEmpty()
         .flatMap { delete(it) }
         .switchIfEmpty(Mono.just(true))
-        .flatMap { upload(key, content) }
+        .flatMap { upload(key, contentLength, content) }
+        .thenReturn(contentLength)
 }

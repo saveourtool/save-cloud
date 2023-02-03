@@ -254,7 +254,7 @@ class SandboxController(
     ): Mono<String> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
             storage.download(key)
-                .mapToInputStream()
+                .collectToInputStream()
                 .map { it.bufferedReader().readText() }
         }
         .switchIfEmpty(
