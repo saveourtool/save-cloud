@@ -152,7 +152,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
             imageUpload = { file ->
                 scope.launch {
-                    postImageUpload(file, props.userName!!, AvatarType.USER)
+                    postImageUpload(file, props.userName!!, AvatarType.USER, ::noopLoadingHandler)
                 }
             }
         }

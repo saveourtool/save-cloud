@@ -57,7 +57,7 @@ class SandboxInternalController(
                 storage.list(userId, SandboxStorageKeyType.TEST)
                     .flatMap { key ->
                         storage.download(key)
-                            .mapToInputStream()
+                            .collectToInputStream()
                             .map { inputStream ->
                                 directory.resolve(key.fileName)
                                     .outputStream()
@@ -156,6 +156,6 @@ class SandboxInternalController(
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = storage.overwrite(
         key = SandboxStorageKey.debugInfoKey(userId),
-        content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
+        contentBytes = objectMapper.writeValueAsBytes(testResultDebugInfo)
     )
 }

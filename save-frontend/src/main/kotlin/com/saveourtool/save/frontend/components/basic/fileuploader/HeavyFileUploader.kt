@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
@@ -16,7 +17,6 @@ import csstype.ClassName
 import csstype.Width
 import js.core.asList
 import js.core.jso
-import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.*
 import react.dom.aria.AriaRole
@@ -33,7 +33,6 @@ import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 import web.file.File
 import web.html.InputType
-import web.http.FormData
 
 import kotlinx.browser.window
 
@@ -163,12 +162,9 @@ internal fun <F : Any> heavyFileUploader() = FC<HeavyFileUploaderProps<F>> { pro
     val uploadFiles = useDeferredRequest {
         filesForUploading.forEach { fileForUploading ->
             if (!props.isSandboxMode || fileForUploading.name != FileType.SETUP_SH.fileName) {
-                val response = post(
-                    props.getUrlForFileUpload(),
-                    Headers(),
-                    FormData().apply {
-                        append("file", fileForUploading)
-                    },
+                val response = postUploadFile(
+                    url = props.getUrlForFileUpload(),
+                    file = fileForUploading,
                     loadingHandler = if (props.isSandboxMode) ::loadingHandler else ::noopLoadingHandler,
                 )
                     .let {

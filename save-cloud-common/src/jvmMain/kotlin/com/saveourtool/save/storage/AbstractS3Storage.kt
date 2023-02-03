@@ -39,13 +39,19 @@ abstract class AbstractS3Storage<K>(
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
             s3Operations.uploadObject(buildS3Key(key), content)
                 .flatMap {
-                    contentSize(key)
+                    contentLength(key)
                 }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
             s3Operations.uploadObject(buildS3Key(key), contentLength, content)
                 .map { response ->
                     log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
+                }
+
+    override fun move(source: K, target: K): Mono<Boolean> =
+            s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
+                .flatMap {
+                    delete(source)
                 }
 
     override fun delete(key: K): Mono<Boolean> = s3Operations.deleteObject(buildS3Key(key))
@@ -57,7 +63,7 @@ abstract class AbstractS3Storage<K>(
             response.lastModified()
         }
 
-    override fun contentSize(key: K): Mono<Long> = s3Operations.headObject(buildS3Key(key))
+    override fun contentLength(key: K): Mono<Long> = s3Operations.headObject(buildS3Key(key))
         .map { response ->
             response.contentLength()
         }

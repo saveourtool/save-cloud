@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
@@ -18,7 +17,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
@@ -155,23 +153,15 @@ fun <A : Any, B : Any, R : Any> Flux<Pair<A, B>>.mapRight(transformRight: (B) ->
         }
 
 /**
- * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
+ * @return collected [Flux] of [ByteBuffer] to [Mono] of [InputStream]
  */
-fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
+fun Flux<ByteBuffer>.collectToInputStream(): Mono<InputStream> = this
     // take simple implementation from Jackson library
     .map { ByteBufferBackedInputStream(it) }
     .cast(InputStream::class.java)
     .reduce { in1, in2 ->
         SequenceInputStream(in1, in2)
     }
-
-/**
- * @param objectMapper
- * @return convert current object to [Flux] of [ByteBuffer] as Json string using [objectMapper]
- */
-fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
-    .map { ByteBuffer.wrap(it) }
-    .toFlux()
 
 /**
  * @param keyExtractor the function used to extract the [Comparable] sort key

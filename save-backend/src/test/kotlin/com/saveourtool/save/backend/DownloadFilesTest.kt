@@ -17,12 +17,15 @@ import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.mapToInputStream
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
 import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -46,6 +49,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import java.nio.ByteBuffer
+import java.nio.file.Path
 
 import java.time.LocalDateTime
 import java.util.*
@@ -175,15 +179,17 @@ class DownloadFilesTest {
     @Suppress("LongMethod")
     @Test
     @WithMockUser(roles = ["ADMIN"])
-    fun checkUpload() {
+    fun checkUpload(@TempDir tmpDir: Path) {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
         }
 
         val fileContent = "Some content"
+        val file = (tmpDir / file2.name).createFile()
+            .also { it.writeText(fileContent) }
         whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
             .thenReturn(Mono.just(false))
-        whenever(fileStorage.uploadAndReturnUpdatedKey(argThat { candidateTo(file2) }, argThat { collectToString() == fileContent }))
+        whenever(fileStorage.uploadAndReturnUpdatedKey(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
             .thenReturn(Mono.just(file2.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
@@ -192,9 +198,7 @@ class DownloadFilesTest {
             .thenAnswer { Mono.just(testProject2) }
 
         val body = MultipartBodyBuilder().apply {
-            val resource = (createTempDirectory() / file2.name).createFile()
-                .also { it.writeText(fileContent) }
-                .let { FileSystemResource(it) }
+            val resource = FileSystemResource(file)
             part("file", resource)
         }
             .build()
@@ -203,6 +207,7 @@ class DownloadFilesTest {
             .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
+            .header(CONTENT_LENGTH_CUSTOM, file.fileSize().toString())
             .exchange()
             .expectStatus()
             .isOk
@@ -302,7 +307,7 @@ class DownloadFilesTest {
          * @see reactor.core.publisher.BlockingSingleSubscriber.blockingGet
          */
         @Blocking
-        private fun Flux<ByteBuffer>.collectToString(): String? = mapToInputStream()
+        private fun Flux<ByteBuffer>.collectToString(): String? = collectToInputStream()
             .map { it.bufferedReader().readText() }
             .toFuture()
             .get()

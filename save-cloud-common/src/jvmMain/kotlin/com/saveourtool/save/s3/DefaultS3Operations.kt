@@ -147,6 +147,18 @@ class DefaultS3Operations(
             .toMonoAndPublishOn()
     }
 
+    override fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse> {
+        val request = CopyObjectRequest.builder()
+            .sourceBucket(bucketName)
+            .sourceKey(sourceS3Key)
+            .destinationBucket(bucketName)
+            .destinationKey(targetS3Key)
+            .build()
+        return s3Client.copyObject(request)
+            .toMonoAndPublishOn()
+            .handleNoSuchKeyException()
+    }
+
     override fun deleteObject(s3key: String): Mono<DeleteObjectResponse> {
         val request = DeleteObjectRequest.builder()
             .bucket(bucketName)

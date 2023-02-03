@@ -8,9 +8,6 @@ import com.saveourtool.save.storage.s3KeyToParts
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-import java.nio.ByteBuffer
 
 /**
  * Storage for Avatars
@@ -36,16 +33,4 @@ class AvatarStorage(
     }
 
     override fun buildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.urlPath, key.objectName)
-
-    /**
-     * @param key
-     * @param content
-     * @return `Mono` with file size
-     */
-    fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> = list()
-        .filter { it == key }
-        .singleOrEmpty()
-        .flatMap { delete(it) }
-        .switchIfEmpty(Mono.just(true))
-        .flatMap { upload(key, content) }
 }
