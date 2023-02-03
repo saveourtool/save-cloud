@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractStorageWithDatabase
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -13,7 +14,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import kotlinx.datetime.toJavaLocalDateTime
 
@@ -23,13 +23,12 @@ import kotlinx.datetime.toJavaLocalDateTime
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-    s3Client: S3AsyncClient,
+    s3Operations: S3Operations,
     fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
-    s3Client,
-    configProperties.s3Storage.bucketName,
+    s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "storage"),
     fileRepository
 ) {
