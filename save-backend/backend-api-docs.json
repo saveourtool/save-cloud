@@ -17,6 +17,15 @@
         "operationId": "uploadImage",
         "parameters": [
           {
+            "in": "header",
+            "name": "Content-Length-Custom",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
             "description": "user name or organization name",
             "in": "query",
             "name": "owner",
@@ -2818,6 +2827,15 @@
         "description": "Upload a file by project coordinates, name and uploaded time in millis.",
         "operationId": "upload",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Content-Length-Custom",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
           {
             "description": "organization name of a file key",
             "in": "path",
