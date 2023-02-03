@@ -47,7 +47,6 @@ internal class AvatarController(
      * @param owner owner name
      * @param type type of avatar
      * @param contentLength
-     * @param httpHeaders
      * @return [Mono] with response
      */
     @Operation(
@@ -75,8 +74,8 @@ internal class AvatarController(
                 owner,
             )
             val content = part.content().map { it.asByteBuffer() }
-            avatarStorage.upsert(avatarKey, contentLength, content).map {
-                log.info("Saved $it bytes of $avatarKey")
+            avatarStorage.overwrite(avatarKey, contentLength, content).map {
+                log.info("Saved $contentLength bytes of $avatarKey")
             }
         }
         .flatMap {
