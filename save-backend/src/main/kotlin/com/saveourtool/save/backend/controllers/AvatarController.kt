@@ -58,7 +58,7 @@ internal class AvatarController(
         Parameter(name = "owner", `in` = ParameterIn.QUERY, description = "user name or organization name", required = true),
         Parameter(name = "type", `in` = ParameterIn.QUERY, description = "type of avatar", required = true),
         Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "body of avatar", required = true),
-        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.DEFAULT, description = "size in bytes of avatar", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.HEADER, description = "size in bytes of avatar", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Avatar uploaded successfully.")
     @ApiResponse(responseCode = "404", description = "User or organization not found.")

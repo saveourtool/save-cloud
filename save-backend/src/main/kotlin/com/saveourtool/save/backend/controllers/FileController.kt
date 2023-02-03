@@ -141,7 +141,7 @@ class FileController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of a file key", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of a file key", required = true),
         Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "a file to upload", required = true),
-        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.DEFAULT, description = "size in bytes of a file", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.HEADER, description = "size in bytes of a file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "The file uploaded successfully.")
     @ApiResponse(responseCode = "404", description = "Not found project or file by provided values.")
