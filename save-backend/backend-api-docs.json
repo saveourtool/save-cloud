@@ -17,6 +17,7 @@
         "operationId": "uploadImage",
         "parameters": [
           {
+            "description": "size in bytes of avatar",
             "in": "header",
             "name": "Content-Length-Custom",
             "required": true,
@@ -2828,6 +2829,7 @@
         "operationId": "upload",
         "parameters": [
           {
+            "description": "size in bytes of a file",
             "in": "header",
             "name": "Content-Length-Custom",
             "required": true,
