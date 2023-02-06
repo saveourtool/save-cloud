@@ -16,8 +16,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.*
 
-private const val TOOLS_PATH = "tools"
-
 /**
  * Storage to keep all the tools on the disk
  */
@@ -28,7 +26,7 @@ class DependencyStorage(
     repository: DependencyRepository,
 ) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, TOOLS_PATH),
+    concatS3Key(configProperties.s3Storage.prefix, "deps"),
     repository,
 ) {
     override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
@@ -123,7 +121,7 @@ class DependencyStorage(
             version,
         )
     }
-        .map { download(it).collectToFile(tempDir / it.fileName).block() }
+        .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
 
     /**
