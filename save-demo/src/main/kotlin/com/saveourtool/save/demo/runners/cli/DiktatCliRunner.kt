@@ -52,7 +52,9 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = dependencyStorage.findDependency(toolKey.organizationName, toolKey.projectName, toolKey.version, toolKey.fileName)
+    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = with(toolKey) {
+        dependencyStorage.findDependency(organizationName, projectName, version, fileName)
+    }
         .switchIfEmpty {
             throw FileNotFoundException("Could not find file with key $toolKey")
         }

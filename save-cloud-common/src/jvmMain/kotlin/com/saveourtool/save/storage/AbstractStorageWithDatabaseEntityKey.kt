@@ -5,7 +5,6 @@ import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
 
-import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 
 /**
@@ -28,7 +27,7 @@ abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEnti
 
     override fun E.toEntity(): E = this
 
-    override fun findEntity(key: E): E? = key.id
+    final override fun findEntity(key: E): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }
@@ -36,11 +35,8 @@ abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEnti
         ?: findByContent(key)
 
     /**
-     * A default implementation uses Spring's [Example]
-     *
      * @param key
      * @return [E] entity found in database by [E] or null
      */
-    protected open fun findByContent(key: E): E? = repository.findOne(Example.of(key))
-        .orElseGet(null)
+    protected abstract fun findByContent(key: E): E?
 }

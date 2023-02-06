@@ -31,7 +31,7 @@ class DependencyStorage(
     concatS3Key(configProperties.s3Storage.prefix, TOOLS_PATH),
     repository,
 ) {
-    override fun findEntity(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
+    override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
 
     /**
      * @param demo

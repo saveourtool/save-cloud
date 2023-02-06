@@ -6,7 +6,6 @@ import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
 
-import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 
 /**
@@ -29,7 +28,7 @@ abstract class AbstractStorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWi
 
     override fun K.toEntity(): E = createNewEntityFromDto(this)
 
-    override fun findEntity(key: K): E? = key.id
+    final override fun findEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }
@@ -37,13 +36,10 @@ abstract class AbstractStorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWi
         ?: findByDto(key)
 
     /**
-     * A default implementation uses Spring's [Example]
-     *
      * @param dto
      * @return [E] entity found by [K] dto or null
      */
-    protected open fun findByDto(dto: K): E? = repository.findOne(Example.of(createNewEntityFromDto(dto)))
-        .orElseGet(null)
+    protected abstract fun findByDto(dto: K): E?
 
     /**
      * @param dto
