@@ -5,7 +5,7 @@ import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.demo.storage.ToolKey
-import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.collectToFile
@@ -27,11 +27,11 @@ import kotlin.io.path.*
 /**
  * Class that allows to run diktat as command line application
  *
- * @property toolStorage
+ * @property dependencyStorage
  */
 @Component
 class DiktatCliRunner(
-    private val toolStorage: ToolStorage,
+    private val dependencyStorage: DependencyStorage,
 ) : CliRunner {
     override fun getRunCommand(
         workingDir: Path,
@@ -58,7 +58,7 @@ class DiktatCliRunner(
 
     override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = Mono.zip(
         toolKey.toMono(),
-        toolStorage.doesExist(toolKey),
+        dependencyStorage.doesExist(toolKey),
     )
         .filter { (_, doesExist) ->
             doesExist
@@ -67,7 +67,7 @@ class DiktatCliRunner(
             throw FileNotFoundException("Could not find file with key $toolKey")
         }
         .flatMapMany { (key, _) ->
-            toolStorage.download(key)
+            dependencyStorage.download(key)
         }
         .collectToFile(workingDir / toolKey.fileName)
         .thenReturn(workingDir / toolKey.fileName)

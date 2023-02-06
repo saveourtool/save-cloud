@@ -11,6 +11,34 @@ import org.springframework.stereotype.Repository
 @Repository
 interface DependencyRepository : BaseEntityRepository<Dependency> {
     /**
+     * @param organizationName
+     * @param projectName
+     * @param version
+     * @param fileName
+     * @return [Dependency] for [organizationName]/[projectName] specific [version] run
+     */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        organizationName: String,
+        projectName: String,
+        version: String,
+        fileName: String,
+    ): Dependency?
+
+    /**
+     * @param demo
+     * @param version
+     * @param fileId
+     * @return [Dependency] for [demo]'s specific [version] run
+     */
+    fun findByDemoAndVersionAndFileId(demo: Demo, version: String, fileId: Long): Dependency?
+
+    /**
      * @param demo
      * @param version
      * @return list of [Dependency] for [demo]'s specific [version] run

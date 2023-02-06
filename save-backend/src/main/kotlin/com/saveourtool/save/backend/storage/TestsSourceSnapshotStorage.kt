@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractStorageWithDatabase
+import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
@@ -34,7 +34,7 @@ class TestsSourceSnapshotStorage(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
-) : AbstractStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
+) : AbstractStorageWithDatabaseDtoKey<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
     testsSourceSnapshotRepository
