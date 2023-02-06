@@ -52,7 +52,7 @@ private suspend fun HttpClient.download(url: String, file: Path): Result<HttpRes
                     error("Downloaded a file from $url but content is empty")
                 }
             } else {
-                logWarn("Skipping downloading as request is not a success")
+                logWarn("Skipping downloading as request is not a success: ${httpResponse.status}")
             }
             httpResponse
         }

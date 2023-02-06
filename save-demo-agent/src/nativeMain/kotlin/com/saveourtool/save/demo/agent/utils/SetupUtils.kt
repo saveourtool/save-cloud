@@ -34,7 +34,7 @@ suspend fun setupEnvironment(demoUrl: String, demoConfiguration: DemoConfigurati
     try {
         downloadDemoFiles(demoUrl, demoConfiguration)
     } catch (e: IllegalStateException) {
-        logError("Error while downloading files to agent.")
+        logError("Error while downloading files to agent: ${e.message ?: e.toString()}.")
         throw e
     }
 
