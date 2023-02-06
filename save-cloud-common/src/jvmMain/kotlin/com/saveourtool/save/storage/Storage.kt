@@ -2,6 +2,7 @@ package com.saveourtool.save.storage
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 
@@ -55,6 +56,13 @@ interface Storage<K> {
      */
     fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
 
+//    /**
+//     * @param key a key for provided content
+//     * @param contentLength a content length of content
+//     * @return URL to upload some content
+//     */
+//    fun generateUrlToUpload(key: K, contentLength: Long): URL
+
     /**
      * @param key a key for provided content
      * @param content
@@ -77,6 +85,12 @@ interface Storage<K> {
      * @return downloaded content
      */
     fun download(key: K): Flux<ByteBuffer>
+
+    /**
+     * @param key a key to download content
+     * @return URL to download content
+     */
+    fun generateUrlToDownload(key: K): URL
 
     /**
      * @param source a key of source

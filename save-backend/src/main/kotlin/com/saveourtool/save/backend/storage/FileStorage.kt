@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 import kotlinx.datetime.toJavaLocalDateTime
+import java.net.URL
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -74,4 +75,8 @@ class FileStorage(
         repository.findByIdOrNull(fileId)?.toDto()
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
+
+    fun downloadUrl(fileId: Long): URL = repository.getByIdOrNotFound(fileId).let {
+        generateUrlToDownload(it.toDto())
+    }
 }

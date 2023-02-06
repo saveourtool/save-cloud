@@ -7,8 +7,11 @@ import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * S3 implementation of Storage
@@ -40,6 +43,14 @@ abstract class AbstractS3Storage<K>(
             it.toFlux()
         }
 
+    override fun generateUrlToDownload(key: K): URL = s3Operations.requestToDownloadObject(buildS3Key(key), downloadDuration)
+        .also { request ->
+            require(request.isBrowserExecutable) {
+                "Pre-singer url to download object should be browser executable (header-less)"
+            }
+        }
+        .url()
+
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
             s3Operations.uploadObject(buildS3Key(key), content)
                 .flatMap {
@@ -51,6 +62,8 @@ abstract class AbstractS3Storage<K>(
                 .map { response ->
                     log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
                 }
+
+//    override fun generateUrlToUpload(key: K, contentLength: Long): URL = s3Operations.requestToUploadObject(buildS3Key(key), contentLength, uploadDuration).url()
 
     override fun move(source: K, target: K): Mono<Boolean> =
             s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
@@ -91,6 +104,8 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
+        private val downloadDuration = 15.minutes
+        private val uploadDuration = 1.hours
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"

@@ -77,7 +77,6 @@ private suspend fun SaveAgent.download(fileLabel: String, url: String, target: P
     val result = processRequestToBackendWrapped {
         httpClient.download(
             url = url,
-            body = null,
             file = target,
         )
     }
