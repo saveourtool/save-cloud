@@ -131,7 +131,7 @@ services:
         - "prometheus-job=save-demo-cpg"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.41.0
+    image: prom/prometheus:v2.42.0
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -160,7 +160,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:2.7.2
+    image: grafana/loki:2.7.3
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/loki.yaml
