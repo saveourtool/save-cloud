@@ -11,11 +11,32 @@ import org.springframework.stereotype.Repository
 @Repository
 interface DependencyRepository : BaseEntityRepository<Dependency> {
     /**
+     * @param organizationName
+     * @param projectName
+     * @param version
+     * @param fileName
+     * @return [Dependency] for [organizationName]/[projectName] demo's specific [version] run
+     */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        organizationName: String,
+        projectName: String,
+        version: String,
+        fileName: String,
+    ): Dependency?
+
+    /**
      * @param demo
      * @param version
-     * @return list of [Dependency] for [demo]'s specific [version] run
+     * @param fileId
+     * @return [Dependency] for [demo]'s specific [version] run
      */
-    fun findAllByDemoAndVersion(demo: Demo, version: String): List<Dependency>
+    fun findByDemoAndVersionAndFileId(demo: Demo, version: String, fileId: Long): Dependency?
 
     /**
      * @param organizationName
@@ -23,23 +44,15 @@ interface DependencyRepository : BaseEntityRepository<Dependency> {
      * @param version
      * @return list of [Dependency] for [organizationName]/[projectName] demo's specific [version] run
      */
-    fun findAllByDemoOrganizationNameAndDemoProjectNameAndVersion(
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
         organizationName: String,
         projectName: String,
         version: String,
     ): List<Dependency>
-
-    /**
-     * @param organizationName
-     * @param projectName
-     * @param version
-     * @param fileName
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun deleteByDemoOrganizationNameAndDemoProjectNameAndVersionAndFileName(
-        organizationName: String,
-        projectName: String,
-        version: String,
-        fileName: String,
-    )
 }

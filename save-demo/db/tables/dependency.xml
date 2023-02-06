@@ -57,4 +57,9 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="dependency-3" author="nulls">
+        <addUniqueConstraint tableName="dependency" columnNames="demo_id,version,file_name" constraintName="uq_dependency_file_name"/>
+        <addUniqueConstraint tableName="dependency" columnNames="demo_id,version,file_id" constraintName="uq_dependency_file_id"/>
+    </changeSet>
+
 </databaseChangeLog>
