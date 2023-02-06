@@ -22,6 +22,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.PosixFilePermission
+import java.util.*
 import java.util.stream.Collectors
 
 import kotlin.io.path.exists
@@ -110,6 +112,24 @@ fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::
 fun Path.requireIsAbsolute(): Path = apply {
     require(isAbsolute) {
         "The path is not absolute: $this"
+    }
+}
+
+actual fun okio.Path.markAsExecutable() {
+    val file = this.toFile().toPath()
+    Files.setPosixFilePermissions(file, Files.getPosixFilePermissions(file) + EnumSet.of(
+        PosixFilePermission.OWNER_EXECUTE,
+        PosixFilePermission.GROUP_EXECUTE,
+        PosixFilePermission.OTHERS_EXECUTE,
+    ))
+}
+
+actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
+    fs.write(
+        file = file,
+        mustCreate = mustCreate,
+    ) {
+        write(this@writeToFile).flush()
     }
 }
 
