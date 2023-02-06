@@ -5,6 +5,7 @@ import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
+import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
@@ -17,6 +18,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -31,6 +33,7 @@ class ManagementController(
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
     private val dependencyService: DependencyService,
+    private val toolStorage: ToolStorage,
 ) {
     /**
      * @param demoDto
@@ -139,7 +142,7 @@ class ManagementController(
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
-     * @param version version to attach [zip] to
+     * @param version version to attach files to
      * @param fileDtos list of [FileDto] containing information required for file download
      * @return [StringResponse] with response
      */
@@ -160,4 +163,20 @@ class ManagementController(
                 StringResponse("Successfully saved $size files to demo storage.", HttpStatus.OK)
             }
         }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version to attach [zip] to
+     * @return [Flux] of [ByteBuffer] - archive with files as content
+     */
+    @GetMapping("/{organizationName}/{projectName}/download-files-as-zip")
+    fun downloadFiles(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+    ): Flux<ByteBuffer> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .flatMapMany { toolStorage.archive(it.organizationName, it.projectName, version) }
 }
