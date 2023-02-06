@@ -30,7 +30,7 @@ class SandboxStorage(
     }
 
     override fun buildS3KeySuffix(key: SandboxStorageKey): String =
-        concatS3Key(key.userId.toString(), key.type.name, key.fileName)
+            concatS3Key(key.userId.toString(), key.type.name, key.fileName)
 
     /**
      * @param userId
