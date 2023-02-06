@@ -1,9 +1,6 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-
-import java.nio.file.Files.isDirectory
-import java.nio.file.Paths
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
@@ -36,10 +33,6 @@ tasks.named("processTestResources") {
 tasks.register<Copy>("copyLiquibase") {
     from("$rootDir/db")
     into("$buildDir/resources/test/db")
-}
-
-tasks.register("cleanupDb") {
-    dependsOn(":liquibaseDropAll")
 }
 
 dependencies {
