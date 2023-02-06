@@ -1,10 +1,12 @@
 package com.saveourtool.save.demo.storage
 
+import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractStorageWithDatabaseEntityKey
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -21,11 +23,12 @@ private const val TOOLS_PATH = "tools"
  */
 @Component
 class DependencyStorage(
+    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     repository: DependencyRepository,
 ) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository>(
     s3Operations,
-    TOOLS_PATH,
+    concatS3Key(configProperties.s3Storage.prefix, TOOLS_PATH),
     repository,
 ) {
     override fun findEntity(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
