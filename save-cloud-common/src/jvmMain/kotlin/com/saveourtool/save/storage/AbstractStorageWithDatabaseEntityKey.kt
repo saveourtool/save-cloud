@@ -43,5 +43,4 @@ abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEnti
      */
     protected open fun findByContent(key: E): E? = repository.findOne(Example.of(key))
         .orElseGet(null)
-
 }

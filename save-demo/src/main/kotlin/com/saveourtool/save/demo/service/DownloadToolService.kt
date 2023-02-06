@@ -23,6 +23,8 @@ import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -34,8 +36,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toFlux
 
 /**
  * Service that downloads tools from GitHub when starting
@@ -129,7 +129,8 @@ class DownloadToolService(
         }
 
     @PostConstruct
-    private fun loadToStorage() = toolService.getSupportedTools().map { it.toToolKey() }
+    private fun loadToStorage() = toolService.getSupportedTools()
+        .map { it.toToolKey() }
         .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
         .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         .toFlux()

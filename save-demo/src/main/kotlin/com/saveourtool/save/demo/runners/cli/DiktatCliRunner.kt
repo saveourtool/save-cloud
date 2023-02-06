@@ -4,8 +4,8 @@ import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
-import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.DependencyStorage
+import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.collectToFile

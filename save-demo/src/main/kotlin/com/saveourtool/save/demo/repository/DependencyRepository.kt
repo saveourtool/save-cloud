@@ -15,7 +15,7 @@ interface DependencyRepository : BaseEntityRepository<Dependency> {
      * @param projectName
      * @param version
      * @param fileName
-     * @return [Dependency] for [organizationName]/[projectName] specific [version] run
+     * @return [Dependency] for [organizationName]/[projectName] demo's specific [version] run
      */
     @Suppress(
         "IDENTIFIER_LENGTH",
@@ -39,35 +39,21 @@ interface DependencyRepository : BaseEntityRepository<Dependency> {
     fun findByDemoAndVersionAndFileId(demo: Demo, version: String, fileId: Long): Dependency?
 
     /**
-     * @param demo
-     * @param version
-     * @return list of [Dependency] for [demo]'s specific [version] run
-     */
-    fun findAllByDemoAndVersion(demo: Demo, version: String): List<Dependency>
-
-    /**
      * @param organizationName
      * @param projectName
      * @param version
      * @return list of [Dependency] for [organizationName]/[projectName] demo's specific [version] run
      */
-    fun findAllByDemoOrganizationNameAndDemoProjectNameAndVersion(
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
         organizationName: String,
         projectName: String,
         version: String,
     ): List<Dependency>
 
-    /**
-     * @param organizationName
-     * @param projectName
-     * @param version
-     * @param fileName
-     */
-    @Suppress("IDENTIFIER_LENGTH")
-    fun deleteByDemoOrganizationNameAndDemoProjectNameAndVersionAndFileName(
-        organizationName: String,
-        projectName: String,
-        version: String,
-        fileName: String,
-    )
 }
