@@ -13,11 +13,7 @@ import com.saveourtool.save.utils.getLogger
 
 import io.ktor.util.*
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -56,19 +52,11 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = Mono.zip(
-        toolKey.toMono(),
-        dependencyStorage.doesExist(toolKey),
-    )
-        .filter { (_, doesExist) ->
-            doesExist
-        }
+    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = dependencyStorage.findDependency(toolKey.organizationName, toolKey.projectName, toolKey.version, toolKey.fileName)
         .switchIfEmpty {
             throw FileNotFoundException("Could not find file with key $toolKey")
         }
-        .flatMapMany { (key, _) ->
-            dependencyStorage.download(key)
-        }
+        .flatMapMany { dependencyStorage.download(it) }
         .collectToFile(workingDir / toolKey.fileName)
         .thenReturn(workingDir / toolKey.fileName)
         .block()
