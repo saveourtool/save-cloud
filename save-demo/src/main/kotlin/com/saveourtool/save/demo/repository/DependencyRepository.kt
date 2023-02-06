@@ -55,5 +55,4 @@ interface DependencyRepository : BaseEntityRepository<Dependency> {
         projectName: String,
         version: String,
     ): List<Dependency>
-
 }
