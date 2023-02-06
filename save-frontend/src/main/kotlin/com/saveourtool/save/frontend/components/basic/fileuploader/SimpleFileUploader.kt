@@ -9,12 +9,12 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.ClassName
 import js.core.asList
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
@@ -24,7 +24,6 @@ import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 import web.file.File
 import web.html.InputType
-import web.http.FormData
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -79,12 +78,9 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val uploadFiles = useDeferredRequest {
         filesForUploading.forEach { fileForUploading ->
-            post(
+            postUploadFile(
                 props.getUrlForFileUpload(),
-                Headers(),
-                FormData().apply {
-                    append("file", fileForUploading)
-                },
+                fileForUploading,
                 loadingHandler = ::noopLoadingHandler,
             )
                 .decodeFromJsonString<FileDto>()
