@@ -28,7 +28,6 @@ private const val CWD = "."
  * @param demoConfiguration all the information required for tool download
  * @throws IllegalStateException when it was caught from [downloadDemoFiles]
  */
-@OptIn(ExperimentalStdlibApi::class)
 suspend fun setupEnvironment(demoUrl: String, demoConfiguration: DemoConfiguration) {
     logInfo("Setting up the environment...")
 
@@ -48,9 +47,7 @@ suspend fun setupEnvironment(demoUrl: String, demoConfiguration: DemoConfigurati
         } else {
             logInfo("The environment is successfully set up.")
         }
-    } ?: {
-        logInfo("No setup script was executed.")
-    }
+    } ?: logInfo("No setup script was executed.")
 
     logInfo("The environment is successfully set up.")
 }

@@ -30,6 +30,7 @@ import kotlin.io.path.name
 import kotlin.io.path.outputStream
 import kotlin.jvm.Throws
 import kotlinx.serialization.serializer
+import java.util.*
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
@@ -116,7 +117,7 @@ fun Path.requireIsAbsolute(): Path = apply {
 
 actual fun okio.Path.markAsExecutable() {
     val file = this.toFile().toPath()
-    Files.setPosixFilePermissions(file, Files.getPosixFilePermissions(file) + setOf(
+    Files.setPosixFilePermissions(file, Files.getPosixFilePermissions(file) + EnumSet.of(
         PosixFilePermission.OWNER_EXECUTE,
         PosixFilePermission.GROUP_EXECUTE,
         PosixFilePermission.OTHERS_EXECUTE,
