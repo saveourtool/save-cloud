@@ -38,40 +38,8 @@ tasks.register<Copy>("copyLiquibase") {
     into("$buildDir/resources/test/db")
 }
 
-tasks.register<Exec>("cleanupDbAndStorage") {
+tasks.register("cleanupDb") {
     dependsOn(":liquibaseDropAll")
-    val profile = properties["save.profile"] as String?
-
-    val userHome = System.getProperty("user.home")
-    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
-
-    val storagePath = when (profile) {
-        "win" -> "$userHome/.save-cloud/cnb/files"
-        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
-        else -> when {
-            isWindows -> "$userHome/.save-cloud/cnb/files"
-            else -> "/home/cnb/files"
-        }
-    }.let(Paths::get)
-
-    /*
-     * No idea why we should rely on running external commands in order to
-     * delete a directory, since this can be done in a platform-independent way.
-     */
-    val args = if (profile != "win" && !isWindows) {
-        arrayOf("rm", "-rf")
-    } else if (isDirectory(storagePath)) {
-        /*
-         * cmd.exe will set a non-zero exit status if the directory doesn't exist.
-         */
-        arrayOf("cmd", "/c", "rmdir", "/s", "/q")
-    } else {
-        /*
-         * Run a dummy command.
-         */
-        arrayOf("cmd", "/c", "echo")
-    }
-    commandLine(*args, storagePath)
 }
 
 dependencies {

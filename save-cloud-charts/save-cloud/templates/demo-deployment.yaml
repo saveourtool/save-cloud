@@ -33,8 +33,6 @@ spec:
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: fs-storage
-              mountPath: {{ include "demo.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - name: s3-secrets
@@ -102,9 +100,6 @@ spec:
               name: database-secret
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: {{ .Values.demo.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets
