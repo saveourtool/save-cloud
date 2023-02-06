@@ -14,6 +14,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
+import okio.Path.Companion.toOkioPath
 
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -67,7 +68,7 @@ class TestsSourceSnapshotStorage(
             .map { DataBufferUtils.release(it) }
             .collectList()
             .map {
-                tmpArchive.extractZipHere()
+                tmpArchive.toOkioPath().extractZipHere()
                 tmpArchive.deleteExisting()
             }
             .map {

@@ -5,32 +5,12 @@
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.core.files.findAllFilesMatching
+import com.saveourtool.save.utils.extractZipTo
 import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.markAsExecutable
 import okio.FileNotFoundException
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-
-/**
- * Extract path as ZIP archive to provided directory
- *
- * @param targetPath
- */
-internal expect fun Path.extractZipTo(targetPath: Path)
-
-/**
- * Write content of [this] into a file [file]
- *
- * @receiver [ByteArray] to be written into a file
- * @param file target [Path]
- * @param mustCreate will be passed to Okio's [FileSystem.write]
- */
-internal expect fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true)
-
-/**
- * Mark [this] file as executable. Sets permissions to rwxr--r--
- */
-internal expect fun Path.markAsExecutable()
 
 /**
  * Read file as a list of strings

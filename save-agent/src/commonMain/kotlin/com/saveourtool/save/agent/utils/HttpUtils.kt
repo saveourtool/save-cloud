@@ -8,7 +8,9 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.utils.failureOrNotOk
 import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.notOk
 
 import io.ktor.client.*
 import io.ktor.client.call.body
@@ -105,10 +107,3 @@ internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): R
             httpResponse
         }
 }
-
-/**
- * @return state of [Result]
- */
-internal fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
-
-private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()
