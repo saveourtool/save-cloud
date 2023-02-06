@@ -5,7 +5,7 @@ import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
-import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
@@ -32,8 +32,7 @@ class ManagementController(
     private val toolService: ToolService,
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
-    private val dependencyService: DependencyService,
-    private val toolStorage: ToolStorage,
+    private val dependencyStorage: DependencyStorage,
 ) {
     /**
      * @param demoDto
@@ -62,14 +61,13 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .flatMapMany {
-            blockingToFlux { dependencyService.getDependencies(it, version) }
+            dependencyStorage.list(it, version)
         }
         .map { dependency ->
             FileDto(
                 ProjectCoordinates(dependency.demo.organizationName, dependency.demo.projectName),
                 dependency.fileName,
                 LocalDateTime.now().toKotlinLocalDateTime(),
-                id = dependency.fileId
             )
         }
 
@@ -89,7 +87,7 @@ class ManagementController(
     ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMap { dependencyService.deleteDependency(it, projectName, version) }
+        .flatMap { dependencyStorage.delete(it, version, fileName) }
 
     /**
      * @param organizationName name of GitHub user/organization
@@ -155,9 +153,13 @@ class ManagementController(
     ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .map { demo ->
-            dependencyService.saveDependencies(demo, version, fileDtos)
+        .flatMapIterable { demo ->
+            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
         }
+        .filterWhen {
+            dependencyStorage.doesExist(it).map(Boolean::not)
+        }
+        .collectList()
         .map { dependencies ->
             downloadToolService.downloadToStorage(dependencies).let { size ->
                 StringResponse("Successfully saved $size files to demo storage.", HttpStatus.OK)
@@ -178,5 +180,5 @@ class ManagementController(
     ): Flux<ByteBuffer> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMapMany { toolStorage.archive(it.organizationName, it.projectName, version) }
+        .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
 }

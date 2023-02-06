@@ -4,8 +4,8 @@ import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.ToolKey
-import com.saveourtool.save.demo.storage.ToolStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.collectToFile
@@ -13,11 +13,7 @@ import com.saveourtool.save.utils.getLogger
 
 import io.ktor.util.*
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -27,11 +23,11 @@ import kotlin.io.path.*
 /**
  * Class that allows to run diktat as command line application
  *
- * @property toolStorage
+ * @property dependencyStorage
  */
 @Component
 class DiktatCliRunner(
-    private val toolStorage: ToolStorage,
+    private val dependencyStorage: DependencyStorage,
 ) : CliRunner {
     override fun getRunCommand(
         workingDir: Path,
@@ -56,19 +52,13 @@ class DiktatCliRunner(
         append(testPath)
     }
 
-    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = Mono.zip(
-        toolKey.toMono(),
-        toolStorage.doesExist(toolKey),
-    )
-        .filter { (_, doesExist) ->
-            doesExist
-        }
+    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = with(toolKey) {
+        dependencyStorage.findDependency(organizationName, projectName, version, fileName)
+    }
         .switchIfEmpty {
             throw FileNotFoundException("Could not find file with key $toolKey")
         }
-        .flatMapMany { (key, _) ->
-            toolStorage.download(key)
-        }
+        .flatMapMany { dependencyStorage.download(it) }
         .collectToFile(workingDir / toolKey.fileName)
         .thenReturn(workingDir / toolKey.fileName)
         .block()

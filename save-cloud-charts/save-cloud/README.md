@@ -16,12 +16,11 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
   These secrets are then mounted under the path specified as `DATABASE_SECRETS_PATH` environment variable.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
-* **save-backend** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
-  * `backend.s3-storage.endpoint`
-  * `backend.s3-storage.bucketName`
-  * `backend.s3-storage.prefix`
-  * `backend.s3-storage.credentials.accessKeyId`
-  * `backend.s3-storage.credentials.secretAccessKey`
+* **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
+  * `s3-storage.endpoint`
+  * `s3-storage.bucketName`
+  * `s3-storage.credentials.accessKeyId`
+  * `s3-storage.credentials.secretAccessKey`
 
   These secrets are then mounted under the path specified as `S3_SECRETS_PATH` environment variable.
   
