@@ -18,6 +18,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
+import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -139,7 +140,7 @@ class ManagementController(
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
-     * @param version version to attach [zip] to
+     * @param version version to attach files to
      * @param fileDtos list of [FileDto] containing information required for file download
      * @return [StringResponse] with response
      */
@@ -164,4 +165,20 @@ class ManagementController(
                 StringResponse("Successfully saved $size files to demo storage.", HttpStatus.OK)
             }
         }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version to attach [zip] to
+     * @return [Flux] of [ByteBuffer] - archive with files as content
+     */
+    @GetMapping("/{organizationName}/{projectName}/download-files-as-zip")
+    fun downloadFiles(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam version: String,
+    ): Flux<ByteBuffer> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
 }

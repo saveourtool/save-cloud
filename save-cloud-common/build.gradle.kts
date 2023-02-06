@@ -30,7 +30,6 @@ kotlin {
     // setup native compilation
     linuxX64()
     macosX64()
-    mingwX64()
 
     sourceSets {
         sourceSets.all {
@@ -43,6 +42,7 @@ kotlin {
                 api(libs.kotlinx.datetime)
 
                 implementation(libs.okio)
+                implementation(libs.ktor.client.core)
             }
         }
         commonTest {
@@ -90,13 +90,11 @@ kotlin {
 
         val linuxX64Main by getting
         val macosX64Main by getting
-        val mingwX64Main by getting
 
         val nativeMain by creating {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
             macosX64Main.dependsOn(this)
-            mingwX64Main.dependsOn(this)
 
             dependencies {
                 implementation(libs.ktoml.core)
