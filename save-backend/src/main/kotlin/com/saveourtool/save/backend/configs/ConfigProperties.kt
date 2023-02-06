@@ -11,8 +11,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property preprocessorUrl url of preprocessor
  * @property orchestratorUrl url of save-orchestrator
  * @property demoUrl url of save-demo
- * @property initialBatchSize initial size of tests batch (for further scaling)
- * @property s3Storage configuration of S3 storage
+ * @property initialBatchSize initial size of tests batch (for further scaling)`
+ * @property s3Storage configuration of S3 storage`
  * @property scheduling configuration for scheduled tasks
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
