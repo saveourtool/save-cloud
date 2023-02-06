@@ -46,7 +46,6 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - /home/saveu/configs/sandbox:/home/cnb/config
-      - save-fs-storage:/home/cnb/files
       - save-tmp-resources:/tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -62,7 +61,6 @@ services:
       - db_username
       - db_password
     volumes:
-      - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/backend:/home/cnb/config
     ports:
       - "5800:5800"
@@ -82,7 +80,6 @@ services:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     volumes:
       - save:/home/cnb/
-      - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/preprocessor:/home/cnb/config
     ports:
       - "5200:5200"
@@ -179,7 +176,6 @@ networks:
 
 volumes:
   save:
-  save-fs-storage:
   grafana-storage:
   prometheus-storage:
   loki-storage:
