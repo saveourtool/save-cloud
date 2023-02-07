@@ -159,7 +159,8 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
         currentlySelectedTestSuites = initTestSuites
         windowOpenness.closeWindow()
     }
-    showTestSuitesSelectorModal(windowOpenness.isOpen(), currentOrganizationName, selectorPurpose, initTestSuites, onSubmit, onTestSuiteIdUpdate, onCancel)
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), currentOrganizationName, selectorPurpose, initTestSuites, currentlySelectedTestSuites, onSubmit, onTestSuiteIdUpdate,
+        onCancel)
 }
 
 @Suppress(
@@ -173,6 +174,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
     currentOrganizationName: String,
     selectorPurpose: TestSuiteSelectorPurpose,
     preselectedTestSuites: List<TestSuiteVersioned>,
+    currentlySelectedTestSuites: List<TestSuiteVersioned>,
     onSubmit: () -> Unit,
     onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit,
     onCancel: () -> Unit,
@@ -220,6 +222,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                             type = ButtonType.button
                             className = ClassName("btn btn-primary mt-4")
                             +"Apply"
+                            disabled = currentlySelectedTestSuites.isEmpty()
                             onClick = {
                                 onSubmit()
                             }
