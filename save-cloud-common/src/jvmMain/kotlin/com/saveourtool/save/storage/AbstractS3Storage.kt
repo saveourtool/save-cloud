@@ -22,7 +22,11 @@ abstract class AbstractS3Storage<K>(
     prefix: String,
 ) : Storage<K> {
     private val log: Logger = getLogger(this::class)
-    private val prefix = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
+
+    /**
+     * A common prefix endings with [PATH_DELIMITER] for all s3 keys in this storage
+     */
+    protected val prefix: String = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(prefix)
         .flatMapIterable { response ->

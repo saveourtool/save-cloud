@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.configs
+package com.saveourtool.save.sandbox.config
 
 import com.saveourtool.save.s3.DefaultS3Operations
 import com.saveourtool.save.s3.S3Operations

@@ -11,6 +11,7 @@ import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.demo.agent.DemoConfiguration
 import com.saveourtool.save.utils.*
+import io.ktor.http.*
 
 import io.ktor.server.application.*
 import okio.Path.Companion.toPath
@@ -66,7 +67,7 @@ private fun executeSetupSh(setupShName: String = "setup.sh"): ExecutionResult? =
     }
 
 private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration) {
-    val url = with(demoConfiguration) { "$demoUrl/demo/internal/$organizationName/$projectName?version=$version" }
+    val url = with(demoConfiguration) { "$demoUrl/demo/internal/$organizationName/$projectName/download-files-as-zip?version=$version" }
     downloadDemoFiles(url)
 }
 

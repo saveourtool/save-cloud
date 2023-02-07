@@ -6,7 +6,7 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractStorageWithDatabase
+import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 
@@ -27,7 +27,7 @@ class FileStorage(
     fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-) : AbstractStorageWithDatabase<FileDto, File, FileRepository>(
+) : AbstractStorageWithDatabaseDtoKey<FileDto, File, FileRepository>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "storage"),
     fileRepository

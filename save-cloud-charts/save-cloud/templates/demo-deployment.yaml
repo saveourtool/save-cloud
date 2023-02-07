@@ -27,14 +27,16 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.demo) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.mysql.dbPasswordFile }}
+            - name: S3_SECRETS_PATH
+              value: {{ .Values.s3.secretFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: fs-storage
-              mountPath: {{ include "demo.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
+            - name: s3-secrets
+              mountPath: {{ .Values.s3.secretFile }}
           {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
@@ -98,11 +100,11 @@ spec:
               name: database-secret
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: {{ .Values.demo.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets
+        - name: s3-secrets
+          secret:
+            secretName: s3-secrets
         - name: migrations-data
           emptyDir: { }
