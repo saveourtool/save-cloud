@@ -156,6 +156,12 @@ jobs:
           name: save-agent-distribution
           path: 'save-cloud/save-agent/build/libs/save-agent-*-distribution.jar'
           retention-days: 5
+      - name: Upload save-demo-agent.kexe
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-demo-agent
+          path: 'save-cloud/save-demo-agent/build/bin/linuxX64/releaseExecutable/save-demo-agent.kexe'
+          retention-days: 5
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
