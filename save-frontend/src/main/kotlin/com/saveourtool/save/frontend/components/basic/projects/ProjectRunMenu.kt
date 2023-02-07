@@ -118,7 +118,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
 
     val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
     val (execCmd, setExecCmd) = useState("")
-    val (batchSizeForAnalyzer, setBatchSizeForAnalyzer) = useState("")
+    val (batchSizeForAnalyzer, setBatchSizeForAnalyzer) = useState("1")
 
     val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
     val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
@@ -244,7 +244,9 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 this.execCmd = execCmd
                 this.setExecCmd = { setExecCmd(it) }
                 this.batchSizeForAnalyzer = batchSizeForAnalyzer
-                this.setBatchSizeForAnalyzer = { setBatchSizeForAnalyzer(batchSizeForAnalyzer) }
+                this.setBatchSizeForAnalyzer = { value ->
+                    setBatchSizeForAnalyzer(value)
+                }
             }
 
             div {
