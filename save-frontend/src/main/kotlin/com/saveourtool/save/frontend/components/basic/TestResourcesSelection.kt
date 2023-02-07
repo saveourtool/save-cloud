@@ -116,7 +116,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 "",
                 props.setExecCmd
             )
-            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time (1 by default)." +
                     " To know more about batch size, please visit: https://github.com/saveourtool/save."
             addAdditionalProperty(
                 props.batchSizeForAnalyzer,
