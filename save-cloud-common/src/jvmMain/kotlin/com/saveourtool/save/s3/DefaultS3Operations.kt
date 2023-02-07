@@ -15,6 +15,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
@@ -72,7 +73,10 @@ class DefaultS3Operations(
         S3Presigner.builder()
             .credentialsProvider(credentialsProvider)
             .region(Region.AWS_ISO_GLOBAL)
-            .endpointOverride(endpoint)
+            .serviceConfiguration(S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build())
+            .endpointOverride(presignedEndpoint)
             .build()
     }
 
