@@ -21,7 +21,7 @@ class SandboxStorage(
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(s3KeySuffix: String): SandboxStorageKey {
-        val (filename, typeName, userId) = s3KeySuffix.s3KeyToPartsTill(prefix)
+        val (userId, typeName, filename) = s3KeySuffix.s3KeyToPartsTill(prefix)
         return SandboxStorageKey(
             userId.toLong(),
             SandboxStorageKeyType.valueOf(typeName),
