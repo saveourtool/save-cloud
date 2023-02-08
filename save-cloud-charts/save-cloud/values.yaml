@@ -113,7 +113,7 @@ prometheus:
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.41.0
+      tag: v2.42.0
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
@@ -123,7 +123,7 @@ prometheus:
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.7.2
+    tag: 2.7.3
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
@@ -166,7 +166,7 @@ loki:
   loki:
     image:
       repository: grafana/loki
-      tag: 2.7.2
+      tag: 2.7.3
     auth_enabled: false
     commonConfig:
       replication_factor: 1

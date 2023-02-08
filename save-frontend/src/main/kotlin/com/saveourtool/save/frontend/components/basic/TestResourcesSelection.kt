@@ -22,7 +22,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-import web.html.InputType
 
 val testResourcesSelection = prepareTestResourcesSelection()
 
@@ -60,7 +59,6 @@ private fun ChildrenBuilder.addAdditionalProperty(
     placeholder: String,
     tooltipText: String,
     labelText: String,
-    inputType: InputType,
     onChangeFunc: (String) -> Unit
 ) = div {
     className = ClassName("input-group mb-3")
@@ -75,15 +73,8 @@ private fun ChildrenBuilder.addAdditionalProperty(
     }
 
     input {
-        type = inputType
-        name = "itemText"
         // workaround to have a default value for Batch field
-        if (labelText.isNotEmpty()) {
-            defaultValue = "1"
-        }
         key = "itemText"
-        @Suppress("MAGIC_NUMBER")
-        min = 1.0
         className = ClassName("form-control")
         if (tooltipText.isNotBlank()) {
             asDynamic()["data-toggle"] = "tooltip"
@@ -92,8 +83,12 @@ private fun ChildrenBuilder.addAdditionalProperty(
         }
         this.value = value
         this.placeholder = placeholder
-        onChange = {
-            onChangeFunc(it.target.value)
+        onChange = { event ->
+            event.target.value.let { value ->
+                if (value.all { it.isDigit() }) {
+                    onChangeFunc(value)
+                }
+            }
         }
     }
 }
@@ -119,17 +114,15 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 "Execution command",
                 "Execution command that will be used to run the tool and tests",
                 "",
-                InputType.text,
                 props.setExecCmd
             )
-            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time (1 by default)." +
                     " To know more about batch size, please visit: https://github.com/saveourtool/save."
             addAdditionalProperty(
                 props.batchSizeForAnalyzer,
                 "",
                 toolTipTextForBatchSize,
-                "Batch size (default: 1):",
-                InputType.number,
+                "Batch size:",
                 props.setBatchSizeForAnalyzer
             )
 
