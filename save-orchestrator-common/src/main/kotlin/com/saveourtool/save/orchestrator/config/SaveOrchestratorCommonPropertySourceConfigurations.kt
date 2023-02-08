@@ -9,6 +9,14 @@ import org.springframework.context.annotation.Profile
 import org.springframework.context.annotation.PropertySource
 
 /**
+ * Configuration for profile 'container-desktop'
+ */
+@Configuration
+@Profile("container-desktop")
+@PropertySource("classpath:META-INF/save-orchestrator-common/application-container-desktop.properties")
+class SaveOrchestratorCommonPropertySourceConfigurationContainerDesktop
+
+/**
  * Configuration for profile 'dev'
  */
 @Configuration

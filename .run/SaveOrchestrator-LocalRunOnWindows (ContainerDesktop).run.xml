@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SaveOrchestrator-LocalRunOnWindows (ContainerDesktop)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev,win,docker-tcp,container-desktop" />
+    <envs>
+      <env name="HOST_IP" value="host-gateway" />
+    </envs>
+    <module name="save-cloud.save-orchestrator.main" />
+    <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.saveourtool.save.orchestrator.SaveOrchestrator" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
