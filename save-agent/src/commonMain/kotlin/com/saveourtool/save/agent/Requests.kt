@@ -86,6 +86,3 @@ private suspend fun SaveAgent.download(fileLabel: String, url: String, target: P
 
     logInfoCustom("Downloaded $fileLabel (resulting size = ${fs.metadata(target).size} bytes) from $url into $target")
 }
-
-private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
-        body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)

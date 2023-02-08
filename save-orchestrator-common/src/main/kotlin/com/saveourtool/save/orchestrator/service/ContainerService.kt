@@ -183,7 +183,7 @@ class ContainerService(
             "-vvv",
             "--fail",
             "-X",
-            "POST"
+            "GET"
         )
 
         /**
