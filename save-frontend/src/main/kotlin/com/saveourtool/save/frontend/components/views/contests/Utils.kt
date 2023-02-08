@@ -39,13 +39,19 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
  * @param selectedTab
  * @param tabsList
  * @param setSelectedTab
+ * @param navClassName
  */
-fun ChildrenBuilder.tab(selectedTab: String, tabsList: List<String>, setSelectedTab: (String) -> Unit) {
+fun ChildrenBuilder.tab(
+    selectedTab: String,
+    tabsList: List<String>,
+    navClassName: String = "nav nav-tabs mb-4",
+    setSelectedTab: (String) -> Unit
+) {
     div {
         className = ClassName("row justify-content-center")
 
         nav {
-            className = ClassName("nav nav-tabs mb-4")
+            className = ClassName(navClassName)
             tabsList.forEachIndexed { i, value ->
                 li {
                     key = i.toString()

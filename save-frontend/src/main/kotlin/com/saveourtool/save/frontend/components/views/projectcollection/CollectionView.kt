@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -11,9 +12,11 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import react.*
@@ -25,6 +28,25 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
+ * Enum that contains values for project
+ */
+enum class ProjectTab {
+    PRIVATE,
+    PUBLIC,
+    ;
+
+    companion object : TabMenuBar<ProjectTab> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: ProjectTab = PUBLIC
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)")
+        override fun valueOf(elem: String): ProjectTab = ProjectTab.valueOf(elem)
+        override fun values(): Array<ProjectTab> = ProjectTab.values()
+    }
+}
+
+/**
  * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
@@ -33,13 +55,21 @@ external interface CreationViewProps : Props {
 }
 
 /**
+ * [State] of Collection view component
+ */
+external interface CollectionViewState : State, HasSelectedMenu<ProjectTab>
+
+/**
  * A view with collection of projects
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : AbstractView<CreationViewProps, State>() {
-    @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-    private val projectsTable: FC<TableProps<ProjectDto>> = tableComponent(
+@Suppress(
+    "TYPE_ALIAS",
+    "MAGIC_NUMBER",
+)
+class CollectionView : AbstractView<CreationViewProps, CollectionViewState>() {
+    private val publicProjectsTable: FC<TableProps<ProjectDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "organization", header = "Organization", { organizationName }) { cellContext ->
@@ -79,10 +109,60 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                 }
             }
         },
+        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
         usePageSelection = false,
     )
+    private val privateProjectsTable: FC<TableProps<ProjectDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "organization", header = "Organization", { organizationName }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellContext.row.original.organizationName}"
+                                +cellContext.value
+                            }
+                        }
+                    }
+                }
+                column(id = "name", header = "Evaluated Tool", { name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                                +cellContext.value
+                            }
+                            privacySpan(cellContext.row.original)
+                        }
+                    }
+                }
+                column(id = "passed", header = "Description") { cellContext ->
+                    Fragment.create {
+                        td {
+                            +(cellContext.value.description.ifEmpty { "Description not provided" })
+                        }
+                    }
+                }
+                column(id = "rating", header = "Contest Rating") {
+                    Fragment.create {
+                        td {
+                            +"0"
+                        }
+                    }
+                }
+            }
+        },
+        isTransparentGrid = true,
+        initialPageSize = 10,
+        useServerPaging = false,
+        usePageSelection = false,
+    )
+
+    init {
+        state.selectedMenu = ProjectTab.defaultTab
+    }
 
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
@@ -101,21 +181,55 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
                     topRightCard()
                 }
 
-                projectsTable {
-                    getData = { _, _ ->
-                        val response = post(
-                            url = "$apiUrl/projects/by-filters",
-                            headers = jsonHeaders,
-                            body = Json.encodeToString(ProjectFilters.created),
-                            loadingHandler = ::classLoadingHandler,
-                            responseHandler = ::noopResponseHandler
-                        )
-                        if (response.ok) {
-                            response.unsafeMap {
-                                it.decodeFromJsonString<Array<ProjectDto>>()
+                div {
+                    className = ClassName("card flex-md-row")
+                    div {
+                        className = ClassName("col")
+
+                        tab(state.selectedMenu.name, ProjectTab.values().map { it.name }, "nav nav-tabs mt-3") {
+                            setState {
+                                selectedMenu = ProjectTab.valueOf(it)
                             }
-                        } else {
-                            emptyArray()
+                        }
+
+                        when (state.selectedMenu) {
+                            ProjectTab.PUBLIC -> publicProjectsTable {
+                                getData = { _, _ ->
+                                    val response = post(
+                                        url = "$apiUrl/projects/by-filters",
+                                        headers = jsonHeaders,
+                                        body = Json.encodeToString(ProjectFilters(name = "", public = true)),
+                                        loadingHandler = ::classLoadingHandler,
+                                        responseHandler = ::noopResponseHandler
+                                    )
+                                    if (response.ok) {
+                                        response.unsafeMap {
+                                            it.decodeFromJsonString<Array<ProjectDto>>()
+                                        }
+                                    } else {
+                                        emptyArray()
+                                    }
+                                }
+                            }
+
+                            ProjectTab.PRIVATE -> privateProjectsTable {
+                                getData = { _, _ ->
+                                    val response = post(
+                                        url = "$apiUrl/projects/by-filters",
+                                        headers = jsonHeaders,
+                                        body = Json.encodeToString(ProjectFilters(name = "", public = false)),
+                                        loadingHandler = ::classLoadingHandler,
+                                        responseHandler = ::noopResponseHandler
+                                    )
+                                    if (response.ok) {
+                                        response.unsafeMap {
+                                            it.decodeFromJsonString<Array<ProjectDto>>()
+                                        }
+                                    } else {
+                                        emptyArray()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -123,7 +237,7 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
         }
     }
 
-    companion object : RStatics<CreationViewProps, State, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
+    companion object : RStatics<CreationViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
         init {
             contextType = requestStatusContext
         }
