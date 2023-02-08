@@ -54,8 +54,6 @@ spec:
                   fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: fs-storage
-              mountPath: /home/cnb/files
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - name: s3-secrets
@@ -124,9 +122,6 @@ spec:
               name: database-secret
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: {{ .Values.sandbox.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets

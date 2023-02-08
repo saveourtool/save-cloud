@@ -4,7 +4,6 @@ metadata:
   name: {{ .Values.demo.name }}-config
 data:
   application.properties: |
-    demo.file-storage.location={{ include "demo.constants.storage" . }}
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.demo.managementPort }}
     logging.level.org.springframework=DEBUG
