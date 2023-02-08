@@ -2,7 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.spring.entity.BaseEntity
+import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -55,27 +55,27 @@ class TestExecution(
 
     var unexpected: Long?,
 
-) : BaseEntity() {
+) : BaseEntityWithDtoWithId<TestExecutionDto>() {
     /**
      * Converts `this` to [TestExecutionDto]
      *
      * @return a new [TestExecutionDto]
      */
-    fun toDto() = TestExecutionDto(
-        test.filePath,
-        test.pluginName,
-        agent?.containerId,
-        agent?.containerName,
-        status,
-        startTime?.toEpochSecond(ZoneOffset.UTC),
-        endTime?.toEpochSecond(ZoneOffset.UTC),
-        test.testSuite.name,
-        test.testSuite.tagsAsList(),
-        unmatched,
-        matched,
-        expected,
-        unexpected,
-        null,
-        execution.id,
+    override fun toDto() = TestExecutionDto(
+        filePath = test.filePath,
+        pluginName = test.pluginName,
+        agentContainerId = agent?.containerId,
+        agentContainerName = agent?.containerName,
+        status = status,
+        startTimeSeconds = startTime?.toEpochSecond(ZoneOffset.UTC),
+        endTimeSeconds = endTime?.toEpochSecond(ZoneOffset.UTC),
+        testSuiteName = test.testSuite.name,
+        tags = test.testSuite.tagsAsList(),
+        unmatched = unmatched,
+        matched = matched,
+        expected = expected,
+        unexpected = unexpected,
+        executionId = execution.requiredId(),
+        id = requiredId(),
     )
 }

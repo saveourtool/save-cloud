@@ -8,7 +8,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.orchestrator.SaveOrchestratorKt" />
     <module name="save-cloud.save-orchestrator.main" />
-    <shortenClasspath name="NONE" />
+    <shortenClasspath name="ARGS_FILE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

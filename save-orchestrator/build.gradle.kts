@@ -1,5 +1,3 @@
-import com.saveourtool.save.buildutils.*
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -7,7 +5,7 @@ plugins {
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
     id("de.undercouch.download")
-    id("org.gradle.test-retry") version "1.5.0"
+    id("org.gradle.test-retry") version "1.5.1"
 }
 
 tasks.withType<KotlinCompile> {

@@ -2,19 +2,20 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.fileuploader.fileUploaderForProjectRun
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
@@ -78,6 +79,8 @@ private fun ChildrenBuilder.testingTypeButton(
     }
 }
 
+private fun Collection<TestSuiteVersioned>.extractIdsAndVersion() = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version).takeIf { it.isNotEmpty() }?.single()
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     val (project, setProject) = useState(ProjectDto.empty)
@@ -111,33 +114,34 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
     }
 
     val (testingType, setTestingType) = useState(TestingType.PRIVATE_TESTS)
-    val (files, setFiles) = useState<List<FileInfo>>(emptyList())
+    val (files, setFiles) = useState<List<FileDto>>(emptyList())
 
     val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
     val (execCmd, setExecCmd) = useState("")
-    val (batchSizeForAnalyzer, setBatchSizeForAnalyzer) = useState("")
+    val (batchSizeForAnalyzer, setBatchSizeForAnalyzer) = useState("1")
 
-    val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedPrivateTestSuites, setSelectedPrivateTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
+    val (selectedPublicTestSuites, setSelectedPublicTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val buildExecutionRequest: () -> CreateExecutionRequest = {
-        val selectedTestSuites = when (testingType) {
-            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites
-            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites
-            TestingType.CONTEST_MODE -> selectedContest.testSuites
+        val (selectedTestSuiteIds, testsVersion) = when (testingType) {
+            TestingType.PRIVATE_TESTS -> selectedPrivateTestSuites.extractIdsAndVersion()
+            TestingType.PUBLIC_TESTS -> selectedPublicTestSuites.extractIdsAndVersion()
+            TestingType.CONTEST_MODE -> selectedContest.testSuites.map { it.id } to null
         }
         CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = project.organizationName,
                 projectName = project.name
             ),
-            testSuiteIds = selectedTestSuites.map { it.requiredId() },
-            files = files.map { it.key },
+            testSuiteIds = selectedTestSuiteIds,
+            fileIds = files.map { it.requiredId() },
             sdk = selectedSdk,
             execCmd = execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = batchSizeForAnalyzer.takeUnless { it.isBlank() },
             testingType = testingType,
-            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { selectedContest.name }
+            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { selectedContest.name },
+            testsVersion = testsVersion,
         )
     }
 
@@ -231,16 +235,18 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 this.setSelectedContest = { setSelectedContest(it) }
                 this.availableContests = availableContests
                 // properties for PRIVATE_TESTS mode
-                selectedPrivateTestSuiteDtos = selectedPrivateTestSuites
-                setSelectedPrivateTestSuiteDtos = { setSelectedPrivateTestSuites(it) }
+                this.selectedPrivateTestSuites = selectedPrivateTestSuites
+                this.setSelectedPrivateTestSuites = { setSelectedPrivateTestSuites(it) }
                 // properties for PUBLIC_TESTS mode
-                selectedPublicTestSuiteDtos = selectedPublicTestSuites
-                setSelectedPublicTestSuiteDtos = { setSelectedPublicTestSuites(it) }
+                this.selectedPublicTestSuites = selectedPublicTestSuites
+                this.setSelectedPublicTestSuites = { setSelectedPublicTestSuites(it) }
                 // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
                 this.execCmd = execCmd
                 this.setExecCmd = { setExecCmd(it) }
                 this.batchSizeForAnalyzer = batchSizeForAnalyzer
-                this.setBatchSizeForAnalyzer = { setBatchSizeForAnalyzer(batchSizeForAnalyzer) }
+                this.setBatchSizeForAnalyzer = { value ->
+                    setBatchSizeForAnalyzer(value)
+                }
             }
 
             div {

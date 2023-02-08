@@ -5,7 +5,8 @@ import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.AgentStatusDtoList
+import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.spring.utils.applyAll
@@ -44,18 +45,18 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList> = webClientBackend
+    override fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse> = webClientBackend
         .post()
         .uri("/agents/insert?executionId=$executionId")
-        .bodyValue(agents)
+        .bodyValue(agent)
         .retrieve()
-        .bodyToMono()
+        .toBodilessEntity()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> =
             webClientBackend
                 .post()
-                .uri("/updateAgentStatusesWithDto")
-                .bodyValue(agentStates)
+                .uri("/updateAgentStatus")
+                .bodyValue(agentStatus)
                 .retrieve()
                 .toBodilessEntity()
 
@@ -64,13 +65,14 @@ class BackendOrchestratorAgentService(
         .retrieve()
         .bodyToMono()
 
-    override fun getAgentsStatuses(
-        containerIds: List<String>,
-    ): Mono<AgentStatusList> = webClientBackend
-        .get()
-        .uri("/agents/statuses?ids=${containerIds.joinToString(separator = DATABASE_DELIMITER)}")
-        .retrieve()
-        .bodyToMono()
+    override fun getExecutionStatus(
+        executionId: Long,
+    ): Mono<ExecutionStatus> =
+            webClientBackend.get()
+                .uri("/executionDto?executionId=$executionId")
+                .retrieve()
+                .bodyToMono<ExecutionDto>()
+                .map { it.status }
 
     override fun updateExecutionStatus(
         executionId: Long,
@@ -83,9 +85,9 @@ class BackendOrchestratorAgentService(
                 .retrieve()
                 .toBodilessEntity()
 
-    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = webClientBackend
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList> = webClientBackend
         .get()
-        .uri("/getAgentsStatusesForSameExecution?containerId=$containerId")
+        .uri("/getAgentStatusesByExecutionId?executionId=$executionId")
         .retrieve()
         .bodyToMono()
 

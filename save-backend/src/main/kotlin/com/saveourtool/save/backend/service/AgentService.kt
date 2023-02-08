@@ -24,6 +24,17 @@ class AgentService(
     private val executionService: ExecutionService,
 ) {
     /**
+     * @param executionId id of execution
+     * @return Unit
+     */
+    @Transactional
+    internal fun deleteAgentByExecutionId(executionId: Long) = lnkExecutionAgentRepository.findByExecutionId(executionId)
+        .map { it.agent }
+        .let {
+            agentRepository.deleteAll(it)
+        }
+
+    /**
      * @param executionIds list of ids
      * @return Unit
      */
@@ -103,6 +114,18 @@ class AgentService(
      * @return [Execution] to which [Agent] with [containerId] is assigned
      */
     internal fun getExecutionByContainerId(containerId: String): Execution = getExecution(getAgentByContainerId(containerId))
+
+    /**
+     * @param executionId ID of [Execution]
+     * @param agent [Agent] to assign to provided [Execution]
+     * @return saved [Agent]
+     */
+    internal fun save(executionId: Long, agent: Agent): Agent {
+        val execution = executionService.getExecution(executionId)
+        val savedAgent = agentRepository.save(agent)
+        lnkExecutionAgentRepository.save(LnkExecutionAgent(execution, savedAgent))
+        return savedAgent
+    }
 
     /**
      * @param executionId ID of [Execution]

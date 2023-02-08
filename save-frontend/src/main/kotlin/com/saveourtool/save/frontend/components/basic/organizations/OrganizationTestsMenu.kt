@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.te
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
+import com.saveourtool.save.test.*
 import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
@@ -45,7 +46,7 @@ external interface OrganizationTestsMenuProps : Props {
 private suspend fun WithRequestStatusContext.getTestSuitesSourcesWithId(
     organizationName: String,
 ) = get(
-    url = "$apiUrl/test-suites-sources/$organizationName/list-with-ids",
+    url = "$apiUrl/test-suites-sources/$organizationName/list",
     headers = jsonHeaders,
     loadingHandler = ::loadingHandler,
 )
@@ -55,13 +56,13 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     useTooltip()
     val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
+    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
-            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
-            setTestSuitesSourcesWithId(emptyList())
+            setTestSuitesSources(emptyList())
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
@@ -71,73 +72,75 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
     )
 
-    val (selectedTestSuitesSourceWithId, setSelectedTestSuitesSourceWithId) = useState<TestSuitesSourceDtoWithId>()
-    val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
-    val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
-        selectedTestSuitesSourceWithId?.let { testSuitesSource ->
+    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
+    val (testsSourceVersionInfoList, setTestsSourceVersionInfoList) = useState(emptyList<TestsSourceVersionInfo>())
+    val fetchTestsSourcesVersionInfoList = useDeferredRequest {
+        selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.content.organizationName}/${encodeURIComponent(testSuitesSource.content.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-version",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
             if (response.ok) {
                 response.unsafeMap {
-                    it.decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
+                    it.decodeFromJsonString<TestsSourceVersionInfoList>()
                 }.let {
-                    setTestSuitesSourceSnapshotKeys(it)
+                    setTestsSourceVersionInfoList(it)
                 }
             } else {
-                setTestSuitesSourceSnapshotKeys(emptyList())
+                setTestsSourceVersionInfoList(emptyList())
             }
         }
     }
 
-    val (testSuitesSourceSnapshotKeyToDelete, setTestSuitesSourceSnapshotKeyToDelete) = useState<TestSuitesSourceSnapshotKey>()
+    val (testsSourceVersionInfoToDelete, setTestsSourceVersionInfoToDelete) = useState<TestsSourceVersionInfo>()
     val deleteTestSuitesSourcesSnapshotKey = useDeferredRequest {
-        testSuitesSourceSnapshotKeyToDelete?.let { key ->
+        testsSourceVersionInfoToDelete?.let { key ->
             delete(
-                url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
+                url = with(key) {
+                    "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(sourceName)}/delete-version?version=$version"
+                },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
-            setTestSuitesSourceSnapshotKeyToDelete(null)
+            setTestsSourceVersionInfoToDelete(null)
         }
     }
-    val selectHandler: (TestSuitesSourceDtoWithId) -> Unit = {
-        if (selectedTestSuitesSourceWithId == it) {
-            setSelectedTestSuitesSourceWithId(null)
+    val selectHandler: (TestSuitesSourceDto) -> Unit = {
+        if (selectedTestSuitesSource == it) {
+            setSelectedTestSuitesSource(null)
         } else {
-            setSelectedTestSuitesSourceWithId(it)
-            fetchTestSuitesSourcesSnapshotKeys()
+            setSelectedTestSuitesSource(it)
+            fetchTestsSourcesVersionInfoList()
         }
     }
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
-    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
-        setTestSuiteSourceWithIdToUpsert(it)
+    val (testSuiteSourceToUpsert, setTestSuiteSourceToUpsert) = useState<TestSuitesSourceDto>()
+    val editHandler: (TestSuitesSourceDto) -> Unit = {
+        setTestSuiteSourceToUpsert(it)
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
-    val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
-        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.testSuitesSourceName}?")) {
-            setTestSuitesSourceSnapshotKeyToDelete(it)
+    val deleteHandler: (TestsSourceVersionInfo) -> Unit = {
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.sourceName}?")) {
+            setTestsSourceVersionInfoToDelete(it)
             deleteTestSuitesSourcesSnapshotKey()
-            setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+            setTestsSourceVersionInfoList(testsSourceVersionInfoList.filterNot(it::equals))
         }
     }
-    val refreshTestSuitesSourcesSnapshotKey = useDeferredRequest {
+    val refreshTestSuitesSources = useDeferredRequest {
         val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
-            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
-            setTestSuitesSourcesWithId(emptyList())
+            setTestSuitesSources(emptyList())
         }
     }
     val refreshHandler: () -> Unit = {
-        refreshTestSuitesSourcesSnapshotKey()
-        fetchTestSuitesSourcesSnapshotKeys()
+        refreshTestSuitesSources()
+        fetchTestsSourcesVersionInfoList()
     }
     val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {
@@ -148,7 +151,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
-        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        testSuitesSource = testSuiteSourceToUpsert,
         organizationName = props.organizationName,
     ) {
         setIsSourceCreated { !it }
@@ -169,11 +172,11 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
 
     div {
         className = ClassName("mb-2 d-flex justify-content-center")
-        when (selectedTestSuitesSourceWithId) {
-            null -> showTestSuitesSources(testSuitesSourcesWithId, selectHandler, fetchHandler, editHandler, refreshHandler)
-            else -> showTestSuitesSourceSnapshotKeys(
-                selectedTestSuitesSourceWithId,
-                testSuitesSourceSnapshotKeys,
+        when (selectedTestSuitesSource) {
+            null -> showTestSuitesSources(testSuitesSources, selectHandler, fetchHandler, editHandler, refreshHandler)
+            else -> showTestsSourceVersionInfoList(
+                selectedTestSuitesSource,
+                testsSourceVersionInfoList,
                 selectHandler,
                 editHandler,
                 fetchHandler,

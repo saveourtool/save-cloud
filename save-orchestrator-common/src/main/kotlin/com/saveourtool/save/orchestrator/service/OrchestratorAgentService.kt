@@ -8,11 +8,8 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.EmptyResponse
 
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 
-typealias IdList = List<Long>
-typealias AgentStatusList = List<AgentStatusDto>
 typealias TestExecutionList = List<TestExecutionDto>
 
 /**
@@ -36,20 +33,19 @@ interface OrchestratorAgentService {
     fun getNextRunConfig(containerId: String): Mono<AgentRunConfig>
 
     /**
-     * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
+     * Save new agents to the DB and insert their statuses
      *
      * @param executionId ID of an execution
-     * @param agents list of [AgentDto]s to save in the DB
-     * @return Mono with IDs of saved [Agent]s
-     * @throws WebClientResponseException if any of the requests fails
-     */
-    fun addAgents(executionId: Long, agents: List<AgentDto>): Mono<IdList>
-
-    /**
-     * @param agentStates list of [AgentStatusDto] to update/insert in the DB
+     * @param agent [AgentDto] to save in the DB
      * @return a Mono without body
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse>
+    fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse>
+
+    /**
+     * @param agentStatus [AgentStatusDto] to update/insert in the DB
+     * @return a Mono without body
+     */
+    fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse>
 
     /**
      * Get List of [TestExecutionDto] for agent [containerId] have status READY_FOR_TESTING
@@ -60,14 +56,14 @@ interface OrchestratorAgentService {
     fun getReadyForTestingTestExecutions(containerId: String): Mono<TestExecutionList>
 
     /**
-     * Get list of [AgentStatus] for provided container ids
+     * Fetches the status of execution
      *
-     * @param containerIds ids of agents
-     * @return Mono with response from backend
+     * @param executionId execution for which the status is required
+     * @return a Mono with [ExecutionStatus]
      */
-    fun getAgentsStatuses(
-        containerIds: List<String>,
-    ): Mono<AgentStatusList>
+    fun getExecutionStatus(
+        executionId: Long,
+    ): Mono<ExecutionStatus>
 
     /**
      * Marks the execution to specified state
@@ -84,10 +80,10 @@ interface OrchestratorAgentService {
     ): Mono<EmptyResponse>
 
     /**
-     * @param containerId containerId of an agent
-     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
+     * @param executionId ID of an execution
+     * @return Mono with [AgentStatusDtoList]: agent statuses belonged to a [com.saveourtool.save.entities.Execution] with provided ID
      */
-    fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution>
+    fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList>
 
     /**
      * Mark agent's test executions as failed

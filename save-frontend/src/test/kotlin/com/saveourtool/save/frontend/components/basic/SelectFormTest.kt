@@ -5,9 +5,9 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
-import dom.html.HTMLDivElement
-import dom.html.HTMLOptionElement
-import dom.html.HTMLSelectElement
+import web.html.HTMLDivElement
+import web.html.HTMLOptionElement
+import web.html.HTMLSelectElement
 import react.*
 import kotlin.js.Promise
 import kotlin.test.*

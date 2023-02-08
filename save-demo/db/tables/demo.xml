@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="demo-1" author="sanyavertolet" context="dev or prod">
+        <createTable tableName="demo">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sdk" type="varchar(256)" defaultValue="ubuntu:latest">
+                <constraints nullable="false" />
+            </column>
+            <column name="run_command" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="config_name" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="github_organization" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="github_project" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="demo" columnNames="organization_name, project_name" constraintName="unq_demo_organization_project"/>
+    </changeSet>
+
+    <changeSet id="demo-add_output_file_name" author="argentum" context="dev or prod">
+        <addColumn tableName="demo">
+            <column name="output_file_name" type="varchar(256)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

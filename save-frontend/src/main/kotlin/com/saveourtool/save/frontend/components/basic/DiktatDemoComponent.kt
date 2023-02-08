@@ -6,6 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.demo.DemoMode
+import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -19,7 +22,6 @@ import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -30,6 +32,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import web.file.FileReader
+import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -59,7 +62,7 @@ external interface DiktatDemoComponentProps : Props {
     var selectedMode: Languages
 }
 
-private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, flushWarnings: () -> Unit) {
+private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {
     div {
         val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
             ""
@@ -122,15 +125,17 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DiktatDemoResult, f
     "TYPE_ALIAS"
 )
 private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DiktatRunRequest(emptyList(), DiktatAdditionalParams()))
-    val (diktatResult, setDiktatResult) = useState(DiktatDemoResult.empty)
+    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest.diktatDemoRunRequest)
+    val (diktatResult, setDiktatResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
 
     val sendRunRequest = useDeferredRequest {
-        val result: DiktatDemoResult = post(
+        val result: DemoResult = post(
             "$demoApiUrl/diktat/run",
             jsonHeaders,
-            Json.encodeToString(diktatRunRequest.copy(codeLines = codeLines.split("\n"))),
+            Json.encodeToString(diktatRunRequest.copy(
+                codeLines = codeLines.split("\n"))
+            ),
             ::loadingHandler,
             ::noopResponseHandler,
         )
@@ -176,31 +181,13 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
             div {
                 className = ClassName("col-2 mr-1")
                 selectorBuilder(
-                    diktatRunRequest.params.mode.name,
-                    DiktatDemoMode.values().map { it.name },
+                    diktatRunRequest.mode.toString(),
+                    DemoMode.values().map { it.name },
                     "custom-select"
                 ) { event ->
                     setDiktatRunRequest { runRequest ->
                         runRequest.copy(
-                            params = runRequest.params.copy(
-                                mode = DiktatDemoMode.valueOf(event.target.value)
-                            )
-                        )
-                    }
-                }
-            }
-            div {
-                className = ClassName("col-2 ml-1")
-                selectorBuilder(
-                    diktatRunRequest.params.tool.name,
-                    DiktatDemoTool.values().map { it.name },
-                    "custom-select"
-                ) { event ->
-                    setDiktatRunRequest { runRequest ->
-                        runRequest.copy(
-                            params = runRequest.params.copy(
-                                tool = DiktatDemoTool.valueOf(event.target.value)
-                            )
+                            mode = DemoMode.valueOf(event.target.value)
                         )
                     }
                 }
@@ -215,9 +202,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                         setDiktatRunRequest { runRequest ->
                             (event.target.asDynamic()["result"] as String?)?.let {
                                 runRequest.copy(
-                                    params = runRequest.params.copy(
-                                        config = (it.split("\n"))
-                                    )
+                                    config = it.split("\n")
                                 )
                             } ?: runRequest
                         }
@@ -236,8 +221,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                     }
                 }
                 fontAwesomeIcon(icon = faUpload)
-                val uploadOrReplace = if (diktatRunRequest.params.config.orEmpty()
-                    .isEmpty()) {
+                val uploadOrReplace = if (diktatRunRequest.config.isNullOrEmpty()) {
                     "Upload"
                 } else {
                     "Replace"
@@ -254,7 +238,7 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
         div {
             className = ClassName("ml-1 mr-1")
             displayAlertWithWarnings(diktatResult) {
-                setDiktatResult(DiktatDemoResult.empty)
+                setDiktatResult(DemoResult.empty)
             }
         }
     }

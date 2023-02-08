@@ -9,7 +9,6 @@ import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import dom.html.HTMLInputElement
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -23,9 +22,15 @@ import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
+import web.html.HTMLInputElement
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * Avatar placeholder if an error was thrown.
+ */
+internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
 
 /**
  * An error message.

@@ -25,6 +25,13 @@ interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
     fun findByOrganizationIdAndName(organizationId: Long, name: String): TestSuitesSource?
 
     /**
+     * @param organizationName
+     * @param name
+     * @return found entity or null
+     */
+    fun findByOrganizationNameAndName(organizationName: String, name: String): TestSuitesSource?
+
+    /**
      * @param organization
      * @param git
      * @param testRootPath
@@ -41,4 +48,17 @@ interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
      * @return found entities
      */
     fun findAllByGit(git: Git): List<TestSuitesSource>
+
+    /**
+     * @param organizationName
+     * @param name
+     * @return found entity or null
+     */
+    @Suppress(
+        "IDENTIFIER_LENGTH",
+        "FUNCTION_NAME_INCORRECT_CASE",
+        "FunctionNaming",
+        "FunctionName",
+    )
+    fun findByOrganization_NameAndName(organizationName: String, name: String): TestSuitesSource?
 }

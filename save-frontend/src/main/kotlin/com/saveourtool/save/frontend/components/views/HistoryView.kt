@@ -29,11 +29,11 @@ import csstype.Background
 import csstype.ClassName
 import js.core.jso
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import web.html.InputType
 
 import kotlin.js.Date
 import kotlinx.browser.window
@@ -130,7 +130,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     val result = when (cellProps.row.original.status) {
                         ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
                         ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
                             ResultColorAndIcon("text-danger", faExclamationTriangle)
@@ -274,7 +274,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
                 ExecutionStatus.OBSOLETE -> Colors.GREY
-                ExecutionStatus.PENDING -> Colors.GREY
+                ExecutionStatus.PENDING, ExecutionStatus.INITIALIZATION -> Colors.GREY
                 ExecutionStatus.RUNNING -> Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
             }

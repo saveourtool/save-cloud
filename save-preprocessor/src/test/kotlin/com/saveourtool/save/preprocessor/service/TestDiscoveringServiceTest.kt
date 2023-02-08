@@ -3,29 +3,29 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 import org.eclipse.jgit.api.Git
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.io.File
-import java.nio.file.Files.createTempDirectory
 import java.nio.file.Path
+import kotlin.io.path.div
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -37,21 +37,15 @@ import java.nio.file.Path
 )
 class TestDiscoveringServiceTest {
     private val logger = LoggerFactory.getLogger(TestDiscoveringServiceTest::class.java)
-    private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
     private lateinit var testSuitesSourceDto: TestSuitesSourceDto
-
-    @MockBean
-    private lateinit var configProperties: ConfigProperties
-
-    @MockBean
-    private lateinit var webClientCustomizer: WebClientCustomizer
+    private lateinit var testsSourceSnapshot: TestsSourceSnapshotDto
 
     @BeforeAll
-    fun setUp() {
-        tmpDir = createTempDirectory(this::class.simpleName)
+    fun setUp(@TempDir tmpDir: Path) {
+        this.tmpDir = tmpDir
         Git.cloneRepository()
             .setURI("https://github.com/saveourtool/save-cli")
             .setDirectory(tmpDir.toFile())
@@ -59,7 +53,7 @@ class TestDiscoveringServiceTest {
             .use {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
             }
-        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
+        rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir / "examples/kotlin-diktat")
         val organization = Organization.stub(42)
         testSuitesSourceDto = TestSuitesSourceDto(
             organization.name,
@@ -69,19 +63,19 @@ class TestDiscoveringServiceTest {
             "examples/kotlin-diktat",
             "aaaaaa",
         )
-    }
-
-    @AfterAll
-    fun tearDown() {
-        tmpDir.toFile().deleteRecursively()
+        testsSourceSnapshot = TestsSourceSnapshotDto(
+            sourceId = 1L,
+            commitId = "1234567890",
+            commitTime = getCurrentLocalDateTime(),
+            id = 2L,
+        )
     }
 
     @Test
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
             rootTestConfig,
-            testSuitesSourceDto,
-            "not-provided"
+            testsSourceSnapshot,
         )
 
         logger.debug("Discovered test suites: $testSuites")
@@ -93,9 +87,8 @@ class TestDiscoveringServiceTest {
     fun `should throw exception with invalid path for test suites discovering`() {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
-                testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                testSuitesSourceDto,
-                "not-provided"
+                testDiscoveringService.getRootTestConfig(tmpDir / "buildSrc"),
+                testsSourceSnapshot,
             )
         }
     }

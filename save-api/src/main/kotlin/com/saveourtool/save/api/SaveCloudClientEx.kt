@@ -2,25 +2,28 @@
 
 package com.saveourtool.save.api
 
+import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus.CREATED
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
+
 import arrow.core.Either
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.http.ContentType
+
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MINUTES
+
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 
@@ -54,7 +57,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see Organization.listTestSuites
      */
-    suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteDto>>
+    suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteVersioned>>
 
     /**
      * Lists uploaded files within the project.
@@ -64,7 +67,7 @@ interface SaveCloudClientEx {
      * @return either the list of files, or the error if an error has occurred.
      * @see Organization.listFiles
      */
-    suspend fun listFiles(organizationName: String, projectName: String): Either<SaveCloudError, List<FileInfo>>
+    suspend fun listFiles(organizationName: String, projectName: String): Either<SaveCloudError, List<FileDto>>
 
     /**
      * Uploads a local file.
@@ -86,7 +89,7 @@ interface SaveCloudClientEx {
         file: Path,
         contentType: ContentType? = null,
         stripVersionFromName: Boolean = false
-    ): Either<SaveCloudError, FileInfo>
+    ): Either<SaveCloudError, FileDto>
 
     /**
      * @param organizationName the organization name.
@@ -121,18 +124,11 @@ interface SaveCloudClientEx {
     suspend fun getExecutionById(id: Long): Either<SaveCloudError, ExecutionDto>
 
     /**
-     * @param organizationName the organization name.
-     * @param projectName the name of the project.
-     * @param fileName the name of the file to delete.
-     * @param fileTimestamp the timestamp of the file to delete.
+     * @param fileId [FileDto.id]
      * @return [Unit], or the error if an error has occurred.
-     * @see Organization.deleteFile
      */
     suspend fun deleteFile(
-        organizationName: String,
-        projectName: String,
-        fileName: String,
-        fileTimestamp: Long
+        fileId: Long,
     ): Either<SaveCloudError, Unit>
 
     /**
@@ -153,6 +149,18 @@ interface SaveCloudClientEx {
     ): Either<SaveCloudError, List<ContestDto>>
 
     /**
+     * Lists test runs (along with their results) for the batch execution
+     * specified by [executionId].
+     *
+     * @param executionId the identifier which uniquely identifies the batch
+     *   execution.
+     * @return either the list of test runs, or the error if an error has
+     *   occurred.
+     * @see ExecutionDto.listTestRuns
+     */
+    suspend fun listTestRuns(executionId: Long): Either<SaveCloudError, List<TestExecutionExtDto>>
+
+    /**
      * Lists projects within this organization.
      *
      * @return either the list of projects, or the error if an error has
@@ -169,7 +177,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listTestSuites
      */
-    suspend fun Organization.listTestSuites(): Either<SaveCloudError, List<TestSuiteDto>> =
+    suspend fun Organization.listTestSuites(): Either<SaveCloudError, List<TestSuiteVersioned>> =
             listTestSuites(organizationName = name)
 
     /**
@@ -179,7 +187,7 @@ interface SaveCloudClientEx {
      * @return either the list of files, or the error if an error has occurred.
      * @see SaveCloudClientEx.listFiles
      */
-    suspend fun Organization.listFiles(projectName: String): Either<SaveCloudError, List<FileInfo>> =
+    suspend fun Organization.listFiles(projectName: String): Either<SaveCloudError, List<FileDto>> =
             listFiles(organizationName = name, projectName)
 
     /**
@@ -200,7 +208,7 @@ interface SaveCloudClientEx {
         file: Path,
         contentType: ContentType? = null,
         stripVersionFromName: Boolean = false
-    ): Either<SaveCloudError, FileInfo> =
+    ): Either<SaveCloudError, FileDto> =
             uploadFile(
                 organizationName = name,
                 projectName,
@@ -211,28 +219,19 @@ interface SaveCloudClientEx {
 
     /**
      * @param projectName the name of the project.
+     * @param contestName the optional name of the contest.
      * @return either the list of executions, or the error if an error has
      *  occurred.
      * @see SaveCloudClientEx.listExecutions
      */
-    suspend fun Organization.listExecutions(projectName: String): Either<SaveCloudError, List<ExecutionDto>> =
-            listExecutions(organizationName = name, projectName)
-
-    /**
-     * @param projectName the name of the project.
-     * @param fileKey the file descriptor.
-     * @return [Unit], or the error if an error has occurred.
-     * @see SaveCloudClientEx.deleteFile
-     */
-    suspend fun Organization.deleteFile(
+    suspend fun Organization.listExecutions(
         projectName: String,
-        fileKey: FileKey
-    ): Either<SaveCloudError, Unit> =
-            deleteFile(
+        contestName: String? = null,
+    ): Either<SaveCloudError, List<ExecutionDto>> =
+            listExecutions(
                 organizationName = name,
                 projectName,
-                fileKey.name,
-                fileKey.uploadedMillis
+                contestName,
             )
 
     /**
@@ -254,6 +253,16 @@ interface SaveCloudClientEx {
                 projectName,
                 limit
             )
+
+    /**
+     * Lists test runs (along with their results) for this batch execution.
+     *
+     * @return either the list of test runs, or the error if an error has
+     *   occurred.
+     * @see SaveCloudClientEx.listTestRuns
+     */
+    suspend fun ExecutionDto.listTestRuns(): Either<SaveCloudError, List<TestExecutionExtDto>> =
+            listTestRuns(id)
 
     /**
      * The factory object.

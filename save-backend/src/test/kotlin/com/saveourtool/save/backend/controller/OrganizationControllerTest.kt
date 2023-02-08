@@ -7,8 +7,9 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.S11nTestConfig
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -61,6 +62,7 @@ import java.util.concurrent.TimeUnit
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
     UserDetailsService::class,
+    S11nTestConfig::class,
 )
 @MockBeans(
     MockBean(ExecutionService::class),
@@ -71,7 +73,8 @@ import java.util.concurrent.TimeUnit
     MockBean(TestSuiteRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestExecutionRepository::class),
-    MockBean(TestSuitesSourceSnapshotStorage::class),
+    MockBean(TestsSourceVersionService::class),
+    MockBean(TestsSourceSnapshotStorage::class),
     MockBean(ExecutionRepository::class),
     MockBean(AgentStatusRepository::class),
     MockBean(AgentRepository::class),

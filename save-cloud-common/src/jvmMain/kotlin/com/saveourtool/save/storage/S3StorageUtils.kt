@@ -1,0 +1,30 @@
+/**
+ * Utilities for [Storage] which implements [AbstractS3Storage]
+ */
+
+package com.saveourtool.save.storage
+
+/**
+ * Delimiter for S3 key
+ */
+const val PATH_DELIMITER = "/"
+
+/**
+ * @receiver key in S3 as [String]
+ * @param prefix a common prefix for all keys in storage
+ * @return parts [this] split by [PATH_DELIMITER]
+ */
+fun String.s3KeyToPartsTill(prefix: String): List<String> = removePrefix(prefix).removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
+
+/**
+ * @param parts should not end or start with [PATH_DELIMITER] -- will be deleted
+ * @return a s3 key by concat [parts] and a single [PATH_DELIMITER] between them
+ */
+fun concatS3Key(vararg parts: String): String = parts.map { it.removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER) }
+    .filterNot { it.isEmpty() }
+    .also {
+        if (it.isEmpty()) {
+            throw IllegalArgumentException("all parts cannot be empty")
+        }
+    }
+    .joinToString(PATH_DELIMITER)

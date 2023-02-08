@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
@@ -61,7 +60,7 @@ class ProjectViewTest {
             res { response ->
                 mockMswResponse(
                     response,
-                    emptyList<FileInfo>()
+                    emptyList<FileDto>()
                 )
             }
         },

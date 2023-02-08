@@ -8,9 +8,8 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+
 import csstype.ClassName
-import dom.html.HTMLButtonElement
-import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
@@ -18,6 +17,8 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.html.HTMLButtonElement
+import web.html.HTMLSelectElement
 
 /**
  * Enum that stores types of confirmation windows for different situations.

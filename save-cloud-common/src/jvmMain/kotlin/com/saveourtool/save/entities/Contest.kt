@@ -58,7 +58,7 @@ class Contest(
         endTime?.toKotlinLocalDateTime()!!,
         description,
         organization.name,
-        testSuiteLinks.map { it.testSuite.toDto() },
+        testSuiteLinks.map { it.testSuite.toVersioned(it.testSuite.sourceSnapshot.commitId) },
         creationTime?.toKotlinLocalDateTime(),
     )
 

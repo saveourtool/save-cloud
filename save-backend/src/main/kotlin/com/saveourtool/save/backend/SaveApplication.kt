@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import java.nio.ByteBuffer
 
-typealias StringResponse = ResponseEntity<String>
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 
 /**

@@ -32,18 +32,12 @@ fun TestStatus.toTestResultStatus() = when (this) {
  * @param pluginName name of the plugin that has been executed
  * @return an instance of [TestResultDebugInfo] representing execution info
  */
-fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo {
-    // In standard mode we have extra paths in json reporter, since we created extra directories,
-    // and this information won't be matched with data from DB without such removal
-    val location = resources.test.parent!!.toString()
-    return TestResultDebugInfo(
-        TestResultLocation(
-            testSuiteName,
-            pluginName,
-            location,
-            resources.test.name
-        ),
-        debugInfo,
-        status,
-    )
-}
+fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String): TestResultDebugInfo = TestResultDebugInfo(
+    TestResultLocation(
+        testSuiteName = testSuiteName,
+        pluginName = pluginName,
+        testPath = resources.test.toString(),
+    ),
+    debugInfo,
+    status,
+)

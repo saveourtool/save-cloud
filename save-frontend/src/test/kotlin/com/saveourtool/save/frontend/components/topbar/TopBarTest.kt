@@ -3,8 +3,8 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.info.UserInfo
 
-import dom.html.HTMLDivElement
-import dom.html.HTMLSpanElement
+import web.html.HTMLDivElement
+import web.html.HTMLSpanElement
 import react.*
 import react.router.MemoryRouter
 

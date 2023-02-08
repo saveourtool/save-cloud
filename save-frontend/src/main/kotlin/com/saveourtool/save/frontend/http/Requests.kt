@@ -8,30 +8,17 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
+import js.core.jso
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
+import web.file.File
+import web.http.FormData
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
-/**
- * @param testExecutionDto
- */
-suspend fun ComponentWithScope<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(testExecutionDto, this::post)
-
-/**
- * @param testExecutionDto
- */
-suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(testExecutionDto: TestExecutionDto) =
-        getExecutionInfoFor(testExecutionDto, this::post)
-
-/**
- * @param testExecutionDto
- */
-suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
-        getDebugInfoFor(testExecutionDto, this::post)
+import kotlinx.browser.window
 
 /**
  * @param name
@@ -92,43 +79,107 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
     .decodeFromJsonString<UserInfo>()
 
 /**
+ * @param file image file
+ * @param name avatar owner name
+ * @param type avatar type
+ * @param loadingHandler
+ */
+suspend fun ComponentWithScope<*, *>.postImageUpload(
+    file: File,
+    name: String,
+    type: AvatarType,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+) {
+    val response = post(
+        url = "$apiUrl/avatar/upload",
+        params = jso<dynamic> {
+            owner = name
+            this.type = type
+        },
+        Headers().apply {
+            append(CONTENT_LENGTH_CUSTOM, file.size.toString())
+        },
+        FormData().apply {
+            set(FILE_PART_NAME, file)
+        },
+        loadingHandler,
+    )
+    if (response.ok) {
+        window.location.reload()
+    }
+}
+
+/**
+ * @param url url to upload a file
+ * @param file a file which needs to be uploaded
+ * @param loadingHandler
+ * @return response of operation
+ */
+suspend fun WithRequestStatusContext.postUploadFile(
+    url: String,
+    file: File,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+): Response = post(
+    url,
+    Headers().apply {
+        append(CONTENT_LENGTH_CUSTOM, file.size.toString())
+    },
+    FormData().apply {
+        set(FILE_PART_NAME, file)
+    },
+    loadingHandler = loadingHandler,
+)
+
+/**
  * Fetch debug info for test execution
  *
  * @param testExecutionDto
- * @param post
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
-private suspend fun getDebugInfoFor(
+suspend fun ComponentWithScope<*, *>.getDebugInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
-) = post(
-    "$apiUrl/files/get-debug-info",
-    Headers().apply {
-        set("Content-Type", "application/json")
-    },
-    Json.encodeToString(testExecutionDto),
-    ::noopLoadingHandler,
-    ::noopResponseHandler
-)
+) = getDebugInfoFor(testExecutionDto, this::get)
+
+/**
+ * Fetch debug info for test execution
+ *
+ * @param testExecutionDto
+ * @return Response
+ */
+suspend fun WithRequestStatusContext.getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+) = getDebugInfoFor(testExecutionDto, this::get)
 
 /**
  * Fetch execution info for test execution
  *
  * @param testExecutionDto
- * @param post
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
-private suspend fun getExecutionInfoFor(
+suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
-) = post(
+) = get(
     "$apiUrl/files/get-execution-info",
-    Headers().apply {
-        set("Content-Type", "application/json")
+    params = jso<dynamic> {
+        executionId = testExecutionDto.executionId
     },
-    Json.encodeToString(testExecutionDto),
+    jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler
+)
+
+@Suppress("TYPE_ALIAS")
+private suspend fun getDebugInfoFor(
+    testExecutionDto: TestExecutionDto,
+    get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
+) = get(
+    "$apiUrl/files/get-debug-info",
+    jso {
+        testExecutionId = testExecutionDto.requiredId()
+    },
+    jsonHeaders,
+    ::noopLoadingHandler,
+    ::noopResponseHandler,
 )

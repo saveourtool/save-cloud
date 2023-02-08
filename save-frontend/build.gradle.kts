@@ -49,7 +49,9 @@ kotlin {
                 }
             }
             commonWebpackConfig {
-                cssSupport.enabled = true
+                cssSupport {
+                    enabled.set(true)
+                }
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
@@ -99,6 +101,7 @@ kotlin {
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
             implementation(npm("react-ace", "^10.1.0"))
+            implementation(npm("react-avatar-image-cropper", "^1.4.2"))
             // react-sigma
             implementation(npm("@react-sigma/core", "^3.1.0"))
             implementation(npm("sigma", "^2.4.0"))

@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -166,14 +167,15 @@ class OrganizationService(
 
     /**
      * @param name
-     * @param relativePath
      * @throws NoSuchElementException
      */
-    fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)
-            ?.apply {
-                avatar = relativePath
-            }.orNotFound { "Organization with name [$name] was not found." }
+    fun updateAvatarVersion(name: String) {
+        val organization = organizationRepository.findByName(name).orNotFound()
+        var version = organization.avatar?.substringAfterLast("?")?.toInt() ?: 0
+
+        organization.apply {
+            avatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
+        }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
 

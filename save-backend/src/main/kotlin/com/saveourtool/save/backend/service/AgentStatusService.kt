@@ -13,6 +13,14 @@ class AgentStatusService(
     private val lnkExecutionAgentRepository: LnkExecutionAgentRepository,
 ) {
     /**
+     * @param executionId
+     * @return Unit
+     */
+    internal fun deleteAgentStatusWithExecutionId(executionId: Long) = lnkExecutionAgentRepository.findByExecutionId(executionId)
+        .map { it.agent.requiredId() }
+        .let { agentStatusRepository.deleteByAgentIdIn(it) }
+
+    /**
      * @param executionIds
      * @return Unit
      */

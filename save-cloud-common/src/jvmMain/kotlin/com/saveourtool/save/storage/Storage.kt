@@ -26,7 +26,7 @@ interface Storage<K> {
      * @param key a key to be checked
      * @return content size in bytes
      */
-    fun contentSize(key: K): Mono<Long>
+    fun contentLength(key: K): Mono<Long>
 
     /**
      * @param key a key to be checked
@@ -49,11 +49,28 @@ interface Storage<K> {
 
     /**
      * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return [Mono] without value
+     */
+    fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
+
+    /**
+     * @param key a key for provided content
      * @param content
      * @return count of written bytes
      */
     fun overwrite(key: K, content: Flux<ByteBuffer>): Mono<Long> = delete(key)
         .flatMap { upload(key, content) }
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return [Mono] without value
+     */
+    fun overwrite(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = delete(key)
+        .flatMap { upload(key, contentLength, content) }
 
     /**
      * @param key a key to download content
@@ -64,16 +81,7 @@ interface Storage<K> {
     /**
      * @param source a key of source
      * @param target a key of target
-     * @return count of copied bytes
-     */
-    fun copy(source: K, target: K): Mono<Long> =
-            upload(target, download(source))
-
-    /**
-     * @param source a key of source
-     * @param target a key of target
      * @return true if the [source] deleted, otherwise false
      */
-    fun move(source: K, target: K): Mono<Boolean> =
-            copy(source, target).then(delete(source))
+    fun move(source: K, target: K): Mono<Boolean>
 }

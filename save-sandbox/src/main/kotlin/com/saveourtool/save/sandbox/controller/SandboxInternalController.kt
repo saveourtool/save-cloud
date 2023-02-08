@@ -1,6 +1,6 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -10,7 +10,6 @@ import com.saveourtool.save.utils.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -27,7 +26,6 @@ import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
 
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
-typealias StringResponse = ResponseEntity<String>
 
 /**
  * Sandbox implementation of endpoints which are required for save-agent
@@ -59,7 +57,7 @@ class SandboxInternalController(
                 storage.list(userId, SandboxStorageKeyType.TEST)
                     .flatMap { key ->
                         storage.download(key)
-                            .mapToInputStream()
+                            .collectToInputStream()
                             .map { inputStream ->
                                 directory.resolve(key.fileName)
                                     .outputStream()
@@ -110,32 +108,40 @@ class SandboxInternalController(
      * @param version
      * @return content of requested save-cli
      */
+    @GetMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound {
-                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+            run {
+                val executable = "save-$version-linuxX64.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
                 }
+            }
 
     /**
      * @return content of save-agent
      */
+    @GetMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-agent.kexe"))
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound()
+            run {
+                val executable = "save-agent.kexe"
+
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
+            }
 
     /**
-     * @param testExecutionsDto
+     * @param testExecutionResults
      * @return response with text value
      */
     @PostMapping("/upload-execution-data")
     fun saveExecutionData(
-        @RequestBody testExecutionsDto: List<TestExecutionDto>
+        @RequestBody testExecutionResults: List<TestExecutionResult>
     ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
         .toMono()
 
@@ -150,6 +156,6 @@ class SandboxInternalController(
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = storage.overwrite(
         key = SandboxStorageKey.debugInfoKey(userId),
-        content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
+        contentBytes = objectMapper.writeValueAsBytes(testResultDebugInfo)
     )
 }

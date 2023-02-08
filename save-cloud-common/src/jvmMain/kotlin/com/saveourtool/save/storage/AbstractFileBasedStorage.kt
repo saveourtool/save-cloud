@@ -2,11 +2,14 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.countPartsTill
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.utils.toDataBufferFlux
+import org.springframework.http.HttpStatus
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import java.io.IOException
 
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -47,7 +50,7 @@ abstract class AbstractFileBasedStorage<K>(
 
     override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
 
-    override fun contentSize(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
+    override fun contentLength(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
 
     override fun lastModified(key: K): Mono<Instant> = Mono.fromCallable { buildPathToContent(key).getLastModifiedTime().toInstant() }
 
@@ -67,16 +70,31 @@ abstract class AbstractFileBasedStorage<K>(
         return Mono.fromCallable {
             contentPath.parent.createDirectoriesIfRequired()
             contentPath.createFile()
-        }.flatMap { _ ->
+        }.flatMap {
             content.collectToFile(contentPath)
         }.map { it.toLong() }
     }
 
-    override fun download(key: K): Flux<ByteBuffer> {
-        @Suppress("BlockingMethodInNonBlockingContext")
-        return buildPathToContent(key).toDataBufferFlux()
-            .map { it.asByteBuffer() }
+    override fun move(source: K, target: K): Mono<Boolean> {
+        val sourceContentPath = buildPathToContent(source)
+        val targetContentPath = buildPathToContent(target)
+        return Mono.fromCallable {
+            targetContentPath.parent.createDirectoriesIfRequired()
+            sourceContentPath.moveTo(targetContentPath)
+        }
+            .thenReturn(true)
+            .onErrorReturn(IOException::class.java, false)
     }
+
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = upload(key, content)
+        .filter { it == contentLength }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Invalid contentLength provided"
+        }
+        .thenReturn(Unit)
+
+    override fun download(key: K): Flux<ByteBuffer> = buildPathToContent(key).toDataBufferFlux()
+        .map { it.asByteBuffer() }
 
     /**
      * @param rootDir

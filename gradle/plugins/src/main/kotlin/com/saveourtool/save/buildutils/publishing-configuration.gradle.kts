@@ -34,8 +34,4 @@ run {
 
 run {
     configurePublications()
-
-    if (hasProperty("signingKey")) {
-        configureSigning()
-    }
 }

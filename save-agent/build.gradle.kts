@@ -2,6 +2,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
@@ -91,7 +92,7 @@ kotlin {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
         from(linkTask.flatMap { it.outputFile })
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/linuxX64Main/resources/agent.toml"))
     }
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {

@@ -15,6 +15,7 @@ import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -48,6 +49,7 @@ import java.net.InetSocketAddress
 )
 class ContainerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
+    @Autowired private lateinit var containerRunner: ContainerRunner
     @Autowired private lateinit var containerService: ContainerService
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var testContainerId: String
@@ -76,10 +78,15 @@ class ContainerServiceTest {
                 saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
             )
         )
-        testContainerId = containerService.createContainers(
+        containerService.createAndStartContainers(
             testExecution.id!!,
             configuration
-        ).single()
+        )
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-${testExecution.requiredId()}-"))
+            .exec()
+            .map { it.id }
+            .single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend
@@ -90,7 +97,7 @@ class ContainerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        containerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
+        containerService.validateContainersAreStarted(testExecution.requiredId())
             .subscribe()
 
         // assertions
@@ -109,17 +116,11 @@ class ContainerServiceTest {
             "container $testContainerId is not running, actual state ${inspectContainerResponse.state}"
         }
 
-        // tear down
-        containerService.stopAgents(listOf(testContainerId))
-        verify(orchestratorAgentService).updateExecutionStatus(any(), any(), anyOrNull())
         verifyNoMoreInteractions(orchestratorAgentService)
     }
 
     @AfterEach
     fun tearDown() {
-        if (::testContainerId.isInitialized) {
-            dockerClient.removeContainerCmd(testContainerId).exec()
-        }
         mockServer.checkQueues()
         mockServer.cleanup()
     }
