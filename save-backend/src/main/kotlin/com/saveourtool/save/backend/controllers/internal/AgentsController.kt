@@ -35,6 +35,9 @@ import kotlinx.datetime.toJavaLocalDateTime
  */
 @RestController
 @RequestMapping("/internal")
+@Suppress(
+    "LongParameterList",
+)
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentService: AgentService,
