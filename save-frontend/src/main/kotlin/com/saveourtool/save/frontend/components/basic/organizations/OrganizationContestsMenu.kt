@@ -229,7 +229,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         isContestCreationModalOpen,
         {
             setIsContestCreationModalOpen(false)
-            navigate(
+            navigate.invoke(
                 to = it,
             )
         },

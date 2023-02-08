@@ -19,11 +19,10 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import history.createHashHistory
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.Navigate
-import react.router.Route
 import react.router.dom.HashRouter
 import web.dom.document
 import web.html.HTMLElement
@@ -33,6 +32,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import react.router.*
 
 internal val topBarComponent = topBar()
 
@@ -109,15 +109,24 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     )
     override fun ChildrenBuilder.render() {
         val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
+        val navigate = useNavigate()
 
-        HashRouter {
+        createHashHistory() {
+
+        }
+        createHashHistory().apply {
             requestModalHandler {
                 userInfo = state.userInfo
 
                 withRouter<Props> { location, _ ->
                     if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        navigate.invoke(
+                            to = "/${FrontendRoutes.REGISTRATION.path}",
+                            options =
+                        )
+                        useNavigate
                         Navigate {
-                            to = "/${FrontendRoutes.REGISTRATION.path}"
+                            to =
                             replace = false
                         }
                     } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
@@ -166,6 +175,7 @@ inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachLis
     routeElement: FC<Props>
 ) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
+        useRoutes()
         Route {
             path = "$basePath/$item"
             element = routeElement.create()

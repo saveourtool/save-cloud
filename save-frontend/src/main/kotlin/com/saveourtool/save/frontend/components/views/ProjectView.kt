@@ -25,7 +25,7 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import csstype.Cursor
-import history.Location
+import remix.run.router.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*

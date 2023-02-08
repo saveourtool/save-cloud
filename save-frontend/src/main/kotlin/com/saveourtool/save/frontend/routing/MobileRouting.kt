@@ -10,6 +10,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import react.VFC
 import react.create
 import react.react
+import react.router.PathRouteProps
 import react.router.Route
 import react.router.Routes
 
@@ -21,10 +22,14 @@ val mobileRoutes = VFC {
         listOf(
             AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US.path,
             WelcomeMobileView::class.react.create() to "*",
-        ).forEach {
+        ).forEach { routes ->
             Route {
-                this.element = it.first
-                this.path = "/${it.second}"
+                Route {
+
+                }
+                val props: PathRouteProps = this.unsafeCast<PathRouteProps>()
+                props.element = routes.first
+                props.path = "/${routes.second}"
             }
         }
     }

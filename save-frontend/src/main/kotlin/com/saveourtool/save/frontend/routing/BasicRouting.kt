@@ -30,9 +30,7 @@ import com.saveourtool.save.validation.FrontendRoutes.*
 import js.core.get
 import org.w3c.dom.url.URLSearchParams
 import react.*
-import react.router.Navigate
-import react.router.Route
-import react.router.Routes
+import react.router.*
 
 val testExecutionDetailsView = testExecutionDetailsView()
 
@@ -78,10 +76,10 @@ val basicRouting: FC<AppProps> = FC { props ->
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
                 TestExecutionFilters(
-                    status = params.get("status")?.let { TestResultStatus.valueOf(it) },
-                    fileName = params.get("fileName"),
-                    testSuite = params.get("testSuite"),
-                    tag = params.get("tag")
+                    status = params["status"]?.let { TestResultStatus.valueOf(it) },
+                    fileName = params["fileName"],
+                    testSuite = params["testSuite"],
+                    tag = params["tag"]
                 )
             }
             testAnalysisEnabled = true
@@ -159,23 +157,28 @@ val basicRouting: FC<AppProps> = FC { props ->
 
         ).forEach {
             Route {
-                this.element = it.first
-                this.path = "/${it.second}"
+                val pathRouteProps = this.unsafeCast<PathRouteProps>()
+                pathRouteProps.element = it.first
+                pathRouteProps.path = "/${it.second}"
             }
         }
 
         props.userInfo?.name.run {
             Route {
-                path = "/$this"
-                element = Navigate.create {
-                    to = "/$this/$SETTINGS_PROFILE"
-                }
+                val pathRouteProps = this.unsafeCast<PathRouteProps>()
+                pathRouteProps.path = "/$this"
+                pathRouteProps.element = VFC {
+                    useNavigate().invoke(
+                        to = "/$this/$SETTINGS_PROFILE"
+                    )
+                }.create()
             }
         }
 
         Route {
-            path = "/$MANAGE_ORGANIZATIONS"
-            element = when (props.userInfo.isSuperAdmin()) {
+            val pathRouteProps = this.unsafeCast<PathRouteProps>()
+            pathRouteProps.path = "/$MANAGE_ORGANIZATIONS"
+            pathRouteProps.element = when (props.userInfo.isSuperAdmin()) {
                 true -> OrganizationAdminView::class.react.create()
                 else -> fallbackNode
             }
@@ -207,8 +210,9 @@ val basicRouting: FC<AppProps> = FC { props ->
         )
 
         Route {
-            path = "*"
-            element = FallbackView::class.react.create {
+            val pathRouteProps = this.unsafeCast<PathRouteProps>()
+            pathRouteProps.path = "*"
+            pathRouteProps.element = FallbackView::class.react.create {
                 bigText = "404"
                 smallText = "Page not found"
                 withRouterLink = true

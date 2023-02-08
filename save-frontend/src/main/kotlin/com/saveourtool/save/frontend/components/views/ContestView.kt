@@ -20,7 +20,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import history.Location
+import remix.run.router.Location
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1

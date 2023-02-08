@@ -6,7 +6,7 @@ import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import csstype.ClassName
-import history.Location
+import remix.run.router.Location
 import react.FC
 import react.Props
 import react.dom.aria.AriaCurrent
