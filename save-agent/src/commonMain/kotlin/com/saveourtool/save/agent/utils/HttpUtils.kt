@@ -6,12 +6,26 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
+import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
-import io.ktor.client.*
-import io.ktor.client.request.*
+import com.saveourtool.save.utils.failureOrNotOk
+import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.notOk
 
+import io.ktor.client.*
+import io.ktor.client.call.body
+import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.request
+import io.ktor.client.utils.DEFAULT_HTTP_BUFFER_SIZE
 import io.ktor.http.*
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.isEmpty
+import io.ktor.utils.io.core.readBytes
+import okio.Path
+import okio.buffer
+import okio.use
+
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -56,20 +70,40 @@ internal suspend fun SaveAgent.processRequestToBackendWrapped(
  *
  * @param url
  * @param body
+ * @param file
  * @return result wrapping [HttpResponse]
  */
-internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpResponse> = runCatching {
-    post {
+internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): Result<HttpResponse> = runCatching {
+    preparePost {
         url(url)
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         body?.let { setBody(it) }
     }
+        .execute { httpResponse ->
+            if (httpResponse.status.isSuccess()) {
+                val channel: ByteReadChannel = httpResponse.body()
+                val totalBytes = AtomicLong(0L)
+                while (!channel.isClosedForRead) {
+                    val packet = channel.readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+                    while (!packet.isEmpty) {
+                        val bytes = packet.readBytes()
+                        val hasAlreadyAnyData = totalBytes.get() > 0
+                        fs.appendingSink(file, mustExist = hasAlreadyAnyData)
+                            .buffer()
+                            .use {
+                                it.write(bytes)
+                            }
+                        totalBytes.addAndGet(bytes.size.toLong())
+                        logDebugCustom("Received ${bytes.size} ($totalBytes) bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
+                    }
+                }
+                if (totalBytes.get() == 0L) {
+                    error("Downloaded a file from $url but content is empty")
+                }
+            } else {
+                logWarn("Skipping downloading as request is not a success")
+            }
+            httpResponse
+        }
 }
-
-/**
- * @return state of [Result]
- */
-internal fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
-
-private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()

@@ -16,13 +16,11 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.router.useNavigate
-
-import kotlinx.browser.window
+import web.html.InputType
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -174,14 +172,15 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
-                        modalButtons = { action, window, childrenBuilder ->
+                        modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                            val actionName = if (isClickMode) "ban" else "delete"
                             with(childrenBuilder) {
-                                buttonBuilder(label = "Yes, delete ${props.organizationName}", style = "danger", classes = "mr-2") {
+                                buttonBuilder(label = "Yes, $actionName ${props.organizationName}", style = "danger", classes = "mr-2") {
                                     action()
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                                 buttonBuilder("Cancel") {
-                                    window.closeWindow()
+                                    closeWindow()
                                 }
                             }
                         }

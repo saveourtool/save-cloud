@@ -8,6 +8,7 @@
     <include file="execution.xml" relativeToChangelogFile="true" />
     <include file="agent.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="sandbox-tag" author="frolov">
         <tagDatabase tag="sandbox-tables"/>

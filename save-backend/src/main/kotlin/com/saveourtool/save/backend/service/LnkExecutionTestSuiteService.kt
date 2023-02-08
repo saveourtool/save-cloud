@@ -34,18 +34,11 @@ class LnkExecutionTestSuiteService(
                 }
 
     /**
-     * @param testSuiteId manageable test suite
-     * @return all [Execution]s with [testSuiteId]
+     * @param executionIds IDs of manageable executions
      */
-    fun getAllExecutionsByTestSuiteId(testSuiteId: Long) = lnkExecutionTestSuiteRepository.findByTestSuiteId(testSuiteId)
-        .map {
-            it.execution
-        }
-
-    /**
-     * @param [lnkExecutionTestSuite] link execution to testSuites
-     */
-    fun save(lnkExecutionTestSuite: LnkExecutionTestSuite): LnkExecutionTestSuite = lnkExecutionTestSuiteRepository.save(lnkExecutionTestSuite)
+    fun deleteByExecutionIds(executionIds: Collection<Long>) {
+        lnkExecutionTestSuiteRepository.deleteAll(lnkExecutionTestSuiteRepository.findByExecutionIdIn(executionIds))
+    }
 
     /**
      * @param [lnkExecutionTestSuites] link execution to testSuites

@@ -13,12 +13,10 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import dom.html.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -28,6 +26,8 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
+import web.html.HTMLInputElement
+import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -270,14 +270,15 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                 }
                             }
                             classes = "btn btn-sm btn-danger"
-                            modalButtons = { action, window, childrenBuilder ->
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                val actionName = if (isClickMode) "ban" else "delete"
                                 with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, delete ${props.project.name}", style = "danger", classes = "mr-2") {
+                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
                                         action()
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                     buttonBuilder("Cancel") {
-                                        window.closeWindow()
+                                        closeWindow()
                                     }
                                 }
                             }

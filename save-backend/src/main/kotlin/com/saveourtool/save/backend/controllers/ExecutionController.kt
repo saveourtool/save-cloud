@@ -1,13 +1,9 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
@@ -49,12 +45,8 @@ import kotlinx.datetime.toJavaLocalDateTime
 class ExecutionController(private val executionService: ExecutionService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                          private val testExecutionService: TestExecutionService,
-                          private val agentService: AgentService,
-                          private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
-                          private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -89,6 +81,18 @@ class ExecutionController(private val executionService: ExecutionService,
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
+
+    /**
+     * @param executionId
+     * @return execution dto
+     */
+    @GetMapping(path = ["/internal/executionDto"])
+    fun getExecutionDto(
+        @RequestParam executionId: Long,
+    ): Mono<ExecutionDto> =
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
+                .map { it.toDto() }
 
     /**
      * @param executionId
@@ -172,7 +176,6 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param organizationName organization of project
      * @param authentication
      * @return ResponseEntity
-     * @throws NoSuchElementException
      */
     @PostMapping(path = ["/api/$v1/execution/delete-all-except-contest"])
     @Suppress("UnsafeCallOnNullableType")
@@ -180,27 +183,17 @@ class ExecutionController(private val executionService: ExecutionService,
         @RequestParam name: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<*>> {
-        val organization = organizationService.findByNameAndCreatedStatus(organizationName) ?: throw NoSuchElementException("No such organization was found")
-        return projectService.findWithPermissionByNameAndOrganization(
-            authentication,
-            name,
-            organization.name,
-            Permission.DELETE,
-            messageIfNotFound = "Could not find the project with name: $name and owner: ${organization.name} or related objects",
-        )
-            .mapNotNull { it.id!! }
-            .map { id ->
-                val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
-                    it.requiredId()
-                }
-                testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
-                agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
-                agentService.deleteAgentByExecutionIds(executionsNotInContests)
-                executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
-                ResponseEntity.ok().build<String>()
-            }
-    }
+    ): Mono<ResponseEntity<*>> = projectService.findWithPermissionByNameAndOrganization(
+        authentication,
+        name,
+        organizationName,
+        Permission.DELETE,
+        messageIfNotFound = "Could not find the project with name: $name and owner: $organizationName or related objects",
+    )
+        .map { project ->
+            executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(project.name, project.organization)
+            ResponseEntity.ok().build<String>()
+        }
 
     /**
      * Batch delete executions by a list of IDs.
@@ -246,10 +239,7 @@ class ExecutionController(private val executionService: ExecutionService,
             .collectList()
             .map { filteredExecutionIds ->
                 // at this point we should have only present executions from a project, that user has access to
-                testExecutionService.deleteTestExecutionByExecutionIds(filteredExecutionIds)
-                agentStatusService.deleteAgentStatusWithExecutionIds(filteredExecutionIds)
-                agentService.deleteAgentByExecutionIds(filteredExecutionIds)
-                executionService.deleteExecutionByIds(filteredExecutionIds)
+                executionService.deleteByIds(filteredExecutionIds)
                 if (filteredExecutionIds.isNotEmpty()) {
                     ResponseEntity.ok().build<Void>()
                 } else if (isProjectHidden.get()) {

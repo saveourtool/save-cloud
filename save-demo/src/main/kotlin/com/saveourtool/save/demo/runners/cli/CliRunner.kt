@@ -1,8 +1,9 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.Runner
+import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.utils.isWindows
 import org.springframework.stereotype.Component
 import java.nio.file.Path
@@ -12,7 +13,7 @@ import kotlin.io.path.*
  * Interface that should be implemented by all the runners that use [ProcessBuilder] in order to run tools for demo.
  */
 @Component
-interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P, R> {
+interface CliRunner : Runner {
     /**
      * Save [lines] into file with [filePath]
      *
@@ -28,17 +29,17 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
 
     /**
      * @param workingDir the directory where the tool is run
-     * @param params additional params of type [DemoAdditionalParams]
-     * @return executable file (diktat or ktlint)
+     * @param toolKey storage key to find requested tool
+     * @return executable file diktat
      */
-    fun getExecutable(workingDir: Path, params: P): Path
+    fun getExecutable(workingDir: Path, toolKey: ToolKey): Path
 
     /**
      * @param workingDir the directory where the tool is run
      * @param testPath path to test file
      * @param outputPath path to file with tool run report
      * @param configPath path to config file, if null, default config is used
-     * @param params additional params of type [DemoAdditionalParams]
+     * @param demoRunRequest params of type [DemoRunRequest]
      * @return run command that depends on the system it is run on
      */
     fun getRunCommand(
@@ -46,7 +47,7 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
         testPath: Path,
         outputPath: Path,
         configPath: Path?,
-        params: P
+        demoRunRequest: DemoRunRequest
     ): String
 
     /**
@@ -60,15 +61,17 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
     }
 
     /**
-     * @param testLines code that will be consumed by the tool
-     * @param params additional params of type [DemoAdditionalParams]
+     * @param demoRunRequest params of type [DemoRunRequest]
      * @param tempRootDir path to root of temp directories (somewhere in storage)
+     * @param testFileName test file name that should be
+     * @param additionalDirectoryTree additional directory names that should be in directory hierarchy to working dir (below randomly generated dir)
      * @return result as [DemoResult]
      */
     fun runInTempDir(
-        testLines: String,
-        params: P,
+        demoRunRequest: DemoRunRequest,
         tempRootDir: Path,
+        testFileName: String,
+        additionalDirectoryTree: List<String> = emptyList(),
     ) = run {
         if (!tempRootDir.exists()) {
             tempRootDir.createDirectory()
@@ -77,12 +80,18 @@ interface CliRunner <in P : DemoAdditionalParams, out R : DemoResult> : Runner<P
         .let {
             createTempDirectory(tempRootDir)
         }
-        .let { tmpDir ->
+        .let { currentTempRootPath ->
+            currentTempRootPath to additionalDirectoryTree.fold(currentTempRootPath) { tempRootPath, pathItem ->
+                tempRootPath / pathItem
+            }
+                .also { tempRootPath -> tempRootPath.createDirectories() }
+        }
+        .let { (createdTempDir, workingDir) ->
             try {
-                val testPath = requireNotNull(prepareFile(tmpDir / "Test.kt", testLines))
-                run(testPath, params)
+                val testPath = requireNotNull(prepareFile(workingDir / testFileName, demoRunRequest.codeLines.joinToString("\n")))
+                run(testPath, demoRunRequest)
             } finally {
-                tmpDir.toFile().deleteRecursively()
+                createdTempDir.toFile().deleteRecursively()
             }
         }
 }

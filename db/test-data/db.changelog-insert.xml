@@ -9,6 +9,7 @@
     <include file="organization-insert.xml" relativeToChangelogFile="true"/>
     <include file="git-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suites-source-insert.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-snapshot-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-insert.xml" relativeToChangelogFile="true"/>
     <include file="project-insert.xml" relativeToChangelogFile="true"/>
@@ -25,6 +26,10 @@
     <include file="original-login-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-organization-test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-test-suite-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-agent-insert.xml" relativeToChangelogFile="true"/>
+    <include file="file-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-file-insert.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-version-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="add-tests-data" author="nulls">
         <tagDatabase tag="test-data-insert"/>

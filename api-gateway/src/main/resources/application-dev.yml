@@ -7,7 +7,7 @@ gateway:
   sandbox:
     url: http://localhost:5400
   demo:
-    url: http://localhost:5401
+    url: http://localhost:5421
   demo-cpg:
     url: http://localhost:5500
 spring:

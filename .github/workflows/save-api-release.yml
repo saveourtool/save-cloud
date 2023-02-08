@@ -35,6 +35,7 @@ jobs:
           gradle-version: wrapper
           arguments: |
             --build-cache
+            --console=rich
             -Prelease
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}

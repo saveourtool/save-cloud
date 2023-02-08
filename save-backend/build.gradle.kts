@@ -1,10 +1,6 @@
-import com.saveourtool.save.buildutils.*
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-
-import java.nio.file.Files.isDirectory
-import java.nio.file.Paths
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
@@ -12,9 +8,10 @@ plugins {
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
-    id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
 }
 
 openApi {
@@ -24,7 +21,8 @@ openApi {
     waitTimeInSeconds.set(120)
 
     customBootRun {
-        jvmArgs.add("-Dbackend.fileStorage.location=\${user.home}/cnb/files")
+        jvmArgs.add("-Dbackend.test-analysis-settings.replay-on-startup=false")
+        args.add("--debug")
     }
 }
 
@@ -37,45 +35,10 @@ tasks.register<Copy>("copyLiquibase") {
     into("$buildDir/resources/test/db")
 }
 
-tasks.register<Exec>("cleanupDbAndStorage") {
-    dependsOn(":liquibaseDropAll")
-    val profile = properties["save.profile"] as String?
-
-    val userHome = System.getProperty("user.home")
-    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
-
-    val storagePath = when (profile) {
-        "win" -> "$userHome/.save-cloud/cnb/files"
-        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
-        else -> when {
-            isWindows -> "$userHome/.save-cloud/cnb/files"
-            else -> "/home/cnb/files"
-        }
-    }.let(Paths::get)
-
-    /*
-     * No idea why we should rely on running external commands in order to
-     * delete a directory, since this can be done in a platform-independent way.
-     */
-    val args = if (profile != "win" && !isWindows) {
-        arrayOf("rm", "-rf")
-    } else if (isDirectory(storagePath)) {
-        /*
-         * cmd.exe will set a non-zero exit status if the directory doesn't exist.
-         */
-        arrayOf("cmd", "/c", "rmdir", "/s", "/q")
-    } else {
-        /*
-         * Run a dummy command.
-         */
-        arrayOf("cmd", "/c", "echo")
-    }
-    commandLine(*args, storagePath)
-}
-
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(projects.authenticationService)
+    implementation(projects.testAnalysisCore)
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)
@@ -83,15 +46,18 @@ dependencies {
     implementation(libs.hibernate.micrometer)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.reactor.extra)
+    implementation(libs.arrow.kt.core)
+    implementation(project.dependencies.platform(libs.aws.sdk.bom))
+    implementation(libs.aws.sdk.s3)
+    implementation(libs.aws.sdk.netty.nio)
     testImplementation(libs.spring.security.test)
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(projects.testUtils)
 }
 
-configureJacoco()
 tasks.withType<Test> {
     extensions.configure(JacocoTaskExtension::class) {
         // this file is only used in dev profile for debugging, no need to calculate test coverage
         excludes = listOf("**/CorsFilter.kt")
     }
 }
-configureSpotless()

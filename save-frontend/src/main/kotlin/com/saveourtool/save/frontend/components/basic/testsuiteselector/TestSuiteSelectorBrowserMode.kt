@@ -6,12 +6,12 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.externals.fontawesome.faCheckDouble
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
@@ -35,12 +35,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     /**
      * Lambda invoked when test suites were successfully set
      */
-    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit
 
     /**
      * List of test suites that should be preselected
      */
-    var preselectedTestSuites: List<TestSuiteDto>
+    var preselectedTestSuites: List<TestSuiteVersioned>
 
     /**
      * Specific organization name which reduces list of test suites source.
@@ -141,7 +141,7 @@ private fun ChildrenBuilder.showBreadcrumb(
     }
 }
 
-private fun ChildrenBuilder.showAvaliableOptions(
+private fun ChildrenBuilder.showAvailableOptions(
     options: List<String>,
     onOptionClick: (String) -> Unit,
 ) {
@@ -154,8 +154,8 @@ private fun ChildrenBuilder.showAvaliableOptions(
             }
         } else {
             options.forEach { option ->
-                li {
-                    className = ClassName("list-group-item")
+                a {
+                    className = ClassName("btn text-center list-group-item list-group-item-action")
                     onClick = {
                         onOptionClick(option)
                     }
@@ -172,13 +172,13 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
     val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
     val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
     val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
     val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
-    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
+    val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
     useRequest {
         val options = when (props.selectorPurpose) {
             TestSuiteSelectorPurpose.PUBLIC -> "?permission=READ"
@@ -192,17 +192,17 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             responseHandler = ::noopResponseHandler,
         )
 
-        val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
+        val testSuites: List<TestSuiteVersioned> = response.decodeFromJsonString()
         setFetchedTestSuites(testSuites)
-        setAvailableOrganizations(testSuites.map { it.source.organizationName }.distinct())
+        setAvailableOrganizations(testSuites.map { it.organizationName }.distinct())
     }
 
     useEffect(selectedOrganization) {
         selectedOrganization?.let { selectedOrganization ->
             setAvailableTestSuiteSources(
-                fetchedTestSuites.map { it.source }
+                fetchedTestSuites
                     .filter { it.organizationName == selectedOrganization }
-                    .map { it.name }
+                    .map { it.sourceName }
                     .distinct()
             )
         } ?: setAvailableTestSuiteSources(emptyList())
@@ -211,7 +211,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     useEffect(selectedTestSuiteSource) {
         selectedTestSuiteSource?.let { selectedTestSuiteSource ->
             setAvailableTestSuitesVersions(
-                fetchedTestSuites.filter { it.source.name == selectedTestSuiteSource }
+                fetchedTestSuites.filter { it.sourceName == selectedTestSuiteSource }
                     .map { it.version }
                     .distinct()
             )
@@ -222,7 +222,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
             setAvailableTestSuites(
                 fetchedTestSuites.filter {
-                    it.source.name == selectedTestSuiteSource && it.version == selectedTestSuiteVersion
+                    it.sourceName == selectedTestSuiteSource && it.version == selectedTestSuiteVersion
                 }
             )
         } ?: setAvailableTestSuites(emptyList())
@@ -305,25 +305,25 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         div {
             className = ClassName("")
             when {
-                selectedOrganization == null -> showAvaliableOptions(
+                selectedOrganization == null -> showAvailableOptions(
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                     setNamePrefix("")
                 }
-                selectedTestSuiteSource == null -> showAvaliableOptions(
+                selectedTestSuiteSource == null -> showAvailableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                     setNamePrefix("")
                 }
-                selectedTestSuiteVersion == null -> showAvaliableOptions(
+                selectedTestSuiteVersion == null -> showAvailableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                     setNamePrefix("")
                 }
-                else -> showAvaliableTestSuites(
+                else -> showAvailableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
                     TestSuiteSelectorMode.BROWSER,

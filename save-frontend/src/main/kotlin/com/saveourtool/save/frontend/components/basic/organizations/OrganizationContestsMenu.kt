@@ -11,7 +11,7 @@ import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
-import com.saveourtool.save.frontend.components.modal.displayInfoModal
+import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -21,12 +21,12 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.router.useNavigate
+import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -218,7 +218,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         }
     }
 
-    displayInfoModal(
+    displaySimpleModal(
         windowErrorOpenness,
         title = "Error",
         "You have not selected contests to delete."

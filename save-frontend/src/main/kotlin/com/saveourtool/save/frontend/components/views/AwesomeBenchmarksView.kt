@@ -31,7 +31,6 @@ import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -49,6 +48,7 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import web.html.InputType
 
 import kotlinx.coroutines.launch
 

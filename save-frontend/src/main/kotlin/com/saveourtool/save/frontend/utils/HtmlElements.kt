@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
@@ -27,6 +27,20 @@ fun ChildrenBuilder.privacySpan(project: ProjectDto) {
             borderRadius = "2em".unsafeCast<BorderRadius>()
         }
         +if (project.isPublic) "public" else "private"
+    }
+}
+
+/**
+ * @param classes
+ * @param text
+ */
+fun ChildrenBuilder.spanWithClassesAndText(classes: String, text: String) {
+    span {
+        className = ClassName("border ml-2 pr-1 pl-1 text-xs $classes")
+        style = jso {
+            borderRadius = "2em".unsafeCast<BorderRadius>()
+        }
+        +text
     }
 }
 

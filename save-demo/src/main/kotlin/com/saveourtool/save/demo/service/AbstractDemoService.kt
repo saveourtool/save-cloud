@@ -1,21 +1,20 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult
-import com.saveourtool.save.demo.runners.cli.CliRunner
+import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.runners.Runner
 
 /**
  * Abstract service interface for different demonstration services
  */
-abstract class AbstractDemoService<in P : DemoAdditionalParams, out R : DemoResult>(
-    private val runner: CliRunner<P, R>,
+abstract class AbstractDemoService(
+    private val runner: Runner,
 ) {
     /**
-     * Run demo on [demoFileLines] with [demoAdditionalParams] and return result as [DemoResult]
+     * Run demo on [runRequest] and return result as [DemoResult]
      *
-     * @param demoFileLines list of lines of input file that will be used for demo
-     * @param demoAdditionalParams additional params as [DemoAdditionalParams]
+     * @param runRequest additional params as [DemoRunRequest]
      * @return report as [DemoResult]
      */
-    abstract fun launch(demoFileLines: List<String>, demoAdditionalParams: P? = null): R
+    abstract fun launch(runRequest: DemoRunRequest = DemoRunRequest.empty): DemoResult
 }

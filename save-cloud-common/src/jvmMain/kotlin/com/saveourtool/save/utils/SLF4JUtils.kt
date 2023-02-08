@@ -9,6 +9,7 @@ package com.saveourtool.save.utils
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.reflect.KClass
 
 inline fun Logger.trace(msg: () -> String) {
     if (this.isTraceEnabled) {
@@ -58,4 +59,17 @@ inline fun Logger.error(exception: Throwable, msg: () -> String) {
     }
 }
 
-inline fun <reified T> getLogger(): Logger = LoggerFactory.getLogger(T::class.java)
+@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
+inline fun <reified T> getLogger(): Logger = getLogger(T::class)
+
+/**
+ * @param clazz the class to return the logger for.
+ * @return the logger for the specified Java [class][clazz].
+ */
+fun getLogger(clazz: Class<*>): Logger = LoggerFactory.getLogger(clazz)
+
+/**
+ * @param clazz the class to return the logger for.
+ * @return the logger for the specified Kotlin [class][clazz].
+ */
+fun getLogger(clazz: KClass<*>): Logger = getLogger(clazz.java)

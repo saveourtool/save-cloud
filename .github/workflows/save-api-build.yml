@@ -34,7 +34,7 @@ jobs:
             save-api-cli:build
             -x detekt
             -x spotlessCheck
-            -Porg.gradle.caching=true
+            --build-cache
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}

@@ -7,6 +7,8 @@ import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -50,47 +52,21 @@ class ProjectService(
     }
 
     /**
-     * Mark organization with [project] as deleted
+     * Mark organization with [project] as [newProjectStatus]
+     * Before performing the function, check for user permissions by the [project].
      *
-     * @param newStatus is new status for [project]
+     * @param newProjectStatus is new status for [project]
      * @param project is organization in which the status will be changed
      * @return project
      */
     @Suppress("UnsafeCallOnNullableType")
-    private fun changeProjectStatus(project: Project, newStatus: ProjectStatus): Project = project
+    fun changeProjectStatus(project: Project, newProjectStatus: ProjectStatus): Project = project
         .apply {
-            status = newStatus
+            status = newProjectStatus
         }
         .let {
             projectRepository.save(it)
         }
-
-    /**
-     * Mark organization [project] as deleted
-     *
-     * @param project an [project] to delete
-     * @return deleted organization
-     */
-    fun deleteProject(project: Project): Project =
-            changeProjectStatus(project, ProjectStatus.DELETED)
-
-    /**
-     * Mark organization with [project] as created.
-     * If an organization was previously banned, then all its projects become deleted.
-     *
-     * @param project an [project] to create
-     * @return recovered project
-     */
-    fun recoverProject(project: Project): Project =
-            changeProjectStatus(project, ProjectStatus.CREATED)
-
-    /**
-     * Mark organization with [project] and all its projects as banned.
-     *
-     * @param project an [project] to ban
-     * @return banned project
-     */
-    fun banProject(project: Project): Project = changeProjectStatus(project, ProjectStatus.BANNED)
 
     /**
      * @param project [Project] to be updated
@@ -229,4 +205,19 @@ class ProjectService(
      * @return [Project] with given [id]
      */
     fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param lazyMessage
+     * @return [Mono] of [Project] or [Mono.error] if [Project] is not found
+     */
+    fun projectByCoordinatesOrNotFound(
+        name: String,
+        organizationName: String,
+        lazyMessage: () -> String,
+    ): Mono<Project> = blockingToMono {
+        findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
+    }
+        .switchIfEmptyToNotFound(lazyMessage)
 }

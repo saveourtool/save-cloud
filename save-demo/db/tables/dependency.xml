@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="dependency-1" author="sanyavertolet" context="dev or prod">
+        <createTable tableName="dependency">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="master_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="worker_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="master_id"
+                                 baseTableName="dependency"
+                                 constraintName="fk_dependency_master"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tool"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseColumnNames="worker_id"
+                                 baseTableName="dependency"
+                                 constraintName="fk_dependency_worker"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tool"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="drop-dependency-table" author="sanyavertolet">
+        <dropTable tableName="dependency"/>
+    </changeSet>
+
+    <changeSet id="dependency-2" author="sanyavertolet" context="dev or prod">
+        <createTable tableName="dependency">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="demo_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_dependency_demo" references="demo(id)" deleteCascade="true"/>
+            </column>
+            <column name="version" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="dependency-3" author="nulls">
+        <addUniqueConstraint tableName="dependency" columnNames="demo_id,version,file_name" constraintName="uq_dependency_file_name"/>
+        <addUniqueConstraint tableName="dependency" columnNames="demo_id,version,file_id" constraintName="uq_dependency_file_id"/>
+    </changeSet>
+
+</databaseChangeLog>

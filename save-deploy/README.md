@@ -12,7 +12,7 @@ save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for s
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
 
-Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
+Deployment is performed on server via docker swarm or locally via `docker compose`. See detailed information below.
 
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
@@ -66,7 +66,7 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
   
 ## Local deployment
 Usually, not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
-* Ensure that docker daemon is running and docker-compose is installed.
+* Ensure that docker daemon is running and `docker compose` is installed.
   * If running on a system without Unix socket connection to the Docker Daemon (e.g. with Docker for Windows), docker daemon should have HTTP
     port enabled. Then, `docker-tcp` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
@@ -183,19 +183,119 @@ Usually, not the whole stack is required for development. Application logic is p
    The resulting application settings may look like this: [screenshot](../info/img/github-oauth-app-settings.png).
 
 ## Local debugging
-You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
-If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
-To run on Windows you need to compile `save-agent` on WSL and put `saveAgentDistroFilepath` to `%USERPROFILE%\.gradle\gradle.properties` <br/>
-For example:
+You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.
 
-    saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+#### Using `save-agent` executable on Windows
+
+If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.
+To run on Windows, you need to build and package `save-agent` on WSL.
+
+When building from the WSL, better use a separate local _Git_ repository, for
+two reasons:
+
+1. Sometimes, WSL doesn't have enough permissions to create directories on the
+   NTFS file system, so file access errors may occur.
+1. Windows and Linux versions of _Gradle_ will use different absolute paths when
+   accessing the same local _Git_ repository, so, unless you each time do a full
+   rebuild, you'll encounter `NoSuchFileException` errors when switching from
+   Windows to WSL and back. 
+
+Under WSL, from a separate local _Git_ repository run:
+
+```bash
+./gradlew :save-agent:copyAgentDistribution
+```
+
+and provide the path to the JAR archive which contains `save-agent.kexe` via the
+`saveAgentDistroFilepath` _Gradle_ property, by setting the above property
+either under project-specific `gradle.properties`, or, globally, under
+`%USERPROFILE%\.gradle\gradle.properties`, e.g.:
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+```
+
+Using forward slashes on Windows is allowed, too (_Gradle_ will understand such
+paths just fine):
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
+```
+
+Alternatively, you can set the property directly on the command line
+(`-PsaveAgentDistroFilepath=...`) or on a per _Run Configuration_ basis (in IDEA).
+
+Once the _agent_ distribution is built and `saveAgentDistroFilepath` is set, you
+can run (on Windows):
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro
+```
+
+or
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro -PsaveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
+```
+
+Once the task completes, the _agent_ JAR can be found under
+`save-backend\build\agentDistro` directory.
+
+For the classpath changes to take effect:
+
+1. Reload the project from disk (_Project_ tool window in IDEA).
+1. Reload the project model (_Gradle_ tool window in IDEA).
+1. Re-start the _back-end_ application.
+
+Then verify that the agent is indeed available for download from the _back-end_
+by running an HTTP POST request, e.g.:
+
+```bash
+curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
+```
+
+In addition to the HTTP status code, the content of the downloaded file can be
+examined.
+If the agent binary was found, the downloaded content would be an ELF executable,
+otherwise it would be JSON data with an error message:
+
+```json
+{
+    "timestamp": "2022-12-26T11:08:58.723+00:00",
+    "path": "/internal/files/download-save-agent",
+    "status": 404,
+    "error": "Not Found",
+    "message": null,
+    "requestId": "e1ab4d55-1"
+}
+```
+
+Similarly, troubles downloading an _agent_ binary from the _back-end_ can be
+diagnosed using `docker logs` (post-mortem).
+Here, you can see a container failing to execute the JSON data
+([#1663](https://github.com/saveourtool/save-cloud/issues/1663)):
+
+```console
+$ docker container ls -a | grep -F 'save-execution' | awk '{ print $1 }' | xargs -n1 -r docker logs 2>&1 | grep -F 'save-agent.kexe'
++ curl -vvv -X POST http://host.docker.internal:5800/internal/files/download-save-agent --output save-agent.kexe
++ chmod +x save-agent.kexe
++ ./save-agent.kexe
+./save-agent.kexe: 1: {timestamp:2022-12-26T08:21:55.070+00:00,path:/internal/files/download-save-agent,status:404,error:Not Found,message:null,requestId:90854645-736}: not found
+```
+
+#### Using a custom `save-cli` executable on Windows
 
 If you need to test changes in `save-cli` you can also compile `SNAPSHOT` version of `save-cli` on WSL <br/>
 and set `saveCliPath` and `saveCliVersion` in `%USERPROFILE%\.gradle\gradle.properties` <br/>
 For example:
 
-    saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
-    saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```properties
+# gradle.properties
+saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
+saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```
 
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
 
@@ -238,5 +338,5 @@ File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-avai
 # Adding a new service
 Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
 * Add it to [docker-compose.yaml](../docker-compose.yaml)
-* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/com/saveourtool/save/buildutils/DockerStackConfiguration.kt)
+* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../gradle/plugins/src/main/kotlin/com/saveourtool/save/buildutils/DockerStackConfiguration.kt)
   so that config directory is created (if it's another Spring Boot service)

@@ -8,11 +8,21 @@ import kotlin.io.path.div
 
 internal class GitUtilKtTest {
     @Test
-    fun test(@TempDir tmpDir: Path) {
-        val gitDto = GitDto("https://github.com/saveourtool/save-cli.git")
+    fun testTag(@TempDir tmpDir: Path) {
+        gitDto.cloneTagToDirectory("v0.3.5", tmpDir / "tag")
+    }
 
-        gitDto.cloneTagToDirectory("v0.3.4", tmpDir / "tag")
+    @Test
+    fun testBranch(@TempDir tmpDir: Path) {
         gitDto.cloneBranchToDirectory("infra/build-logic-includebuild", tmpDir / "branch")
+    }
+
+    @Test
+    fun testCommit(@TempDir tmpDir: Path) {
         gitDto.cloneCommitToDirectory("8a8f164", tmpDir / "commit")
+    }
+
+    companion object {
+        private val gitDto = GitDto("https://github.com/saveourtool/save-cli.git")
     }
 }

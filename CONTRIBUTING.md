@@ -22,7 +22,7 @@ In order to make Spring Intellij Idea Ultimate plugin work properly, you need to
 |         | SaveApplication  | SaveGateway |   SaveOrchestrator   | SavePreprocessor |         SaveSandbox         |
 |:-------:|:----------------:|:-----------:|:--------------------:|:----------------:|:---------------------------:|
 |   Mac   | `mac,dev,secure` |  `mac,dev`  | `dev,mac,docker-tcp` |    `dev,mac`     | `dev,mac,docker-tcp,secure` | 
-| Windows |   `dev,secure`   |    `dev`    | `dev,win,docker-tcp` |    `dev,win`     | `dev,win,docker-tcp,secure` |
+| Windows |   `dev,secure`   |    `dev`    | `dev,win,docker-tcp` |      `dev`       | `dev,win,docker-tcp,secure` |
 |  Linux  |   `dev,secure`   |    `dev`    |   `dev,docker-tcp`   |      `dev`       |   `dev,docker-tcp,secure`   |
 
 ### Mac M1 contributors

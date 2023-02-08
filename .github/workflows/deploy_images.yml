@@ -125,7 +125,7 @@ jobs:
           build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
-            -Porg.gradle.caching=true
+            --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
@@ -143,7 +143,7 @@ jobs:
           arguments: |
             ${{ env.GRADLE_TASKS }}
             --stacktrace
-            -Porg.gradle.caching=true
+            --build-cache
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
             -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
@@ -155,6 +155,12 @@ jobs:
         with:
           name: save-agent-distribution
           path: 'save-cloud/save-agent/build/libs/save-agent-*-distribution.jar'
+          retention-days: 5
+      - name: Upload save-demo-agent.kexe
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-demo-agent
+          path: 'save-cloud/save-demo-agent/build/bin/linuxX64/releaseExecutable/save-demo-agent.kexe'
           retention-days: 5
       - name: Upload gradle reports
         if: ${{ always() }}

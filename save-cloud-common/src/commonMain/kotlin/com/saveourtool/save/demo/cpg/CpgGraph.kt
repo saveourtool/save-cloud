@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo.cpg
 
+import kotlin.random.Random
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.EncodeDefault.Mode.ALWAYS
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -24,9 +25,13 @@ data class CpgGraph(
     @EncodeDefault(ALWAYS) val options: CpgGraphOptions = CpgGraphOptions(),
 ) {
     /**
+     * Returns graph with parallel edges combined into one (fixes labels issue)
+     *
      * @return Cpg graph with removed parallel edges
      */
-    fun removeMultiEdges(): CpgGraph = edges.groupBy { it.source to it.target }
+    fun removeMultiEdges(): CpgGraph = combineCoDirectedEdges().combineAntiDirectedEdges()
+
+    private fun combineCoDirectedEdges() = edges.groupBy { it.source to it.target }
         .map { (coordinates, parallelEdges) ->
             val newLabel = parallelEdges.joinToString(", ") { it.attributes.label ?: "" }
             val newId = parallelEdges.joinToString(", ") { it.key }
@@ -43,23 +48,71 @@ data class CpgGraph(
             copy(edges = newEdges)
         }
 
+    private fun combineAntiDirectedEdges() = edges.groupBy {
+        maxOf(it.source, it.target) to minOf(it.source, it.target)
+    }
+        .map { (coordinates, parallelEdges) ->
+            require(parallelEdges.size <= 2)
+            val newLabel = parallelEdges.joinToString(" | ") { it.attributes.label ?: "" }
+            val newId = parallelEdges.joinToString(" | ") { it.key }
+            val newSize = parallelEdges.first().attributes.size
+            val paintColor = if (parallelEdges.size != 1) {
+                "#FA90FA"
+            } else {
+                parallelEdges[0].attributes.color ?: if (parallelEdges.size == 2) {
+                    parallelEdges[1].attributes.color
+                } else {
+                    null
+                }
+            }
+            // fixme: each and every edge is printed to be two-directed
+            listOf(
+                CpgEdge(
+                    newId,
+                    coordinates.first,
+                    coordinates.second,
+                    CpgEdgeAttributes(newLabel, paintColor, newSize)
+                ),
+                CpgEdge(
+                    "$newId-reversed",
+                    coordinates.second,
+                    coordinates.first,
+                    CpgEdgeAttributes("", paintColor, newSize)
+                )
+            )
+        }
+        .flatten()
+        .let { newEdges ->
+            copy(edges = newEdges)
+        }
+
     companion object {
         /**
          * Placeholder of a graph
          */
         val placeholder = CpgGraph(
-            nodes = listOf(
-                CpgNode("1", CpgNodeAttributes("Alisson", "#FF0000")),
-                CpgNode("2", CpgNodeAttributes("John", "#00FF00")),
-                CpgNode("3", CpgNodeAttributes("Sam", "#0000FF")),
-            ),
-            edges = listOf(
-                CpgEdge("1->2", "1", "2", CpgEdgeAttributes("KNOWS")),
-                CpgEdge("2->3", "2", "3", CpgEdgeAttributes("LIKES")),
-                CpgEdge("3->1", "3", "1", CpgEdgeAttributes("HATES")),
-            ),
+            nodes = emptyList(),
+            edges = emptyList(),
             options = CpgGraphOptions(),
             attributes = CpgGraphAttributes()
+        )
+
+        /**
+         * Generate random graph with [numberOfNodes] nodes and [numberOfEdges] edges
+         *
+         * @param numberOfNodes requested amount of nodes in generated graph
+         * @param numberOfEdges requested amount of edges in generated graph
+         * @return generated graph with [numberOfNodes] nodes and [numberOfEdges] edges
+         */
+        fun randomGraph(numberOfNodes: Long, numberOfEdges: Long): CpgGraph = CpgGraph(
+            LongRange(0, numberOfNodes - 1).map { CpgNode("$it-node") },
+            LongRange(0, numberOfEdges - 1).map {
+                CpgEdge(
+                    "$it-edge",
+                    "${Random.nextLong(0, numberOfNodes - 1)}-node",
+                    "${Random.nextLong(0, numberOfNodes - 1)}-node",
+                )
+            },
         )
     }
 }

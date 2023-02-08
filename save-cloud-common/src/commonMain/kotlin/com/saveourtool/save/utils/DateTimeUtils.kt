@@ -7,14 +7,19 @@ package com.saveourtool.save.utils
 import kotlinx.datetime.*
 
 /**
- * @return [Instant] from epoch time
+ * @return [Instant] from epoch time in mills
  */
-fun Long.secondsToInstant(): Instant = Instant.fromEpochMilliseconds(this)
+fun Long.millisToInstant(): Instant = Instant.fromEpochMilliseconds(this)
 
 /**
- * @return pretty string representation of [Instant]
+ * @return [Instant] from epoch time in seconds
  */
-fun Instant.prettyPrint() = this.toString()
+fun Long.secondsToInstant(): Instant = Instant.fromEpochSeconds(this)
+
+/**
+ * @return pretty string representation of [LocalDateTime]
+ */
+fun LocalDateTime.prettyPrint() = this.toString()
     .replace("T", " ")
     .replace("Z", "")
     .replace("-", ".")

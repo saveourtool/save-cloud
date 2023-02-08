@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.FC
@@ -25,12 +25,12 @@ external interface TestSuiteSelectorManagerModeProps : Props {
     /**
      * List of test suites that should be preselected
      */
-    var preselectedTestSuites: List<TestSuiteDto>
+    var preselectedTestSuites: List<TestSuiteVersioned>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
@@ -53,7 +53,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
             +"No test suites are selected yet."
         }
     } else {
-        showAvaliableTestSuites(
+        showAvailableTestSuites(
             props.preselectedTestSuites,
             selectedTestSuites,
             TestSuiteSelectorMode.MANAGER,

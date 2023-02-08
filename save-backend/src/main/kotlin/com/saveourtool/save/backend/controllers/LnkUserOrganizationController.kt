@@ -9,7 +9,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.toUser
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -17,11 +16,12 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -252,32 +252,29 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @GetMapping("/by-user")
+    @PostMapping("/by-filters")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
-        summary = "Get user's organizations by status",
-        description = "Get organizations by status available for the current user.",
+        method = "POST",
+        summary = "Get the list of organizations available to the current user and matching the filters, if any",
+        description = "Get organizations by filters available for the current user.",
     )
     @Parameters(
-        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "this type of organizations", required = false),
+        Parameter(name = "filters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
-    fun getOrganizationWithRoles(
-        @RequestParam(required = false, defaultValue = "CREATED") status: OrganizationStatus,
+    fun getOrganizationWithRolesAndFilters(
+        @RequestBody organizationFilters: OrganizationFilters,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization.status == status
+        .flatMapIterable {
+            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters)
         }
         .map {
             OrganizationWithUsers(

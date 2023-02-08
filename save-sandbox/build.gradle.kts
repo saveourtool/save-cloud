@@ -1,14 +1,14 @@
-import com.saveourtool.save.buildutils.*
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     id("com.saveourtool.save.buildutils.save-cli-configuration")
     id("com.saveourtool.save.buildutils.save-agent-configuration")
-    id("org.gradle.test-retry") version "1.4.1"
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("org.gradle.test-retry") version "1.5.1"
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
 }
@@ -18,9 +18,6 @@ kotlin {
         annotation("javax.persistence.Entity")
     }
 }
-
-configureJacoco()
-configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

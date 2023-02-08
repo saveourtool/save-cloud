@@ -7,17 +7,18 @@
 package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.frontend.utils.useTooltip
+
 import csstype.ClassName
-import dom.html.HTMLInputElement
 import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
+import web.html.HTMLInputElement
+import web.html.InputType
 
 val inputTextFormRequired = inputTextFormRequiredWrapper()
 

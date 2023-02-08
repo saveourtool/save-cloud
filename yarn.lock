@@ -381,6 +381,13 @@
   dependencies:
     "@react-sigma/core" "^3.1.0"
 
+"@react-sigma/layout-forceatlas2@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@react-sigma/layout-forceatlas2/-/layout-forceatlas2-3.1.0.tgz#0bd8b074efe3d5fd9ade5c14f2193e54e73744f9"
+  integrity sha512-sHHAdR/MtjgFNfyHpupPO80kPSFHOigt7m5ps3iCuQylLoLWadiibck56CX2HHAIOWHkb4qFqATg98uN5gi1RA==
+  dependencies:
+    "@react-sigma/layout-core" "^3.1.0"
+
 "@react-sigma/layout-random@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@react-sigma/layout-random/-/layout-random-3.1.0.tgz#25bc8b4c26727870ab2b3c628577923618696197"
@@ -865,6 +872,13 @@ abab@^2.0.5, abab@^2.0.6:
   resolved "https://registry.yarnpkg.com/abab/-/abab-2.0.6.tgz#41b80f2c871d19686216b82309231cfd3cb3d291"
   integrity sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==
 
+abort-controller@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/abort-controller/-/abort-controller-3.0.0.tgz#eaf54d53b62bae4138e809ca225c8439a6efb392"
+  integrity sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==
+  dependencies:
+    event-target-shim "^5.0.0"
+
 accepts@~1.3.4, accepts@~1.3.5, accepts@~1.3.8:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.8.tgz#0bf0be125b67014adcb0b0921e62db7bffe16b2e"
@@ -906,10 +920,10 @@ acorn@^7.1.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-acorn@^8.0.4, acorn@^8.4.1, acorn@^8.5.0:
-  version "8.8.0"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.0.tgz#88c0187620435c7f6015803f5539dae05a9dbea8"
-  integrity sha512-QOxyigPVrpZ2GXT+PFyZTl6TtOFc5egxHIP9IlQ+RbupQuX4RkT/Bee4/kQuC02Xkzg84JcT7oLYtDIQxp+v7w==
+acorn@^8.0.4, acorn@^8.5.0, acorn@^8.7.1:
+  version "8.8.2"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.2.tgz#1b2f25db02af965399b9776b0c2c391276d37c4a"
+  integrity sha512-xjIYgE8HBrkpd/sJqOGNspf8uHG+NOHGOw6a/Urj8taM2EXfdNAH2oFcPeIFfsv3+kz/mJrS5VuMqbNLjCa2vw==
 
 agent-base@6:
   version "6.0.2"
@@ -1974,10 +1988,10 @@ engine.io@~6.1.0:
     engine.io-parser "~5.0.3"
     ws "~8.2.3"
 
-enhanced-resolve@^5.9.3:
-  version "5.10.0"
-  resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.10.0.tgz#0dc579c3bb2a1032e357ac45b8f3a6f3ad4fb1e6"
-  integrity sha512-T0yTFjdpldGY8PmuXXR0PyQ1ufZpEGiHVrp7zHKB7jdR4qlmZHhONVM5AQOAWXuF/w3dnHbEQVrNptJgt7F+cQ==
+enhanced-resolve@^5.10.0:
+  version "5.12.0"
+  resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.12.0.tgz#300e1c90228f5b570c4d35babf263f6da7155634"
+  integrity sha512-QHTXI/sZQmko1cbDoNAa3mJ5qhWUUNAq3vR0/YiD379fWQrcfuoX1+HW2S0MTt7XmoPLapdaDKUtelUSPic7hQ==
   dependencies:
     graceful-fs "^4.2.4"
     tapable "^2.2.0"
@@ -2080,6 +2094,11 @@ etag@~1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
+
+event-target-shim@^5.0.0:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
+  integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
 
 eventemitter3@^4.0.0:
   version "4.0.7"
@@ -2425,6 +2444,13 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.4, 
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
+graphology-layout-forceatlas2@^0.10.1:
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/graphology-layout-forceatlas2/-/graphology-layout-forceatlas2-0.10.1.tgz#741842135609d82d12db5a5fdf74672062c28205"
+  integrity sha512-ogzBeF1FvWzjkikrIFwxhlZXvD2+wlY54lqhsrWprcdPjopM2J9HoMweUmIgwaTvY4bUYVimpSsOdvDv1gPRFQ==
+  dependencies:
+    graphology-utils "^2.1.0"
+
 graphology-layout@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/graphology-layout/-/graphology-layout-0.6.1.tgz#e7c1d65c022e337b11c977e2d30abe4076a0327d"
@@ -2433,7 +2459,7 @@ graphology-layout@^0.6.1:
     graphology-utils "^2.3.0"
     pandemonium "^2.4.0"
 
-graphology-utils@^2.3.0, graphology-utils@^2.5.0:
+graphology-utils@^2.1.0, graphology-utils@^2.3.0, graphology-utils@^2.5.0:
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/graphology-utils/-/graphology-utils-2.5.2.tgz#4d30d6e567d27c01f105e1494af816742e8d2440"
   integrity sha512-ckHg8MXrXJkOARk56ZaSCM1g1Wihe2d6iTmz1enGOz4W/l831MBCKSayeFQfowgF8wd+PQ4rlch/56Vs/VZLDQ==
@@ -3815,7 +3841,7 @@ no-case@^3.0.4:
     lower-case "^2.0.2"
     tslib "^2.0.3"
 
-node-fetch@^2.6.7:
+node-fetch@2.6.7, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
@@ -4290,6 +4316,11 @@ react-ace@^10.1.0:
     lodash.get "^4.4.2"
     lodash.isequal "^4.5.0"
     prop-types "^15.7.2"
+
+react-avatar-image-cropper@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/react-avatar-image-cropper/-/react-avatar-image-cropper-1.4.2.tgz#ad66fbc51d526cbfb27906e9fea72cef8646a655"
+  integrity sha512-XpfRJ+aqAkof7+T+qfdgu/QPCONXyXVVULQJftZH6snf5U6sX0Bk4SfDTEXewbPt/PRiOWLC1102w337dvTi3A==
 
 react-calendar@^3.8.0:
   version "3.9.0"
@@ -5705,7 +5736,7 @@ warning@^4.0.3:
   dependencies:
     loose-envify "^1.0.0"
 
-watchpack@^2.3.1:
+watchpack@^2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-2.4.0.tgz#fa33032374962c78113f93c7f2fb4c54c9862a5d"
   integrity sha512-Lcvm7MGST/4fup+ifyKi2hjyIAwcdI4HRgtvTpIUxBRhB+RFtUh8XtDOxUfctVCnhVi+QQj49i91OyvzkJl6cg==
@@ -5837,21 +5868,21 @@ webpack-sources@^3.2.3:
   resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz#2d4daab8451fd4b240cc27055ff6a0c2ccea0cde"
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
-webpack@5.73.0:
-  version "5.73.0"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.73.0.tgz#bbd17738f8a53ee5760ea2f59dce7f3431d35d38"
-  integrity sha512-svjudQRPPa0YiOYa2lM/Gacw0r6PvxptHj4FuEKQ2kX05ZLkjbVc5MnPs6its5j7IZljnIqSVo/OsY2X0IpHGA==
+webpack@5.74.0:
+  version "5.74.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.74.0.tgz#02a5dac19a17e0bb47093f2be67c695102a55980"
+  integrity sha512-A2InDwnhhGN4LYctJj6M1JEaGL7Luj6LOmyBHjcI8529cm5p6VXiTIW2sn6ffvEAKmveLzvu4jrihwXtPojlAA==
   dependencies:
     "@types/eslint-scope" "^3.7.3"
     "@types/estree" "^0.0.51"
     "@webassemblyjs/ast" "1.11.1"
     "@webassemblyjs/wasm-edit" "1.11.1"
     "@webassemblyjs/wasm-parser" "1.11.1"
-    acorn "^8.4.1"
+    acorn "^8.7.1"
     acorn-import-assertions "^1.7.6"
     browserslist "^4.14.5"
     chrome-trace-event "^1.0.2"
-    enhanced-resolve "^5.9.3"
+    enhanced-resolve "^5.10.0"
     es-module-lexer "^0.9.0"
     eslint-scope "5.1.1"
     events "^3.2.0"
@@ -5864,7 +5895,7 @@ webpack@5.73.0:
     schema-utils "^3.1.0"
     tapable "^2.1.1"
     terser-webpack-plugin "^5.1.3"
-    watchpack "^2.3.1"
+    watchpack "^2.4.0"
     webpack-sources "^3.2.3"
 
 websocket-driver@>=0.5.1, websocket-driver@^0.7.4:
@@ -5959,6 +5990,11 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
+
+ws@8.5.0:
+  version "8.5.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.5.0.tgz#bfb4be96600757fe5382de12c670dab984a1ed4f"
+  integrity sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==
 
 ws@^7.3.1:
   version "7.5.9"

@@ -7,9 +7,8 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -25,11 +24,11 @@ import react.dom.html.ReactHTML.small
  * @param onTestSuiteClick
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun ChildrenBuilder.showAvaliableTestSuites(
-    testSuites: List<TestSuiteDto>,
-    selectedTestSuites: List<TestSuiteDto>,
+fun ChildrenBuilder.showAvailableTestSuites(
+    testSuites: List<TestSuiteVersioned>,
+    selectedTestSuites: List<TestSuiteVersioned>,
     displayMode: TestSuiteSelectorMode?,
-    onTestSuiteClick: (TestSuiteDto) -> Unit,
+    onTestSuiteClick: (TestSuiteVersioned) -> Unit,
 ) {
     div {
         className = ClassName("list-group")
@@ -40,7 +39,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                 ""
             }
             a {
-                className = ClassName("list-group-item list-group-item-action $active")
+                className = ClassName("btn list-group-item list-group-item-action $active")
                 onClick = {
                     onTestSuiteClick(testSuite)
                 }
@@ -51,7 +50,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                         +(testSuite.name)
                     }
                     small {
-                        +(testSuite.language ?: "")
+                        +testSuite.language
                     }
                 }
                 div {
@@ -59,7 +58,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                     div {
                         className = ClassName("float-left")
                         p {
-                            +(testSuite.description ?: "")
+                            +testSuite.description
                         }
                     }
                     div {
@@ -81,7 +80,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Test suite tags"
-                        +(testSuite.tags?.joinToString(", ") ?: "")
+                        +testSuite.tags
                     }
 
                     small {
@@ -89,7 +88,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Plugin type"
-                        +(testSuite.plugins.joinToString(", ") { it.pluginName() })
+                        +testSuite.plugins
                     }
                 }
             }

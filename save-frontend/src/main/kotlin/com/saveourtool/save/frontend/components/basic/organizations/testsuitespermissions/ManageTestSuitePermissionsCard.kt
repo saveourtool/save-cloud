@@ -20,15 +20,15 @@ import com.saveourtool.save.frontend.components.modal.modalBuilder
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
+import web.html.InputType
 
 import kotlinx.coroutines.await
 import kotlinx.serialization.encodeToString
@@ -71,7 +71,7 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
     "LongMethod",
 )
 private fun ChildrenBuilder.displayPermissionManager(
-    selectedTestSuites: List<TestSuiteDto>,
+    selectedTestSuites: List<TestSuiteVersioned>,
     organizationName: String,
     requestedRights: Rights,
     openTestSuiteSelector: () -> Unit,
@@ -148,7 +148,7 @@ private fun ChildrenBuilder.displayPermissionManager(
     "LongMethod"
 )
 private fun ChildrenBuilder.displayMassPermissionManager(
-    selectedTestSuites: List<TestSuiteDto>,
+    selectedTestSuites: List<TestSuiteVersioned>,
     isToBePublic: Boolean,
     openTestSuiteSelector: () -> Unit,
     setIsToBePublic: (Boolean) -> Unit,
@@ -226,7 +226,7 @@ private fun ChildrenBuilder.displayMassPermissionManager(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermissionsComponentProps> { props ->
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
     val (organizationName, setOrganizationName) = useState("")
     val (requiredRights, setRequiredRights) = useState(Rights.NONE)
 
@@ -243,7 +243,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         val response = post(
             url = "$apiUrl/test-suites/${props.organizationName}/batch-set-rights",
             headers = jsonHeaders,
-            body = Json.encodeToString(SetRightsRequest(organizationName, requiredRights, selectedTestSuites.map { it.requiredId() })),
+            body = Json.encodeToString(SetRightsRequest(organizationName, requiredRights, selectedTestSuites.map { it.id })),
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -259,7 +259,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         val response = post(
             url = "$apiUrl/test-suites/${props.organizationName}/batch-change-visibility?isPublic=$isToBePublic",
             headers = jsonHeaders,
-            body = Json.encodeToString(selectedTestSuites.map { it.requiredId() }),
+            body = Json.encodeToString(selectedTestSuites.map { it.id }),
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )

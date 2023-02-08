@@ -8,6 +8,8 @@
 package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.domain.supportTestStatus
+import com.saveourtool.save.test.analysis.metrics.supportTestMetrics
+import com.saveourtool.save.test.analysis.results.supportAnalysisResult
 import com.saveourtool.save.utils.supportKLocalDateTime
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,6 +30,8 @@ class WebConfig {
         builder
             .supportTestStatus()
             .supportKLocalDateTime()
+            .supportTestMetrics()
+            .supportAnalysisResult()
     }
 
     @Bean

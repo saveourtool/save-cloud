@@ -23,7 +23,7 @@ config.devServer = Object.assign(
         },
         {
           context: ["/demo/api/**"],
-          target: 'http://localhost:5401',
+          target: 'http://localhost:5421',
           logLevel: 'debug',
         },
         {

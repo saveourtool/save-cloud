@@ -3,11 +3,19 @@ package com.saveourtool.save.entities
 import kotlinx.serialization.Serializable
 
 /**
- * @property id
- * @property content
+ * base class for all DTOs with ID
  */
 @Serializable
-data class DtoWithId<T>(
-    val id: Long,
-    val content: T,
-)
+abstract class DtoWithId {
+    /**
+     * a unique id
+     */
+    abstract val id: Long?
+
+    /**
+     * @return non-nullable [id]
+     */
+    fun requiredId(): Long = requireNotNull(id) {
+        "Entity is not saved yet: $this"
+    }
+}

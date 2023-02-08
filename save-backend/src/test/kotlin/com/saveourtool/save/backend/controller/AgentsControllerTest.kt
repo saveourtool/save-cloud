@@ -6,10 +6,10 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.AgentStatusDtoList
 import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -32,7 +32,7 @@ import javax.persistence.EntityManager
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
     MockBean(ProjectPermissionEvaluator::class),
@@ -63,13 +63,11 @@ class AgentsControllerTest {
     fun `should save agent statuses`() {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatus")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                listOf(
-                    AgentStatusDto(AgentState.IDLE, "container-1")
-                )
+                AgentStatusDto(AgentState.IDLE, "container-1")
             )
             .exchange()
             .expectStatus()
@@ -87,13 +85,11 @@ class AgentsControllerTest {
 
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatus")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                listOf(
-                    AgentStatusDto(AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
-                )
+                AgentStatusDto(AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
             )
             .exchange()
             .expectStatus()
@@ -123,13 +119,13 @@ class AgentsControllerTest {
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
-            .uri("/internal/getAgentsStatusesForSameExecution?agentId=container-1")
+            .uri("/internal/getAgentStatusesByExecutionId?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
-            .expectBody<AgentStatusesForExecution>()
+            .expectBody<AgentStatusDtoList>()
             .consumeWith {
-                val statuses = requireNotNull(it.responseBody).agentStatuses
+                val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
@@ -156,10 +152,10 @@ class AgentsControllerTest {
     private fun updateAgentStatuses(body: AgentStatusDto) {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatus")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(listOf(body))
+            .bodyValue(body)
             .exchange()
             .expectStatus()
             .isOk

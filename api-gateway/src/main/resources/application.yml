@@ -7,12 +7,10 @@ gateway:
     url: http://backend:5800
   frontend:
     url: http://frontend:5810
-  grafana:
-    url: http://grafana:9100
   sandbox:
     url: http://sandbox:5400
   demo:
-    url: http://demo:5401
+    url: http://demo:5421
   demo-cpg:
     url: http://demo-cpg:5500
   neo4j-browser:
@@ -55,10 +53,6 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-        - id: grafana
-          uri: ${gateway.grafana.url}
-          predicates:
-            - Path=/grafana/**
         - id: sandbox-api_route
           uri: ${gateway.sandbox.url}
           predicates:
@@ -94,9 +88,6 @@ spring:
   config:
     activate:
       on-profile: kubernetes
-gateway:
-  grafana:
-    url: http://save-cloud-grafana:9100
 ---
 spring:
   config:

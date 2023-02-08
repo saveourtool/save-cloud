@@ -1,6 +1,8 @@
 # values specific to deployment into Minikube
 
 profile: dev
+ingress:
+  enabled: false
 backend:
   profile: dev,secure,kubernetes
 gateway:
@@ -13,7 +15,7 @@ orchestrator:
   profile: dev,kubernetes,minikube
   dockerHost: tcp://${HOST_IP}:2376
   applicationProperties: |
-    orchestrator.docker.host=tcp://localhost:2376
+    orchestrator.agents-count=1
     logging.level.com.saveourtool=DEBUG
     orchestrator.kubernetes.useGvisor=false
 sandbox:
@@ -23,6 +25,10 @@ sandbox:
     orchestrator.docker.host=tcp://localhost:2376
     logging.level.com.saveourtool=DEBUG
     orchestrator.kubernetes.useGvisor=false
+demo_cpg:
+  profile: dev
+demo:
+  profile: dev
 mysql:
   external: false
   ip: nil

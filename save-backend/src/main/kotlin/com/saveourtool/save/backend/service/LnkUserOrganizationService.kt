@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
 
@@ -198,8 +199,18 @@ class LnkUserOrganizationService(
 
     /**
      * @param user
+     * @param filters
+     * @return [Organization]s that are connected to the [user] anf matching filters
+     */
+    fun getOrganizationsAndRolesByUserAndFilters(user: User, filters: OrganizationFilters): List<LnkUserOrganization> =
+            lnkUserOrganizationRepository.findByUserId(user.requiredId()).filter { lnkUserOrganization ->
+                lnkUserOrganization.organization.let { it.name.startsWith(filters.prefix) && it.status in filters.statuses }
+            }
+
+    /**
+     * @param user
      * @return [Organization]s that are connected to the [user]
      */
-    fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
-            lnkUserOrganizationRepository.findByUserId(user.requiredId())
+    fun getCreatedOrganizationAndRoles(user: User): List<LnkUserOrganization> =
+            getOrganizationsAndRolesByUserAndFilters(user, OrganizationFilters.created)
 }

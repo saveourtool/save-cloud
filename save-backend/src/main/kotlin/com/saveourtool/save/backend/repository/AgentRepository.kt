@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
-import javax.transaction.Transactional
 
 /**
  * JPA repository for agents.
@@ -11,34 +10,18 @@ import javax.transaction.Transactional
 @Repository
 interface AgentRepository : BaseEntityRepository<Agent> {
     /**
-     * Find agent by its agent id
+     * Find agent by its container id
      *
-     * @param agentId agent id
+     * @param containerId container id
      * @return [Agent]
      */
-    fun findByContainerId(agentId: String): Agent?
+    fun findByContainerId(containerId: String): Agent?
 
     /**
-     * Find all agents with [executionId]
+     * Find agent by its container name
      *
-     * @param executionId id of execution
-     * @return list of agents
+     * @param containerName
+     * @return [Agent]
      */
-    fun findByExecutionId(executionId: Long): List<Agent>
-
-    /**
-     * Find all agents with [projectId] in execution
-     *
-     * @param projectId id of project
-     * @return list of agents
-     */
-    fun findByExecutionProjectId(projectId: Long): List<Agent>
-
-    /**
-     * Delete all agents with [executionId]
-     *
-     * @param ids list id of execution
-     */
-    @Transactional
-    fun deleteByExecutionIdIn(ids: List<Long>)
+    fun findByContainerName(containerName: String): Agent?
 }

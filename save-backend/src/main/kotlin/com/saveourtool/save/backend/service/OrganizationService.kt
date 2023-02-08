@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -43,16 +44,17 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organization] as deleted
+     * Mark organization with [organization] as [newProjectStatus].
+     * Before performing the function, check for user permissions by the [organization].
      *
-     * @param newStatus is new status for [organization]
+     * @param newProjectStatus is new status for [organization]
      * @param organization is organization in which the status will be changed
      * @return organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    private fun changeOrganizationStatus(organization: Organization, newStatus: OrganizationStatus): Organization = organization
+    private fun changeOrganizationStatus(organization: Organization, newProjectStatus: OrganizationStatus): Organization = organization
         .apply {
-            status = newStatus
+            status = newProjectStatus
         }
         .let {
             organizationRepository.save(it)
@@ -64,11 +66,7 @@ class OrganizationService(
      * @param organization an [Organization] to delete
      * @return deleted organization
      */
-    fun deleteOrganization(organization: Organization): Organization = if (!hasProjects(organization.name)) {
-        changeOrganizationStatus(organization, OrganizationStatus.DELETED)
-    } else {
-        organization
-    }
+    fun deleteOrganization(organization: Organization): Organization = changeOrganizationStatus(organization, OrganizationStatus.DELETED)
 
     /**
      * Mark organization with [organization] as created.
@@ -169,14 +167,15 @@ class OrganizationService(
 
     /**
      * @param name
-     * @param relativePath
      * @throws NoSuchElementException
      */
-    fun saveAvatar(name: String, relativePath: String) {
-        val organization = organizationRepository.findByName(name)
-            ?.apply {
-                avatar = relativePath
-            }.orNotFound { "Organization with name [$name] was not found." }
+    fun updateAvatarVersion(name: String) {
+        val organization = organizationRepository.findByName(name).orNotFound()
+        var version = organization.avatar?.substringAfterLast("?")?.toInt() ?: 0
+
+        organization.apply {
+            avatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
+        }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
     }
 

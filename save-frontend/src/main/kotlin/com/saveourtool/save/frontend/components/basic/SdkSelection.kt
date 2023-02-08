@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.*
 
 import csstype.ClassName
-import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren
@@ -18,6 +17,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.useState
+import web.html.HTMLSelectElement
 
 /**
  * Component for sdk selection
@@ -42,12 +42,18 @@ external interface SdkProps : PropsWithChildren {
      * Callback invoked when SDK is changed
      */
     var onSdkChange: (Sdk) -> Unit
+
+    /**
+     * Flag to disable sdk selection
+     */
+    var isDisabled: Boolean
 }
 
 private fun ChildrenBuilder.selection(
     labelValue: String,
     value: String,
     options: List<String>,
+    isDisabled: Boolean,
     onChangeFun: (HTMLSelectElement) -> Unit,
 ) = div {
     className = ClassName("input-group mb-3")
@@ -61,6 +67,7 @@ private fun ChildrenBuilder.selection(
     select {
         className = ClassName("custom-select")
         this.value = value
+        disabled = isDisabled
         onChange = {
             val target = it.target
             onChangeFun(target)
@@ -96,6 +103,7 @@ private fun sdkSelection() =
                             "SDK",
                             sdkName,
                             sdks,
+                            isDisabled = props.isDisabled,
                         ) { element ->
                             val newSdkName = element.value
                             val newSdkVersion = newSdkName.getSdkVersions().first()
@@ -111,6 +119,7 @@ private fun sdkSelection() =
                             "Version",
                             sdkVersion,
                             sdkName.getSdkVersions(),
+                            isDisabled = props.isDisabled,
                         ) { element ->
                             val newSdkVersion = element.value
                             setSdkVersion(newSdkVersion)

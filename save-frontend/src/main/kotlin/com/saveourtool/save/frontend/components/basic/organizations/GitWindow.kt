@@ -15,10 +15,10 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.html.InputType
 
 /**
  * Component that allows to change git settings in ManageGitCredentialsCard.kt

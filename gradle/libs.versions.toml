@@ -1,43 +1,46 @@
 [versions]
-kotlin = "1.7.21"
-save-core = "0.3.4"
-ktor = "2.1.3"
-okio = "3.2.0"
+kotlin = "1.8.0"
+jetbrains-annotations = "24.0.0"
+save-core = "0.3.7"
+ktor = "2.2.2"
+okio = "3.3.0"
 serialization = "1.4.1"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
-kotlin-wrappers = "1.0.0-pre.452"
-spring-boot = "2.7.6"
-spring-cloud = "3.1.4"
+kotlin-wrappers = "1.0.0-pre.490"
+spring-boot = "2.7.8"
+spring-cloud = "3.1.5"
 spring-cloud-kubernetes = "2.1.5"
-kafka-client = "3.3.1"
-junit = "5.9.1"
-assertj = "3.23.1"
+kafka-client = "3.3.2"
+junit = "5.9.2"
+assertj = "3.24.2"
 diktat = "1.2.4.1"
 detekt = "1.22.0"
-liquibase-core = "4.17.2"
+liquibase-core = "4.19.0"
 docker-java = "3.2.14"
-jgit = "6.3.0.202209071007-r"
+jgit = "6.4.0.202211300538-r"
+mockito = "5.1.0"
 mockito-kotlin = "4.1.0"
-slf4j = "1.7.36"
+# only in save-cli
 log4j = "2.19.0"
 jpa = "1.0.2"
-mySql = "8.0.31"
+mySql = "8.0.32"
 testcontainers = "1.17.6"
 okhttp3 = "4.10.0"
 reckon = "0.16.1"
 commons-compress = "1.22"
-picocli = "4.7.0"
-zip4j = "2.11.2"
-ktoml = "0.3.0"
-springdoc = "1.6.13"
+picocli = "4.7.1"
+zip4j = "2.11.3"
+ktoml = "0.4.1"
+springdoc = "1.6.14"
 kotlinx-cli = "0.3.5"
-spotless = "6.12.0"
-fabric8 = "6.2.0"
-arrow-kt = "1.1.3"
+spotless = "6.14.0"
+fabric8 = "6.4.0"
+arrow-kt = "1.1.5"
 publish = "1.1.0"
 download = "5.3.0"
 cpg = "5.1.0"
+aws-sdk = "2.19.26"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -48,6 +51,7 @@ kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kot
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "1.5.3" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 download = { id = "de.undercouch.download", version.ref = "download" }
 
@@ -77,6 +81,7 @@ kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-ser
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-core-linuxx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-linuxx64", version.ref = "kotlinx-coroutines" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 
@@ -112,12 +117,13 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.7" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.8" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
@@ -125,8 +131,14 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+
 # java core libraries
 validation-api = { module = "jakarta.validation:jakarta.validation-api"}
+annotation-api = { module = "jakarta.annotation:jakarta.annotation-api"}
 
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
@@ -146,11 +158,12 @@ testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", ve
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp3" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.4" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-api = { module = "org.slf4j:slf4j-api" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 logback-core = { module = "ch.qos.logback:logback-core" }
@@ -177,3 +190,8 @@ fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.r
 fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock", version.ref = "fabric8" }
 
 arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}
+
+# aws s3 sdk
+aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws-sdk" }
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3" }
+aws-sdk-netty-nio = { module = "software.amazon.awssdk:netty-nio-client" }

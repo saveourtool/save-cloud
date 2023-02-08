@@ -1,25 +1,26 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
-import com.saveourtool.save.domain.DebugInfoStorageKey
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultLocation
-import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.AbstractS3Storage
+import com.saveourtool.save.storage.concatS3Key
+import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.pathNamesTill
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
-import java.nio.file.Path
-
-import kotlin.io.path.Path
-import kotlin.io.path.div
-import kotlin.io.path.name
+import javax.annotation.PostConstruct
 
 /**
  * A storage for storing additional data associated with test results
@@ -27,69 +28,45 @@ import kotlin.io.path.name
 @Service
 class DebugInfoStorage(
     configProperties: ConfigProperties,
+    s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
-) : AbstractFileBasedStorage<DebugInfoStorageKey>(
-    Path.of(configProperties.fileStorage.location) / "debugInfo",
-    PATH_PARTS_COUNT,
+    private val testExecutionService: TestExecutionService,
+    private val testExecutionRepository: TestExecutionRepository,
+) : AbstractS3Storage<Long>(
+    s3Operations,
+    concatS3Key(configProperties.s3Storage.prefix, "debugInfo"),
 ) {
     /**
-     * @param rootDir
-     * @param pathToContent
-     * @return true if path endsWith [SUFFIX_FILE_NAME]
+     * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
-
-    /**
-     * @param rootDir
-     * @param pathToContent
-     * @return [Pair] of executionId and [TestResultLocation] object is built by [Path]
-     */
-    @Suppress("DestructuringDeclarationWithTooManyEntries")
-    override fun buildKey(rootDir: Path, pathToContent: Path): DebugInfoStorageKey {
-        val pathNames = pathToContent.pathNamesTill(rootDir)
-
-        val (testName, testLocation, testSuiteName, pluginName, executionId) = pathNames
-        return DebugInfoStorageKey(
-            executionId.toLong(),
-            TestResultLocation(testSuiteName, pluginName, testLocation, testName.dropLast(SUFFIX_FILE_NAME.length))
-        )
+    @PostConstruct
+    fun deleteUnexpectedIds() {
+        deleteAsyncUnexpectedIds(testExecutionRepository, log).subscribe()
     }
 
     /**
-     * @param rootDir
-     * @param key
-     * @return [Path] is built by executionId and [TestResultLocation] object
-     */
-    override fun buildPathToContent(rootDir: Path, key: DebugInfoStorageKey): Path = with(key.testResultLocation) {
-        rootDir / key.executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_FILE_NAME"
-    }
-
-    /**
-     * Store provided [testResultDebugInfo] associated with [executionId]
+     * Store provided [testResultDebugInfo] associated with [TestExecution.id]
      *
      * @param executionId
      * @param testResultDebugInfo
      * @return count of saved bytes
      */
-    fun save(
+    fun upload(
         executionId: Long,
         testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> {
-        with(testResultDebugInfo) {
-            log.debug { "Writing debug info for $executionId to $testResultLocation" }
-            return upload(DebugInfoStorageKey(executionId, testResultLocation), testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+    ): Mono<Long> = blockingToMono { testExecutionService.getTestExecution(executionId, testResultDebugInfo.testResultLocation)?.requiredId() }
+        .switchIfEmptyToNotFound {
+            "Not found ${TestExecution::class.simpleName} by executionId $executionId and testResultLocation: ${testResultDebugInfo.testResultLocation}"
         }
-    }
+        .flatMap { testExecutionId ->
+            log.debug { "Writing debug info for $testExecutionId" }
+            upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
+        }
 
-    /**
-     * remove non valid chars from path to work on windows
-     */
-    private fun sanitizePathName(name: String): String =
-            name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
+    override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun buildS3KeySuffix(key: Long): String = key.toString()
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
-        private const val PATH_PARTS_COUNT = 5
-        private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

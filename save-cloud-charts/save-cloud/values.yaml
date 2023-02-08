@@ -1,10 +1,14 @@
 imageRegistry: ghcr.io/saveourtool
-dockerTag: latest  # this should be set explicitly during chart installation
+# dockerTag: <TDB>  # this should be set explicitly during chart installation
 
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
 pullPolicy: IfNotPresent
+ingress:
+  enabled: false
+  https:
+    enabled: false
 backend:
   name: backend
   profile: dev,secure,kubernetes
@@ -54,6 +58,8 @@ gateway:
     annotations: {}
     # Any additional options for Service `spec` block
     spec: {}
+s3:
+  secretFile: /home/cnb/secrets/s3_secrets
 storage:
   size: 10Gi
 reposStorage:
@@ -70,6 +76,7 @@ mysql:
   # Name of the database schema that will be used by save-cloud deployment
   backend_schema: save_cloud
   sandbox_schema: save_sandbox
+  demo_schema: save_demo
   root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application
@@ -81,7 +88,7 @@ grafana:
   enabled: false
   image:
     repository: grafana/grafana
-    tag: 9.2.6
+    tag: 9.3.6
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
@@ -96,19 +103,17 @@ prometheus:
   enabled: false
   alertmanager:
     enabled: false
-  kubeStateMetrics:
+  kube-state-metrics:
     enabled: false
   configmapReload:
     prometheus:
-      enabled: false
-    alertmanager:
       enabled: false
   prometheus-node-exporter:
     enabled: false
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.40.3
+      tag: v2.42.0
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
@@ -118,7 +123,7 @@ prometheus:
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.7.0
+    tag: 2.7.3
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
@@ -161,7 +166,7 @@ loki:
   loki:
     image:
       repository: grafana/loki
-      tag: 2.7.0
+      tag: 2.7.3
     auth_enabled: false
     commonConfig:
       replication_factor: 1
@@ -178,6 +183,9 @@ loki:
   singleBinary:
 
 neo4j:
+  enabled: true
+  ingress:
+    enabled: false
   svc:
     annotations: {}
     # Any additional options for Service `spec` block
@@ -199,4 +207,11 @@ demo_cpg:
   imageName: save-demo-cpg
   containerPort: 5500
   managementPort: 5501
+  clusterIP: null
+demo:
+  name: demo
+  profile: dev
+  imageName: save-demo
+  containerPort: 5421
+  managementPort: 5422
   clusterIP: null

@@ -21,7 +21,7 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     }
 }
 
-internal actual fun getenv(envName: String): String? = System.getenv(envName)
+internal actual fun getenv(envName: String): String? = System.getProperty(envName) ?: System.getenv(envName)
 
 internal actual fun handleSigterm() {
     Signal.handle(Signal("TERM")) {

@@ -1,15 +1,21 @@
-import com.saveourtool.save.buildutils.*
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.spring-data-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
+    alias(libs.plugins.kotlin.plugin.jpa)
 }
 
-configureJacoco()
-configureSpotless()
+kotlin {
+    allOpen {
+        annotation("javax.persistence.Entity")
+    }
+}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -22,6 +28,8 @@ val diktatVersion: String = libs.versions.diktat.get()
 dependencies {
     implementation(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
+
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
 
     implementation(libs.ktor.client.apache)
     api(libs.ktor.client.auth)

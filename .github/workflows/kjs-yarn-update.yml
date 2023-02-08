@@ -30,7 +30,7 @@ jobs:
           gradle-version: wrapper
           arguments: |
             kotlinStoreYarnLock
-            -Porg.gradle.caching=true
+            --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Dedupe generated yarn.lock

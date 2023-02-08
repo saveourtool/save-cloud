@@ -14,10 +14,10 @@ import csstype.None
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.datalist
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
+import web.html.InputType
 
 /**
  * Component that encapsulates debounced prefix autocompletion over [UserInfo]'s name field

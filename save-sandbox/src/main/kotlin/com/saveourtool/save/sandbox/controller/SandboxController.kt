@@ -8,11 +8,15 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
+import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
+import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxLnkExecutionAgentRepository
 import com.saveourtool.save.sandbox.service.SandboxOrchestratorAgentService
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.service.LogService
 import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.Operation
@@ -42,8 +46,12 @@ import javax.transaction.Transactional
  * @property configProperties
  * @property storage
  * @property sandboxExecutionRepository
+ * @property sandboxAgentRepository
+ * @property sandboxAgentStatusRepository
+ * @property sandboxLnkExecutionAgentRepository
  * @property agentsController
  * @property orchestratorAgentService
+ * @property logService
  */
 @ApiSwaggerSupport
 @Tags(
@@ -51,12 +59,17 @@ import javax.transaction.Transactional
 )
 @RestController
 @RequestMapping("/sandbox/api")
+@SuppressWarnings("LongParameterList")
 class SandboxController(
     val configProperties: ConfigProperties,
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
+    val sandboxAgentRepository: SandboxAgentRepository,
+    val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
+    val sandboxLnkExecutionAgentRepository: SandboxLnkExecutionAgentRepository,
     val agentsController: AgentsController,
     val orchestratorAgentService: SandboxOrchestratorAgentService,
+    val logService: LogService,
 ) {
     @Operation(
         method = "GET",
@@ -75,7 +88,7 @@ class SandboxController(
         .flatMap {
             Mono.zip(
                 it.toMono(),
-                storage.contentSize(it),
+                storage.contentLength(it),
             )
         }
         .map { (storageKey, size) ->
@@ -88,24 +101,27 @@ class SandboxController(
         description = "Upload a file for provided user",
     )
     @Parameters(
-        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
+        Parameter(name = FILE_PART_NAME, `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
+        Parameter(name = CONTENT_LENGTH_CUSTOM, `in` = ParameterIn.HEADER, description = "size in bytes of a file", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Uploaded bytes")
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
         @RequestPart file: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         authentication: Authentication,
     ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
         getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
                 storage.overwrite(
                     key = key,
-                    content = filePart
+                    content = filePart,
+                    contentLength = contentLength,
                 )
             }
             .map {
-                SandboxFileInfo(filePart.filename(), it)
+                SandboxFileInfo(filePart.filename(), contentLength)
             }
     }
 
@@ -211,7 +227,7 @@ class SandboxController(
         .flatMap { key ->
             storage.overwrite(
                 key = key,
-                content = Flux.just(ByteBuffer.wrap(content.replace("\r\n?".toRegex(), "\n").toByteArray()))
+                contentBytes = content.replace("\r\n?".toRegex(), "\n").toByteArray(),
             )
         }
         .map {
@@ -241,7 +257,7 @@ class SandboxController(
     ): Mono<String> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
             storage.download(key)
-                .mapToInputStream()
+                .collectToInputStream()
                 .map { it.bufferedReader().readText() }
         }
         .switchIfEmpty(
@@ -325,6 +341,39 @@ class SandboxController(
                 agentsController.initialize(request)
             }
     }
+
+    /**
+     * @param limit
+     * @param authentication
+     * @return logs from agent sandbox
+     */
+    @GetMapping("/logs-from-agent")
+    fun getAgentLogs(
+        @RequestParam(required = false, defaultValue = "1000") limit: Int,
+        authentication: Authentication,
+    ): Mono<StringList> = blockingToMono {
+        sandboxExecutionRepository.findTopByUserIdOrderByStartTimeDesc(authentication.userId())
+    }
+        .switchIfEmptyToNotFound {
+            "There is no run for ${authentication.username()} yet"
+        }
+        .flatMap { execution ->
+            val agent = sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
+                .singleOrNull()
+                .orConflict { "Only a single agent expected for execution ${execution.requiredId()}" }
+                .agent
+            val startTime = sandboxAgentStatusRepository.findTopByAgentOrderByStartTimeAsc(agent)
+                ?.startTime
+                .orNotFound { "Not found first agent status for execution ${execution.requiredId()}" }
+            val endTime = sandboxAgentStatusRepository.findTopByAgentOrderByEndTimeDesc(agent)
+                ?.endTime
+                .orNotFound { "Not found latest agent status for execution ${execution.requiredId()}" }
+            logService.getByContainerName(agent.containerName,
+                startTime.toInstantAtDefaultZone(),
+                endTime.toInstantAtDefaultZone(),
+                limit,
+            )
+        }
 
     private fun validateNoRunningExecution(
         userId: Long,

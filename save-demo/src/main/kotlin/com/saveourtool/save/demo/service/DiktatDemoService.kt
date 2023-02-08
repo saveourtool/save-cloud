@@ -1,40 +1,30 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.demo.diktat.DemoAdditionalParams
-import com.saveourtool.save.demo.diktat.DiktatDemoResult
-
+import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.cli.DiktatCliRunner
+import com.saveourtool.save.demo.utils.KOTLIN_TEST_NAME
+
 import org.springframework.stereotype.Service
-import java.nio.file.Path
-import kotlin.io.path.div
+
+import kotlin.io.path.createTempDirectory
 
 /**
- * Demo service implementation for ktlint-demo/diktat-demo
+ * Demo service implementation for diktat-demo
  */
 @Service
 class DiktatDemoService(
     private val diktatCliRunner: DiktatCliRunner,
-    configProperties: ConfigProperties,
-) : AbstractDemoService<DemoAdditionalParams, DiktatDemoResult>(diktatCliRunner) {
-    private val tmpDir = Path.of(configProperties.fileStorage.location) / "tmp"
+) : AbstractDemoService (diktatCliRunner) {
+    private val tmpDir = createTempDirectory("diktat-demo-")
 
     /**
-     * @param demoFileLines kotlin file to be checked
-     * @param demoAdditionalParams instance of [DemoAdditionalParams]
+     * @param runRequest instance of [DemoRunRequest]
      */
-    override fun launch(
-        demoFileLines: List<String>,
-        demoAdditionalParams: DemoAdditionalParams?,
-    ): DiktatDemoResult = diktatCliRunner.runInTempDir(
-        demoFileLines.joinToString("\n"),
-        demoAdditionalParams ?: DemoAdditionalParams(),
+    override fun launch(runRequest: DemoRunRequest): DemoResult = diktatCliRunner.runInTempDir(
+        runRequest,
         tmpDir,
+        testFileName = KOTLIN_TEST_NAME,
+        additionalDirectoryTree = listOf("src"),
     )
-        .formatWarnings()
 }
-
-private fun DiktatDemoResult.formatWarnings() = DiktatDemoResult(
-    warnings.map { "[${it.substringAfter("[")}" },
-    outputText
-)

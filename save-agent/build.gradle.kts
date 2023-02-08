@@ -1,11 +1,12 @@
-import com.saveourtool.save.buildutils.configureSpotless
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 kotlin {
@@ -35,7 +36,7 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
@@ -51,7 +52,12 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-        val commonTest by getting
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.ktor.client.mock)
+            }
+        }
 
         val jvmMain by getting {
             dependencies {
@@ -61,9 +67,12 @@ kotlin {
         }
 
         val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+                implementation(libs.junit.jupiter.engine)
             }
         }
 
@@ -73,11 +82,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
-        val linuxX64Test by getting {
-            dependencies {
-                implementation(libs.ktor.client.mock)
-            }
-        }
+        val linuxX64Test by getting
     }
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
@@ -87,7 +92,7 @@ kotlin {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
         from(linkTask.flatMap { it.outputFile })
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/linuxX64Main/resources/agent.toml"))
     }
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {
@@ -125,7 +130,6 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
-configureSpotless()
 
 /*
  * On Windows, it's impossible to link a Linux executable against

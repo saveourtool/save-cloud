@@ -3,27 +3,23 @@ package com.saveourtool.save.sandbox.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.SaveCliOverrides
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.service.AgentStatusList
-import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.sandbox.entity.SandboxAgent
+import com.saveourtool.save.sandbox.config.ConfigProperties
 import com.saveourtool.save.sandbox.entity.SandboxExecution
-import com.saveourtool.save.sandbox.entity.toEntity
+import com.saveourtool.save.sandbox.entity.SandboxLnkExecutionAgent
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxLnkExecutionAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -40,10 +36,13 @@ import java.util.stream.Collectors
 class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
+    private val sandboxLnkExecutionAgentRepository: SandboxLnkExecutionAgentRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
-    @Value("\${sandbox.agent-settings.sandbox-url}/sandbox/internal") private val sandboxUrlForAgent: String,
+    configProperties: ConfigProperties,
 ) : OrchestratorAgentService {
+    private val sandboxUrlForAgent = "${configProperties.agentSettings.sandboxUrl}/sandbox/internal"
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
@@ -83,17 +82,18 @@ class SandboxOrchestratorAgentService(
             )
         }
 
-    override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
-        agents
-            .map { it.toEntity(this::getExecution) }
-            .let { sandboxAgentRepository.saveAll(it) }
-            .map { it.requiredId() }
-    }
+    override fun addAgent(executionId: Long, agent: AgentDto): Mono<EmptyResponse> = getExecutionAsMono(executionId)
+        .map { execution ->
+            val savedAgent = sandboxAgentRepository.save(agent.toEntity())
+            sandboxLnkExecutionAgentRepository.save(SandboxLnkExecutionAgent(
+                execution = execution,
+                agent = savedAgent
+            ))
+            ResponseEntity.ok().build()
+        }
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {
-        agentStates
-            .map { it.toEntity(this::getAgent) }
-            .let { sandboxAgentStatusRepository.saveAll(it) }
+    override fun updateAgentStatus(agentStatus: AgentStatusDto): Mono<EmptyResponse> = blockingToMono {
+        sandboxAgentStatusRepository.save(agentStatus.toEntity(this::getAgent))
             .let {
                 ResponseEntity.ok().build()
             }
@@ -104,13 +104,10 @@ class SandboxOrchestratorAgentService(
         emptyList()
     }
 
-    override fun getAgentsStatuses(containerIds: List<String>): Mono<AgentStatusList> = blockingToMono {
-        containerIds
-            .mapNotNull { sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(it) }
-            .map { it.toDto() }
-    }
+    override fun getExecutionStatus(executionId: Long): Mono<ExecutionStatus> = getExecutionAsMono(executionId)
+        .map { it.status }
 
-    override fun updateExecutionByDto(
+    override fun updateExecutionStatus(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
@@ -125,9 +122,10 @@ class SandboxOrchestratorAgentService(
         }
         .thenReturn(ResponseEntity.ok().build())
 
-    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = getExecutionAsMonoByContainerId(containerId)
+    override fun getAgentStatusesByExecutionId(executionId: Long): Mono<AgentStatusDtoList> = getExecutionAsMono(executionId)
         .map { execution ->
-            sandboxAgentRepository.findByExecutionId(execution.requiredId())
+            sandboxLnkExecutionAgentRepository.findByExecutionId(execution.requiredId())
+                .map { it.agent }
                 .map { agent ->
                     sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
                         .orNotFound {
@@ -137,12 +135,14 @@ class SandboxOrchestratorAgentService(
                 .map {
                     it.toDto()
                 }
-                .let {
-                    AgentStatusesForExecution(execution.requiredId(), it)
-                }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
+    override fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String): Mono<EmptyResponse> = Mono.fromCallable {
+        // sandbox doesn't have TestExecution
+        ResponseEntity.ok().build()
+    }
+
+    override fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }
@@ -164,13 +164,17 @@ class SandboxOrchestratorAgentService(
         getExecution(executionId)
     }
 
-    private fun getAgent(containerId: String): SandboxAgent = sandboxAgentRepository
+    private fun getAgent(containerId: String): Agent = sandboxAgentRepository
         .findByContainerId(containerId)
         .orNotFound {
             "No agent with containerId $containerId"
         }
 
     private fun getExecutionAsMonoByContainerId(containerId: String): Mono<SandboxExecution> = blockingToMono {
-        getAgent(containerId).execution
+        sandboxLnkExecutionAgentRepository.findByAgentId(getAgent(containerId).requiredId())
+            .orNotFound {
+                "No linked execution to agent with containerId $containerId"
+            }
+            .execution
     }
 }

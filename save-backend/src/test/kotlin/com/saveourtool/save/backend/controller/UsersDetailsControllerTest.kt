@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
@@ -17,7 +17,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 
 class UsersDetailsControllerTest {
     @Autowired

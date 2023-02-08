@@ -1,6 +1,5 @@
 package com.saveourtool.save.request
 
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.execution.TestingType
@@ -9,19 +8,20 @@ import kotlinx.serialization.Serializable
 /**
  * @property projectCoordinates project coordinates for evaluated tool
  * @property testSuiteIds selected test suites for running
- * @property files files of evaluated tool
+ * @property fileIds selected files of evaluated tool
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property testingType a [TestingType] for this execution
  * @property contestName if [testingType] is [TestingType.CONTEST_MODE], then this property contains name of the associated contest
+ * @property testsVersion version of selected test suites (if it's missed, it will be calculated as commitId)
  */
 @Serializable
 data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
-    val files: List<FileKey>,
+    val fileIds: List<Long>,
 
     val sdk: Sdk,
     val execCmd: String? = null,
@@ -29,6 +29,8 @@ data class CreateExecutionRequest(
 
     val testingType: TestingType,
     val contestName: String? = null,
+
+    val testsVersion: String? = null,
 ) {
     init {
         require((testingType == TestingType.CONTEST_MODE) xor (contestName == null)) {

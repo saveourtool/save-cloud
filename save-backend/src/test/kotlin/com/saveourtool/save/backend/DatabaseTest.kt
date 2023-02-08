@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import
 @Import(ApplicationConfiguration::class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 class DatabaseTest {
     @Autowired
     private lateinit var projectRepository: ProjectRepository

@@ -1,17 +1,21 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.pathNamesTill
-import org.springframework.http.codec.multipart.FilePart
+import com.saveourtool.save.backend.repository.FileRepository
+import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
+import com.saveourtool.save.storage.concatS3Key
+import com.saveourtool.save.utils.*
+
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.nio.file.Path
-import kotlin.io.path.div
+
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -19,80 +23,55 @@ import kotlin.io.path.div
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage", PATH_PARTS_COUNT) {
-    /**
-     * @param projectCoordinates
-     * @return list of keys in storage by [projectCoordinates]
-     */
-    fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
-        .filter { it.projectCoordinates == projectCoordinates }
+    s3Operations: S3Operations,
+    fileRepository: FileRepository,
+    private val projectService: ProjectService,
+    private val executionService: ExecutionService,
+) : AbstractStorageWithDatabaseDtoKey<FileDto, File, FileRepository>(
+    s3Operations,
+    concatS3Key(configProperties.s3Storage.prefix, "storage"),
+    fileRepository
+) {
+    override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)
+            .orNotFound {
+                "Not found project by coordinates: ${dto.projectCoordinates}"
+            }
+    }
 
-    @Suppress(
-        "DestructuringDeclarationWithTooManyEntries"
+    override fun findByDto(dto: FileDto): File? = repository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
+        organizationName = dto.projectCoordinates.organizationName,
+        projectName = dto.projectCoordinates.projectName,
+        name = dto.name,
+        uploadedTime = dto.uploadedTime.toJavaLocalDateTime(),
     )
-    override fun buildKey(rootDir: Path, pathToContent: Path): FileKey {
-        val pathNames = pathToContent.pathNamesTill(rootDir)
 
-        val (name, uploadedMillis, projectName, organizationName) = pathNames
-        return FileKey(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = organizationName,
-                projectName = projectName,
-            ),
-            name = name,
-            // assuming here, that we always store files in timestamp-based directories
-            uploadedMillis = uploadedMillis.toLong(),
-        )
+    override fun beforeDelete(entity: File) {
+        executionService.unlinkFileFromAllExecution(entity)
     }
 
-    override fun buildPathToContent(rootDir: Path, key: FileKey): Path = rootDir
-        .resolve(key.projectCoordinates.organizationName)
-        .resolve(key.projectCoordinates.projectName)
-        .resolve(key.uploadedMillis.toString())
-        .resolve(key.name)
+    override fun File.updateByContentSize(sizeBytes: Long): File = apply {
+        this.sizeBytes = sizeBytes
+    }
 
     /**
-     * @param projectCoordinates
-     * @return a list of [FileInfo]'s
+     * @param project
+     * @return all [FileDto]s which provided [Project] does contain
      */
-    fun getFileInfoList(
-        projectCoordinates: ProjectCoordinates,
-    ): Flux<FileInfo> = list(projectCoordinates)
-        .flatMap { fileKey ->
-            contentSize(fileKey).map {
-                FileInfo(
-                    fileKey,
-                    it,
-                )
-            }
-        }
+    fun listByProject(
+        project: Project,
+    ): Flux<FileDto> = blockingToFlux {
+        repository.findAllByProject(project).map { it.toDto() }
+    }
 
     /**
-     * @param partMono file part
-     * @param projectCoordinates
-     * @return Mono with number of bytes saved
-     * @throws FileAlreadyExistsException if file with this name already exists
+     * @param fileId
+     * @return [FileDto] for [File] with provided [fileId]
      */
-    fun uploadFilePart(
-        partMono: Mono<FilePart>,
-        projectCoordinates: ProjectCoordinates,
-    ): Mono<FileInfo> = partMono.flatMap { part ->
-        val uploadedMillis = System.currentTimeMillis()
-        val fileKey = FileKey(
-            projectCoordinates,
-            part.filename(),
-            uploadedMillis
-        )
-        upload(fileKey, part.content().map { it.asByteBuffer() })
-            .map {
-                FileInfo(
-                    fileKey,
-                    it
-                )
-            }
+    fun getFileById(
+        fileId: Long,
+    ): Mono<FileDto> = blockingToMono {
+        repository.findByIdOrNull(fileId)?.toDto()
     }
-
-    companion object {
-        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
-    }
+        .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 }

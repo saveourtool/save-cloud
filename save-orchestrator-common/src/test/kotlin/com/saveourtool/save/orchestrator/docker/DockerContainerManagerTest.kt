@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
@@ -23,11 +23,11 @@ import org.springframework.test.context.TestPropertySource
 import kotlin.io.path.createTempFile
 
 @SpringBootTest
-@Import(Beans::class, DockerAgentRunner::class)
+@Import(Beans::class, DockerContainerRunner::class)
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
-    @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
+    @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String
@@ -52,16 +52,21 @@ class DockerContainerManagerTest {
     fun `should create a container with specified cmd and then copy resources into it`() {
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
-        testContainerId = dockerAgentRunner.create(
-            executionId = 42,
-            configuration = DockerService.RunConfiguration(
+        dockerAgentRunner.createAndStart(
+            executionId = 43,
+            configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
                 workingDir = "/",
                 env = emptyMap(),
             ),
             replicas = 1,
-        ).single()
+        )
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-43-"))
+            .exec()
+            .map { it.id }
+            .single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
@@ -72,7 +77,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42"))
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-43"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")

@@ -2,24 +2,25 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.preprocessor.utils.cloneBranchToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneCommitToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
 import com.saveourtool.save.utils.*
 import org.eclipse.jgit.util.FileUtils
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.Instant
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 
-typealias GitRepositoryProcessor<T> = (Path, Instant) -> Mono<T>
+typealias CloneResult = Pair<Path, GitCommitInfo>
+typealias GitRepositoryProcessor<T> = (Path, GitCommitInfo) -> Mono<T>
 typealias ArchiveProcessor<T> = (Path) -> Mono<T>
 
 /**
@@ -91,26 +92,31 @@ class GitPreprocessorService(
         cloneCommitToDirectory(commitId, it)
     }
 
+    /**
+     * @param doCloneToDirectory a blocking `git-clone` action (will be wrapped
+     * with [blockingToMono]).
+     */
+    @NonBlocking
     @Suppress("TooGenericExceptionCaught")
     private fun <T> doCloneAndProcessDirectory(
         gitDto: GitDto,
         repositoryProcessor: GitRepositoryProcessor<T>,
-        doCloneToDirectory: GitDto.(Path) -> Instant,
+        doCloneToDirectory: GitDto.(Path) -> GitCommitInfo,
     ): Mono<T> {
-        val cloneAction: () -> Pair<Path, Instant> = {
+        val cloneAction: () -> CloneResult = {
             val tmpDir = createTempDirectoryForRepository()
-            val creationTime = try {
+            val gitCommitInfo = try {
                 gitDto.doCloneToDirectory(tmpDir)
             } catch (ex: Exception) {
                 log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
                 tmpDir.deleteRecursivelySafely()
                 throw ex
             }
-            tmpDir to creationTime
+            tmpDir to gitCommitInfo
         }
         return Mono.usingWhen(
-            Mono.fromSupplier(cloneAction),
-            { (directory, creationTime) -> repositoryProcessor(directory, creationTime) },
+            blockingToMono(cloneAction),
+            { (directory, gitCommitInfo) -> repositoryProcessor(directory, gitCommitInfo) },
             { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
         )
     }
@@ -122,6 +128,7 @@ class GitPreprocessorService(
      * @throws IOException
      * @throws Exception
      */
+    @NonBlocking
     @Suppress("TooGenericExceptionCaught")
     fun <T> archiveToTar(
         pathToRepository: Path,
@@ -139,14 +146,14 @@ class GitPreprocessorService(
             tmpFile
         }
         return Mono.usingWhen(
-            Mono.fromSupplier(archiveAction),
+            blockingToMono(archiveAction),
             { tmpFile -> archiveProcessor(tmpFile) },
             { tmpFile -> tmpFile.deleteRecursivelySafelyAsync() }
         )
     }
 
-    private fun Path.deleteRecursivelySafelyAsync() = Mono.fromCallable { deleteRecursivelySafely() }
-        .subscribeOn(Schedulers.boundedElastic())
+    @NonBlocking
+    private fun Path.deleteRecursivelySafelyAsync() = blockingToMono { deleteRecursivelySafely() }
 
     @Suppress("TooGenericExceptionCaught")
     private fun Path.deleteRecursivelySafely() {

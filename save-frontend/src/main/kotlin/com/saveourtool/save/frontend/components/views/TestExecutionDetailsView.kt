@@ -120,8 +120,7 @@ fun testExecutionDetailsView() = FC<Props> {
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
-        testFilePath.substringBeforeLast("/", ""),
-        testFilePath.substringAfterLast("/"),
+        testFilePath,
     )
 
     val (status, setStatus) = useState("Loading...")

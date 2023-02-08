@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -13,10 +12,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -39,6 +35,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.*
 
 /**
  * Controller for working with projects.
@@ -56,17 +53,6 @@ class ProjectController(
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
-    @GetMapping("/all")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @Operation(
-        method = "GET",
-        summary = "Get all projects.",
-        description = "Get all projects, including deleted and private. Only accessible for super admins",
-    )
-    @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
-    fun getProjects(): Flux<Project> = projectService.getProjects()
-
     @GetMapping("/")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -95,7 +81,7 @@ class ProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody(required = true) projectFilters: ProjectFilters,
+        @RequestBody projectFilters: ProjectFilters,
         authentication: Authentication?,
     ): Flux<ProjectDto> =
             blockingToFlux { projectService.getFiltered(projectFilters) }
@@ -240,7 +226,7 @@ class ProjectController(
         @RequestParam status: ProjectStatus,
         authentication: Authentication
     ): Mono<StringResponse> = blockingToMono {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName)
+        projectService.findByNameAndOrganizationNameAndStatusIn(projectName, organizationName, EnumSet.allOf(ProjectStatus::class.java))
     }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName or project $projectName in organization $organizationName."
@@ -260,15 +246,15 @@ class ProjectController(
         .map { project ->
             when (status) {
                 ProjectStatus.BANNED -> {
-                    projectService.banProject(project)
+                    projectService.changeProjectStatus(project, ProjectStatus.BANNED)
                     ResponseEntity.ok("Successfully banned the project")
                 }
                 ProjectStatus.DELETED -> {
-                    projectService.deleteProject(project)
+                    projectService.changeProjectStatus(project, ProjectStatus.DELETED)
                     ResponseEntity.ok("Successfully deleted the project")
                 }
                 ProjectStatus.CREATED -> {
-                    projectService.recoverProject(project)
+                    projectService.changeProjectStatus(project, ProjectStatus.CREATED)
                     ResponseEntity.ok("Successfully recovered the project")
                 }
             }

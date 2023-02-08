@@ -2,15 +2,17 @@ package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
+import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -23,7 +25,7 @@ import org.springframework.stereotype.Component
 class KubernetesManager(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
-) : AgentRunner {
+) : ContainerRunner {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "orchestrator.kubernetes.* properties are required in this profile"
     }
@@ -35,10 +37,10 @@ class KubernetesManager(
         "NestedBlockDepth",
         "ComplexMethod",
     )
-    override fun create(executionId: Long,
-                        configuration: DockerService.RunConfiguration,
-                        replicas: Int,
-    ): List<String> {
+    override fun createAndStart(executionId: Long,
+                                configuration: ContainerService.RunConfiguration,
+                                replicas: Int,
+    ) {
         val baseImageTag = configuration.imageTag
         val agentRunCmd = configuration.runCmd
         val workingDir = configuration.workingDir
@@ -65,7 +67,7 @@ class KubernetesManager(
                         }
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
-                                "executionId" to executionId.toString(),
+                                EXECUTION_ID_LABEL to executionId.toString(),
                                 // "baseImageName" to baseImageName
                                 "io.kompose.service" to "save-agent",
                                 // todo: should be set to version of agent that is stored in backend...
@@ -82,75 +84,42 @@ class KubernetesManager(
             }
         }
         logger.debug { "Attempt to create Job from the following spec: $job" }
-        kc.resource(job)
-            .create()
-        logger.info("Created Job for execution id=$executionId")
-        // fixme: wait for pods to be created
-        return generateSequence<List<String>> {
-            Thread.sleep(1_000)
-            kc.pods().withLabel("executionId", executionId.toString())
-                .list()
-                .items
-                .map { it.metadata.name }
+        try {
+            kc.resource(job)
+                .create()
+            logger.info("Created Job for execution id=$executionId")
+        } catch (kex: KubernetesClientException) {
+            throw ContainerRunnerException("Unable to create a job for execution $executionId", kex)
         }
-            .take(10)
-            .firstOrNull { it.isNotEmpty() }
-            .orEmpty()
     }
 
-    override fun start(executionId: Long) {
-        logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
-    }
-
-    override fun stop(executionId: Long) {
+    override fun cleanupAllByExecution(executionId: Long) {
+        logger.debug { "Removing a job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
-        val deletedResources = kcJobsWithName(jobName)
-            .delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
-        }
-        logger.debug("Deleted Job for execution id=$executionId")
-    }
-
-    override fun stopByAgentId(agentId: String): Boolean {
-        val pod: Pod? = kc.pods().withName(agentId).get()
-        pod ?: run {
-            logger.debug("Agent id=$agentId is already stopped or not yet created")
-            return true
-        }
-        val deletedResources = kc.pods().withName(agentId).delete()
-        val isDeleted = deletedResources.size == 1
-        if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete pod with name $agentId: response is $deletedResources")
-        } else {
-            logger.debug("Deleted pod with name=$agentId")
-            return true
-        }
-    }
-
-    override fun cleanup(executionId: Long) {
-        logger.debug("Removing a Job for execution id=$executionId")
-        val job = kcJobsWithName(jobNameForExecution(executionId))
+        val job = kcJobsWithName(jobName)
         job.get()?.let {
-            job.delete()
+            val deletedResources = job.delete()
+            val isDeleted = deletedResources.size == 1
+            if (!isDeleted) {
+                throw ContainerRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
+            }
+            logger.debug { "Deleted Job for execution id=$executionId" }
+        } ?: run {
+            logger.warn { "Failed to delete job with name $jobName: there is no such job" }
+            return
         }
+        logger.debug("Cleanup job for execution id=$executionId")
     }
 
-    override fun prune() {
-        logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
-                "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
-    }
-
-    override fun isAgentStopped(agentId: String): Boolean {
-        val pod = kc.pods().withName(agentId).get()
+    override fun isStopped(containerId: String): Boolean {
+        val pod = kc.pods().withName(containerId).get()
         return pod == null || run {
             // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839
             val reason = pod.status.phase ?: pod.status.reason
             val isRunning = pod.status.containerStatuses.any {
                 it.ready && it.state.running != null
             }
-            logger.debug("Pod name=$agentId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}")
+            logger.debug("Pod name=$containerId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}")
             if (reason == "Completed" && isRunning) {
                 "ContainerReady" in pod.status.conditions.map { it.type }
             } else {
@@ -175,7 +144,7 @@ class KubernetesManager(
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
 
         val staticEnvs = env.mapToEnvs()
-        this.env = staticEnvs + agentIdEnv
+        this.env = staticEnvs + containerIdEnv
 
         this.command = agentRunCmd.dropLast(1)
         this.args = listOf(agentRunCmd.last())
@@ -210,7 +179,8 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
-        private val agentIdEnv = setOf(AgentEnvName.AGENT_ID, AgentEnvName.AGENT_NAME)
+        private const val EXECUTION_ID_LABEL = "executionId"
+        private val containerIdEnv = setOf(AgentEnvName.CONTAINER_ID, AgentEnvName.CONTAINER_NAME)
             .map { it.name }
             .map { envName ->
                 EnvVar().apply {

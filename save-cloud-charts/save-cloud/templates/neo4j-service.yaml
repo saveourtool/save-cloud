@@ -1,3 +1,4 @@
+{{- if .Values.neo4j.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,8 +15,41 @@ spec:
       port: 7687
       targetPort: 7687
       protocol: TCP
+    - name: tcp-http
+      port: 7474
+      targetPort: 7474
+      protocol: TCP
   selector:
     app: {{ .Values.neo4j.neo4j.name }}
   {{- range $key, $value := .Values.neo4j.svc.spec }}
   {{ $key }}: {{ $value }}
   {{- end }}
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-tcp-bolt
+  {{- if .Values.neo4j.ingress.annotations }}
+  {{- with .Values.neo4j.ingress.annotations  }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.https.enabled }}
+  tls:
+    - secretName: {{ .Values.ingress.https.secretName }}
+  {{- end }}
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Values.neo4j.neo4j.name }}
+                port:
+                  name: tcp-bolt
+            pathType: Prefix
+            path: '/'
+{{- end }}

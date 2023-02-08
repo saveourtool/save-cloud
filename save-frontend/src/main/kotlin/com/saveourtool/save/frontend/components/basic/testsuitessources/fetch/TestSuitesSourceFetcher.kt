@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
@@ -73,7 +74,11 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     val triggerFetchTestSuiteSource = useDeferredRequest {
         post(
             url = with(testSuitesSource) {
-                "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}/fetch?mode=$selectedFetchMode&version=$selectedValue"
+                "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}/fetch"
+            },
+            params = jso<dynamic> {
+                mode = selectedFetchMode
+                version = selectedValue
             },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
@@ -175,9 +180,10 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         headers = jsonHeaders,
                         loadingHandler = ::loadingHandler,
                     )
-                        .unsafeMap {
+                        .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
                         }
+                        .also { setSelectedValue(null) }
                 }
                 dataToString = { it }
                 notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
@@ -200,9 +206,10 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                         headers = jsonHeaders,
                         loadingHandler = ::loadingHandler,
                     )
-                        .unsafeMap {
+                        .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
                         }
+                        .also { setSelectedValue(null) }
                 }
                 dataToString = { it }
                 notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"

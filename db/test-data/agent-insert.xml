@@ -10,28 +10,24 @@
             <column name="id" value="1" />
             <column name="container_id" value="container-1" />
             <column name="container_name" value="save-container-1" />
-            <column name="execution_id" value="1" />
             <column name="version" value="1" />
         </insert>
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="2" />
             <column name="container_id" value="container-2" />
             <column name="container_name" value="save-container-2" />
-            <column name="execution_id" value="1" />
             <column name="version" value="1" />
         </insert>
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="3" />
             <column name="container_id" value="container-3" />
             <column name="container_name" value="save-container-3" />
-            <column name="execution_id" value="3" />
             <column name="version" value="1" />
         </insert>
         <insert dbms="mysql" tableName="agent">
             <column name="id" value="4" />
             <column name="container_id" value="container-4" />
             <column name="container_name" value="save-container-4" />
-            <column name="execution_id" value="4" />
             <column name="version" value="1" />
         </insert>
     </changeSet>

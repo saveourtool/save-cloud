@@ -21,7 +21,9 @@ spring:
         enabled: false
       secrets:
         enabled: true
-        paths: ${DATABASE_SECRETS_PATH}
+        paths:
+          - ${DATABASE_SECRETS_PATH}
+          - ${S3_SECRETS_PATH}
 kubernetes:
   informer:
     enabled: false
