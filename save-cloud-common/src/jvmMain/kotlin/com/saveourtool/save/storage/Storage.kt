@@ -56,13 +56,6 @@ interface Storage<K> {
      */
     fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
 
-//    /**
-//     * @param key a key for provided content
-//     * @param contentLength a content length of content
-//     * @return URL to upload some content
-//     */
-//    fun generateUrlToUpload(key: K, contentLength: Long): URL
-
     /**
      * @param key a key for provided content
      * @param content

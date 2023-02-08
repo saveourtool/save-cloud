@@ -19,13 +19,11 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.util.concurrent.*
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
-
 
 /**
  * Default implementation of [S3Operations]
@@ -68,7 +66,6 @@ class DefaultS3Operations(
             .endpointOverride(endpoint)
             .build()
     }
-
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
             .credentialsProvider(credentialsProvider)
@@ -210,17 +207,6 @@ class DefaultS3Operations(
         builder
             .signatureDuration(duration.toJavaDuration())
             .getObjectRequest(getObjectRequest(s3Key))
-            .build()
-    }
-
-    override fun requestToUploadObject(
-        s3Key: String,
-        contentLength: Long,
-        duration: Duration,
-    ): PresignedPutObjectRequest = s3Presigner.presignPutObject { builder ->
-        builder
-            .signatureDuration(duration.toJavaDuration())
-            .putObjectRequest(putObjectRequest(s3Key, contentLength))
             .build()
     }
 

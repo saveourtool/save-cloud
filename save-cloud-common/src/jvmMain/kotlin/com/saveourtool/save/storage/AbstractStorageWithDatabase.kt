@@ -11,12 +11,12 @@ import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
 
 import kotlinx.datetime.Clock
-import java.net.URL
 
 /**
  * Implementation of storage which stores keys in database

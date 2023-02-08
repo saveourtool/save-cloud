@@ -5,7 +5,6 @@ import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.async.ResponsePublisher
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.nio.ByteBuffer
 import kotlin.time.Duration
 
@@ -67,12 +66,4 @@ interface S3Operations {
      * @return a pre-signed request to download an object
      */
     fun requestToDownloadObject(s3Key: String, duration: Duration): PresignedGetObjectRequest
-
-    /**
-     * @param s3Key
-     * @param contentLength
-     * @param duration duration when url is valid
-     * @return a pre-signed request to upload an object with known content length
-     */
-    fun requestToUploadObject(s3Key: String, contentLength: Long, duration: Duration): PresignedPutObjectRequest
 }
