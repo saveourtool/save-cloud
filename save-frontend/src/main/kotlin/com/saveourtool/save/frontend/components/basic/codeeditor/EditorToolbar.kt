@@ -55,7 +55,7 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
                 buttonBuilder(faUpload, isOutline = true, title = "Save changes on server") {
                     onUploadChanges()
                 }
-                buttonBuilder(faDownload, isOutline = true, title = "Save changes on server") {
+                buttonBuilder(faDownload, isOutline = true, title = "Load changes from server") {
                     onReloadChanges()
                 }
                 FileType.values().forEach { fileType ->
