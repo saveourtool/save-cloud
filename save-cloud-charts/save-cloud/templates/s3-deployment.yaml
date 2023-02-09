@@ -14,4 +14,31 @@ stringData:
 ---
   {{ end }}
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3
+  annotations:
+    io.kompose.service: s3
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: s3
+  template:
+    metadata:
+      labels:
+        io.kompose.service: s3
+    spec:
+      containers:
+        - image: minio/minio:latest
+          name: minio
+          ports:
+            - containerPort: 9000
+              name: minio
+          env:
+            - name: MINIO_ROOT_USER
+              value: "admin"
+            - name: MINIO_ROOT_PASSWORD
+              value: "12345678"
+
 {{ end }}

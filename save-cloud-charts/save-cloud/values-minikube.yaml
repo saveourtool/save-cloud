@@ -36,5 +36,6 @@ mysql:
   ip: nil
 s3:
   external: false
+  ip: nil
 
 # dependencies
