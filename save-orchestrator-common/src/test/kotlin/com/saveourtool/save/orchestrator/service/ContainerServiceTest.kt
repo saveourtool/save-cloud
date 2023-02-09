@@ -16,10 +16,13 @@ import com.github.dockerjava.api.model.Frame
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
+import com.saveourtool.save.orchestrator.utils.execIgnoringException
 import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
@@ -32,12 +35,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import reactor.kotlin.core.publisher.toMono
 
-import java.net.InetSocketAddress
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
 @SpringBootTest
 @DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
@@ -64,10 +66,11 @@ class ContainerServiceTest {
     @Test
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should create a container with save agent and test resources and start it`() {
+        val executionId = Random.nextLong().absoluteValue
         // build base image
         val project = Project.stub(null)
         val testExecution = Execution.stub(project).apply {
-            id = 42L
+            id = executionId
             sdk = "Java:11"
             status = ExecutionStatus.PENDING
         }
@@ -78,17 +81,6 @@ class ContainerServiceTest {
                 saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
             )
         )
-        containerService.createAndStartContainers(
-            testExecution.id!!,
-            configuration
-        )
-        testContainerId = dockerClient.listContainersCmd()
-            .withNameFilter(listOf("-${testExecution.requiredId()}-"))
-            .exec()
-            .map { it.id }
-            .single()
-        logger.debug("Created container $testContainerId")
-
         // start container and query backend
         mockServer.enqueue(
             url,
@@ -97,8 +89,16 @@ class ContainerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        containerService.validateContainersAreStarted(testExecution.requiredId())
-            .subscribe()
+        containerService.createAndStartContainers(
+            testExecution.requiredId(),
+            configuration
+        )
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-${testExecution.requiredId()}-"))
+            .exec()
+            .map { it.id }
+            .single()
+        logger.debug("Created container $testContainerId")
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
@@ -121,32 +121,28 @@ class ContainerServiceTest {
 
     @AfterEach
     fun tearDown() {
+        if (::testContainerId.isInitialized) {
+            dockerClient.removeContainerCmd(testContainerId).execIgnoringException()
+        }
         mockServer.checkQueues()
         mockServer.cleanup()
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(ContainerServiceTest::class.java)
+        @JvmStatic lateinit var mockServer: MockWebServer
 
         @JvmStatic
-        private val mockServer = createMockWebServer()
+        @BeforeAll
+        fun setup() {
+            mockServer = createMockWebServer()
+            mockServer.start()
+        }
 
         @JvmStatic
         @AfterAll
         fun teardown() {
             mockServer.shutdown()
-        }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun properties(registry: DynamicPropertyRegistry) {
-            mockServer.start(
-                InetSocketAddress(0).address,
-                0
-            )
-            registry.add("orchestrator.agentSettings.backendUrl") {
-                "http://host.docker.internal:${mockServer.port}"
-            }
         }
     }
 }

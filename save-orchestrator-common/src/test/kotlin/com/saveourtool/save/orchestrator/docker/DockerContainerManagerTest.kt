@@ -7,6 +7,7 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.utils.execIgnoringException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -21,6 +22,8 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 
 import kotlin.io.path.createTempFile
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
 @SpringBootTest
 @Import(Beans::class, DockerContainerRunner::class)
@@ -30,7 +33,6 @@ class DockerContainerManagerTest {
     @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
-    private lateinit var testImageId: String
     @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
 
     @BeforeEach
@@ -50,10 +52,11 @@ class DockerContainerManagerTest {
 
     @Test
     fun `should create a container with specified cmd and then copy resources into it`() {
+        val executionId = Random.nextLong().absoluteValue
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
         dockerAgentRunner.createAndStart(
-            executionId = 43,
+            executionId = executionId,
             configuration = ContainerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
@@ -63,7 +66,7 @@ class DockerContainerManagerTest {
             replicas = 1,
         )
         testContainerId = dockerClient.listContainersCmd()
-            .withNameFilter(listOf("-43-"))
+            .withNameFilter(listOf("-$executionId-"))
             .exec()
             .map { it.id }
             .single()
@@ -77,7 +80,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-43"))
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-$executionId"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
@@ -87,12 +90,9 @@ class DockerContainerManagerTest {
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerClient.removeContainerCmd(testContainerId).exec()
+            dockerClient.removeContainerCmd(testContainerId).execIgnoringException()
         }
-        if (::testImageId.isInitialized) {
-            dockerClient.removeImageCmd(testImageId).exec()
-        }
-        dockerClient.removeVolumeCmd("test-volume").exec()
+        dockerClient.removeVolumeCmd("test-volume").execIgnoringException()
     }
 }
 
