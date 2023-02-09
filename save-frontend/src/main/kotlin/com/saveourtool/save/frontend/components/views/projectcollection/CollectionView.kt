@@ -31,19 +31,19 @@ import kotlinx.serialization.json.Json
  * Enum that contains values for project
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
-enum class ProjectsTab {
+enum class ProjectListTab {
     PUBLIC,
     PRIVATE,
     ;
 
-    companion object : TabMenuBar<ProjectsTab> {
+    companion object : TabMenuBar<ProjectListTab> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: ProjectsTab = PUBLIC
+        override val defaultTab: ProjectListTab = PUBLIC
         override val regexForUrlClassification = Regex("/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)")
-        override fun valueOf(elem: String): ProjectsTab = ProjectsTab.valueOf(elem)
-        override fun values(): Array<ProjectsTab> = ProjectsTab.values()
+        override fun valueOf(elem: String): ProjectListTab = ProjectListTab.valueOf(elem)
+        override fun values(): Array<ProjectListTab> = ProjectListTab.values()
     }
 }
 
@@ -58,7 +58,7 @@ external interface CollectionViewProps : Props {
 /**
  * [State] of Collection view component
  */
-external interface CollectionViewState : State, HasSelectedMenu<ProjectsTab>
+external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab>
 
 /**
  * A view with collection of projects
@@ -74,7 +74,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
     private val privateProjectsTable: FC<TableProps<ProjectDto>> = getTable()
 
     init {
-        state.selectedMenu = ProjectsTab.defaultTab
+        state.selectedMenu = ProjectListTab.defaultTab
     }
 
     private fun getTable(): FC<TableProps<ProjectDto>> = tableComponent(
@@ -145,20 +145,20 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                     div {
                         className = ClassName("col")
 
-                        tab(state.selectedMenu.name, ProjectsTab.values().map { it.name }, "nav nav-tabs mt-3") {
+                        tab(state.selectedMenu.name, ProjectListTab.values().map { it.name }, "nav nav-tabs mt-3") {
                             setState {
-                                selectedMenu = ProjectsTab.valueOf(it)
+                                selectedMenu = ProjectListTab.valueOf(it)
                             }
                         }
 
                         when (state.selectedMenu) {
-                            ProjectsTab.PUBLIC -> publicProjectsTable {
+                            ProjectListTab.PUBLIC -> publicProjectsTable {
                                 getData = { _, _ ->
                                     getProjects(true)
                                 }
                             }
 
-                            ProjectsTab.PRIVATE -> privateProjectsTable {
+                            ProjectListTab.PRIVATE -> privateProjectsTable {
                                 getData = { _, _ ->
                                     getProjects(false)
                                 }
