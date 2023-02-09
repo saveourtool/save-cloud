@@ -46,6 +46,13 @@ val jsonHeaders = Headers().apply {
 }
 
 /**
+ * The chunk of data read from the body of an HTTP response.
+ *
+ * @param T the type of the data (usually a byte array).
+ */
+private typealias ResultAsync<T> = Promise<ReadableStreamDefaultReadValueResult<T>>
+
+/**
  * Interface for objects that have access to [requestStatusContext]
  */
 interface WithRequestStatusContext {
@@ -682,13 +689,10 @@ private suspend fun Response.inputStream(): Flow<Byte> {
          * available.
          */
         while (true) {
-            @Suppress(
-                "GENERIC_VARIABLE_WRONG_DECLARATION",
-                "TYPE_ALIAS",
-            )
+            @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
             val resultAsync = reader
                 .read()
-                .unsafeCast<Promise<ReadableStreamDefaultReadValueResult<Uint8Array>>>()
+                .unsafeCast<ResultAsync<Uint8Array>>()
 
             val result = resultAsync.await()
 
