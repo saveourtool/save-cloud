@@ -150,15 +150,27 @@ class ProjectService(
      * @param projectFilters is filter for [projects]
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters): List<Project> =
-            when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
-                true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
-                true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
-                false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
-                false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
-                    ?.let { listOf(it) }.orEmpty()
-                else -> throw IllegalStateException("Impossible state")
-            }
+    fun getFiltered(projectFilters: ProjectFilters): List<Project> = projectRepository.findAll { root, _, cb ->
+
+        val publicPredicate = projectFilters.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilters.organizationName.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilters.organizationName)
+        }
+        val namePredicate = if (projectFilters.name.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<String>("name"), projectFilters.name)
+        }
+
+        cb.and(
+            root.get<ProjectStatus>("status").`in`(projectFilters.statuses),
+            publicPredicate,
+            orgNamePredicate,
+            namePredicate,
+        )
+    }
 
     /**
      * @param value is a string for a wrapper to search by match on a string in the database
