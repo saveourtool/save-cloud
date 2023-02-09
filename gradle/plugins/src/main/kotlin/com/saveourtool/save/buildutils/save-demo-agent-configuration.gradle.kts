@@ -18,7 +18,7 @@ plugins {
 val downloadSaveDemoAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveDemoAgentDistro") {
     enabled = findProperty("saveDemoAgentDistroFilepath") != null
 
-    val saveDemoAgentDistroFilepath = findProperty("saveDemoAgentDistroFilepath")?.toString() ?: "file:\\\\not-found"
+    val saveDemoAgentDistroFilepath = findProperty("saveDemoAgentDistroFilepath")?.toString() ?: "file://not-found"
     src { saveDemoAgentDistroFilepath }
     dest { "$buildDir/demoAgentDistro/${File(saveDemoAgentDistroFilepath).name}" }
 
