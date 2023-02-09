@@ -15,6 +15,7 @@ import org.w3c.xhr.FormData
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.events.ChangeEvent
+import react.dom.events.MouseEventHandler
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
@@ -22,6 +23,7 @@ import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
+import web.dom.Element
 import web.html.HTMLInputElement
 
 import kotlinx.serialization.encodeToString
@@ -31,23 +33,6 @@ import kotlinx.serialization.json.Json
  * Avatar placeholder if an error was thrown.
  */
 internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
-
-/**
- * An error message.
- */
-internal typealias ErrorMessage = String
-
-/**
- * A generic error handler.
- */
-internal typealias ErrorHandler = (ErrorMessage) -> Unit
-
-/**
- * The body of a [useDeferredRequest] invocation.
- *
- * @param T the return type of this action.
- */
-internal typealias DeferredRequestActionWithMessage<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
 
 /**
  * The body of a [useDeferredRequest] invocation.
@@ -84,6 +69,17 @@ fun String.toRole() = Role.values().find {
  * @return lambda which does the same as receiver but takes unused arg
  */
 fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
+ * Converts `this` no-argument function to a [MouseEventHandler].
+ *
+ * @return `this` function as a [MouseEventHandler].
+ * @see MouseEventHandler
+ */
+fun <T : Element> (() -> Unit).asMouseEventHandler(): MouseEventHandler<T> =
+        {
+            this()
+        }
 
 /**
  * @return lambda which does the same but take value from [HTMLInputElement]
