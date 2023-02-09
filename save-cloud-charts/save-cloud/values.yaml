@@ -59,6 +59,7 @@ gateway:
     # Any additional options for Service `spec` block
     spec: {}
 s3:
+  external: true
   secretFile: /home/cnb/secrets/s3_secrets
 storage:
   size: 10Gi

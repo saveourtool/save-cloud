@@ -1,0 +1,17 @@
+{{- if not .Values.s3.external -}}
+
+  {{- if eq .Values.profile "dev" -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-secrets
+stringData:
+  s3-storage.endpoint: "http://host.minikube.internal:9000"
+  s3-storage.bucketName: "cnb"
+  s3-storage.credentials.accessKeyId: "admin"
+  s3-storage.credentials.secretAccessKey: "12345678"
+
+---
+  {{ end }}
+
+{{ end }}

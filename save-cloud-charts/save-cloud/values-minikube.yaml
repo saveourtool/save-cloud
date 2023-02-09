@@ -29,8 +29,12 @@ demo_cpg:
   profile: dev
 demo:
   profile: dev
+  dockerHost: tcp://${HOST_IP}:2376
+
 mysql:
   external: false
   ip: nil
+s3:
+  external: false
 
 # dependencies
