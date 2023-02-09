@@ -17,7 +17,7 @@ import kotlinx.serialization.json.Json
  * Tests the way _Server-Sent Events_ (SSE) are parsed.
  *
  * @see useEventStream
- * @see useNewlineDelimitedJson
+ * @see useNdjson
  */
 class ServerSentEventTest {
     private fun createWorker(): dynamic =
@@ -52,7 +52,7 @@ class ServerSentEventTest {
      * Tests that a response of `application/x-ndjson` `Content-Type` is parsed
      * correctly.
      *
-     * @see useNewlineDelimitedJson
+     * @see useNdjson
      */
     @Test
     @JsName("newlineDelimitedJson")
@@ -61,7 +61,7 @@ class ServerSentEventTest {
         var responseStatus: Short = 0
 
         val testComponent: VFC = VFC {
-            useNewlineDelimitedJson(
+            useNdjson(
                 url = "${window.location.origin}/test",
                 onCompletion = { responseStatus = OK },
                 onError = { response -> responseStatus = response.status },

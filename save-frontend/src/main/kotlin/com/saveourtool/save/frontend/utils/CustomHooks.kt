@@ -220,7 +220,7 @@ fun useDeferredEffect(
  * @param onEvent invoked when a new event arrives.
  *   Allowed to change the state of components.
  * @return a lambda that triggers the callback.
- * @see useNewlineDelimitedJson
+ * @see useNdjson
  */
 @Suppress(
     "LongParameterList",
@@ -279,7 +279,7 @@ fun useEventStream(
  * @return a lambda that triggers the callback.
  * @see useEventStream
  */
-internal fun useNewlineDelimitedJson(
+internal fun useNdjson(
     url: String,
     init: () -> Unit = {},
     onCompletion: () -> Unit = {},
