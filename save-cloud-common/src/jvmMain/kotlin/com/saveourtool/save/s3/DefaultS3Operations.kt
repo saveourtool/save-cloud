@@ -19,7 +19,6 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-import java.io.Closeable
 import java.net.URI
 import java.nio.ByteBuffer
 import java.util.concurrent.*
@@ -33,7 +32,7 @@ import kotlin.time.toJavaDuration
  */
 class DefaultS3Operations(
     properties: S3OperationsProperties,
-) : S3Operations, Closeable {
+) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
     private val credentialsProvider: AwsCredentialsProvider = with(properties) {
         StaticCredentialsProvider.create(
