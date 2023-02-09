@@ -8,7 +8,8 @@ import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import java.io.File
+import java.nio.file.Path
+
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
@@ -20,8 +21,7 @@ val downloadSaveDemoAgentDistroTaskProvider: TaskProvider<Download> = tasks.regi
 
     val saveDemoAgentDistroFilepath = findProperty("saveDemoAgentDistroFilepath")?.toString() ?: "file://not-found"
     src { saveDemoAgentDistroFilepath }
-    dest { "$buildDir/demoAgentDistro/${File(saveDemoAgentDistroFilepath).name}" }
-
+    dest { "$buildDir/demoAgentDistro/${Path.of(saveDemoAgentDistroFilepath).fileName}" }
     overwrite(false)
 }
 
