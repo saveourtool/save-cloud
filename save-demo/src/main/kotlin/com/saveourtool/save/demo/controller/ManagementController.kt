@@ -34,7 +34,9 @@ class ManagementController(
         .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
-        .map { demoService.saveIfNotPresent(it.toDemo()).toDto() }
+        .flatMap {
+            blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
+        }
 
     /**
      * @param organizationName
@@ -119,8 +121,7 @@ class ManagementController(
                     .githubProjectCoordinates
                     ?.let { repo ->
                         toolService.findCurrentVersion(repo)
-                    }
-                    .orEmpty()
+                    } ?: "manual"
             }
         }
         .map { (demoInfo, currentVersion) ->
