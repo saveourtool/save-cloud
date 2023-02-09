@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.coroutines.flow.decodeToString
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -723,40 +723,6 @@ private suspend fun Response.inputStream(): Flow<Byte> {
             reader.releaseLock()
         }
 }
-
-/**
- * Decodes this byte flow into a flow of strings, assuming UTF-8 encoding.
- *
- * Malformed byte sequences are replaced with `\uFFFD`.
- *
- * @see ByteArray.decodeToString
- */
-private fun Flow<Byte>.decodeToString(): Flow<String> =
-        flow {
-            var accumulator: MutableList<Byte> = arrayListOf()
-
-            collect { value ->
-                accumulator = when (value) {
-                    /*
-                     * Ignore.
-                     */
-                    '\r'.code.toByte() -> accumulator
-
-                    '\n'.code.toByte() -> {
-                        emit(accumulator)
-                        arrayListOf()
-                    }
-
-                    else -> accumulator.apply {
-                        add(value)
-                    }
-                }
-            }
-
-            emit(accumulator)
-        }
-            .map(Collection<Byte>::toByteArray)
-            .map(ByteArray::decodeToString)
 
 /**
  * Converts this [Uint8Array] (most probably obtained by reading an HTTP
