@@ -6,7 +6,7 @@ kind: Secret
 metadata:
   name: s3-secrets
 stringData:
-  s3-storage.endpoint: "http://host.minikube.internal:9000"
+  s3-storage.endpoint: "http://s3:9000"
   s3-storage.bucketName: "cnb"
   s3-storage.credentials.accessKeyId: "admin"
   s3-storage.credentials.secretAccessKey: "12345678"
