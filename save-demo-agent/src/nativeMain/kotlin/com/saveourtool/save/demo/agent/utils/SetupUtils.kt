@@ -67,7 +67,7 @@ private fun executeSetupSh(setupShName: String = "setup.sh"): ExecutionResult? =
     }
 
 private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration) {
-    val url = with(demoConfiguration) { "$demoUrl/demo/internal/$organizationName/$projectName/download-files-as-zip?version=$version" }
+    val url = with(demoConfiguration) { "$demoUrl/demo/internal/files/$organizationName/$projectName/download-as-zip?version=$version" }
     downloadDemoFiles(url)
 }
 
