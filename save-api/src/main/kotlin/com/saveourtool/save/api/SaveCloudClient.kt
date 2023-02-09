@@ -22,7 +22,7 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.getLogger
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
@@ -77,7 +77,7 @@ class SaveCloudClient(
         }
         log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(additionalFileInfoList, contestName).getOrHandle { httpStatus ->
+        val executionRequest = submitExecution(additionalFileInfoList, contestName).getOrElse { httpStatus ->
             return "Failed to submit execution: HTTP $httpStatus".left()
         }
 
