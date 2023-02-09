@@ -689,8 +689,7 @@ private suspend fun Response.inputStream(): Flow<Byte> {
          * available.
          */
         while (true) {
-            @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-            val resultAsync = reader
+            val resultAsync: ResultAsync<Uint8Array> = reader
                 .read()
                 .unsafeCast<ResultAsync<Uint8Array>>()
 
