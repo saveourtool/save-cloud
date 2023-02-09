@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
 import java.io.Closeable
+import java.net.URI
 import java.nio.ByteBuffer
 import java.util.concurrent.*
 import kotlin.time.Duration
@@ -73,7 +74,7 @@ class DefaultS3Operations(
             .serviceConfiguration(S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build())
-            .endpointOverride(presignedEndpoint)
+            .endpointOverride(presignedEndpoint.lowercase())
             .build()
     }
 
@@ -216,5 +217,6 @@ class DefaultS3Operations(
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
+        private fun URI.lowercase(): URI = URI(toString().lowercase())
     }
 }
