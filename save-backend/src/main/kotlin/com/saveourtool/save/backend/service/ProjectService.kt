@@ -151,30 +151,26 @@ class ProjectService(
      * @return project's with filter
      * @throws IllegalStateException
      */
-    fun getFiltered(projectFilters: ProjectFilters): List<Project> = when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
-        true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
-        true to false -> projectRepository.findByNameLikeAndStatusIn(
-            wrapValue(projectFilters.name),
-            projectFilters.statuses
-        )
+    fun getFiltered(projectFilters: ProjectFilters): List<Project> = projectRepository.findAll { root, _, cb ->
 
-        false to true -> projectRepository.findByOrganizationNameAndStatusIn(
-            projectFilters.organizationName,
-            projectFilters.statuses
-        )
+        val publicPredicate = projectFilters.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilters.organizationName.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilters.organizationName)
+        }
+        val namePredicate = if (projectFilters.name.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<String>("name"), projectFilters.name)
+        }
 
-        false to false -> findByNameAndOrganizationNameAndStatusIn(
-            projectFilters.name,
-            projectFilters.organizationName,
-            projectFilters.statuses
+        cb.and(
+            root.get<ProjectStatus>("status").`in`(projectFilters.statuses),
+            publicPredicate,
+            orgNamePredicate,
+            namePredicate,
         )
-            ?.let { listOf(it) }.orEmpty()
-
-        else -> throw IllegalStateException("Impossible state")
-    }.filter { project ->
-        projectFilters.public?.let {
-            project.public == it
-        } ?: true
     }
 
     /**
