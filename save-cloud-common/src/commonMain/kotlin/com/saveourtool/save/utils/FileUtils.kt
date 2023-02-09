@@ -53,7 +53,7 @@ inline fun <reified C : Any> parseConfig(configName: String = "agent.toml"): C =
  * @param configName name of a toml config file, agent.toml by default
  * @return [C] filled with configuration information
  */
-inline fun <reified C : Any> parseConfigOrNull(
+inline fun <reified C : Any> parseConfigOrDefault(
     defaultConfig: C,
     configName: String = "agent.toml",
 ): C = try {
