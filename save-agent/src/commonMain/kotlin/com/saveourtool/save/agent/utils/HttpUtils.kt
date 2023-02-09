@@ -65,20 +65,18 @@ internal suspend fun SaveAgent.processRequestToBackendWrapped(
 }
 
 /**
- * Perform a POST request to [url] (optionally with body [body] that will be serialized as JSON),
+ * Perform a GET request to [url] (optionally with body [body] that will be serialized as JSON),
  * accepting application/octet-stream and return result wrapping [HttpResponse]
  *
  * @param url
- * @param body
  * @param file
  * @return result wrapping [HttpResponse]
  */
-internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): Result<HttpResponse> = runCatching {
-    preparePost {
+internal suspend fun HttpClient.download(url: String, file: Path): Result<HttpResponse> = runCatching {
+    prepareGet {
         url(url)
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
-        body?.let { setBody(it) }
     }
         .execute { httpResponse ->
             if (httpResponse.status.isSuccess()) {
@@ -95,7 +93,7 @@ internal suspend fun HttpClient.download(url: String, body: Any?, file: Path): R
                                 it.write(bytes)
                             }
                         totalBytes.addAndGet(bytes.size.toLong())
-                        logDebugCustom("Received ${bytes.size} ($totalBytes) bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
+                        logDebugCustom("Received ${bytes.size} (${totalBytes.get()}) bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
                     }
                 }
                 if (totalBytes.get() == 0L) {

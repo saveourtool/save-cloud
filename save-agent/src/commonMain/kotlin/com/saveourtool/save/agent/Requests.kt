@@ -7,7 +7,6 @@ package com.saveourtool.save.agent
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.core.logging.logWarn
-import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.utils.extractZipTo
 import com.saveourtool.save.utils.failureOrNotOk
 import com.saveourtool.save.utils.fs
@@ -77,7 +76,6 @@ private suspend fun SaveAgent.download(fileLabel: String, url: String, target: P
     val result = processRequestToBackendWrapped {
         httpClient.download(
             url = url,
-            body = null,
             file = target,
         )
     }
@@ -87,6 +85,3 @@ private suspend fun SaveAgent.download(fileLabel: String, url: String, target: P
 
     logInfoCustom("Downloaded $fileLabel (resulting size = ${fs.metadata(target).size} bytes) from $url into $target")
 }
-
-private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
-        body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)
