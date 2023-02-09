@@ -8,7 +8,6 @@ package com.saveourtool.save.backend.utils
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.web.server.ResponseStatusException
@@ -19,10 +18,9 @@ import org.springframework.web.server.ResponseStatusException
  * @param lazyException the exception to be thrown if this _Either_ is a _left_.
  * @return the value from this _Right_.
  * @see Either.getOrElse
- * @see Either.getOrHandle
  */
 fun <T> Either<ErrorMessage, T>.getOrThrow(lazyException: (ErrorMessage) -> Throwable): T =
-        getOrHandle { error ->
+        getOrElse { error ->
             throw lazyException(error)
         }
 
@@ -32,7 +30,6 @@ fun <T> Either<ErrorMessage, T>.getOrThrow(lazyException: (ErrorMessage) -> Thro
  * @param status the HTTP status to be reported to the client.
  * @return the value from this _Right_.
  * @see Either.getOrElse
- * @see Either.getOrHandle
  */
 fun <T> Either<ErrorMessage, T>.getOrThrow(status: HttpStatus): T =
         getOrThrow { error ->
@@ -44,7 +41,6 @@ fun <T> Either<ErrorMessage, T>.getOrThrow(status: HttpStatus): T =
  *
  * @return the value from this _Right_.
  * @see Either.getOrElse
- * @see Either.getOrHandle
  */
 fun <T> Either<ErrorMessage, T>.getOrThrowBadRequest(): T =
         getOrThrow(BAD_REQUEST)
