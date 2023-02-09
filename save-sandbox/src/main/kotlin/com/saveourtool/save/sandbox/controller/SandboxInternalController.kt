@@ -108,8 +108,11 @@ class SandboxInternalController(
      * @param version
      * @return content of requested save-cli
      */
-    @GetMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @PostMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @RequestMapping(
+        path = ["/download-save-cli"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        method = [RequestMethod.GET, RequestMethod.POST]
+    )
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<out Resource> =
@@ -124,8 +127,11 @@ class SandboxInternalController(
     /**
      * @return content of save-agent
      */
-    @GetMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @RequestMapping(
+        path = ["/download-save-agent"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+        method = [RequestMethod.GET, RequestMethod.POST]
+    )
     fun downloadSaveAgent(): Mono<out Resource> =
             run {
                 val executable = "save-agent.kexe"
