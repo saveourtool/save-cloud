@@ -149,7 +149,6 @@ class ProjectService(
     /**
      * @param projectFilters is filter for [projects]
      * @return project's with filter
-     * @throws IllegalStateException
      */
     fun getFiltered(projectFilters: ProjectFilters): List<Project> = projectRepository.findAll { root, _, cb ->
 
