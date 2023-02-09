@@ -96,7 +96,14 @@ class DependencyController(
         .collectList()
         .map { dependencies ->
             downloadToolService.downloadToStorage(dependencies).let { size ->
-                StringResponse("Successfully saved $size files to demo storage.", HttpStatus.OK)
+                StringResponse(
+                    if (size == 0) {
+                        "All files are already present in demo storage."
+                    } else {
+                        "Successfully saved $size files to demo storage."
+                    },
+                    HttpStatus.OK,
+                )
             }
         }
 
