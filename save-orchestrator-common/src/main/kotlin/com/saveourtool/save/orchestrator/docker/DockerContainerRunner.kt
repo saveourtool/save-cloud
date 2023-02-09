@@ -1,5 +1,11 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
+import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.command.PullImageResultCallback
+import com.github.dockerjava.api.exception.DockerException
+import com.github.dockerjava.api.model.*
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -14,21 +20,12 @@ import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
-
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
-import com.github.dockerjava.api.command.CreateContainerResponse
-import com.github.dockerjava.api.command.PullImageResultCallback
-import com.github.dockerjava.api.exception.DockerException
-import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-
 import java.io.File
-
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 

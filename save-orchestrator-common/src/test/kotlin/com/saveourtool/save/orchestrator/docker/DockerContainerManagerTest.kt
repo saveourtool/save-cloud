@@ -7,7 +7,8 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
-import com.saveourtool.save.orchestrator.utils.execIgnoringException
+import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
+import com.saveourtool.save.orchestrator.utils.silentlyExec
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -90,9 +91,9 @@ class DockerContainerManagerTest {
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerClient.removeContainerCmd(testContainerId).execIgnoringException()
+            dockerClient.silentlyCleanupContainer(testContainerId)
         }
-        dockerClient.removeVolumeCmd("test-volume").execIgnoringException()
+        dockerClient.removeVolumeCmd("test-volume").silentlyExec()
     }
 }
 
