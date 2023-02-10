@@ -182,8 +182,6 @@ class ContainerService(
         private val curlOptions: Array<out String> = arrayOf(
             "-vvv",
             "--fail",
-            "-X",
-            "POST"
         )
 
         /**

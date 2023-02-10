@@ -9058,6 +9058,9 @@
           "organizationName": {
             "type": "string"
           },
+          "public": {
+            "type": "boolean"
+          },
           "statuses": {
             "uniqueItems": true,
             "type": "array",

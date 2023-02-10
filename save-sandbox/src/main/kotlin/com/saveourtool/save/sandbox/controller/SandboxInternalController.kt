@@ -108,10 +108,9 @@ class SandboxInternalController(
      * @param version
      * @return content of requested save-cli
      */
-    @RequestMapping(
+    @GetMapping(
         path = ["/download-save-cli"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        method = [RequestMethod.GET, RequestMethod.POST]
     )
     fun downloadSaveCli(
         @RequestParam version: String,
@@ -127,10 +126,9 @@ class SandboxInternalController(
     /**
      * @return content of save-agent
      */
-    @RequestMapping(
+    @GetMapping(
         path = ["/download-save-agent"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        method = [RequestMethod.GET, RequestMethod.POST]
     )
     fun downloadSaveAgent(): Mono<out Resource> =
             run {

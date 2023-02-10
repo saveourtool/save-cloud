@@ -7,6 +7,7 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
@@ -14,9 +15,15 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import java.net.URI
 import java.nio.ByteBuffer
 import java.util.concurrent.*
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 /**
  * Default implementation of [S3Operations]
@@ -25,8 +32,13 @@ import java.util.concurrent.*
  */
 class DefaultS3Operations(
     properties: S3OperationsProperties,
-) : S3Operations {
+) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
+    private val credentialsProvider: AwsCredentialsProvider = with(properties) {
+        StaticCredentialsProvider.create(
+            credentials.toAwsCredentials()
+        )
+    }
     private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,
@@ -39,11 +51,7 @@ class DefaultS3Operations(
     private val scheduler = Schedulers.fromExecutorService(executorService, "s3-operations-${properties.bucketName}-")
     private val s3Client: S3AsyncClient = with(properties) {
         S3AsyncClient.builder()
-            .credentialsProvider(
-                StaticCredentialsProvider.create(
-                    credentials.toAwsCredentials()
-                )
-            )
+            .credentialsProvider(credentialsProvider)
             .httpClientBuilder(
                 NettyNioAsyncHttpClient.builder()
                     .maxConcurrency(httpClient.maxConcurrency)
@@ -57,6 +65,22 @@ class DefaultS3Operations(
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
+    }
+    private val s3Presigner: S3Presigner = with(properties) {
+        S3Presigner.builder()
+            .credentialsProvider(credentialsProvider)
+            .region(Region.AWS_ISO_GLOBAL)
+            .serviceConfiguration(S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build())
+            .endpointOverride(presignedEndpoint.lowercase())
+            .build()
+    }
+
+    override fun close() {
+        s3Client.close()
+        s3Presigner.close()
+        executorService.shutdown()
     }
 
     override fun listObjectsV2(prefix: String): Flux<ListObjectsV2Response> = doListObjectsV2(prefix).expand { lastResponse ->
@@ -78,16 +102,15 @@ class DefaultS3Operations(
             s3Client.listObjectsV2(it).toMonoAndPublishOn()
         }
 
-    override fun getObject(s3Key: String): Mono<GetObjectResponsePublisher> {
-        val request = GetObjectRequest.builder()
-            .bucket(bucketName)
-            .key(s3Key)
-            .build()
+    private fun getObjectRequest(s3Key: String) = GetObjectRequest.builder()
+        .bucket(bucketName)
+        .key(s3Key)
+        .build()
 
-        return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
-            .toMonoAndPublishOn()
-            .handleNoSuchKeyException()
-    }
+    override fun getObject(s3Key: String): Mono<GetObjectResponsePublisher> =
+            s3Client.getObject(getObjectRequest(s3Key), AsyncResponseTransformer.toPublisher())
+                .toMonoAndPublishOn()
+                .handleNoSuchKeyException()
 
     override fun uploadObject(s3Key: String, content: Flux<ByteBuffer>): Mono<CompleteMultipartUploadResponse> {
         val request = CreateMultipartUploadRequest.builder()
@@ -136,16 +159,16 @@ class DefaultS3Operations(
             }
     }
 
-    override fun uploadObject(s3key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse> {
-        val request = PutObjectRequest.builder()
-            .bucket(bucketName)
-            .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .key(s3key)
-            .contentLength(contentLength)
-            .build()
-        return s3Client.putObject(request, AsyncRequestBody.fromPublisher(content))
-            .toMonoAndPublishOn()
-    }
+    private fun putObjectRequest(s3Key: String, contentLength: Long): PutObjectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
+        .key(s3Key)
+        .contentLength(contentLength)
+        .build()
+
+    override fun uploadObject(s3Key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse> =
+            s3Client.putObject(putObjectRequest(s3Key, contentLength), AsyncRequestBody.fromPublisher(content))
+                .toMonoAndPublishOn()
 
     override fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse> {
         val request = CopyObjectRequest.builder()
@@ -159,23 +182,33 @@ class DefaultS3Operations(
             .handleNoSuchKeyException()
     }
 
-    override fun deleteObject(s3key: String): Mono<DeleteObjectResponse> {
+    override fun deleteObject(s3Key: String): Mono<DeleteObjectResponse> {
         val request = DeleteObjectRequest.builder()
             .bucket(bucketName)
-            .key(s3key)
+            .key(s3Key)
             .build()
         return s3Client.deleteObject(request)
             .toMonoAndPublishOn()
             .handleNoSuchKeyException()
     }
 
-    override fun headObject(s3key: String): Mono<HeadObjectResponse> = HeadObjectRequest.builder()
+    override fun headObject(s3Key: String): Mono<HeadObjectResponse> = HeadObjectRequest.builder()
         .bucket(bucketName)
-        .key(s3key)
+        .key(s3Key)
         .build()
         .let { s3Client.headObject(it) }
         .toMonoAndPublishOn()
         .handleNoSuchKeyException()
+
+    override fun requestToDownloadObject(
+        s3Key: String,
+        duration: Duration,
+    ): PresignedGetObjectRequest = s3Presigner.presignGetObject { builder ->
+        builder
+            .signatureDuration(duration.toJavaDuration())
+            .getObjectRequest(getObjectRequest(s3Key))
+            .build()
+    }
 
     private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
 
@@ -183,5 +216,6 @@ class DefaultS3Operations(
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
+        private fun URI.lowercase(): URI = URI(toString().lowercase())
     }
 }
