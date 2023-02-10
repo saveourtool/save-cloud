@@ -1,26 +1,20 @@
 package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoMode
-import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.demo.storage.DependencyStorage
-import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.*
-import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.getLogger
 
 import io.ktor.util.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
-import reactor.kotlin.core.publisher.switchIfEmpty
 
-import java.io.FileNotFoundException
 import java.nio.file.Path
 
 import kotlin.io.path.*
-import kotlin.math.log
 
 /**
  * Class that allows to run diktat as command line application
@@ -29,10 +23,9 @@ import kotlin.math.log
  */
 @Component
 class DiktatCliRunner(
-    private val dependencyStorage: DependencyStorage,
+    dependencyStorage: DependencyStorage,
 ) : AbstractCliRunner(dependencyStorage), CliRunner {
     override val log: Logger = logger
-
     override val configName: String = DIKTAT_CONFIG_NAME
 
     override fun getRunCommand(
@@ -42,7 +35,6 @@ class DiktatCliRunner(
         configPath: Path?,
         demoRunRequest: DemoRunRequest,
     ): String = buildString {
-        // ${tools['ktlint']} -R ${tools['diktat']} --disabled_rules=diktat-ruleset:package-naming,standard --reporter=plain,output=$outputPath ${mode == 'FIX' ? '--format' ''}
         // TODO: this information should not be hardcoded but stored in database
         val ktlintExecutable = getExecutable(workingDir, DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         append(ktlintExecutable)

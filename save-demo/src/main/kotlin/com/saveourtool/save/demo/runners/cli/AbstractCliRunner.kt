@@ -16,11 +16,20 @@ import java.io.UncheckedIOException
 import java.nio.file.Path
 import kotlin.io.path.*
 
+/**
+ * @property dependencyStorage
+ */
 abstract class AbstractCliRunner(
-    private val dependencyStorage: DependencyStorage,
+    protected val dependencyStorage: DependencyStorage,
 ) : CliRunner {
-
+    /**
+     * logger from child
+     */
     protected abstract val log: Logger
+
+    /**
+     * configName, can be missed
+     */
     protected abstract val configName: String?
 
     override fun run(testPath: Path, demoRunRequest: DemoRunRequest): DemoResult {
