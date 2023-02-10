@@ -18,7 +18,7 @@ class DemoCliRunner(
     private val commandBuilder: CommandBuilder,
     private val demo: Demo,
     private val version: String,
-) : AbstractCliRunner(dependencyStorage), CliRunner {
+) : AbstractCliRunner(dependencyStorage) {
     override val log: Logger = Companion.log
     override val configName: String? = demo.configName
     override fun getRunCommand(
