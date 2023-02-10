@@ -36,6 +36,11 @@ mysql:
   ip: nil
 s3:
   external: false
-  ip: nil
+  secret_user: admin
+  secret_pwd: adminadmin
+  bucket_name: cnb
+  api_port: 9000
+  ui_port: 9090
+  endpoint: http://s3
 
 # dependencies
