@@ -20,7 +20,9 @@ class CommandBuilderTest {
             ),
             "./output.txt".toPath().toNioPath(),
             DemoMode.FIX,
+            null,
         )
+        @Suppress("MaxLineLength")
         Assertions.assertEquals(
             "ktlint -R diktat-1.2.3.jar --disabled_rules=diktat-ruleset:package-naming,standard --reporter=plain,output=output.txt --format",
             builder.build("\${tools.ktlint} -R \${tools.diktat} --disabled_rules=diktat-ruleset:package-naming,standard --reporter=plain,output=\${outputPath} \${isFix:---format}", commandContext)
