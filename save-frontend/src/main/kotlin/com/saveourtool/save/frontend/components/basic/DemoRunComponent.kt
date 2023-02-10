@@ -37,9 +37,9 @@ import web.html.InputType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val diktatDemoComponent = diktatDemoComponent()
+val demoRunComponent = demoRunComponent()
 
-private val diktatDemoDefaultCode = """
+private val defaultCode = """
     |package com.test
     |
     |fun main() {
@@ -50,7 +50,7 @@ private val diktatDemoDefaultCode = """
 /**
  * DemoComponent [Props]
  */
-external interface DiktatDemoComponentProps : Props {
+external interface DemoRunComponentProps : Props {
     /**
      * Theme for Ace Editor
      */
@@ -60,6 +60,21 @@ external interface DiktatDemoComponentProps : Props {
      * Mode for Ace Editor
      */
     var selectedMode: Languages
+
+    /**
+     * An initial value of [DemoRunRequest]
+     */
+    var emptyDemoRunRequest: DemoRunRequest
+
+    /**
+     * Endpoint to run this demo
+     */
+    var demoRunEndpoint: String
+
+    /**
+     * Optional config name for this demo
+     */
+    var configName: String?
 }
 
 private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {
@@ -124,16 +139,16 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWa
     "LongMethod",
     "TYPE_ALIAS"
 )
-private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
-    val (diktatRunRequest, setDiktatRunRequest) = useState(DemoRunRequest.diktatDemoRunRequest)
+private fun demoRunComponent() = FC<DemoRunComponentProps> { props ->
+    val (demoRunRequest, setDemoRunRequest) = useState(props.emptyDemoRunRequest)
     val (diktatResult, setDiktatResult) = useState(DemoResult.empty)
-    val (codeLines, setCodeLines) = useState(diktatDemoDefaultCode)
+    val (codeLines, setCodeLines) = useState(defaultCode)
 
     val sendRunRequest = useDeferredRequest {
         val result: DemoResult = post(
-            "$demoApiUrl/diktat/run",
+            "$demoApiUrl/${props.demoRunEndpoint}",
             jsonHeaders,
-            Json.encodeToString(diktatRunRequest.copy(
+            Json.encodeToString(demoRunRequest.copy(
                 codeLines = codeLines.split("\n"))
             ),
             ::loadingHandler,
@@ -181,11 +196,11 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
             div {
                 className = ClassName("col-2 mr-1")
                 selectorBuilder(
-                    diktatRunRequest.mode.toString(),
+                    demoRunRequest.mode.toString(),
                     DemoMode.values().map { it.name },
                     "custom-select"
                 ) { event ->
-                    setDiktatRunRequest { runRequest ->
+                    setDemoRunRequest { runRequest ->
                         runRequest.copy(
                             mode = DemoMode.valueOf(event.target.value)
                         )
@@ -193,40 +208,42 @@ private fun diktatDemoComponent() = FC<DiktatDemoComponentProps> { props ->
                 }
             }
         }
-        div {
-            className = ClassName("mb-1 mt-1 d-flex justify-content-center")
-            label {
-                className = ClassName("btn btn-outline-secondary m-0")
-                val reader = FileReader().apply {
-                    onload = { event ->
-                        setDiktatRunRequest { runRequest ->
-                            (event.target.asDynamic()["result"] as String?)?.let {
-                                runRequest.copy(
-                                    config = it.split("\n")
-                                )
-                            } ?: runRequest
+        props.configName?.let { configName ->
+            div {
+                className = ClassName("mb-1 mt-1 d-flex justify-content-center")
+                label {
+                    className = ClassName("btn btn-outline-secondary m-0")
+                    val reader = FileReader().apply {
+                        onload = { event ->
+                            setDemoRunRequest { runRequest ->
+                                (event.target.asDynamic()["result"] as String?)?.let {
+                                    runRequest.copy(
+                                        config = it.split("\n")
+                                    )
+                                } ?: runRequest
+                            }
                         }
                     }
-                }
-                input {
-                    type = InputType.file
-                    multiple = false
-                    hidden = true
-                    onChange = { event ->
-                        event.target.files!!.asList()
-                            .firstOrNull()
-                            ?.let { file ->
-                                reader.readAsText(file, "UTF-8")
-                            }
+                    input {
+                        type = InputType.file
+                        multiple = false
+                        hidden = true
+                        onChange = { event ->
+                            event.target.files!!.asList()
+                                .firstOrNull()
+                                ?.let { file ->
+                                    reader.readAsText(file, "UTF-8")
+                                }
+                        }
                     }
+                    fontAwesomeIcon(icon = faUpload)
+                    val uploadOrReplace = if (demoRunRequest.config.isNullOrEmpty()) {
+                        "Upload"
+                    } else {
+                        "Replace"
+                    }
+                    strong { +"$uploadOrReplace $configName" }
                 }
-                fontAwesomeIcon(icon = faUpload)
-                val uploadOrReplace = if (diktatRunRequest.config.isNullOrEmpty()) {
-                    "Upload"
-                } else {
-                    "Replace"
-                }
-                strong { +"$uploadOrReplace diktat-analysis.yml " }
             }
         }
         div {

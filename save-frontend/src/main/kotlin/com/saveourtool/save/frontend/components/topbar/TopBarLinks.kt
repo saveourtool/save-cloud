@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -10,8 +13,7 @@ import csstype.Width
 import csstype.rem
 import history.Location
 import js.core.jso
-import react.FC
-import react.Props
+import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaExpanded
 import react.dom.aria.ariaLabelledBy
@@ -19,9 +21,9 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.NavigateFunction
 import react.router.dom.Link
 import react.router.useNavigate
-import react.useState
 
 import kotlinx.browser.window
 
@@ -50,6 +52,20 @@ data class TopBarLink(
     val isExternalLink: Boolean = false,
 )
 
+private fun ChildrenBuilder.demoDropdownEntry(
+    name: String,
+    href: String,
+    navigate: NavigateFunction,
+    deactivateDropdown: () -> Unit,
+) {
+    dropdownEntry(null, name, window.location.href.contains(href)) { attrs ->
+        attrs.onClick = {
+            deactivateDropdown()
+            navigate(to = href)
+        }
+    }
+}
+
 /**
  * Displays the static links that do not depend on the url.
  */
@@ -57,6 +73,19 @@ data class TopBarLink(
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
     var isDemoDropdownActive by useState(false)
+    val deactivateDropdown = { isDemoDropdownActive = false }
+    var demos by useState(listOf<DemoDto>())
+
+    useRequest {
+        demos = get(
+            "$demoApiUrl/all",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString()
+            }
+    }
 
     ul {
         className = ClassName("navbar-nav mx-auto")
@@ -79,19 +108,26 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             div {
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
                 ariaLabelledBy = "demoDropdown"
-                val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
-                dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
-                    attrs.onClick = {
-                        isDemoDropdownActive = false
-                        navigate(to = diktatDemoHref)
-                    }
-                }
-                val cpgDemoHref = "/${FrontendRoutes.DEMO.path}/cpg"
-                dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
-                    attrs.onClick = {
-                        isDemoDropdownActive = false
-                        navigate(to = cpgDemoHref)
-                    }
+
+                demoDropdownEntry(
+                    "Diktat",
+                    "/${FrontendRoutes.DEMO.path}/diktat",
+                    navigate,
+                    deactivateDropdown,
+                )
+                demoDropdownEntry(
+                    "CPG",
+                    "/${FrontendRoutes.DEMO.path}/cpg",
+                    navigate,
+                    deactivateDropdown,
+                )
+                demos.forEach { demo ->
+                    demoDropdownEntry(
+                        "${demo.projectCoordinates}",
+                        "/${FrontendRoutes.DEMO.path}/${demo.projectCoordinates.organizationName}/${demo.projectCoordinates.projectName}",
+                        navigate,
+                        deactivateDropdown,
+                    )
                 }
             }
         }
