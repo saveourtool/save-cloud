@@ -36,16 +36,24 @@ class DependencyStorage(
      * @param version version of a tool that the file is connected to
      * @return list of files present in storage for required version
      */
+    fun blockingList(
+        demo: Demo,
+        version: String,
+    ): List<Dependency> = repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
+        demo.organizationName,
+        demo.projectName,
+        version,
+    )
+
+    /**
+     * @param demo
+     * @param version version of a tool that the file is connected to
+     * @return list of files present in storage for required version
+     */
     fun list(
         demo: Demo,
         version: String,
-    ): Flux<Dependency> = blockingToFlux {
-        repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
-            demo.organizationName,
-            demo.projectName,
-            version,
-        )
-    }
+    ): Flux<Dependency> = blockingToFlux { blockingList(demo, version) }
 
     /**
      * @param demo

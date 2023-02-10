@@ -1,6 +1,7 @@
 package com.saveourtool.save.demo.storage
 
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
+import com.saveourtool.save.demo.entity.Dependency
 
 /**
  * @property organizationName name of organization that develops the tool
@@ -29,4 +30,14 @@ fun DiktatDemoTool.toToolKey(executableName: String) = ToolKey(
     toolName,
     vcsTagName,
     executableName,
+)
+
+/**
+ * @return [ToolKey] from [Dependency]
+ */
+fun Dependency.toToolKey(): ToolKey = ToolKey(
+    organizationName = demo.organizationName,
+    projectName = demo.projectName,
+    version = version,
+    fileName = fileName,
 )
