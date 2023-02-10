@@ -58,7 +58,22 @@ external interface CollectionViewProps : Props {
 /**
  * [State] of Collection view component
  */
-external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab>
+external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab> {
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ProjectFilters
+}
+
+/**
+ * `Props` for project table
+ */
+external interface FiltersProps : TableProps<ProjectDto> {
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ProjectFilters
+}
 
 /**
  * A view with collection of projects
@@ -70,14 +85,7 @@ external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab>
     "MAGIC_NUMBER",
 )
 class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() {
-    private val publicProjectsTable: FC<TableProps<ProjectDto>> = getTable()
-    private val privateProjectsTable: FC<TableProps<ProjectDto>> = getTable()
-
-    init {
-        state.selectedMenu = ProjectListTab.defaultTab
-    }
-
-    private fun getTable(): FC<TableProps<ProjectDto>> = tableComponent(
+    private val projectsTable: FC<FiltersProps> = tableComponent(
         columns = {
             columns {
                 column(id = "organization", header = "Organization", { organizationName }) { cellContext ->
@@ -121,7 +129,15 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         initialPageSize = 10,
         useServerPaging = false,
         usePageSelection = false,
+        getAdditionalDependencies = {
+            arrayOf(it.filters)
+        },
     )
+
+    init {
+        state.selectedMenu = ProjectListTab.defaultTab
+        state.filters = ProjectFilters(name = "", public = true)
+    }
 
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
@@ -148,19 +164,25 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                         tab(state.selectedMenu.name, ProjectListTab.values().map { it.name }, "nav nav-tabs mt-3") {
                             setState {
                                 selectedMenu = ProjectListTab.valueOf(it)
+                                filters = when (ProjectListTab.valueOf(it)) {
+                                    ProjectListTab.PUBLIC -> ProjectFilters(name = "", public = true)
+                                    ProjectListTab.PRIVATE -> ProjectFilters(name = "", public = false)
+                                }
                             }
                         }
 
                         when (state.selectedMenu) {
-                            ProjectListTab.PUBLIC -> publicProjectsTable {
+                            ProjectListTab.PUBLIC -> projectsTable {
+                                filters = state.filters
                                 getData = { _, _ ->
-                                    getProjects(true)
+                                    getProjects()
                                 }
                             }
 
-                            ProjectListTab.PRIVATE -> privateProjectsTable {
+                            ProjectListTab.PRIVATE -> projectsTable {
+                                filters = state.filters
                                 getData = { _, _ ->
-                                    getProjects(false)
+                                    getProjects()
                                 }
                             }
                         }
@@ -170,11 +192,11 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         }
     }
 
-    private suspend fun getProjects(isPublic: Boolean) = run {
+    private suspend fun getProjects() = run {
         val response = post(
             url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
-            body = Json.encodeToString(ProjectFilters(name = "", public = isPublic)),
+            body = Json.encodeToString(state.filters),
             loadingHandler = ::classLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
