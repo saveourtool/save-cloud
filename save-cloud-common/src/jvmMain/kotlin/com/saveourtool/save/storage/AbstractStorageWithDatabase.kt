@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
@@ -167,8 +168,12 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     override fun download(key: K): Flux<ByteBuffer> = getIdAsMono(key).flatMapMany { storage.download(it) }
 
+    override fun generateUrlToDownload(key: K): URL = getId(key).let { storage.generateUrlToDownload(it) }
+
     private fun getIdAsMono(key: K): Mono<Long> = blockingToMono { findEntity(key)?.requiredId() }
-        .switchIfEmptyToNotFound { "Key $this is not saved: ID is not set and failed to find by default example" }
+        .switchIfEmptyToNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
+
+    private fun getId(key: K): Long = findEntity(key)?.requiredId().orNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
 
     private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
         beforeDelete(entity)

@@ -242,50 +242,43 @@ class DownloadFilesTest {
 
     @Test
     fun `download save-agent`() {
-        setOf(HttpMethod.GET, HttpMethod.POST)
-            .forEach { httpMethod ->
-                webTestClient.method(httpMethod)
-                    .uri("/internal/files/download-save-agent")
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .expectStatus()
-                    .isOk
-                    .expectBody()
-                    .consumeWith {
-                        Assertions.assertArrayEquals(
-                            "content-save-agent.kexe".toByteArray(),
-                            it.responseBody
-                        )
-                    }
+        webTestClient.get()
+            .uri("/internal/files/download-save-agent")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals(
+                    "content-save-agent.kexe".toByteArray(),
+                    it.responseBody
+                )
             }
     }
 
     @Test
     fun `download save-cli`() {
-        setOf(HttpMethod.GET, HttpMethod.POST)
-            .forEach { httpMethod ->
-                webTestClient.method(httpMethod)
-                    .uri("/internal/files/download-save-cli?version=1.0")
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .expectStatus()
-                    .isOk
-                    .expectBody()
-                    .consumeWith {
-                        Assertions.assertArrayEquals(
-                            "content-save-cli.kexe".toByteArray(),
-                            it.responseBody
-                        )
-                    }
-
-                webTestClient.method(httpMethod)
-                    .uri("/internal/files/download-save-cli?version=2.0")
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchange()
-                    .expectStatus()
-                    .isNotFound
-
+        webTestClient.get()
+            .uri("/internal/files/download-save-cli?version=1.0")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals(
+                    "content-save-cli.kexe".toByteArray(),
+                    it.responseBody
+                )
             }
+
+        webTestClient.get()
+            .uri("/internal/files/download-save-cli?version=2.0")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isNotFound
     }
 
     companion object {

@@ -5,7 +5,7 @@
 package com.saveourtool.save.demo.cpg.utils
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import org.neo4j.driver.exceptions.AuthenticationException
@@ -13,8 +13,6 @@ import org.neo4j.ogm.config.Configuration
 import org.neo4j.ogm.exception.ConnectionException
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
-import java.lang.IllegalArgumentException
-import kotlin.jvm.Throws
 
 typealias SessionWithFactory = Pair<Session, SessionFactory>
 
@@ -90,6 +88,6 @@ fun <R, E : Throwable> retry(
         result.isRight() || attempt >= maxRetry
     }
     .value
-    .getOrHandle {
+    .getOrElse {
         throw it
     }
