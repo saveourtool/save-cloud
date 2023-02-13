@@ -59,13 +59,3 @@ fun <K> Storage<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = cont
 inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotFound(id: Long): T = findByIdOrNull(id).orNotFound {
     "Not found ${T::class.simpleName} by id = $id"
 }
-
-/**
- * Finds the resource named [resourceName] from the classpath.
- *
- * @param resourceName the name of the resource (file).
- * @return either the resource, or null.
- */
-fun findResourceInClasspath(
-    resourceName: String,
-): Resource? = ClassPathResource(resourceName).takeIf(Resource::exists)

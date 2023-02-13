@@ -68,7 +68,7 @@ class InternalFileStorage(
     override fun buildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
 
     private fun overwriteSaveAgentFromClasspath(): Mono<Unit> {
-        val key = InternalFileKey.saveAgent
+        val key = InternalFileKey.forSaveAgent
         return downloadFromClasspath(key.name) {
             "Can't find ${key.name}"
         }

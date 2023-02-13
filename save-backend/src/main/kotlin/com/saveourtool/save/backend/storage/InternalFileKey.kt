@@ -16,7 +16,7 @@ data class InternalFileKey(
         /**
          * [InternalFileKey] for *save-agent*
          */
-        val saveAgent: InternalFileKey = InternalFileKey(
+        val forSaveAgent: InternalFileKey = InternalFileKey(
             name = "save-agent.kexe",
             version = LATEST_VERSION,
         )
