@@ -2,6 +2,8 @@
  * View with demo for diktat and ktlint
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.demo.DemoInfo
@@ -20,36 +22,68 @@ import react.router.useParams
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
-val demoView = demoView()
-
-private fun demoView(): VFC = VFC {
-    useBackground(Style.WHITE)
-    val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
+/**
+ * [VFC] for demo view
+ */
+val demoView: VFC = VFC {
     val params = useParams()
-    var emptyDemoRunRequest by useState(DemoRunRequest.empty)
-    var demoRunEndpoint by useState("")
-    val isDiktat = params["organizationName"] == null && params["projectName"] == null
+    val projectCoordinates = "${params["organizationName"]}/${params["projectName"]}"
     var configName by useState<String>()
     useRequest(arrayOf(params)) {
-        if (isDiktat) {
-            emptyDemoRunRequest = DemoRunRequest.diktatDemoRunRequest
-            demoRunEndpoint = "/diktat/run"
-            configName = "diktat-analysis.xml"
-        } else {
-            val projectCoordinates = "${params["organizationName"]}/${params["projectName"]}"
-            demoRunEndpoint = "/$projectCoordinates/run"
-            configName = get(
-                url = "$apiUrl/demo/$projectCoordinates/config-name",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<DemoInfo>()
-                        .demoDto
-                        .configName
-                }
-        }
+        configName = get(
+            url = "$demoApiUrl/manager/$projectCoordinates",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<DemoInfo>()
+                    .demoDto
+                    .configName
+            }
     }
+    val demoView = demoView()
+    demoView {
+        emptyDemoRunRequest = DemoRunRequest.empty
+        demoRunEndpoint = "/$projectCoordinates/run"
+        this.configName = configName
+    }
+}
+
+/**
+ * [VFC] for demo view (a temporary workaround for diktat)
+ */
+val diktatDemoView: VFC = VFC {
+    val demoView = demoView()
+    demoView {
+        emptyDemoRunRequest = DemoRunRequest.diktatDemoRunRequest
+        demoRunEndpoint = "/diktat/run"
+        configName = "diktat-analysis.xml"
+    }
+}
+
+/**
+ * [Props] for DemoView
+ */
+external interface DemoViewProps : Props {
+    /**
+     * An initial value of [DemoRunRequest]
+     */
+    var emptyDemoRunRequest: DemoRunRequest
+
+    /**
+     * Endpoint to run this demo
+     */
+    var demoRunEndpoint: String
+
+    /**
+     * Optional config name for this demo
+     */
+    var configName: String?
+}
+
+private fun demoView(): FC<DemoViewProps> = FC { props ->
+    useBackground(Style.WHITE)
+    val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
     div {
         className = ClassName("d-flex justify-content-center mb-2")
         div {
@@ -69,9 +103,9 @@ private fun demoView(): VFC = VFC {
                 demoRunComponent {
                     this.selectedMode = Languages.KOTLIN
                     this.selectedTheme = selectedTheme
-                    this.emptyDemoRunRequest = emptyDemoRunRequest
-                    this.demoRunEndpoint = demoRunEndpoint
-                    this.configName = configName
+                    this.emptyDemoRunRequest = props.emptyDemoRunRequest
+                    this.demoRunEndpoint = props.demoRunEndpoint
+                    this.configName = props.configName
                 }
             }
         }

@@ -46,92 +46,6 @@ private val defaultCode = """
 """.trimMargin()
 
 /**
- * DemoComponent [Props]
- */
-external interface DemoRunComponentProps : Props {
-    /**
-     * Theme for Ace Editor
-     */
-    var selectedTheme: AceThemes
-
-    /**
-     * Mode for Ace Editor
-     */
-    var selectedMode: Languages
-
-    /**
-     * An initial value of [DemoRunRequest]
-     */
-    var emptyDemoRunRequest: DemoRunRequest
-
-    /**
-     * Endpoint to run this demo
-     */
-    var demoRunEndpoint: String
-
-    /**
-     * Optional config name for this demo
-     */
-    var configName: String?
-}
-
-private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {
-    div {
-        val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
-            ""
-        } else {
-            "show"
-        }
-        val isError = result.terminationCode != 0 && result.warnings.isEmpty()
-        val alertStyle = if (isError) {
-            "alert-danger"
-        } else {
-            "alert-warning"
-        }
-        className = ClassName("alert $alertStyle alert-dismissible fade $show mb-0")
-        role = "alert".unsafeCast<AriaRole>()
-        button {
-            type = ButtonType.button
-            className = ClassName("close")
-            ariaLabel = "Close"
-            fontAwesomeIcon(faTimesCircle)
-            onClick = {
-                flushWarnings()
-            }
-        }
-        if (isError) {
-            h4 {
-                className = ClassName("alert-heading")
-                +"Something went wrong... See the logs below:"
-                result.logs.forEach { logLine ->
-                    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-                    br { }
-                    +logLine
-                }
-            }
-        } else {
-            h4 {
-                className = ClassName("alert-heading")
-                val warningWord = if (result.warnings.size == 1) {
-                    "warning"
-                } else {
-                    "warnings"
-                }
-                +"Detected ${result.warnings.size} $warningWord:"
-            }
-            result.warnings.forEach { warning ->
-                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-                hr { }
-                p {
-                    className = ClassName("mb-0")
-                    +warning
-                }
-            }
-        }
-    }
-}
-
-/**
  * [FC] to display components for demo
  */
 @Suppress(
@@ -257,6 +171,92 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
             className = ClassName("ml-1 mr-1")
             displayAlertWithWarnings(diktatResult) {
                 setDiktatResult(DemoResult.empty)
+            }
+        }
+    }
+}
+
+/**
+ * DemoComponent [Props]
+ */
+external interface DemoRunComponentProps : Props {
+    /**
+     * Theme for Ace Editor
+     */
+    var selectedTheme: AceThemes
+
+    /**
+     * Mode for Ace Editor
+     */
+    var selectedMode: Languages
+
+    /**
+     * An initial value of [DemoRunRequest]
+     */
+    var emptyDemoRunRequest: DemoRunRequest
+
+    /**
+     * Endpoint to run this demo
+     */
+    var demoRunEndpoint: String
+
+    /**
+     * Optional config name for this demo
+     */
+    var configName: String?
+}
+
+private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {
+    div {
+        val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
+            ""
+        } else {
+            "show"
+        }
+        val isError = result.terminationCode != 0 && result.warnings.isEmpty()
+        val alertStyle = if (isError) {
+            "alert-danger"
+        } else {
+            "alert-warning"
+        }
+        className = ClassName("alert $alertStyle alert-dismissible fade $show mb-0")
+        role = "alert".unsafeCast<AriaRole>()
+        button {
+            type = ButtonType.button
+            className = ClassName("close")
+            ariaLabel = "Close"
+            fontAwesomeIcon(faTimesCircle)
+            onClick = {
+                flushWarnings()
+            }
+        }
+        if (isError) {
+            h4 {
+                className = ClassName("alert-heading")
+                +"Something went wrong... See the logs below:"
+                result.logs.forEach { logLine ->
+                    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                    br { }
+                    +logLine
+                }
+            }
+        } else {
+            h4 {
+                className = ClassName("alert-heading")
+                val warningWord = if (result.warnings.size == 1) {
+                    "warning"
+                } else {
+                    "warnings"
+                }
+                +"Detected ${result.warnings.size} $warningWord:"
+            }
+            result.warnings.forEach { warning ->
+                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                hr { }
+                p {
+                    className = ClassName("mb-0")
+                    +warning
+                }
             }
         }
     }
