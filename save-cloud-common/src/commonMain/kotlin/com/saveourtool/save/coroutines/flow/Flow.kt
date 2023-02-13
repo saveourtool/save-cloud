@@ -3,6 +3,7 @@
 
 package com.saveourtool.save.coroutines.flow
 
+import okio.Buffer
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -19,27 +20,26 @@ import kotlinx.coroutines.flow.map
  */
 fun Flow<Byte>.decodeToString(): Flow<String> =
         flow {
-            var accumulator: MutableList<Byte> = arrayListOf()
+            val accumulator = Buffer()
 
             collect { value ->
-                accumulator = when (value) {
+                when (value) {
                     /*
                      * Ignore.
                      */
-                    '\r'.code.toByte() -> accumulator
+                    '\r'.code.toByte() -> Unit
 
                     '\n'.code.toByte() -> {
-                        emit(accumulator)
-                        arrayListOf()
+                        emit(accumulator.readByteArray())
+                        accumulator.clear()
                     }
 
-                    else -> accumulator.apply {
-                        add(value)
-                    }
+                    else -> accumulator.writeByte(value.toInt())
                 }
             }
 
-            emit(accumulator)
+            if (accumulator.size > 0) {
+                emit(accumulator.readByteArray())
+            }
         }
-            .map(Collection<Byte>::toByteArray)
             .map(ByteArray::decodeToString)
