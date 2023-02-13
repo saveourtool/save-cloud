@@ -74,17 +74,19 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
     var isDemoDropdownActive by useState(false)
     val deactivateDropdown = { isDemoDropdownActive = false }
-    var demos by useState(listOf<DemoDto>())
+    val (demos, setDemos) = useState(listOf<DemoDto>())
 
     useRequest {
-        demos = get(
-            "$demoApiUrl/all",
+        val fetchedDemos: List<DemoDto> = get(
+            url = "$demoApiUrl/all",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString()
             }
+        // TODO: takes only 3 values to avoid a long list of demo, needs to be revised
+        setDemos(fetchedDemos.take(3))
     }
 
     ul {
