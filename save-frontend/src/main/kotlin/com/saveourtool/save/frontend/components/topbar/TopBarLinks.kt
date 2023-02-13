@@ -25,7 +25,7 @@ import react.router.NavigateFunction
 import react.router.dom.Link
 import react.router.useNavigate
 
-import kotlinx.browser.window
+import react.router.useLocation
 
 val topBarLinks = topBarLinks()
 
@@ -55,10 +55,11 @@ data class TopBarLink(
 private fun ChildrenBuilder.demoDropdownEntry(
     name: String,
     href: String,
+    location: Location,
     navigate: NavigateFunction,
     deactivateDropdown: () -> Unit,
 ) {
-    dropdownEntry(null, name, window.location.href.contains(href)) { attrs ->
+    dropdownEntry(null, name, location.pathname.endsWith(href)) { attrs ->
         attrs.onClick = {
             deactivateDropdown()
             navigate(to = href)
@@ -72,6 +73,7 @@ private fun ChildrenBuilder.demoDropdownEntry(
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
+    val location = useLocation()
     var isDemoDropdownActive by useState(false)
     val deactivateDropdown = { isDemoDropdownActive = false }
     val (demos, setDemos) = useState(listOf<DemoDto>())
@@ -114,12 +116,14 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 demoDropdownEntry(
                     "Diktat",
                     "/${FrontendRoutes.DEMO.path}/diktat",
+                    location,
                     navigate,
                     deactivateDropdown,
                 )
                 demoDropdownEntry(
                     "CPG",
                     "/${FrontendRoutes.DEMO.path}/cpg",
+                    location,
                     navigate,
                     deactivateDropdown,
                 )
@@ -127,6 +131,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                     demoDropdownEntry(
                         "${demo.projectCoordinates}",
                         "/${FrontendRoutes.DEMO.path}/${demo.projectCoordinates.organizationName}/${demo.projectCoordinates.projectName}",
+                        location,
                         navigate,
                         deactivateDropdown,
                     )
