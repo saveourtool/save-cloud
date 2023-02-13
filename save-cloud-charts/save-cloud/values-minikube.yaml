@@ -30,10 +30,14 @@ demo_cpg:
 demo:
   profile: dev
   dockerHost: tcp://${HOST_IP}:2376
+  applicationProperties: |
+    demo.kubernetes.useGvisor=false
 
 mysql:
   external: false
   ip: nil
+  migrations:
+    enabled: false
 s3:
   external: false
   secret_user: admin

@@ -6,6 +6,8 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
+import io.fabric8.kubernetes.api.model.ContainerState
+import io.fabric8.kubernetes.api.model.ContainerStatus
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -23,6 +25,7 @@ class ManagementController(
     private val toolService: ToolService,
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
+    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param demoDto
@@ -51,10 +54,7 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .map {
-            /*
-             * todo:
-             * kubernetesService.start(it)
-             */
+            kubernetesService.start(it)
         }
 
     /**
@@ -70,10 +70,7 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .map {
-            /*
-             * todo:
-             * kubernetesService.stop(it)
-             */
+            kubernetesService.stop(it)
         }
 
     /**
@@ -89,10 +86,6 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .map {
-            /*
-             * todo:
-             * kubernetesService.getStatus(it)
-             */
             DemoStatus.STOPPED
         }
 

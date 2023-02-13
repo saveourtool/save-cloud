@@ -32,11 +32,13 @@ dependencies {
 
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
 
-    implementation(libs.ktor.client.apache)
     api(libs.ktor.client.auth)
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.apache)
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+
+    implementation(libs.fabric8.kubernetes.client)
 }

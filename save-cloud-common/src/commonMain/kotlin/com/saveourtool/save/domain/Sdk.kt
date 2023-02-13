@@ -6,6 +6,8 @@ package com.saveourtool.save.domain
 
 import kotlinx.serialization.Serializable
 
+private const val GHCR_SAVE_BASE_URL = "ghcr.io/saveourtool/save-base"
+
 val sdks = listOf("Default", Jdk.NAME, Python.NAME)
 
 /**
@@ -23,6 +25,11 @@ open class Sdk(val name: String, open val version: String) {
      * Fixme: we sometimes rely on this method, so this prevents child classes from being `data class`es
      */
     override fun toString() = "$name:$version"
+
+    /**
+     * @return name like `save-base:openjdk-11`
+     */
+    fun baseImageName() = "$GHCR_SAVE_BASE_URL:${toString().replace(":", "-")}"
 }
 
 /**

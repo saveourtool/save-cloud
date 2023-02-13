@@ -18,7 +18,11 @@ spec:
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.demo ) | nindent 8 }}
     spec:
+      serviceAccountName: demo-sa
       restartPolicy: Always
+      {{- if .Values.demo.nodeName }}
+      nodeName: {{ .Values.demo.nodeName }}
+      {{- end }}
       {{- include "cnb.securityContext" . | nindent 6}}
       containers:
         - name: demo
@@ -31,6 +35,22 @@ spec:
               value: {{ .Values.s3.secretFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: database-secret
@@ -43,6 +63,7 @@ spec:
               memory: 1000M
             requests:
               memory: 800M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -98,6 +119,7 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
         - name: database-secret
