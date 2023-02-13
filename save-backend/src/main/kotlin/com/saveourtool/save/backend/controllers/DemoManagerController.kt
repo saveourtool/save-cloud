@@ -271,7 +271,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/manager/$organizationName/$projectName/status")
+                .uri("/demo/api/manager/$organizationName/$projectName/status")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
@@ -312,7 +312,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/manager/$organizationName/$projectName")
+                .uri("/demo/api/manager/$organizationName/$projectName")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
