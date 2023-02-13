@@ -7,14 +7,10 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.s3KeyToPartsTill
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.net.URL
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
@@ -29,7 +25,6 @@ class InternalFileStorage(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "internal-storage")
 ) {
-    private val webClientToGithub = WebClient.builder().build()
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isInitialized = AtomicBoolean(false)
 
@@ -40,8 +35,7 @@ class InternalFileStorage(
     fun init() {
         Flux.concat(
             overwriteSaveAgentFromClasspath(),
-             downloadIfMissedSaveCliFromClasspath(),
-//            downloadIfMissedSaveCliFromGithub(),
+            downloadIfMissedSaveCliFromClasspath(),
         )
             .collectList()
             .map {
@@ -96,33 +90,6 @@ class InternalFileStorage(
                             resource.contentLength(),
                             resource.toByteBufferFlux(),
                         )
-                    }
-            }
-            .defaultIfEmpty(Unit)
-    }
-
-    private fun downloadIfMissedSaveCliFromGithub(): Mono<Unit> {
-        val key = InternalFileKey.forSaveCli()
-        return doesExist(key)
-            .filter { it.not() }
-            .flatMap {
-                val uri = "https://github.com/saveourtool/save-cli/releases/download/v${key.version}/${key.name}"
-                webClientToGithub.get()
-                    .uri(uri)
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
-                    .exchangeToMono { response ->
-                        val content: Flux<ByteBuffer> = response.bodyToFlux()
-                        val contentLength = response.headers().contentLength()
-                        if (contentLength.isPresent) {
-                            upload(key, contentLength.asLong, content)
-                        } else {
-                            upload(key, content)
-                                .map { uploadedContentLength ->
-                                    log.debug {
-                                        "Downloaded $uploadedContentLength bytes from $uri as $key to storage"
-                                    }
-                                }
-                        }
                     }
             }
             .defaultIfEmpty(Unit)

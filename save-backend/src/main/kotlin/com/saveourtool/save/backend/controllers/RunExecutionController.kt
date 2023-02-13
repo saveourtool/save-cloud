@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
+import com.saveourtool.save.backend.storage.InternalFileKey
 import com.saveourtool.save.backend.storage.InternalFileStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
@@ -17,7 +18,6 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.backend.storage.InternalFileKey
 import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
