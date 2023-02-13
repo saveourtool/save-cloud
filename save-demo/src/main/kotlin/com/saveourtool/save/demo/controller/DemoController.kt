@@ -47,19 +47,6 @@ class DemoController(
     /**
      * @param organizationName
      * @param projectName
-     * @return configName or empty response
-     */
-    @GetMapping("/{organizationName}/{projectName}/config-name")
-    fun configName(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-    ): Mono<String> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)?.configName
-    }
-
-    /**
-     * @param organizationName
-     * @param projectName
      * @param demoRunRequest request data class with all required additional info
      * @return [DemoResult]
      */

@@ -37,8 +37,6 @@ import web.html.InputType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val demoRunComponent = demoRunComponent()
-
 private val defaultCode = """
     |package com.test
     |
@@ -133,13 +131,16 @@ private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWa
     }
 }
 
+/**
+ * [FC] to display components for demo
+ */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "KDOC_WITHOUT_RETURN_TAG",
     "LongMethod",
     "TYPE_ALIAS"
 )
-private fun demoRunComponent() = FC<DemoRunComponentProps> { props ->
+val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
     val (demoRunRequest, setDemoRunRequest) = useState(props.emptyDemoRunRequest)
     val (diktatResult, setDiktatResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(defaultCode)
@@ -148,8 +149,8 @@ private fun demoRunComponent() = FC<DemoRunComponentProps> { props ->
         val result: DemoResult = post(
             "$demoApiUrl/${props.demoRunEndpoint}",
             jsonHeaders,
-            Json.encodeToString(demoRunRequest.copy(
-                codeLines = codeLines.split("\n"))
+            Json.encodeToString(
+                demoRunRequest.copy(codeLines = codeLines.lines())
             ),
             ::loadingHandler,
             ::noopResponseHandler,

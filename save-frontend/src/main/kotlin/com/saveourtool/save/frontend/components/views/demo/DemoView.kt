@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
+import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demoRunComponent
@@ -13,12 +14,9 @@ import com.saveourtool.save.utils.Languages
 
 import csstype.*
 import js.core.get
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.router.useParams
-
-import kotlinx.coroutines.await
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
@@ -41,14 +39,14 @@ private fun demoView(): VFC = VFC {
             val projectCoordinates = "${params["organizationName"]}/${params["projectName"]}"
             demoRunEndpoint = "/$projectCoordinates/run"
             configName = get(
-                url = "$demoApiUrl/$projectCoordinates/config-name",
-                headers = Headers().apply {
-                    set("Accept", "text/plain")
-                },
-                loadingHandler = ::noopLoadingHandler,
+                url = "$apiUrl/demo/$projectCoordinates/config-name",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
             )
                 .unsafeMap {
-                    it.text().await().takeIf(String::isNotBlank)
+                    it.decodeFromJsonString<DemoInfo>()
+                        .demoDto
+                        .configName
                 }
         }
     }
