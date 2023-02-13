@@ -4,15 +4,15 @@ dependencies:
   version: 6.50.7
 - name: prometheus
   repository: https://prometheus-community.github.io/helm-charts
-  version: 19.3.3
+  version: 19.4.0
 - name: promtail
   repository: https://grafana.github.io/helm-charts
   version: 6.8.2
 - name: loki
   repository: https://grafana.github.io/helm-charts
-  version: 4.4.2
+  version: 4.6.0
 - name: neo4j
   repository: https://helm.neo4j.com/neo4j
   version: 5.4.0
-digest: sha256:7ab661935ab7bc938985d3108ad683e39f14dcbbe4b00b29aba56bad10b9727b
-generated: "2023-02-06T09:05:52.437014971Z"
+digest: sha256:5687b8bfc6a80c744a23497a7a2d31023047572de2dd034fd0b4871347e3e13c
+generated: "2023-02-13T02:21:12.235819848Z"
