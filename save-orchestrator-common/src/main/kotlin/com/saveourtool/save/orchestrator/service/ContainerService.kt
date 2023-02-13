@@ -124,7 +124,7 @@ class ContainerService(
          */
         @Language("bash")
         val agentCommand = "set ${getShellOptions()}" +
-                " && curl ${getCurlOptions()} ${request.saveAgentUrl} --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                " && curl ${getCurlOptions()} '${request.saveAgentUrl}' --output $SAVE_AGENT_EXECUTABLE_NAME" +
                 " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                 " && ./$SAVE_AGENT_EXECUTABLE_NAME"
 

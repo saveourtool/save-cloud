@@ -39,8 +39,8 @@ class InternalFileStorage(
     fun init() {
         Flux.concat(
             overwriteSaveAgentFromClasspath(),
-            // downloadIfMissedSaveCliFromClasspath(),
-            downloadIfMissedSaveCliFromGithub(),
+             downloadIfMissedSaveCliFromClasspath(),
+//            downloadIfMissedSaveCliFromGithub(),
         )
             .collectList()
             .map {
