@@ -23,9 +23,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.NavigateFunction
 import react.router.dom.Link
-import react.router.useNavigate
-
 import react.router.useLocation
+import react.router.useNavigate
 
 val topBarLinks = topBarLinks()
 
