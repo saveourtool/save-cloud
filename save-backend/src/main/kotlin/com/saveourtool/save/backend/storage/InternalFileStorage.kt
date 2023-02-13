@@ -30,6 +30,7 @@ class InternalFileStorage(
     concatS3Key(configProperties.s3Storage.prefix, "internal-storage")
 ) {
     private val webClientToGithub = WebClient.builder().build()
+    @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isInitialized = AtomicBoolean(false)
 
     /**

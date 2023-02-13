@@ -15,7 +15,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
-import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -64,7 +63,7 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateUrlToDownload(InternalFileKey.forSaveCli(SAVE_CORE_VERSION)).toString(),
+                saveCliUrl = internalFileStorage.generateUrlToDownload(InternalFileKey.forSaveCli()).toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let {
                         testsSourceSnapshotStorage.generateUrlToDownload(it).toString()
