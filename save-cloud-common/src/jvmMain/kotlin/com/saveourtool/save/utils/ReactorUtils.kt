@@ -6,7 +6,6 @@ package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.jetbrains.annotations.NonBlocking
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec
@@ -254,11 +253,8 @@ fun waitReactivelyUntil(
 fun downloadFromClasspath(
     resourceName: String,
     lazyResponseBody: (() -> String?) = { null },
-): Mono<out Resource> =
-        Mono.just(resourceName)
-            .map(::ClassPathResource)
-            .filter(Resource::exists)
-            .switchIfEmptyToNotFound {
-                logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
-                lazyResponseBody()
-            }
+): Mono<out Resource> = Mono.justOrEmpty(findResourceInClasspath(resourceName))
+    .switchIfEmptyToNotFound {
+        logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
+        lazyResponseBody()
+    }

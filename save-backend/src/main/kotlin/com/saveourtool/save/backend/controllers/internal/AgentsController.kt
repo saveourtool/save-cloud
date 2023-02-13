@@ -8,6 +8,8 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.backend.storage.InternalFileKey
+import com.saveourtool.save.backend.storage.InternalFileStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.test.TestDto
@@ -46,6 +48,7 @@ class AgentsController(
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
     private val fileStorage: FileStorage,
+    private val internalFileStorage: InternalFileStorage,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
 ) {
     /**
@@ -60,10 +63,8 @@ class AgentsController(
             agentService.getExecution(it)
         }
         .map { execution ->
-            val backendUrl = configProperties.agentSettings.backendUrl
-
             AgentInitConfig(
-                saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
+                saveCliUrl = internalFileStorage.generateUrlToDownload(InternalFileKey.forSaveCli(SAVE_CORE_VERSION)).toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let {
                         testsSourceSnapshotStorage.generateUrlToDownload(it).toString()

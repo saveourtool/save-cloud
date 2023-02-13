@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
+import com.saveourtool.save.backend.storage.InternalFileStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -49,6 +50,7 @@ class RunExecutionController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     private val configProperties: ConfigProperties,
+    private val internalFileStorage: InternalFileStorage,
     objectMapper: ObjectMapper,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -204,7 +206,7 @@ class RunExecutionController(
         .bodyValue(
             execution.toRunRequest(
                 saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
+                saveAgentUrl = internalFileStorage.generateUrlToDownload(InternalFileStorage.SAVE_AGENT_KEY).toString(),
             )
         )
         .retrieve()

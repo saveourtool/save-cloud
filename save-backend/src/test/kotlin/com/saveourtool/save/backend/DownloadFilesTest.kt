@@ -240,47 +240,6 @@ class DownloadFilesTest {
             .isOk
     }
 
-    @Test
-    fun `download save-agent`() {
-        webTestClient.get()
-            .uri("/internal/files/download-save-agent")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals(
-                    "content-save-agent.kexe".toByteArray(),
-                    it.responseBody
-                )
-            }
-    }
-
-    @Test
-    fun `download save-cli`() {
-        webTestClient.get()
-            .uri("/internal/files/download-save-cli?version=1.0")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals(
-                    "content-save-cli.kexe".toByteArray(),
-                    it.responseBody
-                )
-            }
-
-        webTestClient.get()
-            .uri("/internal/files/download-save-cli?version=2.0")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isNotFound
-    }
-
     companion object {
         private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
 
