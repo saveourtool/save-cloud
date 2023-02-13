@@ -10,3 +10,26 @@ spec:
     {{- include "service.common.ports" (dict "service" .Values.demo) | nindent 4 }}
   selector:
     {{- include "service.common.selectors" (dict "service" .Values.demo) | nindent 4 }}
+
+---
+
+# Required for debug
+
+{{ if eq .Values.demo.profile "dev" }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-demo-node-port
+spec:
+  selector:
+    io.kompose.service: demo
+  ports:
+    - port: 5421
+      protocol: TCP
+      name: demo-port
+  type: NodePort
+
+---
+
+{{ end }}
