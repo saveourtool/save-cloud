@@ -65,6 +65,15 @@ class DefaultS3Operations(
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
+            .also { createdClient ->
+                if (createBucketOnStart) {
+                    CreateBucketRequest.builder()
+                        .bucket(bucketName)
+                        .build()
+                        .let { createdClient.createBucket(it) }
+                        .join()
+                }
+            }
     }
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()

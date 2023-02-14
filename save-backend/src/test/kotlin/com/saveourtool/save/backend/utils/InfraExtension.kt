@@ -32,25 +32,10 @@ class InfraExtension : BeforeAllCallback {
                 .withEnv("MINIO_ROOT_PASSWORD", MINIO_ROOT_PASSWORD)
                 .waitingFor(Wait.forListeningPort())
                 .apply { start() }
-            GenericContainer("minio/mc:latest")
-                .dependsOn(minioContainer)
-                .withCreateContainerCmdModifier { cmd ->
-                    cmd.withEntrypoint(
-                        "/bin/sh",
-                        "-c",
-                        sequenceOf(
-                            "alias set minio ${minioContainer.getS3UrlInDocker()} $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD",
-                            "mb --ignore-existing minio/$MINIO_BUCKET_NAME",
-                            "policy set public minio/$MINIO_BUCKET_NAME",
-                        )
-                            .joinToString(" && ") { "/usr/bin/mc $it" }
-                    )
-                }
-                .waitingFor(Wait.forLogMessage("Bucket created successfully.*$MINIO_BUCKET_NAME.*", 1))
-                .apply { start() }
 
             System.setProperty("backend.s3-storage.endpoint", minioContainer.getS3Url())
             System.setProperty("backend.s3-storage.bucketName", MINIO_BUCKET_NAME)
+            System.setProperty("backend.s3-storage.createBucketOnStart", true.toString())
             System.setProperty("backend.s3-storage.credentials.accessKeyId", MINIO_ROOT_USER)
             System.setProperty("backend.s3-storage.credentials.secretAccessKey", MINIO_ROOT_PASSWORD)
             System.setProperty("spring.datasource.url", dbContainer.jdbcUrl)
@@ -67,9 +52,6 @@ class InfraExtension : BeforeAllCallback {
 
         @Suppress("NonBooleanPropertyPrefixedWithIs")
         private val isInfraStarted = AtomicBoolean(false)
-
-        @Suppress("HttpUrlsUsage")
-        private fun GenericContainer<*>.getS3UrlInDocker() = "http://host.docker.internal:${getMappedPort(MINIO_SERVICE_PORT)}"
 
         @Suppress("HttpUrlsUsage")
         private fun GenericContainer<*>.getS3Url() = "http://$host:${getMappedPort(MINIO_SERVICE_PORT)}"
