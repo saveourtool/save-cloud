@@ -70,9 +70,9 @@ class DefaultS3Operations(
                     .bucket(bucketName)
                     .build()
                     .let { createdClient.headBucket(it) }
-                    .handle { _, ex ->
+                    .thenApply { true }
+                    .exceptionally { ex ->
                         when (ex?.cause) {
-                            null -> true
                             is NoSuchBucketException -> false
                             else -> throw ex
                         }
