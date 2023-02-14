@@ -82,8 +82,7 @@ class DefaultS3Operations(
                             CompletableFuture.completedFuture("Bucket $bucketName already exists")
                         } else if (!createBucketIfNotExists) {
                             CompletableFuture.completedFuture("Not found bucket $bucketName")
-                        }
-                        else {
+                        } else {
                             CreateBucketRequest.builder()
                                 .bucket(bucketName)
                                 .build()
