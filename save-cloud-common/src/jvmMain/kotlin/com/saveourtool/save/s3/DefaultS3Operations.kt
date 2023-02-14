@@ -66,13 +66,34 @@ class DefaultS3Operations(
             .endpointOverride(endpoint)
             .build()
             .also { createdClient ->
-                if (createBucketOnStart) {
-                    CreateBucketRequest.builder()
-                        .bucket(bucketName)
-                        .build()
-                        .let { createdClient.createBucket(it) }
-                        .join()
-                }
+                HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+                    .let { createdClient.headBucket(it) }
+                    .handle { _, ex ->
+                        when (ex?.cause) {
+                            null -> true
+                            is NoSuchBucketException -> false
+                            else -> throw ex
+                        }
+                    }
+                    .thenCompose { bucketExists ->
+                        if (bucketExists) {
+                            CompletableFuture.completedFuture("Bucket $bucketName already exists")
+                        } else if (!createBucketIfNotExists) {
+                            CompletableFuture.completedFuture("Not found bucket $bucketName")
+                        }
+                        else {
+                            CreateBucketRequest.builder()
+                                .bucket(bucketName)
+                                .build()
+                                .let { createdClient.createBucket(it) }
+                                .thenApply { _ ->
+                                    "Created bucket $bucketName"
+                                }
+                        }
+                    }
+                    .join()
             }
     }
     private val s3Presigner: S3Presigner = with(properties) {
