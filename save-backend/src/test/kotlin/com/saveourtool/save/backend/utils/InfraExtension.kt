@@ -35,7 +35,7 @@ class InfraExtension : BeforeAllCallback {
 
             System.setProperty("backend.s3-storage.endpoint", minioContainer.getS3Url())
             System.setProperty("backend.s3-storage.bucketName", MINIO_BUCKET_NAME)
-            System.setProperty("backend.s3-storage.createBucketOnStart", true.toString())
+            System.setProperty("backend.s3-storage.createBucketIfNotExists", true.toString())
             System.setProperty("backend.s3-storage.credentials.accessKeyId", MINIO_ROOT_USER)
             System.setProperty("backend.s3-storage.credentials.secretAccessKey", MINIO_ROOT_PASSWORD)
             System.setProperty("spring.datasource.url", dbContainer.jdbcUrl)
