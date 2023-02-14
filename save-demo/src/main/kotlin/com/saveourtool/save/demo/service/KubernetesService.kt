@@ -1,138 +1,133 @@
 package com.saveourtool.save.demo.service
 
+import com.saveourtool.save.demo.DemoAgentConfig
+import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
-import com.saveourtool.save.demo.utils.KubernetesRunnerException
-import com.saveourtool.save.domain.toSdk
-import com.saveourtool.save.utils.debug
-import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.api.model.batch.v1.Job
-import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
-import io.fabric8.kubernetes.api.model.batch.v1.JobStatus
-import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.KubernetesClientException
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
+import com.saveourtool.save.demo.utils.*
+import com.saveourtool.save.utils.*
 
+import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.client.KubernetesClient
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.serialization.json.Json
+
+/**
+ * Service for interactions with kubernetes
+ */
 @Service
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
 ) {
-    private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-        "demo.kubernetes.* properties are required in this profile"
-    }
-
-    private fun jobNameForDemo(demo: Demo) = with(demo) { "demo-${organizationName.lowercase()}-${projectName.lowercase()}-1" }
+    private val kubernetesSettings = configProperties.kubernetes
 
     /**
-     * @param demo
-     * @throws KubernetesRunnerException
+     * @param demo demo entity
+     * @param version version of [demo] that should be run in kubernetes pod
+     * @return [Mono] of [StringResponse] filled with readable message
      */
-    @Suppress("NestedBlockDepth")
-    fun start(demo: Demo) {
-        val job = Job().apply {
-            metadata = ObjectMeta().apply {
-                name = jobNameForDemo(demo)
-            }
-            spec = JobSpec().apply {
-                parallelism = REPLICAS_PER_DEMO
-                ttlSecondsAfterFinished = TTL_AFTER_COMPLETED
-                backoffLimit = 0
-                template = PodTemplateSpec().apply {
-                    spec = PodSpec().apply {
-                        if (kubernetesSettings.useGvisor) {
-                            nodeSelector = mapOf(
-                                "gvisor" to "enabled"
-                            )
-                            runtimeClassName = "gvisor"
-                        }
-                        metadata = ObjectMeta().apply {
-                            labels = mapOf(
-                                DEMO_ORG_NAME to demo.organizationName,
-                                DEMO_PROJ_NAME to demo.projectName,
-                                DEMO_VERSION to "manual",
-                                // "baseImageName" to baseImageName
-                                "io.kompose.service" to "save-demo-agent",
-                            )
-                        }
-                        // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
-                        restartPolicy = "Never"
-                        containers = listOf(agentContainerSpec(demo.sdk.toSdk().baseImageName()))
-                    }
-                }
-            }
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.just(demo)
+        .logValue(logger::info) {
+            "Creating job ${jobNameForDemo(it)}..."
         }
-        logger.debug { "Attempt to create Job from the following spec: $job" }
-        try {
-            kc.resource(job)
-                .create()
-            with(demo) {
-                logger.info("Created Job for demo $organizationName/$projectName")
-            }
-        } catch (kex: KubernetesClientException) {
-            with(demo) {
-                throw KubernetesRunnerException("Unable to create a job for demo $organizationName/$projectName", kex)
-            }
-        }
-    }
-
-    @Suppress("TOO_LONG_FUNCTION")
-    private fun agentContainerSpec(imageName: String) = Container().apply {
-        name = "save-demo-agent-pod"
-        image = imageName
-        imagePullPolicy = "IfNotPresent"
-
-        resources = with(kubernetesSettings) {
-            ResourceRequirements().apply {
-                requests = mapOf(
-                    "cpu" to Quantity(agentCpuRequests),
-                    "memory" to Quantity(agentMemoryRequests),
-                )
-                limits = mapOf(
-                    "cpu" to Quantity(agentCpuLimits),
-                    "memory" to Quantity(agentMemoryLimits),
+        .flatMap { requestedDemo ->
+            try {
+                requestedDemo.also { kc.startJob(requestedDemo, kubernetesSettings) }.toMono()
+            } catch (kre: KubernetesRunnerException) {
+                Mono.error(
+                    ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Could not create job for ${jobNameForDemo(requestedDemo)}",
+                        kre,
+                    )
                 )
             }
         }
+        .flatMap { requestedDemo ->
+            deferredToMono {
+                configureDemoAgent(requestedDemo, version)
+            }
+        }
+
+    /**
+     * @param demo demo entity
+     * @return list of [StatusDetails]
+     */
+    fun stop(demo: Demo): List<StatusDetails> {
+        logger.info("Stopping job...")
+        return kc.getJob(demo, configProperties.kubernetes.namespace).delete()
     }
 
     /**
-     * @param demo
-     * @return
+     * @param demo demo entity
+     * @return deferred filled with [DemoStatus]
      */
-    fun stop(demo: Demo): List<StatusDetails> = getPod(demo).delete()
+    fun getStatus(demo: Demo) = scope.async {
+        val url = "${getPodUrl(demo)}/alive"
+        when {
+            httpClient.get(url).status.isSuccess() -> DemoStatus.RUNNING
+            else -> DemoStatus.STOPPED
+        }
+    }
 
-    fun isJobReady(demo: Demo) = kc.batch().v1()
-        .jobs()
-        .inNamespace(configProperties.kubernetes.namespace)
-        .withName(jobNameForDemo(demo))
-        .isReady
+    private fun configureDemoAgent(demo: Demo, version: String) = scope.async {
+        val url = "${getPodUrl(demo)}/configure"
+        logger.info("Configuring save-demo-agent by url: $url")
+        val requestStatus = httpClient.post(url) {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+            setBody(
+                DemoAgentConfig(
+                    configProperties.agentConfig.demoUrl,
+                    demo.toDemoConfiguration(version),
+                    demo.toRunConfiguration(),
+                )
+            )
+        }.status
 
+        if (requestStatus.isSuccess()) {
+            logAndRespond(HttpStatusCode.OK, logger::info) {
+                "Job successfully started."
+            }
+        } else {
+            logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
+                "Could not configure demo."
+            }
+        }
+    }
 
-
-    private fun getPodByName(podName: String) = kc.pods().withName(podName)
-
-    private fun getPod(demo: Demo) = getPodByName(jobNameForDemo(demo))
-
-    /**
-     * @param demo
-     * @return
-     */
-    fun restart(demo: Demo) = stop(demo).also { start(demo) }
-
-    /**
-     * @param demo
-     * @return
-     */
-    fun getPodUrl(demo: Demo): String = getPod(demo).get().status.podIP
+    private suspend fun getPodUrl(demo: Demo) = retry(RETRY_TIMES) {
+        kc.getJobPodsIps(demo).firstOrNull()
+    } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
-        private const val DEMO_ORG_NAME = "organizationName"
-        private const val DEMO_PROJ_NAME = "projectName"
-        private const val DEMO_VERSION = "version"
-        private const val REPLICAS_PER_DEMO = 1
-        private const val TTL_AFTER_COMPLETED = 3600
+        private const val RETRY_TIMES = 6
+
+        @Suppress("InjectDispatcher")
+        private val scope = CoroutineScope(Dispatchers.Default)
+        private val httpClient = HttpClient(Apache) {
+            install(ContentNegotiation) {
+                val json = Json { ignoreUnknownKeys = true }
+                json(json)
+            }
+        }
     }
 }

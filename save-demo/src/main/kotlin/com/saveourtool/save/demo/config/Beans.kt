@@ -1,16 +1,18 @@
 package com.saveourtool.save.demo.config
 
-import com.saveourtool.save.demo.service.KubernetesService
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+/**
+ * Class for [KubernetesClient] bean initialization
+ */
 @Configuration
 class Beans {
     /**
-     * @param configProperties
-     * @return
+     * @param configProperties application configuration
+     * @return configured [KubernetesClient]
      */
     @Bean(destroyMethod = "close")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {

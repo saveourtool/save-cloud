@@ -9,16 +9,25 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 /**
+ * @property backendUrl URL of backend
+ * @property agentConfig configuration of save-demo-agents that are run by save-demo
  * @property s3Storage configuration of S3 storage
- * @property backend
- * @property kubernetes
+ * @property kubernetes kubernetes configuration
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "demo")
 data class ConfigProperties(
+    val backendUrl: String,
+    val agentConfig: AgentConfig,
     val s3Storage: S3OperationsProperties,
     val kubernetes: KubernetesConfig,
-    val backend: String,
+)
+
+/**
+ * @property demoUrl url of save-demo
+ */
+data class AgentConfig(
+    val demoUrl: String
 )
 
 /**

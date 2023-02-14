@@ -18,11 +18,15 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
 import reactor.kotlin.core.publisher.toMono
+
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
+
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.future.asCompletableFuture
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
@@ -204,6 +208,16 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
             .subscribeOn(Schedulers.boundedElastic())
 
 /**
+ * @param loggingMethod
+ * @param lazyMessage
+ * @return [Mono] of [T], [T] remains unchanged
+ */
+fun <T> Mono<T>.logValue(loggingMethod: (String) -> Unit, lazyMessage: (T) -> String): Mono<T> = map {
+    loggingMethod(lazyMessage(it))
+    it
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -262,3 +276,13 @@ fun downloadFromClasspath(
                 logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
                 lazyResponseBody()
             }
+
+/**
+ * Transforms [Deferred] to [Mono]
+ *
+ * @param supplier lambda that returns [Deferred]
+ * @return [Mono] from result of [Deferred]
+ */
+fun <T : Any> deferredToMono(supplier: () -> Deferred<T>): Mono<T> = Mono.fromFuture(
+    supplier().asCompletableFuture()
+)
