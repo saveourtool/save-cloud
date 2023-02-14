@@ -22,6 +22,8 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
+import java.net.ConnectException
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -81,8 +83,14 @@ class KubernetesService(
      */
     fun getStatus(demo: Demo) = scope.async {
         val url = "${getPodUrl(demo)}/alive"
+        val status = try {
+            httpClient.get(url).status
+        } catch (connectException: ConnectException) {
+            null
+        }
         when {
-            httpClient.get(url).status.isSuccess() -> DemoStatus.RUNNING
+            status == null -> DemoStatus.ERROR
+            status.isSuccess() -> DemoStatus.RUNNING
             else -> DemoStatus.STOPPED
         }
     }
