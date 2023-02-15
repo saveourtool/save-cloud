@@ -62,7 +62,7 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateUrlToDownload(BackendInternalFileStorage.saveCliKey).toString(),
+                saveCliUrl = internalFileStorage.generateUrlToDownload(BackendInternalFileStorage.saveCliKey()).toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let {
                         testsSourceSnapshotStorage.generateUrlToDownload(it).toString()

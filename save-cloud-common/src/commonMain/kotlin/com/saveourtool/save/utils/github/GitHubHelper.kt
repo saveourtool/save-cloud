@@ -22,7 +22,12 @@ object GitHubHelper {
      * Version which specified the latest version
      */
     const val LATEST_VERSION = "latest"
-    private val httpClient = httpClient()
+    private val httpClient: HttpClient = HttpClient {
+        install(ContentNegotiation) {
+            val json = Json { ignoreUnknownKeys = true }
+            json(json)
+        }
+    }
 
     private suspend fun getMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
@@ -33,26 +38,35 @@ object GitHubHelper {
         .bodyAsChannel()
 
     /**
+     * Fetches a list of tags from GitHub in provided [repo]
+     *
+     * @param repo
+     * @return list of tags
+     */
+    suspend fun availableTags(repo: GitHubRepo): List<String> = httpClient.get(repo.getTagsUrl())
+        .body<Map<String, Any>>()
+        .keys
+        .toList()
+
+    /**
      * Downloads asset from GitHub in provided [repo] with provided [tagName]
      * It expects that there is only a single asset
      *
      * @param repo
      * @param tagName
+     * @param assetName
      * @return content of found asset with its size
      */
-    suspend fun download(repo: GitHubRepo, tagName: String): Pair<ByteReadChannel, Long> = getMetadata(repo, tagName)
+    suspend fun download(
+        repo: GitHubRepo,
+        tagName: String,
+        assetName: String? = null,
+    ): Pair<ByteReadChannel, Long> = getMetadata(repo, tagName)
         .assets
-        .single {
-            !it.isDigest()
+        .single { asset ->
+            !asset.isDigest() && assetName?.let { it == assetName } ?: true
         }
         .let {
             downloadAsset(it) to it.size
         }
-
-    private fun httpClient(): HttpClient = HttpClient {
-        install(ContentNegotiation) {
-            val json = Json { ignoreUnknownKeys = true }
-            json(json)
-        }
-    }
 }

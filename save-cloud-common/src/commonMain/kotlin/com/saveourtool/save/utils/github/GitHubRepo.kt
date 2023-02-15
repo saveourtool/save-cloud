@@ -10,7 +10,7 @@ class GitHubRepo(
 ) {
     /**
      * @param tagName
-     * @return URL to metadata for requested [tagName]
+     * @return URL to request metadata for provided [tagName]
      */
     fun getMetadataUrl(tagName: String): String = if (tagName == GitHubHelper.LATEST_VERSION) {
         tagName
@@ -20,4 +20,9 @@ class GitHubRepo(
         .let { release ->
             "${GitHubHelper.API_URL}/$organizationName/$projectName/releases/$release"
         }
+
+    /**
+     * @return URL to request tags
+     */
+    fun getTagsUrl(): String = "${GitHubHelper.API_URL}/$organizationName/$projectName/tags"
 }
