@@ -10,6 +10,8 @@ import reactor.kotlin.core.publisher.toFlux
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.annotation.PostConstruct
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -30,61 +32,115 @@ abstract class AbstractS3Storage<K>(
      */
     protected val prefix: String = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
 
-    override fun list(): Flux<K> = s3Operations.listObjectsV2(prefix)
-        .flatMapIterable { response ->
-            response.contents().map {
-                buildKey(it.key().removePrefix(prefix))
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
+    private val isInitStarted = AtomicBoolean(false)
+
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
+    private val isInitFinished = AtomicBoolean(false)
+
+    /**
+     * Init method
+     */
+    @PostConstruct
+    fun init() {
+        require(!isInitStarted.compareAndExchange(false, true)) {
+            "Init method cannot be called more than 1 time, initialization is in progress"
+        }
+        doInitAsync()
+            .doOnSuccess {
+                require(!isInitFinished.compareAndExchange(false, true)) {
+                    "Init method cannot be called more than 1 time. Initialization already finished by another project"
+                }
             }
-        }
+            .subscribe()
+    }
 
-    override fun download(key: K): Flux<ByteBuffer> = s3Operations.getObject(buildS3Key(key))
-        .flatMapMany {
-            it.toFlux()
-        }
+    /**
+     * Async init method
+     *
+     * @return [Mono] without body
+     */
+    protected open fun doInitAsync(): Mono<Unit> = Mono.just(Unit)
 
-    override fun generateUrlToDownload(key: K): URL = s3Operations.requestToDownloadObject(buildS3Key(key), downloadDuration)
-        .also { request ->
-            require(request.isBrowserExecutable) {
-                "Pre-singer url to download object should be browser executable (header-less)"
+    private fun <R> validateAndRun(action: () -> R): R {
+        require(isInitFinished.get()) {
+            "Any method of ${javaClass.simpleName} should be called after init method is finished"
+        }
+        return action()
+    }
+
+    override fun list(): Flux<K> = validateAndRun {
+        s3Operations.listObjectsV2(prefix)
+            .flatMapIterable { response ->
+                response.contents().map {
+                    buildKey(it.key().removePrefix(prefix))
+                }
             }
-        }
-        .url()
+    }
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
-            s3Operations.uploadObject(buildS3Key(key), content)
-                .flatMap {
-                    contentLength(key)
+    override fun download(key: K): Flux<ByteBuffer> = validateAndRun {
+        s3Operations.getObject(buildS3Key(key))
+            .flatMapMany {
+                it.toFlux()
+            }
+    }
+
+    override fun generateUrlToDownload(key: K): URL = validateAndRun {
+        s3Operations.requestToDownloadObject(buildS3Key(key), downloadDuration)
+            .also { request ->
+                require(request.isBrowserExecutable) {
+                    "Pre-singer url to download object should be browser executable (header-less)"
                 }
+            }
+            .url()
+    }
 
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
-            s3Operations.uploadObject(buildS3Key(key), contentLength, content)
-                .map { response ->
-                    log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
-                }
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = validateAndRun {
+        s3Operations.uploadObject(buildS3Key(key), content)
+            .flatMap {
+                contentLength(key)
+            }
+    }
 
-    override fun move(source: K, target: K): Mono<Boolean> =
-            s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
-                .flatMap {
-                    delete(source)
-                }
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = validateAndRun {
+        s3Operations.uploadObject(buildS3Key(key), contentLength, content)
+            .map { response ->
+                log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
+            }
+    }
 
-    override fun delete(key: K): Mono<Boolean> = s3Operations.deleteObject(buildS3Key(key))
-        .thenReturn(true)
-        .defaultIfEmpty(false)
+    override fun move(source: K, target: K): Mono<Boolean> = validateAndRun {
+        s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
+            .flatMap {
+                delete(source)
+            }
+    }
 
-    override fun lastModified(key: K): Mono<Instant> = s3Operations.headObject(buildS3Key(key))
-        .map { response ->
-            response.lastModified()
-        }
+    override fun delete(key: K): Mono<Boolean> = validateAndRun {
+        s3Operations.deleteObject(buildS3Key(key))
+            .thenReturn(true)
+            .defaultIfEmpty(false)
+    }
 
-    override fun contentLength(key: K): Mono<Long> = s3Operations.headObject(buildS3Key(key))
-        .map { response ->
-            response.contentLength()
-        }
+    override fun lastModified(key: K): Mono<Instant> = validateAndRun {
+        s3Operations.headObject(buildS3Key(key))
+            .map { response ->
+                response.lastModified()
+            }
+    }
 
-    override fun doesExist(key: K): Mono<Boolean> = s3Operations.headObject(buildS3Key(key))
-        .map { true }
-        .defaultIfEmpty(false)
+    override fun contentLength(key: K): Mono<Long> = validateAndRun {
+        s3Operations.headObject(buildS3Key(key))
+            .map { response ->
+                response.contentLength()
+            }
+    }
+
+    override fun doesExist(key: K): Mono<Boolean> = validateAndRun {
+        s3Operations.headObject(buildS3Key(key))
+            .map { true }
+            .defaultIfEmpty(false)
+    }
 
     /**
      * @param s3KeySuffix cannot start with [PATH_DELIMITER]

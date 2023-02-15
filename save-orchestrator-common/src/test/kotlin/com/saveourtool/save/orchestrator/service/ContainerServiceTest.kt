@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.test.context.TestPropertySource
 import reactor.kotlin.core.publisher.toMono
 import java.net.ServerSocket
+import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.*
 import kotlin.math.absoluteValue
@@ -57,8 +58,7 @@ class ContainerServiceTest {
     private val mockserverImageFullName = "$mockserverImageName:$mockserverImageVersion"
     private val mockserverVolumeName = "mockserver-config"
     private val mockserverConfigPath = "/config"
-    // FIXME:
-    private val mockUrl = "/internal/files/download-save-agent"
+    private val mockUrl = "/some-path-do-download-save-agent"
 
     @BeforeEach
     fun setUp(@TempDir tmpDir: Path) {
@@ -118,7 +118,7 @@ class ContainerServiceTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "HttpUrlsUsage")
     fun `should create a container with save agent and test resources and start it`() {
         val executionId = Random.nextLong().absoluteValue
         // build base image
@@ -131,7 +131,7 @@ class ContainerServiceTest {
         val configuration = containerService.prepareConfiguration(
             testExecution.toRunRequest(
                 saveAgentVersion = SAVE_AGENT_VERSION,
-                saveAgentUrl = "http://host.docker.internal:$mockserverPort$mockUrl",
+                saveAgentUrl = URL("http://host.docker.internal:$mockserverPort$mockUrl"),
             )
         )
         // start container and query backend
