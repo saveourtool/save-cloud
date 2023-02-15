@@ -20,7 +20,7 @@ typealias StringList = List<String>
  */
 suspend fun <T : Any> retry(
     times: Int,
-    timeMillis: Long? = 10_000L,
+    delayMillis: Long? = 10_000L,
     action: () -> T?,
 ): T? = action() ?: run {
     if (times > 0) {
