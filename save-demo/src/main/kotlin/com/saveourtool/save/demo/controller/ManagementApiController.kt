@@ -25,6 +25,7 @@ import reactor.kotlin.core.util.function.component2
 class ManagementApiController(
     private val toolService: ToolService,
     private val demoService: DemoService,
+    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param organizationName name of GitHub user/organization
@@ -35,16 +36,11 @@ class ManagementApiController(
     fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoStatus> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ): Mono<DemoStatus> = blockingToMono {
+        demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .map {
-            /*
-             * todo:
-             * kubernetesService.getStatus(it)
-             */
-            DemoStatus.STOPPED
-        }
+        .flatMap { deferredToMono { kubernetesService.getStatus(it) } }
+        .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     /**
      * @param organizationName name of GitHub user/organization

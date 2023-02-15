@@ -7,7 +7,9 @@ package com.saveourtool.save.utils
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.Storage
+import io.ktor.http.*
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -56,4 +58,20 @@ fun <K> Storage<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = cont
  */
 inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotFound(id: Long): T = findByIdOrNull(id).orNotFound {
     "Not found ${T::class.simpleName} by id = $id"
+}
+
+/**
+ * @param statusCode [HttpStatusCode] that should be set to [StringResponse]
+ * @param loggingMethod method that should be used for logging e.g. logger::info
+ * @param lazyMessage callback that generates a message
+ * @return [StringResponse] filled with [lazyMessage] and [statusCode]
+ */
+fun logAndRespond(
+    statusCode: HttpStatusCode,
+    loggingMethod: (String) -> Unit,
+    lazyMessage: () -> String,
+): StringResponse = lazyMessage().also {
+    loggingMethod(it)
+}.let {
+    ResponseEntity.status(statusCode.value).body(it)
 }

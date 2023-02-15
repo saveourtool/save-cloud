@@ -9,7 +9,7 @@ import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
-import com.saveourtool.save.demo.agent.DemoConfiguration
+import com.saveourtool.save.demo.DemoConfiguration
 import com.saveourtool.save.utils.*
 import io.ktor.http.*
 

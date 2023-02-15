@@ -1,8 +1,6 @@
 package com.saveourtool.save.demo.controller
 
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoInfo
-import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
@@ -20,9 +18,9 @@ import reactor.kotlin.core.util.function.component2
 @RestController
 @RequestMapping("/demo/internal/manager")
 class ManagementController(
-    private val toolService: ToolService,
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
+    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param demoDto
@@ -47,14 +45,11 @@ class ManagementController(
     fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .map {
-            /*
-             * todo:
-             * kubernetesService.start(it)
-             */
+        .flatMap {
+            kubernetesService.start(it)
         }
 
     /**
@@ -70,65 +65,6 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .map {
-            /*
-             * todo:
-             * kubernetesService.stop(it)
-             */
-        }
-
-    /**
-     * @param organizationName name of GitHub user/organization
-     * @param projectName name of GitHub repository
-     * @return [Mono] of [DemoStatus] of current demo
-     */
-    @GetMapping("/{organizationName}/{projectName}/status")
-    fun getDemoStatus(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-    ): Mono<DemoStatus> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
-    }
-        .map {
-            /*
-             * todo:
-             * kubernetesService.getStatus(it)
-             */
-            DemoStatus.STOPPED
-        }
-
-    /**
-     * @param organizationName name of GitHub user/organization
-     * @param projectName name of GitHub repository
-     * @return [Mono] of [DemoStatus] of current demo
-     */
-    @GetMapping("/{organizationName}/{projectName}")
-    fun getDemoInfo(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-    ): Mono<DemoInfo> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
-    }
-        .zipWith(getDemoStatus(organizationName, projectName))
-        .map { (demo, status) ->
-            DemoInfo(
-                demo.toDto().copy(vcsTagName = ""),
-                status,
-            )
-        }
-        .zipWhen { demoInfo ->
-            blockingToMono {
-                demoInfo.demoDto
-                    .githubProjectCoordinates
-                    ?.let { repo ->
-                        toolService.findCurrentVersion(repo)
-                    } ?: "manual"
-            }
-        }
-        .map { (demoInfo, currentVersion) ->
-            demoInfo.copy(
-                demoDto = demoInfo.demoDto.copy(
-                    vcsTagName = currentVersion
-                )
-            )
+            kubernetesService.stop(it)
         }
 }
