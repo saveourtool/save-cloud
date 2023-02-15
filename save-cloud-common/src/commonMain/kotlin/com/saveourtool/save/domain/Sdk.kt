@@ -24,7 +24,7 @@ open class Sdk(val name: String, open val version: String) {
     /**
      * Fixme: we sometimes rely on this method, so this prevents child classes from being `data class`es
      */
-    override fun toString() = "$name:$version"
+    final override fun toString() = "$name:$version"
 
     /**
      * @return name like `save-base:openjdk-11`
