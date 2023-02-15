@@ -34,6 +34,7 @@ import java.util.stream.Collectors
  * Sandbox implementation for agent service
  */
 @Component("SandboxAgentRepositoryForOrchestrator")
+@Suppress("LongParameterList")
 class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,

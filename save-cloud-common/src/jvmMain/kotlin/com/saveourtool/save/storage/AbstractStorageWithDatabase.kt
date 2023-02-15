@@ -27,7 +27,6 @@ import kotlinx.datetime.Clock
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     private val s3Operations: S3Operations,
     private val prefix: String,
-    private val backupStorageCreator: () -> Storage<Long>,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
