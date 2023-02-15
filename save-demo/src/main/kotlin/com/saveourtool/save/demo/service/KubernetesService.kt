@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono
 import java.net.ConnectException
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
@@ -44,24 +45,20 @@ class KubernetesService(
      * @return [Mono] of [StringResponse] filled with readable message
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.create { sink ->
+    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
             kc.startJob(demo, kubernetesSettings)
-            sink.success(demo)
+            demo
         } catch (kre: KubernetesRunnerException) {
-            sink.error(
-                ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Could not create job for ${jobNameForDemo(demo)}",
-                    kre,
-                )
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not create job for ${jobNameForDemo(demo)}",
+                kre,
             )
         }
     }
-        .flatMap {
-            deferredToMono { configureDemoAgent(it, version) }
-        }
+        .flatMap { deferredToMono { configureDemoAgent(it, version) } }
 
     /**
      * @param demo demo entity
@@ -90,6 +87,12 @@ class KubernetesService(
             else -> DemoStatus.STOPPED
         }
     }
+
+    /**
+     * @param demo demo entity
+     * @return [Deferred] of url of pod with demo
+     */
+    fun getUrl(demo: Demo): Deferred<String> = scope.async { getPodUrl(demo) }
 
     private fun configureDemoAgent(demo: Demo, version: String) = scope.async {
         val url = "${getPodUrl(demo)}/configure"

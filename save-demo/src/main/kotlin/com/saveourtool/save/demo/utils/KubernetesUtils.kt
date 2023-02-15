@@ -83,7 +83,6 @@ fun KubernetesClient.startJob(demo: Demo, kubernetesSettings: KubernetesConfig) 
 fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
     .v1()
     .jobs()
-    .inNamespace(namespace)
     .withName(jobNameForDemo(demo))
 
 /**
@@ -108,9 +107,6 @@ fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
     .withLabel(DEMO_PROJ_NAME, demo.projectName)
     .list()
     .items
-
-// fun <T> Filterable<T>.withDemoLabels(demo: Demo): Filterable<T> = withLabel(DEMO_ORG_NAME, demo.organizationName)
-// .withLabel(DEMO_PROJ_NAME, demo.projectName)
 
 /**
  * @param demo demo entity
