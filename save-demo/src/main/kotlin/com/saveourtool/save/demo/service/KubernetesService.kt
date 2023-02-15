@@ -124,6 +124,7 @@ class KubernetesService(
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
         private const val RETRY_TIMES = 6
+
         @Suppress("InjectDispatcher")
         private val scope = CoroutineScope(Dispatchers.Default)
         private val httpClient = HttpClient(Apache) {
