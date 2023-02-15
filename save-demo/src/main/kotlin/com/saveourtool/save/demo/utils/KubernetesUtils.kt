@@ -88,10 +88,9 @@ fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
 
 /**
  * @param demo demo entity
- * @param namespace namespace that the job should be associated with
  * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
  */
-fun KubernetesClient.isJobReady(demo: Demo, namespace: String) = getJobByName(demo).isReady
+fun KubernetesClient.isJobReady(demo: Demo) = getJobByName(demo).isReady
 
 /**
  * @param demo demo entity
