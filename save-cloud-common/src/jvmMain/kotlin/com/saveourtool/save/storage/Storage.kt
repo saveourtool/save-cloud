@@ -86,6 +86,13 @@ interface Storage<K> {
     fun generateUrlToDownload(key: K): URL
 
     /**
+     * @param key a key to download content
+     * @param contentLength a content length of content
+     * @return URL to download content
+     */
+    fun generateUrlToUpload(key: K, contentLength: Long): URL
+
+    /**
      * @param source a key of source
      * @param target a key of target
      * @return true if the [source] deleted, otherwise false

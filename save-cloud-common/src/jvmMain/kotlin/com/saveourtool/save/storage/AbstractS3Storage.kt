@@ -7,6 +7,8 @@ import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import software.amazon.awssdk.awscore.presigner.PresignedRequest
+import software.amazon.awssdk.http.SdkHttpMethod
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -86,10 +88,10 @@ abstract class AbstractS3Storage<K>(
     }
 
     override fun generateUrlToDownload(key: K): URL = validateAndRun {
-        s3Operations.requestToDownloadObject(buildS3Key(key), downloadDuration)
+        s3Operations.requestToDownloadObject(buildS3Key(key), presignedDuration)
             .also { request ->
-                require(request.isBrowserExecutable) {
-                    "Pre-singer url to download object should be browser executable (header-less)"
+                require(request.isValid(SdkHttpMethod.GET)) {
+                    "Pre-singer url to upload object should be header-less"
                 }
             }
             .url()
@@ -107,6 +109,16 @@ abstract class AbstractS3Storage<K>(
             .map { response ->
                 log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
             }
+    }
+
+    override fun generateUrlToUpload(key: K, contentLength: Long): URL = validateAndRun {
+        s3Operations.requestToUploadObject(buildS3Key(key), contentLength, presignedDuration)
+            .also { request ->
+                require(request.isValid(SdkHttpMethod.POST)) {
+                    "Pre-singer url to download object should be browser executable (header-less)"
+                }
+            }
+            .url()
     }
 
     override fun move(source: K, target: K): Mono<Boolean> = validateAndRun {
@@ -157,11 +169,18 @@ abstract class AbstractS3Storage<K>(
     private fun buildS3Key(key: K) = prefix + buildS3KeySuffix(key).validateSuffix()
 
     companion object {
-        private val downloadDuration = 15.minutes
+        private val presignedDuration = 15.minutes
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
                 "Suffix cannot start with $PATH_DELIMITER: $suffix"
             }
         }
+
+        // copied from software/amazon/awssdk/services/s3/internal/signing/DefaultS3Presigner.java:505
+        // and remove checking GET
+        private fun PresignedRequest.isValid(httpMethod: SdkHttpMethod): Boolean =
+                httpRequest().method() == httpMethod &&
+                        signedPayload() == null &&
+                        (signedHeaders().isEmpty() || signedHeaders().size == 1 && signedHeaders().containsKey("host"))
     }
 }

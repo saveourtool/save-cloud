@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
-import javax.annotation.PostConstruct
 
 import kotlinx.datetime.Clock
 
@@ -32,7 +31,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-
     private val storage: Storage<Long> = UnderlyingStorageWithBackup()
 
     /**
@@ -153,7 +151,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      */
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
-    private inner class UnderlyingStorageWithBackup: UnderlyingStorage(prefix) {
+    private inner class UnderlyingStorageWithBackup : UnderlyingStorage(prefix) {
         /**
          * Init method to back up unexpected ids which are detected in storage,but missed in database
          *
@@ -186,7 +184,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
             }
     }
 
-    private open inner class UnderlyingStorage(underlyingPrefix: String): AbstractS3Storage<Long>(s3Operations, underlyingPrefix) {
+    private open inner class UnderlyingStorage(underlyingPrefix: String) : AbstractS3Storage<Long>(s3Operations, underlyingPrefix) {
         override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
         override fun buildS3KeySuffix(key: Long): String = key.toString()
     }

@@ -8,7 +8,6 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
@@ -19,6 +18,7 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.net.URI
 import java.nio.ByteBuffer
 import java.util.concurrent.*
@@ -34,11 +34,7 @@ class DefaultS3Operations(
     properties: S3OperationsProperties,
 ) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
-    private val credentialsProvider: AwsCredentialsProvider = with(properties) {
-        StaticCredentialsProvider.create(
-            credentials.toAwsCredentials()
-        )
-    }
+    private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
     private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,
@@ -61,7 +57,7 @@ class DefaultS3Operations(
             .asyncConfiguration { builder ->
                 builder.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executorService)
             }
-            .region(Region.AWS_ISO_GLOBAL)
+            .region(region)
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
@@ -74,7 +70,7 @@ class DefaultS3Operations(
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
             .credentialsProvider(credentialsProvider)
-            .region(Region.AWS_ISO_GLOBAL)
+            .region(region)
             .serviceConfiguration(S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build())
@@ -215,9 +211,22 @@ class DefaultS3Operations(
             .build()
     }
 
+    override fun requestToUploadObject(
+        s3Key: String,
+        contentLength: Long,
+        duration: Duration,
+    ): PresignedPutObjectRequest = s3Presigner.presignPutObject { builder ->
+        builder
+            .signatureDuration(duration.toJavaDuration())
+            .putObjectRequest(putObjectRequest(s3Key, contentLength))
+            .build()
+    }
+
     private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
 
     companion object {
+        private val region = Region.AWS_ISO_GLOBAL
+
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
