@@ -21,16 +21,21 @@ data class ConfigProperties(
     val agentConfig: AgentConfig,
     val s3Storage: S3OperationsProperties,
     val kubernetes: KubernetesConfig,
-)
+) {
+    /**
+     * @property demoUrl url of save-demo
+     */
+    data class AgentConfig(
+        val demoUrl: String
+    )
+}
 
 /**
- * @property demoUrl url of save-demo
- */
-data class AgentConfig(
-    val demoUrl: String
-)
-
-/**
+ * `m` stands for milli, `M` stands for Mega.
+ * By default, `M` and `m` are powers of 10.
+ * To be more accurate and use `M` as 1024 instead of 1000, `i` should be provided: `Mi`
+ * https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/
+ *
  * @property apiServerUrl
  * @property serviceAccount
  * @property namespace

@@ -80,7 +80,6 @@ class DownloadToolService(
         return runBlocking { channel.receive() }
     }
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
         url(asset.downloadUrl)
         accept(asset.contentType())

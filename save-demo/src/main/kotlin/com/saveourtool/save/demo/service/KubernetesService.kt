@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 import java.net.ConnectException
 
@@ -45,27 +44,23 @@ class KubernetesService(
      * @return [Mono] of [StringResponse] filled with readable message
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.just(demo)
-        .logValue(logger::info) {
-            "Creating job ${jobNameForDemo(it)}..."
-        }
-        .flatMap { requestedDemo ->
-            try {
-                requestedDemo.also { kc.startJob(requestedDemo, kubernetesSettings) }.toMono()
-            } catch (kre: KubernetesRunnerException) {
-                Mono.error(
-                    ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Could not create job for ${jobNameForDemo(requestedDemo)}",
-                        kre,
-                    )
+    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.create { sink ->
+        logger.info("Creating job ${jobNameForDemo(demo)}...")
+        try {
+            kc.startJob(demo, kubernetesSettings)
+            sink.success(demo)
+        } catch (kre: KubernetesRunnerException) {
+            sink.error(
+                ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Could not create job for ${jobNameForDemo(demo)}",
+                    kre,
                 )
-            }
+            )
         }
-        .flatMap { requestedDemo ->
-            deferredToMono {
-                configureDemoAgent(requestedDemo, version)
-            }
+    }
+        .flatMap {
+            deferredToMono { configureDemoAgent(it, version) }
         }
 
     /**
@@ -74,7 +69,7 @@ class KubernetesService(
      */
     fun stop(demo: Demo): List<StatusDetails> {
         logger.info("Stopping job...")
-        return kc.getJob(demo, configProperties.kubernetes.namespace).delete()
+        return kc.getJobByName(demo).delete()
     }
 
     /**
@@ -90,7 +85,8 @@ class KubernetesService(
         }
         when {
             status == null -> DemoStatus.ERROR
-            status.isSuccess() -> DemoStatus.RUNNING
+            status == HttpStatusCode.OK -> DemoStatus.RUNNING
+            status.isSuccess() -> DemoStatus.STARTING
             else -> DemoStatus.STOPPED
         }
     }
@@ -128,7 +124,6 @@ class KubernetesService(
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
         private const val RETRY_TIMES = 6
-
         @Suppress("InjectDispatcher")
         private val scope = CoroutineScope(Dispatchers.Default)
         private val httpClient = HttpClient(Apache) {

@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
@@ -26,7 +27,8 @@ import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
+import kotlinx.coroutines.reactor.asMono
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
@@ -208,16 +210,6 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
             .subscribeOn(Schedulers.boundedElastic())
 
 /**
- * @param loggingMethod
- * @param lazyMessage
- * @return [Mono] of [T], [T] remains unchanged
- */
-fun <T> Mono<T>.logValue(loggingMethod: (String) -> Unit, lazyMessage: (T) -> String): Mono<T> = map {
-    loggingMethod(lazyMessage(it))
-    it
-}
-
-/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -281,8 +273,10 @@ fun downloadFromClasspath(
  * Transforms [Deferred] to [Mono]
  *
  * @param supplier lambda that returns [Deferred]
+ * @param scheduler
  * @return [Mono] from result of [Deferred]
  */
-fun <T : Any> deferredToMono(supplier: () -> Deferred<T>): Mono<T> = Mono.fromFuture(
-    supplier().asCompletableFuture()
-)
+fun <T : Any> deferredToMono(
+    scheduler: Scheduler = Schedulers.boundedElastic(),
+    supplier: () -> Deferred<T?>
+): Mono<T> = supplier().asMono(scheduler.asCoroutineDispatcher())

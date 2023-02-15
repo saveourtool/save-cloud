@@ -1,7 +1,8 @@
 package com.saveourtool.save.demo.config
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -17,6 +18,10 @@ class Beans {
     @Bean(destroyMethod = "close")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
         val kubernetesSettings = configProperties.kubernetes
-        return DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
+        return KubernetesClientBuilder()
+            .withConfig(ConfigBuilder()
+                .withNamespace(kubernetesSettings.namespace)
+                .build())
+            .build()
     }
 }

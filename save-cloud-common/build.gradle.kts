@@ -75,6 +75,7 @@ kotlin {
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.file)
+                api(libs.kotlinx.coroutines.reactor)
             }
         }
         val jvmTest by getting {

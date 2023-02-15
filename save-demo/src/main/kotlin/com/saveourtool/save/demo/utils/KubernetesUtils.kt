@@ -78,10 +78,9 @@ fun KubernetesClient.startJob(demo: Demo, kubernetesSettings: KubernetesConfig) 
 
 /**
  * @param demo demo entity
- * @param namespace namespace that the job should be associated with
  * @return [ScalableResource] of [Job]
  */
-fun KubernetesClient.getJob(demo: Demo, namespace: String): ScalableResource<Job> = batch()
+fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
     .v1()
     .jobs()
     .inNamespace(namespace)
@@ -92,7 +91,7 @@ fun KubernetesClient.getJob(demo: Demo, namespace: String): ScalableResource<Job
  * @param namespace namespace that the job should be associated with
  * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
  */
-fun KubernetesClient.isJobReady(demo: Demo, namespace: String) = getJob(demo, namespace).isReady
+fun KubernetesClient.isJobReady(demo: Demo, namespace: String) = getJobByName(demo).isReady
 
 /**
  * @param demo demo entity
@@ -105,9 +104,14 @@ fun KubernetesClient.getJobPodsIps(demo: Demo) = getJobPods(demo)
  * @param demo demo entity
  * @return list of pods that are run by job associated with [demo]
  */
-fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods().withLabel("job-name", jobNameForDemo(demo))
+fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
+    .withLabel(DEMO_ORG_NAME, demo.organizationName)
+    .withLabel(DEMO_PROJ_NAME, demo.projectName)
     .list()
     .items
+
+// fun <T> Filterable<T>.withDemoLabels(demo: Demo): Filterable<T> = withLabel(DEMO_ORG_NAME, demo.organizationName)
+// .withLabel(DEMO_PROJ_NAME, demo.projectName)
 
 /**
  * @param demo demo entity

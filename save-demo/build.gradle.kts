@@ -27,7 +27,7 @@ tasks.withType<KotlinCompile> {
 val diktatVersion: String = libs.versions.diktat.get()
 
 dependencies {
-    implementation(projects.saveCloudCommon)
+    api(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
 
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
