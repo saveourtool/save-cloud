@@ -6,8 +6,10 @@ package com.saveourtool.save.demo.agent
 
 import com.saveourtool.save.core.files.readLines
 import com.saveourtool.save.core.utils.ProcessBuilder
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.RunConfiguration
 import com.saveourtool.save.utils.createAndWrite
 import com.saveourtool.save.utils.createAndWriteIfNeeded
 import com.saveourtool.save.utils.fs

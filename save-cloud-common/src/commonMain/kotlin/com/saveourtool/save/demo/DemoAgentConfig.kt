@@ -2,7 +2,7 @@
  * Configuration data classes
  */
 
-package com.saveourtool.save.demo.agent
+package com.saveourtool.save.demo
 
 import kotlinx.serialization.Serializable
 

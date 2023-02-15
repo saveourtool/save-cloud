@@ -31,7 +31,7 @@ spec:
         io.kompose.service: mysql
     spec:
       containers:
-        - image: mysql:8.0.28
+        - image: mysql:8.0.28-oracle
           name: mysql
           ports:
             - containerPort: 3306
