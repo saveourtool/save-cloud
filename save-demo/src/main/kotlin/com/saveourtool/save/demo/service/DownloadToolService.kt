@@ -87,7 +87,6 @@ class DownloadToolService(
         .bodyAsChannel()
         .toByteBufferFlux()
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadFileByFileId(fileId: Long): Flux<ByteBuffer> = httpClient.post {
         url("${configProperties.backendUrl}/files/download?fileId=$fileId")
         accept(ContentType.Application.OctetStream)
