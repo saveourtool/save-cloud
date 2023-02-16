@@ -1,9 +1,7 @@
 package com.saveourtool.save.storage.impl
 
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractS3Storage
-import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.s3KeyToPartsTill
+import com.saveourtool.save.storage.*
 import com.saveourtool.save.utils.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -21,30 +19,32 @@ abstract class AbstractInternalFileStorage(
     private val keysToLoadFromClasspath: Collection<InternalFileKey>,
     s3StoragePrefix: String,
     s3Operations: S3Operations,
-) : AbstractS3Storage<InternalFileKey>(
+) : AbstractS3StorageWithInit<InternalFileKey>(
     s3Operations,
     concatS3Key(s3StoragePrefix, "internal-storage")
 ) {
     /**
      * An init method to upload internal files to S3 from classpath or github
      *
+     * @param underlying
      * @return [Mono] without body
      */
-    override fun doInitAsync(): Mono<Unit> = Flux.concat(
+    override fun doInitAsync(underlying: Storage<InternalFileKey>): Mono<Unit> = Flux.concat(
         keysToLoadFromClasspath.toFlux()
             .flatMap {
-                uploadFromClasspath(it, it.isLatest())
+                underlying.uploadFromClasspath(it, it.isLatest())
             },
-        doInitAdditionally(),
+        doInitAdditionally(underlying),
     )
         .last()
 
     /**
      * Async method to init this storage: copy required files to storage
      *
+     * @param underlying
      * @return [Mono] without body
      */
-    protected open fun doInitAdditionally(): Mono<Unit> = Mono.just(Unit)
+    protected open fun doInitAdditionally(underlying: Storage<InternalFileKey>): Mono<Unit> = Mono.just(Unit)
 
     override fun buildKey(s3KeySuffix: String): InternalFileKey {
         val (version, name) = s3KeySuffix.s3KeyToPartsTill(prefix)
@@ -56,7 +56,7 @@ abstract class AbstractInternalFileStorage(
 
     override fun buildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
 
-    private fun uploadFromClasspath(key: InternalFileKey, overwrite: Boolean): Mono<Unit> = doesExist(key)
+    private fun Storage<InternalFileKey>.uploadFromClasspath(key: InternalFileKey, overwrite: Boolean): Mono<Unit> = doesExist(key)
         .filterWhen { exists ->
             if (exists && overwrite) {
                 delete(key)

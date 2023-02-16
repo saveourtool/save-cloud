@@ -44,9 +44,8 @@ object GitHubHelper {
      * @return list of tags
      */
     suspend fun availableTags(repo: GitHubRepo): List<String> = httpClient.get(repo.getTagsUrl())
-        .body<Map<String, Any>>()
-        .keys
-        .toList()
+        .body<List<TagMetadata>>()
+        .map { it.name }
 
     /**
      * Downloads asset from GitHub in provided [repo] with provided [tagName]
@@ -55,18 +54,18 @@ object GitHubHelper {
      * @param repo
      * @param tagName
      * @param assetName
-     * @return content of found asset with its size
+     * @param consumer consumer of content of found asset with its size
+     * @return result of consumer [R] or null
      */
-    suspend fun download(
+    suspend fun <R : Any> download(
         repo: GitHubRepo,
         tagName: String,
-        assetName: String? = null,
-    ): Pair<ByteReadChannel, Long> = getMetadata(repo, tagName)
+        assetName: String,
+        consumer: suspend (Pair<ByteReadChannel, Long>) -> R
+    ): R? = getMetadata(repo, tagName)
         .assets
-        .single { asset ->
-            !asset.isDigest() && assetName?.let { it == assetName } ?: true
-        }
-        .let {
-            downloadAsset(it) to it.size
+        .singleOrNull { asset -> assetName == asset.name }
+        ?.let {
+            consumer(downloadAsset(it) to it.size)
         }
 }

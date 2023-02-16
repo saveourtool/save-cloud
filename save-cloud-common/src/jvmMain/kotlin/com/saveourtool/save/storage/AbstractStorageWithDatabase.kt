@@ -16,6 +16,7 @@ import java.nio.ByteBuffer
 import java.time.Instant
 
 import kotlinx.datetime.Clock
+import javax.annotation.PostConstruct
 
 /**
  * Implementation of storage which stores keys in database and S3 as underlying storage
@@ -29,8 +30,16 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     private val prefix: String,
     protected val repository: R,
 ) : Storage<K> {
-    private val log: Logger = getLogger(this.javaClass)
-    private val storage: Storage<Long> = UnderlyingStorageWithBackup()
+    private val log: Logger = getLogger(this::class)
+    private val storage: UnderlyingStorageWithBackup = UnderlyingStorageWithBackup()
+
+    /**
+     * Method to call init method in underlying storage
+     */
+    @PostConstruct
+    fun init() {
+        storage.init()
+    }
 
     /**
      * @return a key [K] created from receiver entity [E]
@@ -119,6 +128,8 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     override fun generateUrlToDownload(key: K): URL = getId(key).let { storage.generateUrlToDownload(it) }
 
+    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders = throw UnsupportedOperationException("${AbstractStorageWithDatabase::class.simpleName} storage doesn't support pre-signed url to upload")
+
     private fun getIdAsMono(key: K): Mono<Long> = blockingToMono { findEntity(key)?.requiredId() }
         .switchIfEmptyToNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
 
@@ -150,35 +161,41 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      */
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
-    private inner class UnderlyingStorageWithBackup : UnderlyingStorage(prefix) {
+    private inner class UnderlyingStorageWithBackup : StorageWrapperWithInit<Long>() {
+        override fun createUnderlyingStorage(): Storage<Long> = UnderlyingStorage(prefix)
+
+        override val log: Logger = this@AbstractStorageWithDatabase.log
+
+        override val storageName: String = this@AbstractStorageWithDatabase::class.simpleName ?: this@AbstractStorageWithDatabase::class.java.simpleName
+
         /**
          * Init method to back up unexpected ids which are detected in storage,but missed in database
          *
          * @return [Mono] without body
          */
-        override fun doInitAsync(): Mono<Unit> = detectAsyncUnexpectedIds(repository)
+        override fun doInitAsync(underlying: Storage<Long>): Mono<Unit> = underlying.detectAsyncUnexpectedIds(repository)
             .collectList()
             .filter { it.isNotEmpty() }
             .flatMapIterable { unexpectedIds ->
                 val backupStorage = UnderlyingStorage(prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
                 log.warn {
-                    "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
+                    "Found unexpected ids $unexpectedIds in storage $storageName. Move them to backup storage..."
                 }
                 generateSequence { backupStorage }.take(unexpectedIds.size)
                     .toList()
                     .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
-                storage.contentLength(id)
+                underlying.contentLength(id)
                     .flatMap { contentLength ->
-                        backupStorage.upload(id, contentLength, storage.download(id))
+                        backupStorage.upload(id, contentLength, underlying.download(id))
                     }
-                    .then(storage.delete(id))
+                    .then(underlying.delete(id))
             }
             .collectList()
             .map {
                 log.info {
-                    "Moved unexpected ids to backup storage"
+                    "Moved unexpected ids in $storageName to backup storage"
                 }
             }
     }

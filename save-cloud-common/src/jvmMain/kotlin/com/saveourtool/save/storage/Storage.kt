@@ -6,6 +6,8 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 
+typealias UrlWithHeaders = Pair<URL, Map<String, Collection<String>>>
+
 /**
  * Base interface for Storage
  *
@@ -88,9 +90,9 @@ interface Storage<K> {
     /**
      * @param key a key to download content
      * @param contentLength a content length of content
-     * @return URL to download content
+     * @return URL with headers to upload content
      */
-    fun generateUrlToUpload(key: K, contentLength: Long): URL
+    fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders
 
     /**
      * @param source a key of source
