@@ -31,7 +31,7 @@ interface RunnerFactory {
         /**
          * Runner that executes [Demo] in the same process as save-demo
          *
-         * **Should not be used**
+         * **Should not be used, as may lower save-demo performance**
          */
         PURE,
         ;
