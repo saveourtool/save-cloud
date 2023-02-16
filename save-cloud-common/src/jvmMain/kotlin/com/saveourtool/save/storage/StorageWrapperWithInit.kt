@@ -2,19 +2,22 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
+
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
+
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
+
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 
 /**
  * Storage implementation which wraps provided storage and adds an init method
@@ -37,14 +40,12 @@ abstract class StorageWrapperWithInit<K> : Storage<K> {
      * Storage name, it's class name by default
      */
     protected open val storageName: String = this::class.simpleName ?: this::class.java.simpleName
-
     private val initScheduler: Scheduler = Schedulers.boundedElastic()
 
     /**
      * A shared [CoroutineDispatcher] for init methods
      */
     protected val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
-
     private val underlying: Storage<K> by lazy { createUnderlyingStorage() }
 
     /**

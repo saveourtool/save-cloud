@@ -213,6 +213,18 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
             .subscribeOn(Schedulers.boundedElastic())
 
 /**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
+ *
+ * @return [Flow] of [ByteBuffer]
+ */
+fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = flow {
+    consumeEachBufferRange { buffer, last ->
+        emit(buffer)
+        !last
+    }
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -283,15 +295,3 @@ fun <T : Any> deferredToMono(
     scheduler: Scheduler = Schedulers.boundedElastic(),
     supplier: () -> Deferred<T?>
 ): Mono<T> = supplier().asMono(scheduler.asCoroutineDispatcher())
-
-/**
- * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
- *
- * @return [Flow] of [ByteBuffer]
- */
-fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = flow {
-    consumeEachBufferRange { buffer, last ->
-        emit(buffer)
-        !last
-    }
-}

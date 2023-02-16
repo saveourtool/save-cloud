@@ -1,16 +1,17 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.flow.Flow
+
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import software.amazon.awssdk.services.s3.model.PutObjectResponse
+
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
+
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.flow.Flow
 
 /**
  * S3 implementation of Storage
@@ -54,14 +55,14 @@ abstract class AbstractS3Storage<K>(
         .defaultIfEmpty(false)
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
-        s3Operations.uploadObject(buildS3Key(key), content)
-            .flatMap {
-                contentLength(key)
-            }
+            s3Operations.uploadObject(buildS3Key(key), content)
+                .flatMap {
+                    contentLength(key)
+                }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
-        s3Operations.uploadObject(buildS3Key(key), contentLength, content)
-            .thenReturn(Unit)
+            s3Operations.uploadObject(buildS3Key(key), contentLength, content)
+                .thenReturn(Unit)
 
     override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) {
         s3Operations.uploadObject(buildS3Key(key), contentLength, content)
@@ -73,30 +74,30 @@ abstract class AbstractS3Storage<K>(
         }
 
     override fun generateUrlToDownload(key: K): URL =
-        s3Operations.requestToDownloadObject(buildS3Key(key), presignedDuration)
-            .also { request ->
-                require(request.isBrowserExecutable) {
-                    "Pre-singer url to download object should be browser executable (header-less)"
+            s3Operations.requestToDownloadObject(buildS3Key(key), presignedDuration)
+                .also { request ->
+                    require(request.isBrowserExecutable) {
+                        "Pre-singer url to download object should be browser executable (header-less)"
+                    }
                 }
-            }
-            .url()
+                .url()
 
     override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders =
-        s3Operations.requestToUploadObject(buildS3Key(key), contentLength, presignedDuration)
-            .also { request ->
-                require(request.signedPayload().isEmpty) {
-                    "Pre-singer url to download object should be without payload"
+            s3Operations.requestToUploadObject(buildS3Key(key), contentLength, presignedDuration)
+                .also { request ->
+                    require(request.signedPayload().isEmpty) {
+                        "Pre-singer url to download object should be without payload"
+                    }
                 }
-            }
-            .let {
-                it.url() to it.signedHeaders()
-            }
+                .let {
+                    it.url() to it.signedHeaders()
+                }
 
     override fun move(source: K, target: K): Mono<Boolean> =
-        s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
-            .flatMap {
-                delete(source)
-            }
+            s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
+                .flatMap {
+                    delete(source)
+                }
 
     /**
      * @param s3KeySuffix cannot start with [PATH_DELIMITER]

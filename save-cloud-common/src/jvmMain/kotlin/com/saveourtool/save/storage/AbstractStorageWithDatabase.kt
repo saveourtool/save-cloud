@@ -4,19 +4,22 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
+
 import org.slf4j.Logger
 import org.springframework.data.domain.Example
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 /**
  * Implementation of storage which stores keys in database and S3 as underlying storage
@@ -122,6 +125,9 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
                 }
         }
 
+    /**
+     * @throws Exception
+     */
     override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) {
         uploadAndReturnUpdatedKey(key, contentLength, content)
     }
@@ -131,6 +137,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      * @param contentLength a content length of content
      * @param content
      * @return updated key [E]
+     * @throws Exception
      */
     open suspend fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flow<ByteBuffer>): K {
         val entity = withContext(Dispatchers.IO) {
@@ -153,7 +160,9 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     override fun generateUrlToDownload(key: K): URL = getId(key).let { storage.generateUrlToDownload(it) }
 
-    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders = throw UnsupportedOperationException("${AbstractStorageWithDatabase::class.simpleName} storage doesn't support pre-signed url to upload")
+    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders = throw UnsupportedOperationException(
+        "${AbstractStorageWithDatabase::class.simpleName} storage doesn't support pre-signed url to upload"
+    )
 
     private fun getIdAsMono(key: K): Mono<Long> = blockingToMono { findEntity(key)?.requiredId() }
         .switchIfEmptyToNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
@@ -191,11 +200,9 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
     private inner class UnderlyingStorageWithBackup : StorageWrapperWithInit<Long>() {
-        override fun createUnderlyingStorage(): Storage<Long> = UnderlyingStorage(prefix)
-
         override val log: Logger = this@AbstractStorageWithDatabase.log
-
         override val storageName: String = this@AbstractStorageWithDatabase::class.simpleName ?: this@AbstractStorageWithDatabase::class.java.simpleName
+        override fun createUnderlyingStorage(): Storage<Long> = UnderlyingStorage(prefix)
 
         /**
          * Init method to back up unexpected ids which are detected in storage,but missed in database
