@@ -5,6 +5,7 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import io.ktor.utils.io.*
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -27,6 +28,8 @@ import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.reactor.asMono
 
@@ -280,3 +283,15 @@ fun <T : Any> deferredToMono(
     scheduler: Scheduler = Schedulers.boundedElastic(),
     supplier: () -> Deferred<T?>
 ): Mono<T> = supplier().asMono(scheduler.asCoroutineDispatcher())
+
+/**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
+ *
+ * @return [Flow] of [ByteBuffer]
+ */
+fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = flow {
+    consumeEachBufferRange { buffer, last ->
+        emit(buffer)
+        !last
+    }
+}

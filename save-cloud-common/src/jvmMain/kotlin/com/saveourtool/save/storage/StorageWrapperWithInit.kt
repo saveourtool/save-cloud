@@ -2,6 +2,9 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -35,10 +38,12 @@ abstract class StorageWrapperWithInit<K> : Storage<K> {
      */
     protected open val storageName: String = this::class.simpleName ?: this::class.java.simpleName
 
+    private val initScheduler: Scheduler = Schedulers.boundedElastic()
+
     /**
-     * A shared scheduler for init methods
+     * A shared [CoroutineDispatcher] for init methods
      */
-    protected open val initScheduler: Scheduler = Schedulers.boundedElastic()
+    protected val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
 
     private val underlying: Storage<K> by lazy { createUnderlyingStorage() }
 
@@ -61,7 +66,7 @@ abstract class StorageWrapperWithInit<K> : Storage<K> {
                     "Init method cannot be called more than 1 time. Initialization already finished by another project"
                 }
                 log.info {
-                    "Initialization is done"
+                    "Initialization of $storageName is done"
                 }
             }
             .subscribeOn(initScheduler)
@@ -77,6 +82,13 @@ abstract class StorageWrapperWithInit<K> : Storage<K> {
     protected open fun doInitAsync(underlying: Storage<K>): Mono<Unit> = Mono.just(Unit)
 
     private fun <R> validateAndRun(action: () -> R): R {
+        require(isInitFinished.get()) {
+            "Any method of $storageName should be called after init method is finished"
+        }
+        return action()
+    }
+
+    private suspend fun <R> validateAndRunSuspend(action: suspend () -> R): R {
         require(isInitFinished.get()) {
             "Any method of $storageName should be called after init method is finished"
         }
@@ -108,6 +120,10 @@ abstract class StorageWrapperWithInit<K> : Storage<K> {
     }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = validateAndRun {
+        underlying.upload(key, contentLength, content)
+    }
+
+    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) = validateAndRunSuspend {
         underlying.upload(key, contentLength, content)
     }
 

@@ -6,18 +6,20 @@ import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.storage.StorageKotlinExtension.upload
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.github.GitHubHelper
 import com.saveourtool.save.utils.github.GitHubRepo
+import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.thenJust
+import com.saveourtool.save.utils.toByteBufferFlow
 import com.saveourtool.save.utils.warn
 import generated.SAVE_CORE_VERSION
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
+import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
+typealias KeyWithTagName = Pair<InternalFileKey, String>
 /**
  * Storage for internal files used by backend: save-cli and save-agent
  */
@@ -30,27 +32,35 @@ class BackendInternalFileStorage(
     configProperties.s3Storage.prefix,
     s3Operations,
 ) {
-    override fun doInitAdditionally(underlying: Storage<InternalFileKey>): Mono<Unit> = mono {
-        GitHubHelper.availableTags(saveCliRepo)
-            .sorted()
-            .takeLast(3)
-            .forEach { tagName ->
-                val key = saveCliKey(tagName.removePrefix("v"))
-                val isUploaded = GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
-                    underlying.upload(key, contentLength, content)
+    override fun doInitAdditionally(underlying: Storage<InternalFileKey>): Mono<Unit> {
+        return flux<KeyWithTagName>(initCoroutineDispatcher) {
+            GitHubHelper.availableTags(saveCliRepo)
+                .sorted()
+                .takeLast(SAVE_CLI_VERSIONS)
+                .map { tagName ->
+                    saveCliKey(tagName.removePrefix("v")) to tagName
                 }
-                isUploaded?.run {
-                    log.debug {
-                        "Uploaded $key to internal storage"
+        }
+            .filterWhen { (key, _) ->
+                underlying.doesExist(key).map(Boolean::not)
+            }
+            .flatMap { (key, tagName) ->
+                mono(initCoroutineDispatcher) {
+                    GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
+                        underlying.upload(key, contentLength, content.toByteBufferFlow())
+                        log.info {
+                            "Uploaded $key to internal storage"
+                        }
+                    } ?: log.warn {
+                        "Not found $key in github"
                     }
-                } ?: log.warn {
-                    "Not found $key in github"
                 }
             }
+            .thenJust(Unit)
     }
 
     companion object {
-        private val log: Logger = getLogger<BackendInternalFileStorage>()
+        private const val SAVE_CLI_VERSIONS = 3
 
         /**
          * [InternalFileKey] for *save-agent*

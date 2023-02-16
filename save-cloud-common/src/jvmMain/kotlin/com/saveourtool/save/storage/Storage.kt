@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import kotlinx.coroutines.flow.Flow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.net.URL
@@ -53,10 +54,17 @@ interface Storage<K> {
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
-     * @param content
+     * @param content as [Flux] of [ByteBuffer]
      * @return [Mono] without value
      */
     fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content as [Flow] of [ByteBuffer]
+     */
+    suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>)
 
     /**
      * @param key a key for provided content

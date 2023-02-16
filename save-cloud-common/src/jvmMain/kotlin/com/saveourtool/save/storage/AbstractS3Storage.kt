@@ -1,9 +1,12 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -59,6 +62,10 @@ abstract class AbstractS3Storage<K>(
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
         s3Operations.uploadObject(buildS3Key(key), contentLength, content)
             .thenReturn(Unit)
+
+    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) {
+        s3Operations.uploadObject(buildS3Key(key), contentLength, content)
+    }
 
     override fun download(key: K): Flux<ByteBuffer> = s3Operations.getObject(buildS3Key(key))
         .flatMapMany {

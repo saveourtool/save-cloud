@@ -4,18 +4,18 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import org.slf4j.Logger
 import org.springframework.data.domain.Example
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
-
-import kotlinx.datetime.Clock
 import javax.annotation.PostConstruct
 
 /**
@@ -73,7 +73,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
         .flatMap { entity ->
             storage.delete(entity.requiredId())
                 .asyncEffectIf({ this }) {
-                    doDelete(entity)
+                    doDeleteAsMono(entity)
                 }
         }
         .defaultIfEmpty(false)
@@ -89,6 +89,22 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      */
     open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
 
+    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
+        repository.save(key.toEntity())
+    }
+        .flatMap { entity ->
+            storage.upload(entity.requiredId(), content)
+                .flatMap { contentSize ->
+                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
+                        .map {
+                            it.toKey() to contentSize
+                        }
+                }
+                .onErrorResume { ex ->
+                    doDeleteAsMono(entity).then(Mono.error(ex))
+                }
+        }
+
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
@@ -102,25 +118,34 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
             storage.upload(entity.requiredId(), contentLength, content)
                 .map { entity.toKey() }
                 .onErrorResume { ex ->
-                    doDelete(entity).then(Mono.error(ex))
+                    doDeleteAsMono(entity).then(Mono.error(ex))
                 }
         }
 
-    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
-        repository.save(key.toEntity())
+    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) {
+        uploadAndReturnUpdatedKey(key, contentLength, content)
     }
-        .flatMap { entity ->
-            storage.upload(entity.requiredId(), content)
-                .flatMap { contentSize ->
-                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .map {
-                            it.toKey() to contentSize
-                        }
-                }
-                .onErrorResume { ex ->
-                    doDelete(entity).then(Mono.error(ex))
-                }
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return updated key [E]
+     */
+    open suspend fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flow<ByteBuffer>): K {
+        val entity = withContext(Dispatchers.IO) {
+            repository.save(key.toEntity())
         }
+        try {
+            storage.upload(entity.requiredId(), contentLength, content)
+        } catch (ex: Exception) {
+            withContext(Dispatchers.IO) {
+                doDelete(entity)
+            }
+            throw ex
+        }
+        return entity.toKey()
+    }
 
     override fun move(source: K, target: K): Mono<Boolean> = throw UnsupportedOperationException("${AbstractStorageWithDatabase::class.simpleName} storage doesn't support moving")
 
@@ -135,9 +160,13 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     private fun getId(key: K): Long = findEntity(key)?.requiredId().orNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
 
-    private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
+    private fun doDelete(entity: E) {
         beforeDelete(entity)
         repository.delete(entity)
+    }
+
+    private fun doDeleteAsMono(entity: E): Mono<Unit> = blockingToMono {
+        doDelete(entity)
     }
 
     /**

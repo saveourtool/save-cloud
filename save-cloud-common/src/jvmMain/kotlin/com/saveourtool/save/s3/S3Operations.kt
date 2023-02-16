@@ -1,5 +1,9 @@
 package com.saveourtool.save.s3
 
+import io.ktor.http.content.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.async.ResponsePublisher
@@ -41,6 +45,22 @@ interface S3Operations {
      * @return [Mono] with response
      */
     fun uploadObject(s3Key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse>
+
+    /**
+     * @param s3Key
+     * @param contentLength
+     * @param content
+     * @return response
+     */
+    suspend fun uploadObject(s3Key: String, contentLength: Long, content: ByteReadChannel): PutObjectResponse
+
+    /**
+     * @param s3Key
+     * @param contentLength
+     * @param content
+     * @return response
+     */
+    suspend fun uploadObject(s3Key: String, contentLength: Long, content: Flow<ByteBuffer>): PutObjectResponse
 
     /**
      * @param sourceS3Key

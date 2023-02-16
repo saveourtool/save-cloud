@@ -1,5 +1,16 @@
 package com.saveourtool.save.s3
 
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
+import kotlinx.coroutines.reactor.asFlux
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.withContext
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -45,6 +56,7 @@ class DefaultS3Operations(
         )
     }
     private val scheduler = Schedulers.fromExecutorService(executorService, "s3-operations-${properties.bucketName}-")
+    private val coroutineDispatcher = scheduler.asCoroutineDispatcher()
     private val s3Client: S3AsyncClient = with(properties) {
         S3AsyncClient.builder()
             .credentialsProvider(credentialsProvider)
@@ -170,6 +182,29 @@ class DefaultS3Operations(
     override fun uploadObject(s3Key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse> =
             s3Client.putObject(putObjectRequest(s3Key, contentLength), AsyncRequestBody.fromPublisher(content))
                 .toMonoAndPublishOn()
+
+    override suspend fun uploadObject(s3Key: String, contentLength: Long, content: ByteReadChannel): PutObjectResponse {
+        val contentAsFlux = flow {
+            content.consumeEachBufferRange { buffer, last ->
+                emit(buffer)
+                !last
+            }
+        }
+            .asFlux(coroutineDispatcher)
+        return s3Client.putObject(putObjectRequest(s3Key, contentLength), AsyncRequestBody.fromPublisher(contentAsFlux))
+            .toMonoAndPublishOn()
+            .awaitSingleOrNull()
+            ?: throw IllegalStateException("Failed to upload $s3Key")
+    }
+
+    override suspend fun uploadObject(s3Key: String, contentLength: Long, content: Flow<ByteBuffer>): PutObjectResponse = withContext(coroutineDispatcher) {
+        s3Client.putObject(
+            putObjectRequest(s3Key, contentLength),
+            AsyncRequestBody.fromPublisher(content.flowOn(coroutineDispatcher).asPublisher(coroutineDispatcher))
+        )
+            .asDeferred()
+            .await()
+    }
 
     override fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse> {
         val request = CopyObjectRequest.builder()
