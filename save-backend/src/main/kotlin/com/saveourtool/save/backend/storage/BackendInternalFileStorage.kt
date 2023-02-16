@@ -5,7 +5,6 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
 import com.saveourtool.save.storage.impl.InternalFileKey
-import com.saveourtool.save.storage.StorageKotlinExtension.upload
 import com.saveourtool.save.utils.github.GitHubHelper
 import com.saveourtool.save.utils.github.GitHubRepo
 import com.saveourtool.save.utils.info
@@ -13,13 +12,12 @@ import com.saveourtool.save.utils.thenJust
 import com.saveourtool.save.utils.toByteBufferFlow
 import com.saveourtool.save.utils.warn
 import generated.SAVE_CORE_VERSION
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
-typealias KeyWithTagName = Pair<InternalFileKey, String>
 /**
  * Storage for internal files used by backend: save-cli and save-agent
  */
@@ -33,26 +31,29 @@ class BackendInternalFileStorage(
     s3Operations,
 ) {
     override fun doInitAdditionally(underlying: Storage<InternalFileKey>): Mono<Unit> {
-        return flux<KeyWithTagName>(initCoroutineDispatcher) {
+        return flux(initCoroutineDispatcher) {
             GitHubHelper.availableTags(saveCliRepo)
                 .sorted()
                 .takeLast(SAVE_CLI_VERSIONS)
                 .map { tagName ->
                     saveCliKey(tagName.removePrefix("v")) to tagName
                 }
+                .forEach { this.send(it) }
         }
             .filterWhen { (key, _) ->
                 underlying.doesExist(key).map(Boolean::not)
             }
             .flatMap { (key, tagName) ->
                 mono(initCoroutineDispatcher) {
-                    GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
-                        underlying.upload(key, contentLength, content.toByteBufferFlow())
-                        log.info {
-                            "Uploaded $key to internal storage"
+                    withContext(initCoroutineDispatcher) {
+                        GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
+                            underlying.upload(key, contentLength, content.toByteBufferFlow())
+                            log.info {
+                                "Uploaded $key to internal storage"
+                            }
+                        } ?: log.warn {
+                            "Not found $key in github"
                         }
-                    } ?: log.warn {
-                        "Not found $key in github"
                     }
                 }
             }
