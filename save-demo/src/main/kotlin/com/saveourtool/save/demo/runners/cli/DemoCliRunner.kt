@@ -9,6 +9,7 @@ import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.utils.getLogger
 import org.slf4j.Logger
 import java.nio.file.Path
+import kotlin.io.path.createTempDirectory
 
 /**
  * [CliRunner] for provided [demo] with specific [version]
@@ -21,6 +22,9 @@ class DemoCliRunner(
 ) : AbstractCliRunner(dependencyStorage) {
     override val log: Logger = Companion.log
     override val configName: String? = demo.configName
+    override val testFileName: String = demo.fileName
+    override val tmpDir: Path = createTempDirectory("demo-${demo.organizationName}-${demo.projectName}-")
+
     override fun getRunCommand(
         workingDir: Path,
         testPath: Path,
@@ -46,6 +50,6 @@ class DemoCliRunner(
     }
 
     companion object {
-        private val log: Logger = getLogger<DiktatCliRunner>()
+        private val log: Logger = getLogger<DemoCliRunner>()
     }
 }

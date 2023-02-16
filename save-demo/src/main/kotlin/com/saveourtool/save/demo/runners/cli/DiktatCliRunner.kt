@@ -27,6 +27,8 @@ class DiktatCliRunner(
 ) : AbstractCliRunner(dependencyStorage) {
     override val log: Logger = logger
     override val configName: String = DIKTAT_CONFIG_NAME
+    override val testFileName: String = KOTLIN_TEST_NAME
+    override val tmpDir: Path = createTempDirectory("diktat-demo-")
 
     override fun getRunCommand(
         workingDir: Path,
