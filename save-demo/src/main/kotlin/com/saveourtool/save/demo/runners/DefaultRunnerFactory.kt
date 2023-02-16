@@ -11,7 +11,7 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import org.springframework.stereotype.Component
 
 /**
- * Factory creates both [DemoCliRunner] and [DemoCliRunner].
+ * Factory creates both [DemoCliRunner] and [DemoPodRunner].
  */
 @Component
 class DefaultRunnerFactory(
