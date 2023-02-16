@@ -4,9 +4,15 @@ metadata:
   name: {{ .Values.demo.name }}-config
 data:
   application.properties: |
-    demo.file-storage.location={{ include "demo.constants.storage" . }}
+    demo.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    demo.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
+    demo.kubernetes.namespace=${POD_NAMESPACE}
+
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.demo.managementPort }}
     logging.level.org.springframework=DEBUG
     spring.datasource.url=${spring.datasource.demo-url}
 
+    {{ if .Values.demo.applicationProperties }}
+    {{- .Values.demo.applicationProperties | nindent 4 }}
+    {{ end }}

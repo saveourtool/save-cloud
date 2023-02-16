@@ -3,8 +3,7 @@ package com.saveourtool.save.demo.service
 import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
-import com.saveourtool.save.demo.storage.ToolKey
-import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.toByteBufferFlux
 import com.saveourtool.save.domain.ProjectCoordinates
@@ -24,6 +23,8 @@ import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -41,11 +42,12 @@ import kotlinx.serialization.json.Json
  */
 @Service
 class DownloadToolService(
-    private val toolStorage: ToolStorage,
+    private val dependencyStorage: DependencyStorage,
     private val toolService: ToolService,
     private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
     private val configProperties: ConfigProperties,
+    private val demoService: DemoService,
 ) {
     private val jsonSerializer = Json { ignoreUnknownKeys = true }
 
@@ -78,7 +80,6 @@ class DownloadToolService(
         return runBlocking { channel.receive() }
     }
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
         url(asset.downloadUrl)
         accept(asset.contentType())
@@ -86,9 +87,8 @@ class DownloadToolService(
         .bodyAsChannel()
         .toByteBufferFlux()
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadFileByFileId(fileId: Long): Flux<ByteBuffer> = httpClient.post {
-        url("${configProperties.backend}/files/download?fileId=$fileId")
+        url("${configProperties.backendUrl}/files/download?fileId=$fileId")
         accept(ContentType.Application.OctetStream)
     }
         .bodyAsChannel()
@@ -102,10 +102,18 @@ class DownloadToolService(
     fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                toolStorage.overwrite(
-                    ToolKey(repo.organizationName, repo.projectName, vcsTagName, asset.name),
-                    downloadAsset(asset),
-                ).subscribe()
+                val content = downloadAsset(asset)
+                dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
+                    .switchIfEmpty {
+                        demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
+                            "Not found demo for ${repo.toPrettyString()}"
+                        }
+                            .map {
+                                Dependency(it, vcsTagName, asset.name, -1L)
+                            }
+                    }
+                    .flatMap { dependencyStorage.overwrite(it, content) }
+                    .subscribe()
             }
                 .invokeOnCompletion { exception ->
                     exception?.let {
@@ -119,23 +127,24 @@ class DownloadToolService(
         }
 
     @PostConstruct
-    private fun loadToStorage() = toolStorage.list()
-        .collectList()
-        .zipWith(toolService.getSupportedTools().toMono())
-        .flatMapIterable { (availableFiles, supportedTools) ->
-            supportedTools.map { it.toToolKey() }
-                .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
-                .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
-                .filter { it !in availableFiles }
-                .also { tools ->
-                    if (tools.isEmpty()) {
-                        logger.debug("All required tools are already present in storage.")
-                    } else {
-                        val toolsToBeDownloaded = tools.joinToString(", ") { it.toPrettyString() }
-                        logger.info("Tools to be downloaded: [$toolsToBeDownloaded]")
-                    }
-                }
+    private fun loadToStorage() = toolService.getSupportedTools()
+        .map { it.toToolKey() }
+        .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+        .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
+        .toFlux()
+        .filterWhen {
+            dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.version).map(Boolean::not)
         }
+        .collectList()
+        .doOnNext { tools ->
+            if (tools.isEmpty()) {
+                logger.debug("All required tools are already present in storage.")
+            } else {
+                val toolsToBeDownloaded = tools.joinToString(", ") { it.toPrettyString() }
+                logger.info("Tools to be downloaded: [$toolsToBeDownloaded]")
+            }
+        }
+        .flatMapIterable { it }
         .flatMap { key ->
             downloadFromGithubAndUploadToStorage(
                 GithubRepo(key.organizationName, key.projectName),
@@ -181,7 +190,7 @@ class DownloadToolService(
     /**
      * Upload several [dependencies] to storage (will be overwritten if already present)
      *
-     * @param dependencies list of [Dependency] to store in [toolStorage]
+     * @param dependencies list of [Dependency] to store in [dependencyStorage]
      * @return number of dependencies that has been downloaded
      */
     fun downloadToStorage(dependencies: List<Dependency>) = dependencies.map { downloadToStorage(it) }
@@ -191,14 +200,14 @@ class DownloadToolService(
     /**
      * Upload [dependency] to storage (will be overwritten if already present)
      *
-     * @param dependency that should be saved to [toolStorage]
+     * @param dependency that should be saved to [dependencyStorage]
      * @return [Job]
      */
     fun downloadToStorage(dependency: Dependency) = scope.launch {
         downloadFileByFileId(dependency.fileId)
             .let { byteBuffers ->
                 with(dependency) {
-                    toolStorage.overwrite(ToolKey(demo.organizationName, demo.projectName, version, fileName), byteBuffers)
+                    dependencyStorage.overwrite(dependency, byteBuffers)
                         .subscribe()
                         .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
                 }

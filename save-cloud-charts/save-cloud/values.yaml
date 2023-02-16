@@ -18,7 +18,6 @@ backend:
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
-  s3SecretFile: /home/cnb/secrets/s3_secrets
 frontend:
   name: frontend
   imageName: save-frontend
@@ -59,6 +58,9 @@ gateway:
     annotations: {}
     # Any additional options for Service `spec` block
     spec: {}
+s3:
+  external: true
+  secretFile: /home/cnb/secrets/s3_secrets
 storage:
   size: 10Gi
 reposStorage:
@@ -112,7 +114,7 @@ prometheus:
   server:
     image:
       repository: quay.io/prometheus/prometheus
-      tag: v2.41.0
+      tag: v2.42.0
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
@@ -122,7 +124,7 @@ prometheus:
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.7.2
+    tag: 2.7.3
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
@@ -165,7 +167,7 @@ loki:
   loki:
     image:
       repository: grafana/loki
-      tag: 2.7.2
+      tag: 2.7.3
     auth_enabled: false
     commonConfig:
       replication_factor: 1

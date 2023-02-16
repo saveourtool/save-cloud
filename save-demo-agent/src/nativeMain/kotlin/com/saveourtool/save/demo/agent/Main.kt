@@ -4,11 +4,14 @@
 
 package com.saveourtool.save.demo.agent
 
-import com.saveourtool.save.demo.agent.utils.setupEnvironment
-import com.saveourtool.save.utils.parseConfig
+import com.saveourtool.save.core.logging.logInfo
+import com.saveourtool.save.demo.ServerConfiguration
+import com.saveourtool.save.utils.parseConfigOrDefault
+
+private val defaultServerConfiguration = ServerConfiguration()
 
 fun main() {
-    val config: DemoAgentConfig = parseConfig()
-    setupEnvironment(config.demoUrl, config.demoConfiguration)
-    server(config.serverConfiguration).start()
+    logInfo("Launching server on port ${defaultServerConfiguration.port}")
+    val serverConfiguration: ServerConfiguration = parseConfigOrDefault(defaultServerConfiguration)
+    server(serverConfiguration).start(wait = true)
 }

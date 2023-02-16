@@ -11,9 +11,10 @@ const val PATH_DELIMITER = "/"
 
 /**
  * @receiver key in S3 as [String]
+ * @param prefix a common prefix for all keys in storage
  * @return parts [this] split by [PATH_DELIMITER]
  */
-fun String.s3KeyToParts(): List<String> = removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
+fun String.s3KeyToPartsTill(prefix: String): List<String> = removePrefix(prefix).removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
 
 /**
  * @param parts should not end or start with [PATH_DELIMITER] -- will be deleted

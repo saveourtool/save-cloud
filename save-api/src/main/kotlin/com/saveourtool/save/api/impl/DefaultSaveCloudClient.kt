@@ -23,7 +23,7 @@ import com.saveourtool.save.v1
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.client.HttpClient
@@ -160,7 +160,7 @@ internal class DefaultSaveCloudClient(
                         headers
                     )
                 })
-            ).getOrHandle { error ->
+            ).getOrElse { error ->
                 return error.left()
             }
         }
@@ -202,7 +202,7 @@ internal class DefaultSaveCloudClient(
 
         val (organizationName, projectName) = request.projectCoordinates
 
-        val ignoredExecutionIds = listExecutions(organizationName, projectName, contestName).getOrHandle { error ->
+        val ignoredExecutionIds = listExecutions(organizationName, projectName, contestName).getOrElse { error ->
             return error.left()
         }
             .asSequence()
@@ -404,7 +404,7 @@ internal class DefaultSaveCloudClient(
             val startNanos = nanoTime()
 
             while (true) {
-                val result = block().getOrHandle { error ->
+                val result = block().getOrElse { error ->
                     /*
                      * Return immediately if an error has been encountered.
                      */

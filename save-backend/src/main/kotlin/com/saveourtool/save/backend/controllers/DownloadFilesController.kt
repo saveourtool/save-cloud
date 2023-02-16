@@ -44,10 +44,9 @@ class DownloadFilesController(
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
-    @RequestMapping(
+    @GetMapping(
         path = ["/internal/files/download-save-agent"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        method = [RequestMethod.GET, RequestMethod.POST]
     )
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
@@ -71,10 +70,9 @@ class DownloadFilesController(
         required = true
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
-    @RequestMapping(
+    @GetMapping(
         path = ["/internal/files/download-save-cli"],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-        method = [RequestMethod.GET, RequestMethod.POST]
     )
     fun downloadSaveCliByVersion(
         @RequestParam version: String,

@@ -2,7 +2,7 @@
  * Configuration data classes
  */
 
-package com.saveourtool.save.demo.agent
+package com.saveourtool.save.demo
 
 import kotlinx.serialization.Serializable
 
@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
  *
  * @property demoConfiguration all the information about current demo e.g. maintainer and version
  * @property runConfiguration all the required information to run demo
- * @property serverConfiguration information required for save-demo-agent server configuration
  * @property demoUrl url of save-demo
  */
 @Serializable
@@ -19,7 +18,6 @@ data class DemoAgentConfig(
     val demoUrl: String,
     val demoConfiguration: DemoConfiguration,
     val runConfiguration: RunConfiguration,
-    val serverConfiguration: ServerConfiguration = ServerConfiguration(),
 )
 
 /**
@@ -61,5 +59,5 @@ data class RunConfiguration(
  */
 @Serializable
 data class ServerConfiguration(
-    val port: Int = 23456,
+    val port: Long = 23456L,
 )

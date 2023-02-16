@@ -141,7 +141,7 @@ private fun ChildrenBuilder.showBreadcrumb(
     }
 }
 
-private fun ChildrenBuilder.showAvaliableOptions(
+private fun ChildrenBuilder.showAvailableOptions(
     options: List<String>,
     onOptionClick: (String) -> Unit,
 ) {
@@ -154,8 +154,8 @@ private fun ChildrenBuilder.showAvaliableOptions(
             }
         } else {
             options.forEach { option ->
-                li {
-                    className = ClassName("list-group-item")
+                a {
+                    className = ClassName("btn text-center list-group-item list-group-item-action")
                     onClick = {
                         onOptionClick(option)
                     }
@@ -305,19 +305,19 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         div {
             className = ClassName("")
             when {
-                selectedOrganization == null -> showAvaliableOptions(
+                selectedOrganization == null -> showAvailableOptions(
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                     setNamePrefix("")
                 }
-                selectedTestSuiteSource == null -> showAvaliableOptions(
+                selectedTestSuiteSource == null -> showAvailableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                     setNamePrefix("")
                 }
-                selectedTestSuiteVersion == null -> showAvaliableOptions(
+                selectedTestSuiteVersion == null -> showAvailableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)

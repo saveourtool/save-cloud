@@ -4,7 +4,9 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.async.ResponsePublisher
 import software.amazon.awssdk.services.s3.model.*
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
 import java.nio.ByteBuffer
+import kotlin.time.Duration
 
 typealias GetObjectResponsePublisher = ResponsePublisher<GetObjectResponse>
 
@@ -32,12 +34,12 @@ interface S3Operations {
     fun uploadObject(s3Key: String, content: Flux<ByteBuffer>): Mono<CompleteMultipartUploadResponse>
 
     /**
-     * @param s3key
+     * @param s3Key
      * @param contentLength
      * @param content
      * @return [Mono] with response
      */
-    fun uploadObject(s3key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse>
+    fun uploadObject(s3Key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse>
 
     /**
      * @param sourceS3Key
@@ -47,14 +49,21 @@ interface S3Operations {
     fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse>
 
     /**
-     * @param s3key
+     * @param s3Key
      * @return [Mono] with response
      */
-    fun deleteObject(s3key: String): Mono<DeleteObjectResponse>
+    fun deleteObject(s3Key: String): Mono<DeleteObjectResponse>
 
     /**
-     * @param s3key
+     * @param s3Key
      * @return [Mono] with response
      */
-    fun headObject(s3key: String): Mono<HeadObjectResponse>
+    fun headObject(s3Key: String): Mono<HeadObjectResponse>
+
+    /**
+     * @param s3Key
+     * @param duration duration when url is valid
+     * @return a pre-signed request to download an object
+     */
+    fun requestToDownloadObject(s3Key: String, duration: Duration): PresignedGetObjectRequest
 }

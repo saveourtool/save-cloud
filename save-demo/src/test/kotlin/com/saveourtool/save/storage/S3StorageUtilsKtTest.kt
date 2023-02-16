@@ -34,15 +34,17 @@ class S3StorageUtilsKtTest {
 
     @Test
     fun testS3KeyToParts() {
-        doTestConcatS3Key("only-prefix/", listOf("only-prefix"))
-        doTestConcatS3Key("prefix/suffix", listOf("prefix", "suffix"))
-        doTestConcatS3Key("prefix/middle/suffix", listOf("prefix", "middle", "suffix"))
+        doTestConcatS3Key("", "only-prefix/", listOf("only-prefix"))
+        doTestConcatS3Key("", "prefix/suffix", listOf("prefix", "suffix"))
+        doTestConcatS3Key("", "prefix/middle/suffix", listOf("prefix", "middle", "suffix"))
+        doTestConcatS3Key("prefix", "prefix/middle/suffix", listOf("middle", "suffix"))
+        doTestConcatS3Key("prefix/", "prefix/middle/suffix", listOf("middle", "suffix"))
     }
 
-    private fun doTestConcatS3Key(s3Key: String, expectedValue: List<String>) {
+    private fun doTestConcatS3Key(prefix: String, s3Key: String, expectedValue: List<String>) {
         Assertions.assertEquals(
             expectedValue,
-            s3Key.s3KeyToParts()
+            s3Key.s3KeyToPartsTill(prefix)
         )
     }
 }

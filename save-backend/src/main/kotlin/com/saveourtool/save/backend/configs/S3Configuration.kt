@@ -4,7 +4,6 @@ import com.saveourtool.save.s3.DefaultS3Operations
 import com.saveourtool.save.s3.S3Operations
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import software.amazon.awssdk.services.s3.S3AsyncClient
 
 /**
  * Configuration for S3
@@ -14,7 +13,7 @@ class S3Configuration(
     private val configProperties: ConfigProperties,
 ) {
     /**
-     * @return [S3AsyncClient] as a Spring's bean
+     * @return [S3Operations] as a Spring's bean
      */
     @Bean
     fun s3Operations(): S3Operations = DefaultS3Operations(configProperties.s3Storage)

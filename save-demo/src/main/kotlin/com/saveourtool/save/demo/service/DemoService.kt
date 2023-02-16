@@ -2,7 +2,7 @@ package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
-import com.saveourtool.save.demo.storage.ToolStorage
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.stereotype.Service
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 @Service
 class DemoService(
     private val demoRepository: DemoRepository,
-    private val toolStorage: ToolStorage,
+    private val dependencyStorage: DependencyStorage,
 ) {
     private fun save(demo: Demo) = demoRepository.save(demo)
 

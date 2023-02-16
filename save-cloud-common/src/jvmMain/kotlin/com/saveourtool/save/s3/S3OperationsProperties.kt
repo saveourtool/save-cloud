@@ -11,6 +11,7 @@ import kotlin.time.toJavaDuration
 
 /**
  * @property endpoint S3 endpoint (URI)
+ * @property presignedEndpoint S3 endpoint (URI) for pre-signed requests, it's equal to [endpoint] by default
  * @property bucketName bucket name for all S3 storages
  * @property prefix a common prefix for all S3 storages
  * @property credentials credentials to S3
@@ -19,6 +20,7 @@ import kotlin.time.toJavaDuration
  */
 data class S3OperationsProperties(
     val endpoint: URI,
+    val presignedEndpoint: URI = endpoint,
     val bucketName: String,
     val prefix: String = "",
     val credentials: CredentialsProperties,

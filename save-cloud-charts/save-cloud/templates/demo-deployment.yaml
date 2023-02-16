@@ -18,7 +18,11 @@ spec:
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.demo ) | nindent 8 }}
     spec:
+      serviceAccountName: demo-sa
       restartPolicy: Always
+      {{- if .Values.demo.nodeName }}
+      nodeName: {{ .Values.demo.nodeName }}
+      {{- end }}
       {{- include "cnb.securityContext" . | nindent 6}}
       containers:
         - name: demo
@@ -27,20 +31,39 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.demo) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.mysql.dbPasswordFile }}
+            - name: S3_SECRETS_PATH
+              value: {{ .Values.s3.secretFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: fs-storage
-              mountPath: {{ include "demo.constants.storage" . }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
+            - name: s3-secrets
+              mountPath: {{ .Values.s3.secretFile }}
           {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
               memory: 1000M
             requests:
               memory: 800M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -96,13 +119,14 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: {{ .Values.demo.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets
+        - name: s3-secrets
+          secret:
+            secretName: s3-secrets
         - name: migrations-data
           emptyDir: { }

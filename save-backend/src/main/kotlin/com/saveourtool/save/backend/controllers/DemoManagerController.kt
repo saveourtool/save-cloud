@@ -90,7 +90,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.post()
-                .uri("/demo/internal/add-tool")
+                .uri("/demo/internal/manager/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.demoDto)
                 .retrieve()
@@ -106,7 +106,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.post()
-                .uri("/demo/internal/${demoCreationRequest.demoDto.projectCoordinates}/upload-files?version=manual")
+                .uri("/demo/internal/files/${demoCreationRequest.demoDto.projectCoordinates}/upload?version=manual")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.manuallyUploadedFileDtos)
                 .retrieve()
@@ -144,7 +144,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.post()
-                .uri("/demo/internal/$organizationName/$projectName/upload-file?version=$version")
+                .uri("/demo/internal/files/$organizationName/$projectName/upload?version=$version")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData("file", file))
                 .retrieve()
@@ -188,7 +188,7 @@ class DemoManagerController(
         }
         .flatMapMany {
             webClientDemo.get()
-                .uri("/demo/internal/$organizationName/$projectName/list-file?version=$version")
+                .uri("/demo/internal/files/$organizationName/$projectName/list?version=$version")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
@@ -232,7 +232,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.delete()
-                .uri("/demo/internal/$organizationName/$projectName/delete-file?version=$version&fileName=$fileName")
+                .uri("/demo/internal/files/$organizationName/$projectName/delete?version=$version&fileName=$fileName")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
@@ -271,7 +271,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/$organizationName/$projectName/status")
+                .uri("/demo/api/manager/$organizationName/$projectName/status")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(
@@ -312,7 +312,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/$organizationName/$projectName")
+                .uri("/demo/api/manager/$organizationName/$projectName")
                 .retrieve()
                 .onStatus({ it == HttpStatus.NOT_FOUND }) {
                     Mono.error(

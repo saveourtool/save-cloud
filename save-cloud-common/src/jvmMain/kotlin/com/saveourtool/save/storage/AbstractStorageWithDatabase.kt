@@ -1,55 +1,36 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
 import org.springframework.data.domain.Example
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import java.net.URL
 import java.nio.ByteBuffer
-import java.nio.file.Path
 import java.time.Instant
 import javax.annotation.PostConstruct
 
-import kotlin.io.path.div
-import kotlin.io.path.name
 import kotlinx.datetime.Clock
 
 /**
  * Implementation of storage which stores keys in database
  *
- * @property storage some storage which uses [Long] ([DtoWithId.id]) as a key
+ * @property storage some storage which uses [Long] ([BaseEntity.id]) as a key
  * @property backupStorageCreator creator for some storage which uses [Long] as a key, should be unique per each creation (to avoid duplication in backups)
- * @property repository repository for [E] which is entity for [K]
+ * @property repository repository for [E]
  */
-abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
+abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     private val storage: Storage<Long>,
     private val backupStorageCreator: () -> Storage<Long>,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-
-    /**
-     * Implementation using file-based storage
-     *
-     * @property rootDir root directory for storage
-     * @property repository repository for [E] which is entity for [K]
-     */
-    constructor(
-        rootDir: Path,
-        repository: R,
-    ) : this(
-        storage = defaultFileBasedStorage(rootDir),
-        backupStorageCreator = { defaultFileBasedStorage(rootDir / "backup-${Clock.System.now().epochSeconds}") },
-        repository = repository,
-    )
 
     /**
      * Implementation using S3 storage
@@ -64,25 +45,6 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
         repository: R,
     ) : this(
         storage = defaultS3Storage(s3Operations, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
-        repository = repository,
-    )
-
-    /**
-     * Implementation using migration storage from file-based to S3
-     *
-     * @property rootDir root directory for storage
-     * @property s3Operations interface to operate with S3 storage
-     * @property prefix a common prefix for all keys in S3 storage for this storage
-     * @property repository repository for [E] which is entity for [K]
-     */
-    constructor(
-        rootDir: Path,
-        s3Operations: S3Operations,
-        prefix: String,
-        repository: R,
-    ) : this(
-        storage = defaultStorage(rootDir, s3Operations, prefix),
         backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
         repository = repository,
     )
@@ -121,9 +83,18 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
             .subscribe()
     }
 
+    /**
+     * @return a key [K] created from receiver entity [E]
+     */
+    protected abstract fun E.toKey(): K
+
+    /**
+     * @return an entity [E] created from receiver key [K]
+     */
+    protected abstract fun K.toEntity(): E
+
     override fun list(): Flux<K> = blockingToFlux {
-        repository.findAll()
-            .map { it.toDto() }
+        repository.findAll().map { it.toKey() }
     }
 
     override fun doesExist(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
@@ -156,7 +127,7 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     /**
      * @param key a key for provided content
      * @param content
-     * @return updated key [K]
+     * @return updated key [E]
      */
     open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
 
@@ -164,28 +135,28 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content
-     * @return updated key [K]
+     * @return updated key [E]
      */
     open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
-        repository.save(createNewEntityFromDto(key))
+        repository.save(key.toEntity())
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), contentLength, content)
-                .map { entity.toDto() }
+                .map { entity.toKey() }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))
                 }
         }
 
     private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
-        repository.save(createNewEntityFromDto(key))
+        repository.save(key.toEntity())
     }
         .flatMap { entity ->
             storage.upload(entity.requiredId(), content)
                 .flatMap { contentSize ->
                     blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
                         .map {
-                            it.toDto() to contentSize
+                            it.toKey() to contentSize
                         }
                 }
                 .onErrorResume { ex ->
@@ -197,15 +168,12 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
 
     override fun download(key: K): Flux<ByteBuffer> = getIdAsMono(key).flatMapMany { storage.download(it) }
 
-    private fun findEntity(dto: K): E? = dto.id
-        ?.let { id ->
-            repository.findByIdOrNull(id)
-                .orNotFound { "Failed to find entity for $this by id = $id" }
-        }
-        ?: findByDto(dto)
+    override fun generateUrlToDownload(key: K): URL = getId(key).let { storage.generateUrlToDownload(it) }
 
-    private fun getIdAsMono(dto: K): Mono<Long> = blockingToMono { findEntity(dto)?.requiredId() }
-        .switchIfEmptyToNotFound { "DTO $this is not saved: ID is not set and failed to find by default example" }
+    private fun getIdAsMono(key: K): Mono<Long> = blockingToMono { findEntity(key)?.requiredId() }
+        .switchIfEmptyToNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
+
+    private fun getId(key: K): Long = findEntity(key)?.requiredId().orNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
 
     private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
         beforeDelete(entity)
@@ -215,17 +183,10 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     /**
      * A default implementation uses Spring's [Example]
      *
-     * @param dto
-     * @return [E] entity found by [K] dto or null
+     * @param key
+     * @return [E] entity found by [K] key or null
      */
-    protected open fun findByDto(dto: K): E? = repository.findOne(Example.of(createNewEntityFromDto(dto)))
-        .orElseGet(null)
-
-    /**
-     * @param dto
-     * @return a new [E] entity is created from provided [K] dto
-     */
-    abstract fun createNewEntityFromDto(dto: K): E
+    protected abstract fun findEntity(key: K): E?
 
     /**
      * @receiver [E] entity which needs to be processed before deletion
@@ -241,24 +202,9 @@ abstract class AbstractStorageWithDatabase<K : DtoWithId, E : BaseEntityWithDtoW
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
     companion object {
-        private fun defaultFileBasedStorage(rootDir: Path): Storage<Long> = object : AbstractFileBasedStorage<Long>(rootDir, 1) {
-            override fun buildKey(rootDir: Path, pathToContent: Path): Long = pathToContent.name.toLong()
-            override fun buildPathToContent(rootDir: Path, key: Long): Path = rootDir.resolve(key.toString())
-        }
         private fun defaultS3Storage(s3Operations: S3Operations, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Operations, prefix) {
             override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
             override fun buildS3KeySuffix(key: Long): String = key.toString()
-        }
-        private fun defaultStorage(
-            rootDir: Path,
-            s3Operations: S3Operations,
-            prefix: String,
-        ): Storage<Long> = object : AbstractMigrationStorage<Long, Long>(
-            oldStorage = defaultFileBasedStorage(rootDir),
-            newStorage = defaultS3Storage(s3Operations, prefix),
-        ) {
-            override fun Long.toNewKey(): Long = this
-            override fun Long.toOldKey(): Long = this
         }
     }
 }

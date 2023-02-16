@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -116,7 +115,7 @@ class ContainerService(
             request.executionId,
         )
 
-        val baseImage = baseImageName(request.sdk)
+        val baseImage = request.sdk.baseImageName()
 
         /*
          * The command is executed using the user's login shell,
@@ -182,8 +181,6 @@ class ContainerService(
         private val curlOptions: Array<out String> = arrayOf(
             "-vvv",
             "--fail",
-            "-X",
-            "POST"
         )
 
         /**
@@ -205,9 +202,3 @@ class ContainerService(
                 curlOptions.joinToString(separator = " ")
     }
 }
-
-/**
- * @param sdk
- * @return name like `save-base:openjdk-11`
- */
-internal fun baseImageName(sdk: Sdk) = "ghcr.io/saveourtool/save-base:${sdk.toString().replace(":", "-")}"

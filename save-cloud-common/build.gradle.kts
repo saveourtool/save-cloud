@@ -30,7 +30,6 @@ kotlin {
     // setup native compilation
     linuxX64()
     macosX64()
-    mingwX64()
 
     sourceSets {
         sourceSets.all {
@@ -43,12 +42,14 @@ kotlin {
                 api(libs.kotlinx.datetime)
 
                 implementation(libs.okio)
+                implementation(libs.ktor.client.core)
             }
         }
         commonTest {
             dependencies {
                 dependencies {
                     api(libs.kotlin.test)
+                    api(libs.kotlinx.coroutines.test)
                     implementation(libs.kotlinx.serialization.json)
                 }
             }
@@ -74,6 +75,7 @@ kotlin {
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.file)
+                api(libs.kotlinx.coroutines.reactor)
             }
         }
         val jvmTest by getting {
@@ -90,13 +92,11 @@ kotlin {
 
         val linuxX64Main by getting
         val macosX64Main by getting
-        val mingwX64Main by getting
 
         val nativeMain by creating {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
             macosX64Main.dependsOn(this)
-            mingwX64Main.dependsOn(this)
 
             dependencies {
                 implementation(libs.ktoml.core)

@@ -91,7 +91,7 @@ class TestSuitesService(
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("description", "source", "version", "dateAdded", "plugins")
+                .withIgnorePaths("description", "sourceSnapshot", "version", "dateAdded", "plugins")
                 .let {
                     Example.of(
                         TestSuite(

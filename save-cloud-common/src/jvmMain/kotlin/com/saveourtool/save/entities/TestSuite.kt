@@ -15,6 +15,9 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
+ * Keep in mind ExampleMatcher is used with this Entity in TestSuitesService
+ * Do not forget to add new fields to ignorePaths of ExampleMatcher
+ *
  * @property name name of the test suite
  * @property description description of the test suite
  * @property sourceSnapshot snapshot of source, which this test suite is created from
