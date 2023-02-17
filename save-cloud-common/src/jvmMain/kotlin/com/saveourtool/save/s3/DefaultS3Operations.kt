@@ -34,11 +34,7 @@ class DefaultS3Operations(
     properties: S3OperationsProperties,
 ) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
-    private val credentialsProvider: AwsCredentialsProvider = with(properties) {
-        StaticCredentialsProvider.create(
-            credentials.toAwsCredentials()
-        )
-    }
+    private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
     private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,

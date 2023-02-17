@@ -3,6 +3,8 @@ package com.saveourtool.save.s3
 import reactor.core.scheduler.Schedulers
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import java.net.URI
 import java.time.Duration
 import kotlin.time.Duration.Companion.minutes
