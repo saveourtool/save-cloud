@@ -1,14 +1,15 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
 /**
  * Utils for building curl command that downloads save-agent and save-demo-agent to pod
  */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.utils
 
 import org.intellij.lang.annotations.Language
 
 @Language("bash")
-private val defaultShellOptions: Sequence<String> = sequenceOf (
+private val defaultShellOptions: Sequence<String> = sequenceOf(
     "errexit",
     "nounset",
     "xtrace",
