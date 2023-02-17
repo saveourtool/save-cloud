@@ -128,6 +128,8 @@ class DependencyController(
 
     /**
      * @return save-demo-agent.kexe as [Resource] wrapped into [Mono]
+     *
+     * todo: replace downloading form classpath with downloading from save-demo internal storage
      */
     @GetMapping("/download-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> = run {

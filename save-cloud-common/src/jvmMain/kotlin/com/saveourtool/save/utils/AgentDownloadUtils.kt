@@ -8,14 +8,14 @@ package com.saveourtool.save.utils
 import org.intellij.lang.annotations.Language
 
 @Language("bash")
-private val defaultShellOptions: Array<out String> = arrayOf(
+private val defaultShellOptions: Sequence<String> = sequenceOf (
     "errexit",
     "nounset",
     "xtrace",
 )
 
 @Language("bash")
-private val defaultCurlOptions: Array<out String> = arrayOf(
+private val defaultCurlOptions: Sequence<String> = sequenceOf(
     "-vvv",
     "--fail",
 )
@@ -51,8 +51,8 @@ enum class AgentType(val executableName: String) {
 fun downloadAndRunAgentCommand(
     downloadUrl: String,
     agentType: AgentType,
-    shellOptions: Array<out String> = defaultShellOptions,
-    curlOptions: Array<out String> = defaultCurlOptions,
+    shellOptions: Sequence<String> = defaultShellOptions,
+    curlOptions: Sequence<String> = defaultCurlOptions,
 ): String = with(agentType) {
     "set ${getShellOptions(shellOptions)}" +
             " && curl ${getCurlOptions(curlOptions)} $downloadUrl --output $executableName" +
@@ -65,8 +65,8 @@ fun downloadAndRunAgentCommand(
  * @see shellOptions
  */
 @Language("bash")
-private fun getShellOptions(shellOptions: Array<out String>): String =
-        shellOptions.asSequence().map { option ->
+private fun getShellOptions(shellOptions: Sequence<String>): String =
+        shellOptions.map { option ->
             "-o $option"
         }.joinToString(separator = " ")
 
@@ -75,4 +75,4 @@ private fun getShellOptions(shellOptions: Array<out String>): String =
  * @see curlOptions
  */
 @Language("bash")
-private fun getCurlOptions(curlOptions: Array<out String>): String = curlOptions.joinToString(separator = " ")
+private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
