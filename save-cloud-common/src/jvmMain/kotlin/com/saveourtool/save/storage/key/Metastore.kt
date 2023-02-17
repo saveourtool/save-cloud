@@ -1,13 +1,17 @@
 package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.storage.PATH_DELIMITER
-import org.springframework.transaction.annotation.Transactional
 
-interface Metastore<K : Any> : S3KeyAdapter<K> {
+interface Metastore<K : Any> {
     /**
-     * @return all keys
+     * a flag that shows if there is a database underlay
      */
-    fun list(): Collection<K>
+    val isDatabaseUnderlying: Boolean
+
+    /**
+     * A common prefix endings with [PATH_DELIMITER] for all s3 keys in this storage
+     */
+    val commonPrefix: String
 
     /**
      * @param key
@@ -16,19 +20,21 @@ interface Metastore<K : Any> : S3KeyAdapter<K> {
     fun contains(key: K): Boolean
 
     /**
-     * @param key key which needs to be saved
-     * @return saved key
-     */
-    fun save(key: K): K
-
-    /**
      * @param key key which needs to delete
      */
-    @Transactional
     fun delete(key: K)
 
-    @Transactional
-    override fun buildS3Key(key: K): String
+    /**
+     * @param s3Key cannot start with [PATH_DELIMITER]
+     * @return [K] is built from [s3Key] or null if path invalid
+     */
+    fun buildKey(s3Key: String): K?
+
+    /**
+     * @param key
+     * @return s3 key, cannot start with [PATH_DELIMITER]
+     */
+    fun buildNewS3Key(key: K): String
 
     /**
      * @param key

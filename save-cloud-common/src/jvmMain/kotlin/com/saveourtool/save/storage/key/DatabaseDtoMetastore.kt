@@ -6,13 +6,10 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 
-class DatabaseDtoMetastore<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
-    commonPrefix: String,
+abstract class DatabaseDtoMetastore<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
+    prefix: String,
     repository: R,
-    beforeDelete: (E) -> Unit = { },
-    private val findByDto: (K) -> E?,
-    private val createNewEntityFromDto: (K) -> E,
-) : AbstractDatabaseMetastore<K, E, R>(commonPrefix, repository, beforeDelete) {
+) : AbstractDatabaseMetastore<K, E, R>(prefix, repository) {
     override fun E.toKey(): K = toDto()
 
     override fun K.toEntity(): E = createNewEntityFromDto(this)
@@ -23,4 +20,16 @@ class DatabaseDtoMetastore<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : Ba
                 .orNotFound { "Failed to find entity for $this by id = $id" }
         }
         ?: findByDto(key)
+
+    /**
+     * @param dto
+     * @return [E] entity found by [K] dto or null
+     */
+    protected abstract fun findByDto(dto: K): E?
+
+    /**
+     * @param dto
+     * @return a new [E] entity is created from provided [K] dto
+     */
+    abstract fun createNewEntityFromDto(dto: K): E
 }

@@ -14,7 +14,7 @@ interface StoragePreSignedUrl<K> {
      * @param key a key to download content
      * @return URL to download content
      */
-    fun generateUrlToDownload(key: K): URL
+    fun generateUrlToDownload(key: K): URL?
 
     /**
      * @param key a key to download content

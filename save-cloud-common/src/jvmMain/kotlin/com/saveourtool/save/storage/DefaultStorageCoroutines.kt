@@ -26,13 +26,12 @@ import java.util.concurrent.atomic.AtomicLong
  * S3 implementation of [StorageCoroutines]
  *
  * @param s3Operations [S3Operations] to operate with S3
- * @param s3KeyAdapter [S3KeyAdapter] adapter for S3 keys
+ * @param metastore [Metastore] metastore with S3 keys
  * @param K type of key
  */
 class DefaultStorageCoroutines<K : Any>(
     private val s3Operations: S3Operations,
-    private val s3KeyAdapter: S3KeyAdapter<K>,
-    private val metastore: Metastore<K>?,
+    private val metastore: Metastore<K>,
 ) : StorageCoroutines<K> {
     override suspend fun list(): Flow<K> = flow {
         var lastResponse = doListObjectV2()
@@ -44,20 +43,22 @@ class DefaultStorageCoroutines<K : Any>(
     }
 
     private suspend fun doListObjectV2(continuationToken: String? = null): ListObjectsV2Response =
-            s3Operations.listObjectsV2(s3KeyAdapter.commonPrefix, continuationToken).asDeferred().await()
+            s3Operations.listObjectsV2(metastore.commonPrefix, continuationToken).asDeferred().await()
 
     private suspend fun FlowCollector<K>.emitKeys(response: ListObjectsV2Response) {
         response.contents()
-            .forEach {
-                emit(s3KeyAdapter.buildKey(it.key()))
+            .forEach { s3Object ->
+                val key = metastore.buildKey(s3Object.key())
+                // TODO: need to log that found a key in storage, which doesn't exist in metastore
+                key?.let { emit(it) }
             }
     }
 
-    override suspend fun doesExist(key: K): Boolean = metastore?.contains(key)
-        ?: s3Operations.headObject(s3KeyAdapter.buildS3Key(key))
+    override suspend fun doesExist(key: K): Boolean = buildExistedS3Key(key)?.let { s3Key ->
+        s3Operations.headObject(s3Key)
             .asDeferred()
             .await()
-            .isNotNull()
+    }.isNotNull()
 
     override suspend fun contentLength(key: K): Long? = buildExistedS3Key(key)?.let { s3Key ->
         s3Operations.headObject(s3Key)
@@ -148,22 +149,28 @@ class DefaultStorageCoroutines<K : Any>(
     }
 
     private suspend fun cleanup(key: K) {
-        metastore?.run {
+        if (metastore.isDatabaseUnderlying) {
             withContext(Dispatchers.IO) {
                 metastore.delete(key)
             }
+        } else {
+            metastore.delete(key)
         }
     }
 
-    private suspend fun buildExistedS3Key(key: K): String? = metastore?.let {
-        return withContext(Dispatchers.IO) {
+    private suspend fun buildExistedS3Key(key: K): String? = if (metastore.isDatabaseUnderlying) {
+        withContext(Dispatchers.IO) {
             metastore.buildExistedS3Key(key)
         }
-    }  ?: s3KeyAdapter.buildS3Key(key)
+    } else {
+        metastore.buildExistedS3Key(key)
+    }
 
-    private suspend fun buildNewS3Key(key: K): String = metastore?.let {
+    private suspend fun buildNewS3Key(key: K): String = if (metastore.isDatabaseUnderlying) {
         withContext(Dispatchers.IO) {
-            metastore.buildS3Key(key)
+            metastore.buildNewS3Key(key)
         }
-    } ?: s3KeyAdapter.buildS3Key(key)
+    } else {
+        metastore.buildNewS3Key(key)
+    }
 }

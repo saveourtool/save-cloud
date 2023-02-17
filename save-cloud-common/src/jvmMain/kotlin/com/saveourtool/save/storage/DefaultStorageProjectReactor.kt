@@ -1,7 +1,11 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.key.Metastore
 import com.saveourtool.save.storage.key.S3KeyAdapter
+import com.saveourtool.save.utils.blockingToMono
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -25,7 +29,7 @@ import java.util.concurrent.CompletableFuture
  */
 class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
-    private val s3KeyAdapter: S3KeyAdapter<K>,
+    private val s3KeyAdapter: Metastore<K>,
 ) : StorageProjectReactor<K> {
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyAdapter.commonPrefix)
         .toMonoAndPublishOn()
@@ -89,19 +93,50 @@ class DefaultStorageProjectReactor<K : Any>(
                 .toMonoAndPublishOn()
                 .thenReturn(Unit)
 
-    override fun download(key: K): Flux<ByteBuffer> = s3Operations.getObject(s3KeyAdapter.buildS3Key(key))
-        .toMonoAndPublishOn()
-        .flatMapMany {
-            it.toFlux()
+    override fun download(key: K): Flux<ByteBuffer> = buildExistedS3Key(key)
+        .flatMapMany { s3Key ->
+            s3Operations.getObject(s3Key)
+                .toMonoAndPublishOn()
+                .flatMapMany {
+                    it.toFlux()
+                }
         }
 
-    override fun move(source: K, target: K): Mono<Boolean> =
-            s3Operations.copyObject(s3KeyAdapter.buildS3Key(source), s3KeyAdapter.buildS3Key(target))
+    override fun move(source: K, target: K): Mono<Boolean> = buildExistedS3Key(source)
+        .zipWith(buildNewS3Key(target))
+        .flatMap { (sourceS3Key, targetS3Key) ->
+            s3Operations.copyObject(sourceS3Key, targetS3Key)
                 .toMonoAndPublishOn()
-                .flatMap {
-                    delete(source)
-                }
+        }
+        .flatMap {
+            delete(source)
+        }
 
+    private fun cleanup(key: K): Mono<Unit> = if (s3KeyAdapter.isDatabaseUnderlying) {
+        blockingToMono {
+            s3KeyAdapter.delete(key)
+        }
+    } else {
+        Mono.fromCallable {
+            s3KeyAdapter.delete(key)
+        }
+    }
+
+    private fun buildExistedS3Key(key: K): Mono<String> = if (s3KeyAdapter.isDatabaseUnderlying) {
+        blockingToMono {
+            s3KeyAdapter.buildExistedS3Key(key)
+        }
+    } else {
+        s3KeyAdapter.buildExistedS3Key(key).toMono()
+    }
+
+    private fun buildNewS3Key(key: K): Mono<String> = if (s3KeyAdapter.isDatabaseUnderlying) {
+        blockingToMono {
+            s3KeyAdapter.buildNewS3Key(key)
+        }
+    } else {
+        s3KeyAdapter.buildNewS3Key(key).toMono()
+    }
 
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
 }

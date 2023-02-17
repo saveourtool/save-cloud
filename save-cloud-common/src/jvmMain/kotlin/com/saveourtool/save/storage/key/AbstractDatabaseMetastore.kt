@@ -5,12 +5,13 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.transaction.annotation.Transactional
 
 abstract class AbstractDatabaseMetastore<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    override val commonPrefix: String,
+    prefix: String,
     protected val repository: R,
-    private val beforeDelete: (E) -> Unit,
-) : AbstractS3KeyAdapter<K>(commonPrefix), Metastore<K> {
+) : AbstractMetastore<K>(prefix), Metastore<K> {
+    override val isDatabaseUnderlying: Boolean = true
 
     /**
      * @return a key [K] created from receiver entity [E]
@@ -29,16 +30,13 @@ abstract class AbstractDatabaseMetastore<K : Any, E : BaseEntity, R : BaseEntity
      */
     protected abstract fun findEntity(key: K): E?
 
-    override fun list(): Collection<K> {
-        return repository.findAll().map { it.toKey() }
-    }
-
     /**
      * @param key
      * @return true if metastore contains [key]
      */
     override fun contains(key: K): Boolean = findEntity(key).isNotNull()
 
+    @Transactional
     override fun delete(key: K) {
         findEntity(key)?.let { entity ->
             beforeDelete(entity)
@@ -46,9 +44,12 @@ abstract class AbstractDatabaseMetastore<K : Any, E : BaseEntity, R : BaseEntity
         }
     }
 
-    override fun save(key: K): K = repository.save(key.toEntity()).toKey()
+    @Transactional
+    override fun buildNewS3Key(key: K): String {
+        return super.buildNewS3Key(key)
+    }
 
-    override fun buildExistedS3Key(key: K): String? = findEntity(key)?.requiredId()?.toString()
+    override fun buildExistedS3Key(key: K): String? = findEntity(key)?.let { super.buildExistedS3Key(key) }
 
     override fun buildKeyFromSuffix(s3KeySuffix: String): K = repository.findByIdOrNull(s3KeySuffix.toLong())
         .orNotFound {
@@ -60,4 +61,10 @@ abstract class AbstractDatabaseMetastore<K : Any, E : BaseEntity, R : BaseEntity
         val entity = repository.save(key.toEntity())
         return entity.requiredId().toString()
     }
+
+    /**
+     * @receiver [E] entity which needs to be processed before deletion
+     * @param entity
+     */
+    protected open fun beforeDelete(entity: E): Unit = Unit
 }
