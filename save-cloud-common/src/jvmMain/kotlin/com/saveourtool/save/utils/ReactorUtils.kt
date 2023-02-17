@@ -5,7 +5,11 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import io.ktor.client.statement.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -30,8 +34,11 @@ import kotlin.time.toJavaDuration
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.reactor.asMono
+import okio.buffer
+import okio.use
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
@@ -217,10 +224,20 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
  *
  * @return [Flow] of [ByteBuffer]
  */
-fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = flow {
-    consumeEachBufferRange { buffer, last ->
-        emit(buffer)
-        !last
+fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = toByteArrayFlow().map { ByteBuffer.wrap(it) }
+
+/**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteArray]
+ *
+ * @return [Flow] of [ByteArray]
+ */
+fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
+    while (!isClosedForRead) {
+        val packet = readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+        while (!packet.isEmpty) {
+            val bytes = packet.readBytes()
+            emit(bytes)
+        }
     }
 }
 

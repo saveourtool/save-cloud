@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.json.Json
@@ -31,11 +32,20 @@ object GitHubHelper {
 
     private suspend fun getMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
-    private suspend fun downloadAsset(asset: ReleaseAsset): ByteReadChannel = httpClient.get {
+    private suspend fun <R : Any> downloadAsset(
+        asset: ReleaseAsset,
+        consumer: suspend (ByteReadChannel) -> R,
+    ): R? = httpClient.prepareGet {
         url(asset.downloadUrl)
         accept(asset.contentType())
     }
-        .bodyAsChannel()
+        .execute { response ->
+            if (response.status.isSuccess()) {
+                consumer(response.bodyAsChannel())
+            } else {
+                null
+            }
+        }
 
     /**
      * Fetches a list of tags from GitHub in provided [repo]
@@ -65,7 +75,9 @@ object GitHubHelper {
     ): R? = getMetadata(repo, tagName)
         .assets
         .singleOrNull { asset -> assetName == asset.name }
-        ?.let {
-            consumer(downloadAsset(it) to it.size)
+        ?.let { asset ->
+            downloadAsset(asset) { content ->
+                consumer(content to asset.size)
+            }
         }
 }

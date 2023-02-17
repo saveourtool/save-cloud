@@ -1,6 +1,7 @@
 package com.saveourtool.save.s3
 
 import io.ktor.utils.io.*
+import kotlinx.coroutines.Dispatchers
 import org.springframework.http.MediaType
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import kotlinx.coroutines.reactor.asFlux
@@ -164,13 +166,13 @@ class DefaultS3Operations(
             .build()
         val nextPartRequestBody = AsyncRequestBody.fromByteBuffer(contentPart)
         return s3Client.uploadPart(nextPartRequest, nextPartRequestBody)
-            .toMonoAndPublishOn()
-            .map { partResponse ->
+            .thenApply { partResponse ->
                 CompletedPart.builder()
                     .eTag(partResponse.eTag())
                     .partNumber(index.toInt())
                     .build()
             }
+            .toMonoAndPublishOn()
     }
 
     private fun putObjectRequest(s3Key: String, contentLength: Long): PutObjectRequest = PutObjectRequest.builder()
