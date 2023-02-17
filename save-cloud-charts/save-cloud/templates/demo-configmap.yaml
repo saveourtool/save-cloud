@@ -16,3 +16,7 @@ data:
     {{ if .Values.demo.applicationProperties }}
     {{- .Values.demo.applicationProperties | nindent 4 }}
     {{ end }}
+
+    demo.backend-url=http://backend/internal
+    demo.agent-config.demo-url=http://demo
+    demo.s3-storage.endpoint=http://s3

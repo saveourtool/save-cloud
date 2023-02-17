@@ -48,7 +48,8 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            kc.startJob(demo, kubernetesSettings)
+            val downloadAgentUrl = getDemoAgentUrl(configProperties.agentConfig.demoUrl)
+            kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
             demo
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
@@ -136,5 +137,7 @@ class KubernetesService(
                 json(json)
             }
         }
+
+        private fun getDemoAgentUrl(demoUrl: String) = "$demoUrl/demo/internal/files/download-agent"
     }
 }
