@@ -58,7 +58,7 @@ inline fun <reified C : Any> parseConfigOrDefault(
     configName: String = "agent.toml",
 ): C = try {
     parseConfig(configName)
-} catch (e: FileNotFoundException) {
+} catch (e: Exception) {
     logInfo("Config file $configName not found, falling back to default config.")
     defaultConfig
 }
