@@ -7,8 +7,11 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.downloadFromClasspath
 
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -122,4 +125,16 @@ class DependencyController(
         "Could not find demo for $organizationName/$projectName."
     }
         .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
+
+    /**
+     * @return save-demo-agent.kexe as [Resource] wrapped into [Mono]
+     */
+    @GetMapping("/download-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadSaveAgent(): Mono<out Resource> = run {
+        val executable = "save-demo-agent.kexe"
+
+        downloadFromClasspath(executable) {
+            "Can't find $executable"
+        }
+    }
 }
