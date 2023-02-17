@@ -49,7 +49,7 @@ inline fun <reified C : Any> parseConfig(configName: String = "agent.toml"): C =
  * Parse config file or apply default if none was found
  * Notice that [C] should be serializable
  *
- * @param defaultConfig config that should be set if no config was found ([FileNotFoundException])
+ * @param defaultConfig config that should be set if no config was found
  * @param configName name of a toml config file, agent.toml by default
  * @return [C] filled with configuration information
  */
