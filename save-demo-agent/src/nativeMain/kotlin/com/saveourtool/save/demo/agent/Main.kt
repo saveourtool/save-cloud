@@ -11,7 +11,7 @@ import com.saveourtool.save.utils.parseConfigOrDefault
 private val defaultServerConfiguration = ServerConfiguration()
 
 fun main() {
-    logInfo("Launching server on port ${defaultServerConfiguration.port}")
     val serverConfiguration: ServerConfiguration = parseConfigOrDefault(defaultServerConfiguration)
+    logInfo("Launching server on port ${serverConfiguration.port}")
     server(serverConfiguration).start(wait = true)
 }
