@@ -14,11 +14,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 /**
- * A dedicated Scheduler for async operations in storage
- */
-val scheduler = Schedulers.boundedElastic()
-
-/**
  * @param repository repository for [E] to check that corresponded [E] exists
  * @return [Flux] with unexpected ids
  */

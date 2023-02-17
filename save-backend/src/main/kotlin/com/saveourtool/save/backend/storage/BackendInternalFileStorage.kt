@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
 import com.saveourtool.save.storage.impl.InternalFileKey
@@ -26,7 +26,7 @@ import kotlinx.coroutines.withContext
 @Component
 class BackendInternalFileStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
 ) : AbstractInternalFileStorage(
     listOf(saveAgentKey),
     configProperties.s3Storage.prefix,

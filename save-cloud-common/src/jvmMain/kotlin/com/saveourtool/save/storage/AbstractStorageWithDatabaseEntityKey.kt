@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
@@ -15,7 +15,7 @@ import org.springframework.data.repository.findByIdOrNull
  * @param repository repository for [E]
  */
 abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>>(
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
     prefix: String,
     repository: R,
 ) : AbstractStorageWithDatabase<E, E, R>(

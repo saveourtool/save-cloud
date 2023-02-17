@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 
 /**
  * S3 implementation of Storage with init method
@@ -10,7 +10,7 @@ import com.saveourtool.save.s3.S3Operations
  * @param K type of key
  */
 abstract class AbstractS3StorageWithInit<K>(
-    private val s3Operations: S3Operations,
+    private val s3Operations: S3OperationsProjectReactor,
     prefix: String,
 ) : StorageWrapperWithInit<K>() {
     /**

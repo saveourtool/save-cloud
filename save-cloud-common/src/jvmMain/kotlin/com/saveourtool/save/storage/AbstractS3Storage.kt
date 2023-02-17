@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
  * @param K type of key
  */
 abstract class AbstractS3Storage<K>(
-    private val s3Operations: S3Operations,
+    private val s3Operations: S3OperationsProjectReactor,
     prefix: String,
 ) : Storage<K> {
     /**

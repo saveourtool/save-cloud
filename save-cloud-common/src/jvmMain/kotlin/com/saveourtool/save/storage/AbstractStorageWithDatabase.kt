@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage
 
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
@@ -29,7 +29,7 @@ import kotlinx.datetime.Clock
  * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    private val s3Operations: S3Operations,
+    private val s3Operations: S3OperationsProjectReactor,
     private val prefix: String,
     protected val repository: R,
 ) : Storage<K> {

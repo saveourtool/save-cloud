@@ -1,7 +1,6 @@
 package com.saveourtool.save.sandbox.config
 
-import com.saveourtool.save.s3.DefaultS3Operations
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.DefaultS3OperationsProjectReactor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -16,5 +15,5 @@ class S3Configuration(
      * @return [S3Operations] as a Spring's bean
      */
     @Bean
-    fun s3Operations(): S3Operations = DefaultS3Operations(configProperties.s3Storage)
+    fun s3Operations(): S3Operations = DefaultS3OperationsProjectReactor(configProperties.s3Storage)
 }

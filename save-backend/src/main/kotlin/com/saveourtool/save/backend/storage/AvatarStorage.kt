@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.s3KeyToPartsTill
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service
 @Service
 class AvatarStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
 ) : AbstractS3Storage<AvatarKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "images", "avatars")

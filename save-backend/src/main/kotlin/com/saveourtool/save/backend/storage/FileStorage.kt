@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -23,7 +23,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
     fileRepository: FileRepository,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,

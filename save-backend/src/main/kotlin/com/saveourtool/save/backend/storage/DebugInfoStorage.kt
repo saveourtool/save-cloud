@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
@@ -16,6 +16,7 @@ import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -28,7 +29,7 @@ import javax.annotation.PostConstruct
 @Service
 class DebugInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,

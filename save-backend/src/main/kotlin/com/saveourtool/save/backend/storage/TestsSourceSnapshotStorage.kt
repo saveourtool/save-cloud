@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
@@ -30,7 +30,7 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesService: TestSuitesService,

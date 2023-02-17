@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage.impl
 
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.*
 import com.saveourtool.save.utils.*
 import reactor.core.publisher.Flux
@@ -18,7 +18,7 @@ import reactor.kotlin.core.publisher.toMono
 abstract class AbstractInternalFileStorage(
     private val keysToLoadFromClasspath: Collection<InternalFileKey>,
     s3StoragePrefix: String,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
 ) : AbstractS3StorageWithInit<InternalFileKey>(
     s3Operations,
     concatS3Key(s3StoragePrefix, "internal-storage")

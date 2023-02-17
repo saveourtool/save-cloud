@@ -1,7 +1,7 @@
 package com.saveourtool.save.demo.storage
 
 import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
 import com.saveourtool.save.storage.impl.InternalFileKey
 import org.springframework.stereotype.Component
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class DemoInternalFileStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
 ) : AbstractInternalFileStorage(
     listOf(saveDemoAgent),
     configProperties.s3Storage.prefix,

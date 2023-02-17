@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.utils.collectAsJsonTo
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
@@ -25,7 +25,7 @@ import javax.annotation.PostConstruct
 @Service
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    s3Operations: S3OperationsProjectReactor,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
 ) : AbstractS3Storage<Long>(
