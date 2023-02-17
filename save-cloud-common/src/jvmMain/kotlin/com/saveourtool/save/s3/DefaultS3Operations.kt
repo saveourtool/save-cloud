@@ -5,7 +5,6 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
@@ -35,11 +34,7 @@ class DefaultS3Operations(
     properties: S3OperationsProperties,
 ) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
-    private val credentialsProvider: AwsCredentialsProvider = with(properties) {
-        StaticCredentialsProvider.create(
-            credentials.toAwsCredentials()
-        )
-    }
+    private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
     private val executorName: String = "s3-operations-${properties.bucketName}"
     override val executorService = with(properties.async) {
         ThreadPoolExecutor(
@@ -69,6 +64,11 @@ class DefaultS3Operations(
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
+            .also { createdClient ->
+                if (createBucketIfNotExists) {
+                    createdClient.createBucketIfNotExists(bucketName).join()
+                }
+            }
     }
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
@@ -219,5 +219,31 @@ class DefaultS3Operations(
                 return thread
             }
         }
+
+        private fun S3AsyncClient.createBucketIfNotExists(bucketName: String): CompletableFuture<String> =
+                HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+                    .let { headBucket(it) }
+                    .thenApply { true }
+                    .exceptionally { ex ->
+                        when (ex.cause) {
+                            is NoSuchBucketException -> false
+                            else -> throw ex
+                        }
+                    }
+                    .thenCompose { bucketExists ->
+                        if (bucketExists) {
+                            CompletableFuture.completedFuture("Bucket $bucketName already exists")
+                        } else {
+                            CreateBucketRequest.builder()
+                                .bucket(bucketName)
+                                .build()
+                                .let { createBucket(it) }
+                                .thenApply { _ ->
+                                    "Created bucket $bucketName"
+                                }
+                        }
+                    }
     }
 }
