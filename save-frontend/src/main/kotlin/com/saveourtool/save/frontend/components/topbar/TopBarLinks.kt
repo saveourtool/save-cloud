@@ -83,8 +83,12 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
-            .unsafeMap {
-                it.decodeFromJsonString()
+            .unsafeMap { response ->
+                if (response.ok) {
+                    response.decodeFromJsonString()
+                } else {
+                    emptyList()
+                }
             }
         // TODO: takes only 3 values to avoid a long list of demo, needs to be revised
         setDemos(fetchedDemos.take(3))
