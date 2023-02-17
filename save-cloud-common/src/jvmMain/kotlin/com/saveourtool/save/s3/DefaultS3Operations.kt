@@ -65,6 +65,11 @@ class DefaultS3Operations(
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
+            .also { createdClient ->
+                if (createBucketIfNotExists) {
+                    createdClient.createBucketIfNotExists(bucketName).join()
+                }
+            }
     }
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
@@ -216,6 +221,33 @@ class DefaultS3Operations(
         private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
             Mono.empty()
         }
+
         private fun URI.lowercase(): URI = URI(toString().lowercase())
+
+        private fun S3AsyncClient.createBucketIfNotExists(bucketName: String): CompletableFuture<String> =
+                HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+                    .let { headBucket(it) }
+                    .thenApply { true }
+                    .exceptionally { ex ->
+                        when (ex.cause) {
+                            is NoSuchBucketException -> false
+                            else -> throw ex
+                        }
+                    }
+                    .thenCompose { bucketExists ->
+                        if (bucketExists) {
+                            CompletableFuture.completedFuture("Bucket $bucketName already exists")
+                        } else {
+                            CreateBucketRequest.builder()
+                                .bucket(bucketName)
+                                .build()
+                                .let { createBucket(it) }
+                                .thenApply { _ ->
+                                    "Created bucket $bucketName"
+                                }
+                        }
+                    }
     }
 }
