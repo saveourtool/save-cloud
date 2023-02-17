@@ -1,23 +1,18 @@
 package com.saveourtool.save.storage
 
-import kotlinx.coroutines.flow.Flow
-import java.nio.ByteBuffer
-
 /**
  * Base interface for Storage
  *
  * @param K type of key
  */
-interface Storage<K>: StorageProjectReactor<K>, StoragePreSignedUrl<K> {
+interface Storage<K>: StoragePreSignedUrl<K> {
     /**
-     * @param key a key for provided content
-     * @param contentLength a content length of content
-     * @param content as [Flow] of [ByteBuffer]
+     * @return [StorageCoroutines] for this storage
      */
-    suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>)
+    fun withCoroutines(): StorageCoroutines<K>
 
-//    /**
-//     * @return [StorageCoroutines] for this storage
-//     */
-//    fun withCoroutines(): StorageCoroutines<K>
+    /**
+     * @return [StorageProjectReactor] for this storage
+     */
+    fun withProjectReactor(): StorageProjectReactor<K>
 }

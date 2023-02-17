@@ -9,7 +9,7 @@ class DefaultStorage<K : Any>(
     s3Operations: S3Operations,
     s3KeyAdapter: S3KeyAdapter<K>,
     metastore: Metastore<K>?,
-) : StoragePreSignedUrl<K> {
+) : Storage<K> {
     private val coroutinesImpl = DefaultStorageCoroutines(
         s3Operations,
         s3KeyAdapter,
@@ -25,9 +25,10 @@ class DefaultStorage<K : Any>(
         s3KeyAdapter,
     )
 
-    fun withCoroutines(): StorageCoroutines<K> = coroutinesImpl
+    override fun withCoroutines(): StorageCoroutines<K> = coroutinesImpl
 
-    fun withProjectReactor(): StorageProjectReactor<K> = projectReactorImpl
+    override fun withProjectReactor(): StorageProjectReactor<K> = projectReactorImpl
+
     override fun generateUrlToDownload(key: K): URL = preSignedUrlImpl.generateUrlToDownload(key)
 
     override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders = preSignedUrlImpl.generateUrlToUpload(key, contentLength)
