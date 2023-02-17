@@ -37,17 +37,17 @@ external interface ReactCircleProps : PropsWithChildren {
     var progress: String
 
     /**
-     * Color of "progress" portion of circle.
+     * Color of "progress" portion of circle (example: "rgb(76, 154, 255)").
      */
     var progressColor: String
 
     /**
-     * Color of "empty" portion of circle.
+     * Color of "empty" portion of circle (example: "#ecedf0").
      */
     var bgColor: String
 
     /**
-     * Color of percentage text color.
+     * Color of percentage text color (example: "#ecedf0").
      */
     var textColor: String
 
