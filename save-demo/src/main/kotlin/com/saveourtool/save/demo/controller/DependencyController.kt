@@ -134,7 +134,7 @@ class DependencyController(
         val executable = "save-demo-agent.kexe"
 
         downloadFromClasspath(executable) {
-            "Can't find $executable"
+            "Can't find $executable on classpath"
         }
     }
 }
