@@ -21,6 +21,8 @@ abstract class AbstractMetastore<K : Any>(
 
     final override val commonPrefix: String = s3KeyAdapter.commonPrefix
 
+    override fun buildKey(s3Key: String): K? = s3KeyAdapter.buildKey(s3Key)
+
     override fun buildNewS3Key(key: K): String = s3KeyAdapter.buildS3Key(key)
 
     override fun buildExistedS3Key(key: K): String? = s3KeyAdapter.buildS3Key(key)
