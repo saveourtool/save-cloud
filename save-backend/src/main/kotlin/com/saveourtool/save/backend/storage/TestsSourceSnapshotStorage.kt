@@ -1,16 +1,11 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
-import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
-import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
@@ -37,7 +32,6 @@ class TestsSourceSnapshotStorage(
     s3KeyManager,
     testsSourceSnapshotRepository,
 ) {
-
     /**
      * @param request
      * @return [TestFilesContent] filled with test files

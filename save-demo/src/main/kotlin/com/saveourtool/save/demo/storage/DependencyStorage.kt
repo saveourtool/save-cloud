@@ -1,12 +1,10 @@
 package com.saveourtool.save.demo.storage
 
-import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractStorageWithDatabaseEntityKey
-import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component

@@ -9,6 +9,11 @@ import kotlinx.coroutines.delay
 typealias StringList = List<String>
 
 /**
+ * @return true if [this] is not null
+ */
+fun <T : Any> T?.isNotNull(): Boolean = this != null
+
+/**
  * Run [action] several [times] with [timeMillis] milliseconds
  *
  * [T] is just a non-nullable type
@@ -30,8 +35,3 @@ suspend fun <T : Any> retry(
         null
     }
 }
-
-/**
- * @return true if [this] is not null
- */
-fun <T : Any> T?.isNotNull(): Boolean = this != null

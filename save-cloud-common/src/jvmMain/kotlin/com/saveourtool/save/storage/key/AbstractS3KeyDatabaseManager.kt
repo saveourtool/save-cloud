@@ -21,7 +21,6 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
         override fun delete(key: Long) = Unit
         override fun buildS3KeySuffix(key: Long): String = key.toString()
     }
-
     override val commonPrefix: String = underlying.commonPrefix
 
     /**

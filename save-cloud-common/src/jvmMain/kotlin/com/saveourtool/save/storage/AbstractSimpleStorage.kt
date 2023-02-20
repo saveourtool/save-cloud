@@ -16,7 +16,15 @@ abstract class AbstractSimpleStorage<K : Any>(
         override fun buildS3KeySuffix(key: K): String = this@AbstractSimpleStorage.buildS3KeySuffix(key)
     }
 
+    /**
+     * @param s3KeySuffix
+     * @return
+     */
     abstract fun buildKeyFromSuffix(s3KeySuffix: String): K
 
+    /**
+     * @param key
+     * @return
+     */
     abstract fun buildS3KeySuffix(key: K): String
 }

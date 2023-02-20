@@ -7,13 +7,15 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
-import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.getByIdOrNotFound
 import org.springframework.stereotype.Component
 
+/**
+ * [com.saveourtool.save.storage.key.S3KeyManager] for [TestsSourceSnapshotStorage]
+ */
 @Component
 class TestsSourceSnapshotS3KeyManager(
     configProperties: ConfigProperties,

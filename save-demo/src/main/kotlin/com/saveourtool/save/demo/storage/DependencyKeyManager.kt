@@ -18,7 +18,5 @@ class DependencyKeyManager(
     prefix = concatS3Key(configProperties.s3Storage.prefix, "deps"),
     repository = repository,
 ) {
-    override fun findByContent(key: Dependency): Dependency? {
-        return repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
-    }
+    override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
 }

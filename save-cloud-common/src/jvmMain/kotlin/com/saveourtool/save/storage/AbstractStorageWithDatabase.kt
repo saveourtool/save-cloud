@@ -11,16 +11,16 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
 
+import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
 import kotlinx.datetime.Clock
-import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
-import java.net.URL
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Implementation of S3 storage which stores keys in database
@@ -29,13 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @property s3KeyManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
  * @property repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M: AbstractS3KeyDatabaseManager<K, E, R>>(
+abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyDatabaseManager<K, E, R>>(
     private val s3Operations: S3Operations,
     protected val s3KeyManager: M,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-
     private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
         override val s3KeyManager: S3KeyManager<K> = this@AbstractStorageWithDatabase.s3KeyManager
     }
@@ -45,7 +44,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isInitFinished = AtomicBoolean(false)
-
     private val initScheduler: Scheduler = Schedulers.boundedElastic()
 
     /**
