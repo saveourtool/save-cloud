@@ -46,7 +46,7 @@ class Demo(
         }
     }
 
-    private fun projectCoordinates() = ProjectCoordinates(
+    fun projectCoordinates() = ProjectCoordinates(
         organizationName,
         projectName,
     )

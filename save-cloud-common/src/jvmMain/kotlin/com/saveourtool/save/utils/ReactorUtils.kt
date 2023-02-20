@@ -268,15 +268,3 @@ fun downloadFromClasspath(
                 logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
                 lazyResponseBody()
             }
-
-/**
- * Transforms [Deferred] to [Mono]
- *
- * @param supplier lambda that returns [Deferred]
- * @param scheduler
- * @return [Mono] from result of [Deferred]
- */
-fun <T : Any> deferredToMono(
-    scheduler: Scheduler = Schedulers.boundedElastic(),
-    supplier: () -> Deferred<T?>
-): Mono<T> = supplier().asMono(scheduler.asCoroutineDispatcher())

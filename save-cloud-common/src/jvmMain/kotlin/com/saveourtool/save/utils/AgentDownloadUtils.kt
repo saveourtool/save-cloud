@@ -21,6 +21,9 @@ private val defaultCurlOptions: Sequence<String> = sequenceOf(
     "--fail",
 )
 
+@Language("bash")
+private val defaultEnvOptions: Sequence<EnvOption> = emptySequence()
+
 /**
  * @property executableName
  */
@@ -54,10 +57,12 @@ fun downloadAndRunAgentCommand(
     agentType: AgentType,
     shellOptions: Sequence<String> = defaultShellOptions,
     curlOptions: Sequence<String> = defaultCurlOptions,
+    envOptions: Sequence<EnvOption> = defaultEnvOptions,
 ): String = with(agentType) {
     "set ${getShellOptions(shellOptions)}" +
             " && curl ${getCurlOptions(curlOptions)} $downloadUrl --output $executableName" +
             " && chmod +x $executableName" +
+            " && ${getEnvOptions(envOptions)}" +
             " && ./$executableName"
 }
 
@@ -77,3 +82,8 @@ private fun getShellOptions(shellOptions: Sequence<String>): String =
  */
 @Language("bash")
 private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
+
+typealias EnvOption = Pair<String, String>
+
+private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { "${it.first}=${it.second}; " }
+

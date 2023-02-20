@@ -60,9 +60,9 @@ spec:
           {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
-              memory: 1000M
+              memory: 1200M
             requests:
-              memory: 800M
+              memory: 1000M
       {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner

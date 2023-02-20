@@ -24,8 +24,6 @@ private const val DEMO_VERSION = "version"
 private const val REPLICAS_PER_DEMO = 1
 private const val TTL_AFTER_COMPLETED = 3600
 
-private const val SAVE_DEMO_AGENT_EXECUTABLE_NAME = "save-demo-agent.kexe"
-
 private val logger = LoggerFactory.getLogger("KubernetesUtils")
 
 /**
@@ -129,7 +127,11 @@ private fun demoAgentContainerSpec(
     image = imageName
     imagePullPolicy = "IfNotPresent"
 
-    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, AgentType.DEMO_AGENT)
+    val envOptions = sequenceOf(
+        "KTOR_LOG_LEVEL" to "DEBUG",
+    )
+
+    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, AgentType.DEMO_AGENT, envOptions = envOptions)
 
     command = listOf("sh", "-c", startupCommand)
 

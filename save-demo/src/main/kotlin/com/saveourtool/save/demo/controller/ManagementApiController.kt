@@ -7,6 +7,7 @@ import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import kotlinx.coroutines.reactor.mono
 
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -39,7 +40,7 @@ class ManagementApiController(
     ): Mono<DemoStatus> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .flatMap { deferredToMono { kubernetesService.getStatus(it) } }
+        .flatMap { mono { kubernetesService.getStatus(it) } }
         .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     /**
