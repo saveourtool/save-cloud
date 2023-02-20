@@ -21,7 +21,7 @@ class AvatarStorage(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "images", "avatars")
 ) {
-    override fun buildKey(s3KeySuffix: String): AvatarKey {
+    override fun doBuildKey(s3KeySuffix: String): AvatarKey {
         val (typeStr, objectName) = s3KeySuffix.s3KeyToParts()
         return AvatarKey(
             type = AvatarType.findByUrlPath(typeStr)
@@ -32,5 +32,5 @@ class AvatarStorage(
         )
     }
 
-    override fun buildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.urlPath, key.objectName)
+    override fun doBuildS3KeySuffix(key: AvatarKey): String = concatS3Key(key.type.urlPath, key.objectName)
 }

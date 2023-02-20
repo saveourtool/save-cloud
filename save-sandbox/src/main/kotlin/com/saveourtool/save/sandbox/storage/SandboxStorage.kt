@@ -20,7 +20,7 @@ class SandboxStorage(
     concatS3Key(configProperties.s3Storage.prefix, "sandbox"),
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
-    override fun buildKey(s3KeySuffix: String): SandboxStorageKey {
+    override fun doBuildKey(s3KeySuffix: String): SandboxStorageKey {
         val (userId, typeName, filename) = s3KeySuffix.s3KeyToParts()
         return SandboxStorageKey(
             userId.toLong(),
@@ -29,7 +29,7 @@ class SandboxStorage(
         )
     }
 
-    override fun buildS3KeySuffix(key: SandboxStorageKey): String =
+    override fun doBuildS3KeySuffix(key: SandboxStorageKey): String =
             concatS3Key(key.userId.toString(), key.type.name, key.fileName)
 
     /**

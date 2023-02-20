@@ -14,22 +14,22 @@ abstract class AbstractSimpleStorage<K : Any>(
     prefix: String,
 ) : AbstractStorage<K, AbstractSimpleStorageProjectReactor<K>, AbstractSimpleStoragePreSignedUrl<K>>() {
     override val storageProjectReactor: AbstractSimpleStorageProjectReactor<K> = object : AbstractSimpleStorageProjectReactor<K>(s3Operations, prefix) {
-        override fun buildKey(s3KeySuffix: String): K = this@AbstractSimpleStorage.buildKey(s3KeySuffix)
-        override fun buildS3KeySuffix(key: K): String = this@AbstractSimpleStorage.buildS3KeySuffix(key)
+        override fun buildKey(s3KeySuffix: String): K = doBuildKey(s3KeySuffix)
+        override fun buildS3KeySuffix(key: K): String = doBuildS3KeySuffix(key)
     }
     override val storagePreSignedUrl: AbstractSimpleStoragePreSignedUrl<K> = object : AbstractSimpleStoragePreSignedUrl<K>(s3Operations, prefix) {
-        override fun buildS3KeySuffix(key: K): String = this@AbstractSimpleStorage.buildS3KeySuffix(key)
+        override fun buildS3KeySuffix(key: K): String = doBuildS3KeySuffix(key)
     }
 
     /**
      * @param s3KeySuffix cannot start with [PATH_DELIMITER]
      * @return [K] is built from [s3KeySuffix]
      */
-    protected abstract fun buildKey(s3KeySuffix: String): K
+    protected abstract fun doBuildKey(s3KeySuffix: String): K
 
     /**
      * @param key
      * @return suffix for s3 key, cannot start with [PATH_DELIMITER]
      */
-    protected abstract fun buildS3KeySuffix(key: K): String
+    protected abstract fun doBuildS3KeySuffix(key: K): String
 }

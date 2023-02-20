@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.storage.StorageProjectReactor
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -38,10 +39,11 @@ import kotlin.time.toJavaDuration
 @RestController
 @RequestMapping(path = ["/api/$v1/avatar"])
 internal class AvatarController(
-    private val avatarStorage: AvatarStorage,
+    avatarStorageProvider: AvatarStorage,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
 ) {
+    private val avatarStorage: StorageProjectReactor<AvatarKey> = avatarStorageProvider.usingProjectReactor()
     /**
      * @param partMono image to be uploaded
      * @param owner owner name
@@ -75,7 +77,7 @@ internal class AvatarController(
                 owner,
             )
             val content = part.content().map { it.asByteBuffer() }
-            avatarStorage.usingProjectReactor().overwrite(avatarKey, contentLength, content).map {
+            avatarStorage.overwrite(avatarKey, contentLength, content).map {
                 log.info("Saved $contentLength bytes of $avatarKey")
             }
         }
@@ -115,14 +117,14 @@ internal class AvatarController(
     )
 
     private fun getImage(avatarKey: AvatarKey): Mono<ByteBufferFluxResponse> = avatarKey.toMono()
-        .filterWhen(avatarStorage.usingProjectReactor()::doesExist)
+        .filterWhen(avatarStorage::doesExist)
         .flatMap {
-            avatarStorage.usingProjectReactor().lastModified(avatarKey)
+            avatarStorage.lastModified(avatarKey)
                 .map { lastModified ->
                     ResponseEntity.ok()
                         .cacheControl(CacheControl.maxAge(longExpirationTime.toJavaDuration()).cachePublic())
                         .lastModified(lastModified)
-                        .body(avatarStorage.usingProjectReactor().download(avatarKey))
+                        .body(avatarStorage.download(avatarKey))
                 }
         }
         .switchIfEmptyToNotFound {

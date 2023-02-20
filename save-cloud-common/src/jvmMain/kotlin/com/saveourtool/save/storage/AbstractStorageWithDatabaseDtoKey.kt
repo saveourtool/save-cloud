@@ -24,11 +24,11 @@ abstract class AbstractStorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWi
     prefix,
     repository,
 ) {
-    override fun E.toKey(): K = toDto()
+    override fun convertEntityToKey(entity: E): K = entity.toDto()
 
-    override fun K.toEntity(): E = createNewEntityFromDto(this)
+    override fun convertKeyToEntity(key: K): E = createNewEntityFromDto(key)
 
-    final override fun findEntity(key: K): E? = key.id
+    final override fun doFindEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }

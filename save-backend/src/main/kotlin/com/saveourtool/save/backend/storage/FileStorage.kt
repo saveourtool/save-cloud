@@ -46,7 +46,7 @@ class FileStorage(
         uploadedTime = dto.uploadedTime.toJavaLocalDateTime(),
     )
 
-    override fun beforeDelete(entity: File) {
+    override fun doBeforeDelete(entity: File) {
         executionService.unlinkFileFromAllExecution(entity)
     }
 

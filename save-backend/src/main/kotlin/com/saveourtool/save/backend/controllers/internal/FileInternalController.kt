@@ -31,7 +31,7 @@ class FileInternalController(
         @RequestParam fileId: Long,
     ): Mono<ByteBufferFluxResponse> = fileStorage.getFileById(fileId)
         .flatMap { fileDto ->
-            fileStorage.usingProjectReactor().doesExist(fileDto)
+            fileStorage.usingProjectReactor { doesExist(fileDto) }
                 .filter { it }
                 .switchIfEmptyToNotFound {
                     "File with key $fileDto is not found"
@@ -40,7 +40,7 @@ class FileInternalController(
                     log.info("Sending file ${fileDto.name} to an agent")
                     ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(fileStorage.usingProjectReactor().download(fileDto))
+                        .body(fileStorage.usingProjectReactor { download(fileDto) })
                 }
         }
 

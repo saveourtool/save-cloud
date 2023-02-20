@@ -31,23 +31,19 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
         underlyingStorageProjectReactor,
         repository,
     ) {
-        override fun E.toKey(): K = with(this@AbstractStorageWithDatabase) {
-            this@toKey.toKey()
-        }
+        override fun E.toKey(): K = convertEntityToKey(this)
 
-        override fun K.toEntity(): E = with(this@AbstractStorageWithDatabase) {
-            this@toEntity.toEntity()
-        }
+        override fun K.toEntity(): E = convertKeyToEntity(this)
 
-        override fun findEntity(key: K): E? = this@AbstractStorageWithDatabase.findEntity(key)
+        override fun findEntity(key: K): E? = doFindEntity(key)
 
-        override fun beforeDelete(entity: E) = this@AbstractStorageWithDatabase.beforeDelete(entity)
+        override fun beforeDelete(entity: E) = doBeforeDelete(entity)
     }
     override val storagePreSignedUrl = object : AbstractStoragePreSignedWithDatabase<K, E, R>(
         underlyingStoragePreSignedUrl,
         repository,
     ) {
-        override fun findEntity(key: K): E? = this@AbstractStorageWithDatabase.findEntity(key)
+        override fun findEntity(key: K): E? = doFindEntity(key)
     }
 
     /**
@@ -77,14 +73,16 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
         .thenJust(Unit)
 
     /**
+     * @param entity
      * @return a key [K] created from receiver entity [E]
      */
-    protected abstract fun E.toKey(): K
+    protected abstract fun convertEntityToKey(entity: E): K
 
     /**
+     * @param key
      * @return an entity [E] created from receiver key [K]
      */
-    protected abstract fun K.toEntity(): E
+    protected abstract fun convertKeyToEntity(key: K): E
 
     /**
      * A default implementation uses Spring's [Example]
@@ -92,13 +90,13 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      * @param key
      * @return [E] entity found by [K] key or null
      */
-    protected abstract fun findEntity(key: K): E?
+    protected abstract fun doFindEntity(key: K): E?
 
     /**
      * @receiver [E] entity which needs to be processed before deletion
      * @param entity
      */
-    protected open fun beforeDelete(entity: E): Unit = Unit
+    protected open fun doBeforeDelete(entity: E): Unit = Unit
 
     companion object {
         private fun defaultStorageProjectReactor(s3Operations: S3Operations, prefix: String): StorageProjectReactor<Long> = object : AbstractSimpleStorageProjectReactor<Long>(

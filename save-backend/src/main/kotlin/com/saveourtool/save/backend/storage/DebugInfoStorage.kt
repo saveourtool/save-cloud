@@ -60,6 +60,6 @@ class DebugInfoStorage(
             usingProjectReactor().upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
-    override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-    override fun buildS3KeySuffix(key: Long): String = key.toString()
+    override fun doBuildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 }

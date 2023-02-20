@@ -49,7 +49,7 @@ class TestsSourceSnapshotStorage(
         commitId = dto.commitId,
     )
 
-    override fun beforeDelete(entity: TestsSourceSnapshot) {
+    override fun doBeforeDelete(entity: TestsSourceSnapshot) {
         executionService.unlinkTestSuitesFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
     }
 

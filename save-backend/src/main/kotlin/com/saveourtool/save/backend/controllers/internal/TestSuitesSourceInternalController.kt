@@ -38,7 +38,7 @@ class TestSuitesSourceInternalController(
         @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
     ): Mono<TestsSourceSnapshotDto> = contentAsMonoPart.flatMap { part ->
         val content = part.content().map { it.asByteBuffer() }
-        snapshotStorage.usingProjectReactor().upload(snapshotDto, content)
+        snapshotStorage.usingProjectReactor { upload(snapshotDto, content) }
     }
 
     /**
@@ -79,6 +79,6 @@ class TestSuitesSourceInternalController(
     }.map { snapshot ->
         ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(snapshotStorage.usingProjectReactor().download(snapshot))
+            .body(snapshotStorage.usingProjectReactor { download(snapshot) })
     }
 }
