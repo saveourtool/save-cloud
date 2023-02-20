@@ -44,33 +44,33 @@ interface StorageProjectReactor<K> {
     /**
      * @param key a key for provided content
      * @param content
-     * @return count of written bytes
+     * @return [Mono] with uploaded key [K]
      */
-    fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long>
+    fun upload(key: K, content: Flux<ByteBuffer>): Mono<K>
 
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content as [Flux] of [ByteBuffer]
-     * @return [Mono] without value
+     * @return [Mono] with uploaded key [K]
      */
-    fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit>
+    fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K>
 
     /**
      * @param key a key for provided content
      * @param content
-     * @return count of written bytes
+     * @return [Mono] with overwritten key [K]
      */
-    fun overwrite(key: K, content: Flux<ByteBuffer>): Mono<Long> = delete(key)
+    fun overwrite(key: K, content: Flux<ByteBuffer>): Mono<K> = delete(key)
         .flatMap { upload(key, content) }
 
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content
-     * @return [Mono] without value
+     * @return [Mono] with overwritten key [K]
      */
-    fun overwrite(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = delete(key)
+    fun overwrite(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = delete(key)
         .flatMap { upload(key, contentLength, content) }
 
     /**
