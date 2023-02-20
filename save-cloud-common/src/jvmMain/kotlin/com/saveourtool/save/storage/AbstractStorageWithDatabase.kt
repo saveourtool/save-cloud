@@ -42,10 +42,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
         override fun findEntity(key: K): E? = this@AbstractStorageWithDatabase.findEntity(key)
 
         override fun beforeDelete(entity: E) = this@AbstractStorageWithDatabase.beforeDelete(entity)
-
-        override fun E.updateByContentSize(sizeBytes: Long): E = with(this@AbstractStorageWithDatabase) {
-            this@updateByContentSize.updateByContentSize(sizeBytes)
-        }
     }
     override val storagePreSignedUrl = object : AbstractStoragePreSignedWithDatabase<K, E, R>(
         underlyingStoragePreSignedUrl,
@@ -103,13 +99,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      * @param entity
      */
     protected open fun beforeDelete(entity: E): Unit = Unit
-
-    /**
-     * @receiver [E] entity which needs to be updated by [sizeBytes]
-     * @param sizeBytes
-     * @return updated [E] entity
-     */
-    protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
     companion object {
         private fun defaultStorageProjectReactor(s3Operations: S3Operations, prefix: String): StorageProjectReactor<Long> = object : AbstractSimpleStorageProjectReactor<Long>(

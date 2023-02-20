@@ -67,12 +67,7 @@ abstract class AbstractStorageProjectReactorWithDatabase<K : Any, E : BaseEntity
     }
         .flatMap { entity ->
             storageProjectReactor.upload(entity.requiredId(), content)
-                .flatMap { contentSize ->
-                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .map {
-                            it.toKey()
-                        }
-                }
+                .map { entity.toKey() }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))
                 }
@@ -116,11 +111,4 @@ abstract class AbstractStorageProjectReactorWithDatabase<K : Any, E : BaseEntity
      * @param entity
      */
     protected open fun beforeDelete(entity: E): Unit = Unit
-
-    /**
-     * @receiver [E] entity which needs to be updated by [sizeBytes]
-     * @param sizeBytes
-     * @return updated [E] entity
-     */
-    protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 }
