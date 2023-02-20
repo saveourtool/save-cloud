@@ -6,7 +6,7 @@ import react.ChildrenBuilder
 import react.react
 
 /**
- * @property hexColor
+ * @property hexColor color in hex format with leading `#` (example: #aabbcc)
  */
 enum class Color(val hexColor: String) {
     GREEN("#00d500"),
@@ -15,11 +15,11 @@ enum class Color(val hexColor: String) {
 }
 
 /**
+ * @param progress progress and percentage
+ * @param size of the circle
+ * @param lineWidth of the circle's stroke
+ * @param color of percentage text and "progress" portion of circle
  * @param handler
- * @param progress
- * @param size
- * @param lineWidth
- * @param color
  */
 @Suppress("MAGIC_NUMBER")
 fun ChildrenBuilder.prograssBar(
