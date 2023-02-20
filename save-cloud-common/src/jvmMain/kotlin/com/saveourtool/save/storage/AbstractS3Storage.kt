@@ -1,9 +1,6 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -19,12 +16,10 @@ import kotlin.time.Duration.Companion.minutes
  * @param prefix a common prefix for all S3 keys in this storage
  * @param K type of key
  */
-abstract class AbstractS3Storage<K>(
+abstract class AbstractS3Storage<K : Any>(
     private val s3Operations: S3Operations,
     prefix: String,
 ) : Storage<K> {
-    private val log: Logger = getLogger(this::class)
-
     /**
      * A common prefix endings with [PATH_DELIMITER] for all s3 keys in this storage
      */
@@ -50,17 +45,13 @@ abstract class AbstractS3Storage<K>(
         }
         .url()
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
             s3Operations.uploadObject(buildS3Key(key), content)
-                .flatMap {
-                    contentLength(key)
-                }
+                .thenReturn(key)
 
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
             s3Operations.uploadObject(buildS3Key(key), contentLength, content)
-                .map { response ->
-                    log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
-                }
+                .thenReturn(key)
 
     override fun move(source: K, target: K): Mono<Boolean> =
             s3Operations.copyObject(buildS3Key(source), buildS3Key(target))
