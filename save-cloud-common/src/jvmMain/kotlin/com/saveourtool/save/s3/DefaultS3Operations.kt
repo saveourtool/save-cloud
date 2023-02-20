@@ -2,8 +2,6 @@ package com.saveourtool.save.s3
 
 import org.springframework.http.MediaType
 import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
@@ -60,7 +58,7 @@ class DefaultS3Operations(
             .asyncConfiguration { builder ->
                 builder.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executorService)
             }
-            .region(region)
+            .region(stubRegion)
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
@@ -73,7 +71,7 @@ class DefaultS3Operations(
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
             .credentialsProvider(credentialsProvider)
-            .region(region)
+            .region(stubRegion)
             .serviceConfiguration(S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build())
@@ -197,7 +195,8 @@ class DefaultS3Operations(
     }
 
     companion object {
-        private val region = Region.AWS_ISO_GLOBAL
+        // we don't use region when connect to S3
+        private val stubRegion = Region.AWS_ISO_GLOBAL
 
         private fun <T : Any> CompletableFuture<T>.handleNoSuchKeyException(): CompletableFuture<T?> = exceptionally { ex ->
             when (ex) {
