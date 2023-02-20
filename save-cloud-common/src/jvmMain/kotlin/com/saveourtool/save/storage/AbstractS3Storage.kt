@@ -63,7 +63,7 @@ abstract class AbstractS3Storage<K : Any>(
         }
         .url()
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
             s3Operations.createMultipartUpload(buildS3Key(key))
                 .toMonoAndPublishOn()
                 .flatMap { response ->
