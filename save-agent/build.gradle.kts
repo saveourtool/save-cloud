@@ -41,7 +41,10 @@ kotlin {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
-                implementation(libs.save.plugins.fix)
+
+                implementation(libs.save.plugins.fix.toString()) {
+                    exclude("com.saveourtool.sarifutils", "fixpatches")
+                }
                 implementation(libs.save.reporters)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
