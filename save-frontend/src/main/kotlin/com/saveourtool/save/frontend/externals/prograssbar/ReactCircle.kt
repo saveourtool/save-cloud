@@ -37,7 +37,7 @@ external interface ReactCircleProps : PropsWithChildren {
     var progress: String
 
     /**
-     * Color of "progress" portion of circle (example: "rgb(76, 154, 255)").
+     * Color of "progress" portion of circle (example: "#ecedf0").
      */
     var progressColor: String
 
@@ -57,7 +57,7 @@ external interface ReactCircleProps : PropsWithChildren {
     var percentSpacing: Long
 
     /**
-     * Show/hide percentage.
+     * Show/hide percentage value inside the circle.
      */
     var showPercentage: Boolean
 

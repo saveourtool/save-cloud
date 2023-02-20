@@ -17,33 +17,24 @@ enum class Color(val hexColor: String) {
 /**
  * @param handler
  * @param progress
+ * @param size
+ * @param lineWidth
+ * @param color
  */
 @Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.circle(
-    progress: Long,
+fun ChildrenBuilder.prograssBar(
+    progress: Int,
+    size: Int = 100,
+    lineWidth: Int = 50,
+    color: String = Color.GREEN.hexColor,
     handler: ChildrenBuilder.(ReactCircleProps) -> Unit = {},
 ) {
-    val color = if (progress < 51) {
-        Color.GREEN.hexColor
-    } else {
-        Color.RED.hexColor
-    }
-
     ReactCircle::class.react {
-        this.size = "100"
-        this.lineWidth = "50"
+        this.size = size.toString()
+        this.lineWidth = lineWidth.toString()
         this.progress = progress.toString()
         this.progressColor = color
-        this.textColor = getRgb(color)
+        this.textColor = color
         handler(this)
     }
-}
-
-@Suppress("MAGIC_NUMBER")
-private fun getRgb(hex: String): String {
-    val hexString = hex.replace("#", "")
-    val first = hexString.substring(0, 2).toInt(16)
-    val second = hexString.substring(2, 4).toInt(16)
-    val third = hexString.substring(4, 6).toInt(16)
-    return "rgb($first, $second, $third)"
 }
