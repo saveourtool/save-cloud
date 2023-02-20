@@ -19,35 +19,20 @@ import javax.annotation.PostConstruct
 import kotlinx.datetime.Clock
 
 /**
- * Implementation of storage which stores keys in database
+ * Implementation of S3 storage which stores keys in database
  *
- * @property storage some storage which uses [Long] ([BaseEntity.id]) as a key
- * @property backupStorageCreator creator for some storage which uses [Long] as a key, should be unique per each creation (to avoid duplication in backups)
- * @property repository repository for [E]
+ * @param s3Operations interface to operate with S3 storage
+ * @param prefix a common prefix for all keys in S3 storage for this storage
+ * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    private val storage: Storage<Long>,
-    private val backupStorageCreator: () -> Storage<Long>,
+    s3Operations: S3Operations,
+    prefix: String,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-
-    /**
-     * Implementation using S3 storage
-     *
-     * @property s3Operations interface to operate with S3 storage
-     * @property prefix a common prefix for all keys in S3 storage for this storage
-     * @property repository repository for [E] which is entity for [K]
-     */
-    constructor(
-        s3Operations: S3Operations,
-        prefix: String,
-        repository: R,
-    ) : this(
-        storage = defaultS3Storage(s3Operations, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
-        repository = repository,
-    )
+    private val storage: Storage<Long> = defaultS3Storage(s3Operations, prefix)
+    private val backupStorageCreator: () -> Storage<Long> = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") }
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
@@ -120,45 +105,23 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
         }
         .defaultIfEmpty(false)
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
-
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = uploadAndReturnUpdatedKey(key, contentLength, content).thenReturn(Unit)
-
-    /**
-     * @param key a key for provided content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
-
-    /**
-     * @param key a key for provided content
-     * @param contentLength a content length of content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
         repository.save(key.toEntity())
     }
         .flatMap { entity ->
-            storage.upload(entity.requiredId(), contentLength, content)
+            storage.upload(entity.requiredId(), content)
                 .map { entity.toKey() }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))
                 }
         }
 
-    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
         repository.save(key.toEntity())
     }
         .flatMap { entity ->
-            storage.upload(entity.requiredId(), content)
-                .flatMap { contentSize ->
-                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .map {
-                            it.toKey() to contentSize
-                        }
-                }
+            storage.upload(entity.requiredId(), contentLength, content)
+                .map { entity.toKey() }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))
                 }
@@ -193,13 +156,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      * @param entity
      */
     protected open fun beforeDelete(entity: E): Unit = Unit
-
-    /**
-     * @receiver [E] entity which needs to be updated by [sizeBytes]
-     * @param sizeBytes
-     * @return updated [E] entity
-     */
-    protected open fun E.updateByContentSize(sizeBytes: Long): E = this
 
     companion object {
         private fun defaultS3Storage(s3Operations: S3Operations, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Operations, prefix) {

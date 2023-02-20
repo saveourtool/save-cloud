@@ -50,10 +50,6 @@ class FileStorage(
         executionService.unlinkFileFromAllExecution(entity)
     }
 
-    override fun File.updateByContentSize(sizeBytes: Long): File = apply {
-        this.sizeBytes = sizeBytes
-    }
-
     /**
      * @param project
      * @return all [FileDto]s which provided [Project] does contain
