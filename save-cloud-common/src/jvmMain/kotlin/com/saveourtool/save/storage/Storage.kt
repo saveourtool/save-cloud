@@ -5,7 +5,7 @@ package com.saveourtool.save.storage
  *
  * @param K type of key
  */
-interface Storage<K> {
+interface Storage<K : Any> {
     /**
      * @return [StorageProjectReactor] for this storage
      */

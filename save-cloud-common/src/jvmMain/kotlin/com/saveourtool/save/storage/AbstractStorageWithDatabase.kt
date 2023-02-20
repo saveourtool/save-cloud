@@ -6,27 +6,29 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.*
 
 import org.springframework.data.domain.Example
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import java.nio.ByteBuffer
 
 import kotlinx.datetime.Clock
 
 /**
- * Implementation of storage which stores keys in database
+ * Implementation of S3 storage which stores keys in database
  *
- * @property underlyingStorageProjectReactor some storage which uses [Long] ([BaseEntity.id]) as a key
- * @property backupUnderlyingStorageProjectReactorCreator creator for some storage which uses [Long] as a key, should be unique per each creation (to avoid duplication in backups)
- * @property underlyingStoragePreSignedUrl some [StoragePreSignedUrl] which uses [Long] ([BaseEntity.id]) as a key
- * @property repository repository for [E]
+ * @param s3Operations interface to operate with S3 storage
+ * @param prefix a common prefix for all keys in S3 storage for this storage
+ * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    private val underlyingStorageProjectReactor: StorageProjectReactor<Long>,
-    private val backupUnderlyingStorageProjectReactorCreator: () -> StorageProjectReactor<Long>,
-    private val underlyingStoragePreSignedUrl: StoragePreSignedUrl<Long>,
+    s3Operations: S3Operations,
+    prefix: String,
     protected val repository: R,
 ) : AbstractStorage<K, AbstractStorageProjectReactorWithDatabase<K, E, R>, AbstractStoragePreSignedWithDatabase<K, E, R>>() {
+    private val underlyingStorageProjectReactor = defaultStorageProjectReactor(s3Operations, prefix)
+    private val backupUnderlyingStorageProjectReactorCreator = {
+        defaultStorageProjectReactor(s3Operations,
+            prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
+    }
+    private val underlyingStoragePreSignedUrl = defaultStoragePreSignedUrl(s3Operations, prefix)
     override val storageProjectReactor = object : AbstractStorageProjectReactorWithDatabase<K, E, R>(
         underlyingStorageProjectReactor,
         repository,
@@ -53,27 +55,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     ) {
         override fun findEntity(key: K): E? = this@AbstractStorageWithDatabase.findEntity(key)
     }
-
-    /**
-     * Implementation using S3 storage
-     *
-     * @property s3Operations interface to operate with S3 storage
-     * @property prefix a common prefix for all keys in S3 storage for this storage
-     * @property repository repository for [E] which is entity for [K]
-     */
-    constructor(
-        s3Operations: S3Operations,
-        prefix: String,
-        repository: R,
-    ) : this(
-        underlyingStorageProjectReactor = defaultStorageProjectReactor(s3Operations, prefix),
-        backupUnderlyingStorageProjectReactorCreator = {
-            defaultStorageProjectReactor(s3Operations,
-                prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
-        },
-        underlyingStoragePreSignedUrl = defaultStoragePreSignedUrl(s3Operations, prefix),
-        repository = repository,
-    )
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
@@ -131,22 +112,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
      * @return updated [E] entity
      */
     protected open fun E.updateByContentSize(sizeBytes: Long): E = this
-
-    /**
-     * @param key a key for provided content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = usingProjectReactor().uploadAndReturnUpdatedKey(key, content)
-
-    /**
-     * @param key a key for provided content
-     * @param contentLength a content length of content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = usingProjectReactor().uploadAndReturnUpdatedKey(key, contentLength,
-        content)
 
     companion object {
         private fun defaultStorageProjectReactor(s3Operations: S3Operations, prefix: String): StorageProjectReactor<Long> = object : AbstractSimpleStorageProjectReactor<Long>(

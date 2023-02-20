@@ -33,9 +33,9 @@ fun <K : Any> StorageProjectReactor<K>.upload(key: K, contentBytes: ByteArray): 
  * @param key a key for provided content
  * @param content
  * @param contentLength
- * @return count of written bytes
+ * @return [Mono] with overwritten key [K]
  */
-fun <K> StorageProjectReactor<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<Unit> = content.content()
+fun <K> StorageProjectReactor<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<K> = content.content()
     .map { it.asByteBuffer() }
     .let { overwrite(key, contentLength, it) }
 
@@ -46,7 +46,7 @@ fun <K> StorageProjectReactor<K>.overwrite(key: K, content: Part, contentLength:
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
+fun <K : Any> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
     .let { contentLength ->
         overwrite(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
     }
