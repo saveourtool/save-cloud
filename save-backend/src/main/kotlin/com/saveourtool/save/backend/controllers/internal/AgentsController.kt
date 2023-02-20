@@ -66,10 +66,10 @@ class AgentsController(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let {
-                        testsSourceSnapshotStorage.generateUrlToDownload(it).toString()
+                        testsSourceSnapshotStorage.usingPreSignedUrl().generateUrlToDownload(it).toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
-                    .associate { it.name to fileStorage.generateUrlToDownload(it).toString() },
+                    .associate { it.name to fileStorage.usingPreSignedUrl().generateUrlToDownload(it).toString() },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
                     overrideExecFlags = null,

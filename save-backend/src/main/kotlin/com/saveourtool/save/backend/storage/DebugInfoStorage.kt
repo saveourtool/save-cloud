@@ -6,21 +6,18 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractS3Storage
+import com.saveourtool.save.storage.AbstractSimpleStorage
+import com.saveourtool.save.storage.AbstractSimpleStorageProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-
-import javax.annotation.PostConstruct
 
 /**
  * A storage for storing additional data associated with test results
@@ -32,17 +29,17 @@ class DebugInfoStorage(
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
-) : AbstractS3Storage<Long>(
+) : AbstractSimpleStorage<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "debugInfo"),
 ) {
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
+     *
+     * @param storageProjectReactor
      */
-    @PostConstruct
-    fun deleteUnexpectedIds() {
-        deleteAsyncUnexpectedIds(testExecutionRepository, log).subscribe()
-    }
+    override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> = storageProjectReactor.deleteAsyncUnexpectedIds(testExecutionRepository,
+        log)
 
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]
@@ -60,13 +57,9 @@ class DebugInfoStorage(
         }
         .flatMap { testExecutionId ->
             log.debug { "Writing debug info for $testExecutionId" }
-            upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
+            usingProjectReactor().upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
     override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun buildS3KeySuffix(key: Long): String = key.toString()
-
-    companion object {
-        private val log: Logger = getLogger<DebugInfoStorage>()
-    }
 }

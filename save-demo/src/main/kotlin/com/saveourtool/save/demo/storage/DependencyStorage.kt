@@ -73,7 +73,7 @@ class DependencyStorage(
             fileName,
         )
     }
-        .flatMap { delete(it) }
+        .flatMap { usingProjectReactor().delete(it) }
         .map {
             log.debug {
                 "Deleted $fileName associated with version $version from $demo"
@@ -129,7 +129,7 @@ class DependencyStorage(
             version,
         )
     }
-        .flatMap { download(it).collectToFile(tempDir / it.fileName) }
+        .flatMap { usingProjectReactor().download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
 
     /**

@@ -2,9 +2,9 @@ package com.saveourtool.save.sandbox.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.AbstractS3Storage
+import com.saveourtool.save.storage.AbstractSimpleStorage
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.s3KeyToPartsTill
+import com.saveourtool.save.storage.s3KeyToParts
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
@@ -15,13 +15,13 @@ import reactor.core.publisher.Flux
 class SandboxStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
-) : AbstractS3Storage<SandboxStorageKey>(
+) : AbstractSimpleStorage<SandboxStorageKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "sandbox"),
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(s3KeySuffix: String): SandboxStorageKey {
-        val (userId, typeName, filename) = s3KeySuffix.s3KeyToPartsTill(prefix)
+        val (userId, typeName, filename) = s3KeySuffix.s3KeyToParts()
         return SandboxStorageKey(
             userId.toLong(),
             SandboxStorageKeyType.valueOf(typeName),
@@ -40,7 +40,7 @@ class SandboxStorage(
     fun list(
         userId: Long,
         vararg types: SandboxStorageKeyType
-    ): Flux<SandboxStorageKey> = list().filter {
+    ): Flux<SandboxStorageKey> = usingProjectReactor().list().filter {
         it.userId == userId && it.type in types
     }
 }

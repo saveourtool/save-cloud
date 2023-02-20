@@ -155,8 +155,8 @@ class TestExecutionController(
             }
         }
 
-    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
-        .logicalOr(executionInfoStorage.doesExist(executionId))
+    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.usingProjectReactor().doesExist(requiredId())
+        .logicalOr(executionInfoStorage.usingProjectReactor().doesExist(executionId))
         .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
             "Failure while checking for debug info availability."
         }

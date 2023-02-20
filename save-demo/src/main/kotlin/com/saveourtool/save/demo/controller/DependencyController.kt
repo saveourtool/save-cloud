@@ -94,7 +94,7 @@ class DependencyController(
             fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
         }
         .filterWhen {
-            dependencyStorage.doesExist(it).map(Boolean::not)
+            dependencyStorage.usingProjectReactor().doesExist(it).map(Boolean::not)
         }
         .collectList()
         .map { dependencies ->

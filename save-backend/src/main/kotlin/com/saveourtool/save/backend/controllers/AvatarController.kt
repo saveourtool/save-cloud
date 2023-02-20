@@ -75,7 +75,7 @@ internal class AvatarController(
                 owner,
             )
             val content = part.content().map { it.asByteBuffer() }
-            avatarStorage.overwrite(avatarKey, contentLength, content).map {
+            avatarStorage.usingProjectReactor().overwrite(avatarKey, contentLength, content).map {
                 log.info("Saved $contentLength bytes of $avatarKey")
             }
         }
@@ -115,14 +115,14 @@ internal class AvatarController(
     )
 
     private fun getImage(avatarKey: AvatarKey): Mono<ByteBufferFluxResponse> = avatarKey.toMono()
-        .filterWhen(avatarStorage::doesExist)
+        .filterWhen(avatarStorage.usingProjectReactor()::doesExist)
         .flatMap {
-            avatarStorage.lastModified(avatarKey)
+            avatarStorage.usingProjectReactor().lastModified(avatarKey)
                 .map { lastModified ->
                     ResponseEntity.ok()
                         .cacheControl(CacheControl.maxAge(longExpirationTime.toJavaDuration()).cachePublic())
                         .lastModified(lastModified)
-                        .body(avatarStorage.download(avatarKey))
+                        .body(avatarStorage.usingProjectReactor().download(avatarKey))
                 }
         }
         .switchIfEmptyToNotFound {

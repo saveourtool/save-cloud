@@ -60,7 +60,7 @@ class TestsSourceSnapshotStorage(
     fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> {
         val tmpSourceDir = createTempDirectory("source-")
         val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
-        val sourceContent = download(request.testsSourceSnapshot)
+        val sourceContent = usingProjectReactor().download(request.testsSourceSnapshot)
             .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
             .cast(DataBuffer::class.java)
 
@@ -88,6 +88,6 @@ class TestsSourceSnapshotStorage(
      * @return true if all [TestsSourceSnapshot] (found by [testSuitesSource]) deleted successfully, otherwise -- false
      */
     fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> = blockingToFlux { repository.findAllBySource(testSuitesSource) }
-        .flatMap { delete(it.toDto()) }
+        .flatMap { usingProjectReactor().delete(it.toDto()) }
         .all { it }
 }

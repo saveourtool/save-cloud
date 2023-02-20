@@ -79,6 +79,6 @@ class TestSuitesSourceInternalController(
     }.map { snapshot ->
         ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(snapshotStorage.download(snapshot))
+            .body(snapshotStorage.usingProjectReactor().download(snapshot))
     }
 }

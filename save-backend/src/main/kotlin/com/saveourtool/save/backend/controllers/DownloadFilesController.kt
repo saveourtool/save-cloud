@@ -94,7 +94,7 @@ class DownloadFilesController(
     @GetMapping(path = ["/api/$v1/files/get-debug-info"])
     fun getDebugInfo(
         @RequestParam testExecutionId: Long,
-    ): Flux<ByteBuffer> = debugInfoStorage.download(testExecutionId)
+    ): Flux<ByteBuffer> = debugInfoStorage.usingProjectReactor().download(testExecutionId)
         .switchIfEmptyToNotFound {
             logger.warn("Additional file for ${TestExecution::class.simpleName} with id $testExecutionId not found")
             "File not found"
@@ -109,7 +109,7 @@ class DownloadFilesController(
     @GetMapping(path = ["/api/$v1/files/get-execution-info"])
     fun getExecutionInfo(
         @RequestParam executionId: Long,
-    ): Flux<ByteBuffer> = executionInfoStorage.download(executionId)
+    ): Flux<ByteBuffer> = executionInfoStorage.usingProjectReactor().download(executionId)
         .switchIfEmptyToNotFound {
             logger.debug("ExecutionInfo for $executionId not found")
             "File not found"
