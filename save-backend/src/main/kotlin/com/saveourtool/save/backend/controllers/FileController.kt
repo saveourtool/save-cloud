@@ -170,7 +170,7 @@ class FileController(
                     .filter { !it }
                     .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
                     .flatMap {
-                        fileStorage.upload(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() })
+                        fileStorage.usingProjectReactor().upload(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() })
                     }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)
                     .map {

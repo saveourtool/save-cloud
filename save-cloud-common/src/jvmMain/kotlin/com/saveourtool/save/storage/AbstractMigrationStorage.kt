@@ -36,11 +36,13 @@ abstract class AbstractMigrationStorage<O : Any, N : Any> : AbstractStorage<O, S
 
         override fun download(key: O): Flux<ByteBuffer> = newStorageProjectReactor.download(key.toNewKey())
 
-        override fun upload(key: O, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
+        override fun upload(key: O, contentLength: Long, content: Flux<ByteBuffer>): Mono<O> =
                 newStorageProjectReactor.upload(key.toNewKey(), contentLength, content)
+                    .map { it.toOldKey() }
 
-        override fun upload(key: O, content: Flux<ByteBuffer>): Mono<Long> =
+        override fun upload(key: O, content: Flux<ByteBuffer>): Mono<O> =
                 newStorageProjectReactor.upload(key.toNewKey(), content)
+                    .map { it.toOldKey() }
 
         override fun delete(key: O): Mono<Boolean> = newStorageProjectReactor.delete(key.toNewKey())
 

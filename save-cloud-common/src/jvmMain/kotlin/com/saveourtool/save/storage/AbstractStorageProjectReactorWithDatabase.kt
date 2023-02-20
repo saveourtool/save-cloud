@@ -62,35 +62,7 @@ abstract class AbstractStorageProjectReactorWithDatabase<K : Any, E : BaseEntity
         }
         .defaultIfEmpty(false)
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
-
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = uploadAndReturnUpdatedKey(key, contentLength, content).thenReturn(Unit)
-
-    /**
-     * @param key a key for provided content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
-
-    /**
-     * @param key a key for provided content
-     * @param contentLength a content length of content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
-        repository.save(key.toEntity())
-    }
-        .flatMap { entity ->
-            storageProjectReactor.upload(entity.requiredId(), contentLength, content)
-                .map { entity.toKey() }
-                .onErrorResume { ex ->
-                    doDelete(entity).then(Mono.error(ex))
-                }
-        }
-
-    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
         repository.save(key.toEntity())
     }
         .flatMap { entity ->
@@ -98,9 +70,20 @@ abstract class AbstractStorageProjectReactorWithDatabase<K : Any, E : BaseEntity
                 .flatMap { contentSize ->
                     blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
                         .map {
-                            it.toKey() to contentSize
+                            it.toKey()
                         }
                 }
+                .onErrorResume { ex ->
+                    doDelete(entity).then(Mono.error(ex))
+                }
+        }
+
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
+        repository.save(key.toEntity())
+    }
+        .flatMap { entity ->
+            storageProjectReactor.upload(entity.requiredId(), contentLength, content)
+                .map { entity.toKey() }
                 .onErrorResume { ex ->
                     doDelete(entity).then(Mono.error(ex))
                 }
