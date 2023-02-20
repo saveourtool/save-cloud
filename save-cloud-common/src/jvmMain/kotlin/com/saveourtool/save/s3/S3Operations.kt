@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
 
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
 
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,17 +18,12 @@ typealias GetObjectResponsePublisher = ResponsePublisher<GetObjectResponse>
  */
 interface S3Operations {
     /**
-     * a shared [ExecutorService] used by S3
-     */
-    val executorService: ExecutorService
-
-    /**
-     * a shared [Scheduler] based on [executorService]
+     * a shared [Scheduler] based on [java.util.concurrent.ExecutorService]
      */
     val scheduler: Scheduler
 
     /**
-     * a shared [CoroutineDispatcher] based on [executorService]
+     * a shared [CoroutineDispatcher] based on [java.util.concurrent.ExecutorService]
      */
     val coroutineDispatcher: CoroutineDispatcher
 

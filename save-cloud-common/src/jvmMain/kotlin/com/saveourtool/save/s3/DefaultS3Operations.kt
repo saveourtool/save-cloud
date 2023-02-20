@@ -34,7 +34,7 @@ class DefaultS3Operations(
     private val bucketName = properties.bucketName
     private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
     private val executorName: String = "s3-operations-${properties.bucketName}"
-    override val executorService = with(properties.async) {
+    private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,
             maxPoolSize,
