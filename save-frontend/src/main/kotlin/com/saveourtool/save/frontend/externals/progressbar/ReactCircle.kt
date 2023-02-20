@@ -2,7 +2,7 @@
 @file:JsModule("react-circle")
 @file:JsNonModule
 
-package com.saveourtool.save.frontend.externals.prograssbar
+package com.saveourtool.save.frontend.externals.progressbar
 
 import react.Component
 import react.PropsWithChildren

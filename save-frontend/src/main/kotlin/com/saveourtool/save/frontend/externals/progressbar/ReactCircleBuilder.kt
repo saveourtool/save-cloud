@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.externals.prograssbar
+package com.saveourtool.save.frontend.externals.progressbar
 
 import react.ChildrenBuilder
 import react.react
@@ -22,7 +22,7 @@ enum class Color(val hexColor: String) {
  * @param handler
  */
 @Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.prograssBar(
+fun ChildrenBuilder.progressBar(
     progress: Int,
     size: Int = 100,
     lineWidth: Int = 50,
