@@ -3,40 +3,21 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.*
-
-import org.springframework.data.repository.findByIdOrNull
+import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
 
 /**
  * Implementation of storage which stores keys ([E]) in database and uses S3 storage under hood
  *
  * @param s3Operations interface to operate with S3 storage
- * @param prefix a common prefix for all keys in S3 storage for this storage
+ * @param s3KeyManager [AbstractS3KeyEntityManager] manager for S3 keys using database
  * @param repository repository for [E]
  */
-abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>>(
+abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyEntityManager<E, R>>(
     s3Operations: S3Operations,
-    prefix: String,
+    s3KeyManager: M,
     repository: R,
-) : AbstractStorageWithDatabase<E, E, R>(
+) : AbstractStorageWithDatabase<E, E, R, M>(
     s3Operations,
-    prefix,
+    s3KeyManager,
     repository,
-) {
-    override fun E.toKey(): E = this
-
-    override fun E.toEntity(): E = this
-
-    final override fun findEntity(key: E): E? = key.id
-        ?.let { id ->
-            repository.findByIdOrNull(id)
-                .orNotFound { "Failed to find entity for $this by id = $id" }
-        }
-        ?: findByContent(key)
-
-    /**
-     * @param key
-     * @return [E] entity found in database by [E] or null
-     */
-    protected abstract fun findByContent(key: E): E?
-}
+)

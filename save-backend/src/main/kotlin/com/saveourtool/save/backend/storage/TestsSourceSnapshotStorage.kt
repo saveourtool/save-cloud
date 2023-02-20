@@ -29,29 +29,14 @@ import kotlin.io.path.*
  */
 @Component
 class TestsSourceSnapshotStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
-    private val testSuitesSourceRepository: TestSuitesSourceRepository,
-    private val testSuitesService: TestSuitesService,
-    private val executionService: ExecutionService,
-) : AbstractStorageWithDatabaseDtoKey<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
+    s3KeyManager: TestsSourceSnapshotS3KeyManager,
+) : AbstractStorageWithDatabaseDtoKey<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
-    testsSourceSnapshotRepository
+    s3KeyManager,
+    testsSourceSnapshotRepository,
 ) {
-    override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
-
-    override fun findByDto(
-        dto: TestsSourceSnapshotDto
-    ): TestsSourceSnapshot? = repository.findBySourceIdAndCommitId(
-        sourceId = dto.sourceId,
-        commitId = dto.commitId,
-    )
-
-    override fun beforeDelete(entity: TestsSourceSnapshot) {
-        executionService.unlinkTestSuitesFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
-    }
 
     /**
      * @param request

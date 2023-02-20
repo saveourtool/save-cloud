@@ -3,69 +3,79 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
+import com.saveourtool.save.storage.key.AbstractS3KeyManager
+import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
-import org.springframework.data.domain.Example
-import org.springframework.http.HttpStatus
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
 
 import kotlinx.datetime.Clock
+import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
+import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Implementation of storage which stores keys in database
+ * Implementation of S3 storage which stores keys in database
  *
- * @property storage some storage which uses [Long] ([BaseEntity.id]) as a key
- * @property backupStorageCreator creator for some storage which uses [Long] as a key, should be unique per each creation (to avoid duplication in backups)
- * @property repository repository for [E]
+ * @property s3Operations interface to operate with S3 storage
+ * @property s3KeyManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
+ * @property repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    private val storage: Storage<Long>,
-    private val backupStorageCreator: () -> Storage<Long>,
+abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M: AbstractS3KeyDatabaseManager<K, E, R>>(
+    private val s3Operations: S3Operations,
+    protected val s3KeyManager: M,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
 
-    /**
-     * Implementation using S3 storage
-     *
-     * @property s3Operations interface to operate with S3 storage
-     * @property prefix a common prefix for all keys in S3 storage for this storage
-     * @property repository repository for [E] which is entity for [K]
-     */
-    constructor(
-        s3Operations: S3Operations,
-        prefix: String,
-        repository: R,
-    ) : this(
-        storage = defaultS3Storage(s3Operations, prefix),
-        backupStorageCreator = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") },
-        repository = repository,
-    )
+    private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
+        override val s3KeyManager: S3KeyManager<K> = this@AbstractStorageWithDatabase.s3KeyManager
+    }
+
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
+    private val isInitStarted = AtomicBoolean(false)
+
+    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
+    private val isInitFinished = AtomicBoolean(false)
+
+    private val initScheduler: Scheduler = Schedulers.boundedElastic()
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
      */
     @PostConstruct
-    fun backupUnexpectedIds() {
-        if (storage is AbstractMigrationStorage<*, *>) {
-            storage.migrateAsync()
-        } else {
-            Mono.just(Unit)
+    fun init() {
+        require(!isInitStarted.compareAndExchange(false, true)) {
+            "Init method cannot be called more than 1 time, initialization is in progress"
         }
-            .flatMapMany {
-                storage.detectAsyncUnexpectedIds(repository)
+        doBackupUnexpectedIds()
+            .doOnNext {
+                require(!isInitFinished.compareAndExchange(false, true)) {
+                    "Init method cannot be called more than 1 time. Initialization already finished by another project"
+                }
+                log.info {
+                    "Initialization of ${javaClass.simpleName} is done"
+                }
             }
+            .subscribeOn(initScheduler)
+            .subscribe()
+    }
+
+    private fun doBackupUnexpectedIds(): Mono<Unit> {
+        val directStorage = DirectStorage(s3KeyManager.commonPrefix)
+        return directStorage.detectAsyncUnexpectedIds(repository)
             .collectList()
             .filter { it.isNotEmpty() }
             .flatMapIterable { unexpectedIds ->
-                val backupStorage = backupStorageCreator()
+                val backupStorage = DirectStorage(s3KeyManager.commonPrefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
                 log.warn {
                     "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
                 }
@@ -74,136 +84,55 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
                     .zip(unexpectedIds)
             }
             .flatMap { (backupStorage, id) ->
-                storage.contentLength(id)
+                directStorage.contentLength(id)
                     .flatMap { contentLength ->
-                        backupStorage.upload(id, contentLength, storage.download(id))
+                        backupStorage.upload(id, contentLength, directStorage.download(id))
                     }
-                    .then(storage.delete(id))
+                    .then(directStorage.delete(id))
             }
-            .subscribe()
-    }
-
-    /**
-     * @return a key [K] created from receiver entity [E]
-     */
-    protected abstract fun E.toKey(): K
-
-    /**
-     * @return an entity [E] created from receiver key [K]
-     */
-    protected abstract fun K.toEntity(): E
-
-    override fun list(): Flux<K> = blockingToFlux {
-        repository.findAll().map { it.toKey() }
-    }
-
-    override fun doesExist(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
-        .flatMap { entity ->
-            storage.doesExist(entity.requiredId())
-                .filter { it }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    "The key $key is presented in database, but missed in storage"
+            .collectList()
+            .map { results ->
+                if (results.isNotEmpty()) {
+                    log.info {
+                        "Backup of ${javaClass.simpleName} finished"
+                    }
                 }
+            }
+    }
+
+    private fun <R> validateAndRun(action: () -> R): R {
+        require(isInitFinished.get()) {
+            "Any method of ${javaClass.simpleName} should be called after init is finished"
         }
-        .defaultIfEmpty(false)
-
-    override fun contentLength(key: K): Mono<Long> = getIdAsMono(key).flatMap { storage.contentLength(it) }
-
-    override fun lastModified(key: K): Mono<Instant> = getIdAsMono(key).flatMap { storage.lastModified(it) }
-
-    override fun delete(key: K): Mono<Boolean> = blockingToMono { findEntity(key) }
-        .flatMap { entity ->
-            storage.delete(entity.requiredId())
-                .asyncEffectIf({ this }) {
-                    doDelete(entity)
-                }
-        }
-        .defaultIfEmpty(false)
-
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> = doUpload(key, content).map(Pair<Any, Long>::second)
-
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> = uploadAndReturnUpdatedKey(key, contentLength, content).thenReturn(Unit)
-
-    /**
-     * @param key a key for provided content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, content: Flux<ByteBuffer>): Mono<K> = doUpload(key, content).map(Pair<K, Any>::first)
-
-    /**
-     * @param key a key for provided content
-     * @param contentLength a content length of content
-     * @param content
-     * @return updated key [E]
-     */
-    open fun uploadAndReturnUpdatedKey(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = blockingToMono {
-        repository.save(key.toEntity())
-    }
-        .flatMap { entity ->
-            storage.upload(entity.requiredId(), contentLength, content)
-                .map { entity.toKey() }
-                .onErrorResume { ex ->
-                    doDelete(entity).then(Mono.error(ex))
-                }
-        }
-
-    private fun doUpload(key: K, content: Flux<ByteBuffer>): Mono<Pair<K, Long>> = blockingToMono {
-        repository.save(key.toEntity())
-    }
-        .flatMap { entity ->
-            storage.upload(entity.requiredId(), content)
-                .flatMap { contentSize ->
-                    blockingToMono { repository.save(entity.updateByContentSize(contentSize)) }
-                        .map {
-                            it.toKey() to contentSize
-                        }
-                }
-                .onErrorResume { ex ->
-                    doDelete(entity).then(Mono.error(ex))
-                }
-        }
-
-    override fun move(source: K, target: K): Mono<Boolean> = throw UnsupportedOperationException("${AbstractStorageWithDatabase::class.simpleName} storage doesn't support moving")
-
-    override fun download(key: K): Flux<ByteBuffer> = getIdAsMono(key).flatMapMany { storage.download(it) }
-
-    override fun generateUrlToDownload(key: K): URL = getId(key).let { storage.generateUrlToDownload(it) }
-
-    private fun getIdAsMono(key: K): Mono<Long> = blockingToMono { findEntity(key)?.requiredId() }
-        .switchIfEmptyToNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
-
-    private fun getId(key: K): Long = findEntity(key)?.requiredId().orNotFound { "Key $key is not saved: ID is not set and failed to find by default example" }
-
-    private fun doDelete(entity: E): Mono<Unit> = blockingToMono {
-        beforeDelete(entity)
-        repository.delete(entity)
+        return action()
     }
 
-    /**
-     * A default implementation uses Spring's [Example]
-     *
-     * @param key
-     * @return [E] entity found by [K] key or null
-     */
-    protected abstract fun findEntity(key: K): E?
+    override fun list(): Flux<K> = validateAndRun { underlyingStorage.list() }
 
-    /**
-     * @receiver [E] entity which needs to be processed before deletion
-     * @param entity
-     */
-    protected open fun beforeDelete(entity: E): Unit = Unit
+    override fun download(key: K): Flux<ByteBuffer> = validateAndRun { underlyingStorage.download(key) }
 
-    /**
-     * @receiver [E] entity which needs to be updated by [sizeBytes]
-     * @param sizeBytes
-     * @return updated [E] entity
-     */
-    protected open fun E.updateByContentSize(sizeBytes: Long): E = this
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> = validateAndRun { underlyingStorage.upload(key, content) }
 
-    companion object {
-        private fun defaultS3Storage(s3Operations: S3Operations, prefix: String): Storage<Long> = object : AbstractS3Storage<Long>(s3Operations, prefix) {
-            override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = validateAndRun { underlyingStorage.upload(key, contentLength, content) }
+
+    override fun delete(key: K): Mono<Boolean> = validateAndRun { underlyingStorage.delete(key) }
+
+    override fun lastModified(key: K): Mono<Instant> = validateAndRun { underlyingStorage.lastModified(key) }
+
+    override fun contentLength(key: K): Mono<Long> = validateAndRun { underlyingStorage.contentLength(key) }
+
+    override fun doesExist(key: K): Mono<Boolean> = validateAndRun { underlyingStorage.doesExist(key) }
+
+    override fun move(source: K, target: K): Mono<Boolean> = validateAndRun { underlyingStorage.move(source, target) }
+
+    override fun generateUrlToDownload(key: K): URL = validateAndRun { underlyingStorage.generateUrlToDownload(key) }
+
+    private open inner class DirectStorage(underlyingPrefix: String) : AbstractS3Storage<Long>(
+        s3Operations,
+    ) {
+        override val s3KeyManager = object : AbstractS3KeyManager<Long>(underlyingPrefix) {
+            override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+            override fun delete(key: Long) = Unit
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
     }

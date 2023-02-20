@@ -2,9 +2,7 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractS3Storage
-import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.s3KeyToPartsTill
+import com.saveourtool.save.storage.*
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
@@ -17,12 +15,12 @@ import org.springframework.stereotype.Service
 class AvatarStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
-) : AbstractS3Storage<AvatarKey>(
+) : AbstractSimpleStorage<AvatarKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "images", "avatars")
 ) {
-    override fun buildKey(s3KeySuffix: String): AvatarKey {
-        val (typeStr, objectName) = s3KeySuffix.s3KeyToPartsTill(prefix)
+    override fun buildKeyFromSuffix(s3KeySuffix: String): AvatarKey {
+        val (typeStr, objectName) = s3KeySuffix.split(PATH_DELIMITER)
         return AvatarKey(
             type = AvatarType.findByUrlPath(typeStr)
                 .orNotFound {

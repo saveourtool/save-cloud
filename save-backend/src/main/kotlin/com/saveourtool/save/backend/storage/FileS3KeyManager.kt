@@ -57,18 +57,13 @@ class FileS3KeyManager(
      */
     fun listByProject(
         project: Project,
-    ): Flux<FileDto> = blockingToFlux {
-        repository.findAllByProject(project).map { it.toDto() }
-    }
+    ): Collection<FileDto> = repository.findAllByProject(project).map { it.toDto() }
 
     /**
      * @param fileId
      * @return [FileDto] for [File] with provided [fileId]
      */
-    fun getFileById(
+    fun findFileById(
         fileId: Long,
-    ): Mono<FileDto> = blockingToMono {
-        repository.findByIdOrNull(fileId)?.toDto()
-    }
-        .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
+    ): FileDto? = repository.findByIdOrNull(fileId)?.toDto()
 }

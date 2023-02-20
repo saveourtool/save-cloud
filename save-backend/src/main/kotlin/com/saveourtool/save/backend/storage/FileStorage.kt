@@ -22,38 +22,14 @@ import kotlinx.datetime.toJavaLocalDateTime
  */
 @Service
 class FileStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     fileRepository: FileRepository,
-    private val projectService: ProjectService,
-    private val executionService: ExecutionService,
-) : AbstractStorageWithDatabaseDtoKey<FileDto, File, FileRepository>(
+    s3KeyManager: FileS3KeyManager,
+) : AbstractStorageWithDatabaseDtoKey<FileDto, File, FileRepository, FileS3KeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "storage"),
+    s3KeyManager,
     fileRepository
 ) {
-    override fun createNewEntityFromDto(dto: FileDto): File = dto.toEntity {
-        projectService.findByNameAndOrganizationNameAndCreatedStatus(dto.projectCoordinates.projectName, dto.projectCoordinates.organizationName)
-            .orNotFound {
-                "Not found project by coordinates: ${dto.projectCoordinates}"
-            }
-    }
-
-    override fun findByDto(dto: FileDto): File? = repository.findByProject_Organization_NameAndProject_NameAndNameAndUploadedTime(
-        organizationName = dto.projectCoordinates.organizationName,
-        projectName = dto.projectCoordinates.projectName,
-        name = dto.name,
-        uploadedTime = dto.uploadedTime.toJavaLocalDateTime(),
-    )
-
-    override fun beforeDelete(entity: File) {
-        executionService.unlinkFileFromAllExecution(entity)
-    }
-
-    override fun File.updateByContentSize(sizeBytes: Long): File = apply {
-        this.sizeBytes = sizeBytes
-    }
-
     /**
      * @param project
      * @return all [FileDto]s which provided [Project] does contain
@@ -61,7 +37,7 @@ class FileStorage(
     fun listByProject(
         project: Project,
     ): Flux<FileDto> = blockingToFlux {
-        repository.findAllByProject(project).map { it.toDto() }
+        s3KeyManager.listByProject(project)
     }
 
     /**
@@ -71,7 +47,7 @@ class FileStorage(
     fun getFileById(
         fileId: Long,
     ): Mono<FileDto> = blockingToMono {
-        repository.findByIdOrNull(fileId)?.toDto()
+        s3KeyManager.findFileById(fileId)
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 }

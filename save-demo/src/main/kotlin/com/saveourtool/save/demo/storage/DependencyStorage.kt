@@ -21,16 +21,14 @@ import kotlin.io.path.*
  */
 @Component
 class DependencyStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     repository: DependencyRepository,
-) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository>(
+    s3KeyManager: DependencyKeyManager,
+) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "deps"),
+    s3KeyManager,
     repository,
 ) {
-    override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
-
     /**
      * @param demo
      * @param version version of a tool that the file is connected to

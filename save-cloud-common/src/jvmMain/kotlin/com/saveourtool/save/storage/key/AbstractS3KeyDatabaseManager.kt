@@ -2,7 +2,6 @@ package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +15,15 @@ import org.springframework.transaction.annotation.Transactional
 abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     protected val repository: R,
-) : AbstractS3KeyManager<K>(prefix) {
+) : S3KeyManager<K> {
+    private val underlying = object : AbstractS3KeyManager<Long>(prefix) {
+        override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+        override fun delete(key: Long) = Unit
+        override fun buildS3KeySuffix(key: Long): String = key.toString()
+    }
+
+    override val commonPrefix: String = underlying.commonPrefix
+
     /**
      * @return a key [K] created from receiver entity [E]
      */
@@ -33,12 +40,6 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
      */
     protected abstract fun findEntity(key: K): E?
 
-    /**
-     * @param key
-     * @return true if metastore contains [key]
-     */
-    override fun contains(key: K): Boolean = findEntity(key).isNotNull()
-
     @Transactional
     override fun delete(key: K) {
         findEntity(key)?.let { entity ->
@@ -47,27 +48,28 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
         }
     }
 
-    @Transactional
-    override fun createNewS3Key(key: K): String {
-        return super.createNewS3Key(key)
-    }
-
-    override fun findExistedS3Key(key: K): String? = findEntity(key)?.let { super.findExistedS3Key(key) }
-
-    override fun buildKeyFromSuffix(s3KeySuffix: String): K = repository.findByIdOrNull(s3KeySuffix.toLong())
-        .orNotFound {
-            "Not found entity by id $s3KeySuffix"
-        }
-        .toKey()
-
-    override fun buildS3KeySuffix(key: K): String {
-        val entity = repository.save(key.toEntity())
-        return entity.requiredId().toString()
-    }
-
     /**
      * @receiver [E] entity which needs to be processed before deletion
      * @param entity
      */
     protected open fun beforeDelete(entity: E): Unit = Unit
+
+    @Transactional
+    override fun createNewS3Key(key: K): String {
+        val entity = repository.save(key.toEntity())
+        return underlying.createNewS3Key(entity.requiredId())
+    }
+
+    override fun findExistedS3Key(key: K): String? = findEntity(key)?.let { entity -> underlying.findExistedS3Key(entity.requiredId()) }
+
+    override fun findKey(s3Key: String): K? {
+        val entityId = underlying.findKey(s3Key).orNotFound {
+            "Cannot extract entity id from s3 key: $s3Key"
+        }
+        return repository.findByIdOrNull(entityId)
+            .orNotFound {
+                "Not found entity by id $entityId"
+            }
+            .toKey()
+    }
 }

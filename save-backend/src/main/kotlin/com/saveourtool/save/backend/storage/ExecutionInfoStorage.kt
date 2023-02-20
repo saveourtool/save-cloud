@@ -13,6 +13,7 @@ import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.storage.AbstractSimpleStorage
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -28,7 +29,7 @@ class ExecutionInfoStorage(
     s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
-) : AbstractS3Storage<Long>(
+) : AbstractSimpleStorage<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "executionInfo"),
 ) {
@@ -72,7 +73,7 @@ class ExecutionInfoStorage(
             log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
         }
 
-    override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun buildS3KeySuffix(key: Long): String = key.toString()
 
     companion object {

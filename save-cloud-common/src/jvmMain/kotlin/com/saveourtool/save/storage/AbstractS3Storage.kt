@@ -20,14 +20,17 @@ import reactor.kotlin.core.util.function.component2
  * S3 implementation of Storage
  *
  * @param s3Operations [S3Operations] to operate with S3
- * @param prefix a common prefix for all S3 keys in this storage
  * @param K type of key
  */
 abstract class AbstractS3Storage<K : Any>(
     private val s3Operations: S3Operations,
-    private val s3KeyManager: S3KeyManager<K>,
 ) : Storage<K> {
     private val log: Logger = getLogger(this::class)
+
+    /**
+     * [S3KeyManager] manager for S3 keys
+     */
+    protected abstract val s3KeyManager: S3KeyManager<K>
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .flatMapIterable { response ->
@@ -51,8 +54,8 @@ abstract class AbstractS3Storage<K : Any>(
         it.toFlux()
     }
 
-    override fun generateUrlToDownload(key: K): URL = findExistedS3Key(key)
-        .map { s3Key ->
+    override fun generateUrlToDownload(key: K): URL = s3KeyManager.findExistedS3Key(key)
+        ?.let { s3Key ->
             s3Operations.requestToDownloadObject(s3Key, downloadDuration)
                 .also { request ->
                     require(request.isBrowserExecutable) {
@@ -60,22 +63,39 @@ abstract class AbstractS3Storage<K : Any>(
                     }
                 }
                 .url()
+        }.orNotFound {
+            "Not found s3 key for $key"
         }
 
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> =
+        createNewS3Key(key)
+            .flatMap { s3Key ->
+                s3Operations.uploadObject(s3Key, content)
+                    .doOnError {
+                        s3KeyManager.delete(key)
+                    }
+                    .flatMap {
+                        contentLength(key)
+                            .map { contentLength ->
+                                requireNotNull(s3KeyManager.findKey(s3Key)) {
+                                    "Not found inserted updated key for $key"
+                                } to contentLength
+                            }
+                    }
+            }
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
-            s3Operations.uploadObject(buildS3Key(key), content)
-                .flatMap {
-                    contentLength(key)
-                }
-
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
         createNewS3Key(key)
             .flatMap { s3Key ->
                 s3Operations.uploadObject(s3Key, contentLength, content)
-            }
-            .map { response ->
-                log.debug { "Uploaded $key with versionId: ${response.versionId()}" }
+                    .doOnError {
+                        s3KeyManager.delete(key)
+                    }
+                    .map {
+                        requireNotNull(s3KeyManager.findKey(s3Key)) {
+                            "Not found inserted updated key for $key"
+                        }
+                    }
             }
 
     override fun move(source: K, target: K): Mono<Boolean> =
@@ -91,6 +111,7 @@ abstract class AbstractS3Storage<K : Any>(
     override fun delete(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.deleteObject(s3Key)
     }
+        .map { deleteKey(key) }
         .thenReturn(true)
         .defaultIfEmpty(false)
 
@@ -142,10 +163,5 @@ abstract class AbstractS3Storage<K : Any>(
 
     companion object {
         private val downloadDuration = 15.minutes
-        private fun String.validateSuffix(): String = also { suffix ->
-            require(!suffix.startsWith(PATH_DELIMITER)) {
-                "Suffix cannot start with $PATH_DELIMITER: $suffix"
-            }
-        }
     }
 }

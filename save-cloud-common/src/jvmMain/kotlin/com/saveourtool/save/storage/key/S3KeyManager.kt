@@ -10,12 +10,6 @@ interface S3KeyManager<K : Any> {
     val commonPrefix: String
 
     /**
-     * @param key
-     * @return true if metastore contains [key]
-     */
-    fun contains(key: K): Boolean
-
-    /**
      * @param key key which needs to delete
      */
     fun delete(key: K)
