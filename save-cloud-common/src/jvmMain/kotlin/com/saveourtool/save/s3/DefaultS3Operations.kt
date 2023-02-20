@@ -208,18 +208,6 @@ class DefaultS3Operations(
 
         private fun URI.lowercase(): URI = URI(toString().lowercase())
 
-        private class NamedDefaultThreadFactory(private val namePrefix: String) : ThreadFactory {
-            private val delegate: ThreadFactory = Executors.defaultThreadFactory()
-            private val threadCount = AtomicInteger(0)
-
-            override fun newThread(runnable: Runnable): Thread {
-                val thread = delegate.newThread(runnable).apply {
-                    name = namePrefix + "-" + threadCount.getAndIncrement()
-                }
-                return thread
-            }
-        }
-
         private fun S3AsyncClient.createBucketIfNotExists(bucketName: String): CompletableFuture<String> =
                 HeadBucketRequest.builder()
                     .bucket(bucketName)
@@ -245,5 +233,17 @@ class DefaultS3Operations(
                                 }
                         }
                     }
+
+        private class NamedDefaultThreadFactory(private val namePrefix: String) : ThreadFactory {
+            private val delegate: ThreadFactory = Executors.defaultThreadFactory()
+            private val threadCount = AtomicInteger(0)
+
+            override fun newThread(runnable: Runnable): Thread {
+                val thread = delegate.newThread(runnable).apply {
+                    name = namePrefix + "-" + threadCount.getAndIncrement()
+                }
+                return thread
+            }
+        }
     }
 }
