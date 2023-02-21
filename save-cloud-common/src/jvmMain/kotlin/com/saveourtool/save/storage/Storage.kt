@@ -6,14 +6,12 @@ import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 
-typealias KeyWithContentLength<K> = Pair<K, Long>
-
 /**
  * Base interface for Storage
  *
  * @param K type of key
  */
-interface Storage<K> {
+interface Storage<K : Any> {
     /**
      * @return list of keys in storage
      */
@@ -46,31 +44,31 @@ interface Storage<K> {
     /**
      * @param key a key for provided content
      * @param content
-     * @return [Mono] with updated key [K] and count of written bytes
+     * @return [Mono] with uploaded key [K]
      */
-    fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>>
+    fun upload(key: K, content: Flux<ByteBuffer>): Mono<K>
 
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content
-     * @return [Mono] with updated key [K]
+     * @return [Mono] with uploaded key [K]
      */
     fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K>
 
     /**
      * @param key a key for provided content
      * @param content
-     * @return [Mono] with updated key [K] and count of written bytes
+     * @return [Mono] with overwritten key [K]
      */
-    fun overwrite(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> = delete(key)
+    fun overwrite(key: K, content: Flux<ByteBuffer>): Mono<K> = delete(key)
         .flatMap { upload(key, content) }
 
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content
-     * @return [Mono] with updated key [K]
+     * @return [Mono] with overwritten key [K]
      */
     fun overwrite(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = delete(key)
         .flatMap { upload(key, contentLength, content) }

@@ -9,13 +9,17 @@ import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import software.amazon.awssdk.core.async.AsyncRequestBody
 
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 import kotlin.time.Duration.Companion.minutes
 
@@ -36,6 +40,15 @@ abstract class AbstractS3Storage<K : Any>(
     protected abstract val s3KeyManager: S3KeyManager<K>
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
+        .toMonoAndPublishOn()
+        .expand { lastResponse ->
+            if (lastResponse.isTruncated) {
+                s3Operations.listObjectsV2(prefix, lastResponse.nextContinuationToken())
+                    .toMonoAndPublishOn()
+            } else {
+                Mono.empty()
+            }
+        }
         .flatMapIterable { response ->
             response.contents().mapNotNull {
                 val s3Key = it.key()
@@ -52,6 +65,7 @@ abstract class AbstractS3Storage<K : Any>(
     override fun download(key: K): Flux<ByteBuffer> = findExistedS3Key(key)
         .flatMap { s3Key ->
             s3Operations.getObject(s3Key)
+                .toMonoAndPublishOn()
         }
         .flatMapMany {
             it.toFlux()
@@ -74,24 +88,33 @@ abstract class AbstractS3Storage<K : Any>(
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> =
             createNewS3Key(key)
                 .flatMap { s3Key ->
-                    s3Operations.uploadObject(s3Key, content)
-                        .doOnError {
-                            s3KeyManager.delete(key)
-                        }
-                        .flatMap {
-                            contentLength(key)
-                                .map { contentLength ->
-                                    requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                        "Not found inserted updated key for $key"
-                                    } to contentLength
+                    s3Operations.createMultipartUpload(s3Key)
+                        .toMonoAndPublishOn()
+                        .flatMap { response ->
+                            content.index()
+                                .flatMap { (index, buffer) ->
+                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
+                                        .toMonoAndPublishOn()
+                                }
+                                .collectList()
+                                .flatMap { uploadPartResults ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartResults)
+                                        .toMonoAndPublishOn()
                                 }
                         }
+                        .map {
+                            requireNotNull(s3KeyManager.findKey(s3Key)) {
+                                "Not found inserted updated key for $key"
+                            }
+                        }
                 }
+                .thenReturn(key)
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
             createNewS3Key(key)
                 .flatMap { s3Key ->
-                    s3Operations.uploadObject(s3Key, contentLength, content)
+                    s3Operations.putObject(s3Key, contentLength, AsyncRequestBody.fromPublisher(content))
+                        .toMonoAndPublishOn()
                         .doOnError {
                             s3KeyManager.delete(key)
                         }
@@ -107,6 +130,7 @@ abstract class AbstractS3Storage<K : Any>(
                 .zipWith(createNewS3Key(target))
                 .flatMap { (sourceS3Key, targetS3Key) ->
                     s3Operations.copyObject(sourceS3Key, targetS3Key)
+                        .toMonoAndPublishOn()
                 }
                 .flatMap {
                     delete(source)
@@ -114,6 +138,7 @@ abstract class AbstractS3Storage<K : Any>(
 
     override fun delete(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.deleteObject(s3Key)
+            .toMonoAndPublishOn()
     }
         .map { deleteKey(key) }
         .thenReturn(true)
@@ -121,6 +146,7 @@ abstract class AbstractS3Storage<K : Any>(
 
     override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
     }
         .map { response ->
             response.lastModified()
@@ -128,6 +154,7 @@ abstract class AbstractS3Storage<K : Any>(
 
     override fun contentLength(key: K): Mono<Long> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
     }
         .map { response ->
             response.contentLength()
@@ -135,6 +162,7 @@ abstract class AbstractS3Storage<K : Any>(
 
     override fun doesExist(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
     }
         .map { true }
         .defaultIfEmpty(false)
@@ -164,6 +192,8 @@ abstract class AbstractS3Storage<K : Any>(
     } else {
         s3KeyManager.createNewS3Key(key).toMono()
     }
+
+    private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
 
     companion object {
         private val downloadDuration = 15.minutes
