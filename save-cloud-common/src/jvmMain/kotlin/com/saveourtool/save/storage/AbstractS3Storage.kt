@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
  * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
  */
-abstract class AbstractStorage<K : Any>(
+abstract class AbstractS3Storage<K : Any>(
     private val s3Operations: S3Operations,
 ) : Storage<K> {
     private val log: Logger = getLogger(this::class)

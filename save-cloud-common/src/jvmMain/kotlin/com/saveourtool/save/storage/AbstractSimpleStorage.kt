@@ -10,7 +10,7 @@ import com.saveourtool.save.storage.key.S3KeyManager
 abstract class AbstractSimpleStorage<K : Any>(
     s3Operations: S3Operations,
     prefix: String,
-) : AbstractStorage<K>(
+) : AbstractS3Storage<K>(
     s3Operations,
 ) {
     override val s3KeyManager: S3KeyManager<K> = object : AbstractS3KeyManager<K>(prefix) {

@@ -1,6 +1,7 @@
 package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.storage.PATH_DELIMITER
+import com.saveourtool.save.storage.asS3CommonPrefix
 
 /**
  * A common implementation for [S3KeyManager]
@@ -10,7 +11,7 @@ import com.saveourtool.save.storage.PATH_DELIMITER
 abstract class AbstractS3KeyManager<K : Any>(
     prefix: String,
 ) : S3KeyManager<K> {
-    final override val commonPrefix: String = prefix.removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
+    final override val commonPrefix: String = prefix.asS3CommonPrefix()
 
     /**
      * @param s3Key cannot start with [PATH_DELIMITER]

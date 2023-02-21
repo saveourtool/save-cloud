@@ -32,7 +32,7 @@ open class StorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository
     private val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-    private val underlyingStorage = object : AbstractStorage<K>(s3Operations) {
+    private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
         override val s3KeyManager: S3KeyManager<K> = this@StorageWithDatabase.s3KeyManager
     }
 
