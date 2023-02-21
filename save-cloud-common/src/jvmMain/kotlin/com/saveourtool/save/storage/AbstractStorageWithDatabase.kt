@@ -16,8 +16,6 @@ import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
 
-import kotlinx.datetime.Clock
-
 /**
  * Implementation of S3 storage which stores keys in database
  *
@@ -26,45 +24,28 @@ import kotlinx.datetime.Clock
  * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    s3Operations: S3Operations,
-    prefix: String,
+    private val s3Operations: S3Operations,
+    private val prefix: String,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-    private val storage: Storage<Long> = defaultS3Storage(s3Operations, prefix)
-    private val backupStorageCreator: () -> Storage<Long> = { defaultS3Storage(s3Operations, prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}") }
+    private val commonPrefix: String = prefix.asS3CommonPrefix()
+    private val storage: Storage<Long> = defaultS3Storage(s3Operations, commonPrefix)
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
      */
     @PostConstruct
     fun backupUnexpectedIds() {
-        if (storage is AbstractMigrationStorage<*, *>) {
-            storage.migrateAsync()
-        } else {
-            Mono.just(Unit)
-        }
-            .flatMapMany {
-                storage.detectAsyncUnexpectedIds(repository)
+        Mono.fromFuture {
+            s3Operations.backupUnexpectedKeys(
+                storageName = "${this::class.simpleName}",
+                commonPrefix = commonPrefix,
+            ) { s3Key ->
+                val id = s3Key.removePrefix(commonPrefix).toLong()
+                repository.findById(id).isEmpty
             }
-            .collectList()
-            .filter { it.isNotEmpty() }
-            .flatMapIterable { unexpectedIds ->
-                val backupStorage = backupStorageCreator()
-                log.warn {
-                    "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
-                }
-                generateSequence { backupStorage }.take(unexpectedIds.size)
-                    .toList()
-                    .zip(unexpectedIds)
-            }
-            .flatMap { (backupStorage, id) ->
-                storage.contentLength(id)
-                    .flatMap { contentLength ->
-                        backupStorage.upload(id, contentLength, storage.download(id))
-                    }
-                    .then(storage.delete(id))
-            }
+        }.publishOn(s3Operations.scheduler)
             .subscribe()
     }
 

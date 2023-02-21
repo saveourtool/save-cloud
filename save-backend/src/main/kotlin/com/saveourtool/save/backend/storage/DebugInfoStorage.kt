@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractS3Storage
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
+import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -28,7 +28,7 @@ import javax.annotation.PostConstruct
 @Service
 class DebugInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
@@ -41,7 +41,16 @@ class DebugInfoStorage(
      */
     @PostConstruct
     fun deleteUnexpectedIds() {
-        deleteAsyncUnexpectedIds(testExecutionRepository, log).subscribe()
+        Mono.fromFuture {
+            s3Operations.deleteUnexpectedKeys(
+                storageName = "${this::class.simpleName}",
+                commonPrefix = prefix,
+            ) { s3Key ->
+                testExecutionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+            }
+        }
+            .publishOn(s3Operations.scheduler)
+            .subscribe()
     }
 
     /**
