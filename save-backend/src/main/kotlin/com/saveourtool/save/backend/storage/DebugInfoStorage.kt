@@ -6,13 +6,14 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.storage.*
 import com.saveourtool.save.storage.deleteUnexpectedKeys
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.storage.*
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -36,15 +37,15 @@ class DebugInfoStorage(
      * @param storageProjectReactor
      */
     override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> =
-        Mono.fromFuture {
-            s3Operations.deleteUnexpectedKeys(
-                storageName = "${this::class.simpleName}",
-                commonPrefix = prefix,
-            ) { s3Key ->
-                testExecutionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+            Mono.fromFuture {
+                s3Operations.deleteUnexpectedKeys(
+                    storageName = "${this::class.simpleName}",
+                    commonPrefix = prefix,
+                ) { s3Key ->
+                    testExecutionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+                }
             }
-        }
-            .publishOn(s3Operations.scheduler)
+                .publishOn(s3Operations.scheduler)
 
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]
