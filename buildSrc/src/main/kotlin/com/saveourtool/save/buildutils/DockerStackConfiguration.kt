@@ -23,6 +23,27 @@ const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val MINIO_STARTUP_DELAY_MILLIS = 5_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
+fun Project.registerLiquibaseTask(profile: String) {
+    tasks.register<Exec>("liquibaseUpdate") {
+        val credentials = getBackendDatabaseCredentials(profile)
+
+        commandLine(
+            "docker", "run",
+            "-v", "$rootDir/db:/liquibase/changelog/db",
+            "--env", "INSTALL_MYSQL=true",
+            "--network", "build_default",
+            "liquibase/liquibase:4.15",
+            "--url=${credentials.databaseUrl}?createDatabaseIfNotExist=true",
+            "--changeLogFile=db/db.changelog-master.xml",
+            "--username=${credentials.username}",
+            "--password=${credentials.password}",
+            "--log-level=info",
+            "--contexts=$profile",
+            "update"
+        )
+    }
+}
+
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
  */
