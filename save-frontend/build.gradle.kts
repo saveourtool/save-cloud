@@ -200,8 +200,9 @@ tasks.named<KotlinJsTest>("browserTest").configure {
 }
 
 // generate kotlin file with project version to include in web page
+val generatedSrcRoot = "$buildDir/generated/src"
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+    val versionsFile = File("$generatedSrcRoot/generated/Versions.kt")
 
     inputs.property("project version", version.toString())
     outputs.file(versionsFile)
@@ -219,7 +220,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     }
 }
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
+    kotlin.srcDir(generateVersionFileTaskProvider.map { generatedSrcRoot })
 }
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
     dependsOn(generateVersionFileTaskProvider)

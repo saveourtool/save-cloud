@@ -52,8 +52,9 @@ dependencies {
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
+val generatedSrcRoot = "$buildDir/generated/src"
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+    val versionsFile = File("$generatedSrcRoot/generated/Versions.kt")
 
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
@@ -76,7 +77,11 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 }
 
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
+    kotlin.srcDir(generateVersionFileTaskProvider.map { _ ->
+        // task itself is unused, but the whole Provider object indicates,
+        // that source dir is built by that task
+        generatedSrcRoot
+    })
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
