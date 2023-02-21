@@ -4,6 +4,9 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.AbstractS3KeyManager
 import com.saveourtool.save.storage.key.S3KeyManager
 
+/**
+ * A simple implementation of [Storage]
+ */
 abstract class AbstractSimpleStorage<K : Any>(
     s3Operations: S3Operations,
     prefix: String,
@@ -17,14 +20,14 @@ abstract class AbstractSimpleStorage<K : Any>(
     }
 
     /**
-     * @param s3KeySuffix
-     * @return
+     * @param s3KeySuffix cannot start with [PATH_DELIMITER]
+     * @return [K] is built from [s3KeySuffix]
      */
     abstract fun buildKeyFromSuffix(s3KeySuffix: String): K
 
     /**
      * @param key
-     * @return
+     * @return suffix for s3 key, cannot start with [PATH_DELIMITER]
      */
     abstract fun buildS3KeySuffix(key: K): String
 }

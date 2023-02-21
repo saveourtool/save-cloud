@@ -9,10 +9,10 @@ import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
 
@@ -43,15 +43,15 @@ abstract class AbstractS3Storage<K : Any>(
         .toMonoAndPublishOn()
         .expand { lastResponse ->
             if (lastResponse.isTruncated) {
-                s3Operations.listObjectsV2(prefix, lastResponse.nextContinuationToken())
+                s3Operations.listObjectsV2(s3KeyManager.commonPrefix, lastResponse.nextContinuationToken())
                     .toMonoAndPublishOn()
             } else {
                 Mono.empty()
             }
         }
         .flatMapIterable { response ->
-            response.contents().mapNotNull {
-                val s3Key = it.key()
+            response.contents().mapNotNull { s3Object ->
+                val s3Key = s3Object.key()
                 val key = s3KeyManager.findKey(s3Key)
                 if (!key.isNotNull()) {
                     log.warn {
@@ -85,7 +85,7 @@ abstract class AbstractS3Storage<K : Any>(
             "Not found s3 key for $key"
         }
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> =
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
             createNewS3Key(key)
                 .flatMap { s3Key ->
                     s3Operations.createMultipartUpload(s3Key)

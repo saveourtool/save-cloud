@@ -109,7 +109,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
 
     override fun download(key: K): Flux<ByteBuffer> = validateAndRun { underlyingStorage.download(key) }
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<KeyWithContentLength<K>> = validateAndRun { underlyingStorage.upload(key, content) }
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = validateAndRun { underlyingStorage.upload(key, content) }
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = validateAndRun { underlyingStorage.upload(key, contentLength, content) }
 
@@ -130,7 +130,6 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     ) {
         override val s3KeyManager = object : AbstractS3KeyManager<Long>(underlyingPrefix) {
             override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-            override fun delete(key: Long) = Unit
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
     }

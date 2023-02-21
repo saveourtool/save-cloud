@@ -34,6 +34,8 @@ abstract class AbstractS3KeyManager<K : Any>(
      */
     protected abstract fun buildS3KeySuffix(key: K): String
 
+    override fun delete(key: K): Unit = Unit
+
     companion object {
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {
