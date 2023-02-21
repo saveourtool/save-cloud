@@ -11,21 +11,24 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
+import com.saveourtool.save.backend.utils.mockUsingStorageProjectReactor
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.storage.AbstractStorageProjectReactorWithDatabase
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
 import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.Mock
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -35,7 +38,6 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.security.test.context.support.WithMockUser
@@ -116,8 +118,16 @@ class DownloadFilesTest {
     @MockBean
     private lateinit var fileStorage: FileStorage
 
+    @Mock
+    private lateinit var fileStorageProjectReactor: AbstractStorageProjectReactorWithDatabase<FileDto, File, FileRepository>
+
     @MockBean
     private lateinit var projectService: ProjectService
+
+    @BeforeEach
+    fun setup() {
+        fileStorage.mockUsingStorageProjectReactor(fileStorageProjectReactor)
+    }
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")
@@ -128,11 +138,11 @@ class DownloadFilesTest {
         }
 
         val fileContent = "Lorem ipsum"
-        whenever(fileStorage.doesExist(file1.toDto()))
+        whenever(fileStorageProjectReactor.doesExist(eq(file1.toDto())))
             .thenReturn(true.toMono())
         whenever(fileStorage.getFileById(eq(file1.requiredId())))
             .thenReturn(Mono.just(file1.toDto()))
-        whenever(fileStorage.download(eq(file1.toDto())))
+        whenever(fileStorageProjectReactor.download(eq(file1.toDto())))
             .thenReturn(Flux.just(ByteBuffer.wrap(fileContent.toByteArray())))
         whenever(fileStorage.listByProject(eq(file1.project)))
             .thenReturn(Flux.just(file1.toDto()))
@@ -187,10 +197,10 @@ class DownloadFilesTest {
         val fileContent = "Some content"
         val file = (tmpDir / file2.name).createFile()
             .also { it.writeText(fileContent) }
-        whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
-            .thenReturn(Mono.just(false))
-        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
-            .thenReturn(Mono.just(file2.toDto()))
+        whenever(fileStorageProjectReactor.doesExist(argThat { candidateTo(file2) }))
+            .thenReturn(false.toMono())
+        whenever(fileStorageProjectReactor.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
+            .thenReturn(file2.toDto().toMono())
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
             .thenReturn(testProject2)
