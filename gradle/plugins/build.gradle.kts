@@ -23,10 +23,6 @@ dependencies {
     implementation(libs.publish.gradle.plugin)
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
