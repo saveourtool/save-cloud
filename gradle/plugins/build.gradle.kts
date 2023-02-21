@@ -23,9 +23,12 @@ dependencies {
     implementation(libs.publish.gradle.plugin)
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "17"
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
