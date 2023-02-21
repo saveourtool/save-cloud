@@ -81,13 +81,13 @@ abstract class AbstractStorage<K : Any, R : StorageProjectReactor<K>, U : Storag
 
     override fun usingProjectReactor(): R = validateAndRun { storageProjectReactor }
 
-    override fun <T : Any> usingProjectReactor(function: StorageProjectReactor<K>.() -> T): T  = validateAndRun {
+    override fun <T : Any> usingProjectReactor(function: StorageProjectReactor<K>.() -> T): T = validateAndRun {
         function(storageProjectReactor)
     }
 
     override fun usingPreSignedUrl(): U = validateAndRun { storagePreSignedUrl }
 
-    override fun <T : Any> usingPreSignedUrl(function: StoragePreSignedUrl<K>.() -> T): T  = validateAndRun {
+    override fun <T : Any> usingPreSignedUrl(function: StoragePreSignedUrl<K>.() -> T): T = validateAndRun {
         function(storagePreSignedUrl)
     }
 }

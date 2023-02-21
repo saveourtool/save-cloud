@@ -69,7 +69,7 @@ class AgentsController(
                         testsSourceSnapshotStorage.usingPreSignedUrl { generateUrlToDownload(it).toString() }
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
-                    .associate { it.name to fileStorage.usingPreSignedUrl { generateUrlToDownload(it).toString() } },
+                    .associate { file -> file.name to fileStorage.usingPreSignedUrl { generateUrlToDownload(file).toString() } },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
                     overrideExecFlags = null,

@@ -44,6 +44,7 @@ internal class AvatarController(
     private val userDetailsService: UserDetailsService,
 ) {
     private val avatarStorage: StorageProjectReactor<AvatarKey> = avatarStorageProvider.usingProjectReactor()
+
     /**
      * @param partMono image to be uploaded
      * @param owner owner name

@@ -12,6 +12,7 @@ interface Storage<K : Any> {
     fun usingProjectReactor(): StorageProjectReactor<K>
 
     /**
+     * @param function
      * @return result of [function] which is run using [StorageProjectReactor]
      */
     fun <T : Any> usingProjectReactor(function: StorageProjectReactor<K>.() -> T): T
@@ -22,6 +23,7 @@ interface Storage<K : Any> {
     fun usingPreSignedUrl(): StoragePreSignedUrl<K>
 
     /**
+     * @param function
      * @return result of [function] which is run using [StoragePreSignedUrl]
      */
     fun <T : Any> usingPreSignedUrl(function: StoragePreSignedUrl<K>.() -> T): T
