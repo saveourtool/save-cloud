@@ -40,9 +40,9 @@ class ExecutionInfoStorage(
         Mono.fromFuture {
             s3Operations.deleteUnexpectedKeys(
                 storageName = "${this::class.simpleName}",
-                commonPrefix = prefix,
+                commonPrefix = s3KeyManager.commonPrefix,
             ) { s3Key ->
-                executionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+                executionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
             }
         }
             .publishOn(s3Operations.scheduler)
@@ -81,8 +81,8 @@ class ExecutionInfoStorage(
             log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
         }
 
-    override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-    override fun buildS3KeySuffix(key: Long): String = key.toString()
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 
     companion object {
         private val log: Logger = getLogger<ExecutionInfoStorage>()

@@ -4,7 +4,7 @@ import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractStorageWithDatabaseEntityKey
+import com.saveourtool.save.storage.StorageWithDatabaseEntityKey
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -22,7 +22,7 @@ class DependencyStorage(
     s3Operations: S3Operations,
     repository: DependencyRepository,
     s3KeyManager: DependencyKeyManager,
-) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository, DependencyKeyManager>(
+) : StorageWithDatabaseEntityKey<Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
     s3KeyManager,
     repository,
@@ -35,7 +35,7 @@ class DependencyStorage(
     fun blockingList(
         demo: Demo,
         version: String,
-    ): List<Dependency> = repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
+    ): List<Dependency> = s3KeyManager.findAllDependenies(
         demo.organizationName,
         demo.projectName,
         version,
@@ -62,7 +62,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Unit> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             demo.organizationName,
             demo.projectName,
             version,
@@ -105,7 +105,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Dependency> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             organizationName,
             projectName,
             version,
@@ -119,11 +119,7 @@ class DependencyStorage(
         projectName: String,
         version: String
     ) = blockingToFlux {
-        repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
-            organizationName,
-            projectName,
-            version,
-        )
+        s3KeyManager.findAllDependenies(organizationName, projectName, version)
     }
         .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()

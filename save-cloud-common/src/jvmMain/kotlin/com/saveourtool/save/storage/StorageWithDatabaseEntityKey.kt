@@ -12,11 +12,11 @@ import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
  * @param s3KeyManager [AbstractS3KeyEntityManager] manager for S3 keys using database
  * @param repository repository for [E]
  */
-abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyEntityManager<E, R>>(
+open class StorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyEntityManager<E, R>>(
     s3Operations: S3Operations,
     s3KeyManager: M,
     repository: R,
-) : AbstractStorageWithDatabase<E, E, R, M>(
+) : StorageWithDatabase<E, E, R, M>(
     s3Operations,
     s3KeyManager,
     repository,

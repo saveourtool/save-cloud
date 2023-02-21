@@ -44,9 +44,9 @@ class DebugInfoStorage(
         Mono.fromFuture {
             s3Operations.deleteUnexpectedKeys(
                 storageName = "${this::class.simpleName}",
-                commonPrefix = prefix,
+                commonPrefix = s3KeyManager.commonPrefix,
             ) { s3Key ->
-                testExecutionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+                testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
             }
         }
             .publishOn(s3Operations.scheduler)
@@ -72,8 +72,8 @@ class DebugInfoStorage(
             upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
-    override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-    override fun buildS3KeySuffix(key: Long): String = key.toString()
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()

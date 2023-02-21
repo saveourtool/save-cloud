@@ -19,7 +19,7 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
     /**
      * [S3KeyManager] with [Long] as key (it's [ID][com.saveourtool.save.spring.entity.BaseEntity.requiredId])
      */
-    val underlying: S3KeyManager<Long> = object : AbstractS3KeyManager<Long>(prefix) {
+    private val underlying: S3KeyManager<Long> = object : AbstractS3KeyManager<Long>(prefix) {
         override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
         override fun buildS3KeySuffix(key: Long): String = key.toString()
     }

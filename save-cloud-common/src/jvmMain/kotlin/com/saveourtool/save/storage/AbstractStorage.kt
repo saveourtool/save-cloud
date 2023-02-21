@@ -11,8 +11,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
 
@@ -29,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
  * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
  */
-abstract class AbstractS3Storage<K : Any>(
+abstract class AbstractStorage<K : Any>(
     private val s3Operations: S3Operations,
 ) : Storage<K> {
     private val log: Logger = getLogger(this::class)

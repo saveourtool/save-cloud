@@ -5,7 +5,6 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
-import com.saveourtool.save.utils.*
 
 /**
  * Implementation of storage which stores keys ([K]) in database and uses S3 storage under hood
@@ -14,11 +13,11 @@ import com.saveourtool.save.utils.*
  * @param s3KeyManager [AbstractS3KeyDtoManager] manager for S3 keys using database
  * @param repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>, M : AbstractS3KeyDtoManager<K, E, R>>(
+open class StorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>, M : AbstractS3KeyDtoManager<K, E, R>>(
     s3Operations: S3Operations,
     s3KeyManager: M,
     repository: R,
-) : AbstractStorageWithDatabase<K, E, R, M>(
+) : StorageWithDatabase<K, E, R, M>(
     s3Operations,
     s3KeyManager,
     repository,

@@ -23,17 +23,17 @@ import javax.annotation.PostConstruct
  * Implementation of S3 storage which stores keys in database
  *
  * @property s3Operations interface to operate with S3 storage
- * @property s3KeyDatabaseManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
+ * @property s3KeyManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
  * @property repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyDatabaseManager<K, E, R>>(
+open class StorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyDatabaseManager<K, E, R>>(
     private val s3Operations: S3Operations,
-    protected val s3KeyDatabaseManager: M,
-    protected val repository: R,
+    protected val s3KeyManager: M,
+    private val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
-    private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
-        override val s3KeyManager: S3KeyManager<K> = s3KeyDatabaseManager
+    private val underlyingStorage = object : AbstractStorage<K>(s3Operations) {
+        override val s3KeyManager: S3KeyManager<K> = this@StorageWithDatabase.s3KeyManager
     }
 
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
@@ -67,9 +67,9 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     private fun doBackupUnexpectedIds(): Mono<Unit> = Mono.fromFuture {
         s3Operations.backupUnexpectedKeys(
             storageName = "${this::class.simpleName}",
-            commonPrefix = s3KeyDatabaseManager.commonPrefix,
+            commonPrefix = s3KeyManager.commonPrefix,
         ) { s3Key ->
-            val id = s3Key.removePrefix(s3KeyDatabaseManager.commonPrefix).toLong()
+            val id = s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()
             repository.findById(id).isEmpty
         }
     }.publishOn(s3Operations.scheduler)
