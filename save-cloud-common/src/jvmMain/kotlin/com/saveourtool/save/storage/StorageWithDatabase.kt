@@ -36,32 +36,16 @@ open class StorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository
         override val s3KeyManager: S3KeyManager<K> = this@StorageWithDatabase.s3KeyManager
     }
 
-    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
-    private val isInitStarted = AtomicBoolean(false)
-
-    @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
-    private val isInitFinished = AtomicBoolean(false)
-    private val initScheduler: Scheduler = Schedulers.boundedElastic()
+    private val initializer = StorageInitializer(this::class)
 
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
      */
     @PostConstruct
     fun init() {
-        require(!isInitStarted.compareAndExchange(false, true)) {
-            "Init method cannot be called more than 1 time, initialization is in progress"
+        initializer.init {
+            doBackupUnexpectedIds()
         }
-        doBackupUnexpectedIds()
-            .doOnNext {
-                require(!isInitFinished.compareAndExchange(false, true)) {
-                    "Init method cannot be called more than 1 time. Initialization already finished by another project"
-                }
-                log.info {
-                    "Initialization of ${javaClass.simpleName} is done"
-                }
-            }
-            .subscribeOn(initScheduler)
-            .subscribe()
     }
 
     private fun doBackupUnexpectedIds(): Mono<Unit> = Mono.fromFuture {
@@ -74,30 +58,23 @@ open class StorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository
         }
     }.publishOn(s3Operations.scheduler)
 
-    private fun <R> validateAndRun(action: () -> R): R {
-        require(isInitFinished.get()) {
-            "Any method of ${javaClass.simpleName} should be called after init is finished"
-        }
-        return action()
-    }
+    override fun list(): Flux<K> = initializer.validateAndRun { underlyingStorage.list() }
 
-    override fun list(): Flux<K> = validateAndRun { underlyingStorage.list() }
+    override fun download(key: K): Flux<ByteBuffer> = initializer.validateAndRun { underlyingStorage.download(key) }
 
-    override fun download(key: K): Flux<ByteBuffer> = validateAndRun { underlyingStorage.download(key) }
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = initializer.validateAndRun { underlyingStorage.upload(key, content) }
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = validateAndRun { underlyingStorage.upload(key, content) }
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = initializer.validateAndRun { underlyingStorage.upload(key, contentLength, content) }
 
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = validateAndRun { underlyingStorage.upload(key, contentLength, content) }
+    override fun delete(key: K): Mono<Boolean> = initializer.validateAndRun { underlyingStorage.delete(key) }
 
-    override fun delete(key: K): Mono<Boolean> = validateAndRun { underlyingStorage.delete(key) }
+    override fun lastModified(key: K): Mono<Instant> = initializer.validateAndRun { underlyingStorage.lastModified(key) }
 
-    override fun lastModified(key: K): Mono<Instant> = validateAndRun { underlyingStorage.lastModified(key) }
+    override fun contentLength(key: K): Mono<Long> = initializer.validateAndRun { underlyingStorage.contentLength(key) }
 
-    override fun contentLength(key: K): Mono<Long> = validateAndRun { underlyingStorage.contentLength(key) }
+    override fun doesExist(key: K): Mono<Boolean> = initializer.validateAndRun { underlyingStorage.doesExist(key) }
 
-    override fun doesExist(key: K): Mono<Boolean> = validateAndRun { underlyingStorage.doesExist(key) }
+    override fun move(source: K, target: K): Mono<Boolean> = initializer.validateAndRun { underlyingStorage.move(source, target) }
 
-    override fun move(source: K, target: K): Mono<Boolean> = validateAndRun { underlyingStorage.move(source, target) }
-
-    override fun generateUrlToDownload(key: K): URL = validateAndRun { underlyingStorage.generateUrlToDownload(key) }
+    override fun generateUrlToDownload(key: K): URL = initializer.validateAndRun { underlyingStorage.generateUrlToDownload(key) }
 }
