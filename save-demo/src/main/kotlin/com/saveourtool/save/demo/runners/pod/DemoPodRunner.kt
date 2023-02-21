@@ -4,8 +4,6 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.service.KubernetesService
 import io.ktor.client.statement.*
-import kotlinx.coroutines.reactor.mono
-import reactor.core.publisher.Mono
 
 /**
  * Class that implements [PodRunner] and is a [Demo] PodRunner.

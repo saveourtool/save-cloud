@@ -1,7 +1,7 @@
 package com.saveourtool.save.demo.service
 
+import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.demo.DemoAgentConfig
-import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.config.ConfigProperties
@@ -11,7 +11,6 @@ import com.saveourtool.save.utils.*
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.fabric8.kubernetes.client.dsl.PodResource
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
@@ -76,17 +75,15 @@ class KubernetesService(
 
     /**
      * @param demo demo entity
-     * @return deferred filled with [DemoStatus]
+     * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
         val pod = getPodByDemo(demo)
-        val status = try {
+        val status = retrySilently(RETRY_TIMES_QUICK) {
             demoAgentRequestWrapper(listOf("alive"), pod, kc) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
             }
-        } catch (connectException: ConnectException) {
-            null
         }
         return when {
             status == null -> DemoStatus.ERROR
@@ -142,24 +139,31 @@ class KubernetesService(
         configuration: DemoAgentConfig,
         retryNumber: Int,
     ): StringResponse {
-        logger.debug("$retryNumber attempts left.")
-        logger.info("Sending POST request with url $url")
-        val requestStatus = httpClient.post {
-            url(url)
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-            setBody(configuration)
-        }.status
-        return if (requestStatus.isSuccess()) {
-            logAndRespond(HttpStatusCode.OK, logger::info) {
-                "Job successfully started."
+        val requestStatusAndErrors = retry(retryNumber) { iteration ->
+            logger.debug("$iteration attempts left.")
+            logger.info("Sending POST request with url $url")
+            httpClient.post {
+                url(url)
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
+                setBody(configuration)
+            }.status
+        }
+        return requestStatusAndErrors.first?.let { requestStatus ->
+            if (requestStatus.isSuccess()) {
+                logAndRespond(HttpStatusCode.OK, logger::info) {
+                    "Job successfully started."
+                }
+            } else {
+                logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
+                    "Could not configure demo: save-demo-agent responded with status [$requestStatus]."
+                }
             }
-        } else if (retryNumber > 0) {
-            sendConfigurationRequestRetrying(url, configuration, retryNumber - 1)
-        } else {
-            logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
-                "Could not configure demo."
+        } ?: logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
+            val errorsAsString = requestStatusAndErrors.second.joinToString("\n", prefix = "\t") { throwable ->
+                throwable.describe()
             }
+            "Could not configure demo:\n$errorsAsString"
         }
     }
 
@@ -167,14 +171,14 @@ class KubernetesService(
      * @param demo demo entity
      * @return url of pod with demo
      */
-    private suspend fun getPodByDemo(demo: Demo) = retry(RETRY_TIMES) {
+    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES) {
         kc.getJobPods(demo).firstOrNull()
     } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
         private const val RETRY_TIMES = 6
-
+        private const val RETRY_TIMES_QUICK = 3
         private val httpClient = HttpClient(Apache) {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }

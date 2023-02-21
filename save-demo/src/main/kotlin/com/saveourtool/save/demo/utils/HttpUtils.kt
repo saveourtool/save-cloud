@@ -2,20 +2,26 @@
 
 package com.saveourtool.save.demo.utils
 
-import com.saveourtool.save.core.logging.logInfo
+import com.saveourtool.save.core.logging.describe
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.delay
+import okhttp3.internal.closeQuietly
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import reactor.core.publisher.Flux
+import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.random.Random
 
 private const val DEFAULT_BUFFER_SIZE = 4096
+private const val PORT_RANGE_FROM = 20000
+private const val PORT_RANGE_TO = 30000
+
+private val logger = LoggerFactory.getLogger("c.s.s.d.u.HttpUtils")
 
 /**
  * Read bytes from [ByteReadChannel] as [Flux] of [ByteBuffer].
@@ -31,7 +37,7 @@ fun ByteReadChannel.toByteBufferFlux(): Flux<ByteBuffer> = DataBufferUtils.readI
 
 /**
  * Request wrapper that sets up port forwarding for pod with name [Pod.getFullResourceName], sends [request] to loopback
- * with path [urlPath].
+ * with path [urlPathSegments].
  *
  * Note that [request] returns object of generic type [R] allowing to either return HttpResponse or body of the response.
  *
@@ -40,26 +46,47 @@ fun ByteReadChannel.toByteBufferFlux(): Flux<ByteBuffer> = DataBufferUtils.readI
  * @param kc [KubernetesClient] that is required for kubernetes interactions
  * @param request callback that receives url and port
  * @return result of type [R]
+ * @throws IOException rethrown from [request]
  */
 suspend fun <R> demoAgentRequestWrapper(
     urlPathSegments: List<String>,
     demoPod: Pod,
     kc: KubernetesClient,
     request: suspend (Url) -> R,
-): R = kc.pods()
-    .withName(demoPod.metadata.name)
-    .portForward(SAVE_DEMO_AGENT_DEFAULT_PORT, Random.nextInt(PORT_RANGE_FROM, PORT_RANGE_TO))
-    .use { portForward ->
-        request(
-            URLBuilder(
-                port = portForward.localPort,
-                pathSegments = urlPathSegments,
-            ).build()
-        )
-            .also {
-                delay(100)
-            }
-    }
+): R {
+    val podName = demoPod.metadata.name
+    val podResource = kc.pods().withName(podName)
+    val containerPort = demoPod.spec.containers.single()
+        .ports
+        .single()
+        .containerPort
+    val saveDemoPort = Random.nextInt(PORT_RANGE_FROM, PORT_RANGE_TO)
+    logger.info("Forwarding port $saveDemoPort to $containerPort of container with pod $podName")
 
-private const val PORT_RANGE_FROM = 20000
-private const val PORT_RANGE_TO = 30000
+    return podResource.portForward(containerPort, saveDemoPort)
+        .let { portForward ->
+            try {
+                request(
+                    URLBuilder(
+                        port = portForward.localPort,
+                        pathSegments = urlPathSegments,
+                    ).build()
+                )
+            } catch (ioException: IOException) {
+                if (!portForward.isAlive) {
+                    logger.error("Port-Forwarding tends to be broken.")
+                }
+                if (portForward.errorOccurred()) {
+                    portForward.serverThrowables.forEach {
+                        logger.error("SERVER THROWABLE: ${it.describe()}")
+                    }
+                    portForward.clientThrowables.forEach {
+                        logger.error("CLIENT THROWABLE: ${it.describe()}")
+                    }
+                }
+                throw ioException
+            } finally {
+                portForward.closeQuietly()
+            }
+        }
+}

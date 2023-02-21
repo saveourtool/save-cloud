@@ -3,8 +3,6 @@ package com.saveourtool.save.demo.runners.pod
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.Runner
-import com.saveourtool.save.demo.utils.SAVE_DEMO_AGENT_DEFAULT_PORT
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 
 import io.ktor.client.*
@@ -16,12 +14,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import reactor.core.publisher.Mono
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactor.mono
-import kotlinx.serialization.json.Json
-import org.springframework.http.HttpStatus
 
 /**
  * Interface that should be implemented by all the runners that use Kubernetes pods in order to run tools for demo.
@@ -40,8 +36,8 @@ interface PodRunner : Runner {
         }
         .doOnNext { logger.info("Demo finished with [${it.terminationCode}] code.") }
 
-    private suspend fun runRequest(demoRunRequest: DemoRunRequest): DemoResult? = sendRunRequest(demoRunRequest).let {
-        response -> response?.takeIf { it.status.isSuccess() }?.body()
+    private suspend fun runRequest(demoRunRequest: DemoRunRequest): DemoResult? = sendRunRequest(demoRunRequest).let { response ->
+        response?.takeIf { it.status.isSuccess() }?.body()
     }
 
     /**

@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
@@ -26,9 +25,6 @@ import java.nio.ByteBuffer
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
-import kotlinx.coroutines.reactor.asMono
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)

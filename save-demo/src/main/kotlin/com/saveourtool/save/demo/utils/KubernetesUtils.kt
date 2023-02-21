@@ -128,12 +128,21 @@ private fun demoAgentContainerSpec(
     imagePullPolicy = "IfNotPresent"
 
     val envOptions = sequenceOf(
-        "KTOR_LOG_LEVEL" to "DEBUG",
+        "KTOR_LOG_LEVEL" to "TRACE",
     )
 
     val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, AgentType.DEMO_AGENT, envOptions = envOptions)
 
     command = listOf("sh", "-c", startupCommand)
+
+    ports = listOf(
+        ContainerPort().apply {
+            protocol = "TCP"
+            containerPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+            hostPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+            name = "agent-server"
+        }
+    )
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {

@@ -24,6 +24,8 @@ private val defaultCurlOptions: Sequence<String> = sequenceOf(
 @Language("bash")
 private val defaultEnvOptions: Sequence<EnvOption> = emptySequence()
 
+typealias EnvOption = Pair<String, String>
+
 /**
  * @property executableName
  */
@@ -50,6 +52,7 @@ enum class AgentType(val executableName: String) {
  * @param agentType type of agent to download: either [AgentType.AGENT] or [AgentType.DEMO_AGENT]
  * @param shellOptions options to be set on command execution, [defaultShellOptions] by default
  * @param curlOptions options to be passed to curl, [defaultCurlOptions] by default
+ * @param envOptions options as [EnvOption] - key and value - all the keys will be set as environment variables with corresponding value
  * @return run command
  */
 fun downloadAndRunAgentCommand(
@@ -62,7 +65,7 @@ fun downloadAndRunAgentCommand(
     "set ${getShellOptions(shellOptions)}" +
             " && curl ${getCurlOptions(curlOptions)} $downloadUrl --output $executableName" +
             " && chmod +x $executableName" +
-            " && ${getEnvOptions(envOptions)}" +
+            " ${getEnvOptions(envOptions)}" +
             " && ./$executableName"
 }
 
@@ -83,7 +86,4 @@ private fun getShellOptions(shellOptions: Sequence<String>): String =
 @Language("bash")
 private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
 
-typealias EnvOption = Pair<String, String>
-
-private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { "${it.first}=${it.second}; " }
-
+private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { " && ${it.first}=${it.second} " }
