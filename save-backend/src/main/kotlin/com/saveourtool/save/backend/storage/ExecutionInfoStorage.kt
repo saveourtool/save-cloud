@@ -8,7 +8,7 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleStorage
 import com.saveourtool.save.storage.AbstractSimpleStorageProjectReactor
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
+import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.upload
 
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono
 @Service
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
 ) : AbstractSimpleStorage<Long>(
@@ -32,8 +32,15 @@ class ExecutionInfoStorage(
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.Execution]
      */
-    override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> = storageProjectReactor.deleteAsyncUnexpectedIds(executionRepository,
-        log)
+    override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = prefix,
+        ) { s3Key ->
+            executionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+        }
+    }
+        .publishOn(s3Operations.scheduler)
 
     /**
      * Update ExecutionInfo if it's required ([ExecutionUpdateDto.failReason] not null)

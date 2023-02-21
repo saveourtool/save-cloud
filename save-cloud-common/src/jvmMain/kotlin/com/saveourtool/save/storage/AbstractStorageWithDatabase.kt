@@ -3,11 +3,9 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.*
 
 import org.springframework.data.domain.Example
 import reactor.core.publisher.Mono
-import kotlinx.datetime.Clock
 
 /**
  * Implementation of S3 storage which stores keys in database
@@ -17,16 +15,13 @@ import kotlinx.datetime.Clock
  * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
-    s3Operations: S3Operations,
-    prefix: String,
+    private val s3Operations: S3Operations,
+    private val prefix: String,
     protected val repository: R,
 ) : AbstractStorage<K, AbstractStorageProjectReactorWithDatabase<K, E, R>, AbstractStoragePreSignedWithDatabase<K, E, R>>() {
-    private val underlyingStorageProjectReactor = defaultStorageProjectReactor(s3Operations, prefix)
-    private val backupUnderlyingStorageProjectReactorCreator = {
-        defaultStorageProjectReactor(s3Operations,
-            prefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
-    }
-    private val underlyingStoragePreSignedUrl = defaultStoragePreSignedUrl(s3Operations, prefix)
+    private val commonPrefix: String = prefix.asS3CommonPrefix()
+    private val underlyingStorageProjectReactor = defaultStorageProjectReactor(s3Operations, commonPrefix)
+    private val underlyingStoragePreSignedUrl = defaultStoragePreSignedUrl(s3Operations, commonPrefix)
     override val storageProjectReactor = object : AbstractStorageProjectReactorWithDatabase<K, E, R>(
         underlyingStorageProjectReactor,
         repository,
@@ -49,28 +44,15 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
      */
-    override fun doInitAsync(storageProjectReactor: AbstractStorageProjectReactorWithDatabase<K, E, R>): Mono<Unit> = underlyingStorageProjectReactor.detectAsyncUnexpectedIds(
-        repository
-    )
-        .collectList()
-        .filter { it.isNotEmpty() }
-        .flatMapIterable { unexpectedIds ->
-            val backupStorage = backupUnderlyingStorageProjectReactorCreator()
-            log.warn {
-                "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
-            }
-            generateSequence { backupStorage }.take(unexpectedIds.size)
-                .toList()
-                .zip(unexpectedIds)
+    override fun doInitAsync(storageProjectReactor: AbstractStorageProjectReactorWithDatabase<K, E, R>): Mono<Unit> = Mono.fromFuture {
+        s3Operations.backupUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = commonPrefix,
+        ) { s3Key ->
+            val id = s3Key.removePrefix(commonPrefix).toLong()
+            repository.findById(id).isEmpty
         }
-        .flatMap { (backupStorage, id) ->
-            underlyingStorageProjectReactor.contentLength(id)
-                .flatMap { contentLength ->
-                    backupStorage.upload(id, contentLength, underlyingStorageProjectReactor.download(id))
-                }
-                .then(underlyingStorageProjectReactor.delete(id))
-        }
-        .thenJust(Unit)
+    }.publishOn(s3Operations.scheduler)
 
     /**
      * @param entity

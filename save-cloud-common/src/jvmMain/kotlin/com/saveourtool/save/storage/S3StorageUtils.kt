@@ -10,6 +10,11 @@ package com.saveourtool.save.storage
 const val PATH_DELIMITER = "/"
 
 /**
+ * @return [this] as S3 common prefix -- ends on [PATH_DELIMITER]
+ */
+fun String.asS3CommonPrefix(): String = removeSuffix(PATH_DELIMITER) + PATH_DELIMITER
+
+/**
  * @receiver key in S3 as [String]
  * @param prefix a common prefix for all keys in storage
  * @return parts [this] split by [PATH_DELIMITER]
