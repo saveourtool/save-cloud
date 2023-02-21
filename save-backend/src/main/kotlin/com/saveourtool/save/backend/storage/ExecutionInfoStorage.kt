@@ -7,7 +7,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleStorage
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
+import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.upload
@@ -25,7 +25,7 @@ import javax.annotation.PostConstruct
 @Service
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
 ) : AbstractSimpleStorage<Long>(
@@ -37,7 +37,16 @@ class ExecutionInfoStorage(
      */
     @PostConstruct
     fun deleteUnexpectedIds() {
-        deleteAsyncUnexpectedIds(executionRepository, log).subscribe()
+        Mono.fromFuture {
+            s3Operations.deleteUnexpectedKeys(
+                storageName = "${this::class.simpleName}",
+                commonPrefix = prefix,
+            ) { s3Key ->
+                executionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+            }
+        }
+            .publishOn(s3Operations.scheduler)
+            .subscribe()
     }
 
     /**

@@ -4,7 +4,6 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
-import com.saveourtool.save.storage.key.AbstractS3KeyManager
 import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.*
 
@@ -20,23 +19,21 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
-import kotlinx.datetime.Clock
-
 /**
  * Implementation of S3 storage which stores keys in database
  *
  * @property s3Operations interface to operate with S3 storage
- * @property s3KeyManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
+ * @property s3KeyDatabaseManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
  * @property repository repository for [E] which is entity for [K]
  */
 abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository<E>, M : AbstractS3KeyDatabaseManager<K, E, R>>(
     private val s3Operations: S3Operations,
-    protected val s3KeyManager: M,
+    protected val s3KeyDatabaseManager: M,
     protected val repository: R,
 ) : Storage<K> {
     private val log: Logger = getLogger(this.javaClass)
     private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
-        override val s3KeyManager: S3KeyManager<K> = this@AbstractStorageWithDatabase.s3KeyManager
+        override val s3KeyManager: S3KeyManager<K> = s3KeyDatabaseManager
     }
 
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
@@ -67,36 +64,15 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
             .subscribe()
     }
 
-    private fun doBackupUnexpectedIds(): Mono<Unit> {
-        val directStorage = DirectStorage(s3KeyManager.commonPrefix)
-        return directStorage.detectAsyncUnexpectedIds(repository)
-            .collectList()
-            .filter { it.isNotEmpty() }
-            .flatMapIterable { unexpectedIds ->
-                val backupStorage = DirectStorage(s3KeyManager.commonPrefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
-                log.warn {
-                    "Found unexpected ids $unexpectedIds in storage ${this::class.simpleName}. Move them to backup storage..."
-                }
-                generateSequence { backupStorage }.take(unexpectedIds.size)
-                    .toList()
-                    .zip(unexpectedIds)
-            }
-            .flatMap { (backupStorage, id) ->
-                directStorage.contentLength(id)
-                    .flatMap { contentLength ->
-                        backupStorage.upload(id, contentLength, directStorage.download(id))
-                    }
-                    .then(directStorage.delete(id))
-            }
-            .collectList()
-            .map { results ->
-                if (results.isNotEmpty()) {
-                    log.info {
-                        "Backup of ${javaClass.simpleName} finished"
-                    }
-                }
-            }
-    }
+    private fun doBackupUnexpectedIds(): Mono<Unit> = Mono.fromFuture {
+        s3Operations.backupUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = s3KeyDatabaseManager.commonPrefix,
+        ) { s3Key ->
+            val id = s3Key.removePrefix(s3KeyDatabaseManager.commonPrefix).toLong()
+            repository.findById(id).isEmpty
+        }
+    }.publishOn(s3Operations.scheduler)
 
     private fun <R> validateAndRun(action: () -> R): R {
         require(isInitFinished.get()) {
@@ -124,13 +100,4 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
     override fun move(source: K, target: K): Mono<Boolean> = validateAndRun { underlyingStorage.move(source, target) }
 
     override fun generateUrlToDownload(key: K): URL = validateAndRun { underlyingStorage.generateUrlToDownload(key) }
-
-    private open inner class DirectStorage(underlyingPrefix: String) : AbstractS3Storage<Long>(
-        s3Operations,
-    ) {
-        override val s3KeyManager = object : AbstractS3KeyManager<Long>(underlyingPrefix) {
-            override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-            override fun buildS3KeySuffix(key: Long): String = key.toString()
-        }
-    }
 }
