@@ -1,7 +1,5 @@
 package com.saveourtool.save.s3
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
 import org.springframework.http.MediaType
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
@@ -16,7 +14,7 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 
 import java.net.URI
 import java.util.concurrent.*
@@ -24,8 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 
 /**
  * Default implementation of [S3Operations]

@@ -17,15 +17,15 @@ data class InternalFileKey(
         private const val LATEST_VERSION = "latest"
 
         /**
+         * [InternalFileKey] for *save-agent*
+         */
+        val saveAgentKey: InternalFileKey = latest("save-agent.kexe")
+
+        /**
          * @param name
          * @return [InternalFileKey] with latest version
          */
         fun latest(name: String): InternalFileKey = InternalFileKey(name, LATEST_VERSION)
-
-        /**
-         * [InternalFileKey] for *save-agent*
-         */
-        val saveAgentKey: InternalFileKey = latest("save-agent.kexe")
 
         /**
          * @param version

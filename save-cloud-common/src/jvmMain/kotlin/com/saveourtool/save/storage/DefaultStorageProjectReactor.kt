@@ -4,8 +4,6 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
 import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
@@ -148,39 +146,22 @@ class DefaultStorageProjectReactor<K : Any>(
         .map { true }
         .defaultIfEmpty(false)
 
-    private fun deleteKey(key: K): Mono<Unit> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.delete(key)
-        }
-    } else {
-        Mono.fromCallable {
-            s3KeyManager.delete(key)
-        }
-    }
+    private fun deleteKey(key: K): Mono<Unit> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.delete(key) }
 
-    private fun findKey(s3Key: String): Mono<K> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.findKey(s3Key)
-        }
-    } else {
-        s3KeyManager.findKey(s3Key).toMono()
-    }
+    private fun findKey(s3Key: String): Mono<K> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.findKey(s3Key) }
 
-    private fun findExistedS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.findExistedS3Key(key)
-        }
-    } else {
-        s3KeyManager.findExistedS3Key(key).toMono()
-    }
+    private fun findExistedS3Key(key: K): Mono<String> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.findExistedS3Key(key) }
 
-    private fun createNewS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.createNewS3Key(key)
-        }
-    } else {
-        s3KeyManager.createNewS3Key(key).toMono()
-    }
+    private fun createNewS3Key(key: K): Mono<String> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.createNewS3Key(key) }
 
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
+
+    private fun <R : Any> onIoSchedulerIfS3KeyDatabaseManager(function: () -> R?): Mono<R> = function.toMono()
+        .let {
+            if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
+                it.subscribeOn(s3KeyManager.ioScheduler)
+            } else {
+                it
+            }
+        }
 }

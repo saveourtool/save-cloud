@@ -2,11 +2,13 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
-import kotlinx.coroutines.flow.Flow
+
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
+
+import kotlinx.coroutines.flow.Flow
 
 /**
  * S3 implementation of Storage
@@ -14,7 +16,7 @@ import javax.annotation.PostConstruct
  * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
  */
-abstract class AbstractStorageUsingCoroutines<K : Any>(
+abstract class AbstractSuspendingStorage<K : Any>(
     s3Operations: S3Operations,
 ) : StorageUsingCoroutines<K> {
     private val initializer: StorageInitializer = StorageInitializer(this::class)
@@ -48,7 +50,10 @@ abstract class AbstractStorageUsingCoroutines<K : Any>(
 
     override suspend fun upload(key: K, content: Flow<ByteBuffer>): K = initializer.validateAndRunSuspend { storageCoroutines.upload(key, content) }
 
-    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>): K = initializer.validateAndRunSuspend { storageCoroutines.upload(key, contentLength, content) }
+    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>): K = initializer.validateAndRunSuspend {
+        storageCoroutines.upload(key, contentLength,
+            content)
+    }
 
     override suspend fun delete(key: K): Boolean = initializer.validateAndRunSuspend { storageCoroutines.delete(key) }
 

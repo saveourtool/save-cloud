@@ -7,12 +7,12 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
+import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.s3.S3Operations
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -34,7 +34,7 @@ class DebugInfoStorage(
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
      */
-    override fun doInit(): Mono<Unit> = Mono.fromFuture {
+    override fun doInit(underlying: DefaultStorageProjectReactor<Long>): Mono<Unit> = Mono.fromFuture {
         s3Operations.deleteUnexpectedKeys(
             storageName = "${this::class.simpleName}",
             commonPrefix = s3KeyManager.commonPrefix,

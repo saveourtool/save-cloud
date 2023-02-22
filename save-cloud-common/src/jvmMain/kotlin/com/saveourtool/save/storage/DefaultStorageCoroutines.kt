@@ -6,24 +6,23 @@ import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.utils.warn
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
 
+import org.slf4j.Logger
 import reactor.kotlin.core.publisher.toFlux
+import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.services.s3.model.S3Exception
 
 import java.nio.ByteBuffer
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicLong
 
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.withContext
-import org.slf4j.Logger
-import software.amazon.awssdk.core.async.AsyncRequestBody
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
-import software.amazon.awssdk.services.s3.model.S3Exception
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * S3 implementation of [StorageCoroutines]
@@ -83,17 +82,15 @@ class DefaultStorageCoroutines<K : Any>(
             ?.lastModified()
     }
 
-    override suspend fun delete(key: K): Boolean {
-        return findExistedS3Key(key)?.let { s3Key ->
-            s3Operations.deleteObject(s3Key)
-                .asDeferred()
-                .await()
-                .isNotNull()
-                .also {
-                    deleteKey(key)
-                }
-        } == true
-    }
+    override suspend fun delete(key: K): Boolean = findExistedS3Key(key)?.let { s3Key ->
+        s3Operations.deleteObject(s3Key)
+            .asDeferred()
+            .await()
+            .isNotNull()
+            .also {
+                deleteKey(key)
+            }
+    } == true
 
     override suspend fun upload(key: K, content: Flow<ByteBuffer>): K {
         val s3Key = createNewS3Key(key)
@@ -130,67 +127,57 @@ class DefaultStorageCoroutines<K : Any>(
             return requireNotNull(findKey(s3Key)) {
                 "Cannot find updated key for uploaded key $key"
             }
-        } catch (ex: Exception) {
+        } catch (ex: S3Exception) {
             deleteKey(key)
             throw ex
         }
     }
 
-    override suspend fun download(key: K): Flow<ByteBuffer> = findExistedS3Key(key)?.let {
-        s3Operations.getObject(it)
-            .thenApply { getResponse ->
-                getResponse?.toFlux()?.asFlow() ?: emptyFlow()
-            }
-            .asDeferred()
-            .await()
-    } ?: emptyFlow()
-
-    override suspend fun move(source: K, target: K): Boolean {
-        return findExistedS3Key(source)?.let { sourceS3Key ->
-            val targetS3Key = createNewS3Key(target)
-            s3Operations.copyObject(sourceS3Key, targetS3Key)
-                .thenCompose { copyResponse ->
-                    copyResponse?.let {
-                        s3Operations.deleteObject(sourceS3Key)
-                            .thenApply { it.isNotNull() }
-                    } ?: CompletableFuture.completedFuture(false)
+    override suspend fun download(key: K): Flow<ByteBuffer> = findExistedS3Key(key)
+        ?.let { s3Key ->
+            s3Operations.getObject(s3Key)
+                .thenApply { getResponse ->
+                    getResponse?.toFlux()?.asFlow() ?: emptyFlow()
                 }
                 .asDeferred()
                 .await()
-        } ?: false
-    }
+        } ?: emptyFlow()
 
-    private suspend fun deleteKey(key: K) {
-        if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-            withContext(Dispatchers.IO) {
-                s3KeyManager.delete(key)
+    override suspend fun move(source: K, target: K): Boolean = findExistedS3Key(source)?.let { sourceS3Key ->
+        val targetS3Key = createNewS3Key(target)
+        s3Operations.copyObject(sourceS3Key, targetS3Key)
+            .thenCompose { copyResponse ->
+                copyResponse?.let {
+                    s3Operations.deleteObject(sourceS3Key)
+                        .thenApply { it.isNotNull() }
+                } ?: CompletableFuture.completedFuture(false)
             }
-        } else {
-            s3KeyManager.delete(key)
-        }
+            .asDeferred()
+            .await()
+    } ?: false
+
+    private suspend fun deleteKey(key: K) = withIoContextIfS3KeyDatabaseManager {
+        s3KeyManager.delete(key)
     }
 
-    private suspend fun findKey(s3Key: String): K? = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        withContext(Dispatchers.IO) {
-            s3KeyManager.findKey(s3Key)
-        }
-    } else {
+    private suspend fun findKey(s3Key: String): K? = withIoContextIfS3KeyDatabaseManager {
         s3KeyManager.findKey(s3Key)
     }
 
-    private suspend fun findExistedS3Key(key: K): String? = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        withContext(Dispatchers.IO) {
-            s3KeyManager.findExistedS3Key(key)
-        }
-    } else {
+    private suspend fun findExistedS3Key(key: K): String? = withIoContextIfS3KeyDatabaseManager {
         s3KeyManager.findExistedS3Key(key)
     }
 
-    private suspend fun createNewS3Key(key: K): String = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        withContext(Dispatchers.IO) {
-            s3KeyManager.createNewS3Key(key)
-        }
-    } else {
+    private suspend fun createNewS3Key(key: K): String = withIoContextIfS3KeyDatabaseManager {
         s3KeyManager.createNewS3Key(key)
     }
+
+    private suspend fun <R> withIoContextIfS3KeyDatabaseManager(function: () -> R): R =
+            if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
+                withContext(s3KeyManager.ioDispatcher) {
+                    function()
+                }
+            } else {
+                function()
+            }
 }

@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct
  * @param s3StoragePrefix a common prefix for s3 storage
  * @param s3Operations
  */
-abstract class AbstractInternalFileStorage(
+open class AbstractInternalFileStorage(
     private val keysToLoadFromClasspath: Collection<InternalFileKey>,
     s3StoragePrefix: String,
     s3Operations: S3Operations,
@@ -32,7 +32,6 @@ abstract class AbstractInternalFileStorage(
         }
         override fun buildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
     }
-
     private val storageProjectReactor by lazy { DefaultStorageProjectReactor(s3Operations, s3KeyManager) }
     private val storageCoroutines by lazy { DefaultStorageCoroutines(s3Operations, s3KeyManager) }
     private val storagePreSignedUrl by lazy { DefaultStoragePreSignedUrl(s3Operations, s3KeyManager) }
@@ -56,7 +55,6 @@ abstract class AbstractInternalFileStorage(
         )
     }
 
-
     /**
      * Async method to init this storage: copy required files to storage
      *
@@ -64,7 +62,6 @@ abstract class AbstractInternalFileStorage(
      * @return [Mono] without body
      */
     protected open fun doInitAdditionally(underlying: DefaultStorageProjectReactor<InternalFileKey>): Mono<Unit> = Mono.empty()
-
 
     /**
      * Suspend method to init this storage: copy required files to storage
@@ -75,14 +72,15 @@ abstract class AbstractInternalFileStorage(
     protected open suspend fun doInitAdditionally(underlying: DefaultStorageCoroutines<InternalFileKey>): Unit? = null
 
     /**
+     * @param function
      * @return result of [function] which is run using [StorageProjectReactor]
      */
     fun <T> usingProjectReactor(function: StorageProjectReactor<InternalFileKey>.() -> T): T = initializer.validateAndRun {
         function(storageProjectReactor)
     }
 
-
     /**
+     * @param function
      * @return result of [function] which is run using [StorageCoroutines]
      */
     suspend fun <T> usingCoroutines(function: suspend StorageCoroutines<InternalFileKey>.() -> T): T = initializer.validateAndRunSuspend {
@@ -90,8 +88,9 @@ abstract class AbstractInternalFileStorage(
     }
 
     /**
-    * @return result of [function] which is run using [StoragePreSignedUrl]
-    */
+     * @param function
+     * @return result of [function] which is run using [StoragePreSignedUrl]
+     */
     fun <T> usingPreSignedUrl(function: StoragePreSignedUrl<InternalFileKey>.() -> T): T = initializer.validateAndRun {
         function(storagePreSignedUrl)
     }

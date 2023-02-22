@@ -3,14 +3,19 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.isNotNull
-import kotlinx.coroutines.*
+import io.ktor.client.utils.*
+
 import org.slf4j.Logger
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
+
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+
 import kotlin.reflect.KClass
+import kotlinx.coroutines.*
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 
 /**
  * Initializer for [StorageProjectReactor]
@@ -74,14 +79,13 @@ class StorageInitializer(
         }
     }
 
-
     /**
      * Init method using method that returns [Mono]
      * It can be empty
      *
      * @param doInit
      */
-    fun initReactively(doInit: () -> Mono<Unit>) = init(doInitReactively = doInit)
+    fun initReactively(doInit: () -> Mono<Unit>): Unit = init(doInitReactively = doInit)
 
     /**
      * Init method using suspend method that returns [Unit]
@@ -89,7 +93,7 @@ class StorageInitializer(
      *
      * @param doInit
      */
-    fun initSuspendedly(doInit: suspend () -> Unit?) = init(doInitSuspendedly = doInit)
+    fun initSuspendedly(doInit: suspend () -> Unit?): Unit = init(doInitSuspendedly = doInit)
 
     /**
      * @param action
@@ -116,6 +120,6 @@ class StorageInitializer(
     companion object {
         private val log: Logger = getLogger<StorageInitializer>()
         private val initScheduler: Scheduler = Schedulers.boundedElastic()
-        private val initCoroutineDispatcher: CoroutineDispatcher = Dispatchers.Default
+        private val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
     }
 }

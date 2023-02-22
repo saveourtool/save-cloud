@@ -9,13 +9,13 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper
 import com.saveourtool.save.utils.github.GitHubRepo
 
-import kotlinx.coroutines.reactor.awaitSingle
+import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
-import org.slf4j.Logger
 
 /**
  * Storage for internal files used by backend: save-cli and save-agent
@@ -43,22 +43,21 @@ class BackendInternalFileStorage(
         }
         .flatMap { (key, tagName) ->
             mono(s3Operations.coroutineDispatcher) {
-                    GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
-                        log.info {
-                            "Uploaded $key to internal storage"
-                        }
-                        underlying.upload(key, contentLength, flux(s3Operations.coroutineDispatcher) { content.toByteBufferFlow() }).awaitSingle()
-                    } ?: log.warn {
-                        "Not found $key in github"
+                GitHubHelper.download(saveCliRepo, tagName, key.name) { (content, contentLength) ->
+                    log.info {
+                        "Uploaded $key to internal storage"
                     }
+                    underlying.upload(key, contentLength, flux(s3Operations.coroutineDispatcher) { content.toByteBufferFlow() }).awaitSingle()
+                } ?: log.warn {
+                    "Not found $key in github"
                 }
+            }
         }
         .thenJust(Unit)
 
     companion object {
         private val log: Logger = getLogger<BackendInternalFileStorage>()
         private const val SAVE_CLI_VERSIONS = 3
-
         val saveCliRepo = GitHubRepo(
             "saveourtool",
             "save-cli",
