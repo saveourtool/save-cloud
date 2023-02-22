@@ -13,8 +13,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-import kotlinx.coroutines.reactor.mono
-
 /**
  * Controller that allows to query management's api
  */
@@ -27,7 +25,6 @@ import kotlinx.coroutines.reactor.mono
 class ManagementApiController(
     private val toolService: ToolService,
     private val demoService: DemoService,
-    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param organizationName name of GitHub user/organization
@@ -41,7 +38,7 @@ class ManagementApiController(
     ): Mono<DemoStatus> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .flatMap { mono { kubernetesService.getStatus(it) } }
+        .flatMap { demo -> demoService.getStatus(demo) }
         .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     /**

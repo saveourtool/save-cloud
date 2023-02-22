@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component
 class DefaultRunnerFactory(
     private val dependencyStorage: DependencyStorage,
     private val commandBuilder: CommandBuilder,
-    private val kubernetesService: KubernetesService,
+    private val kubernetesService: KubernetesService?,
 ) : RunnerFactory {
-    override fun create(demo: Demo, version: String, type: RunnerType): Runner = when (type) {
-        RunnerType.CLI -> DemoCliRunner(dependencyStorage, commandBuilder, demo, version)
-        RunnerType.POD -> DemoPodRunner(kubernetesService, demo)
-        RunnerType.PURE -> throw NotImplementedError("Pure runner should not be used. Try Cli or Pod instead.")
+    override fun create(demo: Demo, version: String, type: RunnerType): Runner = when {
+        type == RunnerType.POD && kubernetesService != null -> DemoPodRunner(kubernetesService, demo)
+        type == RunnerType.PURE -> throw NotImplementedError("Pure runner should not be used. Try Cli or Pod instead.")
+        else -> DemoCliRunner(dependencyStorage, commandBuilder, demo, version)
     }
 }

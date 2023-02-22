@@ -20,7 +20,7 @@ data class ConfigProperties(
     val backendUrl: String,
     val agentConfig: AgentConfig,
     val s3Storage: S3OperationsProperties,
-    val kubernetes: KubernetesConfig,
+    val kubernetes: KubernetesConfig?,
 ) {
     /**
      * @property demoUrl url of save-demo
