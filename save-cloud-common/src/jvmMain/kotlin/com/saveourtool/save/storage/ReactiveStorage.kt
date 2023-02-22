@@ -5,4 +5,4 @@ package com.saveourtool.save.storage
  *
  * @param K type of key
  */
-interface StorageUsingProjectReactor<K : Any> : StorageProjectReactor<K>, StoragePreSignedUrl<K>
+interface ReactiveStorage<K : Any> : StorageProjectReactor<K>, StoragePreSignedUrl<K>

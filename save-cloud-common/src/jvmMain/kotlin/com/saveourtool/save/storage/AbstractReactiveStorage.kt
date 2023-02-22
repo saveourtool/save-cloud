@@ -15,9 +15,9 @@ import javax.annotation.PostConstruct
  * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
  */
-abstract class AbstractStorageUsingProjectReactor<K : Any>(
+abstract class AbstractReactiveStorage<K : Any>(
     s3Operations: S3Operations,
-) : StorageUsingProjectReactor<K> {
+) : ReactiveStorage<K> {
     private val initializer: StorageInitializer = StorageInitializer(this::class)
 
     /**

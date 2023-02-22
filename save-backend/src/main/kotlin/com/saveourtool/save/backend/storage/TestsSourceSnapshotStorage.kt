@@ -5,7 +5,7 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
+import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
@@ -27,7 +27,7 @@ class TestsSourceSnapshotStorage(
     s3Operations: S3Operations,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     s3KeyManager: TestsSourceSnapshotS3KeyManager,
-) : StorageWithDatabaseUsingProjectReactor<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(
+) : ReactiveStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(
     s3Operations,
     s3KeyManager,
     testsSourceSnapshotRepository,
