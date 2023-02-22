@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
  */
 abstract class AbstractSuspendingStorage<K : Any>(
     s3Operations: S3Operations,
-) : StorageUsingCoroutines<K> {
+) : SuspendingStorage<K> {
     private val initializer: StorageInitializer = StorageInitializer(this::class)
 
     /**

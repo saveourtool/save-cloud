@@ -5,4 +5,4 @@ package com.saveourtool.save.storage
  *
  * @param K type of key
  */
-interface StorageUsingCoroutines<K : Any> : StorageCoroutines<K>, StoragePreSignedUrl<K>
+interface SuspendingStorage<K : Any> : StorageCoroutines<K>, StoragePreSignedUrl<K>
