@@ -197,17 +197,6 @@ class DefaultS3Operations(
             .build()
     }
 
-    override fun requestToUploadObject(
-        s3Key: String,
-        contentLength: Long,
-        duration: Duration,
-    ): PresignedPutObjectRequest = s3Presigner.presignPutObject { builder ->
-        builder
-            .signatureDuration(duration.toJavaDuration())
-            .putObjectRequest(putObjectRequest(s3Key, contentLength))
-            .build()
-    }
-
     companion object {
         // we don't use region when connect to S3
         private val stubRegion = Region.AWS_ISO_GLOBAL

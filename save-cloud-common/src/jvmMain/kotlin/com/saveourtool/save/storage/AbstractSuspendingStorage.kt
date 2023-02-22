@@ -66,6 +66,4 @@ abstract class AbstractSuspendingStorage<K : Any>(
     override suspend fun move(source: K, target: K): Boolean = initializer.validateAndRunSuspend { storageCoroutines.move(source, target) }
 
     override fun generateUrlToDownload(key: K): URL? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToDownload(key) }
-
-    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToUpload(key, contentLength) }
 }
