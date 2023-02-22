@@ -40,18 +40,14 @@ class DebugInfoStorage(
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
      */
     @PostConstruct
-    fun deleteUnexpectedIds() {
-        Mono.fromFuture {
-            s3Operations.deleteUnexpectedKeys(
-                storageName = "${this::class.simpleName}",
-                commonPrefix = s3KeyManager.commonPrefix,
-            ) { s3Key ->
-                testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
-            }
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = s3KeyManager.commonPrefix,
+        ) { s3Key ->
+            testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
         }
-            .publishOn(s3Operations.scheduler)
-            .subscribe()
-    }
+    }.publishOn(s3Operations.scheduler)
 
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]
