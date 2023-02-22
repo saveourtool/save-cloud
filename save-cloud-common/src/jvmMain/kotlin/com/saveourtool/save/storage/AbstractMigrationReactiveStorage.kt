@@ -18,11 +18,11 @@ import javax.annotation.PostConstruct
  * @property oldStorageProjectReactor [StorageProjectReactor] for old storage
  * @property newStoragePreSignedUrl [StoragePreSignedUrl] for new storage
  */
-abstract class AbstractMigrationStorage<O : Any, N : Any>(
+abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
     private val newStorageProjectReactor: StorageProjectReactor<N>,
     private val oldStorageProjectReactor: StorageProjectReactor<O>,
     private val newStoragePreSignedUrl: StoragePreSignedUrl<N>,
-) : StorageUsingProjectReactor<O> {
+) : ReactiveStorage<O> {
     private val log: Logger = getLogger(this::class)
     private val initializer: StorageInitializer = StorageInitializer(this::class)
 

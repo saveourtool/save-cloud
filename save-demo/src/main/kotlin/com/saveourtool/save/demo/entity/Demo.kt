@@ -46,7 +46,10 @@ class Demo(
         }
     }
 
-    private fun projectCoordinates() = ProjectCoordinates(
+    /**
+     * @return saveourtool [ProjectCoordinates]
+     */
+    fun projectCoordinates() = ProjectCoordinates(
         organizationName,
         projectName,
     )

@@ -6,7 +6,7 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
+import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.*
@@ -27,7 +27,7 @@ class DebugInfoStorage(
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
-) : AbstractSimpleStorageUsingProjectReactor<Long>(
+) : AbstractSimpleReactiveStorage<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "debugInfo"),
 ) {
