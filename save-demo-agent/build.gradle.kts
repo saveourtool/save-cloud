@@ -13,7 +13,7 @@ kotlin {
         binaries {
             all {
                 binaryOptions["memoryModel"] = "experimental"
-                freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
+                freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=error"
             }
             executable {
                 entryPoint = "com.saveourtool.save.demo.agent.main"
