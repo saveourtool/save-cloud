@@ -54,5 +54,5 @@ class DemoController(
     ): Mono<DemoResult> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .flatMap { demoRunnerFactory.create(it, "manual", RunnerFactory.RunnerType.CLI).run(demoRunRequest) }
+        .flatMap { demoRunnerFactory.create(it, "manual", RunnerFactory.RunnerType.POD).run(demoRunRequest) }
 }

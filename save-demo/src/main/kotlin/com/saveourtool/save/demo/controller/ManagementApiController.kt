@@ -5,13 +5,15 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
+
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
+import kotlinx.coroutines.reactor.mono
 
 /**
  * Controller that allows to query management's api
@@ -39,7 +41,7 @@ class ManagementApiController(
     ): Mono<DemoStatus> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .flatMap { deferredToMono { kubernetesService.getStatus(it) } }
+        .flatMap { mono { kubernetesService.getStatus(it) } }
         .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     /**
