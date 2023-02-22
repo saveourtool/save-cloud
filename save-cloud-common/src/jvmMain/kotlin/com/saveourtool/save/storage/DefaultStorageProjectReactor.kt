@@ -21,18 +21,15 @@ import java.util.concurrent.CompletableFuture
 /**
  * S3 implementation of [StorageProjectReactor]
  *
- * @param s3Operations [S3Operations] to operate with S3
+ * @property s3Operations [S3Operations] to operate with S3
+ * @property s3KeyManager [S3KeyManager] manager for S3 keys
  * @param K type of key
  */
-abstract class AbstractSimpleStorageProjectReactor<K : Any>(
+class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
+    private val s3KeyManager: S3KeyManager<K>,
 ) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
-
-    /**
-     * [S3KeyManager] manager for S3 keys
-     */
-    protected abstract val s3KeyManager: S3KeyManager<K>
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .toMonoAndPublishOn()

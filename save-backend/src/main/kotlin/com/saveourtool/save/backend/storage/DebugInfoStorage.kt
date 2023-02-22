@@ -6,16 +6,13 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractSimpleStorage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.storage.AbstractSimpleStorageProjectReactor
+import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
+import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -29,14 +26,12 @@ class DebugInfoStorage(
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
-) : AbstractSimpleStorage<Long>(
+) : AbstractSimpleStorageUsingProjectReactor<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "debugInfo"),
 ) {
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
-     *
-     * @param storageProjectReactor
      */
     override fun doInit(): Mono<Unit> = Mono.fromFuture {
         s3Operations.deleteUnexpectedKeys(
@@ -63,9 +58,13 @@ class DebugInfoStorage(
         }
         .flatMap { testExecutionId ->
             log.debug { "Writing debug info for $testExecutionId" }
-            usingProjectReactor().upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
+            upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
     override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun doBuildS3KeySuffix(key: Long): String = key.toString()
+
+    companion object {
+        private val log: Logger = getLogger<DebugInfoStorage>()
+    }
 }

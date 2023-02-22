@@ -5,14 +5,15 @@ import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.utils.collectAsJsonTo
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractSimpleStorage
-import com.saveourtool.save.storage.AbstractSimpleStorageProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.upload
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
+import com.saveourtool.save.utils.getLogger
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
@@ -25,7 +26,7 @@ class ExecutionInfoStorage(
     private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
-) : AbstractSimpleStorage<Long>(
+) : AbstractSimpleStorageUsingProjectReactor<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "executionInfo"),
 ) {
@@ -51,16 +52,16 @@ class ExecutionInfoStorage(
         upsert(executionInfo)
     } ?: Mono.just(Unit)
 
-    private fun upsert(executionInfo: ExecutionUpdateDto): Mono<Unit> = usingProjectReactor().doesExist(executionInfo.id)
+    private fun upsert(executionInfo: ExecutionUpdateDto): Mono<Unit> = doesExist(executionInfo.id)
         .flatMap { exists ->
             if (exists) {
-                usingProjectReactor().download(executionInfo.id)
+                download(executionInfo.id)
                     .collectAsJsonTo<ExecutionUpdateDto>(objectMapper)
                     .map {
                         it.copy(failReason = "${it.failReason}, ${executionInfo.failReason}")
                     }
                     .flatMap { executionInfoToSafe ->
-                        usingProjectReactor().delete(executionInfo.id).map { executionInfoToSafe }
+                        delete(executionInfo.id).map { executionInfoToSafe }
                     }
             } else {
                 Mono.just(executionInfo)
@@ -68,7 +69,7 @@ class ExecutionInfoStorage(
         }
         .flatMap { executionInfoToSafe ->
             log.debug { "Writing debug info for ${executionInfoToSafe.id} to storage" }
-            usingProjectReactor().upload(executionInfoToSafe.id, objectMapper.writeValueAsBytes(executionInfoToSafe))
+            upload(executionInfoToSafe.id, objectMapper.writeValueAsBytes(executionInfoToSafe))
         }
         .map { bytesCount ->
             log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
@@ -76,4 +77,8 @@ class ExecutionInfoStorage(
 
     override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun doBuildS3KeySuffix(key: Long): String = key.toString()
+
+    companion object {
+        private val log: Logger = getLogger<ExecutionInfoStorage>()
+    }
 }

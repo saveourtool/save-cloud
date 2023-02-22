@@ -4,7 +4,7 @@ import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.StorageWithDatabaseEntityKey
+import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -22,7 +22,7 @@ class DependencyStorage(
     s3Operations: S3Operations,
     repository: DependencyRepository,
     s3KeyManager: DependencyKeyManager,
-) : StorageWithDatabaseEntityKey<Dependency, DependencyRepository, DependencyKeyManager>(
+) : StorageWithDatabaseUsingProjectReactor<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
     s3KeyManager,
     repository,
@@ -69,7 +69,7 @@ class DependencyStorage(
             fileName,
         )
     }
-        .flatMap { usingProjectReactor().delete(it) }
+        .flatMap { delete(it) }
         .map {
             log.debug {
                 "Deleted $fileName associated with version $version from $demo"
@@ -121,7 +121,7 @@ class DependencyStorage(
     ) = blockingToFlux {
         s3KeyManager.findAllDependenies(organizationName, projectName, version)
     }
-        .flatMap { usingProjectReactor().download(it).collectToFile(tempDir / it.fileName) }
+        .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
 
     /**

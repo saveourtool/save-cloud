@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.StorageWithDatabaseDtoKey
+import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
 import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ class FileStorage(
     s3Operations: S3Operations,
     fileRepository: FileRepository,
     s3KeyManager: FileS3KeyManager,
-) : StorageWithDatabaseDtoKey<FileDto, File, FileRepository, FileS3KeyManager>(
+) : StorageWithDatabaseUsingProjectReactor<FileDto, File, FileRepository, FileS3KeyManager>(
     s3Operations,
     s3KeyManager,
     fileRepository
