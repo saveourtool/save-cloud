@@ -35,9 +35,9 @@ class ExecutionInfoStorage(
     override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> = Mono.fromFuture {
         s3Operations.deleteUnexpectedKeys(
             storageName = "${this::class.simpleName}",
-            commonPrefix = prefix,
+            commonPrefix = s3KeyManager.commonPrefix,
         ) { s3Key ->
-            executionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+            executionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
         }
     }
         .publishOn(s3Operations.scheduler)
@@ -75,6 +75,6 @@ class ExecutionInfoStorage(
             log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
         }
 
-    override fun doBuildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 }

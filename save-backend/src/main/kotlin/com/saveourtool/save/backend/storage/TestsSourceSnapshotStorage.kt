@@ -1,16 +1,11 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
-import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractStorageWithDatabaseDtoKey
-import com.saveourtool.save.storage.concatS3Key
+import com.saveourtool.save.storage.StorageWithDatabaseDtoKey
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
@@ -29,30 +24,14 @@ import kotlin.io.path.*
  */
 @Component
 class TestsSourceSnapshotStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
-    private val testSuitesSourceRepository: TestSuitesSourceRepository,
-    private val testSuitesService: TestSuitesService,
-    private val executionService: ExecutionService,
-) : AbstractStorageWithDatabaseDtoKey<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
+    s3KeyManager: TestsSourceSnapshotS3KeyManager,
+) : StorageWithDatabaseDtoKey<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
-    testsSourceSnapshotRepository
+    s3KeyManager,
+    testsSourceSnapshotRepository,
 ) {
-    override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
-
-    override fun findByDto(
-        dto: TestsSourceSnapshotDto
-    ): TestsSourceSnapshot? = repository.findBySourceIdAndCommitId(
-        sourceId = dto.sourceId,
-        commitId = dto.commitId,
-    )
-
-    override fun doBeforeDelete(entity: TestsSourceSnapshot) {
-        executionService.unlinkTestSuitesFromAllExecution(testSuitesService.getBySourceSnapshot(entity))
-    }
-
     /**
      * @param request
      * @return [TestFilesContent] filled with test files
@@ -87,7 +66,7 @@ class TestsSourceSnapshotStorage(
      * @param testSuitesSource
      * @return true if all [TestsSourceSnapshot] (found by [testSuitesSource]) deleted successfully, otherwise -- false
      */
-    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> = blockingToFlux { repository.findAllBySource(testSuitesSource) }
-        .flatMap { usingProjectReactor().delete(it.toDto()) }
+    fun deleteAll(testSuitesSource: TestSuitesSource): Mono<Boolean> = blockingToFlux { s3KeyManager.findAll(testSuitesSource) }
+        .flatMap { usingProjectReactor().delete(it) }
         .all { it }
 }

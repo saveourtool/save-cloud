@@ -6,7 +6,8 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.*
+import com.saveourtool.save.storage.AbstractSimpleStorage
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
@@ -40,9 +41,9 @@ class DebugInfoStorage(
             Mono.fromFuture {
                 s3Operations.deleteUnexpectedKeys(
                     storageName = "${this::class.simpleName}",
-                    commonPrefix = prefix,
+                    commonPrefix = s3KeyManager.commonPrefix,
                 ) { s3Key ->
-                    testExecutionRepository.findById(s3Key.removePrefix(prefix).toLong()).isEmpty
+                    testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
                 }
             }
                 .publishOn(s3Operations.scheduler)
@@ -66,6 +67,6 @@ class DebugInfoStorage(
             usingProjectReactor().upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
-    override fun doBuildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
     override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 }
