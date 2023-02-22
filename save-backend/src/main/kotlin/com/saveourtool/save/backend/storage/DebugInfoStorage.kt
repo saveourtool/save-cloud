@@ -38,16 +38,14 @@ class DebugInfoStorage(
      *
      * @param storageProjectReactor
      */
-    override fun doInitAsync(storageProjectReactor: AbstractSimpleStorageProjectReactor<Long>): Mono<Unit> =
-            Mono.fromFuture {
-                s3Operations.deleteUnexpectedKeys(
-                    storageName = "${this::class.simpleName}",
-                    commonPrefix = s3KeyManager.commonPrefix,
-                ) { s3Key ->
-                    testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
-                }
-            }
-                .publishOn(s3Operations.scheduler)
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = s3KeyManager.commonPrefix,
+        ) { s3Key ->
+            testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
+        }
+    }.publishOn(s3Operations.scheduler)
 
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]

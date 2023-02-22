@@ -89,7 +89,6 @@ abstract class AbstractSimpleStorageProjectReactor<K : Any>(
                             }
                         }
                 }
-                .thenReturn(key)
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
             createNewS3Key(key)
