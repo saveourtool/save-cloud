@@ -149,7 +149,7 @@ class KubernetesService(
                 setBody(configuration)
             }.status
         }
-        return requestStatusAndErrors.first?.let { requestStatus ->
+        return requestStatus?.let {
             if (requestStatus.isSuccess()) {
                 logAndRespond(HttpStatusCode.OK, logger::info) {
                     "Job successfully started."
@@ -160,7 +160,7 @@ class KubernetesService(
                 }
             }
         } ?: logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
-            val errorsAsString = requestStatusAndErrors.second.joinToString("\n", prefix = "\t") { throwable ->
+            val errorsAsString = errors.joinToString("\n", prefix = "\t") { throwable ->
                 throwable.describe()
             }
             "Could not configure demo:\n$errorsAsString"

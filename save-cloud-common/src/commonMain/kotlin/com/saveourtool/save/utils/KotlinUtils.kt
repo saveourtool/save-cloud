@@ -22,7 +22,8 @@ fun <T : Any> T?.isNotNull(): Boolean = this != null
  * @param times number of times to retry [action]
  * @param delayMillis number of milliseconds to wait until next retry
  * @param action action that should be invoked
- * @return [T] if the result was fetched in [times] attempts, null otherwise
+ * @return Pair where first element is [T] if the result was fetched in [times] attempts, null otherwise,
+ *  second element is list of [Throwable] caught in [retry]
  */
 @Suppress("TooGenericExceptionCaught")
 suspend fun <T : Any> retry(

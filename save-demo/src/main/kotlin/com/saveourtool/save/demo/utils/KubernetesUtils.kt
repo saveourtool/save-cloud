@@ -59,7 +59,6 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
                             "io.kompose.service" to "save-demo-agent",
                         )
                     }
-                    // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
                     restartPolicy = "Never"
                     containers = listOf(demoAgentContainerSpec(demo.sdk.toSdk().baseImageName(), agentDownloadUrl, kubernetesSettings))
                 }
@@ -111,6 +110,13 @@ fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
     .list()
     .items
 
+private fun ContainerPort.default() = apply {
+    protocol = "TCP"
+    containerPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+    hostPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+    name = "agent-server"
+}
+
 /**
  * @param demo demo entity
  * @return name of job that is/should be assigned to [demo]
@@ -135,14 +141,7 @@ private fun demoAgentContainerSpec(
 
     command = listOf("sh", "-c", startupCommand)
 
-    ports = listOf(
-        ContainerPort().apply {
-            protocol = "TCP"
-            containerPort = SAVE_DEMO_AGENT_DEFAULT_PORT
-            hostPort = SAVE_DEMO_AGENT_DEFAULT_PORT
-            name = "agent-server"
-        }
-    )
+    ports = listOf(ContainerPort().default())
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {
