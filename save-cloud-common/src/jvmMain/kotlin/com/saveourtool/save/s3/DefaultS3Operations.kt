@@ -199,7 +199,7 @@ class DefaultS3Operations(
         private val stubRegion = Region.AWS_ISO_GLOBAL
 
         private fun <T : Any> CompletableFuture<T>.handleNoSuchKeyException(): CompletableFuture<T?> = exceptionally { ex ->
-            when (ex) {
+            when (ex.cause) {
                 is NoSuchKeyException -> null
                 else -> throw ex
             }

@@ -17,8 +17,6 @@ import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
-import javax.annotation.PostConstruct
-
 /**
  * A storage for storing additional data (ExecutionInfo) associated with test results
  */
@@ -35,19 +33,14 @@ class ExecutionInfoStorage(
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.Execution]
      */
-    @PostConstruct
-    fun deleteUnexpectedIds() {
-        Mono.fromFuture {
-            s3Operations.deleteUnexpectedKeys(
-                storageName = "${this::class.simpleName}",
-                commonPrefix = s3KeyManager.commonPrefix,
-            ) { s3Key ->
-                executionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
-            }
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = s3KeyManager.commonPrefix,
+        ) { s3Key ->
+            executionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
         }
-            .publishOn(s3Operations.scheduler)
-            .subscribe()
-    }
+    }.publishOn(s3Operations.scheduler)
 
     /**
      * Update ExecutionInfo if it's required ([ExecutionUpdateDto.failReason] not null)
