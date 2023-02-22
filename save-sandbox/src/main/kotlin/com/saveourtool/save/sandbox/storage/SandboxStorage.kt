@@ -2,9 +2,9 @@ package com.saveourtool.save.sandbox.storage
 
 import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.AbstractS3Storage
+import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
+import com.saveourtool.save.storage.PATH_DELIMITER
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.s3KeyToPartsTill
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
@@ -15,13 +15,13 @@ import reactor.core.publisher.Flux
 class SandboxStorage(
     configProperties: ConfigProperties,
     s3Operations: S3OperationsProjectReactor,
-) : AbstractS3Storage<SandboxStorageKey>(
+) : AbstractSimpleStorageUsingProjectReactor<SandboxStorageKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "sandbox"),
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
-    override fun buildKey(s3KeySuffix: String): SandboxStorageKey {
-        val (userId, typeName, filename) = s3KeySuffix.s3KeyToPartsTill(prefix)
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): SandboxStorageKey {
+        val (userId, typeName, filename) = s3KeySuffix.split(PATH_DELIMITER)
         return SandboxStorageKey(
             userId.toLong(),
             SandboxStorageKeyType.valueOf(typeName),
@@ -29,7 +29,7 @@ class SandboxStorage(
         )
     }
 
-    override fun buildS3KeySuffix(key: SandboxStorageKey): String =
+    override fun doBuildS3KeySuffix(key: SandboxStorageKey): String =
             concatS3Key(key.userId.toString(), key.type.name, key.fileName)
 
     /**

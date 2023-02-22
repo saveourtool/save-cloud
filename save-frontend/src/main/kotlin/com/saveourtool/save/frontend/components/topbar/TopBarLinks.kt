@@ -82,8 +82,9 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             url = "$demoApiUrl/all",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler
         )
-            .let { response ->
+            .unsafeMap { response ->
                 if (response.ok) {
                     response.decodeFromJsonString()
                 } else {

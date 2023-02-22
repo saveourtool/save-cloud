@@ -1,5 +1,7 @@
 package com.saveourtool.save.s3
 
+import reactor.core.scheduler.Scheduler
+import software.amazon.awssdk.core.async.AsyncRequestBody
 import kotlinx.coroutines.CoroutineDispatcher
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
@@ -10,7 +12,11 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
+
+import java.util.concurrent.CompletableFuture
+
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineDispatcher
 
 typealias GetObjectResponsePublisher = ResponsePublisher<GetObjectResponse>
 
@@ -19,22 +25,12 @@ typealias GetObjectResponsePublisher = ResponsePublisher<GetObjectResponse>
  */
 interface S3Operations {
     /**
-     * name for shared [ExecutorService] used by S3
-     */
-    val executorName: String
-
-    /**
-     * a shared [ExecutorService] used by S3
-     */
-    val executorService: ExecutorService
-
-    /**
-     * a shared [Scheduler] based on [executorService]
+     * a shared [Scheduler] based on [java.util.concurrent.ExecutorService]
      */
     val scheduler: Scheduler
 
     /**
-     * a shared [CoroutineDispatcher] based on [executorService]
+     * a shared [CoroutineDispatcher] based on [java.util.concurrent.ExecutorService]
      */
     val coroutineDispatcher: CoroutineDispatcher
 

@@ -4,9 +4,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.runners.cli.CliRunnerFactory
+import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.service.DemoService
-import com.saveourtool.save.demo.utils.KOTLIN_TEST_NAME
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import kotlin.io.path.createTempDirectory
 
 /**
  * Controller for demo
@@ -32,10 +30,8 @@ import kotlin.io.path.createTempDirectory
 @RequestMapping("/demo/api")
 class DemoController(
     private val demoService: DemoService,
-    private val demoCliRunnerFactory: CliRunnerFactory,
+    private val demoRunnerFactory: RunnerFactory,
 ) {
-    private val tmpDir = createTempDirectory("demo-")
-
     /**
      * @return all [DemoDto]s as [Flux]
      */
@@ -45,10 +41,10 @@ class DemoController(
     }
 
     /**
-     * @param organizationName
-     * @param projectName
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
      * @param demoRunRequest request data class with all required additional info
-     * @return [DemoResult]
+     * @return tool output as [DemoResult]
      */
     @PostMapping("/{organizationName}/{projectName}/run")
     fun runCheckDemo(
@@ -58,12 +54,5 @@ class DemoController(
     ): Mono<DemoResult> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .map {
-            demoCliRunnerFactory.create(it, "manual").runInTempDir(
-                demoRunRequest,
-                tmpDir,
-                testFileName = KOTLIN_TEST_NAME,
-                additionalDirectoryTree = listOf("src"),
-            )
-        }
+        .flatMap { demoRunnerFactory.create(it, "manual", RunnerFactory.RunnerType.CLI).run(demoRunRequest) }
 }

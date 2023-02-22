@@ -16,12 +16,18 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.net.URI
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
+
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 
 /**
  * Default implementation of [S3Operations]
@@ -33,10 +39,8 @@ class DefaultS3Operations(
 ) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
     private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
-
-    override val executorName: String = "s3-operations-${properties.bucketName}"
-
-    override val executorService: ExecutorService = with(properties.async) {
+    private val executorName: String = "s3-operations-${properties.bucketName}"
+    private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,
             maxPoolSize,
@@ -60,7 +64,7 @@ class DefaultS3Operations(
             .asyncConfiguration { builder ->
                 builder.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executorService)
             }
-            .region(region)
+            .region(stubRegion)
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
@@ -73,7 +77,7 @@ class DefaultS3Operations(
     private val s3Presigner: S3Presigner = with(properties) {
         S3Presigner.builder()
             .credentialsProvider(credentialsProvider)
-            .region(region)
+            .region(stubRegion)
             .serviceConfiguration(S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build())
@@ -208,21 +212,11 @@ class DefaultS3Operations(
     }
 
     companion object {
-        private val region = Region.AWS_ISO_GLOBAL
-
-        private class NamedDefaultThreadFactory(private val namePrefix: String) : ThreadFactory {
-            private val delegate: ThreadFactory = Executors.defaultThreadFactory()
-            private val threadCount = AtomicInteger(0)
-
-            override fun newThread(runnable: Runnable): Thread {
-                val thread = delegate.newThread(runnable)
-                thread.name = namePrefix + "-" + threadCount.getAndIncrement()
-                return thread
-            }
-        }
+        // we don't use region when connect to S3
+        private val stubRegion = Region.AWS_ISO_GLOBAL
 
         private fun <T : Any> CompletableFuture<T>.handleNoSuchKeyException(): CompletableFuture<T?> = exceptionally { ex ->
-            when (ex) {
+            when (ex.cause) {
                 is NoSuchKeyException -> null
                 else -> throw ex
             }
@@ -255,5 +249,17 @@ class DefaultS3Operations(
                                 }
                         }
                     }
+
+        private class NamedDefaultThreadFactory(private val namePrefix: String) : ThreadFactory {
+            private val delegate: ThreadFactory = Executors.defaultThreadFactory()
+            private val threadCount = AtomicInteger(0)
+
+            override fun newThread(runnable: Runnable): Thread {
+                val thread = delegate.newThread(runnable).apply {
+                    name = namePrefix + "-" + threadCount.getAndIncrement()
+                }
+                return thread
+            }
+        }
     }
 }

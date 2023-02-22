@@ -1,34 +1,26 @@
-package com.saveourtool.save.storage
+package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.entities.DtoWithId
-import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.*
-
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 
 /**
- * Implementation of storage which stores keys ([K]) in database and uses S3 storage under hood
+ * Implementation of [S3KeyManager] which uses DTO [K] (for entity [E]) as keys
  *
- * @param s3Operations interface to operate with S3 storage
  * @param prefix a common prefix for all keys in S3 storage for this storage
  * @param repository repository for [E] which is entity for [K]
  */
-abstract class AbstractStorageWithDatabaseDtoKey<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
-    s3Operations: S3OperationsProjectReactor,
+abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     prefix: String,
     repository: R,
-) : AbstractStorageWithDatabase<K, E, R>(
-    s3Operations,
-    prefix,
-    repository,
-) {
+) : AbstractS3KeyDatabaseManager<K, E, R>(prefix, repository) {
     override fun E.toKey(): K = toDto()
 
     override fun K.toEntity(): E = createNewEntityFromDto(this)
 
-    final override fun findEntity(key: K): E? = key.id
+    override fun findEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }

@@ -1,141 +1,173 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.key.Metastore
-import com.saveourtool.save.storage.key.S3KeyAdapter
-import com.saveourtool.save.utils.blockingToMono
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
+import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.utils.*
 
+import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-
-import java.nio.ByteBuffer
-import java.time.Instant
-
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
+
+import java.nio.ByteBuffer
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
 /**
  * S3 implementation of [StorageProjectReactor]
  *
- * @param s3Operations [S3Operations] to operate with S3
- * @param s3KeyAdapter [S3KeyAdapter] adapter for S3 keys
  * @param K type of key
+ * @property s3Operations [S3Operations] to operate with S3
+ * @property s3KeyManager [S3KeyManager] manager for S3 keys
  */
 class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
-    private val s3KeyAdapter: Metastore<K>,
+    private val s3KeyManager: S3KeyManager<K>,
 ) : StorageProjectReactor<K> {
-    override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyAdapter.commonPrefix)
+    private val log: Logger = getLogger(this::class)
+
+    override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .toMonoAndPublishOn()
         .expand { lastResponse ->
             if (lastResponse.isTruncated) {
-                s3Operations.listObjectsV2(s3KeyAdapter.commonPrefix, lastResponse.nextContinuationToken())
+                s3Operations.listObjectsV2(s3KeyManager.commonPrefix, lastResponse.nextContinuationToken())
                     .toMonoAndPublishOn()
             } else {
                 Mono.empty()
             }
         }
         .flatMapIterable { response ->
-            response.contents().map {
-                s3KeyAdapter.buildKey(it.key())
+            response.contents().mapNotNull { s3Object ->
+                val s3Key = s3Object.key()
+                val key = s3KeyManager.findKey(s3Key)
+                if (!key.isNotNull()) {
+                    log.warn {
+                        "Found s3 key $s3Key which is not valid by ${s3KeyManager::class.simpleName}"
+                    }
+                }
+                key
             }
         }
 
-    override fun doesExist(key: K): Mono<Boolean> = s3Operations.headObject(s3KeyAdapter.buildS3Key(key))
-        .toMonoAndPublishOn()
-        .map { true }
-        .defaultIfEmpty(false)
-
-    override fun contentLength(key: K): Mono<Long> = s3Operations.headObject(s3KeyAdapter.buildS3Key(key))
-        .toMonoAndPublishOn()
-        .map { response ->
-            response.contentLength()
+    override fun download(key: K): Flux<ByteBuffer> = findExistedS3Key(key)
+        .flatMap { s3Key ->
+            s3Operations.getObject(s3Key)
+                .toMonoAndPublishOn()
+        }
+        .flatMapMany {
+            it.toFlux()
         }
 
-    override fun lastModified(key: K): Mono<Instant> = s3Operations.headObject(s3KeyAdapter.buildS3Key(key))
-        .toMonoAndPublishOn()
+    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
+            createNewS3Key(key)
+                .flatMap { s3Key ->
+                    s3Operations.createMultipartUpload(s3Key)
+                        .toMonoAndPublishOn()
+                        .flatMap { response ->
+                            content.index()
+                                .flatMap { (index, buffer) ->
+                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
+                                        .toMonoAndPublishOn()
+                                }
+                                .collectList()
+                                .flatMap { uploadPartResults ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartResults)
+                                        .toMonoAndPublishOn()
+                                }
+                        }
+                        .map {
+                            requireNotNull(s3KeyManager.findKey(s3Key)) {
+                                "Not found inserted updated key for $key"
+                            }
+                        }
+                }
+
+    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
+            createNewS3Key(key)
+                .flatMap { s3Key ->
+                    s3Operations.putObject(s3Key, contentLength, AsyncRequestBody.fromPublisher(content))
+                        .toMonoAndPublishOn()
+                        .doOnError {
+                            s3KeyManager.delete(key)
+                        }
+                        .map {
+                            requireNotNull(s3KeyManager.findKey(s3Key)) {
+                                "Not found inserted updated key for $key"
+                            }
+                        }
+                }
+
+    override fun move(source: K, target: K): Mono<Boolean> =
+            findExistedS3Key(source)
+                .zipWith(createNewS3Key(target))
+                .flatMap { (sourceS3Key, targetS3Key) ->
+                    s3Operations.copyObject(sourceS3Key, targetS3Key)
+                        .toMonoAndPublishOn()
+                }
+                .flatMap {
+                    delete(source)
+                }
+
+    override fun delete(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
+        s3Operations.deleteObject(s3Key)
+            .toMonoAndPublishOn()
+    }
+        .map { deleteKey(key) }
+        .thenReturn(true)
+        .defaultIfEmpty(false)
+
+    override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
+        s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
+    }
         .map { response ->
             response.lastModified()
         }
 
-    override fun delete(key: K): Mono<Boolean> = s3Operations.deleteObject(s3KeyAdapter.buildS3Key(key))
-        .toMonoAndPublishOn()
-        .thenReturn(true)
+    override fun contentLength(key: K): Mono<Long> = findExistedS3Key(key).flatMap { s3Key ->
+        s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
+    }
+        .map { response ->
+            response.contentLength()
+        }
+
+    override fun doesExist(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
+        s3Operations.headObject(s3Key)
+            .toMonoAndPublishOn()
+    }
+        .map { true }
         .defaultIfEmpty(false)
 
-    override fun upload(key: K, content: Flux<ByteBuffer>): Mono<Long> =
-            s3Operations.createMultipartUpload(s3KeyAdapter.buildS3Key(key))
-                .toMonoAndPublishOn()
-                .flatMap { response ->
-                    content.index()
-                        .flatMap { (index, buffer) ->
-                            s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
-                                .toMonoAndPublishOn()
-                        }
-                        .collectList()
-                        .flatMap { uploadPartResults ->
-                            s3Operations.completeMultipartUpload(response, uploadPartResults)
-                                .toMonoAndPublishOn()
-                        }
-                }
-                .flatMap {
-                    contentLength(key)
-                }
-
-    override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<Unit> =
-            s3Operations.putObject(s3KeyAdapter.buildS3Key(key), contentLength, AsyncRequestBody.fromPublisher(content))
-                .toMonoAndPublishOn()
-                .thenReturn(Unit)
-
-    override fun download(key: K): Flux<ByteBuffer> = buildExistedS3Key(key)
-        .flatMapMany { s3Key ->
-            s3Operations.getObject(s3Key)
-                .toMonoAndPublishOn()
-                .flatMapMany {
-                    it.toFlux()
-                }
-        }
-
-    override fun move(source: K, target: K): Mono<Boolean> = buildExistedS3Key(source)
-        .zipWith(buildNewS3Key(target))
-        .flatMap { (sourceS3Key, targetS3Key) ->
-            s3Operations.copyObject(sourceS3Key, targetS3Key)
-                .toMonoAndPublishOn()
-        }
-        .flatMap {
-            delete(source)
-        }
-
-    private fun cleanup(key: K): Mono<Unit> = if (s3KeyAdapter.isDatabaseUnderlying) {
+    private fun deleteKey(key: K): Mono<Unit> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
         blockingToMono {
-            s3KeyAdapter.delete(key)
+            s3KeyManager.delete(key)
         }
     } else {
         Mono.fromCallable {
-            s3KeyAdapter.delete(key)
+            s3KeyManager.delete(key)
         }
     }
 
-    private fun buildExistedS3Key(key: K): Mono<String> = if (s3KeyAdapter.isDatabaseUnderlying) {
+    private fun findExistedS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
         blockingToMono {
-            s3KeyAdapter.buildExistedS3Key(key)
+            s3KeyManager.findExistedS3Key(key)
         }
     } else {
-        s3KeyAdapter.buildExistedS3Key(key).toMono()
+        s3KeyManager.findExistedS3Key(key).toMono()
     }
 
-    private fun buildNewS3Key(key: K): Mono<String> = if (s3KeyAdapter.isDatabaseUnderlying) {
+    private fun createNewS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
         blockingToMono {
-            s3KeyAdapter.buildNewS3Key(key)
+            s3KeyManager.createNewS3Key(key)
         }
     } else {
-        s3KeyAdapter.buildNewS3Key(key).toMono()
+        s3KeyManager.createNewS3Key(key).toMono()
     }
 
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)

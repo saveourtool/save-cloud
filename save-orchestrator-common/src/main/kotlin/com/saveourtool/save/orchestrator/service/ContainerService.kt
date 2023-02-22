@@ -10,10 +10,11 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.AgentType
+import com.saveourtool.save.utils.downloadAndRunAgentCommand
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.waitReactivelyUntil
 
-import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -117,15 +118,7 @@ class ContainerService(
 
         val baseImage = request.sdk.baseImageName()
 
-        /*
-         * The command is executed using the user's login shell,
-         * so changing 'sh -c' to 'bash -c' below won't affect anything.
-         */
-        @Language("bash")
-        val agentCommand = "set ${getShellOptions()}" +
-                " && curl ${getCurlOptions()} '${request.saveAgentUrl}' --output $SAVE_AGENT_EXECUTABLE_NAME" +
-                " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
-                " && ./$SAVE_AGENT_EXECUTABLE_NAME"
+        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, AgentType.AGENT)
 
         return RunConfiguration(
             imageTag = baseImage,
@@ -154,51 +147,5 @@ class ContainerService(
 
     companion object {
         private val log = LoggerFactory.getLogger(ContainerService::class.java)
-        internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-
-        /**
-         * - `set -e` | `set -o errexit`: exit immediately if any command has a non-zero status.
-         * - `set -u` | `set -o nounset`: exit immediately if a referenced variable is undefined.
-         * - `set -x` | `set -o xtrace`: enable debugging (PS4 followed by command & args).
-         *
-         * Don't use directly, request via [getShellOptions] instead.
-         * @see getShellOptions
-         */
-        @Language("bash")
-        private val shellOptions: Array<out String> = arrayOf(
-            "errexit",
-            "nounset",
-            "xtrace",
-        )
-
-        /**
-         * `--fail` is necessary so that `curl` exits immediately upon an HTTP 404.
-         *
-         * Don't use directly, request via [getCurlOptions] instead.
-         * @see getCurlOptions
-         */
-        @Language("bash")
-        private val curlOptions: Array<out String> = arrayOf(
-            "-vvv",
-            "--fail",
-        )
-
-        /**
-         * @return [shellOptions] as a single string.
-         * @see shellOptions
-         */
-        @Language("bash")
-        private fun getShellOptions(): String =
-                shellOptions.asSequence().map { option ->
-                    "-o $option"
-                }.joinToString(separator = " ")
-
-        /**
-         * @return [curlOptions] as a single string.
-         * @see curlOptions
-         */
-        @Language("bash")
-        private fun getCurlOptions(): String =
-                curlOptions.joinToString(separator = " ")
     }
 }

@@ -1,25 +1,20 @@
-package com.saveourtool.save.storage
+package com.saveourtool.save.storage.key
 
-import com.saveourtool.save.s3.S3OperationsProjectReactor
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.utils.*
-
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 
 /**
- * Implementation of storage which stores keys ([E]) in database and uses S3 storage under hood
+ * Implementation of [S3KeyManager] uses entity [E] as key
  *
- * @param s3Operations interface to operate with S3 storage
  * @param prefix a common prefix for all keys in S3 storage for this storage
  * @param repository repository for [E]
  */
-abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEntityRepository<E>>(
-    s3Operations: S3OperationsProjectReactor,
+abstract class AbstractS3KeyEntityManager<E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     repository: R,
-) : AbstractStorageWithDatabase<E, E, R>(
-    s3Operations,
+) : AbstractS3KeyDatabaseManager<E, E, R>(
     prefix,
     repository,
 ) {
@@ -27,7 +22,7 @@ abstract class AbstractStorageWithDatabaseEntityKey<E : BaseEntity, R : BaseEnti
 
     override fun E.toEntity(): E = this
 
-    final override fun findEntity(key: E): E? = key.id
+    override fun findEntity(key: E): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }

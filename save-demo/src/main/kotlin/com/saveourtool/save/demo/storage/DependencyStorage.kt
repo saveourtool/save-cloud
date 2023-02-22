@@ -1,12 +1,10 @@
 package com.saveourtool.save.demo.storage
 
-import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3OperationsProjectReactor
-import com.saveourtool.save.storage.AbstractStorageWithDatabaseEntityKey
-import com.saveourtool.save.storage.concatS3Key
+import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -21,16 +19,14 @@ import kotlin.io.path.*
  */
 @Component
 class DependencyStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3OperationsProjectReactor,
     repository: DependencyRepository,
-) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository>(
+    s3KeyManager: DependencyKeyManager,
+) : StorageWithDatabaseUsingProjectReactor<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "deps"),
+    s3KeyManager,
     repository,
 ) {
-    override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
-
     /**
      * @param demo
      * @param version version of a tool that the file is connected to
@@ -39,7 +35,7 @@ class DependencyStorage(
     fun blockingList(
         demo: Demo,
         version: String,
-    ): List<Dependency> = repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
+    ): List<Dependency> = s3KeyManager.findAllDependenies(
         demo.organizationName,
         demo.projectName,
         version,
@@ -66,7 +62,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Unit> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             demo.organizationName,
             demo.projectName,
             version,
@@ -109,7 +105,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Dependency> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             organizationName,
             projectName,
             version,
@@ -123,11 +119,7 @@ class DependencyStorage(
         projectName: String,
         version: String
     ) = blockingToFlux {
-        repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
-            organizationName,
-            projectName,
-            version,
-        )
+        s3KeyManager.findAllDependenies(organizationName, projectName, version)
     }
         .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()

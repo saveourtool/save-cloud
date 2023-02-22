@@ -7,8 +7,10 @@ import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.utils.LOG_FILE_NAME
 import com.saveourtool.save.demo.utils.REPORT_FILE_NAME
 import com.saveourtool.save.demo.utils.prependPath
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.collectToFile
 import org.slf4j.Logger
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -32,7 +34,7 @@ abstract class AbstractCliRunner(
      */
     protected abstract val configName: String?
 
-    override fun run(testPath: Path, demoRunRequest: DemoRunRequest): DemoResult {
+    override fun run(testPath: Path, demoRunRequest: DemoRunRequest): Mono<DemoResult> = blockingToMono {
         val workingDir = testPath.parent
         val outputPath = workingDir / REPORT_FILE_NAME
         val configPath = demoRunRequest.config?.joinToString("\n")
@@ -78,7 +80,7 @@ abstract class AbstractCliRunner(
 
         log.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
-        return DemoResult(
+        DemoResult(
             warnings.map { it.replace(testPath.absolutePathString(), testPath.name) },
             testPath.readLines(),
             logs,

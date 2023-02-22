@@ -46,7 +46,7 @@ fun FileSystem.createAndWriteIfNeeded(fileName: String?, lines: List<String>?) =
     write(path, true) { lines?.forEach { codeLine -> writeUtf8(codeLine) } }
 }
 
-actual inline fun <reified C : Any> parseConfig(configPath: Path): C {
-    require(fs.exists(configPath)) { "Could not find $configPath file." }
-    return TomlFileReader.decodeFromFile(serializer(), configPath.toString())
-}
+actual inline fun <reified C : Any> parseConfig(configPath: Path): C = TomlFileReader.decodeFromFile(
+    serializer(),
+    configPath.toString(),
+)
