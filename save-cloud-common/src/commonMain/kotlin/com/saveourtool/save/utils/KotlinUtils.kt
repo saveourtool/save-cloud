@@ -37,9 +37,9 @@ suspend fun <T : Any> retry(
             action(iteration)?.let { result ->
                 return result to caughtExceptions
             }
+            delay(delayMillis)
         } catch (e: Throwable) {
             caughtExceptions.add(e)
-        } finally {
             delay(delayMillis)
         }
     }
