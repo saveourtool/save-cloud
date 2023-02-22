@@ -71,7 +71,7 @@ class DemoManagerController(
         @PathVariable projectName: String,
         @RequestBody demoCreationRequest: DemoCreationRequest,
         authentication: Authentication,
-    ): Mono<EmptyResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+    ): Mono<StringResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
         "Could not find project $projectName in organization $organizationName."
     }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
@@ -111,6 +111,9 @@ class DemoManagerController(
                 .bodyValue(demoCreationRequest.manuallyUploadedFileDtos)
                 .retrieve()
                 .toBodilessEntity()
+        }
+        .map {
+            StringResponse.ok("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
         }
 
     @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
