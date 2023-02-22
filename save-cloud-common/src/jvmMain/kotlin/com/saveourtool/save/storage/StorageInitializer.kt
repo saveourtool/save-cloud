@@ -32,14 +32,14 @@ class StorageInitializer(
      * Init method using method that returns [Mono]
      * It can be empty
      *
-     * @param doInitByPublisher
+     * @param doInit
      */
-    fun init(doInitByPublisher: () -> Mono<Unit>) {
+    fun init(doInit: () -> Mono<Unit>) {
         require(!isInitStarted.compareAndExchange(false, true)) {
             "Init method cannot be called more than 1 time, initialization is in progress"
         }
-        doInitByPublisher()
-            .thenReturn(true)  // doInit worked
+        doInit()
+            .map { true }  // doInit worked
             .defaultIfEmpty(false)  // doInit is emtpy
             .doOnNext { wasDoInitCalled ->
                 require(!isInitFinished.compareAndExchange(false, true)) {
