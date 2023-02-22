@@ -33,12 +33,13 @@ suspend fun <T : Any> retry(
     val caughtExceptions: MutableList<Throwable> = mutableListOf()
     times.downTo(0).map { iteration ->
         try {
-            delay(delayMillis)
             action(iteration)?.let { result ->
                 return result to caughtExceptions
             }
         } catch (e: Throwable) {
             caughtExceptions.add(e)
+        } finally {
+            delay(delayMillis)
         }
     }
     return null to caughtExceptions
