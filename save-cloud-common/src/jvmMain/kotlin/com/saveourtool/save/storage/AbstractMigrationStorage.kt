@@ -23,9 +23,12 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     private val oldStorageProjectReactor: StorageProjectReactor<O>,
     private val newStoragePreSignedUrl: StoragePreSignedUrl<N>,
 ) : StorageUsingProjectReactor<O> {
-    private val initializer: StorageInitializer = StorageInitializer(this::class)
     private val log: Logger = getLogger(this::class)
+    private val initializer: StorageInitializer = StorageInitializer(this::class)
 
+    /**
+     * Init method which copies file from one storage to another
+     */
     @PostConstruct
     fun init() {
         initializer.init {

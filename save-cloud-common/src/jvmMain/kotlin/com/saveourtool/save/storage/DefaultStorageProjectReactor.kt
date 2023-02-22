@@ -21,9 +21,9 @@ import java.util.concurrent.CompletableFuture
 /**
  * S3 implementation of [StorageProjectReactor]
  *
+ * @param K type of key
  * @property s3Operations [S3Operations] to operate with S3
  * @property s3KeyManager [S3KeyManager] manager for S3 keys
- * @param K type of key
  */
 class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,

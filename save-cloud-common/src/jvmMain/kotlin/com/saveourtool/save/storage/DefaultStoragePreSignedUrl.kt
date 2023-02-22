@@ -8,9 +8,9 @@ import kotlin.time.Duration.Companion.minutes
 /**
  * S3 implementation of [StoragePreSignedUrl]
  *
+ * @param K type of key
  * @property s3Operations [S3Operations] to operate with S3
  * @property s3KeyManager [S3KeyManager] manager for S3 keys
- * @param K type of key
  */
 class DefaultStoragePreSignedUrl<K : Any>(
     private val s3Operations: S3Operations,

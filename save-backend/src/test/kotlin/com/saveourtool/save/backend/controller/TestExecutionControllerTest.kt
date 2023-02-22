@@ -13,10 +13,8 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.backend.utils.mockUsingStorageProjectReactor
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.storage.StorageProjectReactor
 import com.saveourtool.save.utils.secondsToJLocalDateTime
 import com.saveourtool.save.v1
 
@@ -69,25 +67,14 @@ class TestExecutionControllerTest {
     @MockBean
     private lateinit var debugInfoStorage: DebugInfoStorage
 
-    @Mock
-    private lateinit var debugInfoStorageProjectReactor: StorageProjectReactor<Long>
-
     @MockBean
     private lateinit var executionInfoStorage: ExecutionInfoStorage
-
-    @MockBean
-    private lateinit var executionInfoStorageProjectReactor: StorageProjectReactor<Long>
 
     @BeforeEach
     fun setUp() {
         transactionTemplate = TransactionTemplate(transactionManager)
-
-        debugInfoStorage.mockUsingStorageProjectReactor(debugInfoStorageProjectReactor)
-        whenever(debugInfoStorageProjectReactor.doesExist(any()))
-            .thenReturn(false.toMono())
-        executionInfoStorage.mockUsingStorageProjectReactor(executionInfoStorageProjectReactor)
-        whenever(executionInfoStorageProjectReactor.doesExist(any()))
-            .thenReturn(false.toMono())
+        whenever(debugInfoStorage.doesExist(any())).thenReturn(false.toMono())
+        whenever(executionInfoStorage.doesExist(any())).thenReturn(false.toMono())
     }
 
     @Test
