@@ -2,7 +2,6 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
-import org.reactivestreams.Publisher
 import org.slf4j.Logger
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
@@ -18,11 +17,6 @@ import kotlin.reflect.KClass
 class StorageInitializer(
     private val storageName: String,
 ) {
-    /**
-     * @param clazz [storageName] will be calculated from class name
-     */
-    constructor(clazz: KClass<*>) : this(clazz.simpleName ?: clazz.java.simpleName)
-
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
     private val isInitStarted = AtomicBoolean(false)
 
@@ -30,8 +24,15 @@ class StorageInitializer(
     private val isInitFinished = AtomicBoolean(false)
 
     /**
+     * @param clazz [storageName] will be calculated from class name
+     */
+    constructor(clazz: KClass<*>) : this(clazz.simpleName ?: clazz.java.simpleName)
+
+    /**
      * Init method using method that returns [Mono]
      * It can be empty
+     *
+     * @param doInitByPublisher
      */
     fun init(doInitByPublisher: () -> Mono<Unit>) {
         require(!isInitStarted.compareAndExchange(false, true)) {

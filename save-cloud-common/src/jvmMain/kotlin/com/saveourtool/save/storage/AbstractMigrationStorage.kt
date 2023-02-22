@@ -4,13 +4,11 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
 /**
@@ -21,7 +19,6 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     private val newStorage: Storage<N>,
 ) : Storage<O> {
     private val log: Logger = getLogger(this.javaClass)
-
     private val initializer: StorageInitializer = StorageInitializer(this::class)
 
     /**
@@ -89,7 +86,7 @@ abstract class AbstractMigrationStorage<O : Any, N : Any>(
     override fun upload(key: O, content: Flux<ByteBuffer>): Mono<O> = initializer.validateAndRun { newStorage.upload(key.toNewKey(), content).map { it.toOldKey() } }
 
     override fun upload(key: O, contentLength: Long, content: Flux<ByteBuffer>): Mono<O> =
-        initializer.validateAndRun { newStorage.upload(key.toNewKey(), contentLength, content).map { it.toOldKey() } }
+            initializer.validateAndRun { newStorage.upload(key.toNewKey(), contentLength, content).map { it.toOldKey() } }
 
     override fun delete(key: O): Mono<Boolean> = initializer.validateAndRun { newStorage.delete(key.toNewKey()) }
 

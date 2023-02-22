@@ -10,13 +10,10 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
 
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
 /**
@@ -35,7 +32,6 @@ open class StorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRepository
     private val underlyingStorage = object : AbstractS3Storage<K>(s3Operations) {
         override val s3KeyManager: S3KeyManager<K> = this@StorageWithDatabase.s3KeyManager
     }
-
     private val initializer = StorageInitializer(this::class)
 
     /**

@@ -20,7 +20,6 @@ abstract class AbstractSimpleStorage<K : Any>(
     s3Operations,
 ) {
     private val initializer: StorageInitializer = StorageInitializer(this::class)
-
     override val s3KeyManager: S3KeyManager<K> = object : AbstractS3KeyManager<K>(prefix) {
         override fun buildKeyFromSuffix(s3KeySuffix: String): K = doBuildKeyFromSuffix(s3KeySuffix)
         override fun buildS3KeySuffix(key: K): String = doBuildS3KeySuffix(key)
@@ -38,6 +37,9 @@ abstract class AbstractSimpleStorage<K : Any>(
      */
     abstract fun doBuildS3KeySuffix(key: K): String
 
+    /**
+     * Init method to call [initializer]
+     */
     @PostConstruct
     fun init() {
         initializer.init {
@@ -45,6 +47,9 @@ abstract class AbstractSimpleStorage<K : Any>(
         }
     }
 
+    /**
+     * @return result of init method as [Mono] without body, it's [Mono.empty] by default
+     */
     protected open fun doInit(): Mono<Unit> = Mono.empty()
 
     override fun list(): Flux<K> = initializer.validateAndRun { super.list() }
