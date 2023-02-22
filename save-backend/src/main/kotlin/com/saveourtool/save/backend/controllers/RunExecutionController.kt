@@ -17,6 +17,7 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.storage.impl.InternalFileKey
 import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
@@ -206,7 +207,10 @@ class RunExecutionController(
         .bodyValue(
             execution.toRunRequest(
                 saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = internalFileStorage.generateUrlToDownload(BackendInternalFileStorage.saveAgentKey),
+                saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
+                    .orNotFound {
+                        "Not found save-agent in internal storage"
+                    },
             )
         )
         .retrieve()

@@ -3,8 +3,6 @@ package com.saveourtool.save.storage
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
 import kotlinx.coroutines.flow.Flow
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -33,15 +31,16 @@ abstract class AbstractStorageUsingCoroutines<K : Any>(
      */
     @PostConstruct
     fun init() {
-        initializer.initSuspendly {
-            doInit()
+        initializer.initSuspendedly {
+            doInit(storageCoroutines)
         }
     }
 
     /**
+     * @param underlying
      * @return result of suspend init method as [Unit], it's [null] by default
      */
-    protected open suspend fun doInit(): Unit? = null
+    protected open suspend fun doInit(underlying: DefaultStorageCoroutines<K>): Unit? = null
 
     override suspend fun list(): Flow<K> = initializer.validateAndRunSuspend { storageCoroutines.list() }
 

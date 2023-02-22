@@ -8,6 +8,7 @@ import com.saveourtool.save.storage.StorageProjectReactor
 import com.saveourtool.save.utils.downloadFromClasspath
 import com.saveourtool.save.utils.getFromClasspath
 import com.saveourtool.save.utils.toByteBufferFlux
+import kotlinx.coroutines.reactive.asFlow
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
@@ -45,7 +46,7 @@ fun StorageProjectReactor<InternalFileKey>.uploadFromClasspath(key: InternalFile
  *
  * @param key
  */
-suspend fun StorageCoroutines<InternalFileKey>.uploadFromClasspath(key: InternalFileKey): Unit {
+suspend fun StorageCoroutines<InternalFileKey>.uploadFromClasspath(key: InternalFileKey) {
     val needsToUpload = if (!doesExist(key)) {
         true
     } else if (key.isLatest()) {
@@ -57,28 +58,6 @@ suspend fun StorageCoroutines<InternalFileKey>.uploadFromClasspath(key: Internal
         val resource = getFromClasspath(key.name) {
             "Can't find ${key.name}"
         }
-        upload(key, resource.contentLength(), resource.asFlow())
+        upload(key, resource.contentLength(), resource.toByteBufferFlux().asFlow())
     }
-    doesExist(key)
-        .filterWhen { exists ->
-            if (exists && key.isLatest()) {
-                delete(key)
-            } else {
-                exists.not().toMono()
-            }
-        }
-        .flatMap {
-            downloadFromClasspath(key.name) {
-                "Can't find ${key.name}"
-            }
-                .flatMap { resource ->
-                    upload(
-                        key,
-                        resource.contentLength(),
-                        resource.toByteBufferFlux(),
-                    )
-                }
-        }
-        .thenReturn(Unit)
-        .defaultIfEmpty(Unit)
 }

@@ -2,7 +2,7 @@ package com.saveourtool.save.sandbox.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.impl.AbstractInternalFileStorageUsingProjectReactor
+import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
 import com.saveourtool.save.storage.impl.InternalFileKey
 import generated.SAVE_CORE_VERSION
 import org.springframework.stereotype.Component
@@ -14,23 +14,8 @@ import org.springframework.stereotype.Component
 class SandboxInternalFileStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
-) : AbstractInternalFileStorageUsingProjectReactor(
-    listOf(saveAgentKey, saveCliKey),
+) : AbstractInternalFileStorage(
+    listOf(InternalFileKey.saveAgentKey, InternalFileKey.saveCliKey(SAVE_CORE_VERSION)),
     configProperties.s3Storage.prefix,
     s3Operations,
-) {
-    companion object {
-        /**
-         * [InternalFileKey] for *save-agent*
-         */
-        val saveAgentKey: InternalFileKey = InternalFileKey.latest("save-agent.kexe")
-
-        /**
-         * [InternalFileKey] for *save-cli* with version [SAVE_CORE_VERSION]
-         */
-        val saveCliKey: InternalFileKey = InternalFileKey(
-            name = "save-$SAVE_CORE_VERSION-linuxX64.kexe",
-            version = SAVE_CORE_VERSION,
-        )
-    }
-}
+)

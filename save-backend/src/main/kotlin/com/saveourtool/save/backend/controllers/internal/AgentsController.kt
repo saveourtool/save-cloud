@@ -11,8 +11,10 @@ import com.saveourtool.save.backend.storage.BackendInternalFileStorage
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
+import generated.SAVE_CORE_VERSION
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -62,7 +64,11 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateUrlToDownload(BackendInternalFileStorage.saveCliKey()).toString(),
+                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
+                    .orNotFound {
+                        "Not found save-cli with version $SAVE_CORE_VERSION"
+                    }
+                    .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
                         testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
