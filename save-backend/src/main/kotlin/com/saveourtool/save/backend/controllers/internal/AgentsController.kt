@@ -65,11 +65,21 @@ class AgentsController(
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
-                    .let {
-                        testsSourceSnapshotStorage.generateUrlToDownload(it).toString()
+                    .let { testsSourceSnapshot ->
+                        testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
+                            .orNotFound {
+                                "Not found key for $testsSourceSnapshot"
+                            }
+                            .toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
-                    .associate { it.name to fileStorage.generateUrlToDownload(it).toString() },
+                    .associate { file ->
+                        file.name to fileStorage.generateUrlToDownload(file)
+                            .orNotFound {
+                                "Not found key for $file"
+                            }
+                            .toString()
+                    },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
                     overrideExecFlags = null,
