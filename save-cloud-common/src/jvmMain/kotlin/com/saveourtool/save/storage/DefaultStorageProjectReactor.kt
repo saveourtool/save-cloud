@@ -14,28 +14,22 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
 
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
-import kotlin.time.Duration.Companion.minutes
-
 /**
- * S3 implementation of Storage
+ * S3 implementation of [StorageProjectReactor]
  *
- * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
+ * @property s3Operations [S3Operations] to operate with S3
+ * @property s3KeyManager [S3KeyManager] manager for S3 keys
  */
-abstract class AbstractS3Storage<K : Any>(
+class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
-) : Storage<K> {
+    private val s3KeyManager: S3KeyManager<K>,
+) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
-
-    /**
-     * [S3KeyManager] manager for S3 keys
-     */
-    protected abstract val s3KeyManager: S3KeyManager<K>
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .toMonoAndPublishOn()
@@ -67,20 +61,6 @@ abstract class AbstractS3Storage<K : Any>(
         }
         .flatMapMany {
             it.toFlux()
-        }
-
-    override fun generateUrlToDownload(key: K): URL = s3KeyManager.findExistedS3Key(key)
-        ?.let { s3Key ->
-            s3Operations.requestToDownloadObject(s3Key, downloadDuration)
-                .also { request ->
-                    require(request.isBrowserExecutable) {
-                        "Pre-singer url to download object should be browser executable (header-less)"
-                    }
-                }
-                .url()
-        }
-        .orNotFound {
-            "Not found s3 key for $key"
         }
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
@@ -191,8 +171,4 @@ abstract class AbstractS3Storage<K : Any>(
     }
 
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
-
-    companion object {
-        private val downloadDuration = 15.minutes
-    }
 }
