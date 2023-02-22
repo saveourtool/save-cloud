@@ -59,7 +59,7 @@ class StorageInitializer(
                 }
                 if (wasDoInitCalled) {
                     log.info {
-                        "Initialization $storageName is done"
+                        "Initialization $storageName is done (reactive part)"
                     }
                 }
             }
@@ -73,7 +73,7 @@ class StorageInitializer(
             }
             if (initResult.isNotNull()) {
                 log.info {
-                    "Initialization $storageName is done"
+                    "Initialization $storageName is done (suspending part)"
                 }
             }
         }

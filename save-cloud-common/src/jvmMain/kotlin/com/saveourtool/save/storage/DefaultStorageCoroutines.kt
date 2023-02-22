@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
+
 import kotlinx.coroutines.withContext
 
 /**
@@ -107,6 +108,8 @@ class DefaultStorageCoroutines<K : Any>(
                 ).asDeferred().await()
             }.toList()
             s3Operations.completeMultipartUpload(uploadResponse, completedParts)
+                .asDeferred()
+                .await()
             return requireNotNull(findKey(s3Key)) {
                 "Cannot find updated key for uploaded key $key"
             }
@@ -124,6 +127,8 @@ class DefaultStorageCoroutines<K : Any>(
                 contentLength,
                 AsyncRequestBody.fromPublisher(content.asPublisher(s3Operations.coroutineDispatcher)),
             )
+                .asDeferred()
+                .await()
             return requireNotNull(findKey(s3Key)) {
                 "Cannot find updated key for uploaded key $key"
             }
