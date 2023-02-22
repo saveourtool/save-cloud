@@ -139,7 +139,7 @@ class KubernetesService(
         configuration: DemoAgentConfig,
         retryNumber: Int,
     ): StringResponse {
-        val requestStatusAndErrors = retry(retryNumber) { iteration ->
+        val (requestStatus, errors) = retry(retryNumber) { iteration ->
             logger.debug("$iteration attempts left.")
             logger.info("Sending POST request with url $url")
             httpClient.post {
