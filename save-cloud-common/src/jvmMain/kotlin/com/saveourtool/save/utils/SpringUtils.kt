@@ -6,7 +6,7 @@ package com.saveourtool.save.utils
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.storage.Storage
+import com.saveourtool.save.storage.StorageProjectReactor
 import io.ktor.http.*
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
@@ -22,7 +22,7 @@ import java.nio.ByteBuffer
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K : Any> Storage<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
+fun <K : Any> StorageProjectReactor<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
     .let { contentLength ->
         upload(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
     }
@@ -35,7 +35,7 @@ fun <K : Any> Storage<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = c
  * @param contentLength
  * @return [Mono] with overwritten key [K]
  */
-fun <K : Any> Storage<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<K> = content.content()
+fun <K> StorageProjectReactor<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<K> = content.content()
     .map { it.asByteBuffer() }
     .let { overwrite(key, contentLength, it) }
 
@@ -46,7 +46,7 @@ fun <K : Any> Storage<K>.overwrite(key: K, content: Part, contentLength: Long): 
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K : Any> Storage<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
+fun <K : Any> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
     .let { contentLength ->
         overwrite(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
     }

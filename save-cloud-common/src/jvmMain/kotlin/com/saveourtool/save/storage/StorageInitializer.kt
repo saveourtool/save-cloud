@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
 /**
- * Initializer for [Storage]
+ * Initializer for [StorageProjectReactor]
  *
  * @property storageName
  */

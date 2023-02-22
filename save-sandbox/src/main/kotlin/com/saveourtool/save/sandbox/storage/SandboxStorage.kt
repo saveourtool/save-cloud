@@ -2,7 +2,9 @@ package com.saveourtool.save.sandbox.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.*
+import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
+import com.saveourtool.save.storage.PATH_DELIMITER
+import com.saveourtool.save.storage.concatS3Key
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
@@ -13,7 +15,7 @@ import reactor.core.publisher.Flux
 class SandboxStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
-) : AbstractSimpleStorage<SandboxStorageKey>(
+) : AbstractSimpleReactiveStorage<SandboxStorageKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "sandbox"),
 ) {
