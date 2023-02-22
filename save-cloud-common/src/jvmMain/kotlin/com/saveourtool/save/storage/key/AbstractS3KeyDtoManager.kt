@@ -16,7 +16,7 @@ abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithI
     prefix: String,
     repository: R,
 ) : AbstractS3KeyDatabaseManager<K, E, R>(prefix, repository) {
-    override fun E.toKey(): K = this.toDto()
+    override fun E.toKey(): K = toDto()
 
     override fun K.toEntity(): E = createNewEntityFromDto(this)
 

@@ -126,7 +126,7 @@ class DownloadFilesTest {
         }
 
         val fileContent = "Lorem ipsum"
-        whenever(fileStorage.doesExist(eq(file1.toDto())))
+        whenever(fileStorage.doesExist(file1.toDto()))
             .thenReturn(true.toMono())
         whenever(fileStorage.getFileById(eq(file1.requiredId())))
             .thenReturn(Mono.just(file1.toDto()))
@@ -186,9 +186,9 @@ class DownloadFilesTest {
         val file = (tmpDir / file2.name).createFile()
             .also { it.writeText(fileContent) }
         whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
-            .thenReturn(false.toMono())
+            .thenReturn(Mono.just(false))
         whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
-            .thenReturn(file2.toDto().toMono())
+            .thenReturn(Mono.just(file2.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
             .thenReturn(testProject2)

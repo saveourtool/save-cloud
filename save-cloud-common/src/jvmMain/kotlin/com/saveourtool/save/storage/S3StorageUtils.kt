@@ -16,13 +16,6 @@ fun String.asS3CommonPrefix(): String = removeSuffix(PATH_DELIMITER) + PATH_DELI
 
 /**
  * @receiver key in S3 as [String]
- * @param prefix a common prefix for all keys in storage
- * @return parts [this] split by [PATH_DELIMITER]
- */
-fun String.s3KeyToPartsTill(prefix: String): List<String> = removePrefix(prefix).removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
-
-/**
- * @receiver key in S3 as [String]
  * @return parts [this] split by [PATH_DELIMITER]
  */
 fun String.s3KeyToParts(): List<String> = removePrefix(PATH_DELIMITER).removeSuffix(PATH_DELIMITER).split(PATH_DELIMITER)
