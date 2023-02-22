@@ -127,7 +127,7 @@ class TestsSourceVersionService(
         val snapshotEntity = versionEntity.snapshot
         if (versionRepository.findAllBySnapshotId(snapshotEntity.requiredId()).isEmpty()) {
             val snapshot = snapshotEntity.toDto()
-            snapshotStorage.usingProjectReactor { delete(snapshot) }
+            snapshotStorage.delete(snapshot)
                 .map { deleted ->
                     if (!deleted) {
                         log.warn {

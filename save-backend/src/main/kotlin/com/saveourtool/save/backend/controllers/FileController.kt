@@ -89,7 +89,7 @@ class FileController(
         authentication: Authentication,
     ): Mono<StringResponse> = fileStorage.getFileById(fileId)
         .validatePermission(authentication, Permission.DELETE)
-        .flatMap { fileStorage.usingProjectReactor { delete(it) } }
+        .flatMap { fileStorage.delete(it) }
         .map { deleted ->
             if (deleted) {
                 ResponseEntity.ok("File deleted successfully")
@@ -119,7 +119,7 @@ class FileController(
     ): Mono<ByteBufferFluxResponse> = fileStorage.getFileById(fileId)
         .validatePermission(authentication, Permission.READ)
         .flatMap { fileDto ->
-            fileStorage.usingProjectReactor { doesExist(fileDto) }
+            fileStorage.doesExist(fileDto)
                 .filter { it }
                 .switchIfEmptyToNotFound {
                     "File with key $fileDto is not found"
@@ -128,7 +128,7 @@ class FileController(
                     log.info("Sending file ${fileDto.name} to a client")
                     ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(fileStorage.usingProjectReactor { download(fileDto) })
+                        .body(fileStorage.download(fileDto))
                 }
         }
 
@@ -166,11 +166,11 @@ class FileController(
                     uploadedTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
                     sizeBytes = contentLength,
                 )
-                fileStorage.usingProjectReactor { doesExist(fileDto) }
+                fileStorage.doesExist(fileDto)
                     .filter { !it }
                     .switchIfEmptyToResponseException(HttpStatus.CONFLICT)
                     .flatMap {
-                        fileStorage.usingProjectReactor { upload(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() }) }
+                        fileStorage.upload(fileDto, fileDto.sizeBytes, filePart.content().map { it.asByteBuffer() })
                     }
                     .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR)
                     .map {
