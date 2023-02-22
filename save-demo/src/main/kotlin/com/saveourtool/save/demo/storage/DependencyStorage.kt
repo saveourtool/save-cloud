@@ -3,7 +3,7 @@ package com.saveourtool.save.demo.storage
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
@@ -19,7 +19,7 @@ import kotlin.io.path.*
  */
 @Component
 class DependencyStorage(
-    s3Operations: S3OperationsProjectReactor,
+    s3Operations: S3Operations,
     repository: DependencyRepository,
     s3KeyManager: DependencyKeyManager,
 ) : StorageWithDatabaseUsingProjectReactor<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(

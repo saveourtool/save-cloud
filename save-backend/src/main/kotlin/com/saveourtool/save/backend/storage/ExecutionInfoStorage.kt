@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.utils.collectAsJsonTo
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono
 @Service
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
-    private val s3Operations: S3OperationsProjectReactor,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val executionRepository: ExecutionRepository,
 ) : AbstractSimpleStorageUsingProjectReactor<Long>(

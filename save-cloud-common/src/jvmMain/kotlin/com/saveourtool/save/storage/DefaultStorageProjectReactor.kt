@@ -4,10 +4,13 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
 import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -42,16 +45,16 @@ class DefaultStorageProjectReactor<K : Any>(
             }
         }
         .flatMapIterable { response ->
-            response.contents().mapNotNull { s3Object ->
-                val s3Key = s3Object.key()
-                val key = s3KeyManager.findKey(s3Key)
-                if (!key.isNotNull()) {
+            response.contents().map { it.key() }
+        }
+        .flatMap { s3Key ->
+            findKey(s3Key)
+                .switchIfEmpty {
                     log.warn {
                         "Found s3 key $s3Key which is not valid by ${s3KeyManager::class.simpleName}"
                     }
+                    Mono.empty()
                 }
-                key
-            }
         }
 
     override fun download(key: K): Flux<ByteBuffer> = findExistedS3Key(key)
@@ -80,10 +83,11 @@ class DefaultStorageProjectReactor<K : Any>(
                                         .toMonoAndPublishOn()
                                 }
                         }
-                        .map {
-                            requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                "Not found inserted updated key for $key"
-                            }
+                        .flatMap {
+                            findKey(s3Key)
+                                .switchIfEmptyToNotFound {
+                                    "Not found inserted updated key for $key"
+                                }
                         }
                 }
 
@@ -152,6 +156,14 @@ class DefaultStorageProjectReactor<K : Any>(
         Mono.fromCallable {
             s3KeyManager.delete(key)
         }
+    }
+
+    private fun findKey(s3Key: String): Mono<K> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
+        blockingToMono {
+            s3KeyManager.findKey(s3Key)
+        }
+    } else {
+        s3KeyManager.findKey(s3Key).toMono()
     }
 
     private fun findExistedS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {

@@ -45,14 +45,14 @@ interface StorageCoroutines<K> {
      * @param content
      * @return count of written bytes
      */
-    suspend fun upload(key: K, content: Flow<ByteBuffer>): Long
+    suspend fun upload(key: K, content: Flow<ByteBuffer>): K
 
     /**
      * @param key a key for provided content
      * @param contentLength a content length of content
      * @param content as [Flow] of [ByteBuffer]
      */
-    suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>)
+    suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>): K
 
     /**
      * @param key a key to download content

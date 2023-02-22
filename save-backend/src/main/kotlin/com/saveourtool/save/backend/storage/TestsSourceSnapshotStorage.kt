@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.request.TestFilesRequest
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.StorageWithDatabaseUsingProjectReactor
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
@@ -24,7 +24,7 @@ import kotlin.io.path.*
  */
 @Component
 class TestsSourceSnapshotStorage(
-    s3Operations: S3OperationsProjectReactor,
+    s3Operations: S3Operations,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     s3KeyManager: TestsSourceSnapshotS3KeyManager,
 ) : StorageWithDatabaseUsingProjectReactor<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(

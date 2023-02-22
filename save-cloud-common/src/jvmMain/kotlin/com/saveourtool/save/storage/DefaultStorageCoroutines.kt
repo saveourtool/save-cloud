@@ -1,9 +1,11 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.key.Metastore
-import com.saveourtool.save.storage.key.S3KeyAdapter
+import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
+import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.isNotNull
+import com.saveourtool.save.utils.warn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 
@@ -16,6 +18,7 @@ import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.coroutines.withContext
+import org.slf4j.Logger
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
 import software.amazon.awssdk.services.s3.model.S3Exception
@@ -25,14 +28,16 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * S3 implementation of [StorageCoroutines]
  *
- * @param s3Operations [S3Operations] to operate with S3
- * @param metastore [Metastore] metastore with S3 keys
  * @param K type of key
+ * @property s3Operations [S3Operations] to operate with S3
+ * @property s3KeyManager [S3KeyManager] manager for S3 keys
  */
 class DefaultStorageCoroutines<K : Any>(
     private val s3Operations: S3Operations,
-    private val metastore: Metastore<K>,
+    private val s3KeyManager: S3KeyManager<K>,
 ) : StorageCoroutines<K> {
+    private val log: Logger = getLogger(this::class)
+
     override suspend fun list(): Flow<K> = flow {
         var lastResponse = doListObjectV2()
         emitKeys(lastResponse)
@@ -43,31 +48,35 @@ class DefaultStorageCoroutines<K : Any>(
     }
 
     private suspend fun doListObjectV2(continuationToken: String? = null): ListObjectsV2Response =
-            s3Operations.listObjectsV2(metastore.commonPrefix, continuationToken).asDeferred().await()
+            s3Operations.listObjectsV2(s3KeyManager.commonPrefix, continuationToken).asDeferred().await()
 
     private suspend fun FlowCollector<K>.emitKeys(response: ListObjectsV2Response) {
         response.contents()
             .forEach { s3Object ->
-                val key = metastore.buildKey(s3Object.key())
-                // TODO: need to log that found a key in storage, which doesn't exist in metastore
-                key?.let { emit(it) }
+                val s3Key = s3Object.key()
+                val key = findKey(s3Key)
+                key?.let { emit(it) } ?: run {
+                    log.warn {
+                        "Found s3 key $s3Key which is not valid by ${s3KeyManager::class.simpleName}"
+                    }
+                }
             }
     }
 
-    override suspend fun doesExist(key: K): Boolean = buildExistedS3Key(key)?.let { s3Key ->
+    override suspend fun doesExist(key: K): Boolean = findExistedS3Key(key)?.let { s3Key ->
         s3Operations.headObject(s3Key)
             .asDeferred()
             .await()
     }.isNotNull()
 
-    override suspend fun contentLength(key: K): Long? = buildExistedS3Key(key)?.let { s3Key ->
+    override suspend fun contentLength(key: K): Long? = findExistedS3Key(key)?.let { s3Key ->
         s3Operations.headObject(s3Key)
             .asDeferred()
             .await()
             ?.contentLength()
     }
 
-    override suspend fun lastModified(key: K): Instant? = buildExistedS3Key(key)?.let { s3Key ->
+    override suspend fun lastModified(key: K): Instant? = findExistedS3Key(key)?.let { s3Key ->
         s3Operations.headObject(s3Key)
             .asDeferred()
             .await()
@@ -75,19 +84,19 @@ class DefaultStorageCoroutines<K : Any>(
     }
 
     override suspend fun delete(key: K): Boolean {
-        return buildExistedS3Key(key)?.let { s3Key ->
+        return findExistedS3Key(key)?.let { s3Key ->
             s3Operations.deleteObject(s3Key)
                 .asDeferred()
                 .await()
                 .isNotNull()
                 .also {
-                    cleanup(key)
+                    deleteKey(key)
                 }
         } == true
     }
 
-    override suspend fun upload(key: K, content: Flow<ByteBuffer>): Long {
-        val s3Key = buildNewS3Key(key)
+    override suspend fun upload(key: K, content: Flow<ByteBuffer>): K {
+        val s3Key = createNewS3Key(key)
         try {
             val uploadResponse = s3Operations.createMultipartUpload(s3Key)
                 .asDeferred()
@@ -101,30 +110,33 @@ class DefaultStorageCoroutines<K : Any>(
                 ).asDeferred().await()
             }.toList()
             s3Operations.completeMultipartUpload(uploadResponse, completedParts)
-            return requireNotNull(contentLength(key)) {
-                "Cannot find contentLength for uploaded key $key"
+            return requireNotNull(findKey(s3Key)) {
+                "Cannot find updated key for uploaded key $key"
             }
         } catch (ex: S3Exception) {
-            cleanup(key)
+            deleteKey(key)
             throw ex
         }
     }
 
-    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>) {
-        val s3Key = buildNewS3Key(key)
+    override suspend fun upload(key: K, contentLength: Long, content: Flow<ByteBuffer>): K {
+        val s3Key = createNewS3Key(key)
         try {
             s3Operations.putObject(
                 s3Key,
                 contentLength,
                 AsyncRequestBody.fromPublisher(content.asPublisher(s3Operations.coroutineDispatcher)),
             )
+            return requireNotNull(findKey(s3Key)) {
+                "Cannot find updated key for uploaded key $key"
+            }
         } catch (ex: Exception) {
-            cleanup(key)
+            deleteKey(key)
             throw ex
         }
     }
 
-    override suspend fun download(key: K): Flow<ByteBuffer> = buildExistedS3Key(key)?.let {
+    override suspend fun download(key: K): Flow<ByteBuffer> = findExistedS3Key(key)?.let {
         s3Operations.getObject(it)
             .thenApply { getResponse ->
                 getResponse?.toFlux()?.asFlow() ?: emptyFlow()
@@ -134,8 +146,8 @@ class DefaultStorageCoroutines<K : Any>(
     } ?: emptyFlow()
 
     override suspend fun move(source: K, target: K): Boolean {
-        return buildExistedS3Key(source)?.let { sourceS3Key ->
-            val targetS3Key = buildNewS3Key(target)
+        return findExistedS3Key(source)?.let { sourceS3Key ->
+            val targetS3Key = createNewS3Key(target)
             s3Operations.copyObject(sourceS3Key, targetS3Key)
                 .thenCompose { copyResponse ->
                     copyResponse?.let {
@@ -148,29 +160,37 @@ class DefaultStorageCoroutines<K : Any>(
         } ?: false
     }
 
-    private suspend fun cleanup(key: K) {
-        if (metastore.isDatabaseUnderlying) {
+    private suspend fun deleteKey(key: K) {
+        if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
             withContext(Dispatchers.IO) {
-                metastore.delete(key)
+                s3KeyManager.delete(key)
             }
         } else {
-            metastore.delete(key)
+            s3KeyManager.delete(key)
         }
     }
 
-    private suspend fun buildExistedS3Key(key: K): String? = if (metastore.isDatabaseUnderlying) {
+    private suspend fun findKey(s3Key: String): K? = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
         withContext(Dispatchers.IO) {
-            metastore.buildExistedS3Key(key)
+            s3KeyManager.findKey(s3Key)
         }
     } else {
-        metastore.buildExistedS3Key(key)
+        s3KeyManager.findKey(s3Key)
     }
 
-    private suspend fun buildNewS3Key(key: K): String = if (metastore.isDatabaseUnderlying) {
+    private suspend fun findExistedS3Key(key: K): String? = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
         withContext(Dispatchers.IO) {
-            metastore.buildNewS3Key(key)
+            s3KeyManager.findExistedS3Key(key)
         }
     } else {
-        metastore.buildNewS3Key(key)
+        s3KeyManager.findExistedS3Key(key)
+    }
+
+    private suspend fun createNewS3Key(key: K): String = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
+        withContext(Dispatchers.IO) {
+            s3KeyManager.createNewS3Key(key)
+        }
+    } else {
+        s3KeyManager.createNewS3Key(key)
     }
 }

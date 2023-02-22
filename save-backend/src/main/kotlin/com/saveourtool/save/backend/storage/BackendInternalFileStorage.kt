@@ -1,9 +1,9 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.Storage
-import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
+import com.saveourtool.save.storage.impl.AbstractInternalFileStorageUsingProjectReactor
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.github.GitHubHelper
 import com.saveourtool.save.utils.github.GitHubRepo
@@ -26,8 +26,8 @@ import kotlinx.coroutines.withContext
 @Component
 class BackendInternalFileStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3OperationsProjectReactor,
-) : AbstractInternalFileStorage(
+    s3Operations: S3Operations,
+) : AbstractInternalFileStorageUsingProjectReactor(
     listOf(saveAgentKey),
     configProperties.s3Storage.prefix,
     s3Operations,

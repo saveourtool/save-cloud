@@ -5,14 +5,14 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono
 @Service
 class DebugInfoStorage(
     configProperties: ConfigProperties,
-    private val s3Operations: S3OperationsProjectReactor,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,

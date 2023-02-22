@@ -1,6 +1,6 @@
 package com.saveourtool.save.sandbox.storage
 
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
 import com.saveourtool.save.storage.AbstractSimpleStorageUsingProjectReactor
 import com.saveourtool.save.storage.PATH_DELIMITER
@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux
 @Component
 class SandboxStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3OperationsProjectReactor,
+    s3Operations: S3Operations,
 ) : AbstractSimpleStorageUsingProjectReactor<SandboxStorageKey>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "sandbox"),

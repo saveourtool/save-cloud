@@ -21,5 +21,5 @@ interface StoragePreSignedUrl<K : Any> {
      * @param contentLength a content length of content
      * @return URL with headers to upload content
      */
-    fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders
+    fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders?
 }

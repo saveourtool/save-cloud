@@ -1,8 +1,8 @@
 package com.saveourtool.save.sandbox.storage
 
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.impl.AbstractInternalFileStorage
+import com.saveourtool.save.storage.impl.AbstractInternalFileStorageUsingProjectReactor
 import com.saveourtool.save.storage.impl.InternalFileKey
 import generated.SAVE_CORE_VERSION
 import org.springframework.stereotype.Component
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component
 @Component
 class SandboxInternalFileStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3OperationsProjectReactor,
-) : AbstractInternalFileStorage(
+    s3Operations: S3Operations,
+) : AbstractInternalFileStorageUsingProjectReactor(
     listOf(saveAgentKey, saveCliKey),
     configProperties.s3Storage.prefix,
     s3Operations,

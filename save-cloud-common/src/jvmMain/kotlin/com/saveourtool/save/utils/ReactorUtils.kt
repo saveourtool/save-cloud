@@ -282,6 +282,23 @@ fun waitReactivelyUntil(
     .any { it }
 
 /**
+ * Get the resource named [resourceName] from the classpath.
+ *
+ * @param resourceName the name of the resource (file).
+ * @param lazyResponseBody the body of HTTP response if HTTP 404 is returned.
+ * @return either the Mono holding the resource, or [Mono.error] with an HTTP 404
+ *   status and response.
+ */
+fun getFromClasspath(
+    resourceName: String,
+    lazyResponseBody: (() -> String?) = { null },
+): Resource = ClassPathResource(resourceName).takeIf(Resource::exists)
+    .orNotFound {
+        logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
+        lazyResponseBody()
+    }
+
+/**
  * Downloads the resource named [resourceName] from the classpath.
  *
  * @param resourceName the name of the resource (file).

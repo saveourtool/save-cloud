@@ -35,8 +35,3 @@ suspend fun <T : Any> retry(
         null
     }
 }
-
-/**
- * @return true if [this] is not null
- */
-fun <T : Any> T?.isNotNull(): Boolean = this != null

@@ -1,6 +1,6 @@
 package com.saveourtool.save.storage.impl
 
-import com.saveourtool.save.s3.S3OperationsProjectReactor
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.*
 import com.saveourtool.save.utils.*
 import reactor.core.publisher.Flux
@@ -15,11 +15,11 @@ import reactor.kotlin.core.publisher.toMono
  * @param s3StoragePrefix a common prefix for s3 storage
  * @param s3Operations
  */
-abstract class AbstractInternalFileStorage(
+abstract class AbstractInternalFileStorageUsingCoroutines(
     private val keysToLoadFromClasspath: Collection<InternalFileKey>,
     s3StoragePrefix: String,
-    s3Operations: S3OperationsProjectReactor,
-) : AbstractS3StorageWithInit<InternalFileKey>(
+    s3Operations: S3Operations,
+) : AbstractSimpleStorageUsingCoroutines<InternalFileKey>(
     s3Operations,
     concatS3Key(s3StoragePrefix, "internal-storage")
 ) {
@@ -29,7 +29,7 @@ abstract class AbstractInternalFileStorage(
      * @param underlying
      * @return [Mono] without body
      */
-    override fun doInitAsync(underlying: Storage<InternalFileKey>): Mono<Unit> = Flux.concat(
+    override fun doInit(underlying: DefaultStorageProjectReactor<InternalFileKey>): Mono<Unit> = Flux.concat(
         keysToLoadFromClasspath.toFlux()
             .flatMap {
                 underlying.uploadFromClasspath(it, it.isLatest())
@@ -46,35 +46,13 @@ abstract class AbstractInternalFileStorage(
      */
     protected open fun doInitAdditionally(underlying: Storage<InternalFileKey>): Mono<Unit> = Mono.just(Unit)
 
-    override fun buildKey(s3KeySuffix: String): InternalFileKey {
-        val (version, name) = s3KeySuffix.s3KeyToPartsTill(prefix)
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): InternalFileKey {
+        val (version, name) = s3KeySuffix.s3KeyToParts()
         return InternalFileKey(
             name = name,
             version = version,
         )
     }
 
-    override fun buildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
-
-    private fun Storage<InternalFileKey>.uploadFromClasspath(key: InternalFileKey, overwrite: Boolean): Mono<Unit> = doesExist(key)
-        .filterWhen { exists ->
-            if (exists && overwrite) {
-                delete(key)
-            } else {
-                exists.not().toMono()
-            }
-        }
-        .flatMap {
-            downloadFromClasspath(key.name) {
-                "Can't find ${key.name}"
-            }
-                .flatMap { resource ->
-                    upload(
-                        key,
-                        resource.contentLength(),
-                        resource.toByteBufferFlux(),
-                    )
-                }
-        }
-        .defaultIfEmpty(Unit)
+    override fun doBuildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
 }
