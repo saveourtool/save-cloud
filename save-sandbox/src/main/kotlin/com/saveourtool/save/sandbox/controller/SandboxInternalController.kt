@@ -56,7 +56,7 @@ class SandboxInternalController(
             .flatMap { directory ->
                 storage.list(userId, SandboxStorageKeyType.TEST)
                     .flatMap { key ->
-                        storage.usingProjectReactor().download(key)
+                        storage.download(key)
                             .collectToInputStream()
                             .map { inputStream ->
                                 directory.resolve(key.fileName)
@@ -94,7 +94,7 @@ class SandboxInternalController(
         @RequestParam fileName: String,
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         ResponseEntity.ok(
-            storage.usingProjectReactor().download(
+            storage.download(
                 SandboxStorageKey(
                     userId = userId,
                     type = SandboxStorageKeyType.FILE,
@@ -158,7 +158,7 @@ class SandboxInternalController(
     fun uploadDebugInfo(
         @RequestParam userId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = storage.usingProjectReactor().overwrite(
+    ): Mono<Long> = storage.overwrite(
         key = SandboxStorageKey.debugInfoKey(userId),
         contentBytes = objectMapper.writeValueAsBytes(testResultDebugInfo)
     )

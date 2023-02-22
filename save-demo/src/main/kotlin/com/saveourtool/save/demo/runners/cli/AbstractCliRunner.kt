@@ -94,7 +94,7 @@ abstract class AbstractCliRunner(
         .switchIfEmpty {
             throw FileNotFoundException("Could not find file with key $toolKey")
         }
-        .flatMapMany { dependencyStorage.usingProjectReactor().download(it) }
+        .flatMapMany { dependencyStorage.download(it) }
         .collectToFile(workingDir / toolKey.fileName)
         .thenReturn(workingDir / toolKey.fileName)
         .block()

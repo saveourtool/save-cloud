@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.storage.StorageProjectReactor
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -23,8 +22,6 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
@@ -39,12 +36,10 @@ import kotlin.time.toJavaDuration
 @RestController
 @RequestMapping(path = ["/api/$v1/avatar"])
 internal class AvatarController(
-    avatarStorageProvider: AvatarStorage,
+    private val avatarStorage: AvatarStorage,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
 ) {
-    private val avatarStorage: StorageProjectReactor<AvatarKey> = avatarStorageProvider.usingProjectReactor()
-
     /**
      * @param partMono image to be uploaded
      * @param owner owner name

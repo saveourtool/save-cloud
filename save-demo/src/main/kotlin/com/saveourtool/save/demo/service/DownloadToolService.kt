@@ -112,7 +112,7 @@ class DownloadToolService(
                                 Dependency(it, vcsTagName, asset.name, -1L)
                             }
                     }
-                    .flatMap { dependencyStorage.usingProjectReactor().overwrite(it, content) }
+                    .flatMap { dependencyStorage.overwrite(it, content) }
                     .subscribe()
             }
                 .invokeOnCompletion { exception ->
@@ -207,7 +207,7 @@ class DownloadToolService(
         downloadFileByFileId(dependency.fileId)
             .let { byteBuffers ->
                 with(dependency) {
-                    dependencyStorage.usingProjectReactor().overwrite(dependency, byteBuffers)
+                    dependencyStorage.overwrite(dependency, byteBuffers)
                         .subscribe()
                         .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
                 }

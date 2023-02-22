@@ -88,7 +88,7 @@ class SandboxController(
         .flatMap {
             Mono.zip(
                 it.toMono(),
-                storage.usingProjectReactor().contentLength(it),
+                storage.contentLength(it),
             )
         }
         .map { (storageKey, size) ->
@@ -114,7 +114,7 @@ class SandboxController(
     ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
         getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
-                storage.usingProjectReactor().overwrite(
+                storage.overwrite(
                     key = key,
                     content = filePart,
                     contentLength = contentLength,
@@ -159,7 +159,7 @@ class SandboxController(
         authentication: Authentication,
     ): Flux<ByteBuffer> = getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
         .flatMapMany {
-            storage.usingProjectReactor().download(it)
+            storage.download(it)
         }
         .switchIfEmptyToNotFound {
             "There is no file $fileName for user ${authentication.username()}"
@@ -197,7 +197,7 @@ class SandboxController(
         authentication: Authentication,
     ): Mono<Boolean> = getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
         .flatMap {
-            storage.usingProjectReactor().delete(it)
+            storage.delete(it)
         }
 
     @Operation(
@@ -225,7 +225,7 @@ class SandboxController(
         content: String,
     ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
-            storage.usingProjectReactor().overwrite(
+            storage.overwrite(
                 key = key,
                 contentBytes = content.replace("\r\n?".toRegex(), "\n").toByteArray(),
             )
@@ -256,7 +256,7 @@ class SandboxController(
         fileName: String,
     ): Mono<String> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
-            storage.usingProjectReactor().download(key)
+            storage.download(key)
                 .collectToInputStream()
                 .map { it.bufferedReader().readText() }
         }
@@ -296,7 +296,7 @@ class SandboxController(
         authentication: Authentication,
     ): Flux<ByteBuffer> = Mono.just(authentication.userId())
         .flatMapMany { userId ->
-            storage.usingProjectReactor().download(SandboxStorageKey.debugInfoKey(userId))
+            storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
         .switchIfEmptyToNotFound {
             "There is no DebugInfo for ${authentication.username()}"
@@ -322,7 +322,7 @@ class SandboxController(
         val userId = authentication.userId()
         return validateNoRunningExecution(userId)
             .flatMap {
-                storage.usingProjectReactor().delete(SandboxStorageKey.debugInfoKey(userId))
+                storage.delete(SandboxStorageKey.debugInfoKey(userId))
             }
             .map {
                 SandboxExecution(
