@@ -7,10 +7,10 @@ import java.net.URL
  *
  * @param K type of key
  */
-interface StoragePreSignedUrl<K> {
+interface StoragePreSignedUrl<K : Any> {
     /**
      * @param key a key to download content
-     * @return URL to download content
+     * @return URL to download content if [key] valid, otherwise -- null
      */
-    fun generateUrlToDownload(key: K): URL
+    fun generateUrlToDownload(key: K): URL?
 }

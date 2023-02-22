@@ -18,11 +18,11 @@ abstract class AbstractS3KeyEntityManager<E : BaseEntity, R : BaseEntityReposito
     prefix,
     repository,
 ) {
-    override fun convertEntityToKey(entity: E): E = entity
+    override fun E.toKey(): E = this
 
-    override fun convertKeyToEntity(key: E): E = key
+    override fun E.toEntity(): E = this
 
-    override fun doFindEntity(key: E): E? = key.id
+    override fun findEntity(key: E): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }

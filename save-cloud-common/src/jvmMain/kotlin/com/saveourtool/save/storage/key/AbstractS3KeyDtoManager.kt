@@ -16,11 +16,11 @@ abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithI
     prefix: String,
     repository: R,
 ) : AbstractS3KeyDatabaseManager<K, E, R>(prefix, repository) {
-    override fun convertEntityToKey(entity: E): K = entity.toDto()
+    override fun E.toKey(): K = this.toDto()
 
-    override fun convertKeyToEntity(key: K): E = createNewEntityFromDto(key)
+    override fun K.toEntity(): E = createNewEntityFromDto(this)
 
-    override fun doFindEntity(key: K): E? = key.id
+    override fun findEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
                 .orNotFound { "Failed to find entity for $this by id = $id" }

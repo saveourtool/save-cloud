@@ -28,6 +28,7 @@ abstract class AbstractSimpleStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
 ) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
+
     /**
      * [S3KeyManager] manager for S3 keys
      */
@@ -63,20 +64,6 @@ abstract class AbstractSimpleStorageProjectReactor<K : Any>(
         }
         .flatMapMany {
             it.toFlux()
-        }
-
-    override fun generateUrlToDownload(key: K): URL = s3KeyManager.findExistedS3Key(key)
-        ?.let { s3Key ->
-            s3Operations.requestToDownloadObject(s3Key, downloadDuration)
-                .also { request ->
-                    require(request.isBrowserExecutable) {
-                        "Pre-singer url to download object should be browser executable (header-less)"
-                    }
-                }
-                .url()
-        }
-        .orNotFound {
-            "Not found s3 key for $key"
         }
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
@@ -188,8 +175,4 @@ abstract class AbstractSimpleStorageProjectReactor<K : Any>(
     }
 
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
-
-    companion object {
-        private val downloadDuration = 15.minutes
-    }
 }

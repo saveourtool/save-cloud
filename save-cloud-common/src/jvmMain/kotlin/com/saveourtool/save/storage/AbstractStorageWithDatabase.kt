@@ -88,7 +88,7 @@ abstract class AbstractStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEnti
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
         private fun defaultStoragePreSignedUrl(s3Operations: S3Operations, prefix: String): StoragePreSignedUrl<Long> = object : AbstractSimpleStoragePreSignedUrl<Long>(
-            s3Operations, prefix
+            s3Operations
         ) {
             override fun buildS3KeySuffix(key: Long): String = key.toString()
         }
