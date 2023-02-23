@@ -20,6 +20,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -34,11 +35,14 @@ import kotlinx.serialization.json.Json
  * Service for interactions with kubernetes
  */
 @Service
+@Profile("kubernetes")
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
 ) {
-    private val kubernetesSettings = configProperties.kubernetes
+    private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
+        "Kubernetes settings should be passed in order to use Kubernetes"
+    }
 
     /**
      * @param demo demo entity
