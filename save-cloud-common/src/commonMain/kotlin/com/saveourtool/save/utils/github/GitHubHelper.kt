@@ -30,7 +30,14 @@ object GitHubHelper {
         }
     }
 
-    private suspend fun getMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
+    /**
+     * Queries metadata from GitHub in provided [repo] with provided [tagName]
+     *
+     * @param repo
+     * @param tagName
+     * @return metadata as [ReleaseMetadata]
+     */
+    suspend fun queryMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
     private suspend fun <R : Any> downloadAsset(
         asset: ReleaseAsset,
@@ -72,7 +79,7 @@ object GitHubHelper {
         tagName: String,
         assetName: String,
         consumer: suspend (Pair<ByteReadChannel, Long>) -> R
-    ): R? = getMetadata(repo, tagName)
+    ): R? = queryMetadata(repo, tagName)
         .assets
         .singleOrNull { asset -> assetName == asset.name }
         ?.let { asset ->
