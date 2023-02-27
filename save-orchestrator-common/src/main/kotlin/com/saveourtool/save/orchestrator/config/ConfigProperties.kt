@@ -72,6 +72,7 @@ data class ConfigProperties(
      * @property agentMemoryLimits configures `resources.requests.memory` for agent pods
      * @property ttlAfterFinished agent job time to live after it is marked as completed
      */
+    @Suppress("MagicNumber")
     data class KubernetesSettings(
         val apiServerUrl: String,
         val serviceAccount: String,
