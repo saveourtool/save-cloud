@@ -28,10 +28,10 @@ class ManagementController(
      */
     @PostMapping("/add")
     fun add(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
-        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
+        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .flatMap {
             blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
         }
