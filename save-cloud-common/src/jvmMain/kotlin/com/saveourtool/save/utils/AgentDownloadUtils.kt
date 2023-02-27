@@ -55,7 +55,7 @@ fun downloadAndRunAgentCommand(
     envOptions: Sequence<EnvOption> = defaultEnvOptions,
 ): String = with(fileKey) {
     "set ${getShellOptions(shellOptions)}" +
-            " && curl \"${getCurlOptions(curlOptions)}\" $downloadUrl --output $name" +
+            " && curl ${getCurlOptions(curlOptions)} '$downloadUrl' --output $name" +
             " && chmod +x $name" +
             " ${getEnvOptions(envOptions)}" +
             " && ./$name"
