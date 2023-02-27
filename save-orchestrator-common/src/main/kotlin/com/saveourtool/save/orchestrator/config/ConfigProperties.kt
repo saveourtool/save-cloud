@@ -6,6 +6,8 @@ package com.saveourtool.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Class for properties
@@ -69,6 +71,7 @@ data class ConfigProperties(
      * @property agentCpuLimits configures `resources.limits.cpu` for agent pods
      * @property agentMemoryRequests configures `resources.requests.memory` for agent pods
      * @property agentMemoryLimits configures `resources.requests.memory` for agent pods
+     * @property ttlAfterFinished agent job time to live after it is marked as completed
      */
     data class KubernetesSettings(
         val apiServerUrl: String,
@@ -79,6 +82,7 @@ data class ConfigProperties(
         val agentCpuLimits: String = "500m",
         val agentMemoryRequests: String = "300Mi",
         val agentMemoryLimits: String = "500Mi",
+        val ttlAfterFinished: Duration = 180.seconds,
     )
 
     /**
