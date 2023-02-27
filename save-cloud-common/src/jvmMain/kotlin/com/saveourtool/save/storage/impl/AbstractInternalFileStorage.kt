@@ -4,9 +4,12 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.*
 import com.saveourtool.save.storage.key.AbstractS3KeyManager
 import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.utils.downloadFromClasspath
+import com.saveourtool.save.utils.toByteBufferFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 import javax.annotation.PostConstruct
 
 /**
@@ -73,5 +76,30 @@ open class AbstractInternalFileStorage(
      */
     fun <T> usingPreSignedUrl(function: StoragePreSignedUrl<InternalFileKey>.() -> T): T = initializer.validateAndRun {
         function(storagePreSignedUrl)
+    }
+
+    companion object {
+        private fun StorageProjectReactor<InternalFileKey>.uploadFromClasspath(key: InternalFileKey): Mono<Unit> = doesExist(key)
+            .filterWhen { exists ->
+                if (exists && key.isLatest()) {
+                    delete(key)
+                } else {
+                    exists.not().toMono()
+                }
+            }
+            .flatMap {
+                downloadFromClasspath(key.name) {
+                    "Can't find ${key.name}"
+                }
+                    .flatMap { resource ->
+                        upload(
+                            key,
+                            resource.contentLength(),
+                            resource.toByteBufferFlux(),
+                        )
+                    }
+            }
+            .thenReturn(Unit)
+            .defaultIfEmpty(Unit)
     }
 }
