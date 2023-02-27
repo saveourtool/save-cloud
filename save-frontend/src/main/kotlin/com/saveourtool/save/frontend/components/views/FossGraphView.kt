@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
+import com.saveourtool.save.frontend.utils.buttonBuilder
 
 import csstype.AlignItems
 import csstype.ClassName
@@ -19,7 +20,6 @@ import react.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -27,16 +27,18 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.textarea
 import web.html.InputType
 
 /**
  * [VFC] for foss graph view
  */
-@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+@Suppress("MAGIC_NUMBER")
 val fossGraphView: VFC = VFC {
     val fossGraphView = fossGraphView()
     fossGraphView {
-
+        name = "CVE-2022-22978"
+        progress = 87
     }
 }
 
@@ -47,12 +49,18 @@ external interface FossGraphViewProps : Props {
     /**
      * Name of security vulnerabilities
      */
-    var name: String?
+    var name: String
+
+    /**
+     * Update to change the progress and percentage
+     */
+    var progress: Int
 }
 
 @Suppress(
     "MAGIC_NUMBER",
     "TOO_LONG_FUNCTION",
+    "LongMethod",
 )
 private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
     div {
@@ -88,8 +96,7 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
 
         h1 {
             className = ClassName("h3 mb-0 text-center text-gray-800")
-            // +(props.name)
-            +"CVE-2022-22978"
+            +props.name
         }
 
         div {
@@ -103,7 +110,7 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
                 }
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
-                    val progress = 87
+                    val progress = props.progress
                     val color = if (progress < 51) {
                         Color.GREEN.hexColor
                     } else {
@@ -129,9 +136,9 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
                     }
                     div {
                         className = ClassName("card-body")
-                        ReactHTML.textarea {
+                        textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
-                            value = "description info"  // description
+                            value = "description info"
                             disabled = true
                         }
                     }
@@ -144,21 +151,13 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
                     className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Affected open source projects"
                 }
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-primary")
-                    +"+"
-                }
+                buttonBuilder("+") { }
 
                 div {
                     className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Affected projects"
                 }
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-primary")
-                    +"+"
-                }
+                buttonBuilder("+") { }
             }
         }
     }
