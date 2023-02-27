@@ -32,7 +32,7 @@ abstract class AbstractReactiveStorage<K : Any>(
      */
     @PostConstruct
     fun init() {
-        initializer.initReactively {
+        initializer.init {
             doInit(storageProjectReactor)
         }
     }

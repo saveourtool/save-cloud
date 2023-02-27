@@ -5,11 +5,6 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
-import io.ktor.client.statement.*
-import io.ktor.client.utils.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -30,9 +25,6 @@ import java.nio.ByteBuffer
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
