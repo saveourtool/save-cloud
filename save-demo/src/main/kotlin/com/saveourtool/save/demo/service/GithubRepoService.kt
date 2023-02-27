@@ -13,11 +13,6 @@ class GithubRepoService(
     private val githubRepoRepository: GithubRepoRepository,
 ) {
     /**
-     * @return list of all [GithubRepo]s present in database
-     */
-    fun getRepos(): List<GithubRepo> = githubRepoRepository.findAll()
-
-    /**
      * @param githubOrganizationName name of GitHub user/organization
      * @param githubProjectName name of GitHub repository
      * @return [GithubRepo] entity
