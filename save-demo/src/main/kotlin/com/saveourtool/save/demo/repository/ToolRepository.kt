@@ -23,14 +23,4 @@ interface ToolRepository : BaseEntityRepository<Tool> {
      * @return [Tool] from [githubRepo] repository corresponding [snapshot].
      */
     fun findByGithubRepoAndSnapshot(githubRepo: GithubRepo, snapshot: Snapshot): Tool?
-
-    /**
-     * @param githubRepo
-     * @param versionTag version control system tag name
-     * @return list of [Tool]s from [githubRepo] repository that match [versionTag] version
-     */
-    fun findByGithubRepoAndSnapshotVersion(
-        githubRepo: GithubRepo,
-        versionTag: String,
-    ): List<Tool>
 }
