@@ -6,8 +6,7 @@ package com.saveourtool.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import java.time.Duration
 
 /**
  * Class for properties
@@ -82,7 +81,7 @@ data class ConfigProperties(
         val agentCpuLimits: String = "500m",
         val agentMemoryRequests: String = "300Mi",
         val agentMemoryLimits: String = "500Mi",
-        val ttlAfterFinished: Duration = 180.seconds,
+        val ttlAfterFinished: Duration = Duration.ofMinutes(3),
     )
 
     /**

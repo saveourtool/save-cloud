@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import kotlin.time.DurationUnit
 
 /**
  * A component that manages save-agents running in Kubernetes.
@@ -55,7 +54,7 @@ class KubernetesManager(
             }
             spec = JobSpec().apply {
                 parallelism = replicas
-                ttlSecondsAfterFinished = kubernetesSettings.ttlAfterFinished.toInt(DurationUnit.SECONDS)
+                ttlSecondsAfterFinished = kubernetesSettings.ttlAfterFinished.toSeconds().toInt()
                 // do not attempt to restart failed pods, because if we manually stop pods by deleting them,
                 // job controller would think that they need to be restarted
                 backoffLimit = 0
