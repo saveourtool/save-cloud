@@ -2,6 +2,7 @@ package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
@@ -24,7 +25,8 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     dependencyStorage: DependencyStorage,
-) : AbstractCliRunner(dependencyStorage) {
+    coroutineDispatchers: CustomCoroutineDispatchers,
+) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
     override val log: Logger = logger
     override val configName: String = DIKTAT_CONFIG_NAME
     override val testFileName: String = KOTLIN_TEST_NAME

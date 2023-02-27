@@ -7,14 +7,13 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.downloadFromClasspath
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 
-import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
@@ -38,105 +37,92 @@ class DependencyController(
      * @return [Flux] of [FileDto]s present in storage
      */
     @GetMapping("/{organizationName}/{projectName}/list-file")
-    fun listFiles(
+    suspend fun listFiles(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
-    ): Flux<FileDto> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ): Flow<FileDto> {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        return dependencyStorage.list(demo, version)
+            .asFlow()
+            .map { dependency ->
+                FileDto(
+                    ProjectCoordinates(dependency.demo.organizationName, dependency.demo.projectName),
+                    dependency.fileName,
+                    LocalDateTime.now().toKotlinLocalDateTime(),
+                )
+            }
     }
-        .flatMapMany {
-            dependencyStorage.list(it, version)
-        }
-        .map { dependency ->
-            FileDto(
-                ProjectCoordinates(dependency.demo.organizationName, dependency.demo.projectName),
-                dependency.fileName,
-                LocalDateTime.now().toKotlinLocalDateTime(),
-            )
-        }
 
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
      * @param version version of a file to be deleted
      * @param fileName name of a file to be deleted
-     * @return [Mono] of [Unit]
      */
     @DeleteMapping("/{organizationName}/{projectName}/delete-file")
-    fun deleteFile(
+    suspend fun deleteFile(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
         @RequestParam fileName: String,
-    ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ) {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        dependencyStorage.delete(demo, version, fileName)
     }
-        .flatMap { dependencyStorage.delete(it, version, fileName) }
 
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
      * @param version version to attach files to
      * @param fileDtos list of [FileDto] containing information required for file download
-     * @return [Mono] of [StringResponse] with response
+     * @return [StringResponse] with response
      */
     @PostMapping("/{organizationName}/{projectName}/upload")
-    fun uploadFiles(
+    suspend fun uploadFiles(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
         @RequestBody fileDtos: List<FileDto>,
-    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
-    }
-        .flatMapIterable { demo ->
-            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
+    ): StringResponse {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
         }
-        .filterWhen {
-            dependencyStorage.doesExist(it).map(Boolean::not)
-        }
-        .collectList()
-        .map { dependencies ->
-            downloadToolService.downloadToStorage(dependencies).let { size ->
-                StringResponse(
-                    if (size == 0) {
-                        "All files are already present in demo storage."
-                    } else {
-                        "Successfully saved $size files to demo storage."
-                    },
-                    HttpStatus.OK,
-                )
+        val dependencies = fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
+            .filterNot {
+                dependencyStorage.doesExist(it)
             }
+        return downloadToolService.downloadToStorage(dependencies).let { size ->
+            StringResponse(
+                if (size == 0) {
+                    "All files are already present in demo storage."
+                } else {
+                    "Successfully saved $size files to demo storage."
+                },
+                HttpStatus.OK,
+            )
         }
+    }
 
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
      * @param version version to attach [zip] to
-     * @return [Flux] of [ByteBuffer] - archive with files as content
+     * @return [Flow] of [ByteBuffer] - archive with files as content
      */
     @GetMapping("/{organizationName}/{projectName}/download-as-zip")
-    fun downloadFiles(
+    suspend fun downloadFiles(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam version: String,
-    ): Flux<ByteBuffer> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
-    }
-        .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
-
-    /**
-     * @return save-demo-agent.kexe as [Resource] wrapped into [Mono]
-     *
-     * todo: replace downloading form classpath with downloading from save-demo internal storage
-     */
-    @GetMapping("/download-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(): Mono<out Resource> = run {
-        val executable = "save-demo-agent.kexe"
-
-        downloadFromClasspath(executable) {
-            "Can't find $executable on classpath"
+    ): Flow<ByteBuffer> {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
         }
+        return dependencyStorage.archive(demo.organizationName, demo.projectName, version)
     }
 }

@@ -6,7 +6,10 @@ import com.saveourtool.save.demo.repository.DemoRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,6 +17,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
 import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.withContext
 
 /**
  * [Service] for [Demo] entity
@@ -22,6 +26,7 @@ import kotlinx.coroutines.reactor.mono
 class DemoService(
     private val demoRepository: DemoRepository,
     private val kubernetesService: KubernetesService?,
+    private val ioContext: CoroutineDispatcher = Dispatchers.IO,
 ) {
     /**
      * Get preferred [RunnerFactory.RunnerType] for demo runner.
@@ -95,13 +100,13 @@ class DemoService(
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
      * @param lazyMessage
-     * @return [Demo] or Mono filled with error (not found)
+     * @return [Demo] or error (not found)
      */
-    fun findBySaveourtoolProjectOrNotFound(
+    suspend fun findBySaveourtoolProjectOrNotFound(
         organizationName: String,
         projectName: String,
         lazyMessage: () -> String,
-    ): Mono<Demo> = blockingToMono {
+    ): Demo = withContext(ioContext) {
         findBySaveourtoolProject(organizationName, projectName)
-    }.switchIfEmptyToNotFound(lazyMessage)
+    }.orNotFound(lazyMessage)
 }

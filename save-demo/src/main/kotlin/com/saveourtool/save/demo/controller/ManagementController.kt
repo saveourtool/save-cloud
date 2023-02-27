@@ -4,6 +4,8 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.context.annotation.Profile
 
 import org.springframework.http.HttpStatus
@@ -27,14 +29,19 @@ class ManagementController(
      * @return [Mono] of [DemoDto] entity
      */
     @PostMapping("/add")
-    fun add(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
-        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
-        .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
-            "Demo creation request is invalid: fill project coordinates, run command and file name."
-        }
-        .flatMap {
-            blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
-        }
+    suspend fun add(@RequestBody demoDto: DemoDto): DemoDto {
+        downloadToolService.initializeGithubDownload(demoDto.githubProjectCoordinates, demoDto.vcsTagName)
+        return demoDto.takeIf { it.validate() }
+            .orConflict {
+                "Demo creation request is invalid: fill project coordinates, run command and file name."
+            }
+            .let { validatedDemoDto ->
+                withContext(Dispatchers.IO) {
+                    demoService.saveIfNotPresent(validatedDemoDto.toDemo())
+                }
+            }
+            .toDto()
+    }
 
     /**
      * @param organizationName
@@ -43,13 +50,13 @@ class ManagementController(
      */
     @PostMapping("/{organizationName}/{projectName}/start")
     @Profile("kubernetes")
-    fun start(
+    suspend fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+    ): StringResponse = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMap { demoService.start(it) }
+        .let { demoService.start(it) }
 
     /**
      * @param organizationName

@@ -4,6 +4,8 @@ import java.nio.ByteBuffer
 import java.time.Instant
 
 import kotlinx.coroutines.flow.Flow
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * Base interface for Storage using [coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
@@ -70,4 +72,25 @@ interface StorageCoroutines<K> {
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     suspend fun move(source: K, target: K): Boolean
+
+    /**
+     * @param key a key for provided content
+     * @param content
+     * @return overwritten key [K]
+     */
+    suspend fun overwrite(key: K, content: Flow<ByteBuffer>): K {
+        delete(key)
+        return upload(key, content)
+    }
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @param content
+     * @return overwritten key [K]
+     */
+    suspend fun overwrite(key: K, contentLength: Long, content: Flow<ByteBuffer>): K {
+        delete(key)
+        return upload(key, contentLength, content)
+    }
 }

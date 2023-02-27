@@ -1,6 +1,7 @@
 package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.runners.command.CommandBuilder
 import com.saveourtool.save.demo.runners.command.CommandContext
@@ -16,10 +17,11 @@ import kotlin.io.path.createTempDirectory
  */
 class DemoCliRunner(
     dependencyStorage: DependencyStorage,
+    coroutineDispatchers: CustomCoroutineDispatchers,
     private val commandBuilder: CommandBuilder,
     private val demo: Demo,
     private val version: String,
-) : AbstractCliRunner(dependencyStorage) {
+) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
     override val log: Logger = Companion.log
     override val configName: String? = demo.configName
     override val testFileName: String = demo.fileName
