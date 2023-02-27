@@ -214,28 +214,6 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
             .subscribeOn(Schedulers.boundedElastic())
 
 /**
- * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
- *
- * @return [Flow] of [ByteBuffer]
- */
-fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = toByteArrayFlow().map { ByteBuffer.wrap(it) }
-
-/**
- * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteArray]
- *
- * @return [Flow] of [ByteArray]
- */
-fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
-    while (!isClosedForRead) {
-        val packet = readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
-        while (!packet.isEmpty) {
-            val bytes = packet.readBytes()
-            emit(bytes)
-        }
-    }
-}
-
-/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -274,23 +252,6 @@ fun waitReactivelyUntil(
     .takeUntil { it }
     // check whether we have got `true` or Flux has completed with only `false`
     .any { it }
-
-/**
- * Get the resource named [resourceName] from the classpath.
- *
- * @param resourceName the name of the resource (file).
- * @param lazyResponseBody the body of HTTP response if HTTP 404 is returned.
- * @return either the Mono holding the resource, or [Mono.error] with an HTTP 404
- *   status and response.
- */
-fun getFromClasspath(
-    resourceName: String,
-    lazyResponseBody: (() -> String?) = { null },
-): Resource = ClassPathResource(resourceName).takeIf(Resource::exists)
-    .orNotFound {
-        logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
-        lazyResponseBody()
-    }
 
 /**
  * Downloads the resource named [resourceName] from the classpath.
