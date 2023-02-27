@@ -180,8 +180,8 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
-        private const val TTL_AFTER_COMPLETED = 1800
         private const val EXECUTION_ID_LABEL = "executionId"
+        private const val TTL_AFTER_COMPLETED = 1800
         private val containerIdEnv = setOf(AgentEnvName.CONTAINER_ID, AgentEnvName.CONTAINER_NAME)
             .map { it.name }
             .map { envName ->
