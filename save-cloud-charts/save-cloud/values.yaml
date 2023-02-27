@@ -124,7 +124,7 @@ prometheus:
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.7.3
+    tag: 2.7.4
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
@@ -167,7 +167,7 @@ loki:
   loki:
     image:
       repository: grafana/loki
-      tag: 2.7.3
+      tag: 2.7.4
     auth_enabled: false
     commonConfig:
       replication_factor: 1
