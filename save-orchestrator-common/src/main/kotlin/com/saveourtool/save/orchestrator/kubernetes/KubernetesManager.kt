@@ -54,6 +54,7 @@ class KubernetesManager(
             }
             spec = JobSpec().apply {
                 parallelism = replicas
+                ttlSecondsAfterFinished = TTL_AFTER_COMPLETED
                 // do not attempt to restart failed pods, because if we manually stop pods by deleting them,
                 // job controller would think that they need to be restarted
                 backoffLimit = 0
@@ -179,6 +180,7 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
+        private const val TTL_AFTER_COMPLETED = 1800
         private const val EXECUTION_ID_LABEL = "executionId"
         private val containerIdEnv = setOf(AgentEnvName.CONTAINER_ID, AgentEnvName.CONTAINER_NAME)
             .map { it.name }
