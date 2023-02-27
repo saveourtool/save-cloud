@@ -1,13 +1,19 @@
 package com.saveourtool.save.demo.service
 
+import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
-import com.saveourtool.save.demo.storage.DependencyStorage
+import com.saveourtool.save.demo.runners.RunnerFactory
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+
+import kotlinx.coroutines.reactor.mono
 
 /**
  * [Service] for [Demo] entity
@@ -15,8 +21,49 @@ import reactor.core.publisher.Mono
 @Service
 class DemoService(
     private val demoRepository: DemoRepository,
-    private val dependencyStorage: DependencyStorage,
+    private val kubernetesService: KubernetesService?,
 ) {
+    /**
+     * Get preferred [RunnerFactory.RunnerType] for demo runner.
+     *
+     * @return preferred [RunnerFactory.RunnerType] for demo runner.
+     */
+    fun getRunnerType(): Mono<RunnerFactory.RunnerType> = Mono.fromCallable {
+        kubernetesService?.let { RunnerFactory.RunnerType.POD } ?: RunnerFactory.RunnerType.CLI
+    }
+
+    /**
+     * Start kubernetes job if kubernetes profile is set, otherwise do nothing
+     *
+     * @param demo demo entity
+     * @return [Mono] of [StringResponse] filled with readable message
+     */
+    fun start(demo: Demo): Mono<StringResponse> = kubernetesService?.let {
+        kubernetesService.start(demo)
+    } ?: Mono.fromCallable {
+        StringResponse.ok("Demo successfully created")
+    }
+
+    /**
+     * Stop kubernetes job if kubernetes profile is set, do nothing otherwise
+     *
+     * @param demo demo entity
+     */
+    fun stop(demo: Demo) = kubernetesService?.let { kubernetesService.stop(demo) } ?: Unit
+
+    /**
+     * Get [DemoStatus] of [demo]
+     *
+     * If kubernetes profile is enabled, request is performed in order to get current status
+     * If kubernetes profile is not enabled, [DemoStatus.RUNNING] is returned
+     *
+     * @param demo demo entity
+     * @return current [DemoStatus] of [demo]
+     */
+    fun getStatus(demo: Demo): Mono<DemoStatus> = kubernetesService?.let {
+        mono { kubernetesService.getStatus(demo) }
+    } ?: DemoStatus.RUNNING.toMono()
+
     private fun save(demo: Demo) = demoRepository.save(demo)
 
     /**

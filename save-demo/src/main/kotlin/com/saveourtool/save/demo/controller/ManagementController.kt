@@ -4,6 +4,7 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
+import org.springframework.context.annotation.Profile
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -20,7 +21,6 @@ import reactor.kotlin.core.util.function.component2
 class ManagementController(
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
-    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param demoDto
@@ -42,15 +42,14 @@ class ManagementController(
      * @return [Mono] of [Unit]
      */
     @PostMapping("/{organizationName}/{projectName}/start")
+    @Profile("kubernetes")
     fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
     ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMap {
-            kubernetesService.start(it)
-        }
+        .flatMap { demoService.start(it) }
 
     /**
      * @param organizationName
@@ -64,7 +63,5 @@ class ManagementController(
     ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .map {
-            kubernetesService.stop(it)
-        }
+        .map { demoService.stop(it) }
 }
