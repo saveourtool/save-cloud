@@ -182,6 +182,7 @@ loki:
       storage:
         type: 'local'
   singleBinary:
+    replicas: 1
 
 neo4j:
   enabled: true
