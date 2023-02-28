@@ -28,10 +28,4 @@ class Beans {
                 .build())
             .build()
     }
-
-    /**
-     * @return [CustomCoroutineDispatchers]
-     */
-    @Bean
-    fun coroutineDispatchers(): CustomCoroutineDispatchers = CustomCoroutineDispatchers()
 }

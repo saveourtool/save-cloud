@@ -58,7 +58,7 @@ class ContainerServiceTest {
     private val mockserverImageFullName = "$mockserverImageName:$mockserverImageVersion"
     private val mockserverVolumeName = "mockserver-config"
     private val mockserverConfigPath = "/config"
-    private val mockUrl = "/some-path-do-download-save-agent"
+    private val mockUrl = "/internal/files/download-save-agent"
 
     @BeforeEach
     fun setUp(@TempDir tmpDir: Path) {
@@ -118,7 +118,7 @@ class ContainerServiceTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "HttpUrlsUsage")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should create a container with save agent and test resources and start it`() {
         val executionId = Random.nextLong().absoluteValue
         // build base image
@@ -131,7 +131,7 @@ class ContainerServiceTest {
         val configuration = containerService.prepareConfiguration(
             testExecution.toRunRequest(
                 saveAgentVersion = SAVE_AGENT_VERSION,
-                saveAgentUrl = URL("http://host.docker.internal:$mockserverPort$mockUrl"),
+                saveAgentUrl = "http://host.docker.internal:$mockserverPort$mockUrl",
             )
         )
         // start container and query backend

@@ -1,19 +1,15 @@
 package com.saveourtool.save.demo.storage
 
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.SuspendingStorageWithDatabase
+import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.utils.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.withContext
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -26,8 +22,7 @@ class DependencyStorage(
     s3Operations: S3Operations,
     repository: DependencyRepository,
     s3KeyManager: DependencyKeyManager,
-    private val coroutineDispatchers: CustomCoroutineDispatchers,
-) : SuspendingStorageWithDatabase<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(
+) : ReactiveStorageWithDatabase<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
     s3KeyManager,
     repository,
@@ -51,12 +46,10 @@ class DependencyStorage(
      * @param version version of a tool that the file is connected to
      * @return list of files present in storage for required version
      */
-    suspend fun list(
+    fun list(
         demo: Demo,
         version: String,
-    ): List<Dependency> = withContext(coroutineDispatchers.io) {
-        blockingList(demo, version)
-    }
+    ): Flux<Dependency> = blockingToFlux { blockingList(demo, version) }
 
     /**
      * @param demo
@@ -64,20 +57,24 @@ class DependencyStorage(
      * @param fileName name of a file to be deleted
      * @return true if file is successfully deleted, false otherwise
      */
-    suspend fun delete(
+    fun delete(
         demo: Demo,
         version: String,
         fileName: String,
-    ): Boolean? {
-        val dependency = findDependency(demo.organizationName, demo.projectName, version, fileName)
-        val deleted = dependency?.let { delete(it) }
-        if (deleted == true) {
+    ): Mono<Unit> = blockingToMono {
+        s3KeyManager.findDependency(
+            demo.organizationName,
+            demo.projectName,
+            version,
+            fileName,
+        )
+    }
+        .flatMap { delete(it) }
+        .map {
             log.debug {
                 "Deleted $fileName associated with version $version from $demo"
             }
         }
-        return deleted
-    }
 
     /**
      * @param organizationName
@@ -86,12 +83,14 @@ class DependencyStorage(
      * @param fileName
      * @return true if storage contains some dependency with provided values, otherwise -- false
      */
-    suspend fun doesExist(
+    fun doesExist(
         organizationName: String,
         projectName: String,
         version: String,
         fileName: String,
-    ): Boolean = findDependency(organizationName, projectName, version, fileName).isNotNull()
+    ): Mono<Boolean> = findDependency(organizationName, projectName, version, fileName)
+        .map { true }
+        .defaultIfEmpty(false)
 
     /**
      * @param organizationName
@@ -100,12 +99,12 @@ class DependencyStorage(
      * @param fileName
      * @return [Dependency] found by provided values
      */
-    suspend fun findDependency(
+    fun findDependency(
         organizationName: String,
         projectName: String,
         version: String,
         fileName: String,
-    ): Dependency? = withContext(coroutineDispatchers.io) {
+    ): Mono<Dependency> = blockingToMono {
         s3KeyManager.findDependency(
             organizationName,
             projectName,
@@ -114,18 +113,16 @@ class DependencyStorage(
         )
     }
 
-    private suspend fun downloadToTempDir(
+    private fun downloadToTempDir(
         tempDir: Path,
         organizationName: String,
         projectName: String,
         version: String
-    ) = withContext(coroutineDispatchers.io) {
+    ) = blockingToFlux {
         s3KeyManager.findAllDependenies(organizationName, projectName, version)
     }
-        .map {
-            download(it).collectToFile(tempDir / it.fileName)
-        }
-        .last()
+        .flatMap { download(it).collectToFile(tempDir / it.fileName) }
+        .collectList()
 
     /**
      * Get all the files of requested [version] of [organizationName]/[projectName] demo as zip archive
@@ -137,30 +134,31 @@ class DependencyStorage(
      * @return [Flux] with zip as content
      */
     @OptIn(ExperimentalPathApi::class)
-    suspend fun archive(
+    fun archive(
         organizationName: String,
         projectName: String,
         version: String,
         archiveName: String = "archive.zip",
-    ): Flow<ByteBuffer> = createTempDirectory().div("archive").createDirectory().let { tempDir ->
-        createArchive(tempDir, organizationName, projectName, version, archiveName)
-            .onCompletion {
-                tempDir.deleteRecursively()
-            }
+    ): Flux<ByteBuffer> = createTempDirectory().div("archive").createDirectory().let { tempDir ->
+        createArchive(tempDir, organizationName, projectName, version, archiveName).doOnComplete {
+            tempDir.deleteRecursively()
+        }
+            .doOnError { tempDir.deleteRecursively() }
     }
 
-    private suspend fun createArchive(
+    private fun createArchive(
         tmpDir: Path,
         organizationName: String,
         projectName: String,
         version: String,
         archiveName: String = "archive.zip",
-    ): Flow<ByteBuffer> =
+    ): Flux<ByteBuffer> =
         downloadToTempDir(tmpDir, organizationName, projectName, version)
-        .let {
+        .map {
             tmpDir.parent.div(archiveName)
                 .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-        }.toByteBufferFlux().asFlow()
+        }
+        .flatMapMany { it.toByteBufferFlux() }
 
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

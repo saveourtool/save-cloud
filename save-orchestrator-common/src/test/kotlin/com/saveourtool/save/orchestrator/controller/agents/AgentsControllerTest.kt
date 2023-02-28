@@ -30,7 +30,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
 import reactor.core.publisher.Mono
-import java.net.URL
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
@@ -77,7 +76,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, URL("https://someUrl")))
+            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -93,7 +92,7 @@ class AgentsControllerTest {
         val execution = Execution.stub(project)
 
         assertThrows<IllegalArgumentException> {
-            execution.toRunRequest(SAVE_AGENT_VERSION, URL("https://someUrl"))
+            execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl")
         }
     }
 

@@ -126,7 +126,7 @@ class Execution(
      */
     fun toRunRequest(
         saveAgentVersion: String,
-        saveAgentUrl: URL,
+        saveAgentUrl: String,
     ): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
@@ -135,7 +135,7 @@ class Execution(
             executionId = requiredId(),
             sdk = sdk.toSdk(),
             saveAgentVersion = saveAgentVersion,
-            saveAgentUrl = saveAgentUrl.toString(),
+            saveAgentUrl = saveAgentUrl,
         )
     }
 

@@ -2,7 +2,6 @@ package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.utils.LOG_FILE_NAME

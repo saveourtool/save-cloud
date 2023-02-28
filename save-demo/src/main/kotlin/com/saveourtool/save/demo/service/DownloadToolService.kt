@@ -1,7 +1,6 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.DependencyStorage
@@ -22,6 +21,13 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
@@ -41,9 +47,9 @@ class DownloadToolService(
     private val snapshotService: SnapshotService,
     private val configProperties: ConfigProperties,
     private val demoService: DemoService,
-    private val coroutineDispatchers: CustomCoroutineDispatchers,
 ) {
-    private val scope: CoroutineScope = CoroutineScope(coroutineDispatchers.io)
+    @Suppress("InjectDispatcher")
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpClient()
 
 
@@ -59,58 +65,57 @@ class DownloadToolService(
      * @param vcsTagName
      * @return [DisposableHandle]
      */
-    fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = scope.launch {
-        val asset = getExecutable(repo, vcsTagName)
-        download(repo.toDto(), vcsTagName, asset.name) { (content, size) ->
-            val dependency =
+    fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
+        .let { asset ->
+            scope.launch {
+                val content = downloadAsset(asset)
                 dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
-                    ?: run {
-                        withContext(coroutineDispatchers.io) {
-                            demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
-                                "Not found demo for ${repo.toPrettyString()}"
-                            }
-                                .let {
-                                    Dependency(it, vcsTagName, asset.name, -1L)
-                                }
+                    .switchIfEmpty {
+                        demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
+                            "Not found demo for ${repo.toPrettyString()}"
                         }
+                            .map {
+                                Dependency(it, vcsTagName, asset.name, -1L)
+                            }
                     }
-            dependencyStorage.overwrite(dependency, size, content.toByteBufferFlow())
-        }
-    }
-        .invokeOnCompletion { exception ->
-            exception?.let {
-                if (it is CancellationException) {
-                    logger.debug("Download of ${repo.toPrettyString()} was cancelled.")
-                } else {
-                    logger.error("Error while downloading ${repo.toPrettyString()}: ${it.message}")
-                }
-            } ?: logger.debug("${repo.toPrettyString()} was successfully downloaded.")
-        }
+                    .flatMap { dependencyStorage.overwrite(it, content) }
+                    .subscribe()
+            }
+                .invokeOnCompletion { exception ->
+                    exception?.let {
+                        if (it is CancellationException) {
+                            logger.debug("Download of ${repo.toPrettyString()} was cancelled.")
+                        } else {
+                            logger.error("Error while downloading ${repo.toPrettyString()}: ${it.message}")
+                        }
+                    } ?: logger.debug("${repo.toPrettyString()} was successfully downloaded.")
 
     @PostConstruct
-    private fun loadToStorage() {
-        scope.launch(coroutineDispatchers.io) {
-            val tools = toolService.getSupportedTools()
-                .map { it.toToolKey() }
-                .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
-                .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
-                .filterNot {
-                    dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.fileName)
-                }
+    private fun loadToStorage() = toolService.getSupportedTools()
+        .map { it.toToolKey() }
+        .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
+        .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
+        .toFlux()
+        .filterWhen {
+            dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.fileName).map(Boolean::not)
+        }
+        .collectList()
+        .doOnNext { tools ->
             if (tools.isEmpty()) {
                 logger.debug("All required tools are already present in storage.")
             } else {
                 val toolsToBeDownloaded = tools.joinToString(", ") { it.toPrettyString() }
                 logger.info("Tools to be downloaded: [$toolsToBeDownloaded]")
             }
-            tools.forEach { tool ->
-                downloadFromGithubAndUploadToStorage(
-                    GithubRepo(tool.organizationName, tool.projectName),
-                    tool.version,
-                )
-            }
         }
-    }
+        .flatMapIterable { it }
+        .flatMap { key ->
+            downloadFromGithubAndUploadToStorage(
+                GithubRepo(key.organizationName, key.projectName),
+                key.version,
+            ).toMono()
+        }
+        .subscribe()
 
     private suspend fun getExecutable(repo: GithubRepo, vcsTagName: String) = queryMetadata(repo.toDto(), vcsTagName).assets
         .filterNot(ReleaseAsset::isDigest)
@@ -123,18 +128,18 @@ class DownloadToolService(
      * @param vcsTagName
      * @return [Tool] that has been downloaded
      */
-    suspend fun initializeGithubDownload(githubProjectCoordinates: ProjectCoordinates?, vcsTagName: String): Tool? =
-        githubProjectCoordinates?.toGithubRepo()?.let {githubRepo ->
-            val tool = withContext(coroutineDispatchers.io) {
-                val repo = githubRepoService.saveIfNotPresent(githubRepo)
-                val snapshot = Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
-                    .let { snapshotService.saveIfNotPresent(it) }
-                toolService.saveIfNotPresent(repo, snapshot)
-            }
-            if (tool.id.isNotNull()) {
-                downloadFromGithubAndUploadToStorage(tool.githubRepo, tool.snapshot.version)
-            }
-            tool
+    fun initializeGithubDownload(githubProjectCoordinates: ProjectCoordinates?, vcsTagName: String): Mono<Tool> = blockingToMono {
+        githubProjectCoordinates?.toGithubRepo()?.let { githubRepoService.saveIfNotPresent(it) }
+    }
+        .zipWhen { repo ->
+            Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
+                .let { blockingToMono { snapshotService.saveIfNotPresent(it) } }
+        }
+        .map { (repo, snapshot) ->
+            toolService.saveIfNotPresent(repo, snapshot)
+        }
+        .asyncEffectIf({ this.id != null }) {
+            blockingToMono { downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version) }
         }
 
     /**
@@ -144,9 +149,7 @@ class DownloadToolService(
      * @param vcsTagName string that represents the version control system tag
      * @return executable name
      */
-    fun getExecutableName(repo: GithubRepo, vcsTagName: String) = runBlocking(coroutineDispatchers.io) {
-        getExecutable(repo, vcsTagName).name
-    }
+    fun getExecutableName(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName).name
 
     /**
      * Upload several [dependencies] to storage (will be overwritten if already present)
@@ -165,10 +168,14 @@ class DownloadToolService(
      * @return [Job]
      */
     fun downloadToStorage(dependency: Dependency) = scope.launch {
-        dependencyStorage.overwrite(dependency, downloadFileByFileId(dependency.fileId))
-        with(dependency) {
-            logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.")
-        }
+        downloadFileByFileId(dependency.fileId)
+            .let { byteBuffers ->
+                with(dependency) {
+                    dependencyStorage.overwrite(dependency, byteBuffers)
+                        .subscribe()
+                        .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
+                }
+            }
     }
 
     companion object {

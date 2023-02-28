@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.runners
 
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.runners.RunnerFactory.RunnerType
 import com.saveourtool.save.demo.runners.cli.DemoCliRunner
