@@ -1,4 +1,4 @@
-package com.saveourtool.save.demo.entity
+package com.saveourtool.save.utils.github
 
 import io.ktor.http.*
 import kotlinx.serialization.SerialName

@@ -7,6 +7,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.spring.entity.BaseEntity
+import java.net.URL
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -125,7 +126,7 @@ class Execution(
      */
     fun toRunRequest(
         saveAgentVersion: String,
-        saveAgentUrl: String,
+        saveAgentUrl: URL,
     ): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
@@ -134,7 +135,7 @@ class Execution(
             executionId = requiredId(),
             sdk = sdk.toSdk(),
             saveAgentVersion = saveAgentVersion,
-            saveAgentUrl = saveAgentUrl,
+            saveAgentUrl = saveAgentUrl.toString(),
         )
     }
 
