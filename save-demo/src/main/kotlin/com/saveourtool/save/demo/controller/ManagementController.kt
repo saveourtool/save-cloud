@@ -50,7 +50,7 @@ class ManagementController(
      */
     @PostMapping("/{organizationName}/{projectName}/start")
     @Profile("kubernetes")
-    suspend fun start(
+    fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
     ): StringResponse = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {

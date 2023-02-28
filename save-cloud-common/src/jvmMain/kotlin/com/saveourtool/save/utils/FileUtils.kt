@@ -5,12 +5,7 @@
 package com.saveourtool.save.utils
 
 import com.akuleshov7.ktoml.file.TomlFileReader
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.reduce
 import okio.FileSystem
-import okio.Path.Companion.toPath
 import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -87,18 +82,6 @@ fun Flux<ByteBuffer>.collectToFile(target: Path): Mono<Int> = map { byteBuffer -
         Channels.newChannel(os).use { it.write(byteBuffer) }
     }
 }.collect(Collectors.summingInt { it })
-
-/**
- * Creates (if it does not exist) and appends [Flow] of [ByteBuffer] to file by path [target]
- *
- * @param target path to file to where a content from receiver will be written
- * @return number of bytes received
- */
-suspend fun Flow<ByteBuffer>.collectToFile(target: Path): Int = map { byteBuffer ->
-    target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
-        Channels.newChannel(os).use { it.write(byteBuffer) }
-    }
-}.reduce { result, value -> result + value }
 
 /**
  * @param stop

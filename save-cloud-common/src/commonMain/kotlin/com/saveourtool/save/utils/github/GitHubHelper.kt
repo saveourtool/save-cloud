@@ -39,7 +39,14 @@ object GitHubHelper {
      */
     suspend fun queryMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
-    private suspend fun <R : Any> downloadAsset(
+    /**
+     * Downloads provided [asset] from GitHub
+     *
+     * @param asset
+     * @param consumer consumer of content of provided asset
+     * @return result of consumer [R] or null
+     */
+    suspend fun <R : Any> downloadAsset(
         asset: ReleaseAsset,
         consumer: suspend (ByteReadChannel) -> R,
     ): R? = httpClient.prepareGet {

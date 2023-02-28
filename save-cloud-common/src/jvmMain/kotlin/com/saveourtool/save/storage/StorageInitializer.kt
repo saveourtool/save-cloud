@@ -29,7 +29,7 @@ class StorageInitializer(
     private val isInitStarted = AtomicBoolean(false)
 
     @SuppressWarnings("NonBooleanPropertyPrefixedWithIs")
-    private val isInitFinishedCount = AtomicInteger(2)
+    private val isInitFinished = AtomicBoolean(false)
 
     /**
      * @param clazz [storageName] will be calculated from class name
@@ -37,81 +37,38 @@ class StorageInitializer(
     constructor(clazz: KClass<*>) : this(clazz.simpleName ?: clazz.java.simpleName)
 
     /**
-     * Init method using method that returns [Mono] and suspend function together
-     * Both function can be empty
-     *
-     * @param doInitReactively
-     * @param doInitSuspendedly
-     */
-    fun init(
-        doInitReactively: () -> Mono<Unit> = { Mono.empty() },
-        doInitSuspendedly: suspend () -> Unit? = { null },
-    ) {
-        require(!isInitStarted.compareAndExchange(false, true)) {
-            "Init method cannot be called more than 1 time, initialization is in progress"
-        }
-        doInitReactively()
-            .map { true }  // doInit worked
-            .defaultIfEmpty(false)  // doInit is emtpy
-            .doOnNext { wasDoInitCalled ->
-                require(isInitFinishedCount.decrementAndGet() >= 0) {
-                    "Init method cannot be called more than 1 time. Initialization $storageName already finished by another run"
-                }
-                if (wasDoInitCalled) {
-                    log.info {
-                        "Initialization $storageName is done (reactive part)"
-                    }
-                }
-            }
-            .subscribeOn(initScheduler)
-            .subscribe()
-
-        CoroutineScope(initCoroutineDispatcher).launch {
-            val initResult = doInitSuspendedly()
-            require(isInitFinishedCount.decrementAndGet() >= 0) {
-                "Init method cannot be called more than 1 time. Initialization $storageName already finished by another run"
-            }
-            if (initResult.isNotNull()) {
-                log.info {
-                    "Initialization $storageName is done (suspending part)"
-                }
-            }
-        }
-    }
-
-    /**
      * Init method using method that returns [Mono]
      * It can be empty
      *
      * @param doInit
      */
-    fun initReactively(doInit: () -> Mono<Unit>): Unit = init(doInitReactively = doInit)
-
-    /**
-     * Init method using suspend method that returns [Unit]
-     * It can be empty
-     *
-     * @param doInit
-     */
-    fun initSuspendedly(doInit: suspend () -> Unit?): Unit = init(doInitSuspendedly = doInit)
+    fun init(doInit: () -> Mono<Unit>) {
+        require(!isInitStarted.compareAndExchange(false, true)) {
+            "Init method cannot be called more than 1 time, initialization is in progress"
+        }
+        doInit()
+            .map { true }  // doInit worked
+            .defaultIfEmpty(false)  // doInit is emtpy
+            .doOnNext { wasDoInitCalled ->
+                require(!isInitFinished.compareAndExchange(false, true)) {
+                    "Init method cannot be called more than 1 time. Initialization $storageName already finished by another run"
+                }
+                if (wasDoInitCalled) {
+                    log.info {
+                        "Initialization $storageName is done"
+                    }
+                }
+            }
+            .subscribeOn(initScheduler)
+            .subscribe()
+    }
 
     /**
      * @param action
      * @return result of [action] if initialization is finished, otherwise -- exception
      */
     fun <R> validateAndRun(action: () -> R): R {
-        require(isInitFinishedCount.get() == 0) {
-            "Any method of $storageName should be called after init method is finished"
-        }
-        return action()
-    }
-
-    /**
-     * @param action
-     * @return result of [action] if initialization is finished, otherwise -- exception
-     */
-    suspend fun <R> validateAndRunSuspend(action: suspend () -> R): R {
-        require(isInitFinishedCount.get() == 0) {
+        require(isInitFinished.get()) {
             "Any method of $storageName should be called after init method is finished"
         }
         return action()
@@ -120,6 +77,5 @@ class StorageInitializer(
     companion object {
         private val log: Logger = getLogger<StorageInitializer>()
         private val initScheduler: Scheduler = Schedulers.boundedElastic()
-        private val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
     }
 }

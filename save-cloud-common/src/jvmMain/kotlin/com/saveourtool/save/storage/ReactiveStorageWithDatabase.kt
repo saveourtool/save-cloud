@@ -22,7 +22,7 @@ open class ReactiveStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntityRe
     /**
      * Init method to back up unexpected ids which are detected in storage,but missed in database
      */
-    override fun doInit(underlying: DefaultStorageProjectReactor<K>): Mono<Unit> = Mono.fromFuture {
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
         s3Operations.backupUnexpectedKeys(
             storageName = "${this::class.simpleName}",
             commonPrefix = s3KeyManager.commonPrefix,

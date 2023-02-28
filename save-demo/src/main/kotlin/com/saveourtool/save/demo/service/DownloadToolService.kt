@@ -8,6 +8,7 @@ import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper.download
+import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
 import com.saveourtool.save.utils.github.ReleaseAsset
 
@@ -21,7 +22,6 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
@@ -33,7 +33,9 @@ import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactor.asFlux
 import kotlinx.serialization.json.Json
 
 /**
@@ -68,18 +70,21 @@ class DownloadToolService(
     fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                val content = downloadAsset(asset)
-                dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
-                    .switchIfEmpty {
-                        demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
-                            "Not found demo for ${repo.toPrettyString()}"
-                        }
-                            .map {
-                                Dependency(it, vcsTagName, asset.name, -1L)
+                downloadAsset(
+                    asset,
+                ) { content ->
+                    dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
+                        .switchIfEmpty {
+                            demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
+                                "Not found demo for ${repo.toPrettyString()}"
                             }
-                    }
-                    .flatMap { dependencyStorage.overwrite(it, content) }
-                    .subscribe()
+                                .map {
+                                    Dependency(it, vcsTagName, asset.name, -1L)
+                                }
+                        }
+                        .flatMap { dependencyStorage.overwrite(it, asset.size, content.toByteBufferFlow().asFlux()) }
+                        .subscribe()
+                }
             }
                 .invokeOnCompletion { exception ->
                     exception?.let {
@@ -89,6 +94,8 @@ class DownloadToolService(
                             logger.error("Error while downloading ${repo.toPrettyString()}: ${it.message}")
                         }
                     } ?: logger.debug("${repo.toPrettyString()} was successfully downloaded.")
+                }
+        }
 
     @PostConstruct
     private fun loadToStorage() = toolService.getSupportedTools()
@@ -117,9 +124,19 @@ class DownloadToolService(
         }
         .subscribe()
 
-    private suspend fun getExecutable(repo: GithubRepo, vcsTagName: String) = queryMetadata(repo.toDto(), vcsTagName).assets
-        .filterNot(ReleaseAsset::isDigest)
-        .first()
+    private fun getExecutable(repo: GithubRepo, vcsTagName: String): ReleaseAsset {
+        val channel: Channel<ReleaseAsset> = Channel()
+        scope.launch {
+            queryMetadata(repo.toDto(), vcsTagName).assets
+                .filterNot(ReleaseAsset::isDigest)
+                .first()
+                .let {
+                    channel.send(it)
+                    channel.close()
+                }
+        }
+        return runBlocking { channel.receive() }
+    }
 
     /**
      * Perform GitHub tool download if [githubProjectCoordinates] is not null
@@ -171,7 +188,7 @@ class DownloadToolService(
         downloadFileByFileId(dependency.fileId)
             .let { byteBuffers ->
                 with(dependency) {
-                    dependencyStorage.overwrite(dependency, byteBuffers)
+                    dependencyStorage.overwrite(dependency, byteBuffers.asFlux())
                         .subscribe()
                         .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
                 }
