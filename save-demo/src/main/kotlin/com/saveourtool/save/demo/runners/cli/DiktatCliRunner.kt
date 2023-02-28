@@ -24,8 +24,7 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     dependencyStorage: DependencyStorage,
-    coroutineDispatchers: CustomCoroutineDispatchers,
-) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
+) : AbstractCliRunner(dependencyStorage) {
     override val log: Logger = logger
     override val configName: String = DIKTAT_CONFIG_NAME
     override val testFileName: String = KOTLIN_TEST_NAME
