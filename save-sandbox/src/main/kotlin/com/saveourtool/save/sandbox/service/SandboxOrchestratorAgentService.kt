@@ -15,8 +15,10 @@ import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.repository.SandboxLnkExecutionAgentRepository
+import com.saveourtool.save.sandbox.storage.SandboxInternalFileStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 
 import generated.SAVE_CLOUD_VERSION
@@ -34,12 +36,14 @@ import java.util.stream.Collectors
  * Sandbox implementation for agent service
  */
 @Component("SandboxAgentRepositoryForOrchestrator")
+@Suppress("LongParameterList")
 class SandboxOrchestratorAgentService(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxLnkExecutionAgentRepository: SandboxLnkExecutionAgentRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
+    private val internalFileStorage: SandboxInternalFileStorage,
     configProperties: ConfigProperties,
 ) : OrchestratorAgentService {
     private val sandboxUrlForAgent = "${configProperties.agentSettings.sandboxUrl}/sandbox/internal"
@@ -57,7 +61,9 @@ class SandboxOrchestratorAgentService(
         }
         .map { (execution, fileToUrls) ->
             AgentInitConfig(
-                saveCliUrl = "$sandboxUrlForAgent/download-save-cli?version=$SAVE_CORE_VERSION",
+                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
+                    .orNotFound { "Not found save-cli with version $SAVE_CORE_VERSION" }
+                    .toString(),
                 testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
                 // sandbox doesn't support save-cli overrides for now
@@ -154,7 +160,10 @@ class SandboxOrchestratorAgentService(
      */
     fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
         saveAgentVersion = SAVE_CLOUD_VERSION,
-        saveAgentUrl = "$sandboxUrlForAgent/download-save-agent",
+        saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
+            .orNotFound {
+                "Not found save-agent with version $SAVE_CORE_VERSION"
+            },
     )
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository
