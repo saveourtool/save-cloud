@@ -1,13 +1,19 @@
 package com.saveourtool.save.utils.github
 
 /**
- * @property organizationName
- * @property projectName
+ * Interface which provides info about GitHub repo
  */
-class GitHubRepo(
-    var organizationName: String,
-    var projectName: String,
-) {
+interface GitHubRepoInfo {
+    /**
+     * organizationName of this GitHub repo
+     */
+    val organizationName: String
+
+    /**
+     * projectName of this GitHub repo
+     */
+    val projectName: String
+
     /**
      * @param tagName
      * @return URL to request metadata for provided [tagName]

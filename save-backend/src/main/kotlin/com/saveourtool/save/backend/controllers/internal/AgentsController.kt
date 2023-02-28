@@ -12,8 +12,8 @@ import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
-import generated.SAVE_CORE_VERSION
 
+import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -61,6 +61,7 @@ class AgentsController(
         }
         .map { execution ->
             val backendUrl = configProperties.agentSettings.backendUrl
+
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())

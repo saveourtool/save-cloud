@@ -1,7 +1,6 @@
 package com.saveourtool.save.s3
 
 import org.springframework.http.MediaType
-import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -45,7 +44,7 @@ class DefaultS3Operations(
             NamedDefaultThreadFactory(executorName),
         )
     }
-    override val scheduler: Scheduler = Schedulers.fromExecutorService(executorService, executorName)
+    override val scheduler = Schedulers.fromExecutorService(executorService, executorName)
     override val coroutineDispatcher: CoroutineDispatcher = scheduler.asCoroutineDispatcher()
     private val s3Client: S3AsyncClient = with(properties) {
         S3AsyncClient.builder()

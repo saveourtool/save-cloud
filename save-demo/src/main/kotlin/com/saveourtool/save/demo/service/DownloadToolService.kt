@@ -125,7 +125,7 @@ class DownloadToolService(
     private fun getExecutable(repo: GithubRepo, vcsTagName: String): ReleaseAsset {
         val channel: Channel<ReleaseAsset> = Channel()
         scope.launch {
-            queryMetadata(repo.toDto(), vcsTagName).assets
+            queryMetadata(repo, vcsTagName).assets
                 .filterNot(ReleaseAsset::isDigest)
                 .first()
                 .let {

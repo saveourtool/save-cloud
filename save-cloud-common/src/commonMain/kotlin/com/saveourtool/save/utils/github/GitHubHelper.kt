@@ -37,7 +37,7 @@ object GitHubHelper {
      * @param tagName
      * @return metadata as [ReleaseMetadata]
      */
-    suspend fun queryMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
+    suspend fun queryMetadata(repo: GitHubRepoInfo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
     /**
      * Downloads provided [asset] from GitHub
@@ -67,7 +67,7 @@ object GitHubHelper {
      * @param repo
      * @return list of tags
      */
-    suspend fun availableTags(repo: GitHubRepo): List<String> = httpClient.get(repo.getTagsUrl())
+    suspend fun availableTags(repo: GitHubRepoInfo): List<String> = httpClient.get(repo.getTagsUrl())
         .body<List<TagMetadata>>()
         .map { it.name }
 
@@ -82,7 +82,7 @@ object GitHubHelper {
      * @return result of consumer [R] or null
      */
     suspend fun <R : Any> download(
-        repo: GitHubRepo,
+        repo: GitHubRepoInfo,
         tagName: String,
         assetName: String,
         consumer: suspend (Pair<ByteReadChannel, Long>) -> R

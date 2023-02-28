@@ -2,7 +2,7 @@ package com.saveourtool.save.demo.entity
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.utils.github.GitHubRepo
+import com.saveourtool.save.utils.github.GitHubRepoInfo
 import javax.persistence.Entity
 import javax.persistence.Table
 
@@ -13,18 +13,13 @@ import javax.persistence.Table
 @Entity
 @Table(name = "git_repo")
 class GithubRepo(
-    var organizationName: String,
-    var projectName: String,
-) : BaseEntity() {
+    override var organizationName: String,
+    override var projectName: String,
+) : BaseEntity(), GitHubRepoInfo {
     /**
      * @return pretty string that defines [GithubRepo]
      */
     fun toPrettyString() = "$organizationName/$projectName"
-
-    /**
-     * @return dto as [GitHubRepo]
-     */
-    fun toDto(): GitHubRepo = GitHubRepo(organizationName, projectName)
 }
 
 /**
