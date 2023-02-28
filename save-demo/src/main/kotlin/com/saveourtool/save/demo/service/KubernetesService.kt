@@ -82,9 +82,8 @@ class KubernetesService(
      * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
-        val pod = getPodByDemo(demo)
         val status = retrySilently(RETRY_TIMES_QUICK) {
-            demoAgentRequestWrapper(listOf("alive"), pod) { url ->
+            demoAgentRequestWrapper("/alive", demo) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
             }
@@ -98,14 +97,13 @@ class KubernetesService(
     }
 
     private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
-        val pod = getPodByDemo(demo)
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
         val configuration = DemoAgentConfig(
             configProperties.agentConfig.demoUrl,
             demo.toDemoConfiguration(version),
             demo.toRunConfiguration(),
         )
-        return demoAgentRequestWrapper(listOf("setup"), pod) { url ->
+        return demoAgentRequestWrapper("/setup", demo) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }
     }
@@ -121,9 +119,8 @@ class KubernetesService(
         demo: Demo,
         demoRunRequest: DemoRunRequest,
     ): HttpResponse? {
-        val pod = getPodByDemo(demo)
         val response = try {
-            demoAgentRequestWrapper(listOf("run"), pod) { url ->
+            demoAgentRequestWrapper("/run", demo) { url ->
                 logger.info("Sending POST request with url $url")
                 httpClient.post {
                     url(url)
@@ -178,6 +175,12 @@ class KubernetesService(
     private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES) {
         kc.getJobPods(demo).firstOrNull()
     } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
+
+    private suspend fun <R> demoAgentRequestWrapper(
+        urlPath: String,
+        demo: Demo,
+        request: suspend (Url) -> R,
+    ): R = demoAgentRequestWrapper(urlPath, getPodByDemo(demo), kubernetesSettings, request)
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)

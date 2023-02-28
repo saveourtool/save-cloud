@@ -44,7 +44,7 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
             backoffLimit = 0
             template = PodTemplateSpec().apply {
                 spec = PodSpec().apply {
-                    subdomain = DEMO_SUBDOMAIN_NAME
+                    subdomain = kubernetesSettings.agentSubdomainName
                     if (kubernetesSettings.useGvisor) {
                         nodeSelector = mapOf(
                             "gvisor" to "enabled"
@@ -111,10 +111,10 @@ fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
     .list()
     .items
 
-private fun ContainerPort.default() = apply {
+private fun ContainerPort.default(port: Int) = apply {
     protocol = "TCP"
-    containerPort = SAVE_DEMO_AGENT_DEFAULT_PORT
-    hostPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+    containerPort = port
+    hostPort = port
     name = "agent-server"
 }
 
@@ -142,7 +142,7 @@ private fun demoAgentContainerSpec(
 
     command = listOf("sh", "-c", startupCommand)
 
-    ports = listOf(ContainerPort().default())
+    ports = listOf(ContainerPort().default(kubernetesSettings.agentPort))
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {
