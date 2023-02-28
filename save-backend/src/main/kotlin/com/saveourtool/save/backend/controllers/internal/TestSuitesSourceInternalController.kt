@@ -35,7 +35,7 @@ class TestSuitesSourceInternalController(
     fun uploadSnapshot(
         @RequestPart("snapshot") snapshotDto: TestsSourceSnapshotDto,
         @RequestPart("content") contentAsMonoPart: Mono<Part>,
-        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
+        @RequestHeader(Constants.CONTENT_LENGTH_CUSTOM) contentLength: Long,
     ): Mono<TestsSourceSnapshotDto> = contentAsMonoPart.flatMap { part ->
         val content = part.content().map { it.asByteBuffer() }
         snapshotStorage.upload(snapshotDto, content)

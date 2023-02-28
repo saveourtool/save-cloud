@@ -6,7 +6,7 @@ package com.saveourtool.save.test
 
 import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.toPluginType
-import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**

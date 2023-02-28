@@ -58,8 +58,11 @@ kotlin {
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlinx.serialization.ExperimentalSerializationApi")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         sourceSets["main"].dependencies {
             compileOnly(devNpm("sass", "^1.43.0"))

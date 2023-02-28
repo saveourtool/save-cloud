@@ -13,6 +13,7 @@ import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.RoleJs
 
 import csstype.ClassName
 import io.ktor.http.*
@@ -364,11 +365,11 @@ private fun ChildrenBuilder.renderButtons(
             }
 
             DemoStatus.STARTING -> {
-                buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
+                buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(RoleJs.viewer)) {
                     getDemoStatus()
                 }
 
-                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(RoleJs.admin)) {
                     // stop request here
                 }
             }

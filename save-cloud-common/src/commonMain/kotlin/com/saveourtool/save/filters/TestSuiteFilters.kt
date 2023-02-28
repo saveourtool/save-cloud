@@ -1,6 +1,6 @@
 package com.saveourtool.save.filters
 
-import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**

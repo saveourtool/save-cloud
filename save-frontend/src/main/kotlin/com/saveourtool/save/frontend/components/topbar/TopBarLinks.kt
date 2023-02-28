@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
+import com.saveourtool.save.utils.Constants.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName

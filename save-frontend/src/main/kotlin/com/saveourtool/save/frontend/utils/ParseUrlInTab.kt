@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
+import com.saveourtool.save.utils.Constants.URL_PATH_DELIMITER
 
 import react.State
 

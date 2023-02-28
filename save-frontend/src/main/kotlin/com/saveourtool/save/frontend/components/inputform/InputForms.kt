@@ -6,10 +6,10 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
-import com.saveourtool.save.validation.DATE_RANGE_ERROR_MESSAGE
-import com.saveourtool.save.validation.EMAIL_ERROR_MESSAGE
-import com.saveourtool.save.validation.NAME_ERROR_MESSAGE
-import com.saveourtool.save.validation.URL_ERROR_MESSAGE
+import com.saveourtool.save.validation.ValidationErrorMessages.DATE_RANGE_ERROR_MESSAGE
+import com.saveourtool.save.validation.ValidationErrorMessages.EMAIL_ERROR_MESSAGE
+import com.saveourtool.save.validation.ValidationErrorMessages.NAME_ERROR_MESSAGE
+import com.saveourtool.save.validation.ValidationErrorMessages.URL_ERROR_MESSAGE
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"

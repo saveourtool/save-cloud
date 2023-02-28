@@ -17,7 +17,7 @@ import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.Constants.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
 import org.jetbrains.annotations.Blocking

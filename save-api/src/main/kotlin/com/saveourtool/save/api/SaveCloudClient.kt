@@ -18,7 +18,7 @@ import com.saveourtool.save.execution.ExecutionStatus.PENDING
 import com.saveourtool.save.execution.ExecutionStatus.RUNNING
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
 import com.saveourtool.save.utils.getLogger
 
 import arrow.core.Either

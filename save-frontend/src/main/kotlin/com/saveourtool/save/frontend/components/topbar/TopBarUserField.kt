@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.RoleJs
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -89,8 +90,8 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                             +(props.userInfo?.name.orEmpty())
                         }
-                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                        if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                        val globalRole = props.userInfo?.globalRole ?: RoleJs.viewer
+                        if (globalRole.isHigherOrEqualThan(RoleJs.admin)) {
                             small {
                                 className = ClassName("text-gray-400 text-justify")
                                 +globalRole.formattedName

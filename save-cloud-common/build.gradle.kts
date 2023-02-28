@@ -36,7 +36,10 @@ kotlin {
 
     sourceSets {
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         val commonMain by getting {
             dependencies {
