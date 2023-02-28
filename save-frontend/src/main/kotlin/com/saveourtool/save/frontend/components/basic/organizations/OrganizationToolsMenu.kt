@@ -124,7 +124,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 column(id = "description", header = "Description") {
                     Fragment.create {
                         td {
-                            +(it.value.description ?: "Description not provided")
+                            +(it.value.description.ifEmpty { "Description not provided" })
                         }
                     }
                 }

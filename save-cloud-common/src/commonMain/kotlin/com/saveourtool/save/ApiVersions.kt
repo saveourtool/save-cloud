@@ -6,5 +6,5 @@
 
 package com.saveourtool.save
 
-const val v1 = "v1"
-const val latestVersion = v1
+const val v1: String = "v1"
+const val latestVersion: String = v1

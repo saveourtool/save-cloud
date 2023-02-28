@@ -1,10 +1,14 @@
 package com.saveourtool.save.frontend
 
 import com.saveourtool.save.domain.Role
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 
 /**
  * Interface for tab bar in many pages
  */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 interface TabMenuBar<T : Enum<T>> {
     /**
      * Default value in every Enum classes
@@ -14,7 +18,7 @@ interface TabMenuBar<T : Enum<T>> {
     /**
      * Regular expression to determine tab based on URL
      */
-    val regexForUrlClassification: Regex
+    val regexForUrlClassification: String
 
     /**
      * name of the head section in url address for non-default tab
@@ -39,10 +43,10 @@ interface TabMenuBar<T : Enum<T>> {
     fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem.uppercase()) == it }
 
     /**
-     * @param role
+     * @param roleName
      * @param elem
      * @param isOrganizationCanCreateContest
      * @return Returns true if the check for this tab and role is not passed, else return false
      */
-    fun isAvailableWithThisRole(role: Role, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean = true
+    fun isAvailableWithThisRole(roleName: String, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean = true
 }

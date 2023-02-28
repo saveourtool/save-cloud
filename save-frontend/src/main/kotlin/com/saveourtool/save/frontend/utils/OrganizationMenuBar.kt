@@ -25,10 +25,12 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "organization"
         override val defaultTab: OrganizationMenuBar = INFO
-        override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = "/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
-        override fun isAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =
-                !(((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) || ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || isOrganizationCanCreateContest == false)))
+        override fun isAvailableWithThisRole(roleName: String, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean {
+            val role = Role.valueOf(roleName)
+            return !(((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) || ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || isOrganizationCanCreateContest == false)))
+        }
     }
 }

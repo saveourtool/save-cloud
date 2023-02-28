@@ -42,7 +42,7 @@ enum class UserRatingTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserRatingTab = UserRatingTab.ORGS
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)"
         override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
         override fun values(): Array<UserRatingTab> = UserRatingTab.values()
     }

@@ -189,11 +189,11 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
                                             formName = "Organization"
-                                            getData = {
-                                                get(
+                                            getData = { context ->
+                                                context.get(
                                                     url = "$apiUrl/organizations/get/list",
                                                     headers = jsonHeaders,
-                                                    loadingHandler = ::loadingHandler,
+                                                    loadingHandler = context::loadingHandler,
                                                 )
                                                     .unsafeMap {
                                                         it.decodeFromJsonString<List<OrganizationDto>>()

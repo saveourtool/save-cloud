@@ -45,13 +45,13 @@ class PathsForTabs(pathDefaultTab: String, extendedViewPath: String) {
  */
 fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
     val href = window.location.href.substringBefore("?")
-    val tab = if (href.contains(menu.regexForUrlClassification)) {
+    val tab = if (href.contains(Regex(menu.regexForUrlClassification))) {
         href.substringAfterLast(URL_PATH_DELIMITER).let { menu.valueOfOrNull(it) ?: menu.defaultTab }
     } else {
         menu.defaultTab
     }
     if (state.selectedMenu != tab) {
-        if (menu.isAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
+        if (menu.isAvailableWithThisRole(role.name, tab, isOrganizationCanCreateContest)) {
             setState { selectedMenu = tab }
         } else {
             window.alert("Your role is not suitable for opening this page")

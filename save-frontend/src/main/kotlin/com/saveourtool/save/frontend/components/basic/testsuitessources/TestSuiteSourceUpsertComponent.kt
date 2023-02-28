@@ -184,11 +184,11 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             validInput = saveStatus != EntitySaveStatus.CONFLICT
             classes = "mb-2"
             formName = "Git Credentials"
-            getData = {
-                get(
+            getData = { context ->
+                context.get(
                     "$apiUrl/organizations/${props.organizationName}/list-git",
                     headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = context::loadingHandler,
                 )
                     .unsafeMap {
                         it.decodeFromJsonString()
