@@ -9,6 +9,16 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            name = "saveourtool/okio-extras"
+            url = uri("https://maven.pkg.github.com/saveourtool/okio-extras")
+            credentials {
+                username = providers.gradleProperty("gprUser").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gprKey").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
 

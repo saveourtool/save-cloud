@@ -8,6 +8,9 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
+import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
+import com.saveourtool.save.utils.github.ReleaseAsset
 
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -27,7 +30,9 @@ import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactor.asFlux
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -44,33 +49,8 @@ class DownloadToolService(
     private val demoService: DemoService,
     private val coroutineDispatchers: CustomCoroutineDispatchers,
 ) {
-    private val jsonSerializer = Json { ignoreUnknownKeys = true }
-
     private val scope: CoroutineScope = CoroutineScope(coroutineDispatchers.io)
     private val httpClient = httpClient()
-
-    private fun getGithubMetadataUrl(repo: GithubRepo, vcsTagName: String) = if (vcsTagName == LATEST_VERSION) {
-        vcsTagName
-    } else {
-        "tags/$vcsTagName"
-    }
-        .let { release ->
-            "$GITHUB_API_URL/${repo.organizationName}/${repo.projectName}/releases/$release"
-        }
-
-    private suspend fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata =
-            httpClient.get(getGithubMetadataUrl(repo, vcsTagName))
-                .bodyAsText()
-                .let {
-                    jsonSerializer.decodeFromString(it)
-                }
-
-    private suspend fun downloadAsset(asset: ReleaseAsset): Flow<ByteBuffer> = httpClient.get {
-        url(asset.downloadUrl)
-        accept(asset.contentType())
-    }
-        .bodyAsChannel()
-        .toByteBufferFlow()
 
     private suspend fun downloadFileByFileId(fileId: Long): Flow<ByteBuffer> = httpClient.post {
         url("${configProperties.backendUrl}/files/download?fileId=$fileId")
@@ -198,8 +178,6 @@ class DownloadToolService(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DownloadToolService>()
-        private const val GITHUB_API_URL = "https://api.github.com/repos"
-        private const val LATEST_VERSION = "latest"
         private fun httpClient(): HttpClient = HttpClient {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }

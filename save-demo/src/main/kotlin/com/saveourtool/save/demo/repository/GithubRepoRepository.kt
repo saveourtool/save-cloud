@@ -10,12 +10,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface GithubRepoRepository : BaseEntityRepository<GithubRepo> {
     /**
-     * @param organizationName
-     * @return list of [GithubRepo] by [organizationName]
-     */
-    fun findByOrganizationName(organizationName: String): List<GithubRepo>
-
-    /**
      * @param projectName
      * @param organizationName
      * @return [GithubRepo] if an entity with such [projectName] and [organizationName] was found in database, null otherwise

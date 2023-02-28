@@ -30,9 +30,23 @@ object GitHubHelper {
         }
     }
 
-    private suspend fun getMetadata(repo: GitHubRepo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
+    /**
+     * Queries metadata from GitHub in provided [repo] with provided [tagName]
+     *
+     * @param repo
+     * @param tagName
+     * @return metadata as [ReleaseMetadata]
+     */
+    suspend fun queryMetadata(repo: GitHubRepoInfo, tagName: String): ReleaseMetadata = httpClient.get(repo.getMetadataUrl(tagName)).body()
 
-    private suspend fun <R : Any> downloadAsset(
+    /**
+     * Downloads provided [asset] from GitHub
+     *
+     * @param asset
+     * @param consumer consumer of content of provided asset
+     * @return result of consumer [R] or null
+     */
+    suspend fun <R : Any> downloadAsset(
         asset: ReleaseAsset,
         consumer: suspend (ByteReadChannel) -> R,
     ): R? = httpClient.prepareGet {
@@ -53,7 +67,7 @@ object GitHubHelper {
      * @param repo
      * @return list of tags
      */
-    suspend fun availableTags(repo: GitHubRepo): List<String> = httpClient.get(repo.getTagsUrl())
+    suspend fun availableTags(repo: GitHubRepoInfo): List<String> = httpClient.get(repo.getTagsUrl())
         .body<List<TagMetadata>>()
         .map { it.name }
 
@@ -68,11 +82,11 @@ object GitHubHelper {
      * @return result of consumer [R] or null
      */
     suspend fun <R : Any> download(
-        repo: GitHubRepo,
+        repo: GitHubRepoInfo,
         tagName: String,
         assetName: String,
         consumer: suspend (Pair<ByteReadChannel, Long>) -> R
-    ): R? = getMetadata(repo, tagName)
+    ): R? = queryMetadata(repo, tagName)
         .assets
         .singleOrNull { asset -> assetName == asset.name }
         ?.let { asset ->
