@@ -217,3 +217,5 @@ demo:
   containerPort: 5421
   managementPort: 5422
   clusterIP: null
+  agentSubdomainName: demo-agent-service
+  agentPort: 23456
