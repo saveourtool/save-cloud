@@ -115,13 +115,13 @@ class SandboxInternalController(
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<out Resource> =
-        run {
-            val executable = "save-$version-linuxX64.kexe"
+            run {
+                val executable = "save-$version-linuxX64.kexe"
 
-            downloadFromClasspath(executable) {
-                "Can't find $executable with the requested version $version"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
+                }
             }
-        }
 
     /**
      * @return content of save-agent
@@ -131,13 +131,13 @@ class SandboxInternalController(
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
     )
     fun downloadSaveAgent(): Mono<out Resource> =
-        run {
-            val executable = "save-agent.kexe"
+            run {
+                val executable = "save-agent.kexe"
 
-            downloadFromClasspath(executable) {
-                "Can't find $executable"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
             }
-        }
 
     /**
      * @param testExecutionResults

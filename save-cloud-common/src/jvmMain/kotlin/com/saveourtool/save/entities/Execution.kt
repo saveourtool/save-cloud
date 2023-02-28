@@ -7,7 +7,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.spring.entity.BaseEntity
-import java.net.URL
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity

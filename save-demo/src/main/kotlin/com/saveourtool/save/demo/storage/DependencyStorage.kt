@@ -153,12 +153,12 @@ class DependencyStorage(
         version: String,
         archiveName: String = "archive.zip",
     ): Flux<ByteBuffer> =
-        downloadToTempDir(tmpDir, organizationName, projectName, version)
-        .map {
-            tmpDir.parent.div(archiveName)
-                .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-        }
-        .flatMapMany { it.toByteBufferFlux() }
+            downloadToTempDir(tmpDir, organizationName, projectName, version)
+                .map {
+                    tmpDir.parent.div(archiveName)
+                        .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
+                }
+                .flatMapMany { it.toByteBufferFlux() }
 
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

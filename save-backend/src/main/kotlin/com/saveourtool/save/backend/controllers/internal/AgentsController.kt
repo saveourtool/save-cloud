@@ -46,7 +46,6 @@ class AgentsController(
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
     private val fileStorage: FileStorage,
-    private val internalFileStorage: BackendInternalFileStorage,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
 ) {
     /**
@@ -61,12 +60,9 @@ class AgentsController(
             agentService.getExecution(it)
         }
         .map { execution ->
+            val backendUrl = configProperties.agentSettings.backendUrl
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
-                    .orNotFound {
-                        "Not found save-cli with version $SAVE_CORE_VERSION"
-                    }
-                    .toString(),
+                saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
                         testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)

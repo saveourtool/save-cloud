@@ -187,7 +187,7 @@ class DownloadFilesTest {
             .also { it.writeText(fileContent) }
         whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
             .thenReturn(Mono.just(false))
-        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat<Flux<ByteBuffer>> { collectToString() == fileContent }))
+        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
             .thenReturn(Mono.just(file2.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
@@ -236,6 +236,47 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
+    }
+
+    @Test
+    fun `download save-agent`() {
+        webTestClient.get()
+            .uri("/internal/files/download-save-agent")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals(
+                    "content-save-agent.kexe".toByteArray(),
+                    it.responseBody
+                )
+            }
+    }
+
+    @Test
+    fun `download save-cli`() {
+        webTestClient.get()
+            .uri("/internal/files/download-save-cli?version=1.0")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
+                Assertions.assertArrayEquals(
+                    "content-save-cli.kexe".toByteArray(),
+                    it.responseBody
+                )
+            }
+
+        webTestClient.get()
+            .uri("/internal/files/download-save-cli?version=2.0")
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .exchange()
+            .expectStatus()
+            .isNotFound
     }
 
     companion object {

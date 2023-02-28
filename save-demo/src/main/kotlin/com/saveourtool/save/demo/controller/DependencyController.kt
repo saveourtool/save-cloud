@@ -8,21 +8,19 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.downloadFromClasspath
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
 
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.toKotlinLocalDateTime
-import org.springframework.core.io.Resource
-import org.springframework.http.MediaType
-import reactor.core.publisher.Mono
 
 /**
  * Internal controller that allows to upload files to save-demo
@@ -57,7 +55,7 @@ class DependencyController(
                 dependency.fileName,
                 LocalDateTime.now().toKotlinLocalDateTime(),
             )
-    }
+        }
 
     /**
      * @param organizationName saveourtool organization name

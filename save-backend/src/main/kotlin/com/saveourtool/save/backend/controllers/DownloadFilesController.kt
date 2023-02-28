@@ -50,13 +50,13 @@ class DownloadFilesController(
     )
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
-        run {
-            val executable = "save-agent.kexe"
+            run {
+                val executable = "save-agent.kexe"
 
-            downloadFromClasspath(executable) {
-                "Can't find $executable"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable"
+                }
             }
-        }
 
     @Operation(
         method = "GET",
@@ -77,13 +77,13 @@ class DownloadFilesController(
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
     ): Mono<out Resource> =
-        run {
-            val executable = "save-$version-linuxX64.kexe"
+            run {
+                val executable = "save-$version-linuxX64.kexe"
 
-            downloadFromClasspath(executable) {
-                "Can't find $executable with the requested version $version"
+                downloadFromClasspath(executable) {
+                    "Can't find $executable with the requested version $version"
+                }
             }
-        }
 
     /**
      * @param testExecutionId [com.saveourtool.save.entities.TestExecution.id]

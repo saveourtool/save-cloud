@@ -16,11 +16,10 @@ import kotlin.io.path.createTempDirectory
  */
 class DemoCliRunner(
     dependencyStorage: DependencyStorage,
-    coroutineDispatchers: CustomCoroutineDispatchers,
     private val commandBuilder: CommandBuilder,
     private val demo: Demo,
     private val version: String,
-) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
+) : AbstractCliRunner(dependencyStorage) {
     override val log: Logger = Companion.log
     override val configName: String? = demo.configName
     override val testFileName: String = demo.fileName

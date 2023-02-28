@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.utils.collectAsJsonTo
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
-import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.debug
@@ -34,7 +33,7 @@ class ExecutionInfoStorage(
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.Execution]
      */
-    override fun doInit(underlying: DefaultStorageProjectReactor<Long>): Mono<Unit> = Mono.fromFuture {
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
         s3Operations.deleteUnexpectedKeys(
             storageName = "${this::class.simpleName}",
             commonPrefix = s3KeyManager.commonPrefix,

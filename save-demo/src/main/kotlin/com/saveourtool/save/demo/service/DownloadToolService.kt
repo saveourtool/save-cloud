@@ -7,7 +7,6 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.github.GitHubHelper.download
 import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
 import com.saveourtool.save.utils.github.ReleaseAsset
@@ -53,7 +52,6 @@ class DownloadToolService(
     @Suppress("InjectDispatcher")
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpClient()
-
 
     private suspend fun downloadFileByFileId(fileId: Long): Flow<ByteBuffer> = httpClient.post {
         url("${configProperties.backendUrl}/files/download?fileId=$fileId")

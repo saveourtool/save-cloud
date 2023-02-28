@@ -49,7 +49,6 @@ class RunExecutionController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     private val configProperties: ConfigProperties,
-    private val internalFileStorage: BackendInternalFileStorage,
     objectMapper: ObjectMapper,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -205,10 +204,7 @@ class RunExecutionController(
         .bodyValue(
             execution.toRunRequest(
                 saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-                    .orNotFound {
-                        "Not found save-agent in internal storage"
-                    },
+                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
             )
         )
         .retrieve()
