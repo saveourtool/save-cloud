@@ -84,7 +84,7 @@ class KubernetesService(
     suspend fun getStatus(demo: Demo): DemoStatus {
         val pod = getPodByDemo(demo)
         val status = retrySilently(RETRY_TIMES_QUICK) {
-            demoAgentRequestWrapper(listOf("alive"), pod, kc) { url ->
+            demoAgentRequestWrapper(listOf("alive"), pod) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
             }
@@ -105,7 +105,7 @@ class KubernetesService(
             demo.toDemoConfiguration(version),
             demo.toRunConfiguration(),
         )
-        return demoAgentRequestWrapper(listOf("setup"), pod, kc) { url ->
+        return demoAgentRequestWrapper(listOf("setup"), pod) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }
     }
@@ -123,7 +123,7 @@ class KubernetesService(
     ): HttpResponse? {
         val pod = getPodByDemo(demo)
         val response = try {
-            demoAgentRequestWrapper(listOf("run"), pod, kc) { url ->
+            demoAgentRequestWrapper(listOf("run"), pod) { url ->
                 logger.info("Sending POST request with url $url")
                 httpClient.post {
                     url(url)

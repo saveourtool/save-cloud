@@ -21,6 +21,12 @@ private const val DEFAULT_BUFFER_SIZE = 4096
 private const val PORT_RANGE_FROM = 20000
 private const val PORT_RANGE_TO = 30000
 
+/**
+ * Subdomain of all save-demo-agents
+ */
+const val DEMO_SUBDOMAIN_NAME = "demo-agent-service"
+const val CLUSTER_DOMAIN = "cluster.local"
+
 private val logger = LoggerFactory.getLogger("c.s.s.d.u.HttpUtils")
 
 /**
@@ -43,31 +49,29 @@ fun ByteReadChannel.toByteBufferFlux(): Flux<ByteBuffer> = DataBufferUtils.readI
  *
  * @param urlPathSegments list of endpoint path segments (e.g. ["run"])
  * @param demoPod [Pod] with save-demo-agent that runs requested demo
- * @param kc [KubernetesClient] that is required for kubernetes interactions
- * @param request callback that receives url and port
+ * @param request callback that receives [Url]
  * @return result of type [R]
  * @throws IOException rethrown from [request]
  */
-suspend fun <R> demoAgentRequestWrapper(
+private suspend fun <T> KubernetesClient.portForwardingRequest(
     urlPathSegments: List<String>,
     demoPod: Pod,
-    kc: KubernetesClient,
-    request: suspend (Url) -> R,
-): R {
+    request: suspend (Url) -> T,
+) {
     val podName = demoPod.metadata.name
-    val podResource = kc.pods().withName(podName)
+    val podResource = pods().withName(podName)
     val containerPort = demoPod.spec.containers.single()
         .ports
         .single()
         .containerPort
     val saveDemoPort = Random.nextInt(PORT_RANGE_FROM, PORT_RANGE_TO)
     logger.info("Forwarding port $saveDemoPort to $containerPort of container with pod $podName")
-
     return podResource.portForward(containerPort, saveDemoPort)
         .let { portForward ->
             try {
                 request(
                     URLBuilder(
+
                         port = portForward.localPort,
                         pathSegments = urlPathSegments,
                     ).build()
@@ -90,3 +94,42 @@ suspend fun <R> demoAgentRequestWrapper(
             }
         }
 }
+
+/**
+ * Request wrapper that uses existing kubernetes service [DEMO_SUBDOMAIN_NAME] created for all save-demo-agents,
+ *   ip address of pod (Pod.status.podIp) and sends [request] to constructed url with path [urlPathSegments].
+ *
+ * Url is constructed like this:
+ *
+ * {POD-IP}.{NAMESPACE}.svc.{CLUSTER.DOMAIN}
+ *
+ * Note that [request] returns object of generic type [R] allowing to either return HttpResponse or body of the response.
+ *
+ * @param urlPathSegments list of endpoint path segments (e.g. ["run"])
+ * @param demoPod [Pod] with save-demo-agent that runs requested demo
+ * @param request callback that receives [Url]
+ * @return result of type [R]
+ */
+suspend fun <R> demoAgentRequestWrapper(
+    urlPathSegments: List<String>,
+    demoPod: Pod,
+    request: suspend (Url) -> R,
+): R {
+    val host = addressToDnsResolution(demoPod.status.podIP)
+    return request(
+        URLBuilder(
+            host = host,
+            port = SAVE_DEMO_AGENT_DEFAULT_PORT,
+            pathSegments = urlPathSegments,
+        ).build()
+    )
+}
+
+private fun addressToDnsResolution(podIp: String, namespace: String = "save-cloud") = listOf(
+    podIp.replace(".", "-"),
+    DEMO_SUBDOMAIN_NAME,
+    namespace,
+    "svc",
+    CLUSTER_DOMAIN,
+)
+    .joinToString(".")

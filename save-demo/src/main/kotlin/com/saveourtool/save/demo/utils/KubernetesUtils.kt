@@ -44,6 +44,7 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
             backoffLimit = 0
             template = PodTemplateSpec().apply {
                 spec = PodSpec().apply {
+                    subdomain = DEMO_SUBDOMAIN_NAME
                     if (kubernetesSettings.useGvisor) {
                         nodeSelector = mapOf(
                             "gvisor" to "enabled"

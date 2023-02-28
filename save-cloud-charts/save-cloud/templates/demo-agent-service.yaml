@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-agent-service
+spec:
+  selector:
+    io.kompose.service: save-demo-agent
+  clusterIP: None
+  ports:
+    - port: 23456
+      name: web-server
