@@ -142,6 +142,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
+            fossGraphView.create() to "/$FOSS_GRAPH",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

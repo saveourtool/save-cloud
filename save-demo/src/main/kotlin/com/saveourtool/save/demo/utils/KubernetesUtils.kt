@@ -6,8 +6,8 @@ package com.saveourtool.save.demo.utils
 
 import com.saveourtool.save.demo.config.KubernetesConfig
 import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.demo.storage.DemoInternalFileStorage
 import com.saveourtool.save.domain.toSdk
-import com.saveourtool.save.utils.AgentType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.downloadAndRunAgentCommand
 import io.fabric8.kubernetes.api.model.*
@@ -138,7 +138,7 @@ private fun demoAgentContainerSpec(
         "KTOR_LOG_LEVEL" to "TRACE",
     )
 
-    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, AgentType.DEMO_AGENT, envOptions = envOptions)
+    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent, envOptions = envOptions)
 
     command = listOf("sh", "-c", startupCommand)
 

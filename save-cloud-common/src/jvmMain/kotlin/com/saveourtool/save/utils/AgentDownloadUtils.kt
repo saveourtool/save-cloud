@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.storage.impl.InternalFileKey
 import org.intellij.lang.annotations.Language
 
 @Language("bash")
@@ -27,16 +28,7 @@ private val defaultEnvOptions: Sequence<EnvOption> = emptySequence()
 typealias EnvOption = Pair<String, String>
 
 /**
- * @property executableName
- */
-enum class AgentType(val executableName: String) {
-    AGENT("save-agent.kexe"),
-    DEMO_AGENT("save-demo-agent.kexe"),
-    ;
-}
-
-/**
- * Get command for newly created pod that would download agent of type [agentType] from [downloadUrl]
+ * Get command for newly created pod that would download agent [fileKey] from [downloadUrl]
  * using curl with [curlOptions], chmod downloaded executable and launch it.
  *
  * Default options for shell ([defaultShellOptions]):
@@ -49,7 +41,7 @@ enum class AgentType(val executableName: String) {
  * - `-vvv` logging level.
  *
  * @param downloadUrl url to download agent
- * @param agentType type of agent to download: either [AgentType.AGENT] or [AgentType.DEMO_AGENT]
+ * @param fileKey [InternalFileKey] for agent to download
  * @param shellOptions options to be set on command execution, [defaultShellOptions] by default
  * @param curlOptions options to be passed to curl, [defaultCurlOptions] by default
  * @param envOptions options as [EnvOption] - key and value - all the keys will be set as environment variables with corresponding value
@@ -57,16 +49,16 @@ enum class AgentType(val executableName: String) {
  */
 fun downloadAndRunAgentCommand(
     downloadUrl: String,
-    agentType: AgentType,
+    fileKey: InternalFileKey,
     shellOptions: Sequence<String> = defaultShellOptions,
     curlOptions: Sequence<String> = defaultCurlOptions,
     envOptions: Sequence<EnvOption> = defaultEnvOptions,
-): String = with(agentType) {
+): String = with(fileKey) {
     "set ${getShellOptions(shellOptions)}" +
-            " && curl ${getCurlOptions(curlOptions)} $downloadUrl --output $executableName" +
-            " && chmod +x $executableName" +
+            " && curl ${getCurlOptions(curlOptions)} '$downloadUrl' --output $name" +
+            " && chmod +x $name" +
             " ${getEnvOptions(envOptions)}" +
-            " && ./$executableName"
+            " && ./$name"
 }
 
 /**

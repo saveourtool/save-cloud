@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.demo.storage.DemoInternalFileStorage
 import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.*
 
@@ -39,6 +40,7 @@ import kotlinx.serialization.json.Json
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
+    private val internalFileStorage: DemoInternalFileStorage,
 ) {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
@@ -53,7 +55,9 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = getDemoAgentDownloadUrl(configProperties.agentConfig.demoUrl)
+            val downloadAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(DemoInternalFileStorage.saveDemoAgent) }
+                .orNotFound { "Not found ${DemoInternalFileStorage.saveDemoAgent} in internal storage" }
+                .toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
             demo
         } catch (kre: KubernetesRunnerException) {
@@ -189,7 +193,5 @@ class KubernetesService(
                 json(json)
             }
         }
-
-        private fun getDemoAgentDownloadUrl(demoUrl: String) = "$demoUrl/demo/internal/files/download-agent"
     }
 }
