@@ -5,11 +5,11 @@ import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
-import com.saveourtool.save.demo.utils.toByteBufferFlux
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.utils.asyncEffectIf
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
+import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
+import com.saveourtool.save.utils.github.ReleaseAsset
 
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -21,7 +21,6 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
@@ -34,7 +33,8 @@ import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactor.asFlux
 import kotlinx.serialization.json.Json
 
 /**
@@ -49,50 +49,16 @@ class DownloadToolService(
     private val configProperties: ConfigProperties,
     private val demoService: DemoService,
 ) {
-    private val jsonSerializer = Json { ignoreUnknownKeys = true }
-
     @Suppress("InjectDispatcher")
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpClient()
 
-    private fun getGithubMetadataUrl(repo: GithubRepo, vcsTagName: String) = if (vcsTagName == LATEST_VERSION) {
-        vcsTagName
-    } else {
-        "tags/$vcsTagName"
-    }
-        .let { release ->
-            "$GITHUB_API_URL/${repo.organizationName}/${repo.projectName}/releases/$release"
-        }
-
-    private fun getMetadata(repo: GithubRepo, vcsTagName: String): ReleaseMetadata {
-        val channel: Channel<ReleaseMetadata> = Channel()
-        scope.launch {
-            httpClient.get(getGithubMetadataUrl(repo, vcsTagName))
-                .bodyAsText()
-                .let {
-                    jsonSerializer.decodeFromString<ReleaseMetadata>(it)
-                }
-                .let {
-                    channel.send(it)
-                    channel.close()
-                }
-        }
-        return runBlocking { channel.receive() }
-    }
-
-    private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
-        url(asset.downloadUrl)
-        accept(asset.contentType())
-    }
-        .bodyAsChannel()
-        .toByteBufferFlux()
-
-    private suspend fun downloadFileByFileId(fileId: Long): Flux<ByteBuffer> = httpClient.post {
+    private suspend fun downloadFileByFileId(fileId: Long): Flow<ByteBuffer> = httpClient.post {
         url("${configProperties.backendUrl}/files/download?fileId=$fileId")
         accept(ContentType.Application.OctetStream)
     }
         .bodyAsChannel()
-        .toByteBufferFlux()
+        .toByteBufferFlow()
 
     /**
      * @param repo
@@ -102,18 +68,19 @@ class DownloadToolService(
     fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                val content = downloadAsset(asset)
-                dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
-                    .switchIfEmpty {
-                        demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
-                            "Not found demo for ${repo.toPrettyString()}"
-                        }
-                            .map {
-                                Dependency(it, vcsTagName, asset.name, -1L)
+                downloadAsset(asset) { content ->
+                    dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
+                        .switchIfEmpty {
+                            demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
+                                "Not found demo for ${repo.toPrettyString()}"
                             }
-                    }
-                    .flatMap { dependencyStorage.overwrite(it, content) }
-                    .subscribe()
+                                .map {
+                                    Dependency(it, vcsTagName, asset.name, -1L)
+                                }
+                        }
+                        .flatMap { dependencyStorage.overwrite(it, asset.size, content.toByteBufferFlow().asFlux()) }
+                        .subscribe()
+                }
             }
                 .invokeOnCompletion { exception ->
                     exception?.let {
@@ -133,7 +100,7 @@ class DownloadToolService(
         .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
         .toFlux()
         .filterWhen {
-            dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.version).map(Boolean::not)
+            dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.fileName).map(Boolean::not)
         }
         .collectList()
         .doOnNext { tools ->
@@ -153,9 +120,19 @@ class DownloadToolService(
         }
         .subscribe()
 
-    private fun getExecutable(repo: GithubRepo, vcsTagName: String) = getMetadata(repo, vcsTagName).assets
-        .filterNot(ReleaseAsset::isDigest)
-        .first()
+    private fun getExecutable(repo: GithubRepo, vcsTagName: String): ReleaseAsset {
+        val channel: Channel<ReleaseAsset> = Channel()
+        scope.launch {
+            queryMetadata(repo, vcsTagName).assets
+                .filterNot(ReleaseAsset::isDigest)
+                .first()
+                .let {
+                    channel.send(it)
+                    channel.close()
+                }
+        }
+        return runBlocking { channel.receive() }
+    }
 
     /**
      * Perform GitHub tool download if [githubProjectCoordinates] is not null
@@ -207,7 +184,7 @@ class DownloadToolService(
         downloadFileByFileId(dependency.fileId)
             .let { byteBuffers ->
                 with(dependency) {
-                    dependencyStorage.overwrite(dependency, byteBuffers)
+                    dependencyStorage.overwrite(dependency, byteBuffers.asFlux())
                         .subscribe()
                         .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
                 }
@@ -217,8 +194,6 @@ class DownloadToolService(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DownloadToolService>()
-        private const val GITHUB_API_URL = "https://api.github.com/repos"
-        private const val LATEST_VERSION = "latest"
         private fun httpClient(): HttpClient = HttpClient {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
