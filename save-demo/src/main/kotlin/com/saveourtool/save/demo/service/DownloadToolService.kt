@@ -68,9 +68,7 @@ class DownloadToolService(
     fun downloadFromGithubAndUploadToStorage(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName)
         .let { asset ->
             scope.launch {
-                downloadAsset(
-                    asset,
-                ) { content ->
+                downloadAsset(asset) { content ->
                     dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
                         .switchIfEmpty {
                             demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
