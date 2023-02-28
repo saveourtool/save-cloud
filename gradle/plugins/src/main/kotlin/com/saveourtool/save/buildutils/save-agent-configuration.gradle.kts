@@ -6,24 +6,20 @@ package com.saveourtool.save.buildutils
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.*
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import java.io.File
+
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")
 }
 
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
-    enabled = findProperty("saveAgentDistroFilepath") != null
-
-    val saveAgentDistroFilepath = findProperty("saveAgentDistroFilepath")?.toString() ?: "file:\\\\not-found"
-    src { saveAgentDistroFilepath }
-    dest { "$buildDir/agentDistro/${File(saveAgentDistroFilepath).name}" }
-
-    overwrite(false)
-}
+val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register(
+    name = "downloadSaveAgentDistro",
+    configuration = downloadTaskConfiguration(
+        urlPropertyName = "saveAgentDistroFilepath",
+        targetDirectory = "agentDistro",
+    ),
+)
 
 dependencies {
     if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {

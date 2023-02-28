@@ -3,11 +3,12 @@ package com.saveourtool.save.demo.service
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.Runner
+import reactor.core.publisher.Mono
 
 /**
  * Abstract service interface for different demonstration services
  */
-abstract class AbstractDemoService(
+open class AbstractDemoService(
     private val runner: Runner,
 ) {
     /**
@@ -16,5 +17,5 @@ abstract class AbstractDemoService(
      * @param runRequest additional params as [DemoRunRequest]
      * @return report as [DemoResult]
      */
-    abstract fun launch(runRequest: DemoRunRequest = DemoRunRequest.empty): DemoResult
+    fun run(runRequest: DemoRunRequest = DemoRunRequest.empty): Mono<DemoResult> = runner.run(runRequest)
 }

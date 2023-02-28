@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRati
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
+import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
@@ -137,9 +138,11 @@ val basicRouting: FC<AppProps> = FC { props ->
             historyView.create() to "/:owner/:name/history",
             projectView.create() to "/:owner/:name",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
+            demoView.create() to "/$DEMO/:organizationName/:projectName",
             diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
+            fossGraphView.create() to "/$FOSS_GRAPH",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

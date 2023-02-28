@@ -99,7 +99,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - 9090:9090
                            |    environment:
                            |      MINIO_ROOT_USER: admin
-                           |      MINIO_ROOT_PASSWORD: 12345678
+                           |      MINIO_ROOT_PASSWORD: adminadmin
                            |
                            |  minio-create-bucket:
                            |    image: minio/mc:latest
@@ -109,7 +109,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - /bin/sh
                            |      - -c
                            |      - |
-                           |        /usr/bin/mc alias set minio http://minio:9000 admin 12345678
+                           |        /usr/bin/mc alias set minio http://minio:9000 admin adminadmin
                            |        /usr/bin/mc mb --ignore-existing minio/cnb
                            |        /usr/bin/mc policy set public minio/cnb
                            |

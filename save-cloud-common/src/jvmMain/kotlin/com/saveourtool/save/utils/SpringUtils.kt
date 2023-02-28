@@ -6,8 +6,10 @@ package com.saveourtool.save.utils
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import com.saveourtool.save.storage.Storage
+import com.saveourtool.save.storage.StorageProjectReactor
+import io.ktor.http.*
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -20,7 +22,7 @@ import java.nio.ByteBuffer
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K> Storage<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
+fun <K : Any> StorageProjectReactor<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
     .let { contentLength ->
         upload(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
     }
@@ -31,9 +33,9 @@ fun <K> Storage<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = content
  * @param key a key for provided content
  * @param content
  * @param contentLength
- * @return count of written bytes
+ * @return [Mono] with overwritten key [K]
  */
-fun <K> Storage<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<Unit> = content.content()
+fun <K> StorageProjectReactor<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<K> = content.content()
     .map { it.asByteBuffer() }
     .let { overwrite(key, contentLength, it) }
 
@@ -44,7 +46,7 @@ fun <K> Storage<K>.overwrite(key: K, content: Part, contentLength: Long): Mono<U
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K> Storage<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
+fun <K : Any> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
     .let { contentLength ->
         overwrite(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
     }
@@ -56,4 +58,20 @@ fun <K> Storage<K>.overwrite(key: K, contentBytes: ByteArray): Mono<Long> = cont
  */
 inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotFound(id: Long): T = findByIdOrNull(id).orNotFound {
     "Not found ${T::class.simpleName} by id = $id"
+}
+
+/**
+ * @param statusCode [HttpStatusCode] that should be set to [StringResponse]
+ * @param loggingMethod method that should be used for logging e.g. logger::info
+ * @param lazyMessage callback that generates a message
+ * @return [StringResponse] filled with [lazyMessage] and [statusCode]
+ */
+fun logAndRespond(
+    statusCode: HttpStatusCode,
+    loggingMethod: (String) -> Unit,
+    lazyMessage: () -> String,
+): StringResponse = lazyMessage().also {
+    loggingMethod(it)
+}.let {
+    ResponseEntity.status(statusCode.value).body(it)
 }

@@ -3,10 +3,12 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -102,6 +104,7 @@ kotlin {
             implementation(npm("rehype-highlight", "^5.0.2"))
             implementation(npm("react-ace", "^10.1.0"))
             implementation(npm("react-avatar-image-cropper", "^1.4.2"))
+            implementation(npm("react-circle", "^1.1.1"))
             // react-sigma
             implementation(npm("@react-sigma/core", "^3.1.0"))
             implementation(npm("sigma", "^2.4.0"))

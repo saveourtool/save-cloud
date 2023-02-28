@@ -133,10 +133,10 @@ actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
     }
 }
 
-actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C {
-    require(fs.exists(configPath)) { "Could not find $configPath file." }
-    return TomlFileReader.decodeFromFile(serializer(), configPath.toString())
-}
+actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C = TomlFileReader.decodeFromFile(
+    serializer(),
+    configPath.toString(),
+)
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

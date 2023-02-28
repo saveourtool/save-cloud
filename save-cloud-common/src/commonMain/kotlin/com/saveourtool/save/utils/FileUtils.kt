@@ -5,6 +5,7 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.logging.logInfo
+import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -43,3 +44,21 @@ expect inline fun <reified C : Any> parseConfig(configPath: Path): C
  */
 inline fun <reified C : Any> parseConfig(configName: String = "agent.toml"): C = parseConfig<C>(configName.toPath())
     .also { logInfo("Found ${configName.toPath()}.") }
+
+/**
+ * Parse config file or apply default if none was found
+ * Notice that [C] should be serializable
+ *
+ * @param defaultConfig config that should be set if no config was found ([FileNotFoundException])
+ * @param configName name of a toml config file, agent.toml by default
+ * @return [C] filled with configuration information
+ */
+inline fun <reified C : Any> parseConfigOrDefault(
+    defaultConfig: C,
+    configName: String = "agent.toml",
+): C = try {
+    parseConfig(configName)
+} catch (e: FileNotFoundException) {
+    logInfo("Config file $configName not found, falling back to default config.")
+    defaultConfig
+}

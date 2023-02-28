@@ -1,22 +1,27 @@
 package com.saveourtool.save.s3
 
 import org.springframework.http.MediaType
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
-import java.nio.ByteBuffer
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+
+import java.net.URI
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
+
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.reactor.asCoroutineDispatcher
 
 /**
  * Default implementation of [S3Operations]
@@ -25,8 +30,10 @@ import java.util.concurrent.*
  */
 class DefaultS3Operations(
     properties: S3OperationsProperties,
-) : S3Operations {
+) : S3Operations, AutoCloseable {
     private val bucketName = properties.bucketName
+    private val credentialsProvider: AwsCredentialsProvider = properties.credentials.toAwsCredentialsProvider()
+    private val executorName: String = "s3-operations-${properties.bucketName}"
     private val executorService = with(properties.async) {
         ThreadPoolExecutor(
             minPoolSize,
@@ -34,16 +41,14 @@ class DefaultS3Operations(
             ttl.toNanos(),
             TimeUnit.NANOSECONDS,
             LinkedBlockingQueue(queueSize),
+            NamedDefaultThreadFactory(executorName),
         )
     }
-    private val scheduler = Schedulers.fromExecutorService(executorService, "s3-operations-${properties.bucketName}-")
+    override val scheduler = Schedulers.fromExecutorService(executorService, executorName)
+    override val coroutineDispatcher: CoroutineDispatcher = scheduler.asCoroutineDispatcher()
     private val s3Client: S3AsyncClient = with(properties) {
         S3AsyncClient.builder()
-            .credentialsProvider(
-                StaticCredentialsProvider.create(
-                    credentials.toAwsCredentials()
-                )
-            )
+            .credentialsProvider(credentialsProvider)
             .httpClientBuilder(
                 NettyNioAsyncHttpClient.builder()
                     .maxConcurrency(httpClient.maxConcurrency)
@@ -53,82 +58,71 @@ class DefaultS3Operations(
             .asyncConfiguration { builder ->
                 builder.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executorService)
             }
-            .region(Region.AWS_ISO_GLOBAL)
+            .region(stubRegion)
             .forcePathStyle(true)
             .endpointOverride(endpoint)
             .build()
+            .also { createdClient ->
+                if (createBucketIfNotExists) {
+                    createdClient.createBucketIfNotExists(bucketName).join()
+                }
+            }
     }
-
-    override fun listObjectsV2(prefix: String): Flux<ListObjectsV2Response> = doListObjectsV2(prefix).expand { lastResponse ->
-        if (lastResponse.isTruncated) {
-            doListObjectsV2(prefix, lastResponse.nextContinuationToken())
-        } else {
-            Mono.empty()
-        }
-    }
-
-    private fun doListObjectsV2(prefix: String, continuationToken: String? = null): Mono<ListObjectsV2Response> = ListObjectsV2Request.builder()
-        .bucket(bucketName)
-        .prefix(prefix)
-        .let { builder ->
-            continuationToken?.let { builder.continuationToken(it) } ?: builder
-        }
-        .build()
-        .let {
-            s3Client.listObjectsV2(it).toMonoAndPublishOn()
-        }
-
-    override fun getObject(s3Key: String): Mono<GetObjectResponsePublisher> {
-        val request = GetObjectRequest.builder()
-            .bucket(bucketName)
-            .key(s3Key)
+    private val s3Presigner: S3Presigner = with(properties) {
+        S3Presigner.builder()
+            .credentialsProvider(credentialsProvider)
+            .region(stubRegion)
+            .serviceConfiguration(S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build())
+            .endpointOverride(presignedEndpoint.lowercase())
             .build()
-
-        return s3Client.getObject(request, AsyncResponseTransformer.toPublisher())
-            .toMonoAndPublishOn()
-            .handleNoSuchKeyException()
     }
 
-    override fun uploadObject(s3Key: String, content: Flux<ByteBuffer>): Mono<CompleteMultipartUploadResponse> {
+    override fun close() {
+        s3Client.close()
+        s3Presigner.close()
+        executorService.shutdown()
+    }
+
+    override fun listObjectsV2(prefix: String, continuationToken: String?): CompletableFuture<ListObjectsV2Response> {
+        val request = ListObjectsV2Request.builder()
+            .bucket(bucketName)
+            .prefix(prefix)
+            .let { builder ->
+                continuationToken?.let { builder.continuationToken(it) } ?: builder
+            }
+            .build()
+        return s3Client.listObjectsV2(request)
+    }
+
+    private fun getObjectRequest(s3Key: String) = GetObjectRequest.builder()
+        .bucket(bucketName)
+        .key(s3Key)
+        .build()
+
+    override fun getObject(s3Key: String): CompletableFuture<GetObjectResponsePublisher?> =
+            s3Client.getObject(getObjectRequest(s3Key), AsyncResponseTransformer.toPublisher())
+                .handleNoSuchKeyException()
+
+    override fun createMultipartUpload(s3Key: String): CompletableFuture<CreateMultipartUploadResponse> {
         val request = CreateMultipartUploadRequest.builder()
             .bucket(bucketName)
             .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
             .key(s3Key)
             .build()
         return s3Client.createMultipartUpload(request)
-            .toMonoAndPublishOn()
-            .flatMap { response ->
-                content.index()
-                    .flatMap { (index, buffer) ->
-                        response.uploadPart(index + 1, buffer)
-                    }
-                    .collectList()
-                    .flatMap { uploadPartResults ->
-                        val completeRequest = CompleteMultipartUploadRequest.builder()
-                            .bucket(response.bucket())
-                            .key(response.key())
-                            .uploadId(response.uploadId())
-                            .multipartUpload { builder ->
-                                builder.parts(uploadPartResults.sortedBy { it.partNumber() })
-                            }
-                            .build()
-                        s3Client.completeMultipartUpload(completeRequest)
-                            .toMonoAndPublishOn()
-                    }
-            }
     }
 
-    private fun CreateMultipartUploadResponse.uploadPart(index: Long, contentPart: ByteBuffer): Mono<CompletedPart> {
+    override fun uploadPart(createResponse: CreateMultipartUploadResponse, index: Long, contentPart: AsyncRequestBody): CompletableFuture<CompletedPart> {
         val nextPartRequest = UploadPartRequest.builder()
-            .bucket(bucket())
-            .key(key())
-            .uploadId(uploadId())
+            .bucket(createResponse.bucket())
+            .key(createResponse.key())
+            .uploadId(createResponse.uploadId())
             .partNumber(index.toInt())
             .build()
-        val nextPartRequestBody = AsyncRequestBody.fromByteBuffer(contentPart)
-        return s3Client.uploadPart(nextPartRequest, nextPartRequestBody)
-            .toMonoAndPublishOn()
-            .map { partResponse ->
+        return s3Client.uploadPart(nextPartRequest, contentPart)
+            .thenApply { partResponse ->
                 CompletedPart.builder()
                     .eTag(partResponse.eTag())
                     .partNumber(index.toInt())
@@ -136,18 +130,32 @@ class DefaultS3Operations(
             }
     }
 
-    override fun uploadObject(s3key: String, contentLength: Long, content: Flux<ByteBuffer>): Mono<PutObjectResponse> {
-        val request = PutObjectRequest.builder()
-            .bucket(bucketName)
-            .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .key(s3key)
-            .contentLength(contentLength)
+    override fun completeMultipartUpload(
+        createResponse: CreateMultipartUploadResponse,
+        completedParts: Collection<CompletedPart>
+    ): CompletableFuture<CompleteMultipartUploadResponse> {
+        val request = CompleteMultipartUploadRequest.builder()
+            .bucket(createResponse.bucket())
+            .key(createResponse.key())
+            .uploadId(createResponse.uploadId())
+            .multipartUpload { builder ->
+                builder.parts(completedParts.sortedBy { it.partNumber() })
+            }
             .build()
-        return s3Client.putObject(request, AsyncRequestBody.fromPublisher(content))
-            .toMonoAndPublishOn()
+        return s3Client.completeMultipartUpload(request)
     }
 
-    override fun copyObject(sourceS3Key: String, targetS3Key: String): Mono<CopyObjectResponse> {
+    private fun putObjectRequest(s3Key: String, contentLength: Long): PutObjectRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)
+        .key(s3Key)
+        .contentLength(contentLength)
+        .build()
+
+    override fun putObject(s3Key: String, contentLength: Long, content: AsyncRequestBody): CompletableFuture<PutObjectResponse> =
+            s3Client.putObject(putObjectRequest(s3Key, contentLength), content)
+
+    override fun copyObject(sourceS3Key: String, targetS3Key: String): CompletableFuture<CopyObjectResponse?> {
         val request = CopyObjectRequest.builder()
             .sourceBucket(bucketName)
             .sourceKey(sourceS3Key)
@@ -155,33 +163,86 @@ class DefaultS3Operations(
             .destinationKey(targetS3Key)
             .build()
         return s3Client.copyObject(request)
-            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
     }
 
-    override fun deleteObject(s3key: String): Mono<DeleteObjectResponse> {
+    override fun deleteObject(s3Key: String): CompletableFuture<DeleteObjectResponse?> {
         val request = DeleteObjectRequest.builder()
             .bucket(bucketName)
-            .key(s3key)
+            .key(s3Key)
             .build()
         return s3Client.deleteObject(request)
-            .toMonoAndPublishOn()
             .handleNoSuchKeyException()
     }
 
-    override fun headObject(s3key: String): Mono<HeadObjectResponse> = HeadObjectRequest.builder()
-        .bucket(bucketName)
-        .key(s3key)
-        .build()
-        .let { s3Client.headObject(it) }
-        .toMonoAndPublishOn()
-        .handleNoSuchKeyException()
+    override fun headObject(s3Key: String): CompletableFuture<HeadObjectResponse?> {
+        val request = HeadObjectRequest.builder()
+            .bucket(bucketName)
+            .key(s3Key)
+            .build()
+        return s3Client.headObject(request)
+            .handleNoSuchKeyException()
+    }
 
-    private fun <T : Any> CompletableFuture<T>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(scheduler)
+    override fun requestToDownloadObject(
+        s3Key: String,
+        duration: Duration,
+    ): PresignedGetObjectRequest = s3Presigner.presignGetObject { builder ->
+        builder
+            .signatureDuration(duration.toJavaDuration())
+            .getObjectRequest(getObjectRequest(s3Key))
+            .build()
+    }
 
     companion object {
-        private fun <T : Any> Mono<T>.handleNoSuchKeyException(): Mono<T> = onErrorResume(NoSuchKeyException::class.java) {
-            Mono.empty()
+        // we don't use region when connect to S3
+        private val stubRegion = Region.AWS_ISO_GLOBAL
+
+        private fun <T : Any> CompletableFuture<T>.handleNoSuchKeyException(): CompletableFuture<T?> = exceptionally { ex ->
+            when (ex.cause) {
+                is NoSuchKeyException -> null
+                else -> throw ex
+            }
+        }
+
+        private fun URI.lowercase(): URI = URI(toString().lowercase())
+
+        private fun S3AsyncClient.createBucketIfNotExists(bucketName: String): CompletableFuture<String> =
+                HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+                    .let { headBucket(it) }
+                    .thenApply { true }
+                    .exceptionally { ex ->
+                        when (ex.cause) {
+                            is NoSuchBucketException -> false
+                            else -> throw ex
+                        }
+                    }
+                    .thenCompose { bucketExists ->
+                        if (bucketExists) {
+                            CompletableFuture.completedFuture("Bucket $bucketName already exists")
+                        } else {
+                            CreateBucketRequest.builder()
+                                .bucket(bucketName)
+                                .build()
+                                .let { createBucket(it) }
+                                .thenApply { _ ->
+                                    "Created bucket $bucketName"
+                                }
+                        }
+                    }
+
+        private class NamedDefaultThreadFactory(private val namePrefix: String) : ThreadFactory {
+            private val delegate: ThreadFactory = Executors.defaultThreadFactory()
+            private val threadCount = AtomicInteger(0)
+
+            override fun newThread(runnable: Runnable): Thread {
+                val thread = delegate.newThread(runnable).apply {
+                    name = namePrefix + "-" + threadCount.getAndIncrement()
+                }
+                return thread
+            }
         }
     }
 }

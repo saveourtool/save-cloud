@@ -1820,15 +1820,43 @@
         },
         "responses": {
           "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "description": "Successfully added demo."
           },
           "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "description": "Not enough permission for accessing given project."
           },
           "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "description": "Could not find project in organization."
           },
           "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
             "description": "Invalid demo creation request."
           }
         },
@@ -9057,6 +9085,9 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "public": {
+            "type": "boolean"
           },
           "statuses": {
             "uniqueItems": true,

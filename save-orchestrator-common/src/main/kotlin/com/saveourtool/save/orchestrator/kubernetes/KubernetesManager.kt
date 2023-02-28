@@ -54,6 +54,7 @@ class KubernetesManager(
             }
             spec = JobSpec().apply {
                 parallelism = replicas
+                ttlSecondsAfterFinished = kubernetesSettings.ttlAfterFinished.toSeconds().toInt()
                 // do not attempt to restart failed pods, because if we manually stop pods by deleting them,
                 // job controller would think that they need to be restarted
                 backoffLimit = 0

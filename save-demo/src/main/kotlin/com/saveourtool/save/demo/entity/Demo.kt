@@ -1,6 +1,8 @@
 package com.saveourtool.save.demo.entity
 
+import com.saveourtool.save.demo.DemoConfiguration
 import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.demo.RunConfiguration
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
@@ -44,7 +46,10 @@ class Demo(
         }
     }
 
-    private fun projectCoordinates() = ProjectCoordinates(
+    /**
+     * @return saveourtool [ProjectCoordinates]
+     */
+    fun projectCoordinates() = ProjectCoordinates(
         organizationName,
         projectName,
     )
@@ -58,6 +63,26 @@ class Demo(
         configName,
         outputFileName,
         githubProjectCoordinates(),
+    )
+
+    /**
+     * @return [RunConfiguration] for agent filled with data from this [Demo]
+     */
+    fun toRunConfiguration() = RunConfiguration(
+        fileName,
+        configName,
+        runCommand,
+        outputFileName,
+    )
+
+    /**
+     * @param version version that is requested for demo
+     * @return [DemoConfiguration] for agent filled with data from this [Demo]
+     */
+    fun toDemoConfiguration(version: String) = DemoConfiguration(
+        organizationName,
+        projectName,
+        version,
     )
 }
 

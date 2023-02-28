@@ -49,6 +49,7 @@ kotlin {
             dependencies {
                 dependencies {
                     api(libs.kotlin.test)
+                    api(libs.kotlinx.coroutines.test)
                     implementation(libs.kotlinx.serialization.json)
                 }
             }
@@ -74,6 +75,7 @@ kotlin {
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.file)
+                api(libs.kotlinx.coroutines.reactor)
             }
         }
         val jvmTest by getting {

@@ -6,21 +6,15 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractS3Storage
+import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
 import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.deleteAsyncUnexpectedIds
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.upload
+import com.saveourtool.save.storage.deleteUnexpectedKeys
+import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-
-import javax.annotation.PostConstruct
 
 /**
  * A storage for storing additional data associated with test results
@@ -28,21 +22,25 @@ import javax.annotation.PostConstruct
 @Service
 class DebugInfoStorage(
     configProperties: ConfigProperties,
-    s3Operations: S3Operations,
+    private val s3Operations: S3Operations,
     private val objectMapper: ObjectMapper,
     private val testExecutionService: TestExecutionService,
     private val testExecutionRepository: TestExecutionRepository,
-) : AbstractS3Storage<Long>(
+) : AbstractSimpleReactiveStorage<Long>(
     s3Operations,
     concatS3Key(configProperties.s3Storage.prefix, "debugInfo"),
 ) {
     /**
      * Init method to delete unexpected ids which are not associated to [com.saveourtool.save.entities.TestExecution]
      */
-    @PostConstruct
-    fun deleteUnexpectedIds() {
-        deleteAsyncUnexpectedIds(testExecutionRepository, log).subscribe()
-    }
+    override fun doInit(): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            commonPrefix = s3KeyManager.commonPrefix,
+        ) { s3Key ->
+            testExecutionRepository.findById(s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()).isEmpty
+        }
+    }.publishOn(s3Operations.scheduler)
 
     /**
      * Store provided [testResultDebugInfo] associated with [TestExecution.id]
@@ -63,8 +61,8 @@ class DebugInfoStorage(
             upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
-    override fun buildKey(s3KeySuffix: String): Long = s3KeySuffix.toLong()
-    override fun buildS3KeySuffix(key: Long): String = key.toString()
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
+    override fun doBuildS3KeySuffix(key: Long): String = key.toString()
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()

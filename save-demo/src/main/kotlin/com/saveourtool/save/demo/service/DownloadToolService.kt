@@ -80,7 +80,6 @@ class DownloadToolService(
         return runBlocking { channel.receive() }
     }
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadAsset(asset: ReleaseAsset): Flux<ByteBuffer> = httpClient.get {
         url(asset.downloadUrl)
         accept(asset.contentType())
@@ -88,9 +87,8 @@ class DownloadToolService(
         .bodyAsChannel()
         .toByteBufferFlux()
 
-    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun downloadFileByFileId(fileId: Long): Flux<ByteBuffer> = httpClient.post {
-        url("${configProperties.backend}/files/download?fileId=$fileId")
+        url("${configProperties.backendUrl}/files/download?fileId=$fileId")
         accept(ContentType.Application.OctetStream)
     }
         .bodyAsChannel()
@@ -108,7 +106,7 @@ class DownloadToolService(
                 dependencyStorage.findDependency(repo.organizationName, repo.projectName, vcsTagName, asset.name)
                     .switchIfEmpty {
                         demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
-                            "Not found demo for $repo"
+                            "Not found demo for ${repo.toPrettyString()}"
                         }
                             .map {
                                 Dependency(it, vcsTagName, asset.name, -1L)

@@ -1,6 +1,6 @@
 package com.saveoourtool.save.demo.agent
 
-import com.saveourtool.save.demo.agent.ServerConfiguration
+import com.saveourtool.save.demo.ServerConfiguration
 import com.saveourtool.save.demo.agent.server
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
