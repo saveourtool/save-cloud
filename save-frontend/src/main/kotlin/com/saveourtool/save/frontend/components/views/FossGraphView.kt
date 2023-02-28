@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
 import com.saveourtool.save.frontend.utils.buttonBuilder
@@ -19,8 +18,6 @@ import js.core.jso
 import react.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
@@ -35,26 +32,10 @@ import web.html.InputType
  */
 @Suppress("MAGIC_NUMBER")
 val fossGraphView: VFC = VFC {
-    val fossGraphView = fossGraphView()
-    fossGraphView {
+    fossGraph {
         name = "CVE-2022-22978"
         progress = 87
     }
-}
-
-/**
- * [Props] for FossGraphView
- */
-external interface FossGraphViewProps : Props {
-    /**
-     * Name of security vulnerabilities
-     */
-    var name: String
-
-    /**
-     * Update to change the progress and percentage
-     */
-    var progress: Int
 }
 
 @Suppress(
@@ -62,7 +43,7 @@ external interface FossGraphViewProps : Props {
     "TOO_LONG_FUNCTION",
     "LongMethod",
 )
-private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
+val fossGraph: FC<FossGraphViewProps> = FC { props ->
     div {
         className = ClassName("card card-body mt-0")
 
@@ -83,11 +64,7 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
                         }
                         div {
                             className = ClassName("input-group-append")
-                            button {
-                                className = ClassName("btn btn-primary")
-                                type = ButtonType.button
-                                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
-                            }
+                            buttonBuilder(icon = faSearch) { }
                         }
                     }
                 }
@@ -161,4 +138,19 @@ private fun fossGraphView(): FC<FossGraphViewProps> = FC { props ->
             }
         }
     }
+}
+
+/**
+ * [Props] for FossGraphView
+ */
+external interface FossGraphViewProps : Props {
+    /**
+     * Name of security vulnerabilities
+     */
+    var name: String
+
+    /**
+     * Update to change the progress and percentage
+     */
+    var progress: Int
 }
