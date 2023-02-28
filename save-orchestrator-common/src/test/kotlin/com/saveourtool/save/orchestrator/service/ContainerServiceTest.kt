@@ -39,7 +39,7 @@ import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 @SpringBootTest
-@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run ContainerServiceTestOnWindows")
 @Import(
     Beans::class,
     DockerContainerRunner::class,
