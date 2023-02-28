@@ -5,6 +5,7 @@ import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 
 import kotlinx.serialization.Serializable
+import kotlin.js.JsExport
 
 /**
  * Represents all data related to the User
@@ -27,6 +28,7 @@ import kotlinx.serialization.Serializable
  * @property originalLogins
  */
 @Serializable
+@JsExport
 data class UserInfo(
     val name: String,
     val id: Long? = null,

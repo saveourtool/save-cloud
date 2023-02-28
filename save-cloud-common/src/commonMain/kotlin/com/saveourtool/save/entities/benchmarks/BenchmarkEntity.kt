@@ -6,6 +6,7 @@ package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.frontend.TabMenuBar
 import kotlinx.serialization.Serializable
+import kotlin.js.JsExport
 
 @Serializable
 @Suppress("WRONG_DECLARATIONS_ORDER")
@@ -13,6 +14,7 @@ import kotlinx.serialization.Serializable
  * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark).
  * This enum should be synchronized with enum in awesome-benchmarks
  */
+@JsExport
 enum class BenchmarkCategoryEnum {
     ALL,
     AI,
