@@ -324,19 +324,21 @@ class SandboxController(
             .flatMap {
                 storage.delete(SandboxStorageKey.debugInfoKey(userId))
             }
-            .map {
-                SandboxExecution(
-                    startTime = LocalDateTime.now(),
-                    endTime = null,
-                    status = ExecutionStatus.PENDING,
-                    sdk = sdk,
-                    userId = userId,
-                    initialized = false,
-                    failReason = null,
-                )
+            .flatMap {
+                blockingToMono {
+                    val execution = SandboxExecution(
+                        startTime = LocalDateTime.now(),
+                        endTime = null,
+                        status = ExecutionStatus.PENDING,
+                        sdk = sdk,
+                        userId = userId,
+                        initialized = false,
+                        failReason = null,
+                    )
+                    sandboxExecutionRepository.save(execution)
+                }
             }
-            .map { sandboxExecutionRepository.save(it) }
-            .map { orchestratorAgentService.getRunRequest(it) }
+            .flatMap { orchestratorAgentService.getRunRequest(it) }
             .flatMap { request ->
                 agentsController.initialize(request)
             }

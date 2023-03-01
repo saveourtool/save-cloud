@@ -59,11 +59,13 @@ class SandboxOrchestratorAgentService(
                     it.toMap()
                 }
         }
-        .map { (execution, fileToUrls) ->
+        .zipWith(
+            internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveAgentKeyName)
+        )
+        .map { (executionAndFileToUrls, saveCliUrl) ->
+            val (execution, fileToUrls) = executionAndFileToUrls
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
-                    .orNotFound { "Not found save-cli with version $SAVE_CORE_VERSION" }
-                    .toString(),
+                saveCliUrl = saveCliUrl.toString(),
                 testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
                 // sandbox doesn't support save-cli overrides for now
@@ -158,13 +160,8 @@ class SandboxOrchestratorAgentService(
      * @param execution
      * @return a request to run execution
      */
-    fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
-        saveAgentVersion = SAVE_CLOUD_VERSION,
-        saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-            .orNotFound {
-                "Not found save-agent with version $SAVE_CORE_VERSION"
-            },
-    )
+    fun getRunRequest(execution: SandboxExecution): Mono<RunExecutionRequest> = internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveAgentKeyName)
+        .map { execution.toRunRequest(it) }
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository
         .findByIdOrNull(executionId)

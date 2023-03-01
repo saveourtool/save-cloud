@@ -128,6 +128,7 @@ jobs:
             --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            -Preckon.stage=snapshot
       - name: Set environment variable with save-cli version
         if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
         run: |

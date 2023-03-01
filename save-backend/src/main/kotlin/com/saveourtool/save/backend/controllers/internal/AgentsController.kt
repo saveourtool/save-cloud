@@ -31,6 +31,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import kotlinx.datetime.toJavaLocalDateTime
+import reactor.kotlin.extra.math.max
 
 /**
  * Controller to manipulate with Agent related data
@@ -58,17 +59,17 @@ class AgentsController(
     @GetMapping("/agents/get-init-config")
     fun getInitConfig(
         @RequestParam containerId: String,
+        @RequestParam(required = false, defaultValue = SAVE_CORE_VERSION) saveCliVersion: String,
     ): Mono<AgentInitConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
             agentService.getExecution(it)
         }
-        .map { execution ->
+        .zipWith(
+            internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveCliKeyName)
+        )
+        .map { (execution, saveCliUrl) ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
-                    .orNotFound {
-                        "Not found save-cli with version $SAVE_CORE_VERSION"
-                    }
-                    .toString(),
+                saveCliUrl = saveCliUrl.toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
                         testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)

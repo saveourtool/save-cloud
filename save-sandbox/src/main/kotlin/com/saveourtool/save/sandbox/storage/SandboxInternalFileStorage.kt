@@ -15,7 +15,7 @@ class SandboxInternalFileStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
 ) : AbstractInternalFileStorage(
-    listOf(InternalFileKey.saveAgentKey, InternalFileKey.saveCliKey(SAVE_CORE_VERSION)),
+    listOf(InternalFileKey.latestSaveAgentKey, InternalFileKey.saveCliKey(SAVE_CORE_VERSION)),
     configProperties.s3Storage.prefix,
     s3Operations,
 )

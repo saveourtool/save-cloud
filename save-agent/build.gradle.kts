@@ -30,6 +30,25 @@ kotlin {
         }
     }
 
+    // generate kotlin file with project version
+    val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+        inputs.property("project version", version.toString())
+        val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+        outputs.file(versionsFile)
+
+        doFirst {
+            versionsFile.parentFile.mkdirs()
+            versionsFile.writeText(
+                """
+                package generated
+
+                internal const val AGENT_VERSION = "$version"
+
+                """.trimIndent()
+            )
+        }
+    }
+
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
@@ -37,6 +56,15 @@ kotlin {
         }
 
         commonMain {
+            kotlin {
+                srcDir(
+                    generateVersionFileTaskProvider.map { _ ->
+                        // Simply discard task. However, `map` is essential to tell Gradle
+                        // that `srcDir` depends on this task.
+                        "$buildDir/generated/src"
+                    }
+                )
+            }
             dependencies {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
@@ -130,6 +158,8 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
+
+
 
 /*
  * On Windows, it's impossible to link a Linux executable against

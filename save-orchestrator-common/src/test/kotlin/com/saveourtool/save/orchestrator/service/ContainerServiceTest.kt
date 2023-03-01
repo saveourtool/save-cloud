@@ -130,7 +130,6 @@ class ContainerServiceTest {
         }
         val configuration = containerService.prepareConfiguration(
             testExecution.toRunRequest(
-                saveAgentVersion = SAVE_AGENT_VERSION,
                 saveAgentUrl = URL("http://host.docker.internal:$mockserverPort$mockUrl"),
             )
         )

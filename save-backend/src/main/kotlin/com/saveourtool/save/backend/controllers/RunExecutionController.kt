@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.extra.math.max
 
 /**
  * Controller for running execution
@@ -200,21 +201,18 @@ class RunExecutionController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution): Mono<EmptyResponse> = webClientOrchestrator
-        .post()
-        .uri("/initializeAgents")
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(
-            execution.toRunRequest(
-                saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-                    .orNotFound {
-                        "Not found save-agent in internal storage"
-                    },
-            )
-        )
-        .retrieve()
-        .toBodilessEntity()
+    private fun initializeAgents(execution: Execution): Mono<EmptyResponse> = internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveAgentKeyName)
+        .flatMap { saveAgentUrl ->
+            webClientOrchestrator
+                .post()
+                .uri("/initializeAgents")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    execution.toRunRequest(saveAgentUrl = saveAgentUrl)
+                )
+                .retrieve()
+                .toBodilessEntity()
+        }
 
     private fun Execution.toAcceptedResponse(): StringResponse =
             ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")

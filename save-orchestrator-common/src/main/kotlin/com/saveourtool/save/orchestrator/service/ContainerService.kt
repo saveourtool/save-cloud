@@ -112,13 +112,12 @@ class ContainerService(
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            request.saveAgentVersion,
             request.executionId,
         )
 
         val baseImage = request.sdk.baseImageName()
 
-        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, InternalFileKey.saveAgentKey)
+        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, InternalFileKey.latestSaveAgentKey)
 
         return RunConfiguration(
             imageTag = baseImage,
