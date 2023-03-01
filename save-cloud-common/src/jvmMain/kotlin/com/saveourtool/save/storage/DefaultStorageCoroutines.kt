@@ -161,28 +161,20 @@ class DefaultStorageCoroutines<K : Any>(
             .await()
     } ?: false
 
-    private suspend fun deleteKey(key: K) = withIoContextIfS3KeyDatabaseManager {
-        s3KeyManager.delete(key)
-    }
+    private suspend fun deleteKey(key: K): Unit = s3KeyManager.callAsSuspend { delete(key) }
 
-    private suspend fun findKey(s3Key: String): K? = withIoContextIfS3KeyDatabaseManager {
-        s3KeyManager.findKey(s3Key)
-    }
+    private suspend fun findKey(s3Key: String): K? = s3KeyManager.callAsSuspend { findKey(s3Key) }
 
-    private suspend fun findExistedS3Key(key: K): String? = withIoContextIfS3KeyDatabaseManager {
-        s3KeyManager.findExistedS3Key(key)
-    }
+    private suspend fun findExistedS3Key(key: K): String? = s3KeyManager.callAsSuspend { findExistedS3Key(key) }
 
-    private suspend fun createNewS3Key(key: K): String = withIoContextIfS3KeyDatabaseManager {
-        s3KeyManager.createNewS3Key(key)
-    }
+    private suspend fun createNewS3Key(key: K): String = s3KeyManager.callAsSuspend { createNewS3Key(key) }
 
-    private suspend fun <R> withIoContextIfS3KeyDatabaseManager(function: () -> R): R =
+    private suspend fun <R> S3KeyManager<K>.callAsSuspend(function: S3KeyManager<K>.() -> R): R =
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
                 withContext(s3KeyManager.ioDispatcher) {
-                    function()
+                    function(this@callAsSuspend)
                 }
             } else {
-                function()
+                function(this)
             }
 }

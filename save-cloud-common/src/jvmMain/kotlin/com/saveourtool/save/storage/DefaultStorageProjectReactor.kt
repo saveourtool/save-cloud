@@ -146,17 +146,18 @@ class DefaultStorageProjectReactor<K : Any>(
         .map { true }
         .defaultIfEmpty(false)
 
-    private fun deleteKey(key: K): Mono<Unit> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.delete(key) }
-
-    private fun findKey(s3Key: String): Mono<K> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.findKey(s3Key) }
-
-    private fun findExistedS3Key(key: K): Mono<String> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.findExistedS3Key(key) }
-
-    private fun createNewS3Key(key: K): Mono<String> = onIoSchedulerIfS3KeyDatabaseManager { s3KeyManager.createNewS3Key(key) }
-
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
 
-    private fun <R : Any> onIoSchedulerIfS3KeyDatabaseManager(function: () -> R?): Mono<R> = function.toMono()
+    private fun deleteKey(key: K): Mono<Unit> = s3KeyManager.callAsMono { delete(key) }
+
+    private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
+
+    private fun findExistedS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { findExistedS3Key(key) }
+
+    private fun createNewS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { createNewS3Key(key) }
+
+    private fun <R : Any> S3KeyManager<K>.callAsMono(function: S3KeyManager<K>.() -> R?): Mono<R> = { function(this) }
+        .toMono()
         .let {
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
                 it.subscribeOn(s3KeyManager.ioScheduler)
