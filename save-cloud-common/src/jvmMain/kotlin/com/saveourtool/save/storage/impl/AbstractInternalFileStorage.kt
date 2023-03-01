@@ -36,6 +36,7 @@ open class AbstractInternalFileStorage(
         override fun buildS3KeySuffix(key: InternalFileKey): String = concatS3Key(key.version, key.name)
     }
     private val storageProjectReactor by lazy { DefaultStorageProjectReactor(s3Operations, s3KeyManager) }
+    private val storageCoroutines by lazy { DefaultStorageCoroutines(s3Operations, s3KeyManager) }
     private val storagePreSignedUrl by lazy { DefaultStoragePreSignedUrl(s3Operations, s3KeyManager) }
 
     /**
@@ -43,15 +44,18 @@ open class AbstractInternalFileStorage(
      */
     @PostConstruct
     fun doInit() {
-        initializer.init {
-            Flux.concat(
-                keysToLoadFromClasspath.toFlux()
-                    .flatMap {
-                        storageProjectReactor.uploadFromClasspath(it)
-                    },
-                doInitAdditionally(storageProjectReactor)
-            ).last()
-        }
+        initializer.init(
+            doInitReactively = {
+                Flux.concat(
+                    keysToLoadFromClasspath.toFlux()
+                        .flatMap {
+                            storageProjectReactor.uploadFromClasspath(it)
+                        },
+                    doInitAdditionally(storageProjectReactor)
+                ).last()
+            },
+            doInitSuspendedly = { doInitAdditionally(storageCoroutines) }
+        )
     }
 
     /**
@@ -63,11 +67,27 @@ open class AbstractInternalFileStorage(
     protected open fun doInitAdditionally(underlying: DefaultStorageProjectReactor<InternalFileKey>): Mono<Unit> = Mono.empty()
 
     /**
+     * Suspend method to init this storage: copy required files to storage
+     *
+     * @param underlying
+     * @return [Mono] without body
+     */
+    protected open suspend fun doInitAdditionally(underlying: DefaultStorageCoroutines<InternalFileKey>): Unit? = null
+
+    /**
      * @param function
      * @return result of [function] which is run using [StorageProjectReactor]
      */
     fun <T> usingProjectReactor(function: StorageProjectReactor<InternalFileKey>.() -> T): T = initializer.validateAndRun {
         function(storageProjectReactor)
+    }
+
+    /**
+     * @param function
+     * @return result of [function] which is run using [StorageCoroutines]
+     */
+    suspend fun <T> usingCoroutines(function: suspend StorageCoroutines<InternalFileKey>.() -> T): T = initializer.validateAndRunSuspend {
+        function(storageCoroutines)
     }
 
     /**

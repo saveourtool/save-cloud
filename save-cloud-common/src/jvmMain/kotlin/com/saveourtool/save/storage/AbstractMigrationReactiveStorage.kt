@@ -31,7 +31,7 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
      */
     @PostConstruct
     fun init() {
-        initializer.init {
+        initializer.initReactively {
             oldStorageProjectReactor.list()
                 .flatMap { migrateKey(it) }
                 .thenJust(Unit)
