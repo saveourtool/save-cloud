@@ -187,7 +187,7 @@ class DownloadFilesTest {
             .also { it.writeText(fileContent) }
         whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
             .thenReturn(Mono.just(false))
-        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat<Flux<ByteBuffer>> { collectToString() == fileContent }))
+        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
             .thenReturn(Mono.just(file2.toDto()))
 
         whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
