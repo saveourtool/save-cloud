@@ -6,6 +6,7 @@ import com.saveourtool.save.validation.isValidName
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlin.js.JsExport
 
 /**
  * Data class of contest information
@@ -20,6 +21,7 @@ import kotlinx.serialization.Serializable
  * @property status
  */
 @Serializable
+@JsExport
 data class ContestDto(
     val name: String,
     val status: ContestStatus,
