@@ -23,8 +23,3 @@ const val REPORT_FILE_NAME = "report"
  * Name of the file to put logs to
  */
 const val LOG_FILE_NAME = "logs"
-
-/**
- * Default port for save-demo-agent ktor server
- */
-const val SAVE_DEMO_AGENT_DEFAULT_PORT = 23456

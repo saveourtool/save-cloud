@@ -1,9 +1,11 @@
 package com.saveourtool.save.demo.utils
 
+import com.saveourtool.save.demo.config.KubernetesConfig
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import java.io.ByteArrayInputStream
@@ -55,5 +57,22 @@ class HttpUtilsTest {
         }.isInstanceOf(RuntimeException::class.java)
             .hasMessage("${IOException::class.qualifiedName}: $errorMessage")
             .hasCauseExactlyInstanceOf(IOException::class.java)
+    }
+
+    @Test
+    fun addressToDnsResolutionTest() {
+        val resolvableAddress = addressToDnsResolution("192.168.0.1", stubKubernetesConfig)
+        assertThat(resolvableAddress).isEqualTo("192-168-0-1.my-subdomain-name.my-namespace.svc.cluster.local")
+    }
+
+    companion object {
+        private val stubKubernetesConfig = KubernetesConfig(
+            "",
+            "",
+            "my-namespace",
+            false,
+            "my-subdomain-name",
+            23456,
+        )
     }
 }
