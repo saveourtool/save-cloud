@@ -7,6 +7,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
 }
 
 kotlin {
@@ -30,25 +31,6 @@ kotlin {
         }
     }
 
-    // generate kotlin file with project version
-    val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-        inputs.property("project version", version.toString())
-        val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-        outputs.file(versionsFile)
-
-        doFirst {
-            versionsFile.parentFile.mkdirs()
-            versionsFile.writeText(
-                """
-                package generated
-
-                internal const val AGENT_VERSION = "$version"
-
-                """.trimIndent()
-            )
-        }
-    }
-
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
@@ -58,7 +40,7 @@ kotlin {
         commonMain {
             kotlin {
                 srcDir(
-                    generateVersionFileTaskProvider.map { _ ->
+                    tasks.named("generateSaveCloudVersionFile").map { _ ->
                         // Simply discard task. However, `map` is essential to tell Gradle
                         // that `srcDir` depends on this task.
                         "$buildDir/generated/src"

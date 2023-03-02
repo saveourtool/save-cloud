@@ -2,7 +2,7 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.utils.CComponent
 import csstype.ClassName
-import generated.SAVE_VERSION
+import generated.SAVE_CLOUD_VERSION
 import react.*
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
@@ -26,7 +26,7 @@ class Footer : CComponent<Props, State>() {
                     span {
                         +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
                         br {}
-                        +"Version $SAVE_VERSION"
+                        +"Version $SAVE_CLOUD_VERSION"
                     }
                 }
             }
