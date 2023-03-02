@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 /**
  * @property containerId id of the container, inside which the agent is running
  * @property containerName name of the container, inside which the agent is running
- * @property version version of save-agent [generated.SAVE_CLOUD_VERSION]
+ * @property version version of save-agent [generated.AGENT_VERSION]
  */
 @Serializable
 data class AgentDto(

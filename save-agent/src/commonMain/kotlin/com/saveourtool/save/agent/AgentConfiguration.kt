@@ -10,6 +10,7 @@ import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import generated.AGENT_VERSION
 
 import kotlinx.serialization.Serializable
 
@@ -46,7 +47,7 @@ data class AgentConfiguration(
             info = AgentInfo(
                 containerId = requiredEnv(AgentEnvName.CONTAINER_ID),
                 containerName = requiredEnv(AgentEnvName.CONTAINER_NAME),
-                version = requiredEnv(AgentEnvName.AGENT_VERSION),
+                version = AGENT_VERSION,
             ),
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL),

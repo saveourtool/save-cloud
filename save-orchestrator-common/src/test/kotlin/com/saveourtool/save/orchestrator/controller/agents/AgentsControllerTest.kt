@@ -77,7 +77,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, URL("https://someUrl")))
+            .bodyValue(execution.toRunRequest(URL("https://someUrl")))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -93,7 +93,7 @@ class AgentsControllerTest {
         val execution = Execution.stub(project)
 
         assertThrows<IllegalArgumentException> {
-            execution.toRunRequest(SAVE_AGENT_VERSION, URL("https://someUrl"))
+            execution.toRunRequest(URL("https://someUrl"))
         }
     }
 
