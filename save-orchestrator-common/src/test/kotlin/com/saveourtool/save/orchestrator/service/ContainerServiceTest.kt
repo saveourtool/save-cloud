@@ -7,7 +7,6 @@ import com.github.dockerjava.api.model.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.docker.DockerContainerRunner
@@ -130,7 +129,6 @@ class ContainerServiceTest {
         }
         val configuration = containerService.prepareConfiguration(
             testExecution.toRunRequest(
-                saveAgentVersion = SAVE_AGENT_VERSION,
                 saveAgentUrl = URL("http://host.docker.internal:$mockserverPort$mockUrl"),
             )
         )
