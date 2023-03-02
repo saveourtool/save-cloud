@@ -13,7 +13,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
-import reactor.kotlin.extra.math.max
 import java.net.URL
 import javax.annotation.PostConstruct
 
@@ -90,19 +89,6 @@ open class AbstractInternalFileStorage(
         .orNotFound {
             "Not found $key in internal storage"
         }
-
-    /**
-     * @param name [InternalFileKey.name]
-     * @return [Mono] with newer or latest [InternalFileKey] with provided [name] in internal storage or [Mono.error] if it's not found.
-     */
-    fun generateUrlToDownloadNewerOrLatest(name: String): Mono<URL> = storageProjectReactor
-        .list()
-        .filter { it.name == name }
-        .max(InternalFileKey.versionCompartor)
-        .switchIfEmptyToNotFound {
-            "Not found newer $name in internal storage"
-        }
-        .map { generateRequiredUrlToDownload(it) }
 
     /**
      * @param function
