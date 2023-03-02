@@ -40,20 +40,6 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      # https://gvisor.dev/docs/user_guide/install/
-      - name: Install gvisor runsc runtime
-        run: |
-          ARCH=$(uname -m)
-          URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
-          wget -nv ${URL}/runsc ${URL}/runsc.sha512 \
-            ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
-          sha512sum -c runsc.sha512 \
-            -c containerd-shim-runsc-v1.sha512
-          rm -f *.sha512
-          chmod a+rx runsc containerd-shim-runsc-v1
-          sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
-          sudo /usr/local/bin/runsc install
-          sudo systemctl reload docker
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
