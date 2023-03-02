@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.8.10"
 jetbrains-annotations = "24.0.0"
-save-core = "0.3.8"
+save-core = "0.3.9"
 ktor = "2.2.3"
 okio = "3.3.0"
 serialization = "1.4.1"
