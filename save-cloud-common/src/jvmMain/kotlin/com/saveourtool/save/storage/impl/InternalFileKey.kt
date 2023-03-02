@@ -32,14 +32,9 @@ data class InternalFileKey(
         }
 
         /**
-         * [InternalFileKey.name] for *save-agent*
-         */
-        val saveAgentKeyName: String = "save-agent"
-
-        /**
          * [InternalFileKey] for *save-agent*
          */
-        val latestSaveAgentKey: InternalFileKey = latest(saveAgentKeyName, "save-agent.kexe")
+        val saveAgentKey: InternalFileKey = latest("save-agent", "save-agent.kexe")
 
         /**
          * [InternalFileKey.name] for *save-cli*

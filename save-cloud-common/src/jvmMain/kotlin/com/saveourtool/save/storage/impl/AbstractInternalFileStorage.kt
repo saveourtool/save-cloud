@@ -79,6 +79,16 @@ open class AbstractInternalFileStorage(
     protected open suspend fun doInitAdditionally(underlying: DefaultStorageCoroutines<InternalFileKey>): Unit? = null
 
     /**
+     * @param key
+     * @return generated [URL] to download provided [key] [InternalFileKey]
+     * @throws ResponseStatusException with status [HttpStatus.NOT_FOUND]
+     */
+    fun generateRequiredUrlToDownload(key: InternalFileKey): URL = storagePreSignedUrl.generateUrlToDownload(key)
+        .orNotFound {
+            "Not found $key in internal storage"
+        }
+
+    /**
      * @param name [InternalFileKey.name]
      * @return [Mono] with newer or latest [InternalFileKey] with provided [name] in internal storage or [Mono.error] if it's not found.
      */
@@ -90,12 +100,7 @@ open class AbstractInternalFileStorage(
                 .switchIfEmptyToNotFound {
                     "Not found newer $name in internal storage"
                 }
-            .map { key ->
-                storagePreSignedUrl.generateUrlToDownload(key)
-                    .orNotFound {
-                        "Not found $key in internal storage"
-                    }
-            }
+            .map { generateRequiredUrlToDownload(it) }
     }
 
     /**

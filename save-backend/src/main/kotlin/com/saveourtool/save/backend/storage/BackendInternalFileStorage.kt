@@ -20,7 +20,7 @@ class BackendInternalFileStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
 ) : AbstractInternalFileStorage(
-    listOf(InternalFileKey.latestSaveAgentKey),
+    listOf(InternalFileKey.saveAgentKey),
     configProperties.s3Storage.prefix,
     s3Operations,
 ) {

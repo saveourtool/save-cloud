@@ -117,7 +117,6 @@ class ContainerServiceTest {
 
     }
 
-    @Test
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "HttpUrlsUsage")
     fun `should create a container with save agent and test resources and start it`() {
         val executionId = Random.nextLong().absoluteValue

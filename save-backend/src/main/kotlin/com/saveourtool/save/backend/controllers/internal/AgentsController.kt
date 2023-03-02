@@ -64,12 +64,9 @@ class AgentsController(
         .map {
             agentService.getExecution(it)
         }
-        .zipWith(
-            internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveCliKeyName)
-        )
-        .map { (execution, saveCliUrl) ->
+        .map { execution ->
             AgentInitConfig(
-                saveCliUrl = saveCliUrl.toString(),
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(saveCliVersion)).toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
                         testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)

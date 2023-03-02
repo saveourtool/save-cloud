@@ -117,7 +117,7 @@ class ContainerService(
 
         val baseImage = request.sdk.baseImageName()
 
-        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, InternalFileKey.latestSaveAgentKey)
+        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, InternalFileKey.saveAgentKey)
 
         return RunConfiguration(
             imageTag = baseImage,
