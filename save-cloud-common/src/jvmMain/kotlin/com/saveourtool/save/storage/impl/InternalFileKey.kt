@@ -38,16 +38,6 @@ data class InternalFileKey(
         val saveAgentKey: InternalFileKey = latest("save-agent", "save-agent.kexe")
 
         /**
-         * [InternalFileKey.name] for *save-cli*
-         */
-        val saveCliKeyName: String = "save-cli"
-
-        /**
-         * [InternalFileKey] for latest *save-cli*
-         */
-        val latestSaveCliKey: InternalFileKey = latest(saveCliKeyName, "save-linuxX64.kexe")
-
-        /**
          * @param name
          * @param fileName
          * @return [InternalFileKey] with latest version
@@ -59,7 +49,7 @@ data class InternalFileKey(
          * @return [InternalFileKey] for *save-cli* with version [version]
          */
         fun saveCliKey(version: String): InternalFileKey = InternalFileKey(
-            name = saveCliKeyName,
+            name = "save-cli",
             version = version,
             fileName = "save-$version-linuxX64.kexe",
         )

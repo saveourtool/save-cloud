@@ -159,8 +159,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
 
-
-
 /*
  * On Windows, it's impossible to link a Linux executable against
  * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.

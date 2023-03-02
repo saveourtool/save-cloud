@@ -113,6 +113,7 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
         Mono.just(Unit)
     }
 }
+
 /**
  * If [this] [Mono] is empty, run [effect].
  *
@@ -293,9 +294,9 @@ fun waitReactivelyUntil(
 fun tryDownloadFromClasspath(
     resourceName: String,
 ): Mono<out Resource> =
-    Mono.just(resourceName)
-        .map(::ClassPathResource)
-        .filter(Resource::exists)
+        Mono.just(resourceName)
+            .map(::ClassPathResource)
+            .filter(Resource::exists)
 
 /**
  * Downloads the resource named [resourceName] from the classpath.

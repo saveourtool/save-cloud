@@ -30,7 +30,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import kotlinx.datetime.toJavaLocalDateTime
-import reactor.kotlin.extra.math.max
 
 /**
  * Controller to manipulate with Agent related data
