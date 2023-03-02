@@ -23,32 +23,23 @@ fun Project.readSaveCliVersion(): String {
     return Properties().apply { load(file.reader()) }["version"] as String
 }
 
-/**
- * @return save-cli file path to copy
- */
-fun Project.getSaveCliPath(): String {
-    val saveCliVersion = readSaveCliVersion()
-    val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
-        ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
-    return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
-}
-
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
-    dependsOn(":getSaveCliVersion")
-
-    src { getSaveCliPath() }
-    dest { "$buildDir/download/${File(getSaveCliPath()).name}" }
-
-    overwrite(false)
-}
-
 dependencies {
-    add("runtimeOnly",
-        files(layout.buildDirectory.dir("$buildDir/download")).apply {
-            builtBy(downloadSaveCliTaskProvider)
+    findProperty("saveCliPath")?.let { saveCliPathProperty ->
+        val saveCliPath = saveCliPathProperty as String
+        val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
+            dependsOn(":getSaveCliVersion")
+
+            src { saveCliPath }
+            dest { "$buildDir/download/${File(saveCliPath).name}" }
+
+            overwrite(false)
         }
-    )
+        add("runtimeOnly",
+            files(layout.buildDirectory.dir("$buildDir/download")).apply {
+                builtBy(downloadSaveCliTaskProvider)
+            }
+        )
+    }
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
@@ -76,9 +67,5 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 }
 
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(generateVersionFileTaskProvider.map { _ -> "$buildDir/generated/src" })
 }
