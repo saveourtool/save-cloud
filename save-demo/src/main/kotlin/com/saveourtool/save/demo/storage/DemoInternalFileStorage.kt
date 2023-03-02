@@ -22,6 +22,6 @@ class DemoInternalFileStorage(
         /**
          * [InternalFileKey] for *save-demo-agent*
          */
-        val saveDemoAgent: InternalFileKey = InternalFileKey.latest("save-demo-agent.kexe")
+        val saveDemoAgent: InternalFileKey = InternalFileKey.latest("save-demo-agent", "save-demo-agent.kexe")
     }
 }

@@ -207,10 +207,7 @@ class RunExecutionController(
         .bodyValue(
             execution.toRunRequest(
                 saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-                    .orNotFound {
-                        "Not found save-agent in internal storage"
-                    },
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
             )
         )
         .retrieve()

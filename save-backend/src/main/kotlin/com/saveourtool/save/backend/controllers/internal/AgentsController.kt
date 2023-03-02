@@ -64,10 +64,7 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
-                    .orNotFound {
-                        "Not found save-cli with version $SAVE_CORE_VERSION"
-                    }
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION))
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
