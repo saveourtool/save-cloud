@@ -3,6 +3,7 @@ package com.saveourtool.save.storage.impl
 /**
  * @property name
  * @property version
+ * @property fileName
  */
 data class InternalFileKey(
     val name: String,
