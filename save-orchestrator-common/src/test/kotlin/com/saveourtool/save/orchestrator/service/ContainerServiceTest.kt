@@ -7,10 +7,10 @@ import com.github.dockerjava.api.model.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.docker.DockerContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
+import com.saveourtool.save.orchestrator.utils.DockerClientTestConfiguration
 
 import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
 import com.saveourtool.save.orchestrator.utils.silentlyExec
@@ -27,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.ActiveProfiles
 import reactor.kotlin.core.publisher.toMono
 import java.net.ServerSocket
 import java.net.URL
@@ -36,10 +36,10 @@ import kotlin.io.path.*
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-@SpringBootTest
-@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run ContainerServiceTestOnWindows")
+@SpringBootTest(properties = ["orchestrator.docker.runtime=runc"])
+@ActiveProfiles("test")
 @Import(
-    Beans::class,
+    DockerClientTestConfiguration::class,
     DockerContainerRunner::class,
     ContainerService::class,
     AgentService::class,
@@ -57,6 +57,12 @@ class ContainerServiceTest {
     private val mockserverVolumeName = "mockserver-config"
     private val mockserverConfigPath = "/config"
     private val mockUrl = "/some-path-do-download-save-agent"
+
+    init {
+        if (System.getProperty("os.name").lowercase().contains("win")) {
+            System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
+        }
+    }
 
     @BeforeEach
     fun setUp(@TempDir tmpDir: Path) {
@@ -183,13 +189,5 @@ class ContainerServiceTest {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ContainerServiceTest::class.java)
-    }
-}
-
-@EnabledOnOs(OS.WINDOWS)
-@TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
-class ContainerServiceTestOnWindows : ContainerServiceTest() {
-    init {
-        System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
     }
 }

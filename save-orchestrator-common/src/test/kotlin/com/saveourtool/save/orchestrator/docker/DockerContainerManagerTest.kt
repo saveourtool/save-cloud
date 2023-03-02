@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient
@@ -8,6 +7,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
+import com.saveourtool.save.orchestrator.utils.DockerClientTestConfiguration
 import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
 import com.saveourtool.save.orchestrator.utils.silentlyExec
 import com.saveourtool.save.utils.error
@@ -20,22 +20,34 @@ import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.ActiveProfiles
 
 import kotlin.io.path.createTempFile
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 
-@SpringBootTest
-@Import(Beans::class, DockerContainerRunner::class)
-@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
+@SpringBootTest(properties = ["orchestrator.docker.runtime=runc"])
+@ActiveProfiles("test")
+@Import(
+    DockerClientTestConfiguration::class,
+    DockerContainerRunner::class,
+)
+@MockBeans(
+    MockBean(OrchestratorAgentService::class),
+)
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
-    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
+
+    init {
+        if (System.getProperty("os.name").lowercase().contains("win")) {
+            System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
+        }
+    }
 
     @BeforeEach
     fun setUp() {
@@ -106,13 +118,5 @@ class DockerContainerManagerTest {
 
     companion object {
         private val log: Logger = getLogger<DockerContainerManagerTest>()
-    }
-}
-
-@EnabledOnOs(OS.WINDOWS)
-@TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
-class DockerContainerManagerTestOnWindows : DockerContainerManagerTest() {
-    init {
-        System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
     }
 }

@@ -35,4 +35,6 @@ dependencies {
     implementation(libs.spring.kafka)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.logback.core)
 }
