@@ -14,6 +14,7 @@ import com.saveourtool.save.utils.*
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
@@ -298,6 +299,7 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk,
+            saveCliVersion = SAVE_CORE_VERSION,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,

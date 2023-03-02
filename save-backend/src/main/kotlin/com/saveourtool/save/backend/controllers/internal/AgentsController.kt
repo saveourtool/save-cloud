@@ -14,7 +14,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
-import generated.SAVE_CORE_VERSION
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -59,14 +58,13 @@ class AgentsController(
     @GetMapping("/agents/get-init-config")
     fun getInitConfig(
         @RequestParam containerId: String,
-        @RequestParam(required = false, defaultValue = SAVE_CORE_VERSION) saveCliVersion: String,
     ): Mono<AgentInitConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
             agentService.getExecution(it)
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(saveCliVersion))
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(execution.saveCliVersion))
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
