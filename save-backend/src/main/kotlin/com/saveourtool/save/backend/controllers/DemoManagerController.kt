@@ -333,4 +333,44 @@ class DemoManagerController(
                     )
                 )
         }
+
+    @PostMapping("/{organizationName}/{projectName}/delete")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+    )
+    @Operation(
+        method = "POST",
+        summary = "Delete demo.",
+        description = "Delete demo by saveourtool organization and project names.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully deleted demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for demo deletion.")
+    @ApiResponse(responseCode = "404", description = "Could not find saveourtool project or demo of a project.")
+    fun deleteDemo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find $organizationName/$projectName."
+    }
+        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
+            "Not enough permission for accessing $organizationName/$projectName."
+        }
+        .flatMap { project ->
+            webClientDemo.post()
+                .uri("/demo/internal/manager/${project.toProjectCoordinates()}/delete")
+                .retrieve()
+                .onStatus({ it == HttpStatus.NOT_FOUND }) {
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Could not find demo for $organizationName/$projectName.",
+                        )
+                    )
+                }
+                .toEntity()
+        }
 }

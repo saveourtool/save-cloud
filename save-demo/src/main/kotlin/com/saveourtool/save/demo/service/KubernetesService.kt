@@ -67,9 +67,10 @@ class KubernetesService(
             )
         }
     }
-        .flatMap {
+        .asyncEffect {
             mono { configureDemoAgent(it, version) }
         }
+        .map { StringResponse.ok("Created container for demo.") }
 
     /**
      * @param demo demo entity
