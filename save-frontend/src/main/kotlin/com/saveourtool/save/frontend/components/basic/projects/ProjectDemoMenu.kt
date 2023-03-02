@@ -64,7 +64,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    val sendDeleteRequest = useDeferredRequest {
+    val deleteDemo = useDeferredRequest {
         post(
             "$apiUrl/demo/${props.organizationName}/${props.projectName}/delete",
             jsonHeaders,
@@ -95,7 +95,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    val sendDemoCreationRequest = useDeferredRequest {
+    val createDemo = useDeferredRequest {
         if (githubProjectCoordinates.consideredBlank()) {
             demoDto.copy(githubProjectCoordinates = null)
         } else {
@@ -113,6 +113,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 )
                     .let {
                         if (it.ok) {
+                            setDemoStatus(DemoStatus.STOPPED)
                             window.alert(it.body as String)
                         } else {
                             props.updateErrorMessage(it.statusText, it.unpackMessage())
@@ -121,8 +122,35 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
             }
     }
 
+    val startDemo = useDeferredRequest {
+        post(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/start",
+            jsonHeaders,
+            Unit,
+            ::loadingHandler,
+        ).let {
+            if (it.ok) {
+                setDemoStatus(DemoStatus.STARTING)
+                window.alert(it.body as String)
+            }
+        }
+    }
+
+    val stopDemo = useDeferredRequest {
+        post(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/stop",
+            jsonHeaders,
+            Unit,
+            ::loadingHandler,
+        ).let {
+            if (it.ok) {
+                setDemoStatus(DemoStatus.STOPPING)
+                window.alert(it.body as String)
+            }
+        }
+    }
+
     useOnce {
-        window.alert("This is just a preview, nothing on this view works for now.")
         getDemoInfo()
     }
 
@@ -142,9 +170,17 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 hr { }
                 renderSdkSelector(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
                 hr { }
-                renderButtons(demoStatus, props.userProjectRole, sendDemoCreationRequest, getDemoStatus) {
+                renderButtons(
+                    demoStatus,
+                    props.userProjectRole,
+                    createDemo,
+                    getDemoStatus,
+                    startDemo,
+                    stopDemo
+                ) {
                     if (window.confirm("Delete demo of ${props.organizationName}/${props.projectName}?")) {
-                        sendDeleteRequest()
+                        deleteDemo()
+                        setDemoStatus(DemoStatus.STOPPING)
                     }
                 }
             }
@@ -184,7 +220,7 @@ private fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
         div {
             val borderStyle = when (demoStatus) {
                 DemoStatus.NOT_CREATED -> "border-dark"
-                DemoStatus.STARTING -> "border-warning"
+                DemoStatus.STARTING, DemoStatus.STOPPING -> "border-warning"
                 DemoStatus.RUNNING -> "border-success"
                 DemoStatus.STOPPED -> "border-secondary"
                 DemoStatus.ERROR -> "border-danger"
@@ -377,11 +413,14 @@ private fun ChildrenBuilder.renderSdkSelector(demoDto: DemoDto, setDemoDto: Stat
     }
 }
 
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 private fun ChildrenBuilder.renderButtons(
     demoStatus: DemoStatus,
     userRole: Role,
     sendDemoCreationRequest: () -> Unit,
     getDemoStatus: () -> Unit,
+    startDemo: () -> Unit,
+    stopDemo: () -> Unit,
     deleteDemo: () -> Unit,
 ) {
     div {
@@ -392,35 +431,46 @@ private fun ChildrenBuilder.renderButtons(
             }
 
             DemoStatus.STARTING -> {
+                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    stopDemo()
+                }
                 buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
                     getDemoStatus()
-                }
-
-                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // stop request here
                 }
             }
 
             DemoStatus.RUNNING -> {
+                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    stopDemo()
+                }
                 buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
                     deleteDemo()
                 }
-                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // stop request here
+            }
+
+            DemoStatus.ERROR -> {
+                buttonBuilder("Run", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    startDemo()
+                }
+                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
+                    deleteDemo()
                 }
             }
 
-            DemoStatus.ERROR, DemoStatus.STOPPED -> {
+            DemoStatus.STOPPED -> {
                 buttonBuilder("Run", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // run request here
+                    startDemo()
                 }
-
                 buttonBuilder("Update configuration", style = "info", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
                     // update request here
                 }
                 buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
                     deleteDemo()
                 }
+            }
+
+            DemoStatus.STOPPING -> buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
+                getDemoStatus()
             }
         }
     }
