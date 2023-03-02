@@ -6,16 +6,17 @@ import com.saveourtool.save.orchestrator.service.ContainerService
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
 import com.saveourtool.save.orchestrator.utils.silentlyExec
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import com.saveourtool.save.utils.error
+import com.saveourtool.save.utils.getLogger
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -56,16 +57,23 @@ class DockerContainerManagerTest {
         val executionId = Random.nextLong().absoluteValue
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
-        dockerAgentRunner.createAndStart(
-            executionId = executionId,
-            configuration = ContainerService.RunConfiguration(
-                baseImage.repoTags.first(),
-                listOf("bash", "-c", "./script.sh"),
-                workingDir = "/",
-                env = emptyMap(),
-            ),
-            replicas = 1,
-        )
+        try {
+            dockerAgentRunner.createAndStart(
+                executionId = executionId,
+                configuration = ContainerService.RunConfiguration(
+                    baseImage.repoTags.first(),
+                    listOf("bash", "-c", "./script.sh"),
+                    workingDir = "/",
+                    env = emptyMap(),
+                ),
+                replicas = 1,
+            )
+        } catch (ex: ContainerRunnerException) {
+            log.error(ex) {
+                "Failed test with exception: ${ex.message}"
+            }
+            fail(ex)
+        }
         testContainerId = dockerClient.listContainersCmd()
             .withNameFilter(listOf("-$executionId-"))
             .exec()
@@ -94,6 +102,10 @@ class DockerContainerManagerTest {
             dockerClient.silentlyCleanupContainer(testContainerId)
         }
         dockerClient.removeVolumeCmd("test-volume").silentlyExec()
+    }
+
+    companion object {
+        private val log: Logger = getLogger<DockerContainerManagerTest>()
     }
 }
 

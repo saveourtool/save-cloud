@@ -10,13 +10,12 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.docker.DockerContainerRunner
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 
 import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
 import com.saveourtool.save.orchestrator.utils.silentlyExec
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import com.saveourtool.save.utils.error
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
@@ -133,10 +132,17 @@ class ContainerServiceTest {
             )
         )
         // start container and query backend
-        containerService.createAndStartContainers(
-            testExecution.requiredId(),
-            configuration
-        )
+        try {
+            containerService.createAndStartContainers(
+                testExecution.requiredId(),
+                configuration
+            )
+        } catch (ex: ContainerRunnerException) {
+            logger.error(ex) {
+                "Failed test with exception: ${ex.message}"
+            }
+            fail(ex)
+        }
         testContainerId = dockerClient.listContainersCmd()
             .withNameFilter(listOf("-${testExecution.requiredId()}-"))
             .exec()
