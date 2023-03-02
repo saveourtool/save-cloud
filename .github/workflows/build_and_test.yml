@@ -29,8 +29,8 @@ jobs:
           java-version: 11
           distribution: temurin
       - name: Install system packages
-        # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
       - name: Retrieve Kotlin version
         run: |
           kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
@@ -54,6 +54,7 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
             --build-cache
+            --debug
 
       - name: Upload gradle reports
         if: ${{ always() }}
