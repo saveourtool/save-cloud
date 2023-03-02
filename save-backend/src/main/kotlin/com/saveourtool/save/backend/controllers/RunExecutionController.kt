@@ -205,10 +205,7 @@ class RunExecutionController(
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(
             execution.toRunRequest(
-                saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-                    .orNotFound {
-                        "Not found save-agent in internal storage"
-                    },
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
             )
         )
         .retrieve()

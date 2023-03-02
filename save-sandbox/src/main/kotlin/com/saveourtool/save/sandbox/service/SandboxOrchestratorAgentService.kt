@@ -60,8 +60,7 @@ class SandboxOrchestratorAgentService(
         }
         .map { (execution, fileToUrls) ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION)) }
-                    .orNotFound { "Not found save-cli with version $SAVE_CORE_VERSION" }
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION))
                     .toString(),
                 testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
@@ -158,10 +157,7 @@ class SandboxOrchestratorAgentService(
      * @return a request to run execution
      */
     fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
-        saveAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(InternalFileKey.saveAgentKey) }
-            .orNotFound {
-                "Not found save-agent with version $SAVE_CORE_VERSION"
-            },
+        saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
     )
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository
