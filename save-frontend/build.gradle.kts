@@ -202,10 +202,8 @@ tasks.named<KotlinJsTest>("browserTest").configure {
 
 kotlin.sourceSets.getByName("main") {
     kotlin.srcDir(
-        tasks.named("generateSaveCloudVersionFile").map { _ ->
-            // Simply discard task. However, `map` is essential to tell Gradle
-            // that `srcDir` depends on this task.
-            "$buildDir/generated/src"
+        tasks.named("generateSaveCloudVersionFile").map {
+            it.outputs.files.singleFile
         }
     )
 }

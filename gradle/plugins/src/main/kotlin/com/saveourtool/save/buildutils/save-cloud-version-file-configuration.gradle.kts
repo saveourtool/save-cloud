@@ -7,9 +7,10 @@ package com.saveourtool.save.buildutils
 import java.io.File
 
 tasks.register("generateSaveCloudVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/SaveCloudVersion.kt")
+    val outputDir = File("$buildDir/generated/src")
+    val versionsFile = outputDir.resolve("generated/SaveCloudVersion.kt")
     inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
+    outputs.dir("$buildDir/generated/src")
 
     doFirst {
         versionsFile.parentFile.mkdirs()
