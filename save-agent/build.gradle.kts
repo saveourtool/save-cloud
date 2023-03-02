@@ -41,7 +41,9 @@ kotlin {
             versionsFile.writeText(
                 """
                 package generated
+
                 internal const val AGENT_VERSION = "$version"
+
                 """.trimIndent()
             )
         }
