@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR

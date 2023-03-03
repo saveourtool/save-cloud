@@ -21,6 +21,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 
+import generated.SAVE_CORE_VERSION
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
