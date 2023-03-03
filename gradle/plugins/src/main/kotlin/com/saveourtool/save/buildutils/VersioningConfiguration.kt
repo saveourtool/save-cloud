@@ -9,7 +9,9 @@ import org.ajoberstar.grgit.gradle.GrgitServicePlugin
 import org.ajoberstar.reckon.gradle.ReckonExtension
 import org.ajoberstar.reckon.gradle.ReckonPlugin
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.*
+import java.util.*
 
 /**
  * @return path to the file with save-cli version for current build
@@ -49,6 +51,16 @@ fun Project.configureVersioning() {
         )
     }
 }
+
+/**
+ * @return save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+internal fun Project.readSaveCliVersion(): Provider<String> = rootProject.tasks.named("getSaveCliVersion")
+    .map { getSaveCliVersionTask ->
+        val file = file(getSaveCliVersionTask.outputs.files.singleFile)
+        Properties().apply { load(file.reader()) }["version"] as String
+    }
 
 /**
  * @return true if this string denotes a snapshot version

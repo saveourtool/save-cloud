@@ -40,7 +40,7 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding tests for save-orchestrator-common)
+      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
@@ -50,19 +50,23 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-orchestrator-common:check
+            -x :save-orchestrator-common:build
+            -x :save-orchestrator:build
+            -x :save-sandbox:build
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
             --build-cache
-      - name: Check save-orchestrator-common
+      - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
           arguments: |
-            :save-orchestrator-common:check
+            :save-orchestrator-common:build
+            :save-orchestrator:build
+            :save-sandbox:build
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
