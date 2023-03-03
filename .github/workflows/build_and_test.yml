@@ -40,7 +40,8 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - uses: gradle/gradle-build-action@v2
+      - name: Build all (excluding tests for save-orchestrator-common)
+        uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
@@ -49,11 +50,27 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
+            -x :save-orchestrator-common:check
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache 
+            --build-cache
+      - name: Check save-orchestrator-common
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-orchestrator-common:check
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
 
       - name: Upload gradle reports
         if: ${{ always() }}
