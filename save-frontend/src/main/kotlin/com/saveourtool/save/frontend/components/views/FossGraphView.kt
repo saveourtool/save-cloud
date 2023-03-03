@@ -9,7 +9,9 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
+import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.utils.useBackground
 
 import csstype.AlignItems
 import csstype.ClassName
@@ -44,6 +46,7 @@ val fossGraphView: VFC = VFC {
     "LongMethod",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
+    useBackground(Style.WHITE)
     div {
         className = ClassName("card card-body mt-0")
 
