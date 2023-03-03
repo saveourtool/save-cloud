@@ -6,8 +6,8 @@ package com.saveourtool.save.demo.utils
 
 import com.saveourtool.save.demo.config.KubernetesConfig
 import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.demo.storage.DemoInternalFileStorage
 import com.saveourtool.save.domain.toSdk
-import com.saveourtool.save.utils.AgentType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.downloadAndRunAgentCommand
 import io.fabric8.kubernetes.api.model.*
@@ -44,6 +44,7 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
             backoffLimit = 0
             template = PodTemplateSpec().apply {
                 spec = PodSpec().apply {
+                    subdomain = kubernetesSettings.agentSubdomainName
                     if (kubernetesSettings.useGvisor) {
                         nodeSelector = mapOf(
                             "gvisor" to "enabled"
@@ -110,10 +111,10 @@ fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
     .list()
     .items
 
-private fun ContainerPort.default() = apply {
+private fun ContainerPort.default(port: Int) = apply {
     protocol = "TCP"
-    containerPort = SAVE_DEMO_AGENT_DEFAULT_PORT
-    hostPort = SAVE_DEMO_AGENT_DEFAULT_PORT
+    containerPort = port
+    hostPort = port
     name = "agent-server"
 }
 
@@ -137,11 +138,11 @@ private fun demoAgentContainerSpec(
         "KTOR_LOG_LEVEL" to "TRACE",
     )
 
-    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, AgentType.DEMO_AGENT, envOptions = envOptions)
+    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent, envOptions = envOptions)
 
     command = listOf("sh", "-c", startupCommand)
 
-    ports = listOf(ContainerPort().default())
+    ports = listOf(ContainerPort().default(kubernetesSettings.agentPort))
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {

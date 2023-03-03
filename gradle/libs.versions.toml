@@ -1,17 +1,17 @@
 [versions]
 kotlin = "1.8.10"
 jetbrains-annotations = "24.0.0"
-save-core = "0.3.8"
-ktor = "2.2.2"
+save-core = "0.3.9"
+ktor = "2.2.3"
 okio = "3.3.0"
-serialization = "1.4.1"
+serialization = "1.5.0"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
 kotlin-wrappers = "1.0.0-pre.490"
 spring-boot = "2.7.8"
 spring-cloud = "3.1.5"
 spring-cloud-kubernetes = "2.1.5"
-kafka-client = "3.3.2"
+kafka-client = "3.4.0"
 junit = "5.9.2"
 assertj = "3.24.2"
 diktat = "1.2.4.1"
@@ -19,7 +19,7 @@ detekt = "1.22.0"
 liquibase-core = "4.19.0"
 docker-java = "3.2.14"
 jgit = "6.4.0.202211300538-r"
-mockito = "5.1.0"
+mockito = "5.1.1"
 mockito-kotlin = "4.1.0"
 # only in save-cli
 log4j = "2.19.0"
@@ -34,13 +34,13 @@ zip4j = "2.11.3"
 ktoml = "0.4.1"
 springdoc = "1.6.14"
 kotlinx-cli = "0.3.5"
-spotless = "6.14.0"
-fabric8 = "6.4.0"
+spotless = "6.14.1"
+fabric8 = "6.4.1"
 arrow-kt = "1.1.5"
 publish = "1.1.0"
-download = "5.3.0"
+download = "5.3.1"
 cpg = "6.1.0"
-aws-sdk = "2.19.26"
+aws-sdk = "2.19.32"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -162,7 +162,7 @@ okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.4" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.5.5" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 slf4j-api = { module = "org.slf4j:slf4j-api" }

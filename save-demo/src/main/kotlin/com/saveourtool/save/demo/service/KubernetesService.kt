@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.demo.storage.DemoInternalFileStorage
 import com.saveourtool.save.demo.utils.*
 import com.saveourtool.save.utils.*
 
@@ -39,6 +40,7 @@ import kotlinx.serialization.json.Json
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
+    private val internalFileStorage: DemoInternalFileStorage,
 ) {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
@@ -53,7 +55,8 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = getDemoAgentDownloadUrl(configProperties.agentConfig.demoUrl)
+            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
+                .toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
             demo
         } catch (kre: KubernetesRunnerException) {
@@ -64,9 +67,10 @@ class KubernetesService(
             )
         }
     }
-        .flatMap {
+        .asyncEffect {
             mono { configureDemoAgent(it, version) }
         }
+        .map { StringResponse.ok("Created container for demo.") }
 
     /**
      * @param demo demo entity
@@ -82,9 +86,8 @@ class KubernetesService(
      * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
-        val pod = getPodByDemo(demo)
         val status = retrySilently(RETRY_TIMES_QUICK) {
-            demoAgentRequestWrapper(listOf("alive"), pod, kc) { url ->
+            demoAgentRequestWrapper("/alive", demo) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
             }
@@ -98,14 +101,13 @@ class KubernetesService(
     }
 
     private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
-        val pod = getPodByDemo(demo)
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
         val configuration = DemoAgentConfig(
             configProperties.agentConfig.demoUrl,
             demo.toDemoConfiguration(version),
             demo.toRunConfiguration(),
         )
-        return demoAgentRequestWrapper(listOf("setup"), pod, kc) { url ->
+        return demoAgentRequestWrapper("/setup", demo) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }
     }
@@ -121,9 +123,8 @@ class KubernetesService(
         demo: Demo,
         demoRunRequest: DemoRunRequest,
     ): HttpResponse? {
-        val pod = getPodByDemo(demo)
         val response = try {
-            demoAgentRequestWrapper(listOf("run"), pod, kc) { url ->
+            demoAgentRequestWrapper("/run", demo) { url ->
                 logger.info("Sending POST request with url $url")
                 httpClient.post {
                     url(url)
@@ -179,6 +180,12 @@ class KubernetesService(
         kc.getJobPods(demo).firstOrNull()
     } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
 
+    private suspend fun <R> demoAgentRequestWrapper(
+        urlPath: String,
+        demo: Demo,
+        request: suspend (Url) -> R,
+    ): R = demoAgentRequestWrapper(urlPath, getPodByDemo(demo), kubernetesSettings, request)
+
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
         private const val RETRY_TIMES = 6
@@ -189,7 +196,5 @@ class KubernetesService(
                 json(json)
             }
         }
-
-        private fun getDemoAgentDownloadUrl(demoUrl: String) = "$demoUrl/demo/internal/files/download-agent"
     }
 }

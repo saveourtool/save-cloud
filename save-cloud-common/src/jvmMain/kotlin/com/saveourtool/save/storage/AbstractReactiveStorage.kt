@@ -32,15 +32,16 @@ abstract class AbstractReactiveStorage<K : Any>(
      */
     @PostConstruct
     fun init() {
-        initializer.init {
-            doInit()
+        initializer.initReactively {
+            doInit(storageProjectReactor)
         }
     }
 
     /**
+     * @param underlying
      * @return result of init method as [Mono] without body, it's [Mono.empty] by default
      */
-    protected open fun doInit(): Mono<Unit> = Mono.empty()
+    protected open fun doInit(underlying: DefaultStorageProjectReactor<K>): Mono<Unit> = Mono.empty()
 
     override fun list(): Flux<K> = initializer.validateAndRun { storageProjectReactor.list() }
 

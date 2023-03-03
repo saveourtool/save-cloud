@@ -45,10 +45,14 @@ kotlin {
             dependencies {
                 implementation(libs.save.common)
                 api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
 
                 implementation(libs.okio)
                 implementation(libs.ktor.client.core)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         commonTest {

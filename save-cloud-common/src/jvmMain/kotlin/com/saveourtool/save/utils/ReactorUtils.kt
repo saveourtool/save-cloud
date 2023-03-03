@@ -5,6 +5,11 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import io.ktor.client.statement.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -25,6 +30,9 @@ import java.nio.ByteBuffer
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
@@ -57,6 +65,7 @@ fun <T> Flux<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
  * @param status
  * @param messageCreator
  * @return original [Mono] or [Mono.error] with [status] if [predicate] is true for value in [Mono]
+ * @see requireOrSwitchToForbidden
  */
 @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
 fun <T> Mono<T>.requireOrSwitchToResponseException(
@@ -64,6 +73,18 @@ fun <T> Mono<T>.requireOrSwitchToResponseException(
     status: HttpStatus,
     messageCreator: (() -> String?) = { null }
 ) = filter(predicate).switchIfEmptyToResponseException(status, messageCreator)
+
+/**
+ * @param predicate
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with [HttpStatus.FORBIDDEN] if [predicate] is true for value in [Mono]
+ * @see [requireOrSwitchToResponseException]
+ */
+@Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
+fun <T> Mono<T>.requireOrSwitchToForbidden(
+    predicate: T.() -> Boolean,
+    messageCreator: (() -> String?) = { null }
+) = requireOrSwitchToResponseException(predicate, HttpStatus.FORBIDDEN, messageCreator)
 
 /**
  * @param lazyValue default value creator
@@ -204,6 +225,28 @@ inline fun <reified T : Any> ResponseSpec.blockingBodyToMono(): Mono<T> =
 fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
         toBodilessEntity()
             .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
+ *
+ * @return [Flow] of [ByteBuffer]
+ */
+fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = toByteArrayFlow().map { ByteBuffer.wrap(it) }
+
+/**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteArray]
+ *
+ * @return [Flow] of [ByteArray]
+ */
+fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
+    while (!isClosedForRead) {
+        val packet = readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+        while (!packet.isEmpty) {
+            val bytes = packet.readBytes()
+            emit(bytes)
+        }
+    }
+}
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
