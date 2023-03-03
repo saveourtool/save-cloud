@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient

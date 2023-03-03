@@ -51,13 +51,11 @@ dependencies {
     )
 }
 
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
-    inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
@@ -68,7 +66,6 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
             package generated
 
             internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
 
             """.trimIndent()
         )
