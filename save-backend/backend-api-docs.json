@@ -11,6 +11,63 @@
     }
   ],
   "paths": {
+    "/api/v1/a/validate": {
+      "get": {
+        "operationId": "sequential",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Accept",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "application/x-ndjson"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuiteValidationResult"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuiteValidationResult"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "406": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuiteValidationResult"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuiteValidationResult"
+                }
+              }
+            },
+            "description": "Could not find acceptable representation."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "test-suite-validation-controller"
+        ]
+      }
+    },
     "/api/v1/avatar/upload": {
       "post": {
         "description": "Upload an avatar for user or organization.",
@@ -9638,6 +9695,26 @@
           },
           "testSuiteName": {
             "type": "string"
+          }
+        }
+      },
+      "TestSuiteValidationResult": {
+        "required": [
+          "checkId",
+          "checkName",
+          "percentage"
+        ],
+        "type": "object",
+        "properties": {
+          "checkId": {
+            "type": "string"
+          },
+          "checkName": {
+            "type": "string"
+          },
+          "percentage": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
