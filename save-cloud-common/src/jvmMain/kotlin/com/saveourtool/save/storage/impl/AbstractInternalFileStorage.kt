@@ -5,6 +5,8 @@ import com.saveourtool.save.storage.*
 import com.saveourtool.save.storage.key.AbstractS3KeyManager
 import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.github.GitHubHelper
+import com.saveourtool.save.utils.github.GitHubRepoInfo
 
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -139,4 +141,37 @@ open class AbstractInternalFileStorage(
         }
         .thenReturn(Unit)
         .defaultIfEmpty(Unit)
+
+    /**
+     * Download save-cli from GitHub ([saveCliRepo]) latest [SAVE_CLI_VERSIONS] versions
+     */
+    protected suspend fun DefaultStorageCoroutines<InternalFileKey>.downloadSaveCliFromGithub() {
+        GitHubHelper.availableTags(saveCliRepo)
+            .sorted()
+            .takeLast(SAVE_CLI_VERSIONS)
+            .map { tagName ->
+                InternalFileKey.saveCliKey(tagName.removePrefix("v")) to tagName
+            }
+            .filterNot { (key, _) ->
+                doesExist(key)
+            }
+            .forEach { (key, tagName) ->
+                GitHubHelper.download(saveCliRepo, tagName, key.fileName) { (content, contentLength) ->
+                    val uploadedKey = upload(key, contentLength, content.toByteBufferFlow())
+                    log.info {
+                        "Uploaded $uploadedKey to internal storage"
+                    }
+                } ?: log.warn {
+                    "Not found $key in github"
+                }
+            }
+    }
+
+    companion object {
+        private const val SAVE_CLI_VERSIONS = 3
+        private val saveCliRepo = object : GitHubRepoInfo {
+            override val organizationName: String = "saveourtool"
+            override val projectName: String = "save-cli"
+        }
+    }
 }
