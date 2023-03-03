@@ -31,5 +31,10 @@ enum class DemoStatus {
      * Demo is created but stopped by owner
      */
     STOPPED,
+
+    /**
+     * Demo stop request is already sent, but container is not stopped yet.
+     */
+    STOPPING,
     ;
 }
