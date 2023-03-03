@@ -29,7 +29,6 @@ open class SaveAgentTest {
     init {
         setenv(AgentEnvName.CONTAINER_ID.name, "agent-for-test")
         setenv(AgentEnvName.CONTAINER_NAME.name, "save-agent-for-test")
-        setenv(AgentEnvName.AGENT_VERSION.name, "save-agent-version")
         setenv(AgentEnvName.HEARTBEAT_URL.name, HEARTBEAT_ENDPOINT.toLocalhostUrl())
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode")
         setenv(AgentEnvName.EXECUTION_ID.name, "1")
