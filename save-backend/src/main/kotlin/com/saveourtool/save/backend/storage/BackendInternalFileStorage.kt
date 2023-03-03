@@ -8,6 +8,7 @@ import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper
 import com.saveourtool.save.utils.github.GitHubRepoInfo
+import generated.SAVE_CORE_VERSION
 
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -20,7 +21,7 @@ class BackendInternalFileStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
 ) : AbstractInternalFileStorage(
-    listOf(InternalFileKey.saveAgentKey),
+    listOf(InternalFileKey.saveAgentKey, InternalFileKey.saveCliKey(SAVE_CORE_VERSION)),
     configProperties.s3Storage.prefix,
     s3Operations,
 ) {
