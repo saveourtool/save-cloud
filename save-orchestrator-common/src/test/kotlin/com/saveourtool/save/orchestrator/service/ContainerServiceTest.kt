@@ -37,7 +37,7 @@ import kotlin.math.absoluteValue
 import kotlin.random.Random
 
 @SpringBootTest(properties = ["orchestrator.docker.runtime=runc"])
-@ActiveProfiles("test")
+@ActiveProfiles("docker-test")
 @Import(
     DockerClientTestConfiguration::class,
     DockerContainerRunner::class,

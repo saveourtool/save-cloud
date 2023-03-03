@@ -8,7 +8,6 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootApplication
 @Import(SaveOrchestratorCommonConfiguration::class)
-@ActiveProfiles("test")
 class SaveOrchestratorCommonTestApplication {
     /**
      * @return test bean for [MeterRegistry]
