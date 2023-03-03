@@ -20,16 +20,6 @@ import java.util.*
 internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
 
 /**
- * @return save-cli version for current build
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-internal fun Project.readSaveCliVersion(): Provider<String> = rootProject.tasks.named("getSaveCliVersion")
-    .map { getSaveCliVersionTask ->
-        val file = file(getSaveCliVersionTask.outputs.files.singleFile)
-        Properties().apply { load(file.reader()) }["version"] as String
-    }
-
-/**
  * Configures reckon plugin for [this] project, should be applied for root project only
  */
 fun Project.configureVersioning() {
@@ -61,6 +51,16 @@ fun Project.configureVersioning() {
         )
     }
 }
+
+/**
+ * @return save-cli version for current build
+ */
+@Suppress("CUSTOM_GETTERS_SETTERS")
+internal fun Project.readSaveCliVersion(): Provider<String> = rootProject.tasks.named("getSaveCliVersion")
+    .map { getSaveCliVersionTask ->
+        val file = file(getSaveCliVersionTask.outputs.files.singleFile)
+        Properties().apply { load(file.reader()) }["version"] as String
+    }
 
 /**
  * @return true if this string denotes a snapshot version

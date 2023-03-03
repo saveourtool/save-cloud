@@ -13,7 +13,7 @@ plugins {
     id("de.undercouch.download")
 }
 
-val copySaveCliTaskProvider = tasks.register("copySaveCli") {
+val copySaveCliTaskProvider = tasks.register<Copy>("copySaveCli") {
     val saveCliFile = rootProject.tasks.named<Download>("downloadSaveCli")
         .map { downloadTask ->
             downloadTask.dest
@@ -22,10 +22,8 @@ val copySaveCliTaskProvider = tasks.register("copySaveCli") {
     inputs.file(saveCliFile)
     outputs.dir(outputDir)
 
-    copy {
-        into(outputDir)
-        from(saveCliFile.map { it.parentFile })
-    }
+    from(saveCliFile.map { it.parentFile })
+    into(outputDir)
 }
 
 dependencies {
