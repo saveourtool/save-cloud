@@ -31,25 +31,6 @@ kotlin {
         }
     }
 
-    // generate kotlin file with project version
-    val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-        inputs.property("project version", version.toString())
-        val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-        outputs.file(versionsFile)
-
-        doFirst {
-            versionsFile.parentFile.mkdirs()
-            versionsFile.writeText(
-                """
-                package generated
-
-                internal const val AGENT_VERSION = "$version"
-
-                """.trimIndent()
-            )
-        }
-    }
-
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")

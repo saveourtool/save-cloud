@@ -5,6 +5,7 @@
 package com.saveourtool.save.buildutils
 
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -15,21 +16,17 @@ plugins {
     id("de.undercouch.download")
 }
 
-/**
- * @return version of save-cli from properties file
- */
-fun Project.readSaveCliVersion(): String {
-    val file = file(pathToSaveCliVersion)
-    return Properties().apply { load(file.reader()) }["version"] as String
-}
+val saveCoreVersion = the<LibrariesForLibs>()
+    .versions
+    .save
+    .core
+    .get()
 
 dependencies {
     findProperty("saveCliPath")?.let { saveCliPathProperty ->
         val saveCliPath = saveCliPathProperty as String
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
-            dependsOn(":getSaveCliVersion")
-
             src { saveCliPath }
             dest { "$buildDir/download/${File(saveCliPath).name}" }
 
@@ -46,12 +43,12 @@ dependencies {
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
     val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
 
-    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    inputs.file(pathToSaveCliVersion)
+    val saveCliVersion = findProperty("saveCliVersion") ?: saveCoreVersion
+    // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
+    inputs.property("save-cli version", saveCliVersion)
     outputs.file(versionsFile)
 
     doFirst {
-        val saveCliVersion = readSaveCliVersion()
         versionsFile.parentFile.mkdirs()
         versionsFile.writeText(
             """
@@ -65,5 +62,9 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 }
 
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir(generateVersionFileTaskProvider.map { _ -> "$buildDir/generated/src" })
+    kotlin.srcDir("$buildDir/generated/src")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
+    it.dependsOn(generateVersionFileTaskProvider)
 }
