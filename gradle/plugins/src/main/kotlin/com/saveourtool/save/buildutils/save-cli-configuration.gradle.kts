@@ -23,12 +23,13 @@ val saveCoreVersion = the<LibrariesForLibs>()
     .get()
 
 dependencies {
-    findProperty("saveCliPath")?.let { saveCliPathProperty ->
-        val saveCliPath = saveCliPathProperty as String
-        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    val isSaveCliProvided = hasProperty("saveCliPath")
+    if (isSaveCliProvided) {
+        val saveCliPath = providers.gradleProperty("saveCliPath")
         val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
+            enabled = isSaveCliProvided
             src { saveCliPath }
-            dest { "$buildDir/download/${File(saveCliPath).name}" }
+            dest { saveCliPath.map { "$buildDir/download/${File(it).name}" } }
 
             overwrite(false)
         }

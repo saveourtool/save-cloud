@@ -101,18 +101,6 @@ fun Project.createStackDeployTask(profile: String) {
                            |      MINIO_ROOT_USER: admin
                            |      MINIO_ROOT_PASSWORD: adminadmin
                            |
-                           |  minio-create-bucket:
-                           |    image: minio/mc:latest
-                           |    depends_on:
-                           |      - minio
-                           |    entrypoint:
-                           |      - /bin/sh
-                           |      - -c
-                           |      - |
-                           |        /usr/bin/mc alias set minio http://minio:9000 admin adminadmin
-                           |        /usr/bin/mc mb --ignore-existing minio/cnb
-                           |        /usr/bin/mc policy set public minio/cnb
-                           |
                            |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
@@ -226,7 +214,7 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(kafkaTaskName)
     }
 
-    val minioTaskName = registerService("minio-create-bucket", MINIO_STARTUP_DELAY_MILLIS, "startMinioService")
+    val minioTaskName = registerService("minio", MINIO_STARTUP_DELAY_MILLIS)
     tasks.register("startMinio") {
         dependsOn(minioTaskName)
     }
