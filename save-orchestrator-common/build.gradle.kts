@@ -4,7 +4,6 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
-    id("org.gradle.test-retry") version "1.5.1"
 }
 
 tasks.withType<KotlinCompile> {
