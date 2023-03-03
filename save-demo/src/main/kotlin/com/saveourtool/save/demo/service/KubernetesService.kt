@@ -55,8 +55,7 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = internalFileStorage.usingPreSignedUrl { generateUrlToDownload(DemoInternalFileStorage.saveDemoAgent) }
-                .orNotFound { "Not found ${DemoInternalFileStorage.saveDemoAgent} in internal storage" }
+            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
                 .toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
             demo
@@ -68,9 +67,10 @@ class KubernetesService(
             )
         }
     }
-        .flatMap {
+        .asyncEffect {
             mono { configureDemoAgent(it, version) }
         }
+        .map { StringResponse.ok("Created container for demo.") }
 
     /**
      * @param demo demo entity

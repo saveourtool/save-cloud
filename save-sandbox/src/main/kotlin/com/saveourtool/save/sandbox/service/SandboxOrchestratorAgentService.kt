@@ -21,6 +21,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 
+import generated.SAVE_CORE_VERSION
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -57,13 +58,10 @@ class SandboxOrchestratorAgentService(
                     it.toMap()
                 }
         }
-        .zipWith(
-            internalFileStorage.generateUrlToDownloadNewerOrLatest(InternalFileKey.saveCliKeyName)
-        )
-        .map { (executionAndFileToUrls, saveCliUrl) ->
-            val (execution, fileToUrls) = executionAndFileToUrls
+        .map { (execution, fileToUrls) ->
             AgentInitConfig(
-                saveCliUrl = saveCliUrl.toString(),
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION))
+                    .toString(),
                 testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
                 // sandbox doesn't support save-cli overrides for now
@@ -158,8 +156,9 @@ class SandboxOrchestratorAgentService(
      * @param execution
      * @return a request to run execution
      */
-    fun getRunRequest(execution: SandboxExecution): RunExecutionRequest =
-            execution.toRunRequest(internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey))
+    fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
+        saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
+    )
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository
         .findByIdOrNull(executionId)

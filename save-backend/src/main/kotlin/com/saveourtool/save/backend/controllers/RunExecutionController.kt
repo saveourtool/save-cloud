@@ -204,7 +204,9 @@ class RunExecutionController(
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(
-            execution.toRunRequest(saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey))
+            execution.toRunRequest(
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
+            )
         )
         .retrieve()
         .toBodilessEntity()

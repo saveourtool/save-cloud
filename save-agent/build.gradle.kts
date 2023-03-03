@@ -7,6 +7,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
 }
 
 kotlin {
@@ -58,10 +59,8 @@ kotlin {
         commonMain {
             kotlin {
                 srcDir(
-                    generateVersionFileTaskProvider.map { _ ->
-                        // Simply discard task. However, `map` is essential to tell Gradle
-                        // that `srcDir` depends on this task.
-                        "$buildDir/generated/src"
+                    tasks.named("generateSaveCloudVersionFile").map {
+                        it.outputs.files.singleFile
                     }
                 )
             }
