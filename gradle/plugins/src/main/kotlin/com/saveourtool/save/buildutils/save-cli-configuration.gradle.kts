@@ -26,6 +26,7 @@ fun Project.readSaveCliVersion(): String {
 dependencies {
     findProperty("saveCliPath")?.let { saveCliPathProperty ->
         val saveCliPath = saveCliPathProperty as String
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
             dependsOn(":getSaveCliVersion")
 
