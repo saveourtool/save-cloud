@@ -5,7 +5,7 @@ import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
-import com.saveourtool.save.storage.key.S3KeyDatabaseManagerBlockingBridge
+import com.saveourtool.save.utils.BlockingBridge
 import org.springframework.stereotype.Component
 
 /**
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 class DependencyKeyManager(
     configProperties: ConfigProperties,
     repository: DependencyRepository,
-    blockingBridge: S3KeyDatabaseManagerBlockingBridge,
+    blockingBridge: BlockingBridge,
 ) : AbstractS3KeyEntityManager<Dependency, DependencyRepository>(
     prefix = concatS3Key(configProperties.s3Storage.prefix, "deps"),
     repository = repository,

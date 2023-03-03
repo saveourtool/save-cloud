@@ -2,15 +2,11 @@ package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
-
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Implementation of [S3KeyManager] which stores keys in database
@@ -22,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     protected val repository: R,
-    val blockingBridge: S3KeyDatabaseManagerBlockingBridge,
+    val blockingBridge: BlockingBridge,
 ) : S3KeyManager<K> {
     /**
      * [S3KeyManager] with [Long] as key (it's [ID][com.saveourtool.save.spring.entity.BaseEntity.requiredId])

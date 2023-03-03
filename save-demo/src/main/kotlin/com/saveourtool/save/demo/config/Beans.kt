@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.config
 
+import com.saveourtool.save.utils.BlockingBridge
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
@@ -28,4 +29,10 @@ class Beans {
                 .build())
             .build()
     }
+
+    /**
+     * @return [BlockingBridge]
+     */
+    @Bean
+    fun blockingBridge(): BlockingBridge = BlockingBridge()
 }

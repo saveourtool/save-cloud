@@ -2,6 +2,7 @@ package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 
@@ -15,7 +16,7 @@ import org.springframework.data.repository.findByIdOrNull
 abstract class AbstractS3KeyEntityManager<E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     repository: R,
-    blockingBridge: S3KeyDatabaseManagerBlockingBridge,
+    blockingBridge: BlockingBridge,
 ) : AbstractS3KeyDatabaseManager<E, E, R>(
     prefix,
     repository,

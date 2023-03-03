@@ -10,7 +10,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.toEntity
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
-import com.saveourtool.save.storage.key.S3KeyDatabaseManagerBlockingBridge
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.data.repository.findByIdOrNull
@@ -25,7 +25,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 class FileS3KeyManager(
     configProperties: ConfigProperties,
     fileRepository: FileRepository,
-    blockingBridge: S3KeyDatabaseManagerBlockingBridge,
+    blockingBridge: BlockingBridge,
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
 ) : AbstractS3KeyDtoManager<FileDto, File, FileRepository>(
