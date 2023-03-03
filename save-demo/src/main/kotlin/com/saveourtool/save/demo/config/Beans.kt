@@ -34,5 +34,5 @@ class Beans {
      * @return [BlockingBridge]
      */
     @Bean
-    fun blockingBridge(): BlockingBridge = BlockingBridge()
+    fun blockingBridge(): BlockingBridge = BlockingBridge.default
 }
