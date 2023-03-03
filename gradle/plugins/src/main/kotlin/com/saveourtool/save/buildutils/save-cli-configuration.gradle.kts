@@ -13,6 +13,7 @@ plugins {
     id("de.undercouch.download")
 }
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val copySaveCliTaskProvider = tasks.register<Copy>("copySaveCli") {
     val saveCliFile = rootProject.tasks.named<Download>("downloadSaveCli")
         .map { downloadTask ->
