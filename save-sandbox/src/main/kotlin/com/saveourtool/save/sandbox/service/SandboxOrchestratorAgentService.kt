@@ -21,7 +21,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 
-import generated.SAVE_CLOUD_VERSION
 import generated.SAVE_CORE_VERSION
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
@@ -158,7 +157,6 @@ class SandboxOrchestratorAgentService(
      * @return a request to run execution
      */
     fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
-        saveAgentVersion = SAVE_CLOUD_VERSION,
         saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
     )
 
