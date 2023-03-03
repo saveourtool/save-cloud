@@ -40,7 +40,7 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding build for save-orchestrator-common)
+      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
@@ -58,7 +58,7 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
             --build-cache
-      - name: Check save-orchestrator-common, save-orchestrator and save-sandbox
+      - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
