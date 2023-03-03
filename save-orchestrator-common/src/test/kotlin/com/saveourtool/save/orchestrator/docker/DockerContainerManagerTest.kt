@@ -9,7 +9,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.utils.DockerClientTestConfiguration
 import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
-import com.saveourtool.save.orchestrator.utils.silentlyExec
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 import org.junit.jupiter.api.*
@@ -58,7 +57,6 @@ class DockerContainerManagerTest {
             .first {
                 it.repoTags?.contains("ghcr.io/saveourtool/save-base:eclipse-temurin-11") == true
             }
-        dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
 
     @Test
@@ -110,7 +108,6 @@ class DockerContainerManagerTest {
         if (::testContainerId.isInitialized) {
             dockerClient.silentlyCleanupContainer(testContainerId)
         }
-        dockerClient.removeVolumeCmd("test-volume").silentlyExec()
     }
 
     companion object {
