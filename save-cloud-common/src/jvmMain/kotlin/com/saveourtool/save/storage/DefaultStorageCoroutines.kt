@@ -171,7 +171,7 @@ class DefaultStorageCoroutines<K : Any>(
 
     private suspend fun <R> S3KeyManager<K>.callAsSuspend(function: S3KeyManager<K>.() -> R): R =
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-                withContext(s3KeyManager.ioDispatcher) {
+                withContext(s3KeyManager.blockingBridge.ioDispatcher) {
                     function(this@callAsSuspend)
                 }
             } else {

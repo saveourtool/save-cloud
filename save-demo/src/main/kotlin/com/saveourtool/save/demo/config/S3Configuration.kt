@@ -2,6 +2,7 @@ package com.saveourtool.save.demo.config
 
 import com.saveourtool.save.s3.DefaultS3Operations
 import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.key.S3KeyDatabaseManagerBlockingBridge
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -17,4 +18,10 @@ class S3Configuration(
      */
     @Bean
     fun s3Operations(): S3Operations = DefaultS3Operations(configProperties.s3Storage)
+
+    /**
+     * @return [S3KeyDatabaseManagerBlockingBridge]
+     */
+    @Bean
+    fun blockingBridge(): S3KeyDatabaseManagerBlockingBridge = S3KeyDatabaseManagerBlockingBridge()
 }

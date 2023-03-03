@@ -17,14 +17,12 @@ import kotlinx.coroutines.Dispatchers
  *
  * @param prefix a common prefix for all keys in S3 storage for this storage
  * @property repository repository for [E]
- * @property ioScheduler
- * @property ioDispatcher
+ * @property blockingBridge
  */
 abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     protected val repository: R,
-    val ioScheduler: Scheduler = Schedulers.boundedElastic(),
-    val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    val blockingBridge: S3KeyDatabaseManagerBlockingBridge,
 ) : S3KeyManager<K> {
     /**
      * [S3KeyManager] with [Long] as key (it's [ID][com.saveourtool.save.spring.entity.BaseEntity.requiredId])

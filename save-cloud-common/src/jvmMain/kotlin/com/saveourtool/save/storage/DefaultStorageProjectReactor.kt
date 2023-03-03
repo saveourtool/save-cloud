@@ -160,7 +160,7 @@ class DefaultStorageProjectReactor<K : Any>(
         .toMono()
         .let {
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-                it.subscribeOn(s3KeyManager.ioScheduler)
+                it.subscribeOn(s3KeyManager.blockingBridge.ioScheduler)
             } else {
                 it
             }
