@@ -15,7 +15,7 @@ plugins {
     id("de.undercouch.download")
 }
 
-val saveCoreVersion = the<LibrariesForLibs>()
+val saveCoreVersion: String = the<LibrariesForLibs>()
     .versions
     .save
     .core
@@ -25,6 +25,7 @@ dependencies {
     val isSaveCliProvided = hasProperty("saveCliPath")
     if (isSaveCliProvided) {
         val saveCliPath = providers.gradleProperty("saveCliPath")
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
             enabled = isSaveCliProvided
             src { saveCliPath }
@@ -40,23 +41,22 @@ dependencies {
     }
 }
 
-val generateSaveCliVersionFileTaskProvider = tasks.register("generateSaveCliVersionFile") {
-    val saveCliVersion = readSaveCliVersion()
+val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateSaveCliVersionFile") {
     val outputDir = File("$buildDir/generated/src")
     val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
 
     val saveCliVersion = findProperty("saveCliVersion") ?: saveCoreVersion
     // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
     inputs.property("save-cli version", saveCliVersion)
-    outputs.file(versionsFile)
+    outputs.file(versionFile)
 
     doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "${saveCliVersion.get()}"
+            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
 
             """.trimIndent()
         )
