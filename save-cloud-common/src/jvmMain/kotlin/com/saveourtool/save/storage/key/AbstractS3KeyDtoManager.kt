@@ -3,6 +3,7 @@ package com.saveourtool.save.storage.key
 import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.data.repository.findByIdOrNull
 
@@ -11,11 +12,13 @@ import org.springframework.data.repository.findByIdOrNull
  *
  * @param prefix a common prefix for all keys in S3 storage for this storage
  * @param repository repository for [E] which is entity for [K]
+ * @param blockingBridge
  */
 abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
     prefix: String,
     repository: R,
-) : AbstractS3KeyDatabaseManager<K, E, R>(prefix, repository) {
+    blockingBridge: BlockingBridge,
+) : AbstractS3KeyDatabaseManager<K, E, R>(prefix, repository, blockingBridge) {
     override fun E.toKey(): K = toDto()
 
     override fun K.toEntity(): E = createNewEntityFromDto(this)
