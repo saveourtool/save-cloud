@@ -14,7 +14,7 @@ class DockerClientTestConfiguration {
     /**
      * @return [DockerClient]
      */
-    @Bean
+    @Bean(destroyMethod = "")
     @Profile("docker-test")
     fun dockerClient(): DockerClient = DockerClientFactory.lazyClient()
 }

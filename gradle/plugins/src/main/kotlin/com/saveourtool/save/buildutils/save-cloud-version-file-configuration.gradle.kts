@@ -8,13 +8,13 @@ import java.io.File
 
 tasks.register("generateSaveCloudVersionFile") {
     val outputDir = File("$buildDir/generated/src")
-    val versionsFile = outputDir.resolve("generated/SaveCloudVersion.kt")
+    val versionFile = outputDir.resolve("generated/SaveCloudVersion.kt")
     inputs.property("project version", version.toString())
-    outputs.dir("$buildDir/generated/src")
+    outputs.dir(outputDir)
 
     doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(
             """
             package generated
 

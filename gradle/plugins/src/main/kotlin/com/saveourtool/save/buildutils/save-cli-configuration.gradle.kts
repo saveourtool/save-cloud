@@ -9,7 +9,6 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
-import java.util.*
 
 plugins {
     kotlin("jvm")
@@ -41,8 +40,10 @@ dependencies {
     }
 }
 
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+val generateSaveCliVersionFileTaskProvider = tasks.register("generateSaveCliVersionFile") {
+    val saveCliVersion = readSaveCliVersion()
+    val outputDir = File("$buildDir/generated/src")
+    val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
 
     val saveCliVersion = findProperty("saveCliVersion") ?: saveCoreVersion
     // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
@@ -55,7 +56,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
+            internal const val SAVE_CORE_VERSION = "${saveCliVersion.get()}"
 
             """.trimIndent()
         )
@@ -63,9 +64,9 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 }
 
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(
+        generateSaveCliVersionFileTaskProvider.map {
+            it.outputs.files.singleFile
+        }
+    )
 }
