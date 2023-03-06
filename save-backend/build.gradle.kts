@@ -1,5 +1,3 @@
-
-
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
