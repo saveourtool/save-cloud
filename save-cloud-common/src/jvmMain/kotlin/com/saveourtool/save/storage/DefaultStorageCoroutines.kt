@@ -23,8 +23,6 @@ import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.asPublisher
 
-import kotlinx.coroutines.withContext
-
 /**
  * S3 implementation of [StorageCoroutines]
  *
@@ -171,7 +169,7 @@ class DefaultStorageCoroutines<K : Any>(
 
     private suspend fun <R> S3KeyManager<K>.callAsSuspend(function: S3KeyManager<K>.() -> R): R =
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-                withContext(s3KeyManager.ioDispatcher) {
+                s3KeyManager.blockingBridge.blockingToSuspend {
                     function(this@callAsSuspend)
                 }
             } else {

@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
-import reactor.kotlin.core.publisher.toMono
 
 import java.io.InputStream
 import java.io.SequenceInputStream
@@ -256,10 +255,10 @@ fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
  * @see blockingToFlux
  * @see ResponseSpec.blockingBodyToMono
  * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
  */
 @NonBlocking
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = BlockingBridge.default.blockingToMono(supplier)
 
 /**
  * @param supplier blocking operation like JDBC
@@ -267,9 +266,10 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @see blockingToMono
  * @see ResponseSpec.blockingBodyToMono
  * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
  */
 @NonBlocking
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = BlockingBridge.default.blockingToFlux(supplier)
 
 /**
  * @param interval how long to wait between checks
