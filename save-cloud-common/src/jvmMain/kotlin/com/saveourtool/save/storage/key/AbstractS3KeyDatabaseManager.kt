@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     protected val repository: R,
-    val blockingBridge: BlockingBridge,
+    open val blockingBridge: BlockingBridge,
 ) : S3KeyManager<K> {
     /**
      * [S3KeyManager] with [Long] as key (it's [ID][com.saveourtool.save.spring.entity.BaseEntity.requiredId])
