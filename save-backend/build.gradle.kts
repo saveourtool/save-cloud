@@ -24,6 +24,14 @@ openApi {
     }
 }
 
+tasks.named("jar") {
+    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
+}
+
+tasks.named("inspectClassesForKotlinIC") {
+    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
+}
+
 tasks.named("processTestResources") {
     dependsOn("copyLiquibase")
 }
