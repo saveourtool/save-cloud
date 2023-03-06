@@ -15,10 +15,10 @@ plugins {
     id("de.undercouch.download")
 }
 
-val saveCoreVersion: String = the<LibrariesForLibs>()
+val saveCliVersion: String = the<LibrariesForLibs>()
     .versions
     .save
-    .core
+    .cli
     .get()
 
 dependencies {
@@ -45,7 +45,7 @@ val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register(
     val outputDir = File("$buildDir/generated/src")
     val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
 
-    val saveCliVersion = findProperty("saveCliVersion") ?: saveCoreVersion
+    val saveCliVersion = findProperty("saveCliVersion") ?: saveCliVersion
     // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
     inputs.property("save-cli version", saveCliVersion)
     outputs.dir(outputDir)
