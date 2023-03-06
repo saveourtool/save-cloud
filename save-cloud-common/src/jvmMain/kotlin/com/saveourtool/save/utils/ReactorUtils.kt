@@ -5,6 +5,11 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import io.ktor.client.statement.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -14,11 +19,9 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
-import reactor.kotlin.core.publisher.toMono
 
 import java.io.InputStream
 import java.io.SequenceInputStream
@@ -26,9 +29,9 @@ import java.nio.ByteBuffer
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.reactor.asCoroutineDispatcher
-import kotlinx.coroutines.reactor.asMono
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
@@ -61,6 +64,7 @@ fun <T> Flux<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
  * @param status
  * @param messageCreator
  * @return original [Mono] or [Mono.error] with [status] if [predicate] is true for value in [Mono]
+ * @see requireOrSwitchToForbidden
  */
 @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
 fun <T> Mono<T>.requireOrSwitchToResponseException(
@@ -68,6 +72,18 @@ fun <T> Mono<T>.requireOrSwitchToResponseException(
     status: HttpStatus,
     messageCreator: (() -> String?) = { null }
 ) = filter(predicate).switchIfEmptyToResponseException(status, messageCreator)
+
+/**
+ * @param predicate
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with [HttpStatus.FORBIDDEN] if [predicate] is true for value in [Mono]
+ * @see [requireOrSwitchToResponseException]
+ */
+@Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
+fun <T> Mono<T>.requireOrSwitchToForbidden(
+    predicate: T.() -> Boolean,
+    messageCreator: (() -> String?) = { null }
+) = requireOrSwitchToResponseException(predicate, HttpStatus.FORBIDDEN, messageCreator)
 
 /**
  * @param lazyValue default value creator
@@ -210,6 +226,28 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
             .subscribeOn(Schedulers.boundedElastic())
 
 /**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
+ *
+ * @return [Flow] of [ByteBuffer]
+ */
+fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = toByteArrayFlow().map { ByteBuffer.wrap(it) }
+
+/**
+ * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteArray]
+ *
+ * @return [Flow] of [ByteArray]
+ */
+fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
+    while (!isClosedForRead) {
+        val packet = readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+        while (!packet.isEmpty) {
+            val bytes = packet.readBytes()
+            emit(bytes)
+        }
+    }
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -217,10 +255,10 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
  * @see blockingToFlux
  * @see ResponseSpec.blockingBodyToMono
  * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
  */
 @NonBlocking
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = BlockingBridge.default.blockingToMono(supplier)
 
 /**
  * @param supplier blocking operation like JDBC
@@ -228,9 +266,10 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @see blockingToMono
  * @see ResponseSpec.blockingBodyToMono
  * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
  */
 @NonBlocking
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
+fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = BlockingBridge.default.blockingToFlux(supplier)
 
 /**
  * @param interval how long to wait between checks
@@ -268,15 +307,3 @@ fun downloadFromClasspath(
                 logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
                 lazyResponseBody()
             }
-
-/**
- * Transforms [Deferred] to [Mono]
- *
- * @param supplier lambda that returns [Deferred]
- * @param scheduler
- * @return [Mono] from result of [Deferred]
- */
-fun <T : Any> deferredToMono(
-    scheduler: Scheduler = Schedulers.boundedElastic(),
-    supplier: () -> Deferred<T?>
-): Mono<T> = supplier().asMono(scheduler.asCoroutineDispatcher())

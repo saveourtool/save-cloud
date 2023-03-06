@@ -11,7 +11,9 @@ import com.saveourtool.save.entities.TestsSourceSnapshot.Companion.toEntity
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+
 import org.springframework.stereotype.Component
 
 /**
@@ -21,12 +23,14 @@ import org.springframework.stereotype.Component
 class TestsSourceSnapshotS3KeyManager(
     configProperties: ConfigProperties,
     testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
+    blockingBridge: BlockingBridge,
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val testSuitesService: TestSuitesService,
     private val executionService: ExecutionService,
 ) : AbstractS3KeyDtoManager<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository>(
     concatS3Key(configProperties.s3Storage.prefix, "tests-source-snapshot"),
     testsSourceSnapshotRepository,
+    blockingBridge
 ) {
     override fun createNewEntityFromDto(dto: TestsSourceSnapshotDto): TestsSourceSnapshot = dto.toEntity { testSuitesSourceRepository.getByIdOrNotFound(it) }
 

@@ -20,7 +20,6 @@ import reactor.kotlin.core.util.function.component2
 class ManagementController(
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
-    private val kubernetesService: KubernetesService,
 ) {
     /**
      * @param demoDto
@@ -28,18 +27,34 @@ class ManagementController(
      */
     @PostMapping("/add")
     fun add(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
-        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
+        .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .flatMap {
             blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
         }
 
     /**
-     * @param organizationName
-     * @param projectName
-     * @return [Mono] of [Unit]
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of demo
+     * @return [Mono] of [StringResponse]
+     */
+    @PostMapping("/{organizationName}/{projectName}/delete")
+    fun delete(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .flatMap { demoService.delete(it, version) }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @return [Mono] of [StringResponse]
      */
     @PostMapping("/{organizationName}/{projectName}/start")
     fun start(
@@ -48,9 +63,7 @@ class ManagementController(
     ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMap {
-            kubernetesService.start(it)
-        }
+        .flatMap { demoService.start(it) }
 
     /**
      * @param organizationName
@@ -64,7 +77,5 @@ class ManagementController(
     ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .map {
-            kubernetesService.stop(it)
-        }
+        .map { demoService.stop(it) }
 }

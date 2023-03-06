@@ -143,6 +143,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             }
         }
         sequenceOf(
+            TopBarLink(hrefAnchor = FrontendRoutes.FOSS_GRAPH.path, width = 7.rem, text = "FossGraph"),
             TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
             TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub", isExternalLink = true),

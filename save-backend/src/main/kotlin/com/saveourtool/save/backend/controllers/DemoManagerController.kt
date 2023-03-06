@@ -10,6 +10,7 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
@@ -71,7 +72,7 @@ class DemoManagerController(
         @PathVariable projectName: String,
         @RequestBody demoCreationRequest: DemoCreationRequest,
         authentication: Authentication,
-    ): Mono<EmptyResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+    ): Mono<StringResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
         "Could not find project $projectName in organization $organizationName."
     }
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
@@ -112,6 +113,9 @@ class DemoManagerController(
                 .retrieve()
                 .toBodilessEntity()
         }
+        .map {
+            StringResponse.ok("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
+        }
 
     @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @RequiresAuthorizationSourceHeader
@@ -136,28 +140,15 @@ class DemoManagerController(
         @RequestParam(required = false, defaultValue = "manual") version: String,
         @RequestPart file: FilePart,
         authentication: Authentication,
-    ): Mono<FileDto> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
-        "Could not find project $projectName in organization $organizationName."
+    ): Mono<FileDto> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) {
+        webClientDemo.post()
+            .uri("/demo/internal/files/$organizationName/$projectName/upload?version=$version")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData("file", file))
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .bodyToMono()
     }
-        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
-            "Not enough permission for accessing given project."
-        }
-        .flatMap {
-            webClientDemo.post()
-                .uri("/demo/internal/files/$organizationName/$projectName/upload?version=$version")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData("file", file))
-                .retrieve()
-                .onStatus({ it == HttpStatus.NOT_FOUND }) {
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Demo for $organizationName/$projectName is not found.",
-                        )
-                    )
-                }
-                .bodyToMono()
-        }
 
     @GetMapping("/{organizationName}/{projectName}/list-file")
     @RequiresAuthorizationSourceHeader
@@ -190,14 +181,7 @@ class DemoManagerController(
             webClientDemo.get()
                 .uri("/demo/internal/files/$organizationName/$projectName/list?version=$version")
                 .retrieve()
-                .onStatus({ it == HttpStatus.NOT_FOUND }) {
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Demo for $organizationName/$projectName is not found.",
-                        )
-                    )
-                }
+                .defaultNotFoundProcessing(organizationName, projectName)
                 .bodyToFlux()
         }
 
@@ -224,26 +208,13 @@ class DemoManagerController(
         @RequestParam(required = false, defaultValue = "manual") version: String,
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<Boolean> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
-        "Could not find project $projectName in organization $organizationName."
+    ): Mono<Boolean> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) {
+        webClientDemo.delete()
+            .uri("/demo/internal/files/$organizationName/$projectName/delete?version=$version&fileName=$fileName")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .bodyToMono()
     }
-        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
-            "Not enough permission for accessing given project."
-        }
-        .flatMap {
-            webClientDemo.delete()
-                .uri("/demo/internal/files/$organizationName/$projectName/delete?version=$version&fileName=$fileName")
-                .retrieve()
-                .onStatus({ it == HttpStatus.NOT_FOUND }) {
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Demo for $organizationName/$projectName is not found.",
-                        )
-                    )
-                }
-                .bodyToMono()
-        }
 
     @GetMapping("/{organizationName}/{projectName}/status")
     @RequiresAuthorizationSourceHeader
@@ -263,27 +234,14 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoStatus> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
-        "Could not find project $projectName in organization $organizationName."
+    ): Mono<DemoStatus> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
+        webClientDemo.get()
+            .uri("/demo/api/manager/$organizationName/$projectName/status")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .bodyToMono<DemoStatus>()
+            .defaultIfEmpty(DemoStatus.NOT_CREATED)
     }
-        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.READ) }, HttpStatus.FORBIDDEN) {
-            "Not enough permission for accessing given project."
-        }
-        .flatMap {
-            webClientDemo.get()
-                .uri("/demo/api/manager/$organizationName/$projectName/status")
-                .retrieve()
-                .onStatus({ it == HttpStatus.NOT_FOUND }) {
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Demo for $organizationName/$projectName is not found.",
-                        )
-                    )
-                }
-                .bodyToMono<DemoStatus>()
-                .defaultIfEmpty(DemoStatus.NOT_CREATED)
-        }
 
     @GetMapping("/{organizationName}/{projectName}")
     @RequiresAuthorizationSourceHeader
@@ -304,30 +262,119 @@ class DemoManagerController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoInfo> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
-        "Could not find project $projectName in organization $organizationName."
-    }
-        .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.WRITE) }, HttpStatus.FORBIDDEN) {
-            "Not enough permission for accessing given project."
-        }
-        .flatMap {
-            webClientDemo.get()
-                .uri("/demo/api/manager/$organizationName/$projectName")
-                .retrieve()
-                .onStatus({ it == HttpStatus.NOT_FOUND }) {
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Demo for $organizationName/$projectName is not found.",
-                        )
-                    )
-                }
-                .bodyToMono<DemoInfo>()
-                .defaultIfEmpty(
-                    DemoInfo(
-                        DemoDto.emptyForProject(organizationName, projectName),
-                        DemoStatus.NOT_CREATED,
-                    )
+    ): Mono<DemoInfo> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
+        webClientDemo.get()
+            .uri("/demo/api/manager/$organizationName/$projectName")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .bodyToMono<DemoInfo>()
+            .defaultIfEmpty(
+                DemoInfo(
+                    DemoDto.emptyForProject(organizationName, projectName),
+                    DemoStatus.NOT_CREATED,
                 )
+            )
+    }
+
+    @PostMapping("/{organizationName}/{projectName}/delete")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+    )
+    @Operation(
+        method = "POST",
+        summary = "Delete demo.",
+        description = "Delete demo by saveourtool organization and project names.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully deleted demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for demo deletion.")
+    @ApiResponse(responseCode = "404", description = "Could not find saveourtool project or demo of a project.")
+    fun deleteDemo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) { project ->
+        webClientDemo.post()
+            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/delete")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .toEntity()
+    }
+
+    @PostMapping("/{organizationName}/{projectName}/start")
+    @RequiresAuthorizationSourceHeader
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+    )
+    @Operation(
+        method = "POST",
+        summary = "Start demo container.",
+        description = "Start demo container if possible, do nothing otherwise.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully started demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for demo management.")
+    @ApiResponse(responseCode = "404", description = "Could not find saveourtool project or demo of a project.")
+    fun startDemo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.WRITE, organizationName, projectName, authentication) { project ->
+        webClientDemo.post()
+            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/start")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .toEntity()
+    }
+
+    @PostMapping("/{organizationName}/{projectName}/stop")
+    @RequiresAuthorizationSourceHeader
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+    )
+    @Operation(
+        method = "POST",
+        summary = "Stop demo.",
+        description = "Delete demo container if possible, do nothing otherwise.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully stopped demo.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for demo management.")
+    @ApiResponse(responseCode = "404", description = "Could not find saveourtool project or demo of a project.")
+    fun stopDemo(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.WRITE, organizationName, projectName, authentication) { project ->
+        webClientDemo.post()
+            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/stop")
+            .retrieve()
+            .defaultNotFoundProcessing(organizationName, projectName)
+            .toEntity()
+    }
+
+    private inline fun <reified T : Any> forwardRequestCheckingPermission(
+        requiredPermission: Permission,
+        organizationName: String,
+        projectName: String,
+        authentication: Authentication,
+        crossinline requestBuilder: (Project) -> Mono<T>,
+    ): Mono<T> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find $organizationName/$projectName."
+    }
+        .requireOrSwitchToForbidden({ projectPermissionEvaluator.hasPermission(authentication, this, requiredPermission) }) {
+            "Not enough permission for accessing $organizationName/$projectName."
         }
+        .flatMap { project ->
+            requestBuilder(project)
+        }
+
+    private fun WebClient.ResponseSpec.defaultNotFoundProcessing(
+        organizationName: String,
+        projectName: String,
+    ) = onStatus({ it == HttpStatus.NOT_FOUND }) {
+        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find demo for $organizationName/$projectName."))
+    }
 }

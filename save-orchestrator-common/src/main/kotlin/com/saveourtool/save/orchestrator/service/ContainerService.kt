@@ -10,7 +10,7 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 import com.saveourtool.save.request.RunExecutionRequest
-import com.saveourtool.save.utils.AgentType
+import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.downloadAndRunAgentCommand
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.waitReactivelyUntil
@@ -112,13 +112,12 @@ class ContainerService(
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            request.saveAgentVersion,
             request.executionId,
         )
 
         val baseImage = request.sdk.baseImageName()
 
-        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, AgentType.AGENT)
+        val agentCommand = downloadAndRunAgentCommand(request.saveAgentUrl, InternalFileKey.saveAgentKey)
 
         return RunConfiguration(
             imageTag = baseImage,

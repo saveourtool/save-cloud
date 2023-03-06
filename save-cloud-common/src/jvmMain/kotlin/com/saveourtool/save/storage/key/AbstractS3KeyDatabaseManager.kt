@@ -2,7 +2,9 @@ package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
+
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
@@ -11,19 +13,21 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @param prefix a common prefix for all keys in S3 storage for this storage
  * @property repository repository for [E]
+ * @property blockingBridge
  */
 abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEntityRepository<E>>(
     prefix: String,
     protected val repository: R,
+    open val blockingBridge: BlockingBridge,
 ) : S3KeyManager<K> {
     /**
      * [S3KeyManager] with [Long] as key (it's [ID][com.saveourtool.save.spring.entity.BaseEntity.requiredId])
      */
-    private val underlying: S3KeyManager<Long> = object : AbstractS3KeyManager<Long>(prefix) {
+    private val entityIdKeyManager: S3KeyManager<Long> = object : AbstractS3KeyManager<Long>(prefix) {
         override fun buildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
         override fun buildS3KeySuffix(key: Long): String = key.toString()
     }
-    override val commonPrefix: String = underlying.commonPrefix
+    override val commonPrefix: String = entityIdKeyManager.commonPrefix
 
     /**
      * @return a key [K] created from receiver entity [E]
@@ -58,13 +62,13 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
     @Transactional
     override fun createNewS3Key(key: K): String {
         val entity = repository.save(key.toEntity())
-        return underlying.createNewS3Key(entity.requiredId())
+        return entityIdKeyManager.createNewS3Key(entity.requiredId())
     }
 
-    override fun findExistedS3Key(key: K): String? = findEntity(key)?.let { entity -> underlying.findExistedS3Key(entity.requiredId()) }
+    override fun findExistedS3Key(key: K): String? = findEntity(key)?.let { entity -> entityIdKeyManager.findExistedS3Key(entity.requiredId()) }
 
     override fun findKey(s3Key: String): K? {
-        val entityId = underlying.findKey(s3Key).orNotFound {
+        val entityId = entityIdKeyManager.findKey(s3Key).orNotFound {
             "Cannot extract entity id from s3 key: $s3Key"
         }
         return repository.findByIdOrNull(entityId)

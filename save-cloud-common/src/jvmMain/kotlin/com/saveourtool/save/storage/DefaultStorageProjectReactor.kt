@@ -8,34 +8,29 @@ import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
 
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 
-import kotlin.time.Duration.Companion.minutes
-
 /**
- * S3 implementation of Storage
+ * S3 implementation of [StorageProjectReactor]
  *
- * @param s3Operations [S3Operations] to operate with S3
  * @param K type of key
+ * @property s3Operations [S3Operations] to operate with S3
+ * @property s3KeyManager [S3KeyManager] manager for S3 keys
  */
-abstract class AbstractS3Storage<K : Any>(
+class DefaultStorageProjectReactor<K : Any>(
     private val s3Operations: S3Operations,
-) : Storage<K> {
+    private val s3KeyManager: S3KeyManager<K>,
+) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
-
-    /**
-     * [S3KeyManager] manager for S3 keys
-     */
-    protected abstract val s3KeyManager: S3KeyManager<K>
 
     override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .toMonoAndPublishOn()
@@ -48,16 +43,16 @@ abstract class AbstractS3Storage<K : Any>(
             }
         }
         .flatMapIterable { response ->
-            response.contents().mapNotNull { s3Object ->
-                val s3Key = s3Object.key()
-                val key = s3KeyManager.findKey(s3Key)
-                if (!key.isNotNull()) {
+            response.contents().map { it.key() }
+        }
+        .flatMap { s3Key ->
+            findKey(s3Key)
+                .switchIfEmpty {
                     log.warn {
                         "Found s3 key $s3Key which is not valid by ${s3KeyManager::class.simpleName}"
                     }
+                    Mono.empty()
                 }
-                key
-            }
         }
 
     override fun download(key: K): Flux<ByteBuffer> = findExistedS3Key(key)
@@ -67,20 +62,6 @@ abstract class AbstractS3Storage<K : Any>(
         }
         .flatMapMany {
             it.toFlux()
-        }
-
-    override fun generateUrlToDownload(key: K): URL = s3KeyManager.findExistedS3Key(key)
-        ?.let { s3Key ->
-            s3Operations.requestToDownloadObject(s3Key, downloadDuration)
-                .also { request ->
-                    require(request.isBrowserExecutable) {
-                        "Pre-singer url to download object should be browser executable (header-less)"
-                    }
-                }
-                .url()
-        }
-        .orNotFound {
-            "Not found s3 key for $key"
         }
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> =
@@ -100,13 +81,13 @@ abstract class AbstractS3Storage<K : Any>(
                                         .toMonoAndPublishOn()
                                 }
                         }
-                        .map {
-                            requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                "Not found inserted updated key for $key"
-                            }
+                        .flatMap {
+                            findKey(s3Key)
+                                .switchIfEmptyToNotFound {
+                                    "Not found inserted updated key for $key"
+                                }
                         }
                 }
-                .thenReturn(key)
 
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> =
             createNewS3Key(key)
@@ -165,35 +146,20 @@ abstract class AbstractS3Storage<K : Any>(
         .map { true }
         .defaultIfEmpty(false)
 
-    private fun deleteKey(key: K): Mono<Unit> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.delete(key)
-        }
-    } else {
-        Mono.fromCallable {
-            s3KeyManager.delete(key)
-        }
-    }
-
-    private fun findExistedS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.findExistedS3Key(key)
-        }
-    } else {
-        s3KeyManager.findExistedS3Key(key).toMono()
-    }
-
-    private fun createNewS3Key(key: K): Mono<String> = if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-        blockingToMono {
-            s3KeyManager.createNewS3Key(key)
-        }
-    } else {
-        s3KeyManager.createNewS3Key(key).toMono()
-    }
-
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
 
-    companion object {
-        private val downloadDuration = 15.minutes
-    }
+    private fun deleteKey(key: K): Mono<Unit> = s3KeyManager.callAsMono { delete(key) }
+
+    private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
+
+    private fun findExistedS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { findExistedS3Key(key) }
+
+    private fun createNewS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { createNewS3Key(key) }
+
+    private fun <R : Any> S3KeyManager<K>.callAsMono(function: S3KeyManager<K>.() -> R?): Mono<R> =
+            if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
+                s3KeyManager.blockingBridge.blockingToMono { function(this) }
+            } else {
+                { function(this) }.toMono()
+            }
 }

@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.storage.impl.InternalFileKey
 import org.intellij.lang.annotations.Language
 
 @Language("bash")
@@ -21,17 +22,13 @@ private val defaultCurlOptions: Sequence<String> = sequenceOf(
     "--fail",
 )
 
-/**
- * @property executableName
- */
-enum class AgentType(val executableName: String) {
-    AGENT("save-agent.kexe"),
-    DEMO_AGENT("save-demo-agent.kexe"),
-    ;
-}
+@Language("bash")
+private val defaultEnvOptions: Sequence<EnvOption> = emptySequence()
+
+typealias EnvOption = Pair<String, String>
 
 /**
- * Get command for newly created pod that would download agent of type [agentType] from [downloadUrl]
+ * Get command for newly created pod that would download agent [fileKey] from [downloadUrl]
  * using curl with [curlOptions], chmod downloaded executable and launch it.
  *
  * Default options for shell ([defaultShellOptions]):
@@ -44,21 +41,24 @@ enum class AgentType(val executableName: String) {
  * - `-vvv` logging level.
  *
  * @param downloadUrl url to download agent
- * @param agentType type of agent to download: either [AgentType.AGENT] or [AgentType.DEMO_AGENT]
+ * @param fileKey [InternalFileKey] for agent to download
  * @param shellOptions options to be set on command execution, [defaultShellOptions] by default
  * @param curlOptions options to be passed to curl, [defaultCurlOptions] by default
+ * @param envOptions options as [EnvOption] - key and value - all the keys will be set as environment variables with corresponding value
  * @return run command
  */
 fun downloadAndRunAgentCommand(
     downloadUrl: String,
-    agentType: AgentType,
+    fileKey: InternalFileKey,
     shellOptions: Sequence<String> = defaultShellOptions,
     curlOptions: Sequence<String> = defaultCurlOptions,
-): String = with(agentType) {
+    envOptions: Sequence<EnvOption> = defaultEnvOptions,
+): String = with(fileKey) {
     "set ${getShellOptions(shellOptions)}" +
-            " && curl ${getCurlOptions(curlOptions)} $downloadUrl --output $executableName" +
-            " && chmod +x $executableName" +
-            " && ./$executableName"
+            " && curl ${getCurlOptions(curlOptions)} '$downloadUrl' --output $fileName" +
+            " && chmod +x $fileName" +
+            " ${getEnvOptions(envOptions)}" +
+            " && ./$fileName"
 }
 
 /**
@@ -77,3 +77,5 @@ private fun getShellOptions(shellOptions: Sequence<String>): String =
  */
 @Language("bash")
 private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
+
+private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { " && ${it.first}=${it.second} " }

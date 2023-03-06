@@ -4,7 +4,6 @@ package com.saveourtool.save.agent
  * Env names which agent supports and expects
  */
 enum class AgentEnvName {
-    AGENT_VERSION,
     CLI_COMMAND,
     CONTAINER_ID,
     CONTAINER_NAME,

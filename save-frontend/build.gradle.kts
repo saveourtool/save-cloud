@@ -8,6 +8,7 @@ plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
@@ -199,35 +200,12 @@ tasks.named<KotlinJsTest>("browserTest").configure {
     inputs.file(mswScriptTargetFile)
 }
 
-// generate kotlin file with project version to include in web page
-val generatedSrcRoot = "$buildDir/generated/src"
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$generatedSrcRoot/generated/Versions.kt")
-
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_VERSION = "$version"
-
-            """.trimIndent()
-        )
-    }
-}
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir(generateVersionFileTaskProvider.map { generatedSrcRoot })
-}
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
-    dependsOn(generateVersionFileTaskProvider)
-    inputs.file("$buildDir/generated/src/generated/Versions.kt")
-}
-tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
-    dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(
+        tasks.named("generateSaveCloudVersionFile").map {
+            it.outputs.files.singleFile
+        }
+    )
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {

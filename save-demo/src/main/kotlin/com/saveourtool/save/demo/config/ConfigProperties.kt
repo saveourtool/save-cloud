@@ -20,7 +20,7 @@ data class ConfigProperties(
     val backendUrl: String,
     val agentConfig: AgentConfig,
     val s3Storage: S3OperationsProperties,
-    val kubernetes: KubernetesConfig,
+    val kubernetes: KubernetesConfig?,
 ) {
     /**
      * @property demoUrl url of save-demo
@@ -40,6 +40,8 @@ data class ConfigProperties(
  * @property serviceAccount
  * @property namespace
  * @property useGvisor
+ * @property agentSubdomainName name of service that is created in order to access agents
+ * @property agentPort port of agent that should be used to access it
  * @property agentCpuRequests
  * @property agentCpuLimits
  * @property agentMemoryRequests
@@ -50,6 +52,8 @@ data class KubernetesConfig(
     val serviceAccount: String,
     val namespace: String,
     val useGvisor: Boolean,
+    val agentSubdomainName: String,
+    val agentPort: Int,
     val agentCpuRequests: String = "100m",
     val agentCpuLimits: String = "500m",
     val agentMemoryRequests: String = "300Mi",

@@ -77,5 +77,5 @@ private suspend fun downloadDemoFiles(url: String) {
     pathToArchive.extractZipHere()
     fs.delete(pathToArchive, mustExist = true)
     logDebug("Extracted archive into working dir and deleted $pathToArchive")
-    logInfo("Downloaded all tests from $url")
+    logInfo("Downloaded and extracted zip-file from $url")
 }

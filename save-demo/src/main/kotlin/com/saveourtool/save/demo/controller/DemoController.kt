@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
 /**
  * Controller for demo
  */
@@ -54,5 +57,8 @@ class DemoController(
     ): Mono<DemoResult> = blockingToMono {
         demoService.findBySaveourtoolProject(organizationName, projectName)
     }
-        .flatMap { demoRunnerFactory.create(it, "manual", RunnerFactory.RunnerType.CLI).run(demoRunRequest) }
+        .zipWith(demoService.getRunnerType())
+        .flatMap { (demo, runnerType) ->
+            demoRunnerFactory.create(demo, "manual", runnerType).run(demoRunRequest)
+        }
 }

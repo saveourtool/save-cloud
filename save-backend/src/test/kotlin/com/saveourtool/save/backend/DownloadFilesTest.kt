@@ -23,7 +23,6 @@ import com.saveourtool.save.v1
 import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.*
@@ -35,7 +34,6 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.security.test.context.support.WithMockUser
@@ -238,47 +236,6 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-    }
-
-    @Test
-    fun `download save-agent`() {
-        webTestClient.get()
-            .uri("/internal/files/download-save-agent")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals(
-                    "content-save-agent.kexe".toByteArray(),
-                    it.responseBody
-                )
-            }
-    }
-
-    @Test
-    fun `download save-cli`() {
-        webTestClient.get()
-            .uri("/internal/files/download-save-cli?version=1.0")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody()
-            .consumeWith {
-                Assertions.assertArrayEquals(
-                    "content-save-cli.kexe".toByteArray(),
-                    it.responseBody
-                )
-            }
-
-        webTestClient.get()
-            .uri("/internal/files/download-save-cli?version=2.0")
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .exchange()
-            .expectStatus()
-            .isNotFound
     }
 
     companion object {
