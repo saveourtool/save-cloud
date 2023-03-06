@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
+import reactor.kotlin.core.publisher.toMono
 
 import java.io.InputStream
 import java.io.SequenceInputStream
@@ -124,6 +125,16 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
     } else {
         Mono.just(Unit)
     }
+}
+
+/**
+ * If [this] [Mono] is empty, run [effect].
+ *
+ * @param effect
+ * @return always returns [Mono] with the original value.
+ */
+fun <T : Any> Mono<T>.effectIfEmpty(effect: () -> Unit): Mono<T> = switchIfEmpty {
+    effect.toMono().then(Mono.empty())
 }
 
 /**
@@ -292,18 +303,11 @@ fun waitReactivelyUntil(
  * Downloads the resource named [resourceName] from the classpath.
  *
  * @param resourceName the name of the resource (file).
- * @param lazyResponseBody the body of HTTP response if HTTP 404 is returned.
- * @return either the Mono holding the resource, or [Mono.error] with an HTTP 404
- *   status and response.
+ * @return either the Mono holding the resource, or [Mono.empty] if the resource not found
  */
-fun downloadFromClasspath(
+fun tryDownloadFromClasspath(
     resourceName: String,
-    lazyResponseBody: (() -> String?) = { null },
 ): Mono<out Resource> =
         Mono.just(resourceName)
             .map(::ClassPathResource)
             .filter(Resource::exists)
-            .switchIfEmptyToNotFound {
-                logger.error("$resourceName is not found on the classpath; returning HTTP 404...")
-                lazyResponseBody()
-            }

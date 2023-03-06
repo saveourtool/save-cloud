@@ -89,7 +89,7 @@ jobs:
           if ${{ inputs.demo }} == 'true'; then GRADLE_TASKS+=":save-demo:bootBuildImage "; fi
           if ${{ inputs.demo-cpg }} == 'true'; then GRADLE_TASKS+=":save-demo-cpg:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
-      - name: checkout save-core
+      - name: checkout save-cli
         uses: actions/checkout@v3
         with:
           repository: saveourtool/save-cli
@@ -109,8 +109,8 @@ jobs:
         run: |
           kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-core =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo SAVE_CORE_VERSION=$sv >> $GITHUB_ENV
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo SAVE_CLI_VERSION=$sv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
         with:
@@ -119,7 +119,7 @@ jobs:
       - working-directory: save
         run: git status && git diff
       - uses: gradle/gradle-build-action@v2
-        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
+        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
         with:
           gradle-version: wrapper
           build-root-directory: save
@@ -128,14 +128,11 @@ jobs:
             --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            -Preckon.stage=snapshot
       - name: Set environment variable with save-cli version
-        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
+        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
         run: |
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
-      - name: Set SAVE_CLI_VERSION if it's not set yet
-        run: |
-          # If using release version of save-cli, this variable should be empty at this point
-          if [ -z "$SAVE_CLI_VERSION" ]; then echo SAVE_CLI_VERSION="$SAVE_CORE_VERSION" >> $GITHUB_ENV; fi
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper

@@ -20,6 +20,7 @@ openApi {
 
     customBootRun {
         jvmArgs.add("-Dbackend.test-analysis-settings.replay-on-startup=false")
+        jvmArgs.add("-Dbackend.s3-storage.createBucketIfNotExists=false")
         args.add("--debug")
     }
 }

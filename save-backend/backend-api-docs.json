@@ -8533,6 +8533,7 @@
           "passedTests",
           "project",
           "runningTests",
+          "saveCliVersion",
           "sdk",
           "skippedTests",
           "startTime",
@@ -8587,6 +8588,9 @@
           "runningTests": {
             "type": "integer",
             "format": "int64"
+          },
+          "saveCliVersion": {
+            "type": "string"
           },
           "score": {
             "type": "number",

@@ -34,6 +34,7 @@ import javax.persistence.ManyToOne
  * @property expectedChecks
  * @property unexpectedChecks
  * @property sdk
+ * @property saveCliVersion
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -81,6 +82,8 @@ class Execution(
     var unexpectedChecks: Long,
 
     var sdk: String,
+
+    var saveCliVersion: String,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -161,6 +164,7 @@ class Execution(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
+            saveCliVersion = "N/A",
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,

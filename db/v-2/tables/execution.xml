@@ -83,4 +83,12 @@
         <modifyDataType tableName="execution" columnName="end_time" newDataType="DATETIME(3)"/>
     </changeSet>
 
+    <changeSet id="add-save-cli-version" author="nulls">
+        <addColumn tableName="execution">
+            <column name="save_cli_version" type="varchar(100)" defaultValue="N/A">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

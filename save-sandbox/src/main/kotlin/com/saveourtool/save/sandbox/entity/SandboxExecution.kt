@@ -15,6 +15,7 @@ import javax.persistence.*
  * @property endTime
  * @property status
  * @property sdk
+ * @property saveCliVersion
  * @property userId
  * @property initialized
  * @property failReason
@@ -28,6 +29,7 @@ class SandboxExecution(
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
     var sdk: String,
+    var saveCliVersion: String,
     @Column(name = "user_id")
     var userId: Long,
     var initialized: Boolean,

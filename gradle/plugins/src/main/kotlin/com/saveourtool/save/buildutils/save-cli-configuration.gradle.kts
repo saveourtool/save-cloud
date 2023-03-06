@@ -5,6 +5,8 @@
 package com.saveourtool.save.buildutils
 
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
 
@@ -13,35 +15,38 @@ plugins {
     id("de.undercouch.download")
 }
 
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val copySaveCliTaskProvider = tasks.register<Copy>("copySaveCli") {
-    val saveCliFile = rootProject.tasks.named<Download>("downloadSaveCli")
-        .map { downloadTask ->
-            downloadTask.dest
-        }
-    val outputDir = "$buildDir/download"
-    inputs.file(saveCliFile)
-    outputs.dir(outputDir)
-
-    from(saveCliFile.map { it.parentFile })
-    into(outputDir)
-}
+val saveCliVersion: String = the<LibrariesForLibs>()
+    .versions
+    .save
+    .cli
+    .get()
 
 dependencies {
-    add("runtimeOnly",
-        files(layout.buildDirectory.dir(
-            copySaveCliTaskProvider.map { task ->
-                task.outputs.files.singleFile.absolutePath
+    val isSaveCliProvided = hasProperty("saveCliPath")
+    if (isSaveCliProvided) {
+        val saveCliPath = providers.gradleProperty("saveCliPath")
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+        val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
+            enabled = isSaveCliProvided
+            src { saveCliPath }
+            dest { saveCliPath.map { "$buildDir/download/${File(it).name}" } }
+
+            overwrite(false)
+        }
+        add("runtimeOnly",
+            files(layout.buildDirectory.dir("$buildDir/download")).apply {
+                builtBy(downloadSaveCliTaskProvider)
             }
-        ))
-    )
+        )
+    }
 }
 
-val generateSaveCliVersionFileTaskProvider = tasks.register("generateSaveCliVersionFile") {
-    val saveCliVersion = readSaveCliVersion()
+val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateSaveCliVersionFile") {
     val outputDir = File("$buildDir/generated/src")
     val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
 
+    val saveCliVersion = findProperty("saveCliVersion") ?: saveCliVersion
+    // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
     inputs.property("save-cli version", saveCliVersion)
     outputs.dir(outputDir)
 
@@ -51,7 +56,7 @@ val generateSaveCliVersionFileTaskProvider = tasks.register("generateSaveCliVers
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "${saveCliVersion.get()}"
+            internal const val SAVE_CLI_VERSION = "$saveCliVersion"
 
             """.trimIndent()
         )
