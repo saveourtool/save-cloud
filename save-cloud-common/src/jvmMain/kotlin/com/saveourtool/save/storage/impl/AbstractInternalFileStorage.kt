@@ -143,12 +143,12 @@ open class AbstractInternalFileStorage(
         .defaultIfEmpty(Unit)
 
     /**
-     * Download save-cli from GitHub ([saveCliRepo]) latest [SAVE_CLI_VERSIONS] versions
+     * Download save-cli from GitHub ([saveCliRepo]) latest [SAVE_CLI_LIMIT] versions
      */
     protected suspend fun DefaultStorageCoroutines<InternalFileKey>.downloadSaveCliFromGithub() {
         GitHubHelper.availableTags(saveCliRepo)
             .sorted()
-            .takeLast(SAVE_CLI_VERSIONS)
+            .takeLast(SAVE_CLI_LIMIT)
             .map { tagName ->
                 InternalFileKey.saveCliKey(tagName.removePrefix("v")) to tagName
             }
@@ -168,7 +168,7 @@ open class AbstractInternalFileStorage(
     }
 
     companion object {
-        private const val SAVE_CLI_VERSIONS = 3
+        private const val SAVE_CLI_LIMIT = 3
         private val saveCliRepo = object : GitHubRepoInfo {
             override val organizationName: String = "saveourtool"
             override val projectName: String = "save-cli"

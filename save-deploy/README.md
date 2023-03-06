@@ -286,8 +286,8 @@ Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings
 Do not forget to use `mac` profile.
 
 #### Note: 
-* This works only if snapshot version of save-core is set in lib.version.toml. 
-* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
+* This works only if snapshot version of save-cli is set in lib.version.toml. 
+* If version of save-cli is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
 | port | description            |

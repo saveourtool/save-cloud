@@ -18,7 +18,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.utils.*
-import generated.SAVE_CORE_VERSION
+import generated.SAVE_CLI_VERSION
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -332,7 +332,7 @@ class SandboxController(
                         endTime = null,
                         status = ExecutionStatus.PENDING,
                         sdk = sdk,
-                        saveCliVersion = SAVE_CORE_VERSION,
+                        saveCliVersion = SAVE_CLI_VERSION,
                         userId = userId,
                         initialized = false,
                         failReason = null,

@@ -56,7 +56,7 @@ val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register(
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
+            internal const val SAVE_CLI_VERSION = "$saveCliVersion"
 
             """.trimIndent()
         )

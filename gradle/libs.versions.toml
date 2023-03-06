@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.8.10"
 jetbrains-annotations = "24.0.1"
-save-core = "0.3.9"
+save-cli = "0.3.9"
 ktor = "2.2.4"
 okio = "3.3.0"
 serialization = "1.5.0"
@@ -55,15 +55,15 @@ spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 download = { id = "de.undercouch.download", version.ref = "download" }
 
 [libraries]
-save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-core" }
-save-common-jvm = { module = "com.saveourtool.save:save-common-jvm", version.ref = "save-core" }
-save-core = { module = "com.saveourtool.save:save-core", version.ref = "save-core" }
-save-core-jvm = { module = "com.saveourtool.save:save-core-jvm", version.ref = "save-core" }
-save-plugins-fix = { module = "com.saveourtool.save:fix-plugin", version.ref = "save-core" }
-save-plugins-fix-jvm = { module = "com.saveourtool.save:fix-plugin-jvm", version.ref = "save-core" }
-save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", version.ref = "save-core" }
-save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-core" }
-save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-core" }
+save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-cli" }
+save-common-jvm = { module = "com.saveourtool.save:save-common-jvm", version.ref = "save-cli" }
+save-core = { module = "com.saveourtool.save:save-core", version.ref = "save-cli" }
+save-core-jvm = { module = "com.saveourtool.save:save-core-jvm", version.ref = "save-cli" }
+save-plugins-fix = { module = "com.saveourtool.save:fix-plugin", version.ref = "save-cli" }
+save-plugins-fix-jvm = { module = "com.saveourtool.save:fix-plugin-jvm", version.ref = "save-cli" }
+save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", version.ref = "save-cli" }
+save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-cli" }
+save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-cli" }
 publish-gradle-plugin = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "publish"}
 download-plugin = { module = "de.undercouch:gradle-download-task", version.ref = "download" }
 
