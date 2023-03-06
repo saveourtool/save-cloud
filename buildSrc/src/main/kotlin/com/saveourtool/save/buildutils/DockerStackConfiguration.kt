@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.buildutils
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskProvider
@@ -22,6 +23,63 @@ const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
 const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
 const val MINIO_STARTUP_DELAY_MILLIS = 5_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
+
+fun Project.registerLiquibaseTask(profile: String) {
+    val registerLiquibaseTaskBackend = reqisterLiquibaseTask(
+        projectName = "save-backend",
+        relativeChangeLogFile = "db/db.changelog-master.xml",
+        profile = profile
+    )
+    val registerLiquibaseTaskSandbox = reqisterLiquibaseTask(
+        projectName = "save-sandbox",
+        relativeChangeLogFile = "save-sandbox/db/db.changelog-sandbox.xml",
+        profile = profile
+    )
+    val registerLiquibaseTaskDemo = reqisterLiquibaseTask(
+        projectName = "save-demo",
+        relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
+        profile = profile
+    )
+    tasks.register("liquibaseUpdate") {
+        dependsOn(
+            registerLiquibaseTaskBackend,
+            registerLiquibaseTaskSandbox,
+            registerLiquibaseTaskDemo
+        )
+    }
+}
+
+private fun Project.reqisterLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String): TaskProvider<Exec> {
+    val taskName = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
+    val credentials = getDatabaseCredentials(projectName, profile)
+
+    return tasks.register<Exec>(taskName) {
+        val contexts = when (profile) {
+            "prod" -> "prod"
+            "dev" -> "dev"
+            else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+        }
+
+        val changeLogFile = rootDir.resolve(relativeChangeLogFile)
+        val changeLogFileSource = "${changeLogFile.parent}"
+        val changeLogFileTarget = relativeChangeLogFile.substringBeforeLast("/")
+        commandLine(
+            "docker", "run",
+            "-v", "$changeLogFileSource:/liquibase/changelog/$changeLogFileTarget",
+            "--rm",
+            "--env", "INSTALL_MYSQL=true",
+            "--network", "build_default",
+            "liquibase/liquibase:4.15",
+            "--url=${credentials.getDatabaseUrlForLiquibaseInDocker()}",
+            "--changeLogFile=$relativeChangeLogFile",
+            "--username=${credentials.username}",
+            "--password=${credentials.password}",
+            "--log-level=info",
+            "--contexts=$contexts",
+            "update"
+        )
+    }
+}
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
