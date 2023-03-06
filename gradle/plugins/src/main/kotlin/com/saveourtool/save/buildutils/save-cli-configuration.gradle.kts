@@ -48,7 +48,7 @@ val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register(
     val saveCliVersion = findProperty("saveCliVersion") ?: saveCoreVersion
     // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
     inputs.property("save-cli version", saveCliVersion)
-    outputs.file(versionFile)
+    outputs.dir(outputDir)
 
     doFirst {
         versionFile.parentFile.mkdirs()
