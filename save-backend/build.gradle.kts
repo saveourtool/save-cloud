@@ -1,5 +1,3 @@
-
-
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
@@ -24,6 +22,14 @@ openApi {
         jvmArgs.add("-Dbackend.test-analysis-settings.replay-on-startup=false")
         args.add("--debug")
     }
+}
+
+tasks.named("jar") {
+    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
+}
+
+tasks.named("inspectClassesForKotlinIC") {
+    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
 }
 
 tasks.named("processTestResources") {
