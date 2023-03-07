@@ -9,9 +9,11 @@ import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.utils.failureOrNotOk
 import com.saveourtool.save.utils.fs
 import com.saveourtool.save.utils.notOk
+import com.saveourtool.save.utils.requiredEnv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -57,6 +59,15 @@ private suspend fun HttpClient.download(url: String, file: Path): Result<HttpRes
             httpResponse
         }
 }
+
+/**
+ * Construct url from environment variable [DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV] and get the rest of configuration
+ *
+ * @return [DemoAgentConfig] fetched from server
+ */
+suspend fun getConfiguration(): DemoAgentConfig = httpClient.get {
+    url(requiredEnv(DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV))
+}.body()
 
 /**
  * @param fileLabel
