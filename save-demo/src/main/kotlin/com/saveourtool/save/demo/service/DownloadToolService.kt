@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
+import com.saveourtool.save.utils.github.ReleaseAsset
 
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -77,6 +78,7 @@ class DownloadToolService(
      */
     suspend fun getExecutableName(repo: GithubRepo, vcsTagName: String) = queryMetadata(repo, vcsTagName)
         .assets
+        .filterNot(ReleaseAsset::isDigest)
         .first()
         .name
 

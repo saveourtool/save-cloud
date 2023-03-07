@@ -24,7 +24,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 
 import kotlin.io.path.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
@@ -81,7 +80,7 @@ class DependencyStorage(
     fun blockingList(
         demo: Demo,
         version: String,
-    ): List<Dependency> = s3KeyManager.findAllDependenies(
+    ): List<Dependency> = s3KeyManager.blockingFindAllKeys(
         demo.organizationName,
         demo.projectName,
         version,
@@ -95,9 +94,11 @@ class DependencyStorage(
     suspend fun list(
         demo: Demo,
         version: String,
-    ): List<Dependency> = s3KeyManager.blockingBridge.blockingToSuspend {
-        blockingList(demo, version)
-    }
+    ): List<Dependency> = s3KeyManager.findAllKeys(
+        demo.organizationName,
+        demo.projectName,
+        version,
+    )
 
     /**
      * @param demo
@@ -147,23 +148,19 @@ class DependencyStorage(
         projectName: String,
         version: String,
         fileName: String,
-    ): Dependency? = s3KeyManager.blockingBridge.blockingToSuspend {
-        s3KeyManager.findDependency(
-            organizationName,
-            projectName,
-            version,
-            fileName,
-        )
-    }
+    ): Dependency? = s3KeyManager.findKey(
+        organizationName,
+        projectName,
+        version,
+        fileName,
+    )
 
     private suspend fun downloadToTempDir(
         tempDir: Path,
         organizationName: String,
         projectName: String,
         version: String
-    ) = s3KeyManager.blockingBridge.blockingToSuspend {
-        s3KeyManager.findAllDependenies(organizationName, projectName, version)
-    }
+    ) = s3KeyManager.findAllKeys(organizationName, projectName, version)
         .map {
             download(it).collectToFile(tempDir / it.fileName)
         }
@@ -213,6 +210,7 @@ class DependencyStorage(
         this.downloadFromGithubAndUploadToStorage(repo, vcsTagName)
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun StorageCoroutines<Dependency>.downloadFromGithubAndUploadToStorage(
         repo: GithubRepo,
         vcsTagName: String
@@ -221,32 +219,26 @@ class DependencyStorage(
             .assets
             .filterNot(ReleaseAsset::isDigest)
             .first()
-        val dependency = s3KeyManager.blockingBridge.blockingToSuspend {
-            s3KeyManager.findDependency(
-                repo.organizationName,
-                repo.projectName,
-                vcsTagName,
-                asset.name,
-            )
-        } ?: run {
-            demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
+        val dependency = s3KeyManager.findKey(
+            repo.organizationName,
+            repo.projectName,
+            vcsTagName,
+            asset.name,
+        ) ?: run {
+            val demo = demoService.findBySaveourtoolProjectOrNotFound(repo.organizationName, repo.projectName) {
                 "Not found demo for ${repo.toPrettyString()}"
             }
-                .let {
-                    Dependency(it, vcsTagName, asset.name, -1L)
-                }
+            Dependency(demo, vcsTagName, asset.name, -1L)
         }
 
         try {
             downloadAsset(asset) { content ->
                 overwrite(dependency, asset.size, content.toByteBufferFlow())
             }
-        } catch (ex: CancellationException) {
-            log.debug("Download of ${repo.toPrettyString()} was cancelled.")
+            log.debug("${repo.toPrettyString()} was successfully downloaded.")
         } catch (ex: Exception) {
             log.error("Error while downloading ${repo.toPrettyString()}: ${ex.message}")
         }
-        log.debug("${repo.toPrettyString()} was successfully downloaded.")
     }
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

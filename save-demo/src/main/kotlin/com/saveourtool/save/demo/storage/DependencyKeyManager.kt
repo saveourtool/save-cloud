@@ -31,17 +31,19 @@ class DependencyKeyManager(
      * @param fileName
      * @return [Dependency] found by provided values
      */
-    fun findDependency(
+    suspend fun findKey(
         organizationName: String,
         projectName: String,
         version: String,
         fileName: String,
-    ): Dependency? = repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
-        organizationName,
-        projectName,
-        version,
-        fileName,
-    )
+    ): Dependency? = blockingBridge.blockingToSuspend {
+        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+            organizationName,
+            projectName,
+            version,
+            fileName,
+        )
+    }
 
     /**
      * @param organizationName
@@ -49,7 +51,7 @@ class DependencyKeyManager(
      * @param version
      * @return List of [Dependency] found by provided values
      */
-    fun findAllDependenies(
+    fun blockingFindAllKeys(
         organizationName: String,
         projectName: String,
         version: String
@@ -58,4 +60,22 @@ class DependencyKeyManager(
         projectName,
         version,
     )
+
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param version
+     * @return List of [Dependency] found by provided values
+     */
+    suspend fun findAllKeys(
+        organizationName: String,
+        projectName: String,
+        version: String
+    ): List<Dependency> = blockingBridge.blockingToSuspend {
+        blockingFindAllKeys(
+            organizationName,
+            projectName,
+            version,
+        )
+    }
 }
