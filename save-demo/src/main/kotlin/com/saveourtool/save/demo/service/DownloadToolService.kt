@@ -22,6 +22,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
@@ -37,7 +38,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.flux
 import kotlinx.serialization.json.Json
-import reactor.core.publisher.Flux
 
 /**
  * Service that downloads tools from GitHub when starting

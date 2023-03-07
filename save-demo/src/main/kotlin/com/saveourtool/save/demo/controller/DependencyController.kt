@@ -10,6 +10,7 @@ import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 
+import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -19,7 +20,6 @@ import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
 import kotlinx.datetime.toKotlinLocalDateTime
-import org.slf4j.Logger
 
 /**
  * Internal controller that allows to upload files to save-demo
