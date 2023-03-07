@@ -1,12 +1,12 @@
 package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.runners.command.CommandBuilder
 import com.saveourtool.save.demo.runners.command.CommandContext
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getLogger
 import org.slf4j.Logger
 import java.nio.file.Path
@@ -17,11 +17,11 @@ import kotlin.io.path.createTempDirectory
  */
 class DemoCliRunner(
     dependencyStorage: DependencyStorage,
-    coroutineDispatchers: CustomCoroutineDispatchers,
+    blockingBridge: BlockingBridge,
     private val commandBuilder: CommandBuilder,
     private val demo: Demo,
     private val version: String,
-) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
+) : AbstractCliRunner(dependencyStorage, blockingBridge) {
     override val log: Logger = Companion.log
     override val configName: String? = demo.configName
     override val testFileName: String = demo.fileName

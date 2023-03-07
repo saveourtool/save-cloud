@@ -52,13 +52,12 @@ class KubernetesService(
      * @return [Mono] of [StringResponse] filled with readable message
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
+    suspend fun start(demo: Demo, version: String = "manual"): StringResponse = run {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
                 .toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
-            demo
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -66,11 +65,9 @@ class KubernetesService(
                 kre,
             )
         }
+        configureDemoAgent(demo, version)
+        StringResponse.ok("Created container for demo.")
     }
-        .asyncEffect {
-            mono { configureDemoAgent(it, version) }
-        }
-        .map { StringResponse.ok("Created container for demo.") }
 
     /**
      * @param demo demo entity

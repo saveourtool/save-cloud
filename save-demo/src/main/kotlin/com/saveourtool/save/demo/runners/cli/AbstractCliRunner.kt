@@ -2,12 +2,12 @@ package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.utils.LOG_FILE_NAME
 import com.saveourtool.save.demo.utils.REPORT_FILE_NAME
 import com.saveourtool.save.demo.utils.prependPath
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.collectToFile
 import com.saveourtool.save.utils.orNotFound
@@ -24,7 +24,7 @@ import kotlin.io.path.*
  */
 abstract class AbstractCliRunner(
     protected val dependencyStorage: DependencyStorage,
-    private val coroutineDispatchers: CustomCoroutineDispatchers,
+    private val blockingBridge: BlockingBridge,
 ) : CliRunner {
     /**
      * logger from child
@@ -90,7 +90,7 @@ abstract class AbstractCliRunner(
         )
     }
 
-    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = runBlocking(coroutineDispatchers.default) {
+    override fun getExecutable(workingDir: Path, toolKey: ToolKey): Path = runBlocking(blockingBridge.ioDispatcher) {
         with(toolKey) {
             dependencyStorage.findDependency(organizationName, projectName, version, fileName)
         }

@@ -20,6 +20,7 @@ import reactor.kotlin.core.util.function.component2
 class ManagementController(
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,
+    private val blockingBridge: BlockingBridge,
 ) {
     /**
      * @param demoDto
@@ -33,7 +34,7 @@ class ManagementController(
                 "Demo creation request is invalid: fill project coordinates, run command and file name."
             }
             .let { validatedDemoDto ->
-                withContext(Dispatchers.IO) {
+                blockingBridge.blockingToSuspend {
                     demoService.saveIfNotPresent(validatedDemoDto.toDemo())
                 }
             }
@@ -47,14 +48,16 @@ class ManagementController(
      * @return [Mono] of [StringResponse]
      */
     @PostMapping("/{organizationName}/{projectName}/delete")
-    fun delete(
+    suspend fun delete(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam(required = false, defaultValue = "manual") version: String,
-    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ): StringResponse {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        return demoService.delete(demo, version)
     }
-        .flatMap { demoService.delete(it, version) }
 
     /**
      * @param organizationName saveourtool organization name
@@ -65,10 +68,12 @@ class ManagementController(
     suspend fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): StringResponse = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ): StringResponse {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        return demoService.start(demo)
     }
-        .let { demoService.start(it) }
 
     /**
      * @param organizationName
@@ -76,11 +81,13 @@ class ManagementController(
      * @return [Mono] of [Unit]
      */
     @PostMapping("/{organizationName}/{projectName}/stop")
-    fun stop(
+    suspend fun stop(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<Unit> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ) {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        demoService.stop(demo)
     }
-        .map { demoService.stop(it) }
 }

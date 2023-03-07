@@ -2,14 +2,13 @@ package com.saveourtool.save.demo.runners.cli
 
 import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.config.CustomCoroutineDispatchers
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.demo.utils.*
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getLogger
 
-import io.ktor.util.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
 
@@ -25,8 +24,8 @@ import kotlin.io.path.*
 @Component
 class DiktatCliRunner(
     dependencyStorage: DependencyStorage,
-    coroutineDispatchers: CustomCoroutineDispatchers,
-) : AbstractCliRunner(dependencyStorage, coroutineDispatchers) {
+    blockingBridge: BlockingBridge,
+) : AbstractCliRunner(dependencyStorage, blockingBridge) {
     override val log: Logger = logger
     override val configName: String = DIKTAT_CONFIG_NAME
     override val testFileName: String = KOTLIN_TEST_NAME

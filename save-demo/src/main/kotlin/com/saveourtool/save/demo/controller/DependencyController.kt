@@ -102,10 +102,7 @@ class DependencyController(
             .map { (dependency, fileDto) ->
                 downloadToolService.downloadToStorage(fileDto, dependency)
             }
-            .toList()
-            .let {
-                it.size
-            }
+            .toList().size
             .let { size ->
                 StringResponse(
                     if (size == 0) {
@@ -134,10 +131,5 @@ class DependencyController(
             "Could not find demo for $organizationName/$projectName."
         }
         return dependencyStorage.archive(demo.organizationName, demo.projectName, version)
-    }
-        .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
-
-    companion object {
-        private val log: Logger = getLogger<DependencyController>()
     }
 }

@@ -5,10 +5,7 @@ import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.storage.DependencyStorage
-import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
@@ -28,6 +25,7 @@ import kotlinx.coroutines.withContext
 class DemoService(
     private val demoRepository: DemoRepository,
     private val kubernetesService: KubernetesService?,
+    private val dependencyStorage: DependencyStorage,
     private val blockingBridge: BlockingBridge,
 ) {
     /**
@@ -45,9 +43,9 @@ class DemoService(
      * @param demo demo entity
      * @return [Mono] of [StringResponse] filled with readable message
      */
-    fun start(demo: Demo): Mono<StringResponse> = kubernetesService?.let {
+    fun start(demo: Demo): StringResponse = kubernetesService?.let {
         kubernetesService.start(demo)
-    } ?: Mono.fromCallable {
+    } ?: run {
         StringResponse.ok("Demo successfully created")
     }
 
@@ -118,11 +116,15 @@ class DemoService(
      * @param version version of demo
      * @return [Mono] of [Unit]
      */
-    fun delete(demo: Demo, version: String): Mono<StringResponse> = stop(demo)
-        .let { dependencyStorage.list(demo, version) }
-        .concatMap { dependencyStorage.delete(it) }
-        .collectList()
-        .publishOn(Schedulers.boundedElastic())
-        .map { demoRepository.delete(demo) }
-        .map { StringResponse.ok("Successfully deleted demo of ${demo.projectCoordinates()}.") }
+    suspend fun delete(demo: Demo, version: String): StringResponse {
+        stop(demo)
+        dependencyStorage.list(demo, version)
+        .onEach {
+            dependencyStorage.delete(it)
+        }
+        blockingBridge.blockingToSuspend {
+            demoRepository.delete(demo)
+        }
+        return StringResponse.ok("Successfully deleted demo of ${demo.projectCoordinates()}.")
+    }
 }
