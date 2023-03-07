@@ -31,8 +31,9 @@ dependencies {
         val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
             from(saveCliPath)
             into(target) {
-                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                duplicatesStrategy = DuplicatesStrategy.WARN
             }
+            destinationDir = file(target)
         }
         add("runtimeOnly",
             files(layout.buildDirectory.dir(target)).apply {
