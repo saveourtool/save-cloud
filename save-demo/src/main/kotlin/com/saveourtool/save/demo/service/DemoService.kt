@@ -4,6 +4,7 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
+import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
@@ -14,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 
 import kotlinx.coroutines.reactor.mono
@@ -26,7 +28,7 @@ import kotlinx.coroutines.withContext
 class DemoService(
     private val demoRepository: DemoRepository,
     private val kubernetesService: KubernetesService?,
-    private val ioContext: CoroutineDispatcher = Dispatchers.IO,
+    private val blockingBridge: BlockingBridge,
 ) {
     /**
      * Get preferred [RunnerFactory.RunnerType] for demo runner.
@@ -106,7 +108,21 @@ class DemoService(
         organizationName: String,
         projectName: String,
         lazyMessage: () -> String,
-    ): Demo = withContext(ioContext) {
+    ): Demo = blockingBridge.blockingToSuspend {
         findBySaveourtoolProject(organizationName, projectName)
-    }.orNotFound(lazyMessage)
+            .orNotFound(lazyMessage)
+    }
+
+    /**
+     * @param demo [Demo] entity
+     * @param version version of demo
+     * @return [Mono] of [Unit]
+     */
+    fun delete(demo: Demo, version: String): Mono<StringResponse> = stop(demo)
+        .let { dependencyStorage.list(demo, version) }
+        .concatMap { dependencyStorage.delete(it) }
+        .collectList()
+        .publishOn(Schedulers.boundedElastic())
+        .map { demoRepository.delete(demo) }
+        .map { StringResponse.ok("Successfully deleted demo of ${demo.projectCoordinates()}.") }
 }

@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.config
 
+import com.saveourtool.save.utils.BlockingBridge
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
@@ -30,8 +31,8 @@ class Beans {
     }
 
     /**
-     * @return [CustomCoroutineDispatchers]
+     * @return [BlockingBridge]
      */
     @Bean
-    fun coroutineDispatchers(): CustomCoroutineDispatchers = CustomCoroutineDispatchers()
+    fun blockingBridge(): BlockingBridge = BlockingBridge.default
 }

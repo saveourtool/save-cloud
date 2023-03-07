@@ -14,6 +14,24 @@ save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for s
 
 Deployment is performed on server via docker swarm or locally via `docker compose`. See detailed information below.
 
+### Dependency to `save-cli`
+The `libs.version.toml` contains `save-cli` version.
+The `save-agent` uses this version as a compile dependency to read execution's reports.
+
+The `save-backend` and `save-sandbox` download newer versions of `save-cli` from _GitHub_ on startup.
+
+#### Using a `SNAPSHOT` version of `save-cli`
+
+If `save-cli` is set to snapshot version in `lib.version.toml`, we download `save-cli`'s sources and build them in _GitHub_ action: [Build and push Docker images](../.github/workflows/deploy_images.yml).
+Then _Gradle_ adds the result (_.kexe_) to `save-backend` and `save-sandbox` as a runtime dependency
+
+**Under the hood:** _Gradle_ supports two variables `saveCliVersion` and `saveCliPath`.
+The `saveCliVersion` overrides version of `save-cli` from `lib.version.toml`.
+The `saveCliPath` specifies a path to `save-cli`'s _.kexe_ and it's required when version of `save-cli` is **SNAPSHOT**.
+
+**Note:** `libs.version.toml` can contain _blabla-SNAPSHOT_ version, but we will build a version from the latest main in `save-cli`
+and set the built version of `save-cli` to generated file: `generated/SaveCliVersion.kt`.
+
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * [reverse-proxy.conf](reverse-proxy.conf) is a configuration for Nginx to act as a reverse proxy for save-cloud. It should be 
@@ -284,10 +302,6 @@ the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe
 If setting `save-agent`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
 Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be available via TCP.
 Do not forget to use `mac` profile.
-
-#### Note: 
-* This works only if snapshot version of save-core is set in lib.version.toml. 
-* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
 | port | description            |

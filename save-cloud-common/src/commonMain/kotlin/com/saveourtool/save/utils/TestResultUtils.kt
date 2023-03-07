@@ -1,5 +1,5 @@
 /**
- * Mapping entities from SAVE-core to their equivalents from SAVE-cloud
+ * Mapping entities from SAVE-cli to their equivalents from SAVE-cloud
  */
 
 package com.saveourtool.save.utils

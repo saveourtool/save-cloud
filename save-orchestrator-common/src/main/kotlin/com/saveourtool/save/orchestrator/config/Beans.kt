@@ -26,7 +26,7 @@ class Beans {
      * @return instance of [DockerClient]
      */
     @Bean
-    @Profile("!kubernetes")
+    @Profile("!kubernetes && !docker-test")
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {

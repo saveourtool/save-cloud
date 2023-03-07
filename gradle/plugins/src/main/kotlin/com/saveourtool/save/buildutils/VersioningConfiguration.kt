@@ -12,12 +12,6 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 
 /**
- * @return path to the file with save-cli version for current build
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-internal val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.properties"
-
-/**
  * Configures reckon plugin for [this] project, should be applied for root project only
  */
 fun Project.configureVersioning() {

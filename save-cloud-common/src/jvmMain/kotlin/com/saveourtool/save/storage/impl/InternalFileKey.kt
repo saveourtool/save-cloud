@@ -3,10 +3,12 @@ package com.saveourtool.save.storage.impl
 /**
  * @property name
  * @property version
+ * @property fileName
  */
 data class InternalFileKey(
     val name: String,
     val version: String,
+    val fileName: String,
 ) {
     /**
      * @return true if version is latest, otherwise -- false
@@ -19,21 +21,23 @@ data class InternalFileKey(
         /**
          * [InternalFileKey] for *save-agent*
          */
-        val saveAgentKey: InternalFileKey = latest("save-agent.kexe")
+        val saveAgentKey: InternalFileKey = latest("save-agent", "save-agent.kexe")
 
         /**
          * @param name
+         * @param fileName
          * @return [InternalFileKey] with latest version
          */
-        fun latest(name: String): InternalFileKey = InternalFileKey(name, LATEST_VERSION)
+        fun latest(name: String, fileName: String): InternalFileKey = InternalFileKey(name, LATEST_VERSION, fileName)
 
         /**
          * @param version
          * @return [InternalFileKey] for *save-cli* with version [version]
          */
         fun saveCliKey(version: String): InternalFileKey = InternalFileKey(
-            name = "save-$version-linuxX64.kexe",
+            name = "save-cli",
             version = version,
+            fileName = "save-$version-linuxX64.kexe",
         )
     }
 }

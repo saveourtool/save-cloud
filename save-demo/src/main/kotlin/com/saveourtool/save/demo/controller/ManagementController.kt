@@ -4,9 +4,6 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
 import com.saveourtool.save.utils.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.springframework.context.annotation.Profile
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -44,12 +41,27 @@ class ManagementController(
     }
 
     /**
-     * @param organizationName
-     * @param projectName
-     * @return [Mono] of [Unit]
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of demo
+     * @return [Mono] of [StringResponse]
+     */
+    @PostMapping("/{organizationName}/{projectName}/delete")
+    fun delete(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+    ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .flatMap { demoService.delete(it, version) }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @return [Mono] of [StringResponse]
      */
     @PostMapping("/{organizationName}/{projectName}/start")
-    @Profile("kubernetes")
     suspend fun start(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,

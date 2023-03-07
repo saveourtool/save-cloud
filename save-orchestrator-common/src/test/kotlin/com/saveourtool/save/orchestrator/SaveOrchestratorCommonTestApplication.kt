@@ -4,8 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.*
-
-internal const val SAVE_AGENT_VERSION = "save-agent-version"
+import org.springframework.test.context.ActiveProfiles
 
 @SpringBootApplication
 @Import(SaveOrchestratorCommonConfiguration::class)

@@ -1866,6 +1866,74 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/delete": {
+      "post": {
+        "description": "Delete demo by saveourtool organization and project names.",
+        "operationId": "deleteDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted demo."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for demo deletion."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find saveourtool project or demo of a project."
+          }
+        },
+        "summary": "Delete demo.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/demo/{organizationName}/{projectName}/delete-file": {
       "delete": {
         "description": "Delete a file.",
@@ -2039,6 +2107,74 @@
         ]
       }
     },
+    "/api/v1/demo/{organizationName}/{projectName}/start": {
+      "post": {
+        "description": "Start demo container if possible, do nothing otherwise.",
+        "operationId": "startDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully started demo."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for demo management."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find saveourtool project or demo of a project."
+          }
+        },
+        "summary": "Start demo container.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
     "/api/v1/demo/{organizationName}/{projectName}/status": {
       "get": {
         "description": "Get demo status.",
@@ -2080,7 +2216,8 @@
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
-                    "STOPPED"
+                    "STOPPED",
+                    "STOPPING"
                   ]
                 }
               }
@@ -2097,7 +2234,8 @@
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
-                    "STOPPED"
+                    "STOPPED",
+                    "STOPPING"
                   ]
                 }
               }
@@ -2114,7 +2252,8 @@
                     "NOT_CREATED",
                     "RUNNING",
                     "STARTING",
-                    "STOPPED"
+                    "STOPPED",
+                    "STOPPING"
                   ]
                 }
               }
@@ -2123,6 +2262,74 @@
           }
         },
         "summary": "Get demo status.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/stop": {
+      "post": {
+        "description": "Delete demo container if possible, do nothing otherwise.",
+        "operationId": "stopDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully stopped demo."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for demo management."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find saveourtool project or demo of a project."
+          }
+        },
+        "summary": "Stop demo.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -8311,7 +8518,8 @@
               "NOT_CREATED",
               "RUNNING",
               "STARTING",
-              "STOPPED"
+              "STOPPED",
+              "STOPPING"
             ]
           }
         }
@@ -8325,6 +8533,7 @@
           "passedTests",
           "project",
           "runningTests",
+          "saveCliVersion",
           "sdk",
           "skippedTests",
           "startTime",
@@ -8379,6 +8588,9 @@
           "runningTests": {
             "type": "integer",
             "format": "int64"
+          },
+          "saveCliVersion": {
+            "type": "string"
           },
           "score": {
             "type": "number",

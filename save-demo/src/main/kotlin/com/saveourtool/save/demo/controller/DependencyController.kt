@@ -7,10 +7,13 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 
+import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -92,20 +95,27 @@ class DependencyController(
         val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
             "Could not find demo for $organizationName/$projectName."
         }
-        val dependencies = fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
-            .filterNot {
-                dependencyStorage.doesExist(it)
+        return fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) to it }
+            .filterNot { (dependency, _) ->
+                dependencyStorage.doesExist(dependency)
             }
-        return downloadToolService.downloadToStorage(dependencies).let { size ->
-            StringResponse(
-                if (size == 0) {
-                    "All files are already present in demo storage."
-                } else {
-                    "Successfully saved $size files to demo storage."
-                },
-                HttpStatus.OK,
-            )
-        }
+            .map { (dependency, fileDto) ->
+                downloadToolService.downloadToStorage(fileDto, dependency)
+            }
+            .toList()
+            .let {
+                it.size
+            }
+            .let { size ->
+                StringResponse(
+                    if (size == 0) {
+                        "All files are already present in demo storage."
+                    } else {
+                        "Successfully saved $size files to demo storage."
+                    },
+                    HttpStatus.OK,
+                )
+            }
     }
 
     /**
@@ -124,5 +134,10 @@ class DependencyController(
             "Could not find demo for $organizationName/$projectName."
         }
         return dependencyStorage.archive(demo.organizationName, demo.projectName, version)
+    }
+        .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
+
+    companion object {
+        private val log: Logger = getLogger<DependencyController>()
     }
 }
