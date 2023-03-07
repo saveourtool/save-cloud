@@ -29,7 +29,6 @@ import reactor.core.publisher.Mono
 
 import java.net.ConnectException
 
-import kotlinx.coroutines.reactor.mono
 import kotlinx.serialization.json.Json
 
 /**
@@ -70,9 +69,6 @@ class KubernetesService(
             )
         }
     }
-        .asyncEffect {
-            mono { configureDemoAgent(it, version) }
-        }
         .map { StringResponse.ok("Created container for demo.") }
 
     /**
