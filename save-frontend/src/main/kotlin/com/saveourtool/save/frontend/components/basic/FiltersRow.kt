@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
@@ -41,12 +41,12 @@ external interface FiltersRowProps : Props {
     /**
      * All filters in one class property [filters]
      */
-    var filters: TestExecutionFilters
+    var filters: TestExecutionFilter
 
     /**
      * lambda to change [filters]
      */
-    var onChangeFilters: (TestExecutionFilters) -> Unit
+    var onChangeFilters: (TestExecutionFilter) -> Unit
 }
 
 /**
@@ -188,8 +188,8 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setFilters(TestExecutionFilters.empty)
-                    props.onChangeFilters(TestExecutionFilters.empty)
+                    setFilters(TestExecutionFilter.empty)
+                    props.onChangeFilters(TestExecutionFilter.empty)
                 }
             }
         }
