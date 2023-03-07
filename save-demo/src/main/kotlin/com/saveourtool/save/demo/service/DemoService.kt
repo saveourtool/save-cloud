@@ -39,7 +39,7 @@ class DemoService(
      * @param demo demo entity
      * @return [Mono] of [StringResponse] filled with readable message
      */
-    fun start(demo: Demo): StringResponse = kubernetesService?.let {
+    suspend fun start(demo: Demo): StringResponse = kubernetesService?.let {
         kubernetesService.start(demo)
     } ?: run {
         StringResponse.ok("Demo successfully created")
@@ -61,9 +61,9 @@ class DemoService(
      * @param demo demo entity
      * @return current [DemoStatus] of [demo]
      */
-    fun getStatus(demo: Demo): Mono<DemoStatus> = kubernetesService?.let {
-        mono { kubernetesService.getStatus(demo) }
-    } ?: DemoStatus.RUNNING.toMono()
+    suspend fun getStatus(demo: Demo): DemoStatus = kubernetesService?.let {
+        kubernetesService.getStatus(demo)
+    } ?: DemoStatus.RUNNING
 
     private fun save(demo: Demo) = demoRepository.save(demo)
 

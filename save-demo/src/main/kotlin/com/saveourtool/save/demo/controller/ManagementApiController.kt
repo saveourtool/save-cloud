@@ -25,6 +25,7 @@ import reactor.kotlin.core.util.function.component2
 class ManagementApiController(
     private val toolService: ToolService,
     private val demoService: DemoService,
+    private val blockingBridge: BlockingBridge,
 ) {
     /**
      * @param organizationName name of GitHub user/organization
@@ -32,14 +33,15 @@ class ManagementApiController(
      * @return [Mono] of [DemoStatus] of current demo
      */
     @GetMapping("/{organizationName}/{projectName}/status")
-    fun getDemoStatus(
+    suspend fun getDemoStatus(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoStatus> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
+    ): DemoStatus {
+        val demo = blockingBridge.blockingToSuspend {
+            demoService.findBySaveourtoolProject(organizationName, projectName)
+        }
+        return demo?.let { demoService.getStatus(it) } ?: DemoStatus.NOT_CREATED
     }
-        .flatMap { demo -> demoService.getStatus(demo) }
-        .defaultIfEmpty(DemoStatus.NOT_CREATED)
 
     /**
      * @param organizationName name of GitHub user/organization
@@ -47,33 +49,29 @@ class ManagementApiController(
      * @return [Mono] of [DemoStatus] of current demo
      */
     @GetMapping("/{organizationName}/{projectName}")
-    fun getDemoInfo(
+    suspend fun getDemoInfo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoInfo> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
-        "Could not find demo for $organizationName/$projectName."
+    ): DemoInfo {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        val status = getDemoStatus(organizationName, projectName)
+        val demoInfo = DemoInfo(
+            demo.toDto().copy(vcsTagName = ""),
+            status,
+        )
+        val currentVersion = blockingBridge.blockingToSuspend {
+            demoInfo.demoDto
+                .githubProjectCoordinates
+                ?.let { repo ->
+                    toolService.findCurrentVersion(repo)
+                } ?: "manual"
+        }
+        return demoInfo.copy(
+            demoDto = demoInfo.demoDto.copy(
+                vcsTagName = currentVersion
+            )
+        )
     }
-        .zipWith(getDemoStatus(organizationName, projectName))
-        .map { (demo, status) ->
-            DemoInfo(
-                demo.toDto().copy(vcsTagName = ""),
-                status,
-            )
-        }
-        .zipWhen { demoInfo ->
-            blockingToMono {
-                demoInfo.demoDto
-                    .githubProjectCoordinates
-                    ?.let { repo ->
-                        toolService.findCurrentVersion(repo)
-                    } ?: "manual"
-            }
-        }
-        .map { (demoInfo, currentVersion) ->
-            demoInfo.copy(
-                demoDto = demoInfo.demoDto.copy(
-                    vcsTagName = currentVersion
-                )
-            )
-        }
 }

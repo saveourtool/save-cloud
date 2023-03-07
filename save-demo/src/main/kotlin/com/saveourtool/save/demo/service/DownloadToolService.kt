@@ -35,7 +35,6 @@ class DownloadToolService(
     private val githubRepoService: GithubRepoService,
     private val snapshotService: SnapshotService,
     private val configProperties: ConfigProperties,
-    private val demoService: DemoService,
     private val blockingBridge: BlockingBridge,
 ) {
     private val httpClient = httpClient()
