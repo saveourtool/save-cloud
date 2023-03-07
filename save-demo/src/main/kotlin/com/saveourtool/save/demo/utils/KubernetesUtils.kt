@@ -160,17 +160,23 @@ private fun demoAgentContainerSpec(
     // todo: in later phases should be removed
     val currentlyHardcodedVersion = "manual"
 
-    val envOptions = sequenceOf(
+    listOf(
         "KTOR_LOG_LEVEL" to "TRACE",
         DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV to getConfigureMeUrl(agentConfig.demoUrl, demo, currentlyHardcodedVersion),
         DemoAgentConfig.DEMO_ORGANIZATION_ENV to demo.organizationName,
         DemoAgentConfig.DEMO_PROJECT_ENV to demo.projectName,
         DemoAgentConfig.DEMO_VERSION_ENV to currentlyHardcodedVersion,
     )
+        .map { (key, envValue) ->
+            EnvVar().apply {
+                name = key
+                value = envValue
+            }
+        }
+        .let { env = it }
 
     val startupCommand = downloadAndRunAgentCommand(
         agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent,
-        envOptions = envOptions
     )
 
     command = listOf("sh", "-c", startupCommand)
