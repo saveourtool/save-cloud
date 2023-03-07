@@ -1,14 +1,11 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.DependencyStorage
-import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
 
 import io.ktor.client.*
@@ -19,11 +16,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.CancellationException
 import org.springframework.stereotype.Service
 
 import java.nio.ByteBuffer
-import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -59,19 +54,19 @@ class DownloadToolService(
      * @return [Tool] that has been downloaded
      */
     suspend fun initializeGithubDownload(githubProjectCoordinates: ProjectCoordinates?, vcsTagName: String): Tool? =
-        githubProjectCoordinates?.toGithubRepo()?.let {githubRepo ->
-            val repo = blockingBridge.blockingToSuspend {
-                githubRepoService.saveIfNotPresent(githubRepo)
+            githubProjectCoordinates?.toGithubRepo()?.let {githubRepo ->
+                val repo = blockingBridge.blockingToSuspend {
+                    githubRepoService.saveIfNotPresent(githubRepo)
+                }
+                val snapshot = Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
+                val tool = blockingBridge.blockingToSuspend {
+                    toolService.saveIfNotPresent(repo, snapshotService.saveIfNotPresent(snapshot))
+                }
+                if (tool.id.isNotNull()) {
+                    dependencyStorage.uploadFromGitHub(tool.githubRepo, tool.snapshot.version)
+                }
+                tool
             }
-            val snapshot = Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
-            val tool = blockingBridge.blockingToSuspend {
-                toolService.saveIfNotPresent(repo, snapshotService.saveIfNotPresent(snapshot))
-            }
-            if (tool.id.isNotNull()) {
-                dependencyStorage.uploadFromGitHub(tool.githubRepo, tool.snapshot.version)
-            }
-            tool
-        }
 
     /**
      * Get name of GitHub downloaded asset

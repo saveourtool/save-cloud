@@ -6,17 +6,13 @@ import com.saveourtool.save.demo.repository.DemoRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.utils.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 
 import kotlinx.coroutines.reactor.mono
-import kotlinx.coroutines.withContext
 
 /**
  * [Service] for [Demo] entity
@@ -119,9 +115,9 @@ class DemoService(
     suspend fun delete(demo: Demo, version: String): StringResponse {
         stop(demo)
         dependencyStorage.list(demo, version)
-        .onEach {
-            dependencyStorage.delete(it)
-        }
+            .onEach {
+                dependencyStorage.delete(it)
+            }
         blockingBridge.blockingToSuspend {
             demoRepository.delete(demo)
         }

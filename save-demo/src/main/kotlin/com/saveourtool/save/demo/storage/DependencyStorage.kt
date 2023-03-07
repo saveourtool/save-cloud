@@ -15,17 +15,20 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
 import com.saveourtool.save.utils.github.ReleaseAsset
+
+import org.slf4j.Logger
+import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
+
+import java.nio.ByteBuffer
+import java.nio.file.Path
+
+import kotlin.io.path.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.reactive.asFlow
-import org.slf4j.Logger
-import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
-import java.nio.ByteBuffer
-import java.nio.file.Path
-import kotlin.io.path.*
 
 /**
  * Storage to keep all the tools on the disk
@@ -124,6 +127,7 @@ class DependencyStorage(
      * @param fileName
      * @return true if storage contains some dependency with provided values, otherwise -- false
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     suspend fun doesExist(
         organizationName: String,
         projectName: String,
@@ -194,12 +198,11 @@ class DependencyStorage(
         version: String,
         archiveName: String = "archive.zip",
     ): Flow<ByteBuffer> =
-        downloadToTempDir(tmpDir, organizationName, projectName, version)
-        .let {
-            tmpDir.parent.div(archiveName)
-                .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-        }.toByteBufferFlux().asFlow()
-
+            downloadToTempDir(tmpDir, organizationName, projectName, version)
+                .let {
+                    tmpDir.parent.div(archiveName)
+                        .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
+                }.toByteBufferFlux().asFlow()
 
     /**
      * @param repo

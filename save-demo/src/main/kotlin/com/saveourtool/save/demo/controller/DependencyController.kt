@@ -7,13 +7,7 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.map
 
-import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -21,6 +15,9 @@ import reactor.core.publisher.Flux
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
@@ -102,7 +99,8 @@ class DependencyController(
             .map { (dependency, fileDto) ->
                 downloadToolService.downloadToStorage(fileDto, dependency)
             }
-            .toList().size
+            .toList()
+            .size
             .let { size ->
                 StringResponse(
                     if (size == 0) {
