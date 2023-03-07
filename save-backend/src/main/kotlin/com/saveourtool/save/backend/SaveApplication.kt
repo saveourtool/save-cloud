@@ -6,9 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
+import reactor.core.publisher.ParallelFlux
 import java.nio.ByteBuffer
 
-typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
+internal typealias FluxResponse<T> = ResponseEntity<Flux<T>>
+internal typealias ParallelFluxResponse<T> = ResponseEntity<ParallelFlux<T>>
+internal typealias ByteBufferFluxResponse = FluxResponse<ByteBuffer>
 
 /**
  * An entrypoint for spring for save-backend
