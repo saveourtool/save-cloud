@@ -45,6 +45,9 @@ class KubernetesService(
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
     }
+    private val agentConfig = requireNotNull(configProperties.agentConfig) {
+        "Agent settings should be passed in order to use Kubernetes"
+    }
 
     /**
      * @param demo demo entity
@@ -57,7 +60,7 @@ class KubernetesService(
         try {
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
                 .toString()
-            kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
+            kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
             demo
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
@@ -100,13 +103,22 @@ class KubernetesService(
         }
     }
 
+    /**
+     * Get save-demo-agent configuration
+     *
+     * @param demo [Demo] entity
+     * @param version required demo version
+     * @return [DemoAgentConfig] corresponding to [Demo] with [version]
+     */
+    fun getConfiguration(demo: Demo, version: String) = DemoAgentConfig(
+        agentConfig.demoUrl,
+        demo.toDemoConfiguration(version),
+        demo.toRunConfiguration(),
+    )
+
     private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
-        val configuration = DemoAgentConfig(
-            configProperties.agentConfig.demoUrl,
-            demo.toDemoConfiguration(version),
-            demo.toRunConfiguration(),
-        )
+        val configuration = getConfiguration(demo, version)
         return demoAgentRequestWrapper("/setup", demo) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }

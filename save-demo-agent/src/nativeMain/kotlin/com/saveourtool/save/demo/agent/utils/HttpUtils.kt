@@ -9,6 +9,7 @@ import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.utils.failureOrNotOk
 import com.saveourtool.save.utils.fs
 import com.saveourtool.save.utils.notOk
@@ -57,6 +58,32 @@ private suspend fun HttpClient.download(url: String, file: Path): Result<HttpRes
             httpResponse
         }
 }
+
+/**
+ * Construct url from environment variables and get the rest of configuration
+ *
+ * @return [DemoAgentConfig] fetched from server
+ */
+suspend fun getConfiguration(): DemoAgentConfig = httpClient.get {
+    val hostName = getEnvOrNotFound(DemoAgentConfig.DEMO_URL_ENV)
+    val organizationName = getEnvOrNotFound(DemoAgentConfig.DEMO_ORGANIZATION_ENV)
+    val projectName = getEnvOrNotFound(DemoAgentConfig.DEMO_PROJECT_ENV)
+    val version = getEnvOrNotFound(DemoAgentConfig.DEMO_VERSION_ENV)
+    url(
+        URLBuilder(
+            host = hostName,
+            pathSegments = listOf(
+                "demo",
+                "internal",
+                "manager",
+                organizationName,
+                projectName,
+                "configure-me",
+            ),
+            parameters = Parameters.build { append("version", version) }
+        ).build()
+    )
+}.body()
 
 /**
  * @param fileLabel

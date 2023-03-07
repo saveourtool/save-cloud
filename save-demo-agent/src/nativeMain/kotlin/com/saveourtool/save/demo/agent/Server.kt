@@ -4,11 +4,14 @@
 
 package com.saveourtool.save.demo.agent
 
+import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.ServerConfiguration
+import com.saveourtool.save.demo.agent.utils.getConfiguration
 import com.saveourtool.save.demo.agent.utils.setupEnvironment
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -21,6 +24,17 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+
+private fun Application.getConfigurationOnStartup(
+    updateConfig: (DemoAgentConfig) -> Unit,
+) = environment.monitor.subscribe(ApplicationStarted) { application ->
+    logInfo("Fetching configuration...")
+    application.launch { updateConfig(getConfiguration()) }
+        .invokeOnCompletion { cause ->
+            cause?.let { logError(cause.describe()) } ?: logInfo("Configuration successfully fetched.")
+        }
+}
 
 private fun Routing.alive(configuration: CompletableDeferred<DemoAgentConfig>) = get("/alive") {
     call.respond(if (configuration.isCompleted) {
@@ -63,9 +77,10 @@ private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/r
  * @return [CIOApplicationEngine]
  */
 fun server(serverConfiguration: ServerConfiguration) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
+    val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
+    getConfigurationOnStartup { deferredConfig.complete(it) }
     install(ContentNegotiation) { json() }
     routing {
-        val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
         alive(deferredConfig)
         configure { deferredConfig.complete(it) }
         run(deferredConfig)

@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.demo.utils
 
+import com.saveourtool.save.demo.DemoAgentConfig
+import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.config.KubernetesConfig
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.storage.DemoInternalFileStorage
@@ -30,10 +32,16 @@ private val logger = LoggerFactory.getLogger("KubernetesUtils")
  * @param demo demo entity
  * @param agentDownloadUrl url to download save-demo-agent.kexe, will be used to get pod start command
  * @param kubernetesSettings kubernetes configuration
+ * @param agentConfig configuration that is required to be present on save-demo-agent on startup
  * @throws KubernetesRunnerException on failed job creation
  */
 @Suppress("NestedBlockDepth")
-fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSettings: KubernetesConfig) {
+fun KubernetesClient.startJob(
+    demo: Demo,
+    agentDownloadUrl: String,
+    kubernetesSettings: KubernetesConfig,
+    agentConfig: ConfigProperties.AgentConfig,
+) {
     val job = Job().apply {
         metadata = ObjectMeta().apply {
             name = jobNameForDemo(demo)
@@ -61,7 +69,15 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
                         )
                     }
                     restartPolicy = "Never"
-                    containers = listOf(demoAgentContainerSpec(demo.sdk.toSdk().baseImageName(), agentDownloadUrl, kubernetesSettings))
+                    containers = listOf(
+                        demoAgentContainerSpec(
+                            demo.sdk.toSdk().baseImageName(),
+                            agentDownloadUrl,
+                            demo,
+                            kubernetesSettings,
+                            agentConfig,
+                        )
+                    )
                 }
             }
         }
@@ -128,7 +144,9 @@ fun jobNameForDemo(demo: Demo) = with(demo) { "demo-${organizationName.lowercase
 private fun demoAgentContainerSpec(
     imageName: String,
     agentDownloadUrl: String,
+    demo: Demo,
     kubernetesSettings: KubernetesConfig,
+    agentConfig: ConfigProperties.AgentConfig,
 ) = Container().apply {
     name = "save-demo-agent-pod"
     image = imageName
@@ -136,9 +154,16 @@ private fun demoAgentContainerSpec(
 
     val envOptions = sequenceOf(
         "KTOR_LOG_LEVEL" to "TRACE",
+        DemoAgentConfig.DEMO_URL_ENV to agentConfig.demoUrl,
+        DemoAgentConfig.DEMO_ORGANIZATION_ENV to demo.organizationName,
+        DemoAgentConfig.DEMO_PROJECT_ENV to demo.projectName,
+        DemoAgentConfig.DEMO_VERSION_ENV to "manual",
     )
 
-    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent, envOptions = envOptions)
+    val startupCommand = downloadAndRunAgentCommand(
+        agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent,
+        envOptions = envOptions
+    )
 
     command = listOf("sh", "-c", startupCommand)
 

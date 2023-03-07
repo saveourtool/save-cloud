@@ -18,7 +18,14 @@ data class DemoAgentConfig(
     val demoUrl: String,
     val demoConfiguration: DemoConfiguration,
     val runConfiguration: RunConfiguration,
-)
+) {
+    companion object {
+        const val DEMO_ORGANIZATION_ENV = "SAVE_DEMO_ORGANIZATION_ENV"
+        const val DEMO_PROJECT_ENV = "SAVE_DEMO_PROJECT_ENV"
+        const val DEMO_URL_ENV = "demoUrl"
+        const val DEMO_VERSION_ENV = "SAVE_DEMO_VERSION_ENV"
+    }
+}
 
 /**
  * Data class that contains the information that is used for demo file fetch
