@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -29,7 +30,6 @@ import reactor.core.publisher.Mono
 
 import java.net.ConnectException
 
-import kotlinx.coroutines.reactor.mono
 import kotlinx.serialization.json.Json
 
 /**
@@ -45,6 +45,9 @@ class KubernetesService(
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
     }
+    private val agentConfig = requireNotNull(configProperties.agentConfig) {
+        "Agent settings should be passed in order to use Kubernetes"
+    }
 
     /**
      * @param demo demo entity
@@ -57,7 +60,7 @@ class KubernetesService(
         try {
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
                 .toString()
-            kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
+            kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
             demo
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
@@ -67,9 +70,6 @@ class KubernetesService(
             )
         }
     }
-        .asyncEffect {
-            mono { configureDemoAgent(it, version) }
-        }
         .map { StringResponse.ok("Created container for demo.") }
 
     /**
@@ -86,7 +86,7 @@ class KubernetesService(
      * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
-        val status = retrySilently(RETRY_TIMES_QUICK) {
+        val status = retrySilently(RETRY_TIMES_QUICK, RETRY_DELAY_MILLIS) {
             demoAgentRequestWrapper("/alive", demo) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
@@ -100,13 +100,22 @@ class KubernetesService(
         }
     }
 
+    /**
+     * Get save-demo-agent configuration
+     *
+     * @param demo [Demo] entity
+     * @param version required demo version
+     * @return [DemoAgentConfig] corresponding to [Demo] with [version]
+     */
+    fun getConfiguration(demo: Demo, version: String) = DemoAgentConfig(
+        agentConfig.demoUrl,
+        demo.toDemoConfiguration(version),
+        demo.toRunConfiguration(),
+    )
+
     private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
-        val configuration = DemoAgentConfig(
-            configProperties.agentConfig.demoUrl,
-            demo.toDemoConfiguration(version),
-            demo.toRunConfiguration(),
-        )
+        val configuration = getConfiguration(demo, version)
         return demoAgentRequestWrapper("/setup", demo) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }
@@ -176,7 +185,7 @@ class KubernetesService(
      * @param demo demo entity
      * @return url of pod with demo
      */
-    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES) {
+    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
         kc.getJobPods(demo).firstOrNull()
     } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
 
@@ -188,8 +197,9 @@ class KubernetesService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
-        private const val RETRY_TIMES = 6
-        private const val RETRY_TIMES_QUICK = 3
+        private const val RETRY_DELAY_MILLIS = 500L
+        private const val RETRY_TIMES = 2
+        private const val RETRY_TIMES_QUICK = 1
         private val httpClient = HttpClient(Apache) {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
