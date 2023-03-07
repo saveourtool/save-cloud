@@ -2597,7 +2597,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ExecutionFilters"
+                "$ref": "#/components/schemas/ExecutionFilter"
               }
             }
           }
@@ -3440,7 +3440,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3448,7 +3448,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3515,7 +3515,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3582,7 +3582,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3590,7 +3590,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -5129,7 +5129,7 @@
           {
             "description": "project filters",
             "in": "query",
-            "name": "projectFilters",
+            "name": "projectFilter",
             "required": true
           }
         ],
@@ -5137,7 +5137,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectFilters"
+                "$ref": "#/components/schemas/ProjectFilter"
               }
             }
           },
@@ -6203,7 +6203,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestExecutionFilters"
+                "$ref": "#/components/schemas/TestExecutionFilter"
               }
             }
           }
@@ -8248,7 +8248,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VulnerabilityFilters"
+                "$ref": "#/components/schemas/VulnerabilityFilter"
               }
             }
           },
@@ -8795,7 +8795,7 @@
           }
         }
       },
-      "ExecutionFilters": {
+      "ExecutionFilter": {
         "required": [
           "endTime",
           "startTime"
@@ -9155,7 +9155,7 @@
           }
         }
       },
-      "OrganizationFilters": {
+      "OrganizationFilter": {
         "required": [
           "prefix",
           "statuses"
@@ -9337,7 +9337,7 @@
           }
         }
       },
-      "ProjectFilters": {
+      "ProjectFilter": {
         "required": [
           "name",
           "organizationName",
@@ -9538,7 +9538,7 @@
           }
         }
       },
-      "TestExecutionFilters": {
+      "TestExecutionFilter": {
         "type": "object",
         "properties": {
           "fileName": {
@@ -10013,7 +10013,7 @@
           }
         }
       },
-      "VulnerabilityFilters": {
+      "VulnerabilityFilter": {
         "required": [
           "prefixName"
         ],
