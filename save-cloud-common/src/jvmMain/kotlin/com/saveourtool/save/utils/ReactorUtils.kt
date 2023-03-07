@@ -37,6 +37,8 @@ import kotlinx.coroutines.flow.map
 @Suppress("WRONG_WHITESPACE")
 private val logger = getLogger({}.javaClass)
 
+private const val DEFAULT_PART_SIZE: Long = 5 * 1024 * 1024
+
 /**
  * @param status
  * @param messageCreator
@@ -239,18 +241,20 @@ fun ResponseSpec.blockingToBodilessEntity(): Mono<EmptyResponse> =
 /**
  * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteBuffer]
  *
+ * @param partSize size of each part, [DEFAULT_PART_SIZE] by default
  * @return [Flow] of [ByteBuffer]
  */
-fun ByteReadChannel.toByteBufferFlow(): Flow<ByteBuffer> = toByteArrayFlow().map { ByteBuffer.wrap(it) }
+fun ByteReadChannel.toByteBufferFlow(partSize: Long = DEFAULT_PART_SIZE): Flow<ByteBuffer> = toByteArrayFlow(partSize).map { ByteBuffer.wrap(it) }
 
 /**
  * Transforms [ByteReadChannel] from ktor to [Flow] of [ByteArray]
  *
+ * @param partSize size of each part, [DEFAULT_PART_SIZE] by default
  * @return [Flow] of [ByteArray]
  */
-fun ByteReadChannel.toByteArrayFlow(): Flow<ByteArray> = flow {
+fun ByteReadChannel.toByteArrayFlow(partSize: Long = DEFAULT_PART_SIZE): Flow<ByteArray> = flow {
     while (!isClosedForRead) {
-        val packet = readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
+        val packet = readRemaining(partSize)
         while (!packet.isEmpty) {
             val bytes = packet.readBytes()
             emit(bytes)

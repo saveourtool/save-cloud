@@ -7,6 +7,8 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -17,6 +19,7 @@ import java.nio.ByteBuffer
 import java.time.LocalDateTime
 
 import kotlinx.datetime.toKotlinLocalDateTime
+import org.slf4j.Logger
 
 /**
  * Internal controller that allows to upload files to save-demo
@@ -88,16 +91,20 @@ class DependencyController(
         "Could not find demo for $organizationName/$projectName."
     }
         .flatMapIterable { demo ->
-            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
+            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) to it }
         }
-        .filterWhen {
-            dependencyStorage.doesExist(it).map(Boolean::not)
+        .filterWhen { (dependency, _) ->
+            dependencyStorage.doesExist(dependency).map(Boolean::not)
+        }
+        .flatMap { (dependency, fileDto) ->
+            downloadToolService.downloadToStorage(fileDto, dependency)
         }
         .collectList()
         .map {
-            downloadToolService.downloadToStorage(it)
+            it.size
         }
         .map { size ->
+            log.info { "Successfully downloaded $size files from file storage." }
             StringResponse(
                 if (size == 0) {
                     "All files are already present in demo storage."
@@ -123,4 +130,8 @@ class DependencyController(
         "Could not find demo for $organizationName/$projectName."
     }
         .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
+
+    companion object {
+        private val log: Logger = getLogger<DependencyController>()
+    }
 }

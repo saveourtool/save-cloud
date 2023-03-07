@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.github.GitHubHelper.downloadAsset
 import com.saveourtool.save.utils.github.GitHubHelper.queryMetadata
@@ -33,9 +34,10 @@ import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactor.asFlux
+import kotlinx.coroutines.reactor.flux
 import kotlinx.serialization.json.Json
+import reactor.core.publisher.Flux
 
 /**
  * Service that downloads tools from GitHub when starting
@@ -53,12 +55,17 @@ class DownloadToolService(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val httpClient = httpClient()
 
-    private suspend fun downloadFileByFileId(fileId: Long): Flow<ByteBuffer> = httpClient.post {
-        url("${configProperties.backendUrl}/files/download?fileId=$fileId")
-        accept(ContentType.Application.OctetStream)
+    private fun downloadFileByFileIdAsFlux(fileId: Long): Flux<ByteBuffer> = flux {
+        httpClient.post {
+            url("${configProperties.backendUrl}/files/download?fileId=$fileId")
+            accept(ContentType.Application.OctetStream)
+        }
+            .bodyAsChannel()
+            .toByteBufferFlow()
+            .collect {
+                channel.send(it)
+            }
     }
-        .bodyAsChannel()
-        .toByteBufferFlow()
 
     /**
      * @param repo
@@ -165,30 +172,23 @@ class DownloadToolService(
     fun getExecutableName(repo: GithubRepo, vcsTagName: String) = getExecutable(repo, vcsTagName).name
 
     /**
-     * Upload several [dependencies] to storage (will be overwritten if already present)
-     *
-     * @param dependencies list of [Dependency] to store in [dependencyStorage]
-     * @return number of dependencies that has been downloaded
-     */
-    fun downloadToStorage(dependencies: List<Dependency>) = dependencies.map { downloadToStorage(it) }
-        .size
-        .also { logger.info("Successfully downloaded $it files from file storage.") }
-
-    /**
      * Upload [dependency] to storage (will be overwritten if already present)
      *
+     * @param backendFile [FileDto] taken from backend
      * @param dependency that should be saved to [dependencyStorage]
-     * @return [Job]
+     * @return updated [Dependency]
      */
-    fun downloadToStorage(dependency: Dependency) = scope.launch {
-        downloadFileByFileId(dependency.fileId)
-            .let { byteBuffers ->
-                with(dependency) {
-                    dependencyStorage.overwrite(dependency, byteBuffers.asFlux())
-                        .subscribe()
-                        .also { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
-                }
-            }
+    fun downloadToStorage(backendFile: FileDto, dependency: Dependency): Mono<Dependency> = run {
+        require(backendFile.requiredId() == dependency.fileId) {
+            "Invalid link between backend file $backendFile and dependency $dependency"
+        }
+        require(backendFile.sizeBytes > 0) {
+            "Invalid content length of backend file $backendFile"
+        }
+        with(dependency) {
+            dependencyStorage.overwrite(dependency, backendFile.sizeBytes, downloadFileByFileIdAsFlux(backendFile.requiredId()))
+                .doOnSuccess { logger.debug("Successfully downloaded $fileName for ${demo.organizationName}/${demo.projectName}.") }
+        }
     }
 
     companion object {
