@@ -33,7 +33,7 @@ private fun Application.getConfigurationOnStartup(
     retryTimes: Int = RETRY_TIMES,
     updateConfig: (DemoAgentConfig) -> Unit,
 ) = environment.monitor.subscribe(ApplicationStarted) { application ->
-    logDebug("Fetching configuration...")
+    logDebug("Fetching tool configuration for save-demo-agent...")
     application.launch {
         retrySilently(retryTimes) { getConfiguration() }
             ?.also(updateConfig)
@@ -41,9 +41,7 @@ private fun Application.getConfigurationOnStartup(
                 logDebug("Configuration successfully fetched.")
                 setupEnvironment(it.demoUrl, it.demoConfiguration)
             }
-            ?: run {
-                logWarn("Could not prepare save-demo-agent, expecting /configure call.")
-            }
+            ?: run { logWarn("Could not prepare save-demo-agent, expecting /configure call.") }
     }
 }
 

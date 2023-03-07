@@ -78,4 +78,4 @@ private fun getShellOptions(shellOptions: Sequence<String>): String =
 @Language("bash")
 private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
 
-private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { " && ${it.first}=${it.second} " }
+private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { " && export ${it.first}=${it.second} " }

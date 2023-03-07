@@ -140,6 +140,11 @@ private fun ContainerPort.default(port: Int) = apply {
  */
 fun jobNameForDemo(demo: Demo) = with(demo) { "demo-${organizationName.lowercase()}-${projectName.lowercase()}-1" }
 
+@Suppress("SameParameterValue")
+private fun getConfigureMeUrl(baseUrl: String, demo: Demo, version: String) = with(demo) {
+    "$baseUrl/demo/internal/manager/${organizationName}/${projectName}/configure-me?version=$version"
+}
+
 @Suppress("TOO_LONG_FUNCTION")
 private fun demoAgentContainerSpec(
     imageName: String,
@@ -152,12 +157,15 @@ private fun demoAgentContainerSpec(
     image = imageName
     imagePullPolicy = "IfNotPresent"
 
+    // todo: in later phases should be removed
+    val currentlyHardcodedVersion = "manual"
+
     val envOptions = sequenceOf(
         "KTOR_LOG_LEVEL" to "TRACE",
-        DemoAgentConfig.DEMO_URL_ENV to agentConfig.demoUrl,
+        DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV to getConfigureMeUrl(agentConfig.demoUrl, demo, currentlyHardcodedVersion),
         DemoAgentConfig.DEMO_ORGANIZATION_ENV to demo.organizationName,
         DemoAgentConfig.DEMO_PROJECT_ENV to demo.projectName,
-        DemoAgentConfig.DEMO_VERSION_ENV to "manual",
+        DemoAgentConfig.DEMO_VERSION_ENV to currentlyHardcodedVersion,
     )
 
     val startupCommand = downloadAndRunAgentCommand(
