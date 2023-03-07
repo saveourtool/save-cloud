@@ -30,10 +30,10 @@ dependencies {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
             from(saveCliPath)
-            into(target) {
+            into(target)
+            eachFile {
                 duplicatesStrategy = DuplicatesStrategy.WARN
             }
-            destinationDir = file(target)
         }
         add("runtimeOnly",
             files(layout.buildDirectory.dir(target)).apply {
