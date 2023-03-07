@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo.agent
 
+import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.demo.DemoAgentConfig
@@ -32,13 +33,17 @@ private fun Application.getConfigurationOnStartup(
     retryTimes: Int = RETRY_TIMES,
     updateConfig: (DemoAgentConfig) -> Unit,
 ) = environment.monitor.subscribe(ApplicationStarted) { application ->
-    logInfo("Fetching configuration...")
+    logDebug("Fetching configuration...")
     application.launch {
-        retrySilently(retryTimes) {
-            getConfiguration().also { logInfo("Configuration successfully fetched.") }
-        }?.let(updateConfig) ?: run {
-            logWarn("Could not prepare save-demo-agent, expecting /configure call.")
-        }
+        retrySilently(retryTimes) { getConfiguration() }
+            ?.also(updateConfig)
+            ?.let {
+                logDebug("Configuration successfully fetched.")
+                setupEnvironment(it.demoUrl, it.demoConfiguration)
+            }
+            ?: run {
+                logWarn("Could not prepare save-demo-agent, expecting /configure call.")
+            }
     }
 }
 
