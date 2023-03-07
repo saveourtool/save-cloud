@@ -8239,6 +8239,59 @@
           "users-details-controller"
         ]
       }
+    },
+    "/api/v1/vulnerabilities/by-filters": {
+      "post": {
+        "description": "Get filtered vulnerabilities.",
+        "operationId": "getAllVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilters"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all registered organizations"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerabilities with filters.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
     }
   },
   "components": {
@@ -9933,6 +9986,59 @@
             "type": "string"
           },
           "twitter": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityDto": {
+        "required": [
+          "name",
+          "progress",
+          "projects"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VulnerabilityProjectDto"
+            }
+          }
+        }
+      },
+      "VulnerabilityFilters": {
+        "required": [
+          "prefixName"
+        ],
+        "type": "object",
+        "properties": {
+          "prefixName": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityProjectDto": {
+        "required": [
+          "isOpenSource",
+          "name",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "isOpenSource": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
             "type": "string"
           }
         }
