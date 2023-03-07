@@ -143,7 +143,7 @@ jobs:
             --build-cache
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
+            -PsaveCliPath=${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}

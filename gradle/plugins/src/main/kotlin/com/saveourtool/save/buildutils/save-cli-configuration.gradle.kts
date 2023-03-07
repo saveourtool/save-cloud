@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.buildutils
 
-import de.undercouch.gradle.tasks.download.Download
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
@@ -12,7 +11,6 @@ import java.io.File
 
 plugins {
     kotlin("jvm")
-    id("de.undercouch.download")
 }
 
 val saveCliVersion: String = the<LibrariesForLibs>()
@@ -22,20 +20,23 @@ val saveCliVersion: String = the<LibrariesForLibs>()
     .get()
 
 dependencies {
-    val isSaveCliProvided = hasProperty("saveCliPath")
-    if (isSaveCliProvided) {
+    if (saveCliVersion.isSnapshot()) {
+        val target = "$buildDir/save-cli"
         val saveCliPath = providers.gradleProperty("saveCliPath")
+        logger.info(
+            "save-cli version is SNAPSHOT ({}), add {} as a runtime dependency",
+            saveCliVersion, saveCliPath
+        )
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
-            enabled = isSaveCliProvided
-            src { saveCliPath }
-            dest { saveCliPath.map { "$buildDir/download/${File(it).name}" } }
-
-            overwrite(false)
+        val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
+            from(saveCliPath)
+            into(target) {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
         }
         add("runtimeOnly",
-            files(layout.buildDirectory.dir("$buildDir/download")).apply {
-                builtBy(downloadSaveCliTaskProvider)
+            files(layout.buildDirectory.dir(target)).apply {
+                builtBy(copySaveCliTaskProvider)
             }
         )
     }

@@ -23,9 +23,13 @@ The `save-backend` and `save-sandbox` download newer versions of `save-cli` from
 #### Using a `SNAPSHOT` version of `save-cli`
 
 If `save-cli` is set to snapshot version in `lib.version.toml`, we download `save-cli`'s sources and build them in _GitHub_ action: [Build and push Docker images](../.github/workflows/deploy_images.yml).
-Then adds the result (_.kexe_) to `save-backend` and `save-sandbox` as a runtime dependency
+Then _Gradle_ adds the result (_.kexe_) to `save-backend` and `save-sandbox` as a runtime dependency
 
-**Note:** `libs.version.toml` can contain __blabla-SNAPSHOT__ version, but we will build a version from the latest main in `save-cli`
+**Under the hood:** _Gradle_ supports two variables `saveCliVersion` and `saveCliPath`.
+The `saveCliVersion` overrides version of `save-cli` from `lib.version.toml`.
+The `saveCliPath` specifies a path to `save-cli`'s _.kexe_ and it's required when version of `save-cli` is **SNAPSHOT**.
+
+**Note:** `libs.version.toml` can contain _blabla-SNAPSHOT_ version, but we will build a version from the latest main in `save-cli`
 and set the built version of `save-cli` to generated file: `generated/SaveCliVersion.kt`.
 
 ## Server deployment
