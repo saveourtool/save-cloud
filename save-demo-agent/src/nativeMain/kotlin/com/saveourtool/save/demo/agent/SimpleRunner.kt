@@ -20,7 +20,7 @@ import okio.Path.Companion.toPath
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 3000L
+private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 10_000L
 
 /**
  * @param demoRunRequest
@@ -38,7 +38,9 @@ fun runDemo(
     val logFile = config.logFileName.toPath()
     val outputFile = config.outputFileName?.toPath()
 
-    return run(config.runCommand, inputFile, logFile, outputFile).also {
+    return try {
+        run(config.runCommand, inputFile, logFile, outputFile)
+    } finally {
         cleanUp(inputFile, configFile, logFile, outputFile)
     }
 }
