@@ -89,7 +89,7 @@ grafana:
   enabled: false
   image:
     repository: grafana/grafana
-    tag: 9.4.3
+    tag: 9.3.6
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
