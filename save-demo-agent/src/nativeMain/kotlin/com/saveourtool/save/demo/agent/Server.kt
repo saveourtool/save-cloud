@@ -4,15 +4,15 @@
 
 package com.saveourtool.save.demo.agent
 
-import com.saveourtool.save.core.logging.describe
-import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
+import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.ServerConfiguration
 import com.saveourtool.save.demo.agent.utils.getConfiguration
 import com.saveourtool.save.demo.agent.utils.setupEnvironment
+import com.saveourtool.save.utils.retrySilently
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -26,14 +26,20 @@ import io.ktor.util.reflect.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 
+private const val RETRY_TIMES = 5
+
 private fun Application.getConfigurationOnStartup(
+    retryTimes: Int = RETRY_TIMES,
     updateConfig: (DemoAgentConfig) -> Unit,
 ) = environment.monitor.subscribe(ApplicationStarted) { application ->
     logInfo("Fetching configuration...")
-    application.launch { updateConfig(getConfiguration()) }
-        .invokeOnCompletion { cause ->
-            cause?.let { logError(cause.describe()) } ?: logInfo("Configuration successfully fetched.")
+    application.launch {
+        retrySilently(retryTimes) {
+            getConfiguration().also { logInfo("Configuration successfully fetched.") }
+        }?.let(updateConfig) ?: run {
+            logWarn("Could not prepare save-demo-agent, expecting /configure call.")
         }
+    }
 }
 
 private fun Routing.alive(configuration: CompletableDeferred<DemoAgentConfig>) = get("/alive") {
@@ -74,11 +80,14 @@ private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/r
  * Configure ktor server (runs on [CIO] engine) with [serverConfiguration]
  *
  * @param serverConfiguration information required to configure ktor server
+ * @param skipStartupConfiguration if true, startup configuration will be skipped
  * @return [CIOApplicationEngine]
  */
-fun server(serverConfiguration: ServerConfiguration) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
+fun server(serverConfiguration: ServerConfiguration, skipStartupConfiguration: Boolean = false) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
     val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
-    getConfigurationOnStartup { deferredConfig.complete(it) }
+    if (!skipStartupConfiguration) {
+        getConfigurationOnStartup { deferredConfig.complete(it) }
+    }
     install(ContentNegotiation) { json() }
     routing {
         alive(deferredConfig)
