@@ -19,12 +19,6 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
-    maven {
-        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        content {
-            includeGroup("com.saveourtool.save")
-        }
-    }
     mavenCentral()
 }
 val jepArchive by configurations.creating

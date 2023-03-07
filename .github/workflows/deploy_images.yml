@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'feature/deploy_images'
     tags:
       - 'v*'
   workflow_dispatch:
