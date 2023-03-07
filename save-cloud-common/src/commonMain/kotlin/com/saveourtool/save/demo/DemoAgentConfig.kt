@@ -20,9 +20,9 @@ data class DemoAgentConfig(
     val runConfiguration: RunConfiguration,
 ) {
     companion object {
+        const val DEMO_CONFIGURE_ME_URL_ENV = "SAVE_DEMO_CONFIGURE_ME_URL"
         const val DEMO_ORGANIZATION_ENV = "SAVE_DEMO_ORGANIZATION_ENV"
         const val DEMO_PROJECT_ENV = "SAVE_DEMO_PROJECT_ENV"
-        const val DEMO_CONFIGURE_ME_URL_ENV = "SAVE_DEMO_CONFIGURE_ME_URL"
         const val DEMO_VERSION_ENV = "SAVE_DEMO_VERSION_ENV"
     }
 }

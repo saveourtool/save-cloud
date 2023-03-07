@@ -142,7 +142,7 @@ fun jobNameForDemo(demo: Demo) = with(demo) { "demo-${organizationName.lowercase
 
 @Suppress("SameParameterValue")
 private fun getConfigureMeUrl(baseUrl: String, demo: Demo, version: String) = with(demo) {
-    "$baseUrl/demo/internal/manager/${organizationName}/${projectName}/configure-me?version=$version"
+    "$baseUrl/demo/internal/manager/$organizationName/$projectName/configure-me?version=$version"
 }
 
 @Suppress("TOO_LONG_FUNCTION")
