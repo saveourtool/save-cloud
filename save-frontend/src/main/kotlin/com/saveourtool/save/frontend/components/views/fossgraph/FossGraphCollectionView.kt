@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.filters.VulnerabilityFilters
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.utils.*
@@ -28,7 +28,7 @@ val fossGraphCollectionView: VFC = VFC {
     useBackground(Style.WHITE)
     val navigate = useNavigate()
 
-    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilters.created)
+    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.created)
 
     @Suppress(
         "TYPE_ALIAS",
@@ -70,9 +70,9 @@ val fossGraphCollectionView: VFC = VFC {
                         name = vulnerabilityFilters.prefixName
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                VulnerabilityFilters.created
+                                VulnerabilityFilter.created
                             } else {
-                                VulnerabilityFilters(filterValue)
+                                VulnerabilityFilter(filterValue)
                             }
                             setVulnerabilityFilters { filter }
 
@@ -114,5 +114,5 @@ external interface FiltersProps : TableProps<VulnerabilityDto> {
     /**
      * All filters in one value [filters]
      */
-    var filters: VulnerabilityFilters?
+    var filters: VulnerabilityFilter?
 }

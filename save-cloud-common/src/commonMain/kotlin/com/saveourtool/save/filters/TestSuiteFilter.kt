@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * @property tags
  */
 @Serializable
-data class TestSuiteFilters(
+data class TestSuiteFilter(
     val name: String,
     val language: String,
     val tags: String,
@@ -22,7 +22,7 @@ data class TestSuiteFilters(
 
     /**
      * @param additionalParams some extra parameters that should be in query
-     * @return [TestSuiteFilters] as query params for request
+     * @return [TestSuiteFilter] as query params for request
      */
     fun toQueryParams(vararg additionalParams: Pair<String, String>) = listOf(
         "tags" to tags,
@@ -53,6 +53,6 @@ data class TestSuiteFilters(
     fun isNotEmpty() = !isEmpty()
 
     companion object {
-        val empty = TestSuiteFilters(name = "", tags = "", language = "")
+        val empty = TestSuiteFilter(name = "", tags = "", language = "")
     }
 }

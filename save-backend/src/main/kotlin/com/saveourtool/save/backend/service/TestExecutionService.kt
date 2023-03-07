@@ -11,7 +11,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
@@ -48,7 +48,7 @@ class TestExecutionService(
         executionId: Long,
         page: Int,
         pageSize: Int,
-        filters: TestExecutionFilters,
+        filters: TestExecutionFilter,
     ): List<TestExecution> {
         val wrappedFileName = wrapValue(filters.fileName)
         val wrappedTestSuiteName = wrapValue(filters.testSuite)

@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
@@ -80,7 +80,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
-                TestExecutionFilters(
+                TestExecutionFilter(
                     status = params.get("status")?.let { TestResultStatus.valueOf(it) },
                     fileName = params.get("fileName"),
                     testSuite = params.get("testSuite"),

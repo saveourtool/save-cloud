@@ -8,8 +8,8 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
@@ -136,7 +136,7 @@ private fun userRating() = VFC {
         val organizationsFromBackend: List<OrganizationWithRating> = post(
             url = "$apiUrl/organizations/by-filters-with-rating",
             headers = jsonHeaders,
-            body = Json.encodeToString(OrganizationFilters.created),
+            body = Json.encodeToString(OrganizationFilter.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -148,7 +148,7 @@ private fun userRating() = VFC {
         val projectsFromBackend: List<ProjectDto> = post(
             url = "$apiUrl/projects/by-filters",
             headers = jsonHeaders,
-            body = Json.encodeToString(ProjectFilters.created),
+            body = Json.encodeToString(ProjectFilter.created),
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
