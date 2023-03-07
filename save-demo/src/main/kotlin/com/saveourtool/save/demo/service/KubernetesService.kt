@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -86,7 +87,7 @@ class KubernetesService(
      * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
-        val status = retrySilently(RETRY_TIMES_QUICK) {
+        val status = retrySilently(RETRY_TIMES_QUICK, RETRY_DELAY_MILLIS) {
             demoAgentRequestWrapper("/alive", demo) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
@@ -100,7 +101,11 @@ class KubernetesService(
         }
     }
 
-    private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
+    private suspend fun configureDemoAgent(
+        demo: Demo,
+        version: String,
+        retryNumber: Int = RETRY_TIMES,
+    ): StringResponse {
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
         val configuration = DemoAgentConfig(
             configProperties.agentConfig.demoUrl,
@@ -176,7 +181,7 @@ class KubernetesService(
      * @param demo demo entity
      * @return url of pod with demo
      */
-    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES) {
+    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
         kc.getJobPods(demo).firstOrNull()
     } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
 
@@ -188,8 +193,9 @@ class KubernetesService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
-        private const val RETRY_TIMES = 6
-        private const val RETRY_TIMES_QUICK = 3
+        private const val RETRY_DELAY_MILLIS = 500L
+        private const val RETRY_TIMES = 2
+        private const val RETRY_TIMES_QUICK = 1
         private val httpClient = HttpClient(Apache) {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }

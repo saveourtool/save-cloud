@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
@@ -39,25 +38,23 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (demoDto, setDemoDto) = useState(
         DemoDto.emptyForProject(props.organizationName, props.projectName)
     )
-
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
     val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
 
-    val getDemoInfo = useDeferredRequest {
-        val infoResponse = get(
+    val getDemoDto = useDeferredRequest {
+        val dtoResponse = get(
             "$apiUrl/demo/${props.organizationName}/${props.projectName}",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
         )
-        if (infoResponse.ok) {
-            val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
-            setDemoStatus(demoInfo.demoStatus)
-            setDemoDto(demoInfo.demoDto)
-            setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
-        } else if (infoResponse.status != 404.toShort()) {
-            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
+        if (dtoResponse.ok) {
+            val dto: DemoDto = dtoResponse.decodeFromJsonString()
+            setDemoDto(dto)
+            setGithubProjectCoordinates(dto.githubProjectCoordinates.orEmpty())
+        } else if (dtoResponse.status != 404.toShort()) {
+            props.updateErrorMessage(dtoResponse.statusText, dtoResponse.unpackMessage())
             setDemoStatus(DemoStatus.ERROR)
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
@@ -151,7 +148,8 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     }
 
     useOnce {
-        getDemoInfo()
+        getDemoDto()
+        getDemoStatus()
     }
 
     div {
