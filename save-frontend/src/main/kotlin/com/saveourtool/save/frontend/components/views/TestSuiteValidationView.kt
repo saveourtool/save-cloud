@@ -104,6 +104,7 @@ val testSuiteValidationView: VFC = VFC {
             +"Validate test suites (application/x-ndjson)"
 
             disabled = rawResponse !in arrayOf(null, READY, DONE)
+            title = "Foo"
 
             onClick = useNdjson(
                 url = "$apiUrl/a/validate",
@@ -124,6 +125,7 @@ val testSuiteValidationView: VFC = VFC {
             +"Validate test suites (text/event-stream)"
 
             disabled = rawResponse !in arrayOf(null, READY, DONE)
+            title = "Bar"
 
             onClick = useEventStream(
                 url = "$apiUrl/a/validate",

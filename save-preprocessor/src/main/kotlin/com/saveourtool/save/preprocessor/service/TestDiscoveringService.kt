@@ -3,13 +3,17 @@
 package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.core.config.TestConfig
+import com.saveourtool.save.core.config.TestConfigSections
 import com.saveourtool.save.core.files.ConfigDetector
 import com.saveourtool.save.core.plugin.GeneralConfig
+import com.saveourtool.save.core.plugin.PluginConfig
 import com.saveourtool.save.core.plugin.PluginException
 import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.plugin.warn.WarnPluginConfig
 import com.saveourtool.save.plugins.fix.FixPlugin
+import com.saveourtool.save.plugins.fixandwarn.FixAndWarnPluginConfig
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestsSourceSnapshotDto
@@ -18,10 +22,14 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.EmptyResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.requireIsAbsolute
 import com.saveourtool.save.utils.thenJust
-
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toOkioPath
@@ -35,9 +43,14 @@ import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.regex.PatternSyntaxException
 import kotlin.io.path.absolute
 import kotlin.io.path.div
-
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
+import kotlin.io.path.relativeToOrNull
 import java.nio.file.Path as NioPath
 
 /**
@@ -60,16 +73,22 @@ class TestDiscoveringService(
         sourceSnapshot: TestsSourceSnapshotDto,
     ): Mono<List<TestSuite>> {
         log.info { "Starting to save new test suites for root test config in $repositoryPath" }
-        return blockingToMono {
+        val rootTestConfigAsync = blockingToMono {
             getRootTestConfig((repositoryPath / testRootPath).absolute().normalize())
         }
+
+        return rootTestConfigAsync
             .zipWhen { rootTestConfig ->
                 {
                     log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
-                    discoverAllTestSuites(
+                    val testSuites: List<TestSuiteDto> = discoverAllTestSuites(
                         rootTestConfig,
                         sourceSnapshot,
                     )
+                    testSuites.forEach { testSuite ->
+                        log.info { "XXX " }
+                    }
+                    testSuites
                 }.toMono()
             }
             .flatMap { (rootTestConfig, testSuites) ->
@@ -106,28 +125,138 @@ class TestDiscoveringService(
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @NonBlocking
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "LongMethod",
+        "MagicNumber",
+        "RedundantHigherOrderMapUsage",
+        "VARIABLE_NAME_INCORRECT",
+        "TOO_LONG_FUNCTION",
+        "WRONG_NEWLINES",
+    )
     fun getAllTestSuites(
         rootTestConfig: TestConfig,
         sourceSnapshot: TestsSourceSnapshotDto,
-    ) = rootTestConfig
-        .getAllTestConfigs()
-        .asSequence()
-        .mapNotNull { it.getGeneralConfigOrNull() }
-        .filterNot { it.suiteName == null }
-        .filterNot { it.description == null }
-        .map { config ->
-            // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
-            TestSuiteDto(
-                config.suiteName!!,
-                config.description,
-                sourceSnapshot,
-                config.language,
-                config.tags
-            )
+    ): List<TestSuiteDto> {
+        log.info { "XXX getAllTestSuites()" }
+        val t0 = System.nanoTime()
+        val allTestConfigs = rootTestConfig
+            .getAllTestConfigs()
+        val t1 = System.nanoTime()
+        @Suppress("FLOAT_IN_ACCURATE_CALCULATIONS")
+        log.info { "XXX getAllTestConfigs() took ${(t1 - t0) / 1000L / 1e3} ms" }
+
+        return allTestConfigs
+            .asSequence()
+            .map { testConfig: TestConfig -> // XXX Replace with onEach or forEach?
+                log.info { "XXX Test config: $testConfig" }
+                val pluginConfigs = testConfig.pluginConfigs
+                    .asSequence()
+                    .filterNot { config ->
+                        config is GeneralConfig
+                    }
+
+                @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+                val errors = mutableListOf<String>()
+
+                @Suppress("TYPE_ALIAS")
+                val resources: MutableMap<TestConfigSections, MutableList<NioPath>> = pluginConfigs.fold(mutableMapOf()) { acc, config ->
+                    acc.apply {
+                        compute(config.type) { _, valueOrNull: MutableList<NioPath>? ->
+                            val resourceNames = config.getResourceNames().getOrElse { error ->
+                                errors += error
+                                emptySequence()
+                            }
+
+                            (valueOrNull ?: mutableListOf()).apply {
+                                addAll(resourceNames)
+                            }
+                        }
+                    }
+                }
+
+                resources.forEach { type, resourceNames ->
+                    log.info { "\t$type" }
+                    resourceNames.forEach {
+                        log.info { "\t\t$it" }
+                    }
+                }
+                errors.forEach { error ->
+                    log.info { "\t$error" }
+                }
+
+                val warnConfigs = pluginConfigs.asSequence().mapNotNull { config ->
+                    when (config) {
+                        is WarnPluginConfig -> config
+                        is FixAndWarnPluginConfig -> config.warn
+                        else -> null
+                    }
+                }.toList()
+                log.info { "XXX Warn configs: ${warnConfigs.size}" }
+                warnConfigs.forEachIndexed { index, config ->
+                    log.info { "\t$index: wildCardInDirectoryMode = ${config.wildCardInDirectoryMode}" }  // XXX Should be null
+                }
+
+                testConfig
+            }
+            .mapNotNull { it.getGeneralConfigOrNull() }
+            .filterNot { it.suiteName == null }
+            .filterNot { it.description == null }
+            .map { generalConfig: GeneralConfig ->
+                log.info { "XXX General config: $generalConfig" }
+                generalConfig
+            }
+            .map { config ->
+                // we operate here with suite names from only those TestConfigs, that have General section with suiteName key
+                TestSuiteDto(
+                    config.suiteName!!,
+                    config.description,
+                    sourceSnapshot,
+                    config.language,
+                    config.tags
+                )
+            }
+            .distinct()
+            .toList()
+    }
+
+    @Suppress("TYPE_ALIAS", "WRONG_NEWLINES")
+    private fun PluginConfig.getResourceNames(): Either<String, Sequence<NioPath>> {
+        val resourceNamePattern = try {
+            Regex(resourceNamePatternStr)
+        } catch (_: PatternSyntaxException) {
+            return "Resource name pattern is not a valid regular expression: \"$resourceNamePatternStr\"".left()
         }
-        .distinct()
-        .toList()
+
+        val configLocation = configLocation.toNioPath()
+        if (!configLocation.isRegularFile()) {
+            return "Config file doesn't exist: \"$configLocation\"".left()
+        }
+
+        val testDirectory = configLocation.parent
+            ?: return "The parent directory of the config file is null: \"$configLocation\"".left()
+        if (!testDirectory.isDirectory()) {
+            return "Test directory doesn't exist: \"$testDirectory\"".left()
+        }
+
+        return testDirectory.listDirectoryEntries().asSequence()
+            .filter(NioPath::isRegularFile)
+            .filterNot { file ->
+                file.name.equals("save.toml", ignoreCase = true)
+            }
+            .filterNot { file ->
+                file.name.equals("save.properties", ignoreCase = true)
+            }
+            .map { file ->
+                file.relativeToOrNull(testDirectory)
+            }
+            .filterNotNull()
+            .filterNot(NioPath::isAbsolute)
+            .filter { relativeFile ->
+                relativeFile.name.matches(resourceNamePattern)
+            }
+            .right()
+    }
 
     /**
      * Discover all test suites in the project
@@ -142,7 +271,8 @@ class TestDiscoveringService(
     fun discoverAllTestSuites(
         rootTestConfig: TestConfig,
         sourceSnapshot: TestsSourceSnapshotDto,
-    ) = getAllTestSuites(rootTestConfig, sourceSnapshot)
+    ): List<TestSuiteDto> =
+            getAllTestSuites(rootTestConfig, sourceSnapshot)
 
     private fun Path.getRelativePath(rootTestConfig: TestConfig) = this.toFile()
         .relativeTo(rootTestConfig.directory.toFile())

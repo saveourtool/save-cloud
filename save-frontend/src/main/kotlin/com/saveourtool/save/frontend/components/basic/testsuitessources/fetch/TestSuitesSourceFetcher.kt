@@ -106,7 +106,7 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                 button {
                     type = ButtonType.button
                     className = ClassName("btn btn-primary mt-4")
-                    +"Fetch"
+                    +"Fetch"  // XXX Should be disabled by default
                     onClick = {
                         triggerFetchTestSuiteSource()
                         windowOpenness.closeWindow()

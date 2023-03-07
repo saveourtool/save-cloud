@@ -28,4 +28,5 @@ dependencies {
     implementation(libs.ktoml.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.commons.compress)
+    implementation(libs.arrow.kt.core)
 }
