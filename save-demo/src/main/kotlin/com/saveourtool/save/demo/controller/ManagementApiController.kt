@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.controller
 
-import com.saveourtool.save.demo.DemoInfo
+import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
@@ -44,36 +44,26 @@ class ManagementApiController(
     /**
      * @param organizationName name of GitHub user/organization
      * @param projectName name of GitHub repository
-     * @return [Mono] of [DemoStatus] of current demo
+     * @return [Mono] of [DemoDto] for [organizationName]/[projectName]
      */
     @GetMapping("/{organizationName}/{projectName}")
-    fun getDemoInfo(
+    fun getDemoDto(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<DemoInfo> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+    ): Mono<DemoDto> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .zipWith(getDemoStatus(organizationName, projectName))
-        .map { (demo, status) ->
-            DemoInfo(
-                demo.toDto().copy(vcsTagName = ""),
-                status,
-            )
+        .map { demo ->
+            demo.toDto().copy(vcsTagName = "")
         }
-        .zipWhen { demoInfo ->
+        .zipWhen { demoDto ->
             blockingToMono {
-                demoInfo.demoDto
-                    .githubProjectCoordinates
-                    ?.let { repo ->
-                        toolService.findCurrentVersion(repo)
-                    } ?: "manual"
+                demoDto.githubProjectCoordinates?.let { repo ->
+                    toolService.findCurrentVersion(repo)
+                } ?: "manual"
             }
         }
-        .map { (demoInfo, currentVersion) ->
-            demoInfo.copy(
-                demoDto = demoInfo.demoDto.copy(
-                    vcsTagName = currentVersion
-                )
-            )
+        .map { (demoDto, currentVersion) ->
+            demoDto.copy(vcsTagName = currentVersion)
         }
 }
