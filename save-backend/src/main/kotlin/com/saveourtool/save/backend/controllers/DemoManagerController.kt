@@ -7,8 +7,6 @@ import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoInfo
-import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
@@ -25,7 +23,6 @@ import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.BodyInserters
@@ -53,7 +50,6 @@ class DemoManagerController(
 
     @PostMapping("/{organizationName}/{projectName}/add")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -119,7 +115,6 @@ class DemoManagerController(
 
     @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -152,7 +147,6 @@ class DemoManagerController(
 
     @GetMapping("/{organizationName}/{projectName}/list-file")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -187,7 +181,6 @@ class DemoManagerController(
 
     @DeleteMapping("/{organizationName}/{projectName}/delete-file")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -216,69 +209,37 @@ class DemoManagerController(
             .bodyToMono()
     }
 
-    @GetMapping("/{organizationName}/{projectName}/status")
-    @RequiresAuthorizationSourceHeader
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
-    )
-    @Operation(
-        method = "GET",
-        summary = "Get demo status.",
-        description = "Get demo status.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
-    @ApiResponse(responseCode = "404", description = "Could not find project in organization or demo for it.")
-    fun getDemoStatus(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        authentication: Authentication,
-    ): Mono<DemoStatus> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
-        webClientDemo.get()
-            .uri("/demo/api/manager/$organizationName/$projectName/status")
-            .retrieve()
-            .defaultNotFoundProcessing(organizationName, projectName)
-            .bodyToMono<DemoStatus>()
-            .defaultIfEmpty(DemoStatus.NOT_CREATED)
-    }
-
     @GetMapping("/{organizationName}/{projectName}")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
     )
     @Operation(
         method = "GET",
-        summary = "Get demo info.",
-        description = "Get demo info.",
+        summary = "Get demo dto.",
+        description = "Get demo dto.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project in organization or demo for it.")
-    fun getDemoInfo(
+    fun getDemoDto(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<DemoInfo> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
+    ): Mono<DemoDto> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
         webClientDemo.get()
             .uri("/demo/api/manager/$organizationName/$projectName")
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
-            .bodyToMono<DemoInfo>()
+            .bodyToMono<DemoDto>()
             .defaultIfEmpty(
-                DemoInfo(
-                    DemoDto.emptyForProject(organizationName, projectName),
-                    DemoStatus.NOT_CREATED,
-                )
+                DemoDto.emptyForProject(organizationName, projectName),
             )
     }
 
     @PostMapping("/{organizationName}/{projectName}/delete")
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),

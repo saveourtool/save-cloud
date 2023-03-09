@@ -25,17 +25,17 @@ const val MINIO_STARTUP_DELAY_MILLIS = 5_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 fun Project.registerLiquibaseTask(profile: String) {
-    val registerLiquibaseTaskBackend = reqisterLiquibaseTask(
+    val registerLiquibaseTaskBackend = registerLiquibaseTask(
         projectName = "save-backend",
         relativeChangeLogFile = "db/db.changelog-master.xml",
         profile = profile
     )
-    val registerLiquibaseTaskSandbox = reqisterLiquibaseTask(
+    val registerLiquibaseTaskSandbox = registerLiquibaseTask(
         projectName = "save-sandbox",
         relativeChangeLogFile = "save-sandbox/db/db.changelog-sandbox.xml",
         profile = profile
     )
-    val registerLiquibaseTaskDemo = reqisterLiquibaseTask(
+    val registerLiquibaseTaskDemo = registerLiquibaseTask(
         projectName = "save-demo",
         relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
         profile = profile
@@ -49,7 +49,7 @@ fun Project.registerLiquibaseTask(profile: String) {
     }
 }
 
-private fun Project.reqisterLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String): TaskProvider<Exec> {
+private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String): TaskProvider<Exec> {
     val taskName = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
     val credentials = getDatabaseCredentials(projectName, profile)
 
@@ -69,6 +69,7 @@ private fun Project.reqisterLiquibaseTask(projectName: String, relativeChangeLog
             "--rm",
             "--env", "INSTALL_MYSQL=true",
             "--network", "build_default",
+            "--platform", "linux/x86_64",
             "liquibase/liquibase:4.15",
             "--url=${credentials.getDatabaseUrlForLiquibaseInDocker()}",
             "--changeLogFile=$relativeChangeLogFile",
