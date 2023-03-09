@@ -2,9 +2,12 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.preprocessor.common.CloneResult
+import com.saveourtool.save.preprocessor.common.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.*
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
+import com.saveourtool.save.test.TestSuiteValidationResult
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.file.Paths
 
@@ -63,15 +67,15 @@ internal class TestSuitesPreprocessorControllerTest {
     fun setup() {
         val answerCall = { answer: InvocationOnMock ->
             @Suppress("UNCHECKED_CAST")
-            val processor = answer.arguments[2] as GitRepositoryProcessor<TestSuiteList>
-            processor(repositoryDirectory, GitCommitInfo(fullCommit, commitTime))
+            val processor = answer.arguments[2] as GitRepositoryProcessor<Flux<TestSuiteValidationResult>>
+            processor.processAsync(CloneResult(repositoryDirectory, GitCommitInfo(fullCommit, commitTime)))
         }
         doAnswer(answerCall).whenever(gitPreprocessorService)
-            .cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
+            .cloneTagAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(tag), any())
         doAnswer(answerCall).whenever(gitPreprocessorService)
-            .cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
+            .cloneBranchAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(branch), any())
         doAnswer(answerCall).whenever(gitPreprocessorService)
-            .cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
+            .cloneCommitAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(commit), any())
         doAnswer { answer ->
             @Suppress("UNCHECKED_CAST")
             val processor = answer.arguments[1] as ArchiveProcessor<TestSuiteList>
@@ -92,9 +96,9 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(any(), any()))
             .thenReturn(Mono.empty())
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
-            .block()
+            .blockLast()
 
-        verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
+        verify(gitPreprocessorService).cloneTagAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(tag), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(tag, TestSuitesSourceFetchMode.BY_TAG))
         verifyNewCommit()
     }
@@ -104,9 +108,9 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(any(), any()))
             .thenReturn(Mono.just(testsSourceSnapshotDto))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag, userId))
-            .block()
+            .blockLast()
 
-        verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
+        verify(gitPreprocessorService).cloneTagAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(tag), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(tag, TestSuitesSourceFetchMode.BY_TAG))
         verifyExistedCommit()
     }
@@ -116,9 +120,9 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(any(), any()))
             .thenReturn(Mono.empty())
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch, userId))
-            .block()
+            .blockLast()
 
-        verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
+        verify(gitPreprocessorService).cloneBranchAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(branch), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(branchVersion, TestSuitesSourceFetchMode.BY_BRANCH))
         verifyNewCommit()
     }
@@ -128,9 +132,9 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(any(), any()))
             .thenReturn(Mono.empty())
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
-            .block()
+            .blockLast()
 
-        verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
+        verify(gitPreprocessorService).cloneCommitAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(commit), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(commit, TestSuitesSourceFetchMode.BY_COMMIT))
         verifyNewCommit()
     }
@@ -140,9 +144,9 @@ internal class TestSuitesPreprocessorControllerTest {
         whenever(testsPreprocessorToBackendBridge.findTestsSourceSnapshot(any(), any()))
             .thenReturn(Mono.just(testsSourceSnapshotDto))
         testSuitesPreprocessorController.fetch(TestsSourceFetchRequest(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit, userId))
-            .block()
+            .blockLast()
 
-        verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
+        verify(gitPreprocessorService).cloneCommitAndProcessDirectoryMany<TestSuiteValidationResult>(eq(gitDto), eq(commit), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSourceVersion(testsSourceVersionDto(commit, TestSuitesSourceFetchMode.BY_COMMIT))
         verifyExistedCommit()
     }
