@@ -16,7 +16,7 @@ data class TestSuiteValidationProgress(
     init {
         @Suppress("MAGIC_NUMBER")
         require(percentage in 0..100) {
-            percentage.toString()
+            "Percentage should be in range of [0..100]: $percentage"
         }
     }
 
