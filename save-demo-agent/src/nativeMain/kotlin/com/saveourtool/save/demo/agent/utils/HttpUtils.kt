@@ -22,6 +22,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import okio.Path
@@ -30,7 +31,7 @@ import okio.use
 import kotlin.native.concurrent.AtomicLong
 
 private val httpClient = HttpClient(CIO) {
-    install(ContentNegotiation)
+    install(ContentNegotiation) { json() }
 }
 
 private suspend fun HttpClient.download(url: String, file: Path): Result<HttpResponse> = runCatching {
