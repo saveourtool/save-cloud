@@ -69,7 +69,6 @@ private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLog
             "--rm",
             "--env", "INSTALL_MYSQL=true",
             "--network", "build_default",
-            "--platform", "linux/x86_64",
             "liquibase/liquibase:4.15",
             "--url=${credentials.getDatabaseUrlForLiquibaseInDocker()}",
             "--changeLogFile=$relativeChangeLogFile",
