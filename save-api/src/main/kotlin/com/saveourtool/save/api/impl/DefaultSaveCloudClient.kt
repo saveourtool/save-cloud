@@ -13,7 +13,7 @@ import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.TestingType.CONTEST_MODE
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
@@ -96,7 +96,7 @@ internal class DefaultSaveCloudClient(
     override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>> =
             postAndCheck(
                 "/projects/by-filters",
-                ProjectFilters(
+                ProjectFilter(
                     name = "",
                     organizationName = organizationName,
                 ),
