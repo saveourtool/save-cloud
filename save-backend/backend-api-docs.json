@@ -8266,7 +8266,7 @@
                 }
               }
             },
-            "description": "Successfully fetched all registered organizations"
+            "description": "Successfully fetched all vulnerabilities by filters"
           },
           "401": {
             "content": {
@@ -8290,6 +8290,59 @@
         "summary": "Get all vulnerabilities with filters.",
         "tags": [
           "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerability-projects/by-vulnerability-name": {
+      "get": {
+        "description": "Get link projects by vulnerability name.",
+        "operationId": "getAllVulnerabilityProjects",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityProjectDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all vulnerability project"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityProjectDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerability projects.",
+        "tags": [
+          "vulnerability projects"
         ]
       }
     }
