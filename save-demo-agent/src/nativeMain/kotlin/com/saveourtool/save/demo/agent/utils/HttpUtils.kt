@@ -17,6 +17,7 @@ import com.saveourtool.save.utils.requiredEnv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -28,7 +29,9 @@ import okio.buffer
 import okio.use
 import kotlin.native.concurrent.AtomicLong
 
-private val httpClient = HttpClient(CIO)
+private val httpClient = HttpClient(CIO) {
+    install(ContentNegotiation)
+}
 
 private suspend fun HttpClient.download(url: String, file: Path): Result<HttpResponse> = runCatching {
     prepareGet {

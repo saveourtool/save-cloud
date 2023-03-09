@@ -93,10 +93,10 @@ class KubernetesService(
             }
         }
         return when {
-            status == null -> DemoStatus.ERROR
+            status == null -> DemoStatus.STOPPED
             status == HttpStatusCode.OK -> DemoStatus.RUNNING
             status.isSuccess() -> DemoStatus.STARTING
-            else -> DemoStatus.STOPPED
+            else -> DemoStatus.ERROR
         }
     }
 
