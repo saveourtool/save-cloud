@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoCreationRequest
-import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
@@ -207,35 +206,6 @@ class DemoManagerController(
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
             .bodyToMono()
-    }
-
-    @GetMapping("/{organizationName}/{projectName}")
-    @RequiresAuthorizationSourceHeader
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
-    )
-    @Operation(
-        method = "GET",
-        summary = "Get demo dto.",
-        description = "Get demo dto.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched demo status.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
-    @ApiResponse(responseCode = "404", description = "Could not find project in organization or demo for it.")
-    fun getDemoDto(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
-        authentication: Authentication,
-    ): Mono<DemoDto> = forwardRequestCheckingPermission(Permission.READ, organizationName, projectName, authentication) {
-        webClientDemo.get()
-            .uri("/demo/api/manager/$organizationName/$projectName")
-            .retrieve()
-            .defaultNotFoundProcessing(organizationName, projectName)
-            .bodyToMono<DemoDto>()
-            .defaultIfEmpty(
-                DemoDto.emptyForProject(organizationName, projectName),
-            )
     }
 
     @PostMapping("/{organizationName}/{projectName}/delete")
