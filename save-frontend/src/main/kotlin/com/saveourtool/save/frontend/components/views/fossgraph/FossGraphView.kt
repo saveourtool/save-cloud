@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.progressbar.Color
@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.utils.useBackground
 import csstype.AlignItems
 import csstype.ClassName
 import csstype.Display
+import js.core.get
 import js.core.jso
 import react.*
 import react.dom.aria.ariaDescribedBy
@@ -27,6 +28,7 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.router.useParams
 import web.html.InputType
 
 /**
@@ -47,6 +49,10 @@ val fossGraphView: VFC = VFC {
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
+
+    val params = useParams()
+    val vulnerabilityName = params["vulnerabilityName"]!!.toString()
+
     div {
         className = ClassName("card card-body mt-0")
 
@@ -76,7 +82,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
         h1 {
             className = ClassName("h3 mb-0 text-center text-gray-800")
-            +props.name
+            +vulnerabilityName
         }
 
         div {

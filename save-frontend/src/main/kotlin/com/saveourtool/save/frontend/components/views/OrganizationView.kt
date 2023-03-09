@@ -6,7 +6,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -435,7 +435,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): List<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilters("", props.organizationName, statuses)),
+        body = Json.encodeToString(ProjectFilter("", props.organizationName, statuses)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {

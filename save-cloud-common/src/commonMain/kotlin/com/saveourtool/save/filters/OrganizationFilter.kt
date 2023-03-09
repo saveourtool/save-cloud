@@ -8,12 +8,12 @@ import kotlinx.serialization.Serializable
  * @property statuses current [statuses] of an organization
  */
 @Serializable
-data class OrganizationFilters(
+data class OrganizationFilter(
     val prefix: String,
     val statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED),
 ) {
     companion object {
-        val created = OrganizationFilters("")
-        val all = OrganizationFilters("", OrganizationStatus.values().toSet())
+        val created = OrganizationFilter("")
+        val all = OrganizationFilter("", OrganizationStatus.values().toSet())
     }
 }

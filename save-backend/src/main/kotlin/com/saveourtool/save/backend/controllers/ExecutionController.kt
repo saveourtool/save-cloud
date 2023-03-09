@@ -12,7 +12,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.filters.ExecutionFilters
+import com.saveourtool.save.filters.ExecutionFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -118,7 +118,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecutionByProject(
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
-        @RequestBody(required = false) filters: ExecutionFilters?,
+        @RequestBody(required = false) filters: ExecutionFilter?,
         authentication: Authentication,
     ): Mono<List<ExecutionDto>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()

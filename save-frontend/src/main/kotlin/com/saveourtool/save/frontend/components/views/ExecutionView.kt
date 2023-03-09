@@ -12,7 +12,7 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -77,7 +77,7 @@ external interface ExecutionProps : PropsWithChildren {
     /**
      * All filters in one value [filters]
      */
-    var filters: TestExecutionFilters
+    var filters: TestExecutionFilter
 
     /**
      * Indicates whether test analysis is enabled or not.
@@ -97,7 +97,7 @@ external interface ExecutionState : State {
     /**
      * All filters in one value [filters]
      */
-    var filters: TestExecutionFilters
+    var filters: TestExecutionFilter
 }
 
 /**
@@ -107,7 +107,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
     /**
      * All filters in one value [filters]
      */
-    var filters: TestExecutionFilters
+    var filters: TestExecutionFilter
 }
 
 /**
@@ -321,7 +321,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.filters = TestExecutionFilters.empty
+        state.filters = TestExecutionFilter.empty
     }
 
     private fun formatCounter(count: Long?): String = count?.let {
@@ -462,7 +462,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         displayTestNotFound(state.executionDto)
     }
 
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) =
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilter) =
             // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
             "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
 
