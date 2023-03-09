@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * @property endTime to use filter by [endTime] execution
  */
 @Serializable
-data class ExecutionFilters(
+data class ExecutionFilter(
 
     val startTime: LocalDateTime,
 
@@ -18,7 +18,7 @@ data class ExecutionFilters(
 
 ) {
     companion object {
-        val empty = ExecutionFilters(
+        val empty = ExecutionFilter(
             startTime = LocalDateTime(1970, 1, 1, 0, 0, 0),
             endTime = getCurrentLocalDateTime()
         )

@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.entities.OrganizationWithUsers
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
@@ -351,7 +351,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private suspend fun getOrganizationWithUsersList() = post(
         url = "$apiUrl/organizations/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(OrganizationFilters.all),
+        body = Json.encodeToString(OrganizationFilter.all),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }

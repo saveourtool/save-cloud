@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.filters.TestSuiteFilters
+import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
@@ -87,7 +87,7 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
-    val (filters, setFilters) = useState(TestSuiteFilters.empty)
+    val (filters, setFilters) = useState(TestSuiteFilter.empty)
     val getFilteredTestSuites = debounce(
         useDeferredRequest {
             if (filters.isNotEmpty()) {
