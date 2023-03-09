@@ -140,9 +140,8 @@ class DependencyStorage(
         version: String,
         archiveName: String = "archive.zip",
     ): Flux<ByteBuffer> = createTempDirectory().div("archive").createDirectory().let { tempDir ->
-        createArchive(tempDir, organizationName, projectName, version, archiveName).doOnComplete {
-            tempDir.deleteRecursively()
-        }
+        createArchive(tempDir, organizationName, projectName, version, archiveName)
+            .doOnComplete { tempDir.deleteRecursively() }
             .doOnError { tempDir.deleteRecursively() }
     }
 
@@ -152,13 +151,10 @@ class DependencyStorage(
         projectName: String,
         version: String,
         archiveName: String = "archive.zip",
-    ): Flux<ByteBuffer> =
-            downloadToTempDir(tmpDir, organizationName, projectName, version)
-                .map {
-                    tmpDir.parent.div(archiveName)
-                        .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-                }
-                .flatMapMany { it.toByteBufferFlux() }
+    ): Flux<ByteBuffer> = downloadToTempDir(tmpDir, organizationName, projectName, version).map {
+        tmpDir.parent.div(archiveName).also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
+    }
+        .flatMapMany { it.toByteBufferFlux() }
 
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

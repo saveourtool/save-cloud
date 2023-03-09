@@ -161,7 +161,7 @@ private fun demoAgentContainerSpec(
     val currentlyHardcodedVersion = "manual"
 
     listOf(
-        "KTOR_LOG_LEVEL" to "TRACE",
+        "KTOR_LOG_LEVEL" to "DEBUG",
         DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV to getConfigureMeUrl(agentConfig.demoUrl, demo, currentlyHardcodedVersion),
         DemoAgentConfig.DEMO_ORGANIZATION_ENV to demo.organizationName,
         DemoAgentConfig.DEMO_PROJECT_ENV to demo.projectName,

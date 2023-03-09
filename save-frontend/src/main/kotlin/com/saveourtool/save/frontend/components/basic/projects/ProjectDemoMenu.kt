@@ -44,7 +44,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
     val getDemoDto = useDeferredRequest {
         val dtoResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}",
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
@@ -79,7 +79,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
     val getDemoStatus = useDeferredRequest {
         val statusResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}/status",
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}/status",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,

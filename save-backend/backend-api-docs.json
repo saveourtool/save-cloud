@@ -1710,74 +1710,6 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}": {
-      "get": {
-        "description": "Get demo info.",
-        "operationId": "getDemoInfo",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo info.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
     "/api/v1/demo/{organizationName}/{projectName}/add": {
       "post": {
         "description": "Add demo for a tool.",
@@ -2170,98 +2102,6 @@
           }
         },
         "summary": "Start demo container.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
-    "/api/v1/demo/{organizationName}/{projectName}/status": {
-      "get": {
-        "description": "Get demo status.",
-        "operationId": "getDemoStatus",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo status.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -8604,29 +8444,6 @@
           },
           "vcsTagName": {
             "type": "string"
-          }
-        }
-      },
-      "DemoInfo": {
-        "required": [
-          "demoDto",
-          "demoStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "demoDto": {
-            "$ref": "#/components/schemas/DemoDto"
-          },
-          "demoStatus": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "NOT_CREATED",
-              "RUNNING",
-              "STARTING",
-              "STOPPED",
-              "STOPPING"
-            ]
           }
         }
       },
