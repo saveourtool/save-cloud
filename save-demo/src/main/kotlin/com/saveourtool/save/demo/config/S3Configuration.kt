@@ -17,4 +17,13 @@ class S3Configuration(
      */
     @Bean
     fun s3Operations(): S3Operations = DefaultS3Operations(configProperties.s3Storage)
+
+    /**
+     * @return [S3Operations] from container as a Spring's bean
+     */
+    @Bean
+    fun s3OperationsFromContainer(): S3Operations = DefaultS3Operations(configProperties.s3Storage.copy(
+        endpoint = configProperties.s3Storage.endpointFromContainer,
+        createBucketIfNotExists = false,
+    ))
 }

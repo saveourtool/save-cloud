@@ -107,7 +107,7 @@ interface S3Operations {
      * @param s3Key
      * @param contentLength
      * @param duration duration when url is valid
-     * @return a pre-signed request to upload an object with known content length
+     * @return a of pre-signed request to upload an object with known content length
      */
     fun requestToUploadObject(s3Key: String, contentLength: Long, duration: Duration): PresignedPutObjectRequest
 }

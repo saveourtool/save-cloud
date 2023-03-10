@@ -23,7 +23,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.net.URI
 
 typealias TestsSourceSnapshotUploadRequest = UploadRequest<TestsSourceSnapshotDto>
 
@@ -88,7 +87,7 @@ class TestsPreprocessorToBackendBridge(
             .bodyToMono<TestsSourceSnapshotUploadRequest>()
             .flatMap { uploadRequest ->
                 uploadWebClient.put()
-                    .uri(uploadRequest.uri)
+                    .uri(uploadRequest.url.toURI())
                     .headers { it.putAll(uploadRequest.headers) }
                     // a workaround to avoid overriding Content-Type by Spring which uses resource extension to resolve it
                     .body(BodyInserters.fromResource(InputStreamResource(resourceWithContent.inputStream)))

@@ -77,7 +77,7 @@ class DefaultS3Operations(
             .serviceConfiguration(S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build())
-            .endpointOverride(presignedEndpointForAgent.lowercase())
+            .endpointOverride(endpoint.lowercase())
             .build()
     }
 
