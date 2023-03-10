@@ -32,7 +32,7 @@ suspend fun <T : Any> retry(
     action: suspend (Int) -> T?,
 ): Pair<T?, List<Throwable>> {
     val caughtExceptions: MutableList<Throwable> = mutableListOf()
-    times.downTo(0).map { iteration ->
+    times.downTo(1).map { iteration ->
         try {
             action(iteration)?.let { result ->
                 return result to caughtExceptions

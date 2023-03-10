@@ -6,10 +6,10 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.utils.requiredEnv
 import generated.SAVE_CLOUD_VERSION
 
 import kotlinx.serialization.Serializable
@@ -45,12 +45,12 @@ data class AgentConfiguration(
          */
         internal fun initializeFromEnv() = AgentConfiguration(
             info = AgentInfo(
-                containerId = requiredEnv(AgentEnvName.CONTAINER_ID),
-                containerName = requiredEnv(AgentEnvName.CONTAINER_NAME),
+                containerId = requiredEnv(AgentEnvName.CONTAINER_ID.name),
+                containerName = requiredEnv(AgentEnvName.CONTAINER_NAME.name),
                 version = SAVE_CLOUD_VERSION,
             ),
             heartbeat = HeartbeatConfig(
-                url = requiredEnv(AgentEnvName.HEARTBEAT_URL),
+                url = requiredEnv(AgentEnvName.HEARTBEAT_URL.name),
             ),
         )
     }

@@ -10,7 +10,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -77,14 +77,14 @@ class ProjectController(
         description = "Get filtered projects available for the current user.",
     )
     @Parameters(
-        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+        Parameter(name = "projectFilter", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody projectFilters: ProjectFilters,
+        @RequestBody projectFilter: ProjectFilter,
         authentication: Authentication?,
     ): Flux<ProjectDto> =
-            blockingToFlux { projectService.getFiltered(projectFilters) }
+            blockingToFlux { projectService.getFiltered(projectFilter) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }

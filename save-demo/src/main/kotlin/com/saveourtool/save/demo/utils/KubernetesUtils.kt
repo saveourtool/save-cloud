@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.demo.utils
 
+import com.saveourtool.save.demo.DemoAgentConfig
+import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.config.KubernetesConfig
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.storage.DemoInternalFileStorage
@@ -30,10 +32,16 @@ private val logger = LoggerFactory.getLogger("KubernetesUtils")
  * @param demo demo entity
  * @param agentDownloadUrl url to download save-demo-agent.kexe, will be used to get pod start command
  * @param kubernetesSettings kubernetes configuration
+ * @param agentConfig configuration that is required to be present on save-demo-agent on startup
  * @throws KubernetesRunnerException on failed job creation
  */
 @Suppress("NestedBlockDepth")
-fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSettings: KubernetesConfig) {
+fun KubernetesClient.startJob(
+    demo: Demo,
+    agentDownloadUrl: String,
+    kubernetesSettings: KubernetesConfig,
+    agentConfig: ConfigProperties.AgentConfig,
+) {
     val job = Job().apply {
         metadata = ObjectMeta().apply {
             name = jobNameForDemo(demo)
@@ -61,7 +69,15 @@ fun KubernetesClient.startJob(demo: Demo, agentDownloadUrl: String, kubernetesSe
                         )
                     }
                     restartPolicy = "Never"
-                    containers = listOf(demoAgentContainerSpec(demo.sdk.toSdk().baseImageName(), agentDownloadUrl, kubernetesSettings))
+                    containers = listOf(
+                        demoAgentContainerSpec(
+                            demo.sdk.toSdk().baseImageName(),
+                            agentDownloadUrl,
+                            demo,
+                            kubernetesSettings,
+                            agentConfig,
+                        )
+                    )
                 }
             }
         }
@@ -124,21 +140,44 @@ private fun ContainerPort.default(port: Int) = apply {
  */
 fun jobNameForDemo(demo: Demo) = with(demo) { "demo-${organizationName.lowercase()}-${projectName.lowercase()}-1" }
 
+@Suppress("SameParameterValue")
+private fun getConfigureMeUrl(baseUrl: String, demo: Demo, version: String) = with(demo) {
+    "$baseUrl/demo/internal/manager/$organizationName/$projectName/configure-me?version=$version"
+}
+
 @Suppress("TOO_LONG_FUNCTION")
 private fun demoAgentContainerSpec(
     imageName: String,
     agentDownloadUrl: String,
+    demo: Demo,
     kubernetesSettings: KubernetesConfig,
+    agentConfig: ConfigProperties.AgentConfig,
 ) = Container().apply {
     name = "save-demo-agent-pod"
     image = imageName
     imagePullPolicy = "IfNotPresent"
 
-    val envOptions = sequenceOf(
-        "KTOR_LOG_LEVEL" to "TRACE",
-    )
+    // todo: in later phases should be removed
+    val currentlyHardcodedVersion = "manual"
 
-    val startupCommand = downloadAndRunAgentCommand(agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent, envOptions = envOptions)
+    listOf(
+        "KTOR_LOG_LEVEL" to "DEBUG",
+        DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV to getConfigureMeUrl(agentConfig.demoUrl, demo, currentlyHardcodedVersion),
+        DemoAgentConfig.DEMO_ORGANIZATION_ENV to demo.organizationName,
+        DemoAgentConfig.DEMO_PROJECT_ENV to demo.projectName,
+        DemoAgentConfig.DEMO_VERSION_ENV to currentlyHardcodedVersion,
+    )
+        .map { (key, envValue) ->
+            EnvVar().apply {
+                name = key
+                value = envValue
+            }
+        }
+        .let { env = it }
+
+    val startupCommand = downloadAndRunAgentCommand(
+        agentDownloadUrl, DemoInternalFileStorage.saveDemoAgent,
+    )
 
     command = listOf("sh", "-c", startupCommand)
 

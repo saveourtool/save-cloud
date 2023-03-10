@@ -17,6 +17,7 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.requiredEnv
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
@@ -156,7 +157,7 @@ class SaveAgent(private val config: AgentConfiguration,
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong(), percentCompletion = 0))
+                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID.name).toLong(), percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
