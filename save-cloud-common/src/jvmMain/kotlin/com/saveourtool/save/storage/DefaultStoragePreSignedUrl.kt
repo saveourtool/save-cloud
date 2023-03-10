@@ -2,6 +2,8 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import java.net.URL
 import kotlin.time.Duration.Companion.minutes
 
@@ -26,18 +28,23 @@ class DefaultStoragePreSignedUrl<K : Any>(
             .url()
     }
 
-    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders? =
-            s3KeyManager.findExistedS3Key(key)?.let { s3Key ->
-                s3Operations.requestToUploadObject(s3Key, contentLength, uploadDuration)
-                    .also { request ->
-                        require(request.signedPayload().isEmpty) {
-                            "Pre-singer url to download object should be without payload"
-                        }
-                    }
-                    .let {
-                        it.url() to it.signedHeaders()
-                    }
+    override fun generateUrlToUpload(key: K, contentLength: Long): UploadRequest<K> {
+        val s3Key = s3KeyManager.createNewS3Key(key)
+        val request = s3Operations.requestToUploadObject(s3Key, contentLength, uploadDuration)
+            .also { request ->
+                require(request.signedPayload().isEmpty) {
+                    "Pre-singer url to download object should be without payload"
+                }
             }
+        return UploadRequest(
+            s3KeyManager.findKey(s3Key).orNotFound {
+                "Not found inserted updated key for $key"
+            },
+            request.url(),
+            request.httpRequest().uri,
+            request.signedHeaders(),
+        )
+    }
 
     companion object {
         private val downloadDuration = 15.minutes

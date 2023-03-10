@@ -67,5 +67,5 @@ abstract class AbstractSuspendingStorage<K : Any>(
 
     override fun generateUrlToDownload(key: K): URL? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToDownload(key) }
 
-    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToUpload(key, contentLength) }
+    override fun generateUrlToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun { storagePreSignedUrl.generateUrlToUpload(key, contentLength) }
 }

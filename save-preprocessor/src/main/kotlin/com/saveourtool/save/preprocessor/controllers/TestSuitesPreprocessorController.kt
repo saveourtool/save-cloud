@@ -8,6 +8,7 @@ import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
+import com.saveourtool.save.test.TestSuiteValidationProgress
 import com.saveourtool.save.test.TestSuiteValidationResult
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -69,8 +72,9 @@ class TestSuitesPreprocessorController(
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction<Flux<TestSuiteValidationResult>>,
-    ): Flux<TestSuiteValidationResult> = with(cloneAndProcessDirectoryAction) {
-        gitPreprocessorService.cloneAndProcessDirectoryAsync(
+    ): Flux<TestSuiteValidationResult> {
+        return cloneAndProcessDirectoryAction.cloneAndProcessDirectoryAsync(
+            gitPreprocessorService,
             request.source.gitDto,
             request.version
         ) { (repositoryDirectory, gitCommitInfo) ->
@@ -102,7 +106,7 @@ class TestSuitesPreprocessorController(
         request: TestsSourceFetchRequest,
     ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / request.source.testRootPath).let { pathToRepository ->
         gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
-            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot2(
                 snapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time),
                 resourceWithContent = FileSystemResource(archive)
             ).zipWhen { snapshot ->

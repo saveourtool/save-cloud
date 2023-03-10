@@ -87,10 +87,7 @@ open class AbstractInternalFileStorage(
      * @return generated [URL] to download provided [key] [InternalFileKey]
      * @throws ResponseStatusException with status [HttpStatus.NOT_FOUND]
      */
-    fun generateRequiredUrlToDownload(key: InternalFileKey): URL = storagePreSignedUrl.generateUrlToDownload(key)
-        .orNotFound {
-            "Not found $key in internal storage"
-        }
+    fun generateRequiredUrlToDownload(key: InternalFileKey): URL = storagePreSignedUrl.generateRequiredUrlToDownload(key)
 
     /**
      * @param function

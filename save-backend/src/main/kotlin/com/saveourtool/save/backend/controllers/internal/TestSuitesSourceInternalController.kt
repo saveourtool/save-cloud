@@ -1,16 +1,15 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.storage.UploadRequest
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
@@ -23,7 +22,6 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceInternalController(
     private val testsSourceVersionService: TestsSourceVersionService,
     private val snapshotStorage: TestsSourceSnapshotStorage,
-    private val executionService: ExecutionService,
 ) {
     /**
      * @param snapshotDto
@@ -40,6 +38,17 @@ class TestSuitesSourceInternalController(
         val content = part.content().map { it.asByteBuffer() }
         snapshotStorage.upload(snapshotDto, content)
     }
+
+    /**
+     * @param snapshotDto
+     * @param contentLength
+     * @return [UploadRequest] to upload [snapshotDto]
+     */
+    @PostMapping("/generate-url-to-upload-snapshot")
+    fun generateUrlToUpload(
+        @RequestBody snapshotDto: TestsSourceSnapshotDto,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
+    ): UploadRequest<TestsSourceSnapshotDto> = snapshotStorage.generateUrlToUpload(snapshotDto, contentLength)
 
     /**
      * @param versionDto the version to save.
@@ -68,17 +77,15 @@ class TestSuitesSourceInternalController(
     }
 
     /**
-     * @param executionId
-     * @return content of tests related to provided values
+     * @param snapshotId
+     * @return [Mono] with result of deletion
      */
-    @PostMapping("/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadByExecutionId(
-        @RequestParam executionId: Long
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        executionService.getRelatedTestsSourceSnapshot(executionId)
-    }.map { snapshot ->
-        ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(snapshotStorage.download(snapshot))
+    @DeleteMapping("/delete-snapshot")
+    fun deleteSnapshot(
+        @RequestParam snapshotId: Long,
+    ): Mono<Boolean> = blockingToMono {
+        testsSourceVersionService.getSnapshotEntity(snapshotId).toDto()
+    }.flatMap {
+        snapshotStorage.delete(it)
     }
 }

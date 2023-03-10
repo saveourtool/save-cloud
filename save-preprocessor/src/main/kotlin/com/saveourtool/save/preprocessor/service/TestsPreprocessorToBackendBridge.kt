@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
+import com.saveourtool.save.storage.UploadRequest
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
@@ -12,14 +13,19 @@ import com.saveourtool.save.utils.*
 import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.core.io.InputStreamResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.net.URI
+
+typealias TestsSourceSnapshotUploadRequest = UploadRequest<TestsSourceSnapshotDto>
 
 /**
  * A bridge from preprocessor to backend (rest api wrapper)
@@ -33,6 +39,8 @@ class TestsPreprocessorToBackendBridge(
         .baseUrl(configProperties.backend)
         .applyAll(customizers)
         .build()
+
+    private val uploadWebClient = WebClient.create()
 
     /**
      * @param snapshotDto
@@ -60,6 +68,41 @@ class TestsPreprocessorToBackendBridge(
             )
         }
         .blockingBodyToMono()
+
+
+    /**
+     * @param snapshotDto
+     * @param resourceWithContent
+     * @return updated [snapshotDto]
+     */
+    @NonBlocking
+    fun saveTestsSuiteSourceSnapshot2(
+        snapshotDto: TestsSourceSnapshotDto,
+        resourceWithContent: Resource,
+    ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
+            .uri("/test-suites-sources/generate-url-to-upload-snapshot")
+            .bodyValue(snapshotDto)
+            .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .bodyToMono<TestsSourceSnapshotUploadRequest>()
+            .flatMap { uploadRequest ->
+                uploadWebClient.put()
+                    .uri(uploadRequest.uri)
+                    .headers { it.putAll(uploadRequest.headers) }
+                    // a workaround to avoid overriding Content-Type by Spring which uses resource extension to resolve it
+                    .body(BodyInserters.fromResource(InputStreamResource(resourceWithContent.inputStream)))
+                    .retrieve()
+                    .blockingToBodilessEntity()
+                    .onErrorResume { ex ->
+                        webClientBackend.delete()
+                            .uri("/test-suites-sources/delete-snapshot?snapshotId={id}", uploadRequest.key.requiredId())
+                            .retrieve()
+                            .toBodilessEntity()
+                            .then(Mono.error(ex))
+                    }
+                    .thenReturn(uploadRequest.key)
+            }
 
     /**
      * @param sourceId
