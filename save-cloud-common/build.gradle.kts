@@ -39,16 +39,21 @@ kotlin {
             dependencies {
                 implementation(libs.save.common)
                 api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
 
                 implementation(libs.okio)
                 implementation(libs.ktor.client.core)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
             }
         }
         commonTest {
             dependencies {
                 dependencies {
                     api(libs.kotlin.test)
+                    api(libs.kotlinx.coroutines.test)
                     implementation(libs.kotlinx.serialization.json)
                 }
             }
@@ -74,6 +79,7 @@ kotlin {
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.file)
+                api(libs.kotlinx.coroutines.reactor)
             }
         }
         val jvmTest by getting {

@@ -1,12 +1,10 @@
 package com.saveourtool.save.demo.storage
 
-import com.saveourtool.save.demo.config.ConfigProperties
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.entity.Dependency
 import com.saveourtool.save.demo.repository.DependencyRepository
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractStorageWithDatabaseEntityKey
-import com.saveourtool.save.storage.concatS3Key
+import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -21,15 +19,27 @@ import kotlin.io.path.*
  */
 @Component
 class DependencyStorage(
-    configProperties: ConfigProperties,
     s3Operations: S3Operations,
     repository: DependencyRepository,
-) : AbstractStorageWithDatabaseEntityKey<Dependency, DependencyRepository>(
+    s3KeyManager: DependencyKeyManager,
+) : ReactiveStorageWithDatabase<Dependency, Dependency, DependencyRepository, DependencyKeyManager>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "deps"),
+    s3KeyManager,
     repository,
 ) {
-    override fun findByContent(key: Dependency): Dependency? = repository.findByDemoAndVersionAndFileId(key.demo, key.version, key.fileId)
+    /**
+     * @param demo
+     * @param version version of a tool that the file is connected to
+     * @return list of files present in storage for required version
+     */
+    fun blockingList(
+        demo: Demo,
+        version: String,
+    ): List<Dependency> = s3KeyManager.findAllDependenies(
+        demo.organizationName,
+        demo.projectName,
+        version,
+    )
 
     /**
      * @param demo
@@ -39,13 +49,7 @@ class DependencyStorage(
     fun list(
         demo: Demo,
         version: String,
-    ): Flux<Dependency> = blockingToFlux {
-        repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
-            demo.organizationName,
-            demo.projectName,
-            version,
-        )
-    }
+    ): Flux<Dependency> = blockingToFlux { blockingList(demo, version) }
 
     /**
      * @param demo
@@ -58,7 +62,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Unit> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             demo.organizationName,
             demo.projectName,
             version,
@@ -101,7 +105,7 @@ class DependencyStorage(
         version: String,
         fileName: String,
     ): Mono<Dependency> = blockingToMono {
-        repository.findByDemo_OrganizationNameAndDemo_ProjectNameAndVersionAndFileName(
+        s3KeyManager.findDependency(
             organizationName,
             projectName,
             version,
@@ -115,11 +119,7 @@ class DependencyStorage(
         projectName: String,
         version: String
     ) = blockingToFlux {
-        repository.findAllByDemo_OrganizationNameAndDemo_ProjectNameAndVersion(
-            organizationName,
-            projectName,
-            version,
-        )
+        s3KeyManager.findAllDependenies(organizationName, projectName, version)
     }
         .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
@@ -140,9 +140,8 @@ class DependencyStorage(
         version: String,
         archiveName: String = "archive.zip",
     ): Flux<ByteBuffer> = createTempDirectory().div("archive").createDirectory().let { tempDir ->
-        createArchive(tempDir, organizationName, projectName, version, archiveName).doOnComplete {
-            tempDir.deleteRecursively()
-        }
+        createArchive(tempDir, organizationName, projectName, version, archiveName)
+            .doOnComplete { tempDir.deleteRecursively() }
             .doOnError { tempDir.deleteRecursively() }
     }
 
@@ -152,13 +151,10 @@ class DependencyStorage(
         projectName: String,
         version: String,
         archiveName: String = "archive.zip",
-    ): Flux<ByteBuffer> =
-            downloadToTempDir(tmpDir, organizationName, projectName, version)
-                .map {
-                    tmpDir.parent.div(archiveName)
-                        .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-                }
-                .flatMapMany { it.toByteBufferFlux() }
+    ): Flux<ByteBuffer> = downloadToTempDir(tmpDir, organizationName, projectName, version).map {
+        tmpDir.parent.div(archiveName).also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
+    }
+        .flatMapMany { it.toByteBufferFlux() }
 
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

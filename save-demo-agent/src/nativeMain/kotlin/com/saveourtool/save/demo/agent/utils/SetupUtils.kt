@@ -9,7 +9,7 @@ import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
-import com.saveourtool.save.demo.agent.DemoConfiguration
+import com.saveourtool.save.demo.DemoConfiguration
 import com.saveourtool.save.utils.*
 import io.ktor.http.*
 
@@ -67,7 +67,7 @@ private fun executeSetupSh(setupShName: String = "setup.sh"): ExecutionResult? =
     }
 
 private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration) {
-    val url = with(demoConfiguration) { "$demoUrl/demo/internal/$organizationName/$projectName/download-files-as-zip?version=$version" }
+    val url = with(demoConfiguration) { "$demoUrl/demo/internal/files/$organizationName/$projectName/download-as-zip?version=$version" }
     downloadDemoFiles(url)
 }
 
@@ -77,5 +77,5 @@ private suspend fun downloadDemoFiles(url: String) {
     pathToArchive.extractZipHere()
     fs.delete(pathToArchive, mustExist = true)
     logDebug("Extracted archive into working dir and deleted $pathToArchive")
-    logInfo("Downloaded all tests from $url")
+    logInfo("Downloaded and extracted zip-file from $url")
 }

@@ -93,7 +93,7 @@ internal suspend fun HttpClient.download(url: String, file: Path): Result<HttpRe
                                 it.write(bytes)
                             }
                         totalBytes.addAndGet(bytes.size.toLong())
-                        logDebugCustom("Received ${bytes.size} ($totalBytes) bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
+                        logDebugCustom("Received ${bytes.size} (${totalBytes.get()}) bytes out of ${httpResponse.contentLength()} bytes from ${httpResponse.request.url}")
                     }
                 }
                 if (totalBytes.get() == 0L) {

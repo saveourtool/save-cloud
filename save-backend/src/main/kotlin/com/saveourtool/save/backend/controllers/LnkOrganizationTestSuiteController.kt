@@ -19,7 +19,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
 import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.filters.TestSuiteFilters
+import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
@@ -173,9 +173,9 @@ class LnkOrganizationTestSuiteController(
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteVersioned> = getOrganizationIfParticipant(organizationName, authentication)
-        .zipWith(TestSuiteFilters(name, language, tags).toMono())
-        .map { (organization, testSuiteFilters) ->
-            testSuitesService.findTestSuitesMatchingFilters(testSuiteFilters).filter {
+        .zipWith(TestSuiteFilter(name, language, tags).toMono())
+        .map { (organization, testSuiteFilter) ->
+            testSuitesService.findTestSuitesMatchingFilters(testSuiteFilter).filter {
                 testSuitePermissionEvaluator.hasPermission(organization, it, Permission.READ, authentication)
             }
         }

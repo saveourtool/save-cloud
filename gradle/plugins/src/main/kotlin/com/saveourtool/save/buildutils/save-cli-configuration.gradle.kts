@@ -4,71 +4,61 @@
 
 package com.saveourtool.save.buildutils
 
-import de.undercouch.gradle.tasks.download.Download
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
 import java.io.File
-import java.util.*
 
 plugins {
     kotlin("jvm")
-    id("de.undercouch.download")
 }
 
-/**
- * @return version of save-cli from properties file
- */
-fun Project.readSaveCliVersion(): String {
-    val file = file(pathToSaveCliVersion)
-    return Properties().apply { load(file.reader()) }["version"] as String
-}
-
-/**
- * @return save-cli file path to copy
- */
-fun Project.getSaveCliPath(): String {
-    val saveCliVersion = readSaveCliVersion()
-    val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
-        ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
-    return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
-}
-
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
-    dependsOn(":getSaveCliVersion")
-
-    src { getSaveCliPath() }
-    dest { "$buildDir/download/${File(getSaveCliPath()).name}" }
-
-    overwrite(false)
-}
+val saveCliVersion: String = the<LibrariesForLibs>()
+    .versions
+    .save
+    .cli
+    .get()
 
 dependencies {
-    add("runtimeOnly",
-        files(layout.buildDirectory.dir("$buildDir/download")).apply {
-            builtBy(downloadSaveCliTaskProvider)
+    if (saveCliVersion.isSnapshot()) {
+        val target = "$buildDir/save-cli"
+        val saveCliPath = providers.gradleProperty("saveCliPath")
+        logger.info(
+            "save-cli version is SNAPSHOT ({}), add {} as a runtime dependency",
+            saveCliVersion, saveCliPath
+        )
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+        val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
+            from(saveCliPath)
+            into(target)
+            eachFile {
+                duplicatesStrategy = DuplicatesStrategy.WARN
+            }
         }
-    )
+        add("runtimeOnly",
+            files(layout.buildDirectory.dir(target)).apply {
+                builtBy(copySaveCliTaskProvider)
+            }
+        )
+    }
 }
 
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in gradle/plugins
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateSaveCliVersionFile") {
+    val outputDir = File("$buildDir/generated/src")
+    val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
 
-    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    inputs.file(pathToSaveCliVersion)
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
+    val saveCliVersion = findProperty("saveCliVersion") ?: saveCliVersion
+    // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
+    inputs.property("save-cli version", saveCliVersion)
+    outputs.dir(outputDir)
 
     doFirst {
-        val saveCliVersion = readSaveCliVersion()
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(
             """
             package generated
 
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
+            internal const val SAVE_CLI_VERSION = "$saveCliVersion"
 
             """.trimIndent()
         )
@@ -76,9 +66,9 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 }
 
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(
+        generateSaveCliVersionFileTaskProvider.map {
+            it.outputs.files.singleFile
+        }
+    )
 }

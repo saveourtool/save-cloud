@@ -9,7 +9,7 @@ import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -72,7 +72,7 @@ class CpgController(
                         logs,
                     )
                 }
-                .getOrHandle {
+                .getOrElse {
                     logs += "Exception: ${it.message} ${it.stackTraceToString()}"
                     logs.stubCpgResult(ERROR_PARSING)
                 }

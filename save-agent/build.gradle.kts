@@ -7,6 +7,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
 }
 
 kotlin {
@@ -37,6 +38,13 @@ kotlin {
         }
 
         commonMain {
+            kotlin {
+                srcDir(
+                    tasks.named("generateSaveCloudVersionFile").map {
+                        it.outputs.files.singleFile
+                    }
+                )
+            }
             dependencies {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)

@@ -29,8 +29,22 @@ demo_cpg:
   profile: dev
 demo:
   profile: dev
+  dockerHost: tcp://${HOST_IP}:2376
+  applicationProperties: |
+    demo.kubernetes.useGvisor=false
+
 mysql:
   external: false
   ip: nil
+  migrations:
+    enabled: false
+s3:
+  external: false
+  secret_user: admin
+  secret_pwd: adminadmin
+  bucket_name: cnb
+  api_port: 9000
+  ui_port: 9090
+  endpoint: http://s3
 
 # dependencies

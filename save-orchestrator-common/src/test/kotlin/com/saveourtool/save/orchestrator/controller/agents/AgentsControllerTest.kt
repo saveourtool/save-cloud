@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -30,6 +29,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
 import reactor.core.publisher.Mono
+import java.net.URL
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
@@ -76,7 +76,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
+            .bodyValue(execution.toRunRequest(URL("https://someUrl")))
             .exchange()
             .expectStatus()
             .isAccepted
@@ -92,7 +92,7 @@ class AgentsControllerTest {
         val execution = Execution.stub(project)
 
         assertThrows<IllegalArgumentException> {
-            execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl")
+            execution.toRunRequest(URL("https://someUrl"))
         }
     }
 

@@ -6,6 +6,7 @@ import com.saveourtool.save.demo.runners.Runner
 import com.saveourtool.save.demo.storage.ToolKey
 import com.saveourtool.save.demo.utils.isWindows
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 import java.nio.file.Path
 import kotlin.io.path.*
 
@@ -14,6 +15,16 @@ import kotlin.io.path.*
  */
 @Component
 interface CliRunner : Runner {
+    /**
+     * Path to temp directory
+     */
+    val tmpDir: Path
+
+    /**
+     * Name of an input file
+     */
+    val testFileName: String
+
     /**
      * Save [lines] into file with [filePath]
      *
@@ -61,13 +72,26 @@ interface CliRunner : Runner {
     }
 
     /**
+     * @param testPath path to test file
+     * @param demoRunRequest params of type [DemoRunRequest]
+     * @return result of demo run as [DemoResult] wrapped into [Mono]
+     */
+    fun run(testPath: Path, demoRunRequest: DemoRunRequest): Mono<DemoResult>
+
+    override fun run(demoRunRequest: DemoRunRequest): Mono<DemoResult> = runInTempDir(
+        demoRunRequest,
+        tmpDir,
+        testFileName,
+    )
+
+    /**
      * @param demoRunRequest params of type [DemoRunRequest]
      * @param tempRootDir path to root of temp directories (somewhere in storage)
      * @param testFileName test file name that should be
      * @param additionalDirectoryTree additional directory names that should be in directory hierarchy to working dir (below randomly generated dir)
      * @return result as [DemoResult]
      */
-    fun runInTempDir(
+    private fun runInTempDir(
         demoRunRequest: DemoRunRequest,
         tempRootDir: Path,
         testFileName: String,

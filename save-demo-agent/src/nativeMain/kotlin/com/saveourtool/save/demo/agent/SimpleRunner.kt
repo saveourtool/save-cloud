@@ -6,8 +6,10 @@ package com.saveourtool.save.demo.agent
 
 import com.saveourtool.save.core.files.readLines
 import com.saveourtool.save.core.utils.ProcessBuilder
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.RunConfiguration
 import com.saveourtool.save.utils.createAndWrite
 import com.saveourtool.save.utils.createAndWriteIfNeeded
 import com.saveourtool.save.utils.fs
@@ -18,7 +20,7 @@ import okio.Path.Companion.toPath
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 3000L
+private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 10_000L
 
 /**
  * @param demoRunRequest
@@ -36,7 +38,9 @@ fun runDemo(
     val logFile = config.logFileName.toPath()
     val outputFile = config.outputFileName?.toPath()
 
-    return run(config.runCommand, inputFile, logFile, outputFile).also {
+    return try {
+        run(config.runCommand, inputFile, logFile, outputFile)
+    } finally {
         cleanUp(inputFile, configFile, logFile, outputFile)
     }
 }

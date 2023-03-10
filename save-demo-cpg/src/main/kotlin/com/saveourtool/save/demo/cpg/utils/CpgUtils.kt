@@ -16,7 +16,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 fun Node.toCpgNode() = CpgNode(
     id.toString(),
     CpgNodeAttributes(
-        name,
+        name.toString(),
         additionalInfo = CpgNodeAdditionalInfo(
             code = code,
             comment = comment,

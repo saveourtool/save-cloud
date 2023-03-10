@@ -7,13 +7,16 @@ import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
+import com.saveourtool.save.backend.storage.BackendInternalFileStorage
+import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
-import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -35,6 +38,9 @@ import kotlinx.datetime.toJavaLocalDateTime
  */
 @RestController
 @RequestMapping("/internal")
+@Suppress(
+    "LongParameterList",
+)
 class AgentsController(
     private val agentStatusRepository: AgentStatusRepository,
     private val agentService: AgentService,
@@ -43,6 +49,7 @@ class AgentsController(
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
     private val fileStorage: FileStorage,
+    private val internalFileStorage: BackendInternalFileStorage,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
 ) {
     /**
@@ -57,16 +64,25 @@ class AgentsController(
             agentService.getExecution(it)
         }
         .map { execution ->
-            val backendUrl = configProperties.agentSettings.backendUrl
-
             AgentInitConfig(
-                saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(execution.saveCliVersion))
+                    .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
-                    .let {
-                        testsSourceSnapshotStorage.generateUrlToDownload(it).toString()
+                    .let { testsSourceSnapshot ->
+                        testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
+                            .orNotFound {
+                                "Not found key for $testsSourceSnapshot"
+                            }
+                            .toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
-                    .associate { it.name to fileStorage.generateUrlToDownload(it).toString() },
+                    .associate { file ->
+                        file.name to fileStorage.generateUrlToDownload(file)
+                            .orNotFound {
+                                "Not found key for $file"
+                            }
+                            .toString()
+                    },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
                     overrideExecFlags = null,

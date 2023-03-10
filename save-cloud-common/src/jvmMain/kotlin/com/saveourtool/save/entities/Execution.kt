@@ -7,6 +7,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.spring.entity.BaseEntity
+import java.net.URL
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -33,6 +34,7 @@ import javax.persistence.ManyToOne
  * @property expectedChecks
  * @property unexpectedChecks
  * @property sdk
+ * @property saveCliVersion
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -81,6 +83,8 @@ class Execution(
 
     var sdk: String,
 
+    var saveCliVersion: String,
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User?,
@@ -119,13 +123,11 @@ class Execution(
     )
 
     /**
-     * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]
      * @param saveAgentUrl an url to download save-agent
      * @return [RunExecutionRequest] created from current entity
      */
     fun toRunRequest(
-        saveAgentVersion: String,
-        saveAgentUrl: String,
+        saveAgentUrl: URL,
     ): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
@@ -133,8 +135,7 @@ class Execution(
         return RunExecutionRequest(
             executionId = requiredId(),
             sdk = sdk.toSdk(),
-            saveAgentVersion = saveAgentVersion,
-            saveAgentUrl = saveAgentUrl,
+            saveAgentUrl = saveAgentUrl.toString(),
         )
     }
 
@@ -163,6 +164,7 @@ class Execution(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
+            saveCliVersion = "N/A",
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,

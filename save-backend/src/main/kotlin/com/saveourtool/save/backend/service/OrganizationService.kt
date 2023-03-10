@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
@@ -147,15 +147,15 @@ class OrganizationService(
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
-     * @param organizationFilters
-     * @return list of organizations with that match [organizationFilters]
+     * @param organizationFilter
+     * @return list of organizations with that match [organizationFilter]
      */
-    fun getFiltered(organizationFilters: OrganizationFilters): List<Organization> = if (organizationFilters.prefix.isBlank()) {
-        organizationRepository.findByStatusIn(organizationFilters.statuses)
+    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = if (organizationFilter.prefix.isBlank()) {
+        organizationRepository.findByStatusIn(organizationFilter.statuses)
     } else {
         organizationRepository.findByNameStartingWithAndStatusIn(
-            organizationFilters.prefix,
-            organizationFilters.statuses,
+            organizationFilter.prefix,
+            organizationFilter.statuses,
         )
     }
 

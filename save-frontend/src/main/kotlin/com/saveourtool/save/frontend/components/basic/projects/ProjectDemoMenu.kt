@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
@@ -42,7 +41,58 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
     val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
-    val sendDemoCreationRequest = useDeferredRequest {
+
+    val getDemoDto = useDeferredRequest {
+        val dtoResponse = get(
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        )
+        if (dtoResponse.ok) {
+            val dto: DemoDto = dtoResponse.decodeFromJsonString()
+            setDemoDto(dto)
+            setGithubProjectCoordinates(dto.githubProjectCoordinates.orEmpty())
+        } else if (dtoResponse.status != 404.toShort()) {
+            props.updateErrorMessage(dtoResponse.statusText, dtoResponse.unpackMessage())
+            setDemoStatus(DemoStatus.ERROR)
+        } else {
+            demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
+        }
+    }
+
+    val deleteDemo = useDeferredRequest {
+        post(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/delete",
+            jsonHeaders,
+            Unit,
+            loadingHandler = ::loadingHandler,
+        ).let {
+            if (it.ok) {
+                window.alert(it.body as String)
+                setDemoStatus(DemoStatus.NOT_CREATED)
+                setDemoDto(DemoDto.emptyForProject(props.organizationName, props.projectName))
+                setGithubProjectCoordinates(ProjectCoordinates.empty)
+            }
+        }
+    }
+
+    val getDemoStatus = useDeferredRequest {
+        val statusResponse = get(
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}/status",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        )
+        if (statusResponse.ok) {
+            setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
+        } else {
+            props.updateErrorMessage(statusResponse.statusText, statusResponse.unpackMessage())
+            setDemoStatus(DemoStatus.ERROR)
+        }
+    }
+
+    val createDemo = useDeferredRequest {
         if (githubProjectCoordinates.consideredBlank()) {
             demoDto.copy(githubProjectCoordinates = null)
         } else {
@@ -59,48 +109,47 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     ::noopResponseHandler,
                 )
                     .let {
-                        if (!it.ok) {
+                        if (it.ok) {
+                            setDemoStatus(DemoStatus.STOPPED)
+                            window.alert(it.body as String)
+                        } else {
                             props.updateErrorMessage(it.statusText, it.unpackMessage())
                         }
                     }
             }
     }
 
-    val getDemoStatus = useDeferredRequest {
-        val statusResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}/status",
+    val startDemo = useDeferredRequest {
+        post(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/start",
             jsonHeaders,
+            Unit,
             ::loadingHandler,
-            ::noopResponseHandler,
-        )
-        if (statusResponse.ok) {
-            setDemoStatus(statusResponse.decodeFromJsonString<DemoStatus>())
-        } else {
-            props.updateErrorMessage(statusResponse.statusText, statusResponse.unpackMessage())
-            setDemoStatus(DemoStatus.ERROR)
+        ).let {
+            if (it.ok) {
+                setDemoStatus(DemoStatus.STARTING)
+                window.alert(it.body as String)
+            }
         }
     }
 
-    useRequest {
-        val infoResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}",
+    val stopDemo = useDeferredRequest {
+        post(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/stop",
             jsonHeaders,
+            Unit,
             ::loadingHandler,
-            ::noopResponseHandler,
-        )
-        if (infoResponse.ok) {
-            val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
-            setDemoStatus(demoInfo.demoStatus)
-            setDemoDto(demoInfo.demoDto)
-            setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
-        } else if (infoResponse.status != 404.toShort()) {
-            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
-            setDemoStatus(DemoStatus.ERROR)
+        ).let {
+            if (it.ok) {
+                setDemoStatus(DemoStatus.STOPPING)
+                window.alert(it.body as String)
+            }
         }
     }
 
     useOnce {
-        window.alert("This is just a preview, nothing on this view works for now.")
+        getDemoDto()
+        getDemoStatus()
     }
 
     div {
@@ -119,7 +168,19 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 hr { }
                 renderSdkSelector(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
                 hr { }
-                renderButtons(demoStatus, props.userProjectRole, sendDemoCreationRequest, getDemoStatus)
+                renderButtons(
+                    demoStatus,
+                    props.userProjectRole,
+                    createDemo,
+                    getDemoStatus,
+                    startDemo,
+                    stopDemo
+                ) {
+                    if (window.confirm("Delete demo of ${props.organizationName}/${props.projectName}?")) {
+                        deleteDemo()
+                        setDemoStatus(DemoStatus.STOPPING)
+                    }
+                }
             }
         }
     }
@@ -157,7 +218,7 @@ private fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
         div {
             val borderStyle = when (demoStatus) {
                 DemoStatus.NOT_CREATED -> "border-dark"
-                DemoStatus.STARTING -> "border-warning"
+                DemoStatus.STARTING, DemoStatus.STOPPING -> "border-warning"
                 DemoStatus.RUNNING -> "border-success"
                 DemoStatus.STOPPED -> "border-secondary"
                 DemoStatus.ERROR -> "border-danger"
@@ -350,11 +411,15 @@ private fun ChildrenBuilder.renderSdkSelector(demoDto: DemoDto, setDemoDto: Stat
     }
 }
 
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 private fun ChildrenBuilder.renderButtons(
     demoStatus: DemoStatus,
     userRole: Role,
     sendDemoCreationRequest: () -> Unit,
     getDemoStatus: () -> Unit,
+    startDemo: () -> Unit,
+    stopDemo: () -> Unit,
+    deleteDemo: () -> Unit,
 ) {
     div {
         className = ClassName("flex-wrap d-flex justify-content-around")
@@ -364,30 +429,46 @@ private fun ChildrenBuilder.renderButtons(
             }
 
             DemoStatus.STARTING -> {
+                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    stopDemo()
+                }
                 buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
                     getDemoStatus()
                 }
+            }
 
-                buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // stop request here
+            DemoStatus.RUNNING -> {
+                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    stopDemo()
+                }
+                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
+                    deleteDemo()
                 }
             }
 
-            DemoStatus.RUNNING -> buttonBuilder("Stop", style = "danger", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                // stop request here
-            }
-
-            DemoStatus.ERROR, DemoStatus.STOPPED -> {
+            DemoStatus.ERROR -> {
                 buttonBuilder("Run", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // run request here
+                    startDemo()
                 }
+                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
+                    deleteDemo()
+                }
+            }
 
+            DemoStatus.STOPPED -> {
+                buttonBuilder("Run", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
+                    startDemo()
+                }
                 buttonBuilder("Update configuration", style = "info", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
                     // update request here
                 }
                 buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
-                    // delete request here
+                    deleteDemo()
                 }
+            }
+
+            DemoStatus.STOPPING -> buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
+                getDemoStatus()
             }
         }
     }
