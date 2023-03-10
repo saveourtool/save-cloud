@@ -20,6 +20,7 @@ import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -34,7 +35,9 @@ import kotlin.io.path.div
 @Import(
     TestDiscoveringService::class,
     TestsPreprocessorToBackendBridge::class,
+    TestSuiteValidationService::class,
 )
+@ComponentScan("com.saveourtool.save.preprocessor.test.suite")
 class TestDiscoveringServiceTest {
     private val logger = LoggerFactory.getLogger(TestDiscoveringServiceTest::class.java)
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService

@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * @property tag to use filter by [tag]
  */
 @Serializable
-data class TestExecutionFilters(
+data class TestExecutionFilter(
     val status: TestResultStatus?,
 
     val fileName: String?,
@@ -21,7 +21,7 @@ data class TestExecutionFilters(
     val tag: String?,
 ) {
     /**
-     *  @return [TestExecutionFilters] as query params for request
+     *  @return [TestExecutionFilter] as query params for request
      */
     fun toQueryParams() = listOf("status" to status?.name, "fileName" to fileName, "testSuite" to testSuite, "tag" to tag)
         .filter { !it.second.isNullOrBlank() }
@@ -35,6 +35,6 @@ data class TestExecutionFilters(
         }
 
     companion object {
-        val empty = TestExecutionFilters(status = null, fileName = null, testSuite = null, tag = null)
+        val empty = TestExecutionFilter(status = null, fileName = null, testSuite = null, tag = null)
     }
 }

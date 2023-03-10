@@ -4,12 +4,15 @@
 
 package com.saveourtool.save.demo.agent
 
-import com.saveourtool.save.core.logging.logInfo
+import com.saveourtool.save.core.config.LogType
+import com.saveourtool.save.core.logging.*
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.ServerConfiguration
+import com.saveourtool.save.demo.agent.utils.getConfiguration
 import com.saveourtool.save.demo.agent.utils.setupEnvironment
+import com.saveourtool.save.utils.retry
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -21,6 +24,38 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+
+private const val RETRY_TIMES = 5
+
+private fun Application.getConfigurationOnStartup(
+    retryTimes: Int = RETRY_TIMES,
+    updateConfig: (DemoAgentConfig) -> Unit,
+) = environment.monitor.subscribe(ApplicationStarted) { application ->
+    application.launch {
+        logDebug("Fetching tool configuration for save-demo-agent...")
+        retry(retryTimes) { iteration ->
+            logTrace("$iteration attempts left for demo configuration.")
+            getConfiguration()
+        }
+            .also { (_, errors) ->
+                val prettyErrors = errors.joinToString("\n", prefix = "\t- ") { error ->
+                    error.describe()
+                }
+                logError("${errors.size} errors occurred during configuration fetch:\n$prettyErrors")
+            }
+            .let { (config, _) ->
+                logDebug("Configuration successfully fetched.")
+                config
+            }
+            ?.also(updateConfig)
+            ?.let { config ->
+                logTrace("Configuration successfully updated.")
+                setupEnvironment(config.demoUrl, config.demoConfiguration)
+            }
+            ?: run { logWarn("Could not prepare save-demo-agent, expecting /setup call.") }
+    }
+}
 
 private fun Routing.alive(configuration: CompletableDeferred<DemoAgentConfig>) = get("/alive") {
     call.respond(if (configuration.isCompleted) {
@@ -49,9 +84,11 @@ private fun Routing.configure(updateConfig: (DemoAgentConfig) -> Unit) = post("/
 
 private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/run") {
     if (!config.isCompleted) {
+        logError("Cannot run demo as it was not configured yet.")
         call.respond(HttpStatusCode.FailedDependency)
     }
     val runRequest: DemoRunRequest = call.receive()
+    logDebug("Running demo on code [${runRequest.codeLines}]")
     val result: DemoResult = runDemo(runRequest, config)
     call.respond(result)
 }
@@ -60,12 +97,17 @@ private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/r
  * Configure ktor server (runs on [CIO] engine) with [serverConfiguration]
  *
  * @param serverConfiguration information required to configure ktor server
+ * @param skipStartupConfiguration if true, startup configuration will be skipped
  * @return [CIOApplicationEngine]
  */
-fun server(serverConfiguration: ServerConfiguration) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
+fun server(serverConfiguration: ServerConfiguration, skipStartupConfiguration: Boolean = false) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
+    val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
+    logType.set(LogType.ALL)
+    if (!skipStartupConfiguration) {
+        getConfigurationOnStartup { deferredConfig.complete(it) }
+    }
     install(ContentNegotiation) { json() }
     routing {
-        val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
         alive(deferredConfig)
         configure { deferredConfig.complete(it) }
         run(deferredConfig)

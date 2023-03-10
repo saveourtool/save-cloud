@@ -7,8 +7,8 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -78,12 +78,12 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All filters for project
      */
-    var projectFilters: ProjectFilters
+    var projectFilter: ProjectFilter
 
     /**
      * All filters for organization
      */
-    var organizationFilters: OrganizationFilters
+    var organizationFilter: OrganizationFilter
 
     /**
      * Contains the paths of default and other tabs
@@ -153,15 +153,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
-                        name = state.organizationFilters.prefix
+                        name = state.organizationFilter.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters.created
+                                OrganizationFilter.created
                             } else {
-                                OrganizationFilters(filterValue)
+                                OrganizationFilter(filterValue)
                             }
                             setState {
-                                organizationFilters = filter
+                                organizationFilter = filter
                             }
                             getOrganization(filter)
                             window.location.href = buildString {
@@ -220,15 +220,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 th {
                     colSpan = tableInstance.visibleColumnsCount()
                     nameFiltersRow {
-                        name = state.projectFilters.name
+                        name = state.projectFilter.name
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilters.created
+                                ProjectFilter.created
                             } else {
-                                ProjectFilters(filterValue)
+                                ProjectFilter(filterValue)
                             }
                             setState {
-                                projectFilters = filter
+                                projectFilter = filter
                             }
                             getProject(filter)
                             window.location.href = buildString {
@@ -246,11 +246,11 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.organizationWithRatingList = emptyArray()
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
-        state.projectFilters = ProjectFilters.created
-        state.organizationFilters = OrganizationFilters.created
+        state.projectFilter = ProjectFilter.created
+        state.organizationFilter = OrganizationFilter.created
     }
 
-    private fun getOrganization(filterValue: OrganizationFilters) {
+    private fun getOrganization(filterValue: OrganizationFilter) {
         scope.launch {
             val organizationsFromBackend: List<OrganizationWithRating> = post(
                 url = "$apiUrl/organizations/by-filters-with-rating",
@@ -266,7 +266,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         }
     }
 
-    private fun getProject(filterValue: ProjectFilters) {
+    private fun getProject(filterValue: ProjectFilter) {
         scope.launch {
             val projectsFromBackend: List<ProjectDto> = post(
                 url = "$apiUrl/projects/by-filters",
@@ -287,7 +287,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
             changeUrl(state.selectedMenu, UserRatingTab, state.paths)
             val href = window.location.href.substringBeforeLast("?")
             window.location.href = when (state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilters.prefix.let {
+                UserRatingTab.ORGS -> state.organizationFilter.prefix.let {
                     buildString {
                         append(href)
                         if (it.isNotBlank()) {
@@ -295,7 +295,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         }
                     }
                 }
-                UserRatingTab.TOOLS -> state.projectFilters.name.let {
+                UserRatingTab.TOOLS -> state.projectFilter.name.let {
                     buildString {
                         append(href)
                         if (it.isNotBlank()) {
@@ -311,16 +311,16 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val projectFilters = ProjectFilters(props.projectName ?: "")
-        val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
+        val projectFilter = ProjectFilter(props.projectName ?: "")
+        val organizationFilter = OrganizationFilter(props.organizationName.orEmpty())
         setState {
             paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
-            this.projectFilters = projectFilters
-            this.organizationFilters = organizationFilters
+            this.projectFilter = projectFilter
+            this.organizationFilter = organizationFilter
         }
         urlAnalysis(UserRatingTab, Role.NONE, false)
-        getOrganization(organizationFilters)
-        getProject(projectFilters)
+        getOrganization(organizationFilter)
+        getProject(projectFilter)
     }
 
     override fun ChildrenBuilder.render() {

@@ -1710,74 +1710,6 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}": {
-      "get": {
-        "description": "Get demo info.",
-        "operationId": "getDemoInfo",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo info.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
     "/api/v1/demo/{organizationName}/{projectName}/add": {
       "post": {
         "description": "Add demo for a tool.",
@@ -2175,98 +2107,6 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}/status": {
-      "get": {
-        "description": "Get demo status.",
-        "operationId": "getDemoStatus",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo status.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
     "/api/v1/demo/{organizationName}/{projectName}/stop": {
       "post": {
         "description": "Delete demo container if possible, do nothing otherwise.",
@@ -2597,7 +2437,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ExecutionFilters"
+                "$ref": "#/components/schemas/ExecutionFilter"
               }
             }
           }
@@ -3440,7 +3280,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3448,7 +3288,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3515,7 +3355,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3582,7 +3422,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3590,7 +3430,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -5129,7 +4969,7 @@
           {
             "description": "project filters",
             "in": "query",
-            "name": "projectFilters",
+            "name": "projectFilter",
             "required": true
           }
         ],
@@ -5137,7 +4977,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectFilters"
+                "$ref": "#/components/schemas/ProjectFilter"
               }
             }
           },
@@ -6203,7 +6043,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestExecutionFilters"
+                "$ref": "#/components/schemas/TestExecutionFilter"
               }
             }
           }
@@ -8239,6 +8079,159 @@
           "users-details-controller"
         ]
       }
+    },
+    "/api/v1/vulnerabilities/by-filters": {
+      "post": {
+        "description": "Get filtered vulnerabilities.",
+        "operationId": "getAllVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all vulnerabilities by filters"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerabilities with filters.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/by-name-with-description": {
+      "get": {
+        "description": "Get vulnerability by name.",
+        "operationId": "getVulnerabilityWithDescriptionByName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Successfully fetched vulnerability by name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get vulnerability by name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerability-projects/by-vulnerability-name": {
+      "get": {
+        "description": "Get link projects by vulnerability name.",
+        "operationId": "getAllVulnerabilityProjects",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityProjectDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all vulnerability project"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityProjectDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerability projects.",
+        "tags": [
+          "vulnerability projects"
+        ]
+      }
     }
   },
   "components": {
@@ -8501,29 +8494,6 @@
           }
         }
       },
-      "DemoInfo": {
-        "required": [
-          "demoDto",
-          "demoStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "demoDto": {
-            "$ref": "#/components/schemas/DemoDto"
-          },
-          "demoStatus": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "NOT_CREATED",
-              "RUNNING",
-              "STARTING",
-              "STOPPED",
-              "STOPPING"
-            ]
-          }
-        }
-      },
       "Execution": {
         "required": [
           "allTests",
@@ -8742,7 +8712,7 @@
           }
         }
       },
-      "ExecutionFilters": {
+      "ExecutionFilter": {
         "required": [
           "endTime",
           "startTime"
@@ -9102,7 +9072,7 @@
           }
         }
       },
-      "OrganizationFilters": {
+      "OrganizationFilter": {
         "required": [
           "prefix",
           "statuses"
@@ -9284,7 +9254,7 @@
           }
         }
       },
-      "ProjectFilters": {
+      "ProjectFilter": {
         "required": [
           "name",
           "organizationName",
@@ -9485,7 +9455,7 @@
           }
         }
       },
-      "TestExecutionFilters": {
+      "TestExecutionFilter": {
         "type": "object",
         "properties": {
           "fileName": {
@@ -9933,6 +9903,62 @@
             "type": "string"
           },
           "twitter": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityDto": {
+        "required": [
+          "name",
+          "progress",
+          "projects"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VulnerabilityProjectDto"
+            }
+          }
+        }
+      },
+      "VulnerabilityFilter": {
+        "required": [
+          "prefixName"
+        ],
+        "type": "object",
+        "properties": {
+          "prefixName": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityProjectDto": {
+        "required": [
+          "isOpenSource",
+          "name",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "isOpenSource": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
             "type": "string"
           }
         }

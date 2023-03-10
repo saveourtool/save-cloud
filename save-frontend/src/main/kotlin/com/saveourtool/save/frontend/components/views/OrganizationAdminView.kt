@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -263,7 +263,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
         val response = post(
             url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
-            body = Json.encodeToString(OrganizationFilters.all),
+            body = Json.encodeToString(OrganizationFilter.all),
             loadingHandler = ::classLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )

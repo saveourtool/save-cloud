@@ -17,7 +17,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationWithUsers
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -267,14 +267,14 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRolesAndFilters(
-        @RequestBody organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
         .flatMapIterable {
-            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters)
+            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilter)
         }
         .map {
             OrganizationWithUsers(

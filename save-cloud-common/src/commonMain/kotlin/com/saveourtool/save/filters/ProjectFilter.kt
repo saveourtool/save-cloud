@@ -10,20 +10,20 @@ import kotlinx.serialization.Serializable
  * @property public
  */
 @Serializable
-data class ProjectFilters(
+data class ProjectFilter(
     val name: String,
     val organizationName: String = "",
     val statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED),
     val public: Boolean? = null,
 ) {
     companion object {
-        val created = ProjectFilters(name = "")
+        val created = ProjectFilter(name = "")
 
         /**
          * The filter which returns projects with any status, not just
          * [ProjectStatus.CREATED].
          */
-        val any = ProjectFilters(
+        val any = ProjectFilter(
             name = "",
             statuses = enumValues<ProjectStatus>().toSet(),
         )

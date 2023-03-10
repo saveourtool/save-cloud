@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -147,25 +147,25 @@ class ProjectService(
             getProjectsByOrganizationNameAndStatusIn(organizationName, authentication, EnumSet.of(ProjectStatus.CREATED))
 
     /**
-     * @param projectFilters is filter for [projects]
+     * @param projectFilter is filter for [projects]
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters): List<Project> = projectRepository.findAll { root, _, cb ->
+    fun getFiltered(projectFilter: ProjectFilter): List<Project> = projectRepository.findAll { root, _, cb ->
 
-        val publicPredicate = projectFilters.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
-        val orgNamePredicate = if (projectFilters.organizationName.isBlank()) {
+        val publicPredicate = projectFilter.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilter.organizationName.isBlank()) {
             cb.and()
         } else {
-            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilters.organizationName)
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilter.organizationName)
         }
-        val namePredicate = if (projectFilters.name.isBlank()) {
+        val namePredicate = if (projectFilter.name.isBlank()) {
             cb.and()
         } else {
-            cb.equal(root.get<String>("name"), projectFilters.name)
+            cb.equal(root.get<String>("name"), projectFilter.name)
         }
 
         cb.and(
-            root.get<ProjectStatus>("status").`in`(projectFilters.statuses),
+            root.get<ProjectStatus>("status").`in`(projectFilter.statuses),
             publicPredicate,
             orgNamePredicate,
             namePredicate,
