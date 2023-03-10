@@ -47,8 +47,6 @@ typealias StringListResponse = ResponseEntity<List<String>>
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testsSourceVersionService: TestsSourceVersionService,
-    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
-    private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
 ) {
