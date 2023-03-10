@@ -8133,6 +8133,53 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/by-name-with-description": {
+      "get": {
+        "description": "Get vulnerability by name.",
+        "operationId": "getVulnerabilityWithDescriptionByName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Successfully fetched vulnerability by name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get vulnerability by name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerability-projects/by-vulnerability-name": {
       "get": {
         "description": "Get link projects by vulnerability name.",
@@ -9868,6 +9915,9 @@
         ],
         "type": "object",
         "properties": {
+          "description": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
