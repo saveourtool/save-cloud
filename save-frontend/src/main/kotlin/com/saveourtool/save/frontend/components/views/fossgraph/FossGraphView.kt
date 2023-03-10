@@ -22,10 +22,10 @@ import csstype.Display
 import js.core.get
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useParams
@@ -55,7 +55,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val params = useParams()
     val vulnerabilityName = params["vulnerabilityName"]!!.toString()
 
-    val (vulnerability, setVulnerability) = useState<VulnerabilityDto?>(null)
+    val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (vulnerabilityProjects, setVulnerabilityProjects) = useState(emptyList<VulnerabilityProjectDto>())
 
     useRequest {
@@ -65,13 +65,13 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             loadingHandler = ::noopLoadingHandler,
         )
             .unsafeMap {
-                it.decodeFromJsonString<VulnerabilityDto?>()
+                it.decodeFromJsonString<VulnerabilityDto>()
             }
 
         setVulnerability(vulnerabilityNew)
 
         val vulnerabilityProjectsNew = get(
-            "$apiUrl/vulnerability-projects/by-vulnerability-name?vulnerabilityName=${vulnerabilityNew?.name}",
+            "$apiUrl/vulnerability-projects/by-vulnerability-name?vulnerabilityName=${vulnerabilityNew.name}",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
@@ -87,7 +87,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             columns {
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
-                        ReactHTML.td {
+                        td {
                             Link {
                                 to = cellContext.row.original.url
                                 +cellContext.value
@@ -108,7 +108,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             columns {
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
-                        ReactHTML.td {
+                        td {
                             Link {
                                 to = cellContext.row.original.url
                                 +cellContext.value
