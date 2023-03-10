@@ -91,7 +91,11 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     // a temporary workaround for python integration
-    private fun executeAdditionallySetup(targetDirectory: Path, additionalFileNames: Collection<String>) = runCatching {
+    private fun executeAdditionallySetup(
+        targetDirectory: Path,
+        additionalFileNames: Collection<String>,
+        setupShTimeoutMillis: Long,
+    ) = runCatching {
         logDebugCustom("Will execute additionally setup of evaluated tool if it's required")
         additionalFileNames
             .singleOrNull { it == "setup.sh" }
@@ -103,7 +107,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         "./$targetFile",
                         "",
                         null,
-                        SETUP_SH_TIMEOUT
+                        setupShTimeoutMillis,
                     )
                 if (setupResult.code != 0) {
                     throw IllegalStateException("$fileName} is failed with error: ${setupResult.stderr}")
@@ -208,7 +212,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
         // a temporary workaround for python integration
-        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys)
+        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
             .runIf(
                 failureResultPredicate
             ) {
@@ -411,7 +415,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     companion object {
         private const val SAVE_CLI_TIMEOUT = 1_000_000L
-        private const val SETUP_SH_TIMEOUT = 60_000L
         private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }
