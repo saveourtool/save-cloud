@@ -51,7 +51,7 @@ private fun Application.getConfigurationOnStartup(
             ?.also(updateConfig)
             ?.let { config ->
                 logTrace("Configuration successfully updated.")
-                setupEnvironment(config.demoUrl, config.demoConfiguration)
+                setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.demoConfiguration)
             }
             ?: run { logWarn("Could not prepare save-demo-agent, expecting /setup call.") }
     }
@@ -69,7 +69,7 @@ private fun Routing.configure(updateConfig: (DemoAgentConfig) -> Unit) = post("/
     val config = call.receive<DemoAgentConfig>().also(updateConfig)
     logInfo("Agent has received configuration.")
     try {
-        setupEnvironment(config.demoUrl, config.demoConfiguration)
+        setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.demoConfiguration)
         call.respondText(
             "Agent is set up.",
             status = HttpStatusCode.OK,

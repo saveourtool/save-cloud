@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo
 
+import com.saveourtool.save.utils.DEFAULT_SETUP_SH_TIMEOUT_MILLIS
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,12 +13,14 @@ import kotlinx.serialization.Serializable
  * @property demoConfiguration all the information about current demo e.g. maintainer and version
  * @property runConfiguration all the required information to run demo
  * @property demoUrl url of save-demo
+ * @property setupShTimeoutMillis amount of milliseconds to run setup.sh if it is present, [DEFAULT_SETUP_SH_TIMEOUT_MILLIS] by default
  */
 @Serializable
 data class DemoAgentConfig(
     val demoUrl: String,
     val demoConfiguration: DemoConfiguration,
     val runConfiguration: RunConfiguration,
+    val setupShTimeoutMillis: Long = DEFAULT_SETUP_SH_TIMEOUT_MILLIS,
 ) {
     companion object {
         const val DEMO_CONFIGURE_ME_URL_ENV = "SAVE_DEMO_CONFIGURE_ME_URL"
