@@ -26,7 +26,21 @@ class DefaultStoragePreSignedUrl<K : Any>(
             .url()
     }
 
+    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders? =
+        s3KeyManager.findExistedS3Key(key)?.let { s3Key ->
+            s3Operations.requestToUploadObject(s3Key, contentLength, uploadDuration)
+                .also { request ->
+                    require(request.signedPayload().isEmpty) {
+                        "Pre-singer url to download object should be without payload"
+                    }
+                }
+                .let {
+                    it.url() to it.signedHeaders()
+                }
+        }
+
     companion object {
         private val downloadDuration = 15.minutes
+        private val uploadDuration = 15.minutes
     }
 }

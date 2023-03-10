@@ -4,7 +4,6 @@ import org.springframework.http.MediaType
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption
@@ -13,28 +12,18 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 
 import java.net.URI
-import software.amazon.awssdk.services.s3.presigner.S3Presigner
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
-import java.io.Closeable
-import java.nio.ByteBuffer
 import java.util.concurrent.*
-import kotlin.time.Duration
-import kotlin.time.toJavaDuration
 import java.util.concurrent.atomic.AtomicInteger
 
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
-import kotlin.time.Duration
-import kotlin.time.toJavaDuration
-
 
 /**
  * Default implementation of [S3Operations]

@@ -62,4 +62,6 @@ abstract class AbstractReactiveStorage<K : Any>(
     override fun move(source: K, target: K): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.move(source, target) }
 
     override fun generateUrlToDownload(key: K): URL? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToDownload(key) }
+
+    override fun generateUrlToUpload(key: K, contentLength: Long): UrlWithHeaders? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToUpload(key, contentLength) }
 }

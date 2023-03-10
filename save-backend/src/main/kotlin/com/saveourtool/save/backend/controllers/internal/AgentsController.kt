@@ -10,8 +10,6 @@ import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.storage.BackendInternalFileStorage
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
-import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.test.TestDto
@@ -69,19 +67,11 @@ class AgentsController(
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
-                        testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
-                            .orNotFound {
-                                "Not found key for $testsSourceSnapshot"
-                            }
-                            .toString()
+                        testsSourceSnapshotStorage.generateRequiredUrlToDownload(testsSourceSnapshot).toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
                     .associate { file ->
-                        file.name to fileStorage.generateUrlToDownload(file)
-                            .orNotFound {
-                                "Not found key for $file"
-                            }
-                            .toString()
+                        file.name to fileStorage.generateRequiredUrlToDownload(file).toString()
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,

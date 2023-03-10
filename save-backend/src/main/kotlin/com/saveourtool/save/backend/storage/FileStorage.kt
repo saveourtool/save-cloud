@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import kotlinx.datetime.toJavaLocalDateTime
 import java.net.URL
 
 /**
@@ -46,8 +45,4 @@ class FileStorage(
         s3KeyManager.findFileById(fileId)
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
-
-    fun downloadUrl(fileId: Long): URL = repository.getByIdOrNotFound(fileId).let {
-        generateUrlToDownload(it.toDto())
-    }
 }

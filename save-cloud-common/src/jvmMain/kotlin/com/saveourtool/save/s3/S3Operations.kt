@@ -5,15 +5,12 @@ import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.core.async.ResponsePublisher
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 
 import java.util.concurrent.CompletableFuture
 
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineDispatcher
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
-import java.nio.ByteBuffer
-import kotlin.time.Duration
 
 typealias GetObjectResponsePublisher = ResponsePublisher<GetObjectResponse>
 
@@ -97,7 +94,7 @@ interface S3Operations {
      * @param s3Key
      * @return [CompletableFuture] with response
      */
-    fun headObject(s3Key: String): CompletableFuture<HeadObjectResponse>
+    fun headObject(s3Key: String): CompletableFuture<HeadObjectResponse?>
 
     /**
      * @param s3Key
