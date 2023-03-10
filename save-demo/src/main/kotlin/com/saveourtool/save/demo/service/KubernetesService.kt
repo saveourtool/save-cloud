@@ -23,6 +23,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -36,11 +37,12 @@ import kotlinx.serialization.json.Json
  * Service for interactions with kubernetes
  */
 @Service
-@Profile("kubernetes")
+@Profile("kubernetes | fake-kubernetes")
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
     private val internalFileStorage: DemoInternalFileStorage,
+    private val env: Environment
 ) {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
@@ -48,6 +50,18 @@ class KubernetesService(
     private val agentConfig = requireNotNull(configProperties.agentConfig) {
         "Agent settings should be passed in order to use Kubernetes"
     }
+
+    private fun getDownloadAgentUrlDependingOnProfile() = internalFileStorage.generateRequiredUrlToDownload(
+        DemoInternalFileStorage.saveDemoAgent
+    )
+        .toString()
+        .let { url ->
+            if (env.activeProfiles.contains("fake-kubernetes")) {
+                url.replace("localhost", "host.minikube.internal")
+            } else {
+                url
+            }
+        }
 
     /**
      * @param demo demo entity
@@ -58,8 +72,7 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
-                .toString()
+            val downloadAgentUrl = getDownloadAgentUrlDependingOnProfile()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
             demo
         } catch (kre: KubernetesRunnerException) {

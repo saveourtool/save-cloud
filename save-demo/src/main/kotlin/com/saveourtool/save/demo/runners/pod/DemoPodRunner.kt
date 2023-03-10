@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile
  * Class that implements [PodRunner] and is a [Demo] PodRunner.
  *
  */
-@Profile("kubernetes")
+@Profile("kubernetes | fake-kubernetes")
 class DemoPodRunner(
     private val kubernetesService: KubernetesService,
     private val demo: Demo,

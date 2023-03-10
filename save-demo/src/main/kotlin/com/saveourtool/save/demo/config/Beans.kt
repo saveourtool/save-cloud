@@ -18,7 +18,7 @@ class Beans {
      * @return configured [KubernetesClient]
      */
     @Bean(destroyMethod = "close")
-    @Profile("kubernetes")
+    @Profile("kubernetes | fake-kubernetes")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
         val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
             "Kubernetes settings should be passed in order to use Kubernetes"
