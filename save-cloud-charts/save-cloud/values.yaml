@@ -89,7 +89,7 @@ grafana:
   enabled: false
   image:
     repository: grafana/grafana
-    tag: 9.3.6
+    tag: 9.4.3
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
@@ -124,7 +124,7 @@ prometheus:
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.7.3
+    tag: 2.7.4
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
@@ -167,7 +167,7 @@ loki:
   loki:
     image:
       repository: grafana/loki
-      tag: 2.7.3
+      tag: 2.7.4
     auth_enabled: false
     commonConfig:
       replication_factor: 1
