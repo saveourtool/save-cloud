@@ -129,7 +129,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
         h1 {
             className = ClassName("h3 mb-0 text-center text-gray-800")
-            +"${vulnerability?.name}"
+            +vulnerability.name
         }
 
         div {
@@ -143,7 +143,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 }
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
-                    val progress = vulnerability?.progress ?: 0
+                    val progress = vulnerability.progress
                     val color = if (progress < 51) {
                         Color.GREEN.hexColor
                     } else {
@@ -171,7 +171,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         className = ClassName("card-body")
                         textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
-                            value = "${vulnerability?.description}"
+                            value = "${vulnerability.description}"
                             rows = 5
                             disabled = true
                         }
