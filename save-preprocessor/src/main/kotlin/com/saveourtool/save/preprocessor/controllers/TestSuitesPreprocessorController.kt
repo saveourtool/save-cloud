@@ -69,29 +69,30 @@ class TestSuitesPreprocessorController(
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
         cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction<Flux<TestSuiteValidationResult>>,
-    ): Flux<TestSuiteValidationResult> = cloneAndProcessDirectoryAction.cloneAndProcessDirectoryAsync(
-        gitPreprocessorService,
-        request.source.gitDto,
-        request.version
-    ) { (repositoryDirectory, gitCommitInfo) ->
-        testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
-            .switchIfEmpty {
-                doFetchTests(repositoryDirectory, gitCommitInfo, request)
-            }
-            .flatMap { snapshot ->
-                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
-            }.doOnNext { isSaved: Boolean ->
-                log.info {
-                    val messagePrefix = "Tests from ${request.source.gitDto.url}"
-                    val status = when {
-                        isSaved -> "saved"
-                        else -> "not saved: the snapshot already exists"
-                    }
-                    val messageSuffix = "(version \"${request.version}\"; commit ${gitCommitInfo.id})."
-
-                    "$messagePrefix $status $messageSuffix"
+    ): Flux<TestSuiteValidationResult> = with(cloneAndProcessDirectoryAction) {
+        gitPreprocessorService.cloneAndProcessDirectoryAsync(
+            request.source.gitDto,
+            request.version
+        ) { (repositoryDirectory, gitCommitInfo) ->
+            testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
+                .switchIfEmpty {
+                    doFetchTests(repositoryDirectory, gitCommitInfo, request)
                 }
-            }.thenMany(Flux.empty())
+                .flatMap { snapshot ->
+                    testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
+                }.doOnNext { isSaved: Boolean ->
+                    log.info {
+                        val messagePrefix = "Tests from ${request.source.gitDto.url}"
+                        val status = when {
+                            isSaved -> "saved"
+                            else -> "not saved: the snapshot already exists"
+                        }
+                        val messageSuffix = "(version \"${request.version}\"; commit ${gitCommitInfo.id})."
+
+                        "$messagePrefix $status $messageSuffix"
+                    }
+                }.thenMany(Flux.empty())
+        }
     }
 
     @NonBlocking
