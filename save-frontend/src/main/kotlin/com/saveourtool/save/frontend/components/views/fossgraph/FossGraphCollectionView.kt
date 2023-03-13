@@ -12,8 +12,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
@@ -94,12 +92,9 @@ val fossGraphCollectionView: VFC = VFC {
 
     div {
         className = ClassName("d-flex justify-content-center mb-2")
-        Link {
-            to = "/${FrontendRoutes.CREATE_VULNERABILITY}"
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-info")
-                +"Propose a vulnerability"
+        withNavigate { navigateContext ->
+            buttonBuilder(label = "Propose a vulnerability", style = "info") {
+                navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
             }
         }
     }
