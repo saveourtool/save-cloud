@@ -5,7 +5,6 @@ import com.saveourtool.save.storage.key.S3KeyManager
 import com.saveourtool.save.storage.request.DownloadRequest
 import com.saveourtool.save.storage.request.UploadRequest
 
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
@@ -69,5 +68,7 @@ abstract class AbstractSuspendingStorage<K : Any>(
 
     override fun generateRequestToDownload(key: K): DownloadRequest<K>? = initializer.validateAndRun { storagePreSignedUrl.generateRequestToDownload(key) }
 
-    override fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun { storagePreSignedUrl.generateRequestToUpload(key, contentLength) }
+    override fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun {
+        storagePreSignedUrl.generateRequestToUpload(key, contentLength)
+    }
 }

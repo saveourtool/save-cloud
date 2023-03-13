@@ -70,26 +70,8 @@ class DefaultS3Operations(
                 }
             }
     }
-    private val s3Presigner: S3Presigner = with(properties) {
-        S3Presigner.builder()
-            .credentialsProvider(credentialsProvider)
-            .region(stubRegion)
-            .serviceConfiguration(S3Configuration.builder()
-                .pathStyleAccessEnabled(true)
-                .build())
-            .endpointOverride(endpoint.lowercase())
-            .build()
-    }
-    private val s3PresignerFromContainer: S3Presigner = with(properties) {
-        S3Presigner.builder()
-            .credentialsProvider(credentialsProvider)
-            .region(stubRegion)
-            .serviceConfiguration(S3Configuration.builder()
-                .pathStyleAccessEnabled(true)
-                .build())
-            .endpointOverride(endpointFromContainer.lowercase())
-            .build()
-    }
+    private val s3Presigner: S3Presigner = properties.createS3Presigner(S3OperationsProperties::endpoint)
+    private val s3PresignerFromContainer: S3Presigner = properties.createS3Presigner(S3OperationsProperties::endpointFromContainer)
 
     override fun close() {
         s3Client.close()
@@ -225,6 +207,17 @@ class DefaultS3Operations(
     } else {
         s3Presigner
     }
+
+    private fun S3OperationsProperties.createS3Presigner(
+        endpointProvider: (S3OperationsProperties) -> URI,
+    ): S3Presigner = S3Presigner.builder()
+        .credentialsProvider(credentialsProvider)
+        .region(stubRegion)
+        .serviceConfiguration(S3Configuration.builder()
+            .pathStyleAccessEnabled(true)
+            .build())
+        .endpointOverride(endpointProvider(this).lowercase())
+        .build()
 
     companion object {
         // we don't use region when connect to S3

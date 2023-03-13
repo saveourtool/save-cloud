@@ -115,7 +115,6 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
             }
     }
 
-
     override fun generateRequestToUpload(key: O, contentLength: Long): UploadRequest<O> = initializer.validateAndRun {
         newStoragePreSignedUrl.generateRequestToUpload(key.toNewKey(), contentLength)
             .let { request ->

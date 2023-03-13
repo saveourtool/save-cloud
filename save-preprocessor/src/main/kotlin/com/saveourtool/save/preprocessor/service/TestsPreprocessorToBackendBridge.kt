@@ -38,7 +38,6 @@ class TestsPreprocessorToBackendBridge(
         .baseUrl(configProperties.backend)
         .applyAll(customizers)
         .build()
-
     private val uploadWebClient = WebClient.create()
 
     /**
@@ -68,7 +67,6 @@ class TestsPreprocessorToBackendBridge(
         }
         .blockingBodyToMono()
 
-
     /**
      * @param snapshotDto
      * @param resourceWithContent
@@ -79,29 +77,29 @@ class TestsPreprocessorToBackendBridge(
         snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
     ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
-            .uri("/test-suites-sources/generate-url-to-upload-snapshot")
-            .bodyValue(snapshotDto)
-            .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono<TestsSourceSnapshotUploadRequest>()
-            .flatMap { uploadRequest ->
-                uploadWebClient.put()
-                    .uri(uploadRequest.url.toURI())
-                    .headers { it.putAll(uploadRequest.headers) }
-                    // a workaround to avoid overriding Content-Type by Spring which uses resource extension to resolve it
-                    .body(BodyInserters.fromResource(InputStreamResource(resourceWithContent.inputStream)))
-                    .retrieve()
-                    .blockingToBodilessEntity()
-                    .onErrorResume { ex ->
-                        webClientBackend.delete()
-                            .uri("/test-suites-sources/delete-snapshot?snapshotId={id}", uploadRequest.key.requiredId())
-                            .retrieve()
-                            .toBodilessEntity()
-                            .then(Mono.error(ex))
-                    }
-                    .thenReturn(uploadRequest.key)
-            }
+        .uri("/test-suites-sources/generate-url-to-upload-snapshot")
+        .bodyValue(snapshotDto)
+        .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
+        .accept(MediaType.APPLICATION_JSON)
+        .retrieve()
+        .bodyToMono<TestsSourceSnapshotUploadRequest>()
+        .flatMap { uploadRequest ->
+            uploadWebClient.put()
+                .uri(uploadRequest.url.toURI())
+                .headers { it.putAll(uploadRequest.headers) }
+                // a workaround to avoid overriding Content-Type by Spring which uses resource extension to resolve it
+                .body(BodyInserters.fromResource(InputStreamResource(resourceWithContent.inputStream)))
+                .retrieve()
+                .blockingToBodilessEntity()
+                .onErrorResume { ex ->
+                    webClientBackend.delete()
+                        .uri("/test-suites-sources/delete-snapshot?snapshotId={id}", uploadRequest.key.requiredId())
+                        .retrieve()
+                        .toBodilessEntity()
+                        .then(Mono.error(ex))
+                }
+                .thenReturn(uploadRequest.key)
+        }
 
     /**
      * @param sourceId

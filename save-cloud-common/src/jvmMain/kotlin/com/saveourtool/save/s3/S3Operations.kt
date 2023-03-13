@@ -111,5 +111,10 @@ interface S3Operations {
      * @param fromContainer true if a pre-signed request will be performed from container
      * @return a pre-signed request to upload an object with known content length
      */
-    fun requestToUploadObject(s3Key: String, contentLength: Long, duration: Duration, fromContainer: Boolean = false): PresignedPutObjectRequest
+    fun requestToUploadObject(
+        s3Key: String,
+        contentLength: Long,
+        duration: Duration,
+        fromContainer: Boolean = false,
+    ): PresignedPutObjectRequest
 }
