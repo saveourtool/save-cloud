@@ -63,7 +63,7 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(execution.saveCliVersion))
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveCliKey(execution.saveCliVersion))
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
