@@ -31,7 +31,7 @@ import okio.buffer
 import okio.use
 import kotlin.native.concurrent.AtomicLong
 
-private const val DOWNLOAD_REQUEST_TIMEOUT_MILLIS = 5 * 60 * 1000L
+private val DOWNLOAD_REQUEST_TIMEOUT_MILLIS = 5.minutes.toLong(DurationUnit.MILLISECONDS)
 
 private val httpClient = HttpClient(CIO) {
     install(ContentNegotiation) { json() }
