@@ -102,7 +102,7 @@ class DemoManagerController(
                 .toBodilessEntity()
         }
         .map {
-            StringResponse.ok("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
+            StringResponse.accepted().body("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
         }
         .doOnSuccess {
             webClientDemo.post()
