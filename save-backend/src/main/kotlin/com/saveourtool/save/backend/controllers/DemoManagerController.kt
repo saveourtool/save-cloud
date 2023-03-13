@@ -29,6 +29,7 @@ import org.springframework.web.reactive.function.client.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 /**
  * Controller that allows adding tools to save-demo
@@ -100,16 +101,18 @@ class DemoManagerController(
                 }
                 .toBodilessEntity()
         }
-        .flatMap {
+        .map {
+            StringResponse.ok("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
+        }
+        .doOnSuccess {
             webClientDemo.post()
                 .uri("/demo/internal/files/${demoCreationRequest.demoDto.projectCoordinates}/upload?version=manual")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.manuallyUploadedFileDtos)
                 .retrieve()
                 .toBodilessEntity()
-        }
-        .map {
-            StringResponse.ok("Successfully signed up ${demoCreationRequest.demoDto.projectCoordinates} demo.")
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
         }
 
     @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
