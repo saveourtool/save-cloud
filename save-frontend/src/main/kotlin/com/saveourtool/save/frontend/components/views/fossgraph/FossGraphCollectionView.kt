@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
 
+import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -88,6 +89,15 @@ val fossGraphCollectionView: VFC = VFC {
             }
         }
     )
+
+    div {
+        className = ClassName("d-flex justify-content-center mb-2")
+        withNavigate { navigateContext ->
+            buttonBuilder(label = "Propose a vulnerability", style = "info") {
+                navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+            }
+        }
+    }
 
     div {
         fossGraphTable {
