@@ -137,12 +137,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "description": "type of avatar",
-            "in": "path",
-            "name": "type",
-            "required": true
           }
         ],
         "responses": {
@@ -322,7 +316,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -387,7 +381,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -659,7 +653,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -715,7 +709,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -1589,17 +1583,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "description": "number of contests that will be fetched, default is 4",
-            "in": "path",
-            "name": "amount",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 4
-            }
           }
         ],
         "responses": {
@@ -1979,7 +1962,7 @@
             "description": "version of files, manual by default",
             "in": "query",
             "name": "version",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -2202,7 +2185,7 @@
             "description": "version to attach the file to, manual by default",
             "in": "query",
             "name": "version",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -3075,7 +3058,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3160,7 +3143,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3225,7 +3208,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -5079,24 +5062,6 @@
         "operationId": "getProjectByNameAndOrganizationName",
         "parameters": [
           {
-            "description": "name of a project",
-            "in": "path",
-            "name": "name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -5701,12 +5666,6 @@
             }
           },
           {
-            "description": "setRoleRequest passed through body",
-            "in": "path",
-            "name": "setRoleRequest",
-            "required": true
-          },
-          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -6017,7 +5976,7 @@
           {
             "in": "query",
             "name": "checkDebugInfo",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -6026,7 +5985,7 @@
           {
             "in": "query",
             "name": "testAnalysis",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -6959,17 +6918,11 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
             }
-          },
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true
           }
         ],
         "responses": {
@@ -7046,7 +6999,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7143,7 +7096,7 @@
             "description": "test suite tags substring for filtering, default is empty",
             "in": "query",
             "name": "tags",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7153,7 +7106,7 @@
             "description": "test suite name substring for filtering, default is empty",
             "in": "query",
             "name": "name",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7163,7 +7116,7 @@
             "description": "test suite language substring for filtering, default is empty",
             "in": "query",
             "name": "language",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7173,7 +7126,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7239,7 +7192,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
