@@ -17,6 +17,7 @@ import com.saveourtool.save.utils.requiredEnv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -30,8 +31,11 @@ import okio.buffer
 import okio.use
 import kotlin.native.concurrent.AtomicLong
 
+private const val DOWNLOAD_REQUEST_TIMEOUT_MILLIS = 5 * 60 * 1000L
+
 private val httpClient = HttpClient(CIO) {
     install(ContentNegotiation) { json() }
+    install(HttpTimeout)
 }
 
 private suspend fun HttpClient.download(url: String, file: Path): Result<HttpResponse> = runCatching {
@@ -39,6 +43,7 @@ private suspend fun HttpClient.download(url: String, file: Path): Result<HttpRes
         url(url)
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
+        timeout { requestTimeoutMillis = DOWNLOAD_REQUEST_TIMEOUT_MILLIS }
     }
         .execute { httpResponse ->
             if (httpResponse.status.isSuccess()) {

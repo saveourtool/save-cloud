@@ -12,6 +12,7 @@ import com.saveourtool.save.utils.info
 
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -121,7 +122,10 @@ class DependencyController(
      * @param version version to attach [zip] to
      * @return [Flux] of [ByteBuffer] - archive with files as content
      */
-    @GetMapping("/{organizationName}/{projectName}/download-as-zip")
+    @GetMapping(
+        path = ["/{organizationName}/{projectName}/download-as-zip"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+    )
     fun downloadFiles(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
