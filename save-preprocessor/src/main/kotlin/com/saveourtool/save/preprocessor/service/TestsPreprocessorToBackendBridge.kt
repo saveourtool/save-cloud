@@ -3,7 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.storage.UploadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto

@@ -25,12 +25,12 @@ data class ConfigProperties(
     val orchestratorUrl: String,
     val demoUrl: String,
     val initialBatchSize: Int,
-    val s3Storage: S3OperationsProperties,
+    override val s3Storage: S3OperationsProperties,
     val scheduling: Scheduling = Scheduling(),
     val agentSettings: AgentSettings = AgentSettings(),
     val testAnalysisSettings: TestAnalysisSettings = TestAnalysisSettings(),
     val loki: LokiConfig? = null,
-) {
+) : S3OperationsProperties.Provider {
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)
      * @property baseImagesBuildCron cron expression to schedule builds of base docker images for test executions on all supported SDKs

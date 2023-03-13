@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers.internal
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.storage.UploadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
@@ -48,7 +48,7 @@ class TestSuitesSourceInternalController(
     fun generateUrlToUpload(
         @RequestBody snapshotDto: TestsSourceSnapshotDto,
         @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
-    ): UploadRequest<TestsSourceSnapshotDto> = snapshotStorage.generateUrlToUpload(snapshotDto, contentLength)
+    ): UploadRequest<TestsSourceSnapshotDto> = snapshotStorage.generateRequestToUpload(snapshotDto, contentLength)
 
     /**
      * @param versionDto the version to save.

@@ -67,11 +67,11 @@ class AgentsController(
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
-                        testsSourceSnapshotStorage.generateRequiredUrlToDownload(testsSourceSnapshot).toString()
+                        testsSourceSnapshotStorage.generateRequiredRequestToDownload(testsSourceSnapshot).urlFromContainer.toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
                     .associate { file ->
-                        file.name to fileStorage.generateRequiredUrlToDownload(file).toString()
+                        file.name to fileStorage.generateRequiredRequestToDownload(file).urlFromContainer.toString()
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,

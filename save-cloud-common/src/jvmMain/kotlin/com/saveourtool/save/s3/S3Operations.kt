@@ -99,15 +99,17 @@ interface S3Operations {
     /**
      * @param s3Key
      * @param duration duration when url is valid
+     * @param fromContainer true if a pre-signed request will be performed from container
      * @return a pre-signed request to download an object
      */
-    fun requestToDownloadObject(s3Key: String, duration: Duration): PresignedGetObjectRequest
+    fun requestToDownloadObject(s3Key: String, duration: Duration, fromContainer: Boolean = false): PresignedGetObjectRequest
 
     /**
      * @param s3Key
      * @param contentLength
      * @param duration duration when url is valid
-     * @return a of pre-signed request to upload an object with known content length
+     * @param fromContainer true if a pre-signed request will be performed from container
+     * @return a pre-signed request to upload an object with known content length
      */
-    fun requestToUploadObject(s3Key: String, contentLength: Long, duration: Duration): PresignedPutObjectRequest
+    fun requestToUploadObject(s3Key: String, contentLength: Long, duration: Duration, fromContainer: Boolean = false): PresignedPutObjectRequest
 }

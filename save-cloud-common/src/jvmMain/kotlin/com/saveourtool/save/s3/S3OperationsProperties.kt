@@ -69,4 +69,14 @@ data class S3OperationsProperties(
         val queueSize: Int = Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         val ttl: Duration = 60.seconds.toJavaDuration(),
     )
+
+    /**
+     * An interface which provides [S3OperationsProperties]
+     */
+    interface Provider {
+        /**
+         * [S3OperationsProperties] for s3 storage
+         */
+        val s3Storage: S3OperationsProperties
+    }
 }

@@ -2,6 +2,8 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.storage.request.DownloadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.net.URL
@@ -61,7 +63,7 @@ abstract class AbstractReactiveStorage<K : Any>(
 
     override fun move(source: K, target: K): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.move(source, target) }
 
-    override fun generateUrlToDownload(key: K): URL? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToDownload(key) }
+    override fun generateRequestToDownload(key: K): DownloadRequest<K>? = initializer.validateAndRun { storagePreSignedUrl.generateRequestToDownload(key) }
 
-    override fun generateUrlToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun { storagePreSignedUrl.generateUrlToUpload(key, contentLength) }
+    override fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun { storagePreSignedUrl.generateRequestToUpload(key, contentLength) }
 }

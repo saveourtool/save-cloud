@@ -2,9 +2,11 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.storage.request.DownloadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import java.net.URL
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -18,36 +20,50 @@ class DefaultStoragePreSignedUrl<K : Any>(
     private val s3Operations: S3Operations,
     private val s3KeyManager: S3KeyManager<K>,
 ) : StoragePreSignedUrl<K> {
-    override fun generateUrlToDownload(key: K): URL? = s3KeyManager.findExistedS3Key(key)?.let { s3Key ->
-        s3Operations.requestToDownloadObject(s3Key, downloadDuration)
-            .also { request ->
-                require(request.isBrowserExecutable) {
-                    "Pre-singer url to download object should be browser executable (header-less)"
-                }
+    override fun generateRequestToDownload(key: K): DownloadRequest<K>? =
+            s3KeyManager.findExistedS3Key(key)?.let { s3Key ->
+                val request = s3Operations.requestToDownloadObject(s3Key, downloadDuration)
+                    .validate()
+                val requestFromContainer = s3Operations.requestToDownloadObject(s3Key, downloadDuration, true)
+                    .validate()
+                DownloadRequest(
+                    key,
+                    request.url(),
+                    requestFromContainer.url(),
+                )
             }
-            .url()
-    }
 
-    override fun generateUrlToUpload(key: K, contentLength: Long): UploadRequest<K> {
+    override fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K> {
         val s3Key = s3KeyManager.createNewS3Key(key)
         val request = s3Operations.requestToUploadObject(s3Key, contentLength, uploadDuration)
-            .also { request ->
-                require(request.signedPayload().isEmpty) {
-                    "Pre-singer url to download object should be without payload"
-                }
-            }
+            .validate()
+        val requestFromContainer = s3Operations.requestToUploadObject(s3Key, contentLength, uploadDuration, true)
+            .validate()
         return UploadRequest(
             s3KeyManager.findKey(s3Key).orNotFound {
                 "Not found inserted updated key for $key"
             },
             request.url(),
-            request.httpRequest().uri,
             request.signedHeaders(),
+            requestFromContainer.url(),
+            requestFromContainer.signedHeaders(),
         )
     }
 
     companion object {
         private val downloadDuration = 15.minutes
         private val uploadDuration = 15.minutes
+
+        private fun PresignedGetObjectRequest.validate(): PresignedGetObjectRequest = also { request ->
+            require(request.isBrowserExecutable) {
+                "Pre-singer url to download object should be browser executable (header-less)"
+            }
+        }
+
+        private fun PresignedPutObjectRequest.validate(): PresignedPutObjectRequest = also { request ->
+            require(request.signedPayload().isEmpty) {
+                "Pre-singer url to download object should be without payload"
+            }
+        }
     }
 }

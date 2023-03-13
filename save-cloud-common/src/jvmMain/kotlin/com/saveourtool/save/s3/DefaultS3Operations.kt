@@ -80,10 +80,21 @@ class DefaultS3Operations(
             .endpointOverride(endpoint.lowercase())
             .build()
     }
+    private val s3PresignerFromContainer: S3Presigner = with(properties) {
+        S3Presigner.builder()
+            .credentialsProvider(credentialsProvider)
+            .region(stubRegion)
+            .serviceConfiguration(S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build())
+            .endpointOverride(endpointFromContainer.lowercase())
+            .build()
+    }
 
     override fun close() {
         s3Client.close()
         s3Presigner.close()
+        s3PresignerFromContainer.close()
         executorService.shutdown()
     }
 
@@ -189,7 +200,8 @@ class DefaultS3Operations(
     override fun requestToDownloadObject(
         s3Key: String,
         duration: Duration,
-    ): PresignedGetObjectRequest = s3Presigner.presignGetObject { builder ->
+        fromContainer: Boolean,
+    ): PresignedGetObjectRequest = getS3Presigner(fromContainer).presignGetObject { builder ->
         builder
             .signatureDuration(duration.toJavaDuration())
             .getObjectRequest(getObjectRequest(s3Key))
@@ -200,11 +212,18 @@ class DefaultS3Operations(
         s3Key: String,
         contentLength: Long,
         duration: Duration,
-    ): PresignedPutObjectRequest = s3Presigner.presignPutObject { builder ->
+        fromContainer: Boolean,
+    ): PresignedPutObjectRequest = getS3Presigner(fromContainer).presignPutObject { builder ->
         builder
             .signatureDuration(duration.toJavaDuration())
             .putObjectRequest(putObjectRequest(s3Key, contentLength))
             .build()
+    }
+
+    private fun getS3Presigner(fromContainer: Boolean) = if (fromContainer) {
+        s3PresignerFromContainer
+    } else {
+        s3Presigner
     }
 
     companion object {
