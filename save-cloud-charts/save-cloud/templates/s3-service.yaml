@@ -15,7 +15,7 @@ spec:
     - port: {{ .Values.s3.ui_port }}
       protocol: TCP
       name: s3-ui
-  type: NodePort
+  type: LoadBalancer
 
 ---
 
@@ -32,5 +32,20 @@ spec:
       protocol: TCP
       name: s3
   type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3-service-api
+spec:
+  selector:
+    io.kompose.service: s3
+  ports:
+    - port: {{ .Values.s3.api_port }}
+      protocol: TCP
+      name: s3-api
+  type: LoadBalancer
 
 {{- end }}

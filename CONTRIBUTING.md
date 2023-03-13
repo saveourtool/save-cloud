@@ -26,15 +26,6 @@ In order to make Spring Intellij Idea Ultimate plugin work properly, you need to
 |  Linux  |   `dev,secure`   |    `dev`    |   `dev,docker-tcp`   |      `dev`       |   `dev,docker-tcp,secure`   |
 
 ### Mac M1 contributors
-In file `save-cloud/build.gradle.kts` change languageVersion of `org.liquibase.gradle.LiquibaseTask` from 11 to 17
-so there would be something like this:
-```
-tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
-    this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    })
-}
-```
 In order to run `save-orchestrator` on Mac with M1 in order to make it run executions, in addition to `save-deploy/README.md` you need to 
 1. manually put all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main` as well as `save-*-linuxX64.kexe` (temporary workaround) 
 2. run `docker-mac-settings.sh` script (from `save-deploy` folder) in order to let docker be available via TCP 

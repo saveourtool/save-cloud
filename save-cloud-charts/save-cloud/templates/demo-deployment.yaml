@@ -79,7 +79,7 @@ spec:
             - mountPath: /data
               name: migrations-data
         - name: liquibase-runner
-          image: liquibase/liquibase:4.15
+          image: liquibase/liquibase:4.20
           securityContext:
             runAsUser: 1001
             runAsGroup: 1001
