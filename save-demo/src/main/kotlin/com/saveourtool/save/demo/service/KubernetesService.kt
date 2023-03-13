@@ -58,7 +58,7 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(
+            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(
                 DemoInternalFileStorage.saveDemoAgent
             ).toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)

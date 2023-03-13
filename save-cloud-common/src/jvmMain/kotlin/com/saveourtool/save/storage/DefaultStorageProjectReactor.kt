@@ -119,7 +119,7 @@ class DefaultStorageProjectReactor<K : Any>(
         s3Operations.deleteObject(s3Key)
             .toMonoAndPublishOn()
     }
-        .map { deleteKey(key) }
+        .flatMap { deleteKey(key) }
         .thenReturn(true)
         .defaultIfEmpty(false)
 

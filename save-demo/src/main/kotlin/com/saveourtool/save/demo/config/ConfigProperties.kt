@@ -18,10 +18,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "demo")
 data class ConfigProperties(
     val backendUrl: String,
-    val s3Storage: S3OperationsProperties,
+    override val s3Storage: S3OperationsProperties,
     val kubernetes: KubernetesConfig?,
     val agentConfig: AgentConfig? = null,
-) {
+) : S3OperationsProperties.Provider {
     /**
      * @property demoUrl url of save-demo
      */
