@@ -22,7 +22,9 @@
         "^org\\.jetbrains\\.kotlin[.:]",
         "^org\\.cqfn\\.diktat\\:diktat-gradle-plugin",
         "^org\\.jetbrains\\.kotlin-wrappers\\:kotlin-wrappers-bom",
-        "^org\\.springframework\\.boot\\:spring-boot-dependencies"
+        "^org\\.springframework\\.boot\\:spring-boot-dependencies",
+        "^org\\.springframework\\.boot\\:spring-boot-gradle-plugin",
+        "^org\\.springframework\\.boot\\:spring-boot-configuration-processor"
       ],
       "matchUpdateTypes": [
         "minor",
@@ -52,7 +54,9 @@
     {
       "managers": ["gradle"],
       "matchPackagePatterns": [
-        "^org\\.springframework\\.boot\\:spring-boot-dependencies"
+        "^org\\.springframework\\.boot\\:spring-boot-dependencies",
+        "^org\\.springframework\\.boot\\:spring-boot-gradle-plugin",
+        "^org\\.springframework\\.boot\\:spring-boot-configuration-processor"
       ],
       "allowedVersions": "!/2\\.7\\.9/",
       "groupName": "all non-major dependencies (except core Kotlin)",
