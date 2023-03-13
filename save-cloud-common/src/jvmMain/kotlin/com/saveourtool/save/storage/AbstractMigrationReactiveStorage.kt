@@ -1,12 +1,13 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.storage.request.DownloadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
@@ -103,5 +104,27 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
 
     override fun move(source: O, target: O): Mono<Boolean> = initializer.validateAndRun { newStorageProjectReactor.move(source.toNewKey(), target.toNewKey()) }
 
-    override fun generateUrlToDownload(key: O): URL? = initializer.validateAndRun { newStoragePreSignedUrl.generateUrlToDownload(key.toNewKey()) }
+    override fun generateRequestToDownload(key: O): DownloadRequest<O>? = initializer.validateAndRun {
+        newStoragePreSignedUrl.generateRequestToDownload(key.toNewKey())
+            ?.let { request ->
+                DownloadRequest(
+                    request.key.toOldKey(),
+                    request.url,
+                    request.urlFromContainer,
+                )
+            }
+    }
+
+    override fun generateRequestToUpload(key: O, contentLength: Long): UploadRequest<O> = initializer.validateAndRun {
+        newStoragePreSignedUrl.generateRequestToUpload(key.toNewKey(), contentLength)
+            .let { request ->
+                UploadRequest(
+                    request.key.toOldKey(),
+                    request.url,
+                    request.headers,
+                    request.urlFromContainer,
+                    request.headersFromContainer,
+                )
+            }
+    }
 }

@@ -13,7 +13,7 @@ import kotlin.time.toJavaDuration
 
 /**
  * @property endpoint S3 endpoint (URI)
- * @property presignedEndpoint S3 endpoint (URI) for pre-signed requests, it's equal to [endpoint] by default
+ * @property endpointFromContainer S3 endpoint (URI) for pre-signed requests from container, it's equal to [endpoint] by default
  * @property bucketName bucket name for all S3 storages
  * @property createBucketIfNotExists a flag which control creation of bucket on start, it's false by default
  * @property prefix a common prefix for all S3 storages
@@ -23,7 +23,7 @@ import kotlin.time.toJavaDuration
  */
 data class S3OperationsProperties(
     val endpoint: URI,
-    val presignedEndpoint: URI = endpoint,
+    val endpointFromContainer: URI = endpoint,
     val bucketName: String,
     val createBucketIfNotExists: Boolean = false,
     val prefix: String = "",
@@ -69,4 +69,14 @@ data class S3OperationsProperties(
         val queueSize: Int = Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         val ttl: Duration = 60.seconds.toJavaDuration(),
     )
+
+    /**
+     * An interface which provides [S3OperationsProperties]
+     */
+    interface Provider {
+        /**
+         * [S3OperationsProperties] for s3 storage
+         */
+        val s3Storage: S3OperationsProperties
+    }
 }

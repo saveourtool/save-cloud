@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 
 import java.net.URI
 import java.util.concurrent.*
@@ -69,20 +70,13 @@ class DefaultS3Operations(
                 }
             }
     }
-    private val s3Presigner: S3Presigner = with(properties) {
-        S3Presigner.builder()
-            .credentialsProvider(credentialsProvider)
-            .region(stubRegion)
-            .serviceConfiguration(S3Configuration.builder()
-                .pathStyleAccessEnabled(true)
-                .build())
-            .endpointOverride(presignedEndpoint.lowercase())
-            .build()
-    }
+    private val s3Presigner: S3Presigner = properties.createS3Presigner(S3OperationsProperties::endpoint)
+    private val s3PresignerFromContainer: S3Presigner = properties.createS3Presigner(S3OperationsProperties::endpointFromContainer)
 
     override fun close() {
         s3Client.close()
         s3Presigner.close()
+        s3PresignerFromContainer.close()
         executorService.shutdown()
     }
 
@@ -188,12 +182,42 @@ class DefaultS3Operations(
     override fun requestToDownloadObject(
         s3Key: String,
         duration: Duration,
-    ): PresignedGetObjectRequest = s3Presigner.presignGetObject { builder ->
+        fromContainer: Boolean,
+    ): PresignedGetObjectRequest = getS3Presigner(fromContainer).presignGetObject { builder ->
         builder
             .signatureDuration(duration.toJavaDuration())
             .getObjectRequest(getObjectRequest(s3Key))
             .build()
     }
+
+    override fun requestToUploadObject(
+        s3Key: String,
+        contentLength: Long,
+        duration: Duration,
+        fromContainer: Boolean,
+    ): PresignedPutObjectRequest = getS3Presigner(fromContainer).presignPutObject { builder ->
+        builder
+            .signatureDuration(duration.toJavaDuration())
+            .putObjectRequest(putObjectRequest(s3Key, contentLength))
+            .build()
+    }
+
+    private fun getS3Presigner(fromContainer: Boolean) = if (fromContainer) {
+        s3PresignerFromContainer
+    } else {
+        s3Presigner
+    }
+
+    private fun S3OperationsProperties.createS3Presigner(
+        endpointProvider: (S3OperationsProperties) -> URI,
+    ): S3Presigner = S3Presigner.builder()
+        .credentialsProvider(credentialsProvider)
+        .region(stubRegion)
+        .serviceConfiguration(S3Configuration.builder()
+            .pathStyleAccessEnabled(true)
+            .build())
+        .endpointOverride(endpointProvider(this).lowercase())
+        .build()
 
     companion object {
         // we don't use region when connect to S3

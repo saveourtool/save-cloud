@@ -205,7 +205,7 @@ class RunExecutionController(
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(
             execution.toRunRequest(
-                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveAgentKey),
             )
         )
         .retrieve()
