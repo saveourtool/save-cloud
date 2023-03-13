@@ -36,7 +36,7 @@ import kotlinx.serialization.json.Json
  * Service for interactions with kubernetes
  */
 @Service
-@Profile("kubernetes")
+@Profile("kubernetes | minikube")
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
@@ -58,8 +58,9 @@ class KubernetesService(
     fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
-                .toString()
+            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(
+                DemoInternalFileStorage.saveDemoAgent
+            ).toString()
             kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
             demo
         } catch (kre: KubernetesRunnerException) {
