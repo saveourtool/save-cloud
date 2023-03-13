@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
+import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
@@ -145,6 +146,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             fossGraphCollectionView.create() to "/$FOSS_GRAPH",
+            createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
             fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
 
             props.viewWithFallBack(
