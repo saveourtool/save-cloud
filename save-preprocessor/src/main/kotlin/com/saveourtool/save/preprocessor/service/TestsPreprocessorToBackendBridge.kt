@@ -50,33 +50,6 @@ class TestsPreprocessorToBackendBridge(
         snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
     ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
-        .uri("/test-suites-sources/upload-snapshot")
-        .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(
-            BodyInserters.fromMultipartData("content", resourceWithContent)
-                .with("snapshot", snapshotDto)
-        )
-        .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
-        .retrieve()
-        .onStatus({ !it.is2xxSuccessful }) {
-            Mono.error(
-                IllegalStateException("Failed to upload test suite source snapshot",
-                    ResponseStatusException(it.statusCode())
-                )
-            )
-        }
-        .blockingBodyToMono()
-
-    /**
-     * @param snapshotDto
-     * @param resourceWithContent
-     * @return updated [snapshotDto]
-     */
-    @NonBlocking
-    fun saveTestsSuiteSourceSnapshot2(
-        snapshotDto: TestsSourceSnapshotDto,
-        resourceWithContent: Resource,
-    ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
         .uri("/test-suites-sources/generate-url-to-upload-snapshot")
         .bodyValue(snapshotDto)
         .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())

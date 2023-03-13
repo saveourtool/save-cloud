@@ -9,8 +9,6 @@ import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
-import org.springframework.http.MediaType
-import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -23,22 +21,6 @@ class TestSuitesSourceInternalController(
     private val testsSourceVersionService: TestsSourceVersionService,
     private val snapshotStorage: TestsSourceSnapshotStorage,
 ) {
-    /**
-     * @param snapshotDto
-     * @param contentAsMonoPart
-     * @param contentLength
-     * @return [Mono] with updated [snapshotDto]
-     */
-    @PostMapping("/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadSnapshot(
-        @RequestPart("snapshot") snapshotDto: TestsSourceSnapshotDto,
-        @RequestPart("content") contentAsMonoPart: Mono<Part>,
-        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
-    ): Mono<TestsSourceSnapshotDto> = contentAsMonoPart.flatMap { part ->
-        val content = part.content().map { it.asByteBuffer() }
-        snapshotStorage.upload(snapshotDto, content)
-    }
-
     /**
      * @param snapshotDto
      * @param contentLength

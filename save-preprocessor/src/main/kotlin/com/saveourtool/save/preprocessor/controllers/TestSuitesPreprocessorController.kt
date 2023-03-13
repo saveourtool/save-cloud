@@ -102,7 +102,7 @@ class TestSuitesPreprocessorController(
         request: TestsSourceFetchRequest,
     ): Mono<TestsSourceSnapshotDto> = (repositoryDirectory / request.source.testRootPath).let { pathToRepository ->
         gitPreprocessorService.archiveToTar(pathToRepository) { archive ->
-            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot2(
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 snapshotDto = request.createSnapshot(gitCommitInfo.id, gitCommitInfo.time),
                 resourceWithContent = FileSystemResource(archive)
             ).zipWhen { snapshot ->
