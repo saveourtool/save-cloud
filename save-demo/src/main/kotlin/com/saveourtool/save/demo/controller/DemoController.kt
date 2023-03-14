@@ -50,7 +50,7 @@ class DemoController(
      * @return tool output as [DemoResult]
      */
     @PostMapping("/{organizationName}/{projectName}/run")
-    fun runCheckDemo(
+    fun runDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestBody demoRunRequest: DemoRunRequest,

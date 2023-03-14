@@ -34,6 +34,7 @@ import react.dom.html.ReactHTML.strong
 import web.file.FileReader
 import web.html.InputType
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -42,6 +43,8 @@ private val defaultCode = """
     |
     |fun main() {
     |    val SAVEOUR = "tool"
+    |    
+    |    
     |}
 """.trimMargin()
 
@@ -56,8 +59,20 @@ private val defaultCode = """
 )
 val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
     val (demoRunRequest, setDemoRunRequest) = useState(props.emptyDemoRunRequest)
-    val (diktatResult, setDiktatResult) = useState(DemoResult.empty)
+    val (demoResult, setDemoResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(defaultCode)
+
+    /*
+     * Temporary workaround.
+     *
+     * There is a problem with attempt to process different demos in the same view.
+     * In order to flush all the data corresponding to one demo, this [useEffect] is required
+     */
+    useEffect(window.location.href) {
+        setDemoResult(DemoResult.empty)
+        setCodeLines(defaultCode)
+        setDemoRunRequest(props.emptyDemoRunRequest)
+    }
 
     val sendRunRequest = useDeferredRequest {
         val result: DemoResult = post(
@@ -70,7 +85,7 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
             ::noopResponseHandler,
         )
             .decodeFromJsonString()
-        setDiktatResult(result)
+        setDemoResult(result)
     }
 
     div {
@@ -85,9 +100,7 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
                     selectedMode = props.selectedMode
                     savedText = codeLines
                     draftText = codeLines
-                    onDraftTextUpdate = { code ->
-                        setCodeLines(code)
-                    }
+                    onDraftTextUpdate = { code -> setCodeLines(code) }
                     isDisabled = false
                 }
             }
@@ -98,8 +111,8 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
                     editorTitle = "Output code"
                     selectedTheme = props.selectedTheme
                     selectedMode = props.selectedMode
-                    savedText = diktatResult.outputText.joinToString("\n")
-                    draftText = diktatResult.outputText.joinToString("\n")
+                    savedText = demoResult.outputText.joinToString("\n")
+                    draftText = demoResult.outputText.joinToString("\n")
                     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                     onDraftTextUpdate = { }
                     isDisabled = true
@@ -113,7 +126,9 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
                 selectorBuilder(
                     demoRunRequest.mode.toString(),
                     DemoMode.values().map { it.name },
-                    "custom-select"
+                    "custom-select",
+                    // todo: process modes for custom tools
+                    isDisabled = !props.demoRunEndpoint.contains("diktat"),
                 ) { event ->
                     setDemoRunRequest { runRequest ->
                         runRequest.copy(
@@ -169,8 +184,8 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
         }
         div {
             className = ClassName("ml-1 mr-1")
-            displayAlertWithWarnings(diktatResult) {
-                setDiktatResult(DemoResult.empty)
+            displayAlertWithWarnings(demoResult) {
+                setDemoResult(DemoResult.empty)
             }
         }
     }

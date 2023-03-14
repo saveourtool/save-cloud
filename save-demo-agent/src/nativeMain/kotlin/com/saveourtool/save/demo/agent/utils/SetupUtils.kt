@@ -36,6 +36,8 @@ suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoCo
         throw e
     }
 
+    // todo: chmod all the files
+
     logDebug("All files successfully downloaded.")
 
     val executionResult = executeSetupSh(setupShTimeoutMillis)

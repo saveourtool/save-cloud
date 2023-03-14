@@ -188,7 +188,7 @@ class KubernetesService(
      */
     private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
         kc.getJobPods(demo).firstOrNull()
-    } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
+    } ?: throw KubernetesRunnerException("Could not run a job in ${ RETRY_TIMES * RETRY_DELAY_MILLIS } seconds.")
 
     private suspend fun <R> demoAgentRequestWrapper(
         urlPath: String,
