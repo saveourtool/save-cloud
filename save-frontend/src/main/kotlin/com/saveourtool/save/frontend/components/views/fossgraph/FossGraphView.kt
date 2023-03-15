@@ -56,7 +56,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val vulnerabilityName = params["vulnerabilityName"]!!.toString()
 
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
-    val (vulnerabilityProjects, setVulnerabilityProjects) = useState(emptyList<VulnerabilityProjectDto>())
 
     useRequest {
         val vulnerabilityNew = get(
@@ -69,17 +68,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             }
 
         setVulnerability(vulnerabilityNew)
-
-        val vulnerabilityProjectsNew = get(
-            "$apiUrl/vulnerability-projects/by-vulnerability-name?vulnerabilityName=${vulnerabilityNew.name}",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<List<VulnerabilityProjectDto>>()
-            }
-
-        setVulnerabilityProjects(vulnerabilityProjectsNew)
     }
 
     val openSourceProjectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
@@ -189,7 +177,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
                 openSourceProjectTable {
                     getData = { _, _ ->
-                        vulnerabilityProjects.filter { it.isOpenSource }.toTypedArray()
+                        vulnerability.projects.filter { it.isOpenSource }.toTypedArray()
                     }
                 }
 
@@ -201,7 +189,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
                 projectTable {
                     getData = { _, _ ->
-                        vulnerabilityProjects.filter { !it.isOpenSource }.toTypedArray()
+                        vulnerability.projects.filter { !it.isOpenSource }.toTypedArray()
                     }
                 }
             }
