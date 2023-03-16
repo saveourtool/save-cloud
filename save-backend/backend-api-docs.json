@@ -8133,6 +8133,53 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/save": {
+      "post": {
+        "description": "Save vulnerability.",
+        "operationId": "save",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerability-projects/by-vulnerability-name": {
       "get": {
         "description": "Get link projects by vulnerability name.",
