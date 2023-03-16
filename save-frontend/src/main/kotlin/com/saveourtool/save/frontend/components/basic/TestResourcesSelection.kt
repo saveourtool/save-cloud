@@ -59,6 +59,7 @@ private fun ChildrenBuilder.addAdditionalProperty(
     placeholder: String,
     tooltipText: String,
     labelText: String,
+    isOnlyNumbers: Boolean,
     onChangeFunc: (String) -> Unit
 ) = div {
     className = ClassName("input-group mb-3")
@@ -85,7 +86,7 @@ private fun ChildrenBuilder.addAdditionalProperty(
         this.placeholder = placeholder
         onChange = { event ->
             event.target.value.let { value ->
-                if (value.all { it.isDigit() }) {
+                if (!isOnlyNumbers || value.all { it.isDigit() }) {
                     onChangeFunc(value)
                 }
             }
@@ -114,6 +115,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 "Execution command",
                 "Execution command that will be used to run the tool and tests",
                 "",
+                false,
                 props.setExecCmd
             )
             val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time (1 by default)." +
@@ -123,6 +125,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 "",
                 toolTipTextForBatchSize,
                 "Batch size:",
+                true,
                 props.setBatchSizeForAnalyzer
             )
 
