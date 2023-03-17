@@ -159,7 +159,6 @@ private fun demoAgentContainerSpec(
 
     // todo: in later phases should be removed
     val currentlyHardcodedVersion = "manual"
-
     listOf(
         "KTOR_LOG_LEVEL" to "DEBUG",
         DemoAgentConfig.DEMO_CONFIGURE_ME_URL_ENV to getConfigureMeUrl(agentConfig.demoUrl, demo, currentlyHardcodedVersion),
@@ -188,10 +187,12 @@ private fun demoAgentContainerSpec(
             requests = mapOf(
                 "cpu" to Quantity(agentCpuRequests),
                 "memory" to Quantity(agentMemoryRequests),
+                "ephemeral-storage" to Quantity(agentEphemeralStorageRequests),
             )
             limits = mapOf(
                 "cpu" to Quantity(agentCpuLimits),
                 "memory" to Quantity(agentMemoryLimits),
+                "ephemeral-storage" to Quantity(agentEphemeralStorageLimits),
             )
         }
     }
