@@ -38,12 +38,11 @@ class DemoCliRunner(
                 dependency.fileName to getExecutable(workingDir, dependency.toToolKey())
             }
         return commandBuilder.build(
-            demo.runCommand,
+            demo.getRunCommand(demoRunRequest.mode),
             CommandContext(
                 testPath,
                 tools,
                 outputPath,
-                demoRunRequest.mode,
                 configPath,
             )
         )

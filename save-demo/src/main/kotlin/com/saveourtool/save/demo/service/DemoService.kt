@@ -2,8 +2,11 @@ package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.demo.RunCommandMap
 import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.demo.entity.RunCommand
 import com.saveourtool.save.demo.repository.DemoRepository
+import com.saveourtool.save.demo.repository.RunCommandRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.utils.StringResponse
@@ -26,6 +29,7 @@ class DemoService(
     private val demoRepository: DemoRepository,
     private val kubernetesService: KubernetesService?,
     private val dependencyStorage: DependencyStorage,
+    private val runCommandRepository: RunCommandRepository,
 ) {
     /**
      * Get preferred [RunnerFactory.RunnerType] for demo runner.
@@ -91,20 +95,30 @@ class DemoService(
     fun getAllDemos(): List<Demo> = demoRepository.findAll()
 
     /**
-     * @param demo
+     * @param demo [Demo] entity
+     * @param runCommands [RunCommandMap] where keys are demo mode names and values are run commands
      * @return [Demo] entity saved to database
      * @throws IllegalStateException if [demo] is already present in DB
      */
     @Transactional
-    fun saveIfNotPresent(demo: Demo): Demo = demoRepository.findByOrganizationNameAndProjectName(demo.organizationName, demo.projectName)?.let {
+    fun saveIfNotPresent(demo: Demo, runCommands: RunCommandMap): Demo = demoRepository.findByOrganizationNameAndProjectName(demo.organizationName, demo.projectName)?.let {
         throw IllegalStateException("Demo for project ${demo.organizationName}/${demo.projectName} is already added.")
-    } ?: save(demo)
+    } ?: run {
+        save(demo).also { savedDemo ->
+            runCommands.map { (mode, command) ->
+                RunCommand(savedDemo, mode, command)
+            }.let { runCommandList ->
+                runCommandRepository.saveAll(runCommandList)
+            }
+        }
+    }
 
     /**
      * @param organizationName saveourtool organization name
      * @param projectName saveourtool project name
      * @return [Demo] connected with project [organizationName]/[projectName] or null if not present
      */
+    @Transactional
     fun findBySaveourtoolProject(
         organizationName: String,
         projectName: String,

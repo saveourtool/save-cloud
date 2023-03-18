@@ -49,7 +49,7 @@ data class DemoConfiguration(
  *
  * @property inputFileName name of input file name
  * @property configFileName name of config file or null if not supported
- * @property runCommand command that should be executed in order to launch demo run
+ * @property runCommands [RunCommandMap] where key is mode name and value is run command for that mode
  * @property outputFileName name of a file that contains the output information e.g. report
  * @property logFileName name of file that contains logs
  */
@@ -57,7 +57,7 @@ data class DemoConfiguration(
 data class RunConfiguration(
     val inputFileName: String,
     val configFileName: String?,
-    val runCommand: String,
+    val runCommands: RunCommandMap,
     val outputFileName: String?,
     val logFileName: String = "logs.txt",
 )

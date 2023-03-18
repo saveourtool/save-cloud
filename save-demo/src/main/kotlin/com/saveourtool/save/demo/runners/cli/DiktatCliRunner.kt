@@ -47,7 +47,7 @@ class DiktatCliRunner(
         append(" --disabled_rules=diktat-ruleset:package-naming,standard")
 
         append(" --reporter=plain,output=$outputPath ")
-        if (demoRunRequest.mode == DemoMode.FIX) {
+        if (demoRunRequest.mode == DemoMode.FIX.name) {
             append(" --format ")
         }
         append(testPath)

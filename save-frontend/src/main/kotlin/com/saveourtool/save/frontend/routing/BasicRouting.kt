@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.routing
 
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
@@ -15,7 +16,6 @@ import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoView
-import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
 import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphView
@@ -44,7 +44,7 @@ val testExecutionDetailsView = testExecutionDetailsView()
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
-    val contestView: FC<Props> = withRouter { location, params ->
+    val contestView: VFC = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
             currentContestName = params["contestName"]
@@ -52,7 +52,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val contestExecutionView: FC<Props> = withRouter { _, params ->
+    val contestExecutionView: VFC = withRouter { _, params ->
         ContestExecutionView::class.react {
             currentUserInfo = props.userInfo
             contestName = params["contestName"]!!
@@ -61,7 +61,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val projectView: FC<Props> = withRouter { location, params ->
+    val projectView: VFC = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
@@ -70,14 +70,14 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val historyView: FC<Props> = withRouter { _, params ->
+    val historyView: VFC = withRouter { _, params ->
         HistoryView::class.react {
             name = params["name"]!!
             organizationName = params["owner"]!!
         }
     }
 
-    val executionView: FC<Props> = withRouter { location, params ->
+    val executionView: VFC = withRouter { location, params ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
@@ -92,13 +92,13 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val creationView: FC<Props> = withRouter { _, params ->
+    val creationView: VFC = withRouter { _, params ->
         CreationView::class.react {
             organizationName = params["owner"]
         }
     }
 
-    val organizationView: FC<Props> = withRouter { location, params ->
+    val organizationView: VFC = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
@@ -106,17 +106,26 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+    val awesomeBenchmarksView: VFC = withRouter { location, _ ->
         AwesomeBenchmarksView::class.react {
             this.location = location
         }
     }
 
-    val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+    val contestGlobalRatingView: VFC = withRouter { location, _ ->
         ContestGlobalRatingView::class.react {
             organizationName = URLSearchParams(location.search).get("organizationName")
             projectName = URLSearchParams(location.search).get("projectName")
             this.location = location
+        }
+    }
+
+    val demoView: FC<Props> = withRouter { _, params ->
+        demoView {
+            projectCoordinates = ProjectCoordinates(
+                requireNotNull(params["organizationName"]),
+                requireNotNull(params["projectName"]),
+            )
         }
     }
 
@@ -142,7 +151,6 @@ val basicRouting: FC<AppProps> = FC { props ->
             projectView.create() to "/:owner/:name",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
             demoView.create() to "/$DEMO/:organizationName/:projectName",
-            diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             fossGraphCollectionView.create() to "/$FOSS_GRAPH",

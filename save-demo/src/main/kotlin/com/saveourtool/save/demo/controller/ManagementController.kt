@@ -33,7 +33,7 @@ class ManagementController(
         }
         .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .flatMap {
-            blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
+            blockingToMono { demoService.saveIfNotPresent(it.toDemo(), it.runCommands).toDto() }
         }
 
     /**
