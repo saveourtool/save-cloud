@@ -77,9 +77,9 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     val enrollRequest = useDeferredRequest {
         val response = post(
-            url = "$apiUrl/vulnerabilities/save-all-projects",
+            url = "$apiUrl/vulnerabilities/save-projects",
             headers = jsonHeaders,
-            body = Json.encodeToString(vulnerabilityProjects.toList()),
+            body = Json.encodeToString(vulnerabilityProjects),
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
