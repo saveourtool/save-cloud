@@ -176,7 +176,7 @@ val cpgView: VFC = VFC {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
                     when {
-                        log.contains("ERROR") || log.startsWith("Exception:") -> p {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> pre {
                             className = ClassName("text-danger")
                             +log
                         }
