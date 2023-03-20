@@ -118,13 +118,6 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 ariaLabelledBy = "demoDropdown"
 
                 demoDropdownEntry(
-                    "Diktat",
-                    "/${FrontendRoutes.DEMO.path}/diktat",
-                    location,
-                    navigate,
-                    deactivateDropdown,
-                )
-                demoDropdownEntry(
                     "CPG",
                     "/${FrontendRoutes.DEMO.path}/cpg",
                     location,
@@ -134,7 +127,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
                 demos.forEach { demo ->
                     demoDropdownEntry(
                         "${demo.projectCoordinates}",
-                        "/${FrontendRoutes.DEMO.path}/${demo.projectCoordinates.organizationName}/${demo.projectCoordinates.projectName}",
+                        "/${FrontendRoutes.DEMO.path}/${demo.projectCoordinates}",
                         location,
                         navigate,
                         deactivateDropdown,
