@@ -104,9 +104,9 @@ class DemoService(
     fun saveIfNotPresent(demo: Demo, runCommands: RunCommandMap): Demo = demoRepository.findByOrganizationNameAndProjectName(demo.organizationName, demo.projectName)?.let {
         throw IllegalStateException("Demo for project ${demo.organizationName}/${demo.projectName} is already added.")
     } ?: run {
-        save(demo).also { savedDemo ->
-            runCommands.map { (mode, command) ->
-                RunCommand(savedDemo, mode, command)
+        save(demo).apply {
+            this.runCommands = runCommands.map { (mode, command) ->
+                RunCommand(this, mode, command)
             }.let { runCommandList ->
                 runCommandRepository.saveAll(runCommandList)
             }
