@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.controller
 
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
@@ -74,8 +75,8 @@ class ManagementController(
     }
 
     /**
-     * @param organizationName
-     * @param projectName
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
      * @return [Mono] of [Unit]
      */
     @PostMapping("/{organizationName}/{projectName}/stop")
@@ -87,5 +88,27 @@ class ManagementController(
             "Could not find demo for $organizationName/$projectName."
         }
         demoService.stop(demo)
+    }
+
+    /**
+     * Get [DemoAgentConfig] of [organizationName]/[projectName] demo with [version]
+     *
+     * This endpoint makes sense only when kubernetes profile is on
+     *
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of demo
+     * @return [DemoAgentConfig]
+     */
+    @GetMapping("/{organizationName}/{projectName}/configure-me")
+    suspend fun sendConfiguration(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+    ): DemoAgentConfig {
+        val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+            "Could not find demo for $organizationName/$projectName."
+        }
+        return demoService.getAgentConfiguration(demo, version)
     }
 }

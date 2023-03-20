@@ -63,23 +63,15 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(execution.saveCliVersion))
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveCliKey(execution.saveCliVersion))
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
-                        testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
-                            .orNotFound {
-                                "Not found key for $testsSourceSnapshot"
-                            }
-                            .toString()
+                        testsSourceSnapshotStorage.generateRequiredRequestToDownload(testsSourceSnapshot).urlFromContainer.toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
                     .associate { file ->
-                        file.name to fileStorage.generateUrlToDownload(file)
-                            .orNotFound {
-                                "Not found key for $file"
-                            }
-                            .toString()
+                        file.name to fileStorage.generateRequiredRequestToDownload(file).urlFromContainer.toString()
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,

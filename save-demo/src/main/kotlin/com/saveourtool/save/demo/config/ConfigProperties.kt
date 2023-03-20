@@ -18,10 +18,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "demo")
 data class ConfigProperties(
     val backendUrl: String,
-    val agentConfig: AgentConfig,
-    val s3Storage: S3OperationsProperties,
+    override val s3Storage: S3OperationsProperties,
     val kubernetes: KubernetesConfig?,
-) {
+    val agentConfig: AgentConfig? = null,
+) : S3OperationsProperties.Provider {
     /**
      * @property demoUrl url of save-demo
      */
@@ -46,6 +46,8 @@ data class ConfigProperties(
  * @property agentCpuLimits
  * @property agentMemoryRequests
  * @property agentMemoryLimits
+ * @property agentEphemeralStorageRequests
+ * @property agentEphemeralStorageLimits
  */
 data class KubernetesConfig(
     val apiServerUrl: String,
@@ -58,4 +60,6 @@ data class KubernetesConfig(
     val agentCpuLimits: String = "500m",
     val agentMemoryRequests: String = "300Mi",
     val agentMemoryLimits: String = "500Mi",
+    val agentEphemeralStorageRequests: String = "100Mi",
+    val agentEphemeralStorageLimits: String = "500Mi",
 )

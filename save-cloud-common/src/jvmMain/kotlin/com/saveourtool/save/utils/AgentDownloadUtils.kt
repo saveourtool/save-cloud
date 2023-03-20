@@ -22,11 +22,6 @@ private val defaultCurlOptions: Sequence<String> = sequenceOf(
     "--fail",
 )
 
-@Language("bash")
-private val defaultEnvOptions: Sequence<EnvOption> = emptySequence()
-
-typealias EnvOption = Pair<String, String>
-
 /**
  * Get command for newly created pod that would download agent [fileKey] from [downloadUrl]
  * using curl with [curlOptions], chmod downloaded executable and launch it.
@@ -44,7 +39,6 @@ typealias EnvOption = Pair<String, String>
  * @param fileKey [InternalFileKey] for agent to download
  * @param shellOptions options to be set on command execution, [defaultShellOptions] by default
  * @param curlOptions options to be passed to curl, [defaultCurlOptions] by default
- * @param envOptions options as [EnvOption] - key and value - all the keys will be set as environment variables with corresponding value
  * @return run command
  */
 fun downloadAndRunAgentCommand(
@@ -52,12 +46,10 @@ fun downloadAndRunAgentCommand(
     fileKey: InternalFileKey,
     shellOptions: Sequence<String> = defaultShellOptions,
     curlOptions: Sequence<String> = defaultCurlOptions,
-    envOptions: Sequence<EnvOption> = defaultEnvOptions,
 ): String = with(fileKey) {
     "set ${getShellOptions(shellOptions)}" +
             " && curl ${getCurlOptions(curlOptions)} '$downloadUrl' --output $fileName" +
             " && chmod +x $fileName" +
-            " ${getEnvOptions(envOptions)}" +
             " && ./$fileName"
 }
 
@@ -77,5 +69,3 @@ private fun getShellOptions(shellOptions: Sequence<String>): String =
  */
 @Language("bash")
 private fun getCurlOptions(curlOptions: Sequence<String>): String = curlOptions.joinToString(separator = " ")
-
-private fun getEnvOptions(envOptions: Sequence<EnvOption>): String = envOptions.joinToString { " && ${it.first}=${it.second} " }

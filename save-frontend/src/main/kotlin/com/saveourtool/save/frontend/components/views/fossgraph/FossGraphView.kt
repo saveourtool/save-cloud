@@ -4,39 +4,42 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views.fossgraph
 
-import com.saveourtool.save.frontend.externals.fontawesome.faSearch
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
+import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
-import com.saveourtool.save.frontend.utils.Style
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.useBackground
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.AlignItems
 import csstype.ClassName
 import csstype.Display
+import js.core.get
 import js.core.jso
 import react.*
-import react.dom.aria.ariaDescribedBy
-import react.dom.aria.ariaLabel
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
-import web.html.InputType
+import react.router.dom.Link
+import react.router.useParams
 
 /**
  * [VFC] for foss graph view
  */
 @Suppress("MAGIC_NUMBER")
 val fossGraphView: VFC = VFC {
+    val params = useParams()
+    val vulnerabilityName = params["vulnerabilityName"]!!.toString()
+
     fossGraph {
-        name = "CVE-2022-22978"
-        progress = 87
+        name = vulnerabilityName
     }
 }
 
@@ -44,39 +47,77 @@ val fossGraphView: VFC = VFC {
     "MAGIC_NUMBER",
     "TOO_LONG_FUNCTION",
     "LongMethod",
+    "TYPE_ALIAS",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
-    div {
-        className = ClassName("card card-body mt-0")
 
-        div {
-            className = ClassName("row d-flex justify-content-end mb-4")
-            span {
-                className = ClassName("col-3 mask opacity-6")
-                form {
-                    className = ClassName("d-none d-inline-block form-inline w-100 navbar-search")
-                    div {
-                        className = ClassName("input-group")
-                        input {
-                            className = ClassName("form-control bg-light border-0 small")
-                            type = InputType.text
-                            placeholder = "Search for the benchmark..."
-                            ariaLabel = "Search"
-                            ariaDescribedBy = "basic-addon2"
-                        }
-                        div {
-                            className = ClassName("input-group-append")
-                            buttonBuilder(icon = faSearch) { }
+    val params = useParams()
+    val vulnerabilityName = params["vulnerabilityName"]!!.toString()
+
+    val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
+
+    useRequest {
+        val vulnerabilityNew = get(
+            "$apiUrl/vulnerabilities/by-name-with-description?name=$vulnerabilityName",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<VulnerabilityDto>()
+            }
+
+        setVulnerability(vulnerabilityNew)
+    }
+
+    val openSourceProjectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "name", header = "Name", { name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            Link {
+                                to = cellContext.row.original.url
+                                +cellContext.value
+                            }
                         }
                     }
                 }
             }
-        }
+        },
+        isTransparentGrid = true,
+        initialPageSize = 10,
+        useServerPaging = false,
+        usePageSelection = false,
+    )
+
+    val projectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "name", header = "Name", { name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            Link {
+                                to = cellContext.row.original.url
+                                +cellContext.value
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        isTransparentGrid = true,
+        initialPageSize = 10,
+        useServerPaging = false,
+        usePageSelection = false,
+    )
+
+    div {
+        className = ClassName("card card-body mt-0")
 
         h1 {
             className = ClassName("h3 mb-0 text-center text-gray-800")
-            +props.name
+            +vulnerability.name
         }
 
         div {
@@ -90,7 +131,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 }
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
-                    val progress = props.progress
+                    val progress = vulnerability.progress
                     val color = if (progress < 51) {
                         Color.GREEN.hexColor
                     } else {
@@ -118,7 +159,8 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         className = ClassName("card-body")
                         textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
-                            value = "description info"
+                            value = "${vulnerability.description}"
+                            rows = 5
                             disabled = true
                         }
                     }
@@ -133,11 +175,23 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 }
                 buttonBuilder("+") { }
 
+                openSourceProjectTable {
+                    getData = { _, _ ->
+                        vulnerability.projects.filter { it.isOpenSource }.toTypedArray()
+                    }
+                }
+
                 div {
                     className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Affected projects"
                 }
                 buttonBuilder("+") { }
+
+                projectTable {
+                    getData = { _, _ ->
+                        vulnerability.projects.filter { !it.isOpenSource }.toTypedArray()
+                    }
+                }
             }
         }
     }
@@ -151,9 +205,4 @@ external interface FossGraphViewProps : Props {
      * Name of security vulnerabilities
      */
     var name: String
-
-    /**
-     * Update to change the progress and percentage
-     */
-    var progress: Int
 }

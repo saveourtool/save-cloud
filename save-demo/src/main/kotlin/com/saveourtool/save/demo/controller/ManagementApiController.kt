@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.controller
 
-import com.saveourtool.save.demo.DemoInfo
+import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
@@ -46,32 +46,22 @@ class ManagementApiController(
     /**
      * @param organizationName name of GitHub user/organization
      * @param projectName name of GitHub repository
-     * @return [Mono] of [DemoStatus] of current demo
+     * @return [Mono] of [DemoDto] for [organizationName]/[projectName]
      */
     @GetMapping("/{organizationName}/{projectName}")
-    suspend fun getDemoInfo(
+    suspend fun getDemoDto(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): DemoInfo {
+    ): DemoDto {
         val demo = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
             "Could not find demo for $organizationName/$projectName."
         }
-        val status = getDemoStatus(organizationName, projectName)
-        val demoInfo = DemoInfo(
-            demo.toDto().copy(vcsTagName = ""),
-            status,
-        )
+        val demoDto = demo.toDto().copy(vcsTagName = "")
         val currentVersion = blockingBridge.blockingToSuspend {
-            demoInfo.demoDto
-                .githubProjectCoordinates
-                ?.let { repo ->
-                    toolService.findCurrentVersion(repo)
-                } ?: "manual"
+            demoDto.githubProjectCoordinates?.let { repo ->
+                toolService.findCurrentVersion(repo)
+            } ?: "manual"
         }
-        return demoInfo.copy(
-            demoDto = demoInfo.demoDto.copy(
-                vcsTagName = currentVersion
-            )
-        )
+        return demoDto.copy(vcsTagName = currentVersion)
     }
 }

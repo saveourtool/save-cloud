@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -35,7 +36,7 @@ import kotlinx.serialization.json.Json
  * Service for interactions with kubernetes
  */
 @Service
-@Profile("kubernetes")
+@Profile("kubernetes | minikube")
 class KubernetesService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
@@ -43,6 +44,9 @@ class KubernetesService(
 ) {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
         "Kubernetes settings should be passed in order to use Kubernetes"
+    }
+    private val agentConfig = requireNotNull(configProperties.agentConfig) {
+        "Agent settings should be passed in order to use Kubernetes"
     }
 
     /**
@@ -54,9 +58,10 @@ class KubernetesService(
     suspend fun start(demo: Demo, version: String = "manual"): StringResponse = run {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
-            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownload(DemoInternalFileStorage.saveDemoAgent)
-                .toString()
-            kc.startJob(demo, downloadAgentUrl, kubernetesSettings)
+            val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(
+                DemoInternalFileStorage.saveDemoAgent
+            ).toString()
+            kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -82,27 +87,36 @@ class KubernetesService(
      * @return [DemoStatus] of [demo] pod
      */
     suspend fun getStatus(demo: Demo): DemoStatus {
-        val status = retrySilently(RETRY_TIMES_QUICK) {
+        val status = retrySilently(RETRY_TIMES_QUICK, RETRY_DELAY_MILLIS) {
             demoAgentRequestWrapper("/alive", demo) { url ->
                 logger.info("Sending GET request with url $url")
                 httpClient.get(url).status
             }
         }
         return when {
-            status == null -> DemoStatus.ERROR
+            status == null -> DemoStatus.STOPPED
             status == HttpStatusCode.OK -> DemoStatus.RUNNING
             status.isSuccess() -> DemoStatus.STARTING
-            else -> DemoStatus.STOPPED
+            else -> DemoStatus.ERROR
         }
     }
 
+    /**
+     * Get save-demo-agent configuration
+     *
+     * @param demo [Demo] entity
+     * @param version required demo version
+     * @return [DemoAgentConfig] corresponding to [Demo] with [version]
+     */
+    fun getConfiguration(demo: Demo, version: String) = DemoAgentConfig(
+        agentConfig.demoUrl,
+        demo.toDemoConfiguration(version),
+        demo.toRunConfiguration(),
+    )
+
     private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
-        val configuration = DemoAgentConfig(
-            configProperties.agentConfig.demoUrl,
-            demo.toDemoConfiguration(version),
-            demo.toRunConfiguration(),
-        )
+        val configuration = getConfiguration(demo, version)
         return demoAgentRequestWrapper("/setup", demo) { url ->
             sendConfigurationRequestRetrying(url, configuration, retryNumber)
         }
@@ -172,9 +186,9 @@ class KubernetesService(
      * @param demo demo entity
      * @return url of pod with demo
      */
-    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES) {
+    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
         kc.getJobPods(demo).firstOrNull()
-    } ?: throw KubernetesRunnerException("Could not run a job in 60 seconds.")
+    } ?: throw KubernetesRunnerException("Could not run a job in ${ RETRY_TIMES * RETRY_DELAY_MILLIS } seconds.")
 
     private suspend fun <R> demoAgentRequestWrapper(
         urlPath: String,
@@ -184,8 +198,9 @@ class KubernetesService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
-        private const val RETRY_TIMES = 6
-        private const val RETRY_TIMES_QUICK = 3
+        private const val RETRY_DELAY_MILLIS = 500L
+        private const val RETRY_TIMES = 2
+        private const val RETRY_TIMES_QUICK = 1
         private val httpClient = HttpClient(Apache) {
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }

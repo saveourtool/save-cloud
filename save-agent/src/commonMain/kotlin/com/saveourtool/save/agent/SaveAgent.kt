@@ -17,6 +17,7 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.requiredEnv
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
@@ -90,7 +91,11 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     // a temporary workaround for python integration
-    private fun executeAdditionallySetup(targetDirectory: Path, additionalFileNames: Collection<String>) = runCatching {
+    private fun executeAdditionallySetup(
+        targetDirectory: Path,
+        additionalFileNames: Collection<String>,
+        setupShTimeoutMillis: Long,
+    ) = runCatching {
         logDebugCustom("Will execute additionally setup of evaluated tool if it's required")
         additionalFileNames
             .singleOrNull { it == "setup.sh" }
@@ -102,7 +107,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         "./$targetFile",
                         "",
                         null,
-                        SETUP_SH_TIMEOUT
+                        setupShTimeoutMillis,
                     )
                 if (setupResult.code != 0) {
                     throw IllegalStateException("$fileName} is failed with error: ${setupResult.stderr}")
@@ -156,7 +161,7 @@ class SaveAgent(private val config: AgentConfiguration,
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong(), percentCompletion = 0))
+                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID.name).toLong(), percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -207,7 +212,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
         // a temporary workaround for python integration
-        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys)
+        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
             .runIf(
                 failureResultPredicate
             ) {
@@ -410,7 +415,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     companion object {
         private const val SAVE_CLI_TIMEOUT = 1_000_000L
-        private const val SETUP_SH_TIMEOUT = 60_000L
         private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }

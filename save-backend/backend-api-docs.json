@@ -137,12 +137,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "description": "type of avatar",
-            "in": "path",
-            "name": "type",
-            "required": true
           }
         ],
         "responses": {
@@ -322,7 +316,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -387,7 +381,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -659,7 +653,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -715,7 +709,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -1589,17 +1583,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "description": "number of contests that will be fetched, default is 4",
-            "in": "path",
-            "name": "amount",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 4
-            }
           }
         ],
         "responses": {
@@ -1707,74 +1690,6 @@
         "summary": "Get contests that can be participated.",
         "tags": [
           "contests"
-        ]
-      }
-    },
-    "/api/v1/demo/{organizationName}/{projectName}": {
-      "get": {
-        "description": "Get demo info.",
-        "operationId": "getDemoInfo",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoInfo"
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo info.",
-        "tags": [
-          "demo-manager-controller"
         ]
       }
     },
@@ -2047,7 +1962,7 @@
             "description": "version of files, manual by default",
             "in": "query",
             "name": "version",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -2175,98 +2090,6 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}/status": {
-      "get": {
-        "description": "Get demo status.",
-        "operationId": "getDemoStatus",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Successfully fetched demo status."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ERROR",
-                    "NOT_CREATED",
-                    "RUNNING",
-                    "STARTING",
-                    "STOPPED",
-                    "STOPPING"
-                  ]
-                }
-              }
-            },
-            "description": "Could not find project in organization or demo for it."
-          }
-        },
-        "summary": "Get demo status.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
     "/api/v1/demo/{organizationName}/{projectName}/stop": {
       "post": {
         "description": "Delete demo container if possible, do nothing otherwise.",
@@ -2362,7 +2185,7 @@
             "description": "version to attach the file to, manual by default",
             "in": "query",
             "name": "version",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -2597,7 +2420,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ExecutionFilters"
+                "$ref": "#/components/schemas/ExecutionFilter"
               }
             }
           }
@@ -3235,7 +3058,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3320,7 +3143,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3385,7 +3208,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3440,7 +3263,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3448,7 +3271,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3515,7 +3338,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -3582,7 +3405,7 @@
           {
             "description": "organization filters",
             "in": "query",
-            "name": "organizationFilters",
+            "name": "organizationFilter",
             "required": true
           }
         ],
@@ -3590,7 +3413,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrganizationFilters"
+                "$ref": "#/components/schemas/OrganizationFilter"
               }
             }
           },
@@ -5129,7 +4952,7 @@
           {
             "description": "project filters",
             "in": "query",
-            "name": "projectFilters",
+            "name": "projectFilter",
             "required": true
           }
         ],
@@ -5137,7 +4960,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectFilters"
+                "$ref": "#/components/schemas/ProjectFilter"
               }
             }
           },
@@ -5238,24 +5061,6 @@
         "description": "Get project by name and organization name.",
         "operationId": "getProjectByNameAndOrganizationName",
         "parameters": [
-          {
-            "description": "name of a project",
-            "in": "path",
-            "name": "name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "example": "basic",
             "in": "header",
@@ -5861,12 +5666,6 @@
             }
           },
           {
-            "description": "setRoleRequest passed through body",
-            "in": "path",
-            "name": "setRoleRequest",
-            "required": true
-          },
-          {
             "example": "basic",
             "in": "header",
             "name": "X-Authorization-Source",
@@ -6177,7 +5976,7 @@
           {
             "in": "query",
             "name": "checkDebugInfo",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -6186,7 +5985,7 @@
           {
             "in": "query",
             "name": "testAnalysis",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -6203,7 +6002,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestExecutionFilters"
+                "$ref": "#/components/schemas/TestExecutionFilter"
               }
             }
           }
@@ -7119,17 +6918,11 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
             }
-          },
-          {
-            "description": "name of an organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true
           }
         ],
         "responses": {
@@ -7206,7 +6999,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7303,7 +7096,7 @@
             "description": "test suite tags substring for filtering, default is empty",
             "in": "query",
             "name": "tags",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7313,7 +7106,7 @@
             "description": "test suite name substring for filtering, default is empty",
             "in": "query",
             "name": "name",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7323,7 +7116,7 @@
             "description": "test suite language substring for filtering, default is empty",
             "in": "query",
             "name": "language",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "default": ""
@@ -7333,7 +7126,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7399,7 +7192,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "boolean",
               "default": false
@@ -8239,6 +8032,153 @@
           "users-details-controller"
         ]
       }
+    },
+    "/api/v1/vulnerabilities/by-filters": {
+      "post": {
+        "description": "Get filtered vulnerabilities.",
+        "operationId": "getAllVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all vulnerabilities by filters"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerabilities with filters.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/by-name-with-description": {
+      "get": {
+        "description": "Get vulnerability by name.",
+        "operationId": "getVulnerabilityWithDescriptionByName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Successfully fetched vulnerability by name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get vulnerability by name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/save": {
+      "post": {
+        "description": "Save vulnerability.",
+        "operationId": "save",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
     }
   },
   "components": {
@@ -8501,29 +8441,6 @@
           }
         }
       },
-      "DemoInfo": {
-        "required": [
-          "demoDto",
-          "demoStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "demoDto": {
-            "$ref": "#/components/schemas/DemoDto"
-          },
-          "demoStatus": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "NOT_CREATED",
-              "RUNNING",
-              "STARTING",
-              "STOPPED",
-              "STOPPING"
-            ]
-          }
-        }
-      },
       "Execution": {
         "required": [
           "allTests",
@@ -8742,7 +8659,7 @@
           }
         }
       },
-      "ExecutionFilters": {
+      "ExecutionFilter": {
         "required": [
           "endTime",
           "startTime"
@@ -9102,7 +9019,7 @@
           }
         }
       },
-      "OrganizationFilters": {
+      "OrganizationFilter": {
         "required": [
           "prefix",
           "statuses"
@@ -9284,7 +9201,7 @@
           }
         }
       },
-      "ProjectFilters": {
+      "ProjectFilter": {
         "required": [
           "name",
           "organizationName",
@@ -9485,7 +9402,7 @@
           }
         }
       },
-      "TestExecutionFilters": {
+      "TestExecutionFilter": {
         "type": "object",
         "properties": {
           "fileName": {
@@ -9933,6 +9850,62 @@
             "type": "string"
           },
           "twitter": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityDto": {
+        "required": [
+          "name",
+          "progress",
+          "projects"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VulnerabilityProjectDto"
+            }
+          }
+        }
+      },
+      "VulnerabilityFilter": {
+        "required": [
+          "prefixName"
+        ],
+        "type": "object",
+        "properties": {
+          "prefixName": {
+            "type": "string"
+          }
+        }
+      },
+      "VulnerabilityProjectDto": {
+        "required": [
+          "isOpenSource",
+          "name",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "isOpenSource": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
             "type": "string"
           }
         }

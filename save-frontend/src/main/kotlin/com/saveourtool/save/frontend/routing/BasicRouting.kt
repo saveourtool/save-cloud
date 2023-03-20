@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
@@ -16,6 +16,9 @@ import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
+import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
+import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -78,7 +81,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
-                TestExecutionFilters(
+                TestExecutionFilter(
                     status = params.get("status")?.let { TestResultStatus.valueOf(it) },
                     fileName = params.get("fileName"),
                     testSuite = params.get("testSuite"),
@@ -142,7 +145,9 @@ val basicRouting: FC<AppProps> = FC { props ->
             diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            fossGraphView.create() to "/$FOSS_GRAPH",
+            fossGraphCollectionView.create() to "/$FOSS_GRAPH",
+            createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
+            fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -47,8 +46,6 @@ typealias StringListResponse = ResponseEntity<List<String>>
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testsSourceVersionService: TestsSourceVersionService,
-    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
-    private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
 ) {

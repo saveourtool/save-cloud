@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.service
 
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.entity.Demo
 import com.saveourtool.save.demo.repository.DemoRepository
@@ -61,6 +62,21 @@ class DemoService(
     suspend fun getStatus(demo: Demo): DemoStatus = kubernetesService?.let {
         kubernetesService.getStatus(demo)
     } ?: DemoStatus.RUNNING
+
+    /**
+     * Get save-demo-agent configuration
+     *
+     * @param demo [Demo] entity
+     * @param version required demo version
+     * @return [DemoAgentConfig] corresponding to [Demo] with [version]
+     * @throws IllegalStateException on inactive kubernetes profile
+     */
+    fun getAgentConfiguration(
+        demo: Demo,
+        version: String,
+    ) = kubernetesService?.getConfiguration(demo, version) ?: throw IllegalStateException(
+        "Could not get configuration for pod as kubernetes profile is inactive."
+    )
 
     private fun save(demo: Demo) = demoRepository.save(demo)
 

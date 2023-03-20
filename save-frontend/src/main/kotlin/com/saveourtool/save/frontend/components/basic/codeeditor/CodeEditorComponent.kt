@@ -15,7 +15,26 @@ import react.dom.html.ReactHTML.h6
 /**
  * Component with pure code editor
  */
-val codeEditorComponent = codeEditorComponent()
+val codeEditorComponent: FC<CodeEditorComponentProps> = FC { props ->
+    div {
+        props.editorTitle?.let { editorTitle ->
+            h6 {
+                className = ClassName("text-center text-primary")
+                +editorTitle
+            }
+        }
+
+        aceBuilder(
+            props.draftText,
+            props.selectedMode,
+            props.selectedTheme,
+            getAceMarkers(props.savedText, props.draftText),
+            props.isDisabled,
+        ) {
+            props.onDraftTextUpdate(it)
+        }
+    }
+}
 
 /**
  * CodeEditor functional component [Props]
@@ -55,25 +74,4 @@ external interface CodeEditorComponentProps : Props {
      * Flag to disable form editing
      */
     var isDisabled: Boolean
-}
-
-private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
-    div {
-        props.editorTitle?.let { editorTitle ->
-            h6 {
-                className = ClassName("text-center text-primary")
-                +editorTitle
-            }
-        }
-
-        aceBuilder(
-            props.draftText,
-            props.selectedMode,
-            props.selectedTheme,
-            getAceMarkers(props.savedText, props.draftText),
-            props.isDisabled,
-        ) {
-            props.onDraftTextUpdate(it)
-        }
-    }
 }

@@ -1,5 +1,6 @@
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.utils.DEFAULT_SETUP_SH_TIMEOUT_MILLIS
 import kotlinx.serialization.Serializable
 
 /**
@@ -7,6 +8,7 @@ import kotlinx.serialization.Serializable
  * @property testSuitesSourceSnapshotUrl an url to download snapshot of test suites source with tests
  * @property additionalFileNameToUrl a map of file name to url to download additional file
  * @property saveCliOverrides overrides for save-cli
+ * @property setupShTimeoutMillis amount of milliseconds to run setup.sh if it is present, [DEFAULT_SETUP_SH_TIMEOUT_MILLIS] by default
  */
 @Serializable
 data class AgentInitConfig(
@@ -14,4 +16,5 @@ data class AgentInitConfig(
     val testSuitesSourceSnapshotUrl: String,
     val additionalFileNameToUrl: Map<String, String>,
     val saveCliOverrides: SaveCliOverrides,
+    val setupShTimeoutMillis: Long = DEFAULT_SETUP_SH_TIMEOUT_MILLIS,
 )

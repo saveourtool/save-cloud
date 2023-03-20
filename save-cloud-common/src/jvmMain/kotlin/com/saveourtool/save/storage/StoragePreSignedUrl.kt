@@ -1,5 +1,10 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.storage.request.DownloadRequest
+import com.saveourtool.save.storage.request.UploadRequest
+import com.saveourtool.save.utils.orNotFound
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.net.URL
 
 /**
@@ -10,7 +15,24 @@ import java.net.URL
 interface StoragePreSignedUrl<K : Any> {
     /**
      * @param key a key to download content
-     * @return URL to download content if [key] valid, otherwise -- null
+     * @return [DownloadRequest] with [URL] to download content if [key] valid, otherwise -- null
      */
-    fun generateUrlToDownload(key: K): URL?
+    fun generateRequestToDownload(key: K): DownloadRequest<K>?
+
+    /**
+     * @param key
+     * @return generated [DownloadRequest] with [URL] to download provided [key] [K]
+     * @throws ResponseStatusException with status [HttpStatus.NOT_FOUND]
+     */
+    fun generateRequiredRequestToDownload(key: K): DownloadRequest<K> = generateRequestToDownload(key)
+        .orNotFound {
+            "Not found $key in ${this::class.simpleName} storage"
+        }
+
+    /**
+     * @param key a key for provided content
+     * @param contentLength a content length of content
+     * @return uploaded key and URL with headers to upload content as [UploadRequest]
+     */
+    fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K>
 }
