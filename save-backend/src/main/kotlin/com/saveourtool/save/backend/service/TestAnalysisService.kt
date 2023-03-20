@@ -104,7 +104,6 @@ class TestAnalysisService(
      * Populates the in-memory statistics by replaying historical data.
      */
     @EventListener(ApplicationReadyEvent::class)
-    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     fun replayHistoricalData() {
         if (!replayOnStartup) {
             logger.warn {
