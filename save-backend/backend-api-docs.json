@@ -8180,7 +8180,7 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/save-all-projects": {
+    "/api/v1/vulnerabilities/save-projects": {
       "post": {
         "description": "Update vulnerability.",
         "operationId": "saveAllProjects",
@@ -8206,7 +8206,7 @@
                 }
               }
             },
-            "description": "Successfully update vulnerability"
+            "description": "Successfully updateв vulnerability"
           },
           "401": {
             "content": {
