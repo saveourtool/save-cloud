@@ -46,7 +46,6 @@ import java.util.*
 )
 @RestController
 @RequestMapping(path = ["/api/$v1/projects"])
-@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
 class ProjectController(
     private val projectService: ProjectService,
     private val organizationService: OrganizationService,

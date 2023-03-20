@@ -111,7 +111,7 @@ class TestSuitesSourceController(
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
     @ApiResponse(responseCode = "404", description = ".")
-    fun listVersionsByOrganizationAndSource(
+    fun listVersions(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
     ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
@@ -132,7 +132,7 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for all test suites sources in requested organization.")
     @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
-    fun listVersionsByOrganization(
+    fun listVersions(
         @PathVariable organizationName: String,
     ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->

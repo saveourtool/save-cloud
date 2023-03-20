@@ -2366,7 +2366,7 @@
     },
     "/api/v1/executionDto": {
       "get": {
-        "operationId": "getExecutionDtoForPublicApi",
+        "operationId": "getExecutionDto",
         "parameters": [
           {
             "in": "query",
@@ -6383,7 +6383,7 @@
     "/api/v1/test-suites-sources/{organizationName}/list-version": {
       "get": {
         "description": "List of snapshot for all test suites sources in requested organization.",
-        "operationId": "listVersionsByOrganization",
+        "operationId": "listVersions_1",
         "parameters": [
           {
             "description": "name of organization",
@@ -6763,7 +6763,7 @@
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/list-version": {
       "get": {
         "description": "List of snapshot for test suites source.",
-        "operationId": "listVersionsByOrganizationAndSource",
+        "operationId": "listVersions",
         "parameters": [
           {
             "description": "name of organization",
