@@ -6185,7 +6185,7 @@
     "/api/v1/test-suites-sources/update": {
       "post": {
         "description": "Get or create a new test suite source by provided values.",
-        "operationId": "update",
+        "operationId": "update_1",
         "parameters": [
           {
             "description": "ID of test suites source",
@@ -8182,7 +8182,7 @@
     },
     "/api/v1/vulnerabilities/save-projects": {
       "post": {
-        "description": "Update vulnerability.",
+        "description": "Save new projects.",
         "operationId": "saveAllProjects",
         "requestBody": {
           "content": {
@@ -8192,6 +8192,53 @@
                 "items": {
                   "$ref": "#/components/schemas/VulnerabilityProjectDto"
                 }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved new projects in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save new projects.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/update": {
+      "post": {
+        "description": "Update vulnerability.",
+        "operationId": "update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDto"
               }
             }
           },
@@ -9909,6 +9956,7 @@
       },
       "VulnerabilityDto": {
         "required": [
+          "isActive",
           "name",
           "progress",
           "projects"
@@ -9917,6 +9965,9 @@
         "properties": {
           "description": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "name": {
             "type": "string"
