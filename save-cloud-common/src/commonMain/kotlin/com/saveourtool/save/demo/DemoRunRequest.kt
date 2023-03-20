@@ -5,17 +5,17 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property codeLines file as String that contains code requested for demo run
- * @property mode mode to tell if the analysis should be performed in [DemoMode.WARN] or in [DemoMode.FIX]
+ * @property mode mode to determine the mode that the tool should be run in
  * @property config additional configuration file for demo
  */
 @Serializable
 data class DemoRunRequest(
     val codeLines: List<String>,
-    val mode: DemoMode? = null,
+    val mode: String,
     val config: List<String>? = null,
 ) {
     companion object {
-        val empty = DemoRunRequest(emptyList(), null, null)
+        val empty = DemoRunRequest(emptyList(), "", null)
 
         /**
          * Default config for [DiktatDemoTool.DIKTAT]
@@ -121,6 +121,6 @@ data class DemoRunRequest(
             |- name: COMPLEX_EXPRESSION
             |  enabled: true
         """.trimMargin().split("\n")
-        val diktatDemoRunRequest = DemoRunRequest(emptyList(), DemoMode.WARN, defaultDiktatConfig)
+        val diktatDemoRunRequest = DemoRunRequest(emptyList(), "Warn", defaultDiktatConfig)
     }
 }

@@ -7,7 +7,6 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.service.DemoService
 import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.web.bind.annotation.GetMapping
@@ -54,11 +53,25 @@ class DemoController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestBody demoRunRequest: DemoRunRequest,
-    ): Mono<DemoResult> = blockingToMono {
-        demoService.findBySaveourtoolProject(organizationName, projectName)
+    ): Mono<DemoResult> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
     }
         .zipWith(demoService.getRunnerType())
         .flatMap { (demo, runnerType) ->
             demoRunnerFactory.create(demo, "manual", runnerType).run(demoRunRequest)
         }
+
+    /**
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @return list of available modes to run the demo with
+     */
+    @GetMapping("/{organizationName}/{projectName}/modes")
+    fun getModes(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+    ): Flux<String> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .flatMapIterable { demo -> demo.runCommands.map { runCommand -> runCommand.command } }
 }

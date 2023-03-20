@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.runners.command
 
-import com.saveourtool.save.demo.DemoMode
 import org.apache.commons.text.StringSubstitutor
 import org.springframework.stereotype.Component
 
@@ -20,12 +19,6 @@ class CommandBuilder {
     private fun CommandContext.toMap(): Map<String, String> = buildMap {
         put("testPath", testPath.toString())
         put("outputPath", outputPath.toString())
-        mode?.let {
-            when (it) {
-                DemoMode.FIX -> put("isWarn", "")
-                DemoMode.WARN -> put("isFix", "")
-            }
-        }
         tools.map { (key, value) ->
             put("tools.$key", value.toString())
         }

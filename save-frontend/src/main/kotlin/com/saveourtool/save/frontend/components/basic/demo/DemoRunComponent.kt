@@ -4,12 +4,12 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.demo
 
-import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
@@ -34,19 +34,10 @@ import react.dom.html.ReactHTML.strong
 import web.file.FileReader
 import web.html.InputType
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val defaultCode = """
-    |package com.test
-    |
-    |fun main() {
-    |    val SAVEOUR = "tool"
-    |    
-    |    
-    |}
-""".trimMargin()
+private const val DEFAULT_CODE = "\"Your code here\""
 
 /**
  * [FC] to display components for demo
@@ -58,25 +49,13 @@ private val defaultCode = """
     "TYPE_ALIAS"
 )
 val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
-    val (demoRunRequest, setDemoRunRequest) = useState(props.emptyDemoRunRequest)
+    val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty)
     val (demoResult, setDemoResult) = useState(DemoResult.empty)
-    val (codeLines, setCodeLines) = useState(defaultCode)
-
-    /*
-     * Temporary workaround.
-     *
-     * There is a problem with attempt to process different demos in the same view.
-     * In order to flush all the data corresponding to one demo, this [useEffect] is required
-     */
-    useEffect(window.location.href) {
-        setDemoResult(DemoResult.empty)
-        setCodeLines(defaultCode)
-        setDemoRunRequest(props.emptyDemoRunRequest)
-    }
+    val (codeLines, setCodeLines) = useState(DEFAULT_CODE)
 
     val sendRunRequest = useDeferredRequest {
         val result: DemoResult = post(
-            "$demoApiUrl${props.demoRunEndpoint}",
+            "$demoApiUrl/${props.projectCoordinates}/run",
             jsonHeaders,
             Json.encodeToString(
                 demoRunRequest.copy(codeLines = codeLines.lines())
@@ -124,15 +103,14 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
             div {
                 className = ClassName("col-2 mr-1")
                 selectorBuilder(
-                    demoRunRequest.mode.toString(),
-                    DemoMode.values().map { it.name },
+                    demoRunRequest.mode,
+                    props.availableModes,
                     "custom-select",
-                    // todo: process modes for custom tools
-                    isDisabled = !props.demoRunEndpoint.contains("diktat"),
+                    isDisabled = props.availableModes.size == 1,
                 ) { event ->
                     setDemoRunRequest { runRequest ->
                         runRequest.copy(
-                            mode = DemoMode.valueOf(event.target.value)
+                            mode = event.target.value
                         )
                     }
                 }
@@ -206,19 +184,19 @@ external interface DemoRunComponentProps : Props {
     var selectedMode: Languages
 
     /**
-     * An initial value of [DemoRunRequest]
+     * saveourtool [ProjectCoordinates]
      */
-    var emptyDemoRunRequest: DemoRunRequest
-
-    /**
-     * Endpoint to run this demo
-     */
-    var demoRunEndpoint: String
+    var projectCoordinates: ProjectCoordinates
 
     /**
      * Optional config name for this demo
      */
     var configName: String?
+
+    /**
+     * List of available demo modes e.g. Fix, Warn etc
+     */
+    var availableModes: List<String>
 }
 
 private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {

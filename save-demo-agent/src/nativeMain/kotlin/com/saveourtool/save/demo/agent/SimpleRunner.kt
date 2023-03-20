@@ -32,14 +32,21 @@ fun runDemo(
     demoRunRequest: DemoRunRequest,
     deferredConfig: CompletableDeferred<DemoAgentConfig>,
 ): DemoResult {
+    require(demoRunRequest.mode.isNotBlank()) {
+        "Demo mode should not be blank."
+    }
     val config = deferredConfig.getCompleted().runConfiguration
-    val (inputFile, configFile) = createRequiredFiles(demoRunRequest, config)
 
+    val runCommand = requireNotNull(config.runCommands[demoRunRequest.mode]) {
+        "Could not find run command for mode ${demoRunRequest.mode}."
+    }
+
+    val (inputFile, configFile) = createRequiredFiles(demoRunRequest, config)
     val logFile = config.logFileName.toPath()
     val outputFile = config.outputFileName?.toPath()
 
     return try {
-        run(config.runCommand, inputFile, logFile, outputFile)
+        run(runCommand, inputFile, logFile, outputFile)
     } finally {
         cleanUp(inputFile, configFile, logFile, outputFile)
     }

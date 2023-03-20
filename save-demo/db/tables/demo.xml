@@ -47,4 +47,8 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="demo-drop_run_command" author="sanyavertolet" context="dev or prod">
+        <dropColumn tableName="demo" columnName="run_command"/>
+    </changeSet>
+
 </databaseChangeLog>
