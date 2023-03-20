@@ -20,7 +20,7 @@ import okio.Path.Companion.toPath
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 10_000L
+private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 20_000L
 
 /**
  * @param demoRunRequest

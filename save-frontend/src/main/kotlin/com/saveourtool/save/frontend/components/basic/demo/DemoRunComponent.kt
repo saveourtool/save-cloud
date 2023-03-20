@@ -49,7 +49,7 @@ private const val DEFAULT_CODE = "\"Your code here\""
     "TYPE_ALIAS"
 )
 val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
-    val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty)
+    val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty.copy(mode = props.availableModes.first()))
     val (demoResult, setDemoResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(DEFAULT_CODE)
 
