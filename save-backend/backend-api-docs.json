@@ -8409,7 +8409,7 @@
         "required": [
           "fileName",
           "projectCoordinates",
-          "runCommand",
+          "runCommands",
           "sdk",
           "vcsTagName"
         ],
@@ -8430,8 +8430,11 @@
           "projectCoordinates": {
             "$ref": "#/components/schemas/ProjectCoordinates"
           },
-          "runCommand": {
-            "type": "string"
+          "runCommands": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "sdk": {
             "$ref": "#/components/schemas/Sdk"
