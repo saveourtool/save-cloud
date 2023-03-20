@@ -8179,6 +8179,56 @@
           "vulnerabilities"
         ]
       }
+    },
+    "/api/v1/vulnerabilities/save-projects": {
+      "post": {
+        "description": "Update vulnerability.",
+        "operationId": "saveAllProjects",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/VulnerabilityProjectDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully updated vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Update vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
     }
   },
   "components": {
@@ -8409,7 +8459,7 @@
         "required": [
           "fileName",
           "projectCoordinates",
-          "runCommand",
+          "runCommands",
           "sdk",
           "vcsTagName"
         ],
@@ -8430,8 +8480,11 @@
           "projectCoordinates": {
             "$ref": "#/components/schemas/ProjectCoordinates"
           },
-          "runCommand": {
-            "type": "string"
+          "runCommands": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "sdk": {
             "$ref": "#/components/schemas/Sdk"
@@ -9895,7 +9948,8 @@
         "required": [
           "isOpenSource",
           "name",
-          "url"
+          "url",
+          "vulnerabilityName"
         ],
         "type": "object",
         "properties": {
@@ -9906,6 +9960,9 @@
             "type": "string"
           },
           "url": {
+            "type": "string"
+          },
+          "vulnerabilityName": {
             "type": "string"
           }
         }

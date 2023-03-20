@@ -30,6 +30,9 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useParams
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 /**
  * [VFC] for foss graph view
  */
@@ -52,10 +55,37 @@ val fossGraphView: VFC = VFC {
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
+    val projectWindowOpenness = useWindowOpenness()
+
     val params = useParams()
     val vulnerabilityName = params["vulnerabilityName"]!!.toString()
 
+    val (vulnerabilityProjects, setVulnerabilityProjects) = useState<Set<VulnerabilityProjectDto>>(setOf())
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
+    val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
+
+    val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
+        setVulnerability {
+            it.copy(projects = it.projects.plus(project))
+        }
+        setVulnerabilityProjects {
+            it.plus(project)
+        }
+        setIsUpdateVulnerability(true)
+        projectWindowOpenness.closeWindow()
+    }
+
+    val enrollRequest = useDeferredRequest {
+        val response = post(
+            url = "$apiUrl/vulnerabilities/save-projects",
+            headers = jsonHeaders,
+            body = Json.encodeToString(vulnerabilityProjects),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            setIsUpdateVulnerability(false)
+        }
+    }
 
     useRequest {
         val vulnerabilityNew = get(
@@ -68,6 +98,12 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             }
 
         setVulnerability(vulnerabilityNew)
+    }
+
+    vulnerabilityProjectWindow {
+        this.windowOpenness = projectWindowOpenness
+        this.vulnerabilityName = vulnerabilityName
+        this.fetchProjectCredentials = fetchProject
     }
 
     val openSourceProjectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
@@ -169,11 +205,20 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             // ===================== RIGHT COLUMN =======================================================================
             div {
                 className = ClassName("col-6")
+
+                div {
+                    className = ClassName("d-flex justify-content-end")
+                    buttonBuilder("Add project", classes = "mr-2") {
+                        projectWindowOpenness.openWindow()
+                    }
+                    buttonBuilder(label = "Save", isDisabled = !isUpdateVulnerability) {
+                        enrollRequest()
+                    }
+                }
                 div {
                     className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Affected open source projects"
                 }
-                buttonBuilder("+") { }
 
                 openSourceProjectTable {
                     getData = { _, _ ->
@@ -185,7 +230,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Affected projects"
                 }
-                buttonBuilder("+") { }
 
                 projectTable {
                     getData = { _, _ ->
