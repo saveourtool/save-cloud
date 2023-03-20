@@ -28,6 +28,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param pageable
      * @return list of test executions
      */
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     fun findByExecutionId(executionId: Long, pageable: Pageable): List<TestExecution>
 
     /**
@@ -91,6 +92,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param executionId
      * @return list of test executions
      */
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     fun findByExecutionId(executionId: Long): List<TestExecution>
 
     /**
@@ -138,7 +140,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param testSuite is testSuiteName
      * @param tag is tag
      * @param pageable a request for a page
-     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
     @Query(

@@ -100,7 +100,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return execution dto
      */
     @GetMapping(path = ["/api/$v1/executionDto"])
-    fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
+    fun getExecutionDtoForPublicApi(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
             executionService.findExecution(executionId)
                 .toMonoOrNotFound()
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }

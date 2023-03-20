@@ -186,7 +186,7 @@ class TestExecutionController(
                 }
                 .mapNotNull {
                     if (page == null || size == null) {
-                        testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                        testExecutionService.getAllTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
                             TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
                         }
                     } else {
@@ -255,7 +255,7 @@ class TestExecutionController(
     @GetMapping("/internal/test-executions/get-by-container-id")
     fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
                                             @RequestParam status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(containerId, status)
+    ) = testExecutionService.getAllTestExecutions(containerId, status)
         .map { it.toDto() }
 
     /**

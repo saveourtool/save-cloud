@@ -71,7 +71,7 @@ class TestExecutionService(
      * @param executionId
      * @return a list of test executions
      */
-    internal fun getTestExecutions(executionId: Long): List<TestExecution> =
+    internal fun getAllTestExecutions(executionId: Long): List<TestExecution> =
             testExecutionRepository.findByExecutionId(executionId)
 
     /**
@@ -97,7 +97,7 @@ class TestExecutionService(
      * @param status
      * @return a list of test executions
      */
-    internal fun getTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
+    internal fun getAllTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
         .findByAgentContainerIdAndStatus(containerId, status)
 
     /**

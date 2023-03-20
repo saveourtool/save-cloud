@@ -73,7 +73,6 @@ class OrganizationService(
      * If an organization was previously banned, then all its projects become deleted.
      *
      * @param organization an [Organization] to create
-     * @param organization
      * @return recovered organization
      */
     @Transactional
