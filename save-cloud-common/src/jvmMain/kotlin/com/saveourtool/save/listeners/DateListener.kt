@@ -9,9 +9,10 @@ import javax.persistence.PreUpdate
 class DateListener {
     @PrePersist
     private fun beforeSave(entity: BaseEntityWithDate) {
+        val date = LocalDateTime.now()
         with(entity) {
-            createDate = LocalDateTime.now()
-            updateDate = LocalDateTime.now()
+            createDate = date
+            updateDate = date
         }
     }
     @PreUpdate
