@@ -26,4 +26,3 @@ data class ConfigProperties(
         var password: String,
     )
 }
-

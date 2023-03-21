@@ -39,7 +39,6 @@ import react.dom.html.ReactHTML.tr
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML
 
 private const val CPG_PLACEHOLDER_TEXT = """#include <iostream>
 
