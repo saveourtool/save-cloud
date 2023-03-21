@@ -48,7 +48,7 @@ class DemoManagerController(
         .applyAll(customizers)
         .build()
 
-    @PostMapping("/{organizationName}/{projectName}/add")
+    @PostMapping("/{organizationName}/{projectName}/save-or-update")
     @RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
@@ -56,14 +56,14 @@ class DemoManagerController(
     )
     @Operation(
         method = "POST",
-        summary = "Add demo for a tool.",
-        description = "Add demo for a tool.",
+        summary = "Add demo for a tool or update existing.",
+        description = "Add demo for a tool or update existing.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully added demo.")
+    @ApiResponse(responseCode = "200", description = "Successfully added demo or updated existing.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for accessing given project.")
     @ApiResponse(responseCode = "404", description = "Could not find project in organization.")
     @ApiResponse(responseCode = "409", description = "Invalid demo creation request.")
-    fun addDemo(
+    fun saveOrUpdateDemo(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestBody demoCreationRequest: DemoCreationRequest,
@@ -87,7 +87,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.post()
-                .uri("/demo/internal/manager/add")
+                .uri("/demo/internal/manager/save-or-update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.demoDto)
                 .retrieve()
@@ -173,13 +173,14 @@ class DemoManagerController(
         .requireOrSwitchToResponseException({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.DELETE) }, HttpStatus.FORBIDDEN) {
             "Not enough permission for accessing given project."
         }
-        .flatMapMany {
+        .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/files/$organizationName/$projectName/list?version=$version")
+                .uri("/demo/internal/files/$organizationName/$projectName/list-file?version=$version")
                 .retrieve()
                 .defaultNotFoundProcessing(organizationName, projectName)
-                .bodyToFlux()
+                .bodyToMono<List<FileDto>>()
         }
+        .flatMapIterable { it }
 
     @DeleteMapping("/{organizationName}/{projectName}/delete-file")
     @RequiresAuthorizationSourceHeader

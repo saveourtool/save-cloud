@@ -87,8 +87,6 @@ class DemoService(
         "Could not get configuration for pod as kubernetes profile is inactive."
     )
 
-    private fun save(demo: Demo) = demoRepository.save(demo)
-
     /**
      * @return list of [Demo]s that are stored in database
      */
@@ -97,20 +95,32 @@ class DemoService(
     /**
      * @param demo [Demo] entity
      * @param runCommands [RunCommandMap] where keys are demo mode names and values are run commands
-     * @return [Demo] entity saved to database
-     * @throws IllegalStateException if [demo] is already present in DB
+     * @return [Demo] entity, updated or saved to database
      */
     @Transactional
-    fun saveIfNotPresent(demo: Demo, runCommands: RunCommandMap): Demo = demoRepository.findByOrganizationNameAndProjectName(demo.organizationName, demo.projectName)?.let {
-        throw IllegalStateException("Demo for project ${demo.organizationName}/${demo.projectName} is already added.")
-    } ?: run {
-        save(demo).apply {
-            this.runCommands = runCommands.map { (mode, command) ->
-                RunCommand(this, mode, command)
-            }.let { runCommandList ->
-                runCommandRepository.saveAll(runCommandList)
+    fun saveOrUpdateExisting(demo: Demo, runCommands: RunCommandMap): Demo = demoRepository.findByOrganizationNameAndProjectName(
+        demo.organizationName,
+        demo.projectName
+    )
+        ?.let { demoFromDb ->
+            demo.apply {
+                this.id = demoFromDb.requiredId()
+                val existingCommands = demoFromDb.runCommands.filter { (it.modeName to it.command) in runCommands.toList() }
+                val newCommands = runCommands.filterKeys { modeName -> modeName !in existingCommands.map { it.modeName } }.toRunCommandEntityList(this)
+                    .also {
+                        runCommandRepository.saveAllAndFlush(it)
+                    }
+
+                this.runCommands = existingCommands + newCommands
             }
         }
+        ?.let { demoRepository.save(it) }
+        ?: demoRepository.save(demo).apply {
+            this.runCommands = runCommands.toRunCommandEntityList(this).let { runCommandRepository.saveAll(it) }
+        }
+
+    private fun RunCommandMap.toRunCommandEntityList(demo: Demo) = map { (modeName, runCommand) ->
+        RunCommand(demo, modeName, runCommand)
     }
 
     /**

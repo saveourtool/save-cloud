@@ -48,6 +48,11 @@ data class DemoDto(
         return requireNotNull(runCommands[mode]) { "Could not find run command for mode $mode." }
     }
 
+    /**
+     * @return list of mode names
+     */
+    fun getAvailableMods(): List<String> = runCommands.keys.toList()
+
     companion object {
         val empty = emptyForProject("", "")
 
