@@ -5,7 +5,6 @@
 package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
@@ -20,9 +19,9 @@ import react.dom.html.ReactHTML.input
 /**
  * Display file uploader of demo management card
  *
- * @param demoStatus [DemoStatus] of this demo
  * @param demoDto currently configured [DemoDto]
  * @param setDemoDto callback to update state of [demoDto]
+ * @param isDisabled flag that defines if input forms are disabled or not
  * @param githubProjectCoordinates GitHub's organization and project name wrapped into [ProjectCoordinates]
  * @param setGithubProjectCoordinates callback that updates [githubProjectCoordinates] state
  * @param setSelectedFileDtos update state of list of [FileDto] that should be connected with this demo
@@ -35,9 +34,9 @@ import react.dom.html.ReactHTML.input
     "LongParameterList"
 )
 internal fun ChildrenBuilder.renderFileUploading(
-    demoStatus: DemoStatus,
     demoDto: DemoDto,
     setDemoDto: StateSetter<DemoDto>,
+    isDisabled: Boolean,
     githubProjectCoordinates: ProjectCoordinates,
     setGithubProjectCoordinates: StateSetter<ProjectCoordinates>,
     setSelectedFileDtos: StateSetter<List<FileDto>>,
@@ -92,27 +91,19 @@ internal fun ChildrenBuilder.renderFileUploading(
                 simpleFileUploader {
                     buttonLabel = " Upload files"
                     getUrlForAvailableFilesFetch = {
-                        with(demoDto) {
-                            "$apiUrl/files/$projectCoordinates/list"
-                        }
+                        with(demoDto) { "$apiUrl/files/$projectCoordinates/list" }
                     }
                     getUrlForDemoFilesFetch = {
-                        with(demoDto) {
-                            "$apiUrl/demo/$projectCoordinates/list-file"
-                        }
+                        with(demoDto) { "$apiUrl/demo/$projectCoordinates/list-file" }
                     }
                     getUrlForFileDeletion = {
-                        with(demoDto) {
-                            "$apiUrl/demo/$projectCoordinates/delete?fileId=${it.id}"
-                        }
+                        with(demoDto) { "$apiUrl/demo/$projectCoordinates/delete?fileId=${it.id}" }
                     }
                     getUrlForFileUpload = {
-                        with(demoDto) {
-                            "$apiUrl/files/$projectCoordinates/upload"
-                        }
+                        with(demoDto) { "$apiUrl/files/$projectCoordinates/upload" }
                     }
                     updateFileDtos = { setSelectedFileDtos(it) }
-                    isDisabled = demoStatus == DemoStatus.STARTING || demoStatus == DemoStatus.RUNNING
+                    this.isDisabled = isDisabled
                 }
             }
         }

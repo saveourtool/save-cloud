@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.demo
 
+import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
@@ -49,7 +50,24 @@ private const val DEFAULT_CODE = "\"Your code here\""
     "TYPE_ALIAS"
 )
 val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
-    val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty.copy(mode = props.availableModes.first()))
+    val (demoDto, setDemoDto) = useState(DemoDto.empty)
+    val (selectedDemoMode, setSelectedDemoMode) = useState<String?>(null)
+    useRequest {
+        get(
+            url = "$demoApiUrl/manager/${props.projectCoordinates}",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<DemoDto>()
+            }
+            .let {
+                setDemoDto(it)
+                setSelectedDemoMode(it.runCommands.keys.first())
+            }
+    }
+
+    val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty)
     val (demoResult, setDemoResult) = useState(DemoResult.empty)
     val (codeLines, setCodeLines) = useState(DEFAULT_CODE)
 
@@ -58,7 +76,10 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
             "$demoApiUrl/${props.projectCoordinates}/run",
             jsonHeaders,
             Json.encodeToString(
-                demoRunRequest.copy(codeLines = codeLines.lines())
+                demoRunRequest.copy(
+                    codeLines = codeLines.lines(),
+                    mode = selectedDemoMode.orEmpty(),
+                )
             ),
             ::loadingHandler,
             ::noopResponseHandler,
@@ -103,20 +124,16 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
             div {
                 className = ClassName("col-2 mr-1")
                 selectorBuilder(
-                    demoRunRequest.mode,
-                    props.availableModes,
+                    selectedDemoMode.orEmpty(),
+                    demoDto.runCommands.keys.toList(),
                     "custom-select",
-                    isDisabled = props.availableModes.size == 1,
+                    isDisabled = demoDto.getAvailableMods().size == 1,
                 ) { event ->
-                    setDemoRunRequest { runRequest ->
-                        runRequest.copy(
-                            mode = event.target.value
-                        )
-                    }
+                    setSelectedDemoMode(event.target.value)
                 }
             }
         }
-        props.configName?.let { configName ->
+        demoDto.configName?.let { configName ->
             div {
                 className = ClassName("mb-1 mt-1 d-flex justify-content-center")
                 label {
@@ -187,16 +204,6 @@ external interface DemoRunComponentProps : Props {
      * saveourtool [ProjectCoordinates]
      */
     var projectCoordinates: ProjectCoordinates
-
-    /**
-     * Optional config name for this demo
-     */
-    var configName: String?
-
-    /**
-     * List of available demo modes e.g. Fix, Warn etc
-     */
-    var availableModes: List<String>
 }
 
 private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {

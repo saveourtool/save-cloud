@@ -7,21 +7,21 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.useStateFromProps
 
 import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.select
 import web.html.HTMLSelectElement
 
 /**
  * Component for sdk selection
  */
 val sdkSelection: FC<SdkProps> = FC { props ->
-    val (sdkName, setSdkName) = useState(props.selectedSdk.name)
-    val (sdkVersion, setSdkVersion) = useState(props.selectedSdk.version)
+    val (sdkName, setSdkName) = useStateFromProps(props.selectedSdk.getPrettyName())
+    val (sdkVersion, setSdkVersion) = useStateFromProps(props.selectedSdk.version)
 
     if (props.title.isNotBlank()) {
         label {
@@ -107,20 +107,5 @@ private fun ChildrenBuilder.selection(
             +labelValue
         }
     }
-    select {
-        className = ClassName("custom-select")
-        this.value = value
-        disabled = isDisabled
-        onChange = {
-            val target = it.target
-            onChangeFun(target)
-        }
-        id = labelValue
-        options.forEach {
-            option {
-                this.value = it
-                +it
-            }
-        }
-    }
+    selectorBuilder(value, options, "custom-select", isDisabled) { onChangeFun(it.target) }
 }

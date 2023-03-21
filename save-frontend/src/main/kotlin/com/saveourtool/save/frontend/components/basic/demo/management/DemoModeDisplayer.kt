@@ -51,7 +51,7 @@ internal fun ChildrenBuilder.demoModeModal(
                 }
             },
         ) {
-            buttonBuilder("Delete", "danger") {
+            buttonBuilder("Delete", "danger", isDisabled = disabled) {
                 setDemoDto { demoDto ->
                     demoDto.copy(runCommands = demoDto.runCommands.filter { (mode, _) ->
                         mode != selectedDemoMode

@@ -41,7 +41,7 @@ val demoRunCommandEditor: FC<DemoSettingsAdder> = FC { props ->
             autoComplete = AutoComplete.off
             placeholder = "Run command"
             value = runCommand
-            this.disabled = disabled
+            disabled = props.disabled
             onChange = { event -> setRunCommand(event.target.value) }
         }
         div {

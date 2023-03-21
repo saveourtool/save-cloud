@@ -11,7 +11,6 @@ import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 
 import org.slf4j.Logger
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -106,13 +105,12 @@ class DependencyController(
         }
         .map { size ->
             log.info { "Successfully downloaded $size files from file storage." }
-            StringResponse(
+            StringResponse.ok(
                 if (size == 0) {
                     "All files are already present in demo storage."
                 } else {
                     "Successfully saved $size files to demo storage."
                 },
-                HttpStatus.OK,
             )
         }
 

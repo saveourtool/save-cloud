@@ -16,8 +16,8 @@ import react.dom.html.ReactHTML.div
  *
  * @param demoStatus [DemoStatus] of this demo
  * @param userRole current user role, required for button disabling
- * @param sendDemoCreationRequest callback that sends creation request to backend
- * @param getDemoStatus callback that fetches [DemoStatus] of this demo
+ * @param createOrUpdateDemo callback that sends creation request to backend
+ * @param refreshDemo callback that fetches [DemoStatus] of this demo
  * @param startDemo callback that sends request to start demo pod
  * @param stopDemo callback that sends request to stop demo pod
  * @param deleteDemo callback that sends request to delete created demo
@@ -26,8 +26,8 @@ import react.dom.html.ReactHTML.div
 internal fun ChildrenBuilder.renderButtons(
     demoStatus: DemoStatus,
     userRole: Role,
-    sendDemoCreationRequest: () -> Unit,
-    getDemoStatus: () -> Unit,
+    createOrUpdateDemo: () -> Unit,
+    refreshDemo: () -> Unit,
     startDemo: () -> Unit,
     stopDemo: () -> Unit,
     deleteDemo: () -> Unit,
@@ -36,7 +36,7 @@ internal fun ChildrenBuilder.renderButtons(
         className = ClassName("flex-wrap d-flex justify-content-around")
         when (demoStatus) {
             DemoStatus.NOT_CREATED -> buttonBuilder("Create", isDisabled = userRole.isLowerThan(Role.OWNER)) {
-                sendDemoCreationRequest()
+                createOrUpdateDemo()
             }
 
             DemoStatus.STARTING -> {
@@ -44,7 +44,7 @@ internal fun ChildrenBuilder.renderButtons(
                     stopDemo()
                 }
                 buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) {
-                    getDemoStatus()
+                    refreshDemo()
                 }
             }
 
@@ -71,7 +71,7 @@ internal fun ChildrenBuilder.renderButtons(
                     startDemo()
                 }
                 buttonBuilder("Update configuration", style = "info", isDisabled = userRole.isLowerThan(Role.ADMIN)) {
-                    // update request here
+                    createOrUpdateDemo()
                 }
                 buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(Role.OWNER)) {
                     deleteDemo()
@@ -83,7 +83,7 @@ internal fun ChildrenBuilder.renderButtons(
                 style = "secondary",
                 isDisabled = userRole.isLowerThan(Role.VIEWER)
             ) {
-                getDemoStatus()
+                refreshDemo()
             }
         }
     }

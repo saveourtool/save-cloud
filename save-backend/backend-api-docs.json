@@ -1693,94 +1693,6 @@
         ]
       }
     },
-    "/api/v1/demo/{organizationName}/{projectName}/add": {
-      "post": {
-        "description": "Add demo for a tool.",
-        "operationId": "addDemo",
-        "parameters": [
-          {
-            "description": "name of saveourtool organization",
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "name of saveourtool project",
-            "in": "path",
-            "name": "projectName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DemoCreationRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully added demo."
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not enough permission for accessing given project."
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Could not find project in organization."
-          },
-          "409": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Invalid demo creation request."
-          }
-        },
-        "summary": "Add demo for a tool.",
-        "tags": [
-          "demo-manager-controller"
-        ]
-      }
-    },
     "/api/v1/demo/{organizationName}/{projectName}/delete": {
       "post": {
         "description": "Delete demo by saveourtool organization and project names.",
@@ -2017,6 +1929,94 @@
           }
         },
         "summary": "Get list of files.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/save-or-update": {
+      "post": {
+        "description": "Add demo for a tool or update existing.",
+        "operationId": "saveOrUpdateDemo",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoCreationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully added demo or updated existing."
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permission for accessing given project."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not find project in organization."
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Invalid demo creation request."
+          }
+        },
+        "summary": "Add demo for a tool or update existing.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -8504,6 +8504,7 @@
       },
       "DemoDto": {
         "required": [
+          "availableMods",
           "fileName",
           "projectCoordinates",
           "runCommands",
@@ -8512,6 +8513,12 @@
         ],
         "type": "object",
         "properties": {
+          "availableMods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "configName": {
             "type": "string"
           },
@@ -9336,11 +9343,15 @@
       "Sdk": {
         "required": [
           "name",
+          "prettyName",
           "version"
         ],
         "type": "object",
         "properties": {
           "name": {
+            "type": "string"
+          },
+          "prettyName": {
             "type": "string"
           },
           "version": {
