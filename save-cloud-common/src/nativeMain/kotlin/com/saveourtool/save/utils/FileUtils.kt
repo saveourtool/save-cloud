@@ -48,17 +48,6 @@ fun FileSystem.createAndWriteIfNeeded(fileName: String?, lines: List<String>?) =
     write(path, true) { lines?.forEach { codeLine -> writeUtf8("$codeLine\n") } }
 }
 
-/**
- * Mark all files in [dir] as executable.
- *
- * Note that files from subdirectories are not marked as executable.
- *
- * @param dir [Path] to directory
- */
-fun markAllFilesAsExecutable(dir: Path) {
-    fs.list(dir).filter { fs.metadata(it).isRegularFile }.map { it.markAsExecutable() }
-}
-
 actual inline fun <reified C : Any> parseConfig(configPath: Path): C = TomlFileReader.decodeFromFile(
     serializer(),
     configPath.toString(),

@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.demo.agent.utils
 
-import com.saveourtool.save.core.files.getWorkingDirectory
+import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
@@ -12,6 +12,7 @@ import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.demo.DemoConfiguration
 import com.saveourtool.save.utils.*
+import okio.Path
 
 import okio.Path.Companion.toPath
 
@@ -32,11 +33,9 @@ suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoCo
     try {
         downloadDemoFiles(demoUrl, demoConfiguration)
     } catch (e: IllegalStateException) {
-        logError("Error while downloading files to agent: ${e.message ?: e.toString()}.")
+        logError("Error while downloading files to agent: ${e.describe()}.")
         throw e
-    }
-
-    markAllFilesAsExecutable(getWorkingDirectory())
+    }.unzip()
 
     logDebug("All files successfully downloaded.")
 
@@ -56,7 +55,7 @@ private fun executeSetupSh(setupShTimeoutMillis: Long, setupShName: String = "se
     fs.exists(it.toPath())
 }
     ?.let { setupSh ->
-        setupSh.toPath().markAsExecutable()
+        setupSh.toPath()
         ProcessBuilder(true, fs).exec(
             "./$setupSh",
             CWD,
@@ -65,16 +64,10 @@ private fun executeSetupSh(setupShTimeoutMillis: Long, setupShName: String = "se
         )
     }
 
-private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration) {
+private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration): Path {
     val url = with(demoConfiguration) { "$demoUrl/demo/internal/files/$organizationName/$projectName/download-as-zip?version=$version" }
-    downloadDemoFiles(url)
+    return downloadDemoFiles(url)
 }
 
-private suspend fun downloadDemoFiles(url: String) {
-    val pathToArchive = "archive.zip".toPath()
-    download("tool", url, pathToArchive)
-    pathToArchive.extractZipHere()
-    fs.delete(pathToArchive, mustExist = true)
-    logDebug("Extracted archive into working dir and deleted $pathToArchive")
-    logInfo("Downloaded and extracted zip-file from $url")
-}
+private suspend fun downloadDemoFiles(url: String, archiveName: String = "archive.zip"): Path = archiveName.toPath()
+    .also { download("tool", url, it) }
