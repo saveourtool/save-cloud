@@ -10,6 +10,7 @@ import javax.persistence.MappedSuperclass
  */
 @MappedSuperclass
 @EntityListeners(DateListener::class)
+@Suppress("UnnecessaryAbstractClass")
 abstract class BaseEntityWithDate : BaseEntity() {
     /**
      * Create date of entity
