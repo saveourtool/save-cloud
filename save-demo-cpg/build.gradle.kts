@@ -11,7 +11,7 @@ plugins {
 
 repositories {
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/11.0/cdt-11.0.0/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
         metadataSources {
             artifact()
         }
@@ -31,9 +31,21 @@ val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.39")
-    implementation("org.neo4j:neo4j-ogm-core:3.2.39")
-    implementation(libs.spring.data.neo4j)
+    implementation("org.neo4j:neo4j-ogm-bolt-driver") {
+        version {
+            strictly("3.2.37")
+        }
+    }
+    implementation("org.neo4j:neo4j-ogm-core") {
+        version {
+            strictly("3.2.37")
+        }
+    }
+    implementation("org.neo4j.driver:neo4j-java-driver") {
+        version {
+            strictly("4.0.3")
+        }
+    }
     api(libs.arrow.kt.core)
 
     implementation(libs.cpg.core) {

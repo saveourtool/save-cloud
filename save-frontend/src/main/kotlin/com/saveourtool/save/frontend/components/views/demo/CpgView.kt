@@ -28,7 +28,6 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
@@ -176,7 +175,7 @@ val cpgView: VFC = VFC {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
                     when {
-                        log.contains("ERROR") || log.startsWith("Exception:") -> p {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> pre {
                             className = ClassName("text-danger")
                             +log
                         }
