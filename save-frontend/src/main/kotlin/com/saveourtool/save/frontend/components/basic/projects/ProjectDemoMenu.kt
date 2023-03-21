@@ -177,6 +177,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         getDemoStatus()
         getDemoFiles()
     }
+    useTooltip()
 
     val (selectedModeCommand, setSelectedModeCommand) = useState<RunCommandPair?>(null)
     val isDisabled = demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED

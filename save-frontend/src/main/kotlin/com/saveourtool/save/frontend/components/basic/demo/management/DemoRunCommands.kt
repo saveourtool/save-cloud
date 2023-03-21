@@ -32,6 +32,9 @@ val demoRunCommandEditor: FC<DemoSettingsAdder> = FC { props ->
             className = ClassName("form-control col-3")
             autoComplete = AutoComplete.off
             placeholder = "Mode name"
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "left"
+            title = "Name of a mode that will be displayed on frontend (e.g. Warn, Fix)."
             value = modeName
             disabled = props.disabled
             onChange = { event -> setModeName(event.target.value) }
@@ -40,6 +43,9 @@ val demoRunCommandEditor: FC<DemoSettingsAdder> = FC { props ->
             className = ClassName("form-control col")
             autoComplete = AutoComplete.off
             placeholder = "Run command"
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "bottom"
+            title = "Command that will be executed on request to run your tool in this mode."
             value = runCommand
             disabled = props.disabled
             onChange = { event -> setRunCommand(event.target.value) }
@@ -47,10 +53,16 @@ val demoRunCommandEditor: FC<DemoSettingsAdder> = FC { props ->
         div {
             className = ClassName("input-group-append")
             val icon = if (props.isEdit) faEdit else faPlus
+            val tooltipMessage = if (props.disabled) {
+                "You cannot edit your demo right now. Please, stop the demo."
+            } else {
+                null
+            }
             buttonBuilder(
                 icon,
                 isDisabled = props.disabled || modeName.isBlank() || runCommand.isBlank(),
                 isOutline = true,
+                title = tooltipMessage,
             ) {
                 props.setDemoDto { demoDto ->
                     val newRunCommands = if (props.isEdit) {

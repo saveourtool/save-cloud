@@ -19,6 +19,9 @@ import react.dom.html.ReactHTML.div
 val demoModeLabel: FC<DemoModeLabelProps> = FC { props ->
     div {
         className = ClassName(props.classes)
+        asDynamic()["data-toggle"] = "tooltip"
+        asDynamic()["data-placement"] = "bottom"
+        title = props.runCommand
         buttonBuilder(props.modeName, "secondary", classes = "badge badge-pill badge-secondary") {
             props.onClickCallback(props.modeName to props.runCommand)
         }

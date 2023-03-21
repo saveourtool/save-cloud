@@ -28,6 +28,9 @@ internal fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
             }
             className =
                     ClassName("border $borderStyle d-flex align-items-center justify-content-between rounded-pill m-3")
+            title = demoStatus.statusTooltip
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
             div {
                 className = ClassName("col m-3 flex-wrap")
                 label {
