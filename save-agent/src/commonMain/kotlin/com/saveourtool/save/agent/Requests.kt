@@ -5,12 +5,8 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
-import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.core.logging.logWarn
-import com.saveourtool.save.utils.extractZipTo
-import com.saveourtool.save.utils.failureOrNotOk
-import com.saveourtool.save.utils.fs
-import com.saveourtool.save.utils.markAsExecutable
+import com.saveourtool.save.utils.*
 
 import io.ktor.client.call.*
 import io.ktor.client.statement.*
@@ -50,8 +46,10 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
         .map { (fileName, url) ->
             val targetFile = targetDirectory / fileName
             download("additional file $fileName", url, targetFile)
-            targetFile.markAsExecutable()
-            unzipIfRequired(targetFile)
+            targetFile.apply {
+                markAsExecutable()
+                unzipIfRequired()
+            }
         }
         .ifEmpty {
             logWarn("Not found any additional files")
