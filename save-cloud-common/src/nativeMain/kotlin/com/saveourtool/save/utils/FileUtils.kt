@@ -5,6 +5,8 @@
 package com.saveourtool.save.utils
 
 import com.akuleshov7.ktoml.file.TomlFileReader
+import com.saveourtool.save.core.files.getWorkingDirectory
+import kotlinx.cinterop.UnsafeNumber
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -15,9 +17,21 @@ import kotlinx.serialization.serializer
 
 actual val fs: FileSystem = FileSystem.SYSTEM
 
+@OptIn(UnsafeNumber::class)
 actual fun Path.markAsExecutable() {
     val mode: mode_t = (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).convert()
     chmod(this.toString(), mode)
+}
+
+/**
+ * Mark all files in [dir] as executable.
+ *
+ * Note that files from subdirectories are not marked as executable.
+ *
+ * @param dir [Path] to directory
+ */
+fun markAllFilesAsExecutable(dir: Path) {
+    fs.list(dir).filter { fs.metadata(it).isRegularFile }.map { it.markAsExecutable() }
 }
 
 actual fun ByteArray.writeToFile(file: Path, mustCreate: Boolean) {

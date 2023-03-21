@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.demo.agent.utils
 
+import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
@@ -14,7 +15,6 @@ import com.saveourtool.save.utils.*
 
 import okio.Path.Companion.toPath
 
-private const val SETUP_SH_TIMEOUT_MILLIS = 5000L
 private const val SETUP_SH_LOGS_FILENAME = "setup.logs"
 private const val CWD = "."
 
@@ -36,7 +36,7 @@ suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoCo
         throw e
     }
 
-    // todo: chmod all the files
+    markAllFilesAsExecutable(getWorkingDirectory())
 
     logDebug("All files successfully downloaded.")
 
