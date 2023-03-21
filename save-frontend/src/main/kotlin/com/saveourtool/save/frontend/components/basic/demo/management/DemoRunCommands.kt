@@ -53,16 +53,10 @@ val demoRunCommandEditor: FC<DemoSettingsAdder> = FC { props ->
         div {
             className = ClassName("input-group-append")
             val icon = if (props.isEdit) faEdit else faPlus
-            val tooltipMessage = if (props.disabled) {
-                "You cannot edit your demo right now. Please, stop the demo."
-            } else {
-                null
-            }
             buttonBuilder(
                 icon,
                 isDisabled = props.disabled || modeName.isBlank() || runCommand.isBlank(),
                 isOutline = true,
-                title = tooltipMessage,
             ) {
                 props.setDemoDto { demoDto ->
                     val newRunCommands = if (props.isEdit) {

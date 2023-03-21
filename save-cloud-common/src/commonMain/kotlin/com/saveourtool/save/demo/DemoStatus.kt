@@ -31,11 +31,11 @@ enum class DemoStatus(val statusTooltip: String) {
     /**
      * Demo is created but stopped by owner
      */
-    STOPPED("Demo is created, but not started yet. You can reconfigure it and start."),
+    STOPPED("Demo is created, but was stopped/not started yet. You can reconfigure it and start."),
 
     /**
      * Demo stop request is already sent, but container is not stopped yet.
      */
-    STOPPING("We need some time to stop your demo. Press the refresh button."),
+    STOPPING("Demo already requested to be stopped, but we need some time to stop it. Press the refresh button."),
     ;
 }
