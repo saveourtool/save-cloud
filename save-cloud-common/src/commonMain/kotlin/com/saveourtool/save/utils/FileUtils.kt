@@ -34,7 +34,6 @@ expect fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true)
  * @param markAsExecutables if true, marks all files as executables (true by default)
  */
 fun Path.unzipIfRequired(markAsExecutables: Boolean = true) {
-    // FixMe: for now support only .zip files
     if (name.endsWith(".zip")) {
         unzip(markAsExecutables)
     }
