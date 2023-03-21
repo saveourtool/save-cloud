@@ -22,6 +22,17 @@ open class Sdk(val name: String, open val version: String) {
     object Default : Sdk("ubuntu", "latest")
 
     /**
+     * Get human-readable [Sdk.name]
+     *
+     * @return human-readable [Sdk.name]
+     */
+    fun getPrettyName() = when (name) {
+        Jdk.IMAGE_NAME -> Jdk.NAME
+        Python.IMAGE_NAME -> Python.NAME
+        else -> Sdk.Default.name
+    }
+
+    /**
      * Fixme: we sometimes rely on this method, so this prevents child classes from being `data class`es
      */
     final override fun toString() = "$name:$version"
@@ -35,8 +46,9 @@ open class Sdk(val name: String, open val version: String) {
 /**
  * @property version version of JDK
  */
-class Jdk(override val version: String) : Sdk("eclipse-temurin", version) {
+class Jdk(override val version: String) : Sdk(IMAGE_NAME, version) {
     companion object {
+        const val IMAGE_NAME = "eclipse-temurin"
         const val NAME = "Java"
         val versions = listOf("8", "11", "17")
     }
@@ -45,8 +57,9 @@ class Jdk(override val version: String) : Sdk("eclipse-temurin", version) {
 /**
  * @property version version of Python
  */
-class Python(override val version: String) : Sdk("python", version) {
+class Python(override val version: String) : Sdk(IMAGE_NAME, version) {
     companion object {
+        const val IMAGE_NAME = "python"
         const val NAME = "Python"
         val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10")
     }

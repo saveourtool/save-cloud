@@ -8,6 +8,7 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.RunCommandPair
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.*
@@ -15,7 +16,6 @@ import com.saveourtool.save.frontend.components.basic.demo.*
 import com.saveourtool.save.frontend.components.basic.demo.management.*
 import com.saveourtool.save.frontend.components.basic.demo.management.renderButtons
 import com.saveourtool.save.frontend.components.basic.demo.management.renderFileUploading
-import com.saveourtool.save.frontend.components.basic.demo.management.renderSdkSelector
 import com.saveourtool.save.frontend.components.basic.demo.management.renderStatusLabel
 import com.saveourtool.save.frontend.utils.*
 
@@ -46,7 +46,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     )
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
-    val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
+    val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
 
     val getDemoDto = useDeferredRequest {
         val dtoResponse = get(
@@ -58,6 +58,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         if (dtoResponse.ok) {
             val dto: DemoDto = dtoResponse.decodeFromJsonString()
             setDemoDto(dto)
+            setSelectedSdk(dto.sdk)
             setGithubProjectCoordinates(dto.githubProjectCoordinates.orEmpty())
         } else if (dtoResponse.status != 404.toShort()) {
             props.updateErrorMessage(dtoResponse.statusText, dtoResponse.unpackMessage())
@@ -98,18 +99,23 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    val createDemo = useDeferredRequest {
+    val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
+    val createOrUpdateDemo = useDeferredRequest {
         if (githubProjectCoordinates.consideredBlank()) {
             demoDto.copy(githubProjectCoordinates = null)
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
         }
+            .copy(sdk = selectedSdk)
             .let { demoRequest ->
                 post(
-                    "$apiUrl/demo/${props.organizationName}/${props.projectName}/add",
+                    "$apiUrl/demo/${props.organizationName}/${props.projectName}/save-or-update",
                     jsonHeaders,
                     Json.encodeToString(
-                        DemoCreationRequest(demoRequest, selectedFileDtos)
+                        DemoCreationRequest(
+                            demoRequest,
+                            selectedFileDtos,
+                        )
                     ),
                     ::loadingHandler,
                     ::noopResponseHandler,
@@ -153,9 +159,23 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
+    val getDemoFiles = useDeferredRequest {
+        get(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/list-file?version=manual",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        ).let { response ->
+            if (response.ok) {
+                setSelectedFileDtos(response.decodeFromJsonString<List<FileDto>>())
+            }
+        }
+    }
+
     useOnce {
         getDemoDto()
         getDemoStatus()
+        getDemoFiles()
     }
 
     val (selectedModeCommand, setSelectedModeCommand) = useState<RunCommandPair?>(null)
@@ -172,19 +192,27 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     renderStatusLabel(demoStatus)
                 }
                 hr { }
-                renderDemoSettings(demoDto, setDemoDto)
+                renderDemoSettings(demoDto, setDemoDto, isDisabled)
                 hr { }
                 renderRunCommand(demoDto, setDemoDto, isDisabled, setSelectedModeCommand)
                 hr { }
-                renderFileUploading(demoStatus, demoDto, setDemoDto, githubProjectCoordinates, setGithubProjectCoordinates, setSelectedFileDtos)
+                renderFileUploading(demoDto, setDemoDto, isDisabled, githubProjectCoordinates, setGithubProjectCoordinates, setSelectedFileDtos)
                 hr { }
-                renderSdkSelector(demoDto, setDemoDto, isDisabled)
+                sdkSelection {
+                    title = ""
+                    this.isDisabled = isDisabled
+                    this.selectedSdk = selectedSdk
+                    onSdkChange = setSelectedSdk::invoke
+                }
                 hr { }
                 renderButtons(
                     demoStatus,
                     props.userProjectRole,
-                    createDemo,
-                    getDemoStatus,
+                    createOrUpdateDemo,
+                    {
+                        getDemoStatus()
+                        getDemoFiles()
+                    },
                     startDemo,
                     stopDemo
                 ) {

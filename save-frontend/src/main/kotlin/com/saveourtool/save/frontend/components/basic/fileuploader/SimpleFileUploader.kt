@@ -105,7 +105,8 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
                 selectorBuilder(
                     "Select a file from existing",
                     availableFiles.map { it.name }.plus("Select a file from existing"),
-                    classes = "form-control custom-select"
+                    classes = "form-control custom-select",
+                    isDisabled = props.isDisabled,
                 ) { event ->
                     val availableFile = availableFiles.first {
                         it.name == event.target.value
@@ -143,7 +144,7 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
             selectedFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    buttonBuilder(faTrash, null) {
+                    buttonBuilder(faTrash, null, isDisabled = props.isDisabled) {
                         setSelectedFiles { it.minus(file) }
                         setAvailableFiles { it.plus(file) }
                     }

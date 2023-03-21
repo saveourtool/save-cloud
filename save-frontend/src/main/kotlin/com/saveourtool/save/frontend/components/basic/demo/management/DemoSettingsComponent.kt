@@ -16,8 +16,9 @@ import react.dom.html.ReactHTML.input
  *
  * @param demoDto currently configured [DemoDto]
  * @param setDemoDto callback to update [demoDto] state
+ * @param isDisabled flag that defines if input forms are disabled or not
  */
-internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>) {
+internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, isDisabled: Boolean) {
     div {
         div {
             input {
@@ -25,7 +26,7 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 autoComplete = AutoComplete.off
                 placeholder = "Test file name"
                 value = demoDto.fileName
-                this.disabled = disabled
+                disabled = isDisabled
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(fileName = event.target.value)
@@ -40,7 +41,7 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 autoComplete = AutoComplete.off
                 placeholder = "Output file name"
                 value = demoDto.outputFileName
-                this.disabled = disabled
+                disabled = isDisabled
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(outputFileName = event.target.value.ifBlank { null })
@@ -52,7 +53,7 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 autoComplete = AutoComplete.off
                 placeholder = "Config name"
                 value = demoDto.configName
-                this.disabled = disabled
+                disabled = isDisabled
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(configName = event.target.value.ifBlank { null })
