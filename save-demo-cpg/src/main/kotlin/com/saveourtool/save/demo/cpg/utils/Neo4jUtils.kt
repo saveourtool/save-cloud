@@ -8,13 +8,17 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import de.fraunhofer.aisec.cpg.helpers.SubgraphWalker
 import org.neo4j.driver.Logging
 import org.neo4j.driver.exceptions.AuthenticationException
+import de.fraunhofer.aisec.cpg.graph.Node
 import org.neo4j.ogm.config.Configuration
 import org.neo4j.ogm.drivers.bolt.driver.BoltDriver
 import org.neo4j.ogm.exception.ConnectionException
 import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
+import org.neo4j.ogm.session.event.Event
+import org.neo4j.ogm.session.event.EventListenerAdapter
 
 typealias SessionWithFactory = Pair<Session, SessionFactory>
 
@@ -52,17 +56,9 @@ fun tryConnect(
     val configuration =
             Configuration.Builder()
                 .uri(uri)
-//                .database("neo4j")
                 .autoIndex("none")
                 .credentials(username, password)
-//                .encryptionLevel("DISABLED")
-//                .trustStrategy("TRUST_ALL_CERTIFICATES")
-//                .withCustomProperty("dbms.ssl.policy.bolt.enabled", "true")
-//                .withCustomProperty("dbms.ssl.policy.bolt.client_auth", "NONE")
-//                .withCustomProperty("dbms.ssl.policy.bolt.trust_all", "true")
                 .withCustomProperty(BoltDriver.CONFIG_PARAMETER_BOLT_LOGGING, Logging.slf4j())
-//                .encryptionLevel("DISABLED")
-//                .trustStrategy(TrustStrategy.Strategy.TRUST_ALL_CERTIFICATES.name)
                 .verifyConnection(true)
                 .build()
     val sessionFactory = SessionFactory(configuration, *packageNames)
