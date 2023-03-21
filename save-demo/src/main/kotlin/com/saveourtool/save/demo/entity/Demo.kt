@@ -34,7 +34,13 @@ class Demo(
     var githubOrganizationName: String?,
     @Column(name = "github_project")
     var githubProjectName: String?,
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "demo", targetEntity = RunCommand::class)
+    @OneToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "demo",
+        targetEntity = RunCommand::class,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+    )
     var runCommands: List<RunCommand> = emptyList(),
 ) : BaseEntityWithDto<DemoDto>() {
     private fun githubProjectCoordinates() = githubOrganizationName?.let { organization ->
@@ -98,10 +104,11 @@ class Demo(
 }
 
 /**
- * @param runCommands [MutableList] of [RunCommand]
+ * __Notice__ that newly created demo has neither [Demo.id] nor [Demo.runCommands] initialized
+ *
  * @return [Demo] entity filled with [DemoDto] data
  */
-fun DemoDto.toDemo(runCommands: List<RunCommand> = mutableListOf()) = Demo(
+fun DemoDto.toDemo() = Demo(
     projectCoordinates.organizationName,
     projectCoordinates.projectName,
     sdk.toString(),
@@ -110,5 +117,5 @@ fun DemoDto.toDemo(runCommands: List<RunCommand> = mutableListOf()) = Demo(
     outputFileName,
     githubProjectCoordinates?.organizationName,
     githubProjectCoordinates?.projectName,
-    runCommands,
+    emptyList()
 )

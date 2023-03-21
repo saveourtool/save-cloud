@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
-import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demo.demoRunComponent
@@ -25,18 +24,6 @@ private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = t
  */
 val demoView: FC<DemoViewProps> = FC { props ->
     useBackground(Style.WHITE)
-    val (demoDto, setDemoDto) = useState(DemoDto.empty)
-    useRequest {
-        get(
-            url = "$demoApiUrl/manager/${props.projectCoordinates}",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<DemoDto>()
-            }
-            .let { setDemoDto(it) }
-    }
 
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
     div {
@@ -60,8 +47,6 @@ val demoView: FC<DemoViewProps> = FC { props ->
                     this.selectedMode = Languages.KOTLIN
                     this.selectedTheme = selectedTheme
                     this.projectCoordinates = props.projectCoordinates
-                    this.configName = demoDto.configName
-                    this.availableModes = demoDto.runCommands.keys.toList()
                 }
             }
         }

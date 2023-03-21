@@ -26,14 +26,14 @@ class ManagementController(
      * @param demoDto
      * @return [Mono] of [DemoDto] entity
      */
-    @PostMapping("/add")
-    fun add(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
+    @PostMapping("/save-or-update")
+    fun saveOrUpdate(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
         .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
         .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .flatMap {
-            blockingToMono { demoService.saveIfNotPresent(it.toDemo(), it.runCommands).toDto() }
+            blockingToMono { demoService.saveOrUpdateExisting(it.toDemo(), it.runCommands).toDto() }
         }
 
     /**

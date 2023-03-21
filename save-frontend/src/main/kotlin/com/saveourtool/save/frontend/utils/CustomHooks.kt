@@ -15,10 +15,7 @@ import org.w3c.dom.MessageEvent
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-import react.EffectBuilder
-import react.useContext
-import react.useEffect
-import react.useState
+import react.*
 
 import kotlinx.browser.document
 import kotlinx.coroutines.*
@@ -259,6 +256,29 @@ fun useEventStream(
                 }
             }
         }
+
+/**
+ * [useState] modification in order to support default state value from [Props].
+ * Usually data passed with [Props] is not up-to-date yet and expected to be updated (e.g. when the response is received)
+ * In this case, [useStateFromProps] should update the state once on first [valueFromProps] change.
+ *
+ * @param valueFromProps value that somehow depends on variable from [Props]
+ * @return [StateInstance] of [valueFromProps] changing its value on first [valueFromProps] change
+ * @see [useState]
+ */
+fun <T : Any> useStateFromProps(valueFromProps: T): StateInstance<T> {
+    val state = useState(valueFromProps)
+    val onceWrapper = useOnceAction()
+    val reference = useRef(valueFromProps)
+    useEffect(valueFromProps) {
+        if (reference.current != valueFromProps) {
+            onceWrapper {
+                state.component2().invoke(valueFromProps)
+            }
+        }
+    }
+    return state
+}
 
 /**
  * Reads the response of `application/x-ndjson` `Content-Type`.
