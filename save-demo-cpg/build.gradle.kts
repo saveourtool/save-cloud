@@ -33,13 +33,9 @@ dependencies {
     implementation(projects.saveCloudCommon)
     api(libs.arrow.kt.core)
 
-    implementation(libs.neo4j.ogm.bolt.driver) {
-        // we use logback
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-        exclude("org.apache.logging.log4j", "log4j-core")
-        // we don't migrate to slf4j 2.x yet
-        exclude("org.slf4j", "slf4j-api")
-    }
+    implementation(libs.neo4j.ogm.core)
+    implementation(libs.neo4j.ogm.bolt.driver)
+    implementation(libs.neo4j.java.driver)
 
     implementation(libs.cpg.core) {
         // we use logback
