@@ -29,9 +29,37 @@ val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
     from(tarTree(jepArchive.singleFile))
 }
 
+val cpgDependency: Configuration by configurations.creating
+val neo4jOgmVersionPropertyName = "neo4j-ogm-version"
+val resolveNeo4jOgmVersion: TaskProvider<Task> = tasks.register("resolveNeo4jOgmVersion") {
+    ext {
+        cpgDependency
+            .allDependencies
+            .first { it.group == "org.neo4j" && it.name == "neo4j-ogm-core" }
+            .version
+            .let { version ->
+                requireNotNull(version) {
+                    "failed to detect $neo4jOgmVersionPropertyName"
+                }
+            }
+            .let {
+                set(neo4jOgmVersionPropertyName, it)
+            }
+    }
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
     api(libs.arrow.kt.core)
+
+
+    implementation(libs.neo4j.ogm.bolt.driver) {
+        // we use logback
+        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.apache.logging.log4j", "log4j-core")
+        // we don't migrate to slf4j 2.x yet
+        exclude("org.slf4j", "slf4j-api")
+    }
 
     implementation(libs.cpg.core) {
         // we use logback
@@ -39,19 +67,8 @@ dependencies {
         exclude("org.apache.logging.log4j", "log4j-core")
         // we don't migrate to slf4j 2.x yet
         exclude("org.slf4j", "slf4j-api")
-        // FIXME: neo4j changed encryption by default, need to migrate
-        exclude("org.neo4j", "neo4j-ogm-core")
     }
     implementation(libs.cpg.python) {
-        // we use logback
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-        exclude("org.apache.logging.log4j", "log4j-core")
-        // we don't migrate to slf4j 2.x yet
-        exclude("org.slf4j", "slf4j-api")
-        // FIXME: neo4j changed encryption by default, need to migrate
-        exclude("org.neo4j", "neo4j-ogm-core")
-    }
-    implementation(libs.neo4j.ogm.bolt.driver) {
         // we use logback
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
         exclude("org.apache.logging.log4j", "log4j-core")
@@ -63,6 +80,8 @@ dependencies {
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
+
+    cpgDependency(libs.cpg.core)
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
