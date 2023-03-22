@@ -39,7 +39,16 @@
           "language": "en",
           "name": "ktlint",
           "organization": "pinterest",
-          "rules": [],
+          "rules": [
+            {
+              "helpUri": "https://detekt.dev/potential-bugs.html#avoidreferentialequality",
+              "id": "diktat-ruleset:file-structure",
+              "name": "Test",
+              "shortDescription": {
+                "text": "Something."
+              }
+            }
+          ],
           "semanticVersion": "0.46.1",
           "version": "0.46.1"
         }
