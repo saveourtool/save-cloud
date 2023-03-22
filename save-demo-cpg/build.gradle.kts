@@ -11,7 +11,7 @@ plugins {
 
 repositories {
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/11.0/cdt-11.0.0/plugins")
         metadataSources {
             artifact()
         }
@@ -31,28 +31,25 @@ val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation("org.neo4j:neo4j-ogm-bolt-driver") {
-        version {
-            strictly("3.2.37")
-        }
-    }
-    implementation("org.neo4j:neo4j-ogm-core") {
-        version {
-            strictly("3.2.37")
-        }
-    }
-    implementation("org.neo4j.driver:neo4j-java-driver") {
-        version {
-            strictly("4.0.3")
-        }
-    }
     api(libs.arrow.kt.core)
 
+    implementation(libs.neo4j.ogm.core)
+    implementation(libs.neo4j.ogm.bolt.driver)
+    implementation(libs.neo4j.java.driver)
+
     implementation(libs.cpg.core) {
+        // we use logback
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.apache.logging.log4j", "log4j-core")
+        // we don't migrate to slf4j 2.x yet
+        exclude("org.slf4j", "slf4j-api")
     }
     implementation(libs.cpg.python) {
+        // we use logback
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.apache.logging.log4j", "log4j-core")
+        // we don't migrate to slf4j 2.x yet
+        exclude("org.slf4j", "slf4j-api")
     }
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
