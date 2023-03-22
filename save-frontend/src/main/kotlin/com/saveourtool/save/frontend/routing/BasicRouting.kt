@@ -129,6 +129,12 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
+    val fossGraphCollectionView: VFC = VFC {
+        fossGraphCollectionView {
+            currentUserInfo = props.userInfo
+        }
+    }
+
     Routes {
         listOf(
             WelcomeView::class.react.create { userInfo = props.userInfo } to "/",

@@ -1,16 +1,23 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress(
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+)
 
 package com.saveourtool.save.frontend.components.views.fossgraph
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.filters.VulnerabilityFilter
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
+import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import js.core.get
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -23,13 +30,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [VFC] for fossGraphCollection view
+ * [FC] for fossGraphCollection view
  */
-val fossGraphCollectionView: VFC = VFC {
+val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
     useBackground(Style.WHITE)
     val navigate = useNavigate()
 
     val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.created)
+    val (selectedMenu, setSelectedMenu) = useState(VulnerabilityListTab.PUBLIC)
 
     @Suppress(
         "TYPE_ALIAS",
@@ -100,6 +108,21 @@ val fossGraphCollectionView: VFC = VFC {
     }
 
     div {
+        @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+        props.currentUserInfo?.globalRole?.let { role ->
+            if (role.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
+                tab(selectedMenu.name, VulnerabilityListTab.values().map { it.name }, "nav nav-tabs mt-3") { value ->
+                    setSelectedMenu { VulnerabilityListTab.valueOf(value) }
+                    setVulnerabilityFilters {
+                        when (VulnerabilityListTab.valueOf(value)) {
+                            VulnerabilityListTab.PUBLIC -> VulnerabilityFilter(prefixName = "", active = true)
+                            VulnerabilityListTab.ADMIN -> VulnerabilityFilter(prefixName = "", active = false)
+                        }
+                    }
+                }
+            }
+        }
+
         fossGraphTable {
             filters = vulnerabilityFilters
             getData = { _, _ ->
@@ -114,6 +137,32 @@ val fossGraphCollectionView: VFC = VFC {
                 }
             }
         }
+    }
+}
+
+/**
+ * `Props` for fossGraphCollectionView
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
+external interface FossGraphCollectionViewProps : Props {
+    var currentUserInfo: UserInfo?
+}
+
+/**
+ * Enum that contains values for vulnerability
+ */
+@Suppress("WRONG_DECLARATIONS_ORDER")
+enum class VulnerabilityListTab {
+    PUBLIC,
+    ADMIN,
+    ;
+
+    companion object : TabMenuBar<VulnerabilityListTab> {
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: VulnerabilityListTab = PUBLIC
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.FOSS_GRAPH.path}")
+        override fun valueOf(elem: String): VulnerabilityListTab = VulnerabilityListTab.valueOf(elem)
+        override fun values(): Array<VulnerabilityListTab> = VulnerabilityListTab.values()
     }
 }
 
