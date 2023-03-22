@@ -9997,10 +9997,14 @@
       },
       "VulnerabilityFilter": {
         "required": [
+          "active",
           "prefixName"
         ],
         "type": "object",
         "properties": {
+          "active": {
+            "type": "boolean"
+          },
           "prefixName": {
             "type": "string"
           }
