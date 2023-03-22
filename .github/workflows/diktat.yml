@@ -34,7 +34,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         if: ${{ always() }}
         with:
-          sarif_file: build/reports/diktat/diktat.sarif
+          sarif_file: build/reports/diktat/diktat-merged.sarif
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
