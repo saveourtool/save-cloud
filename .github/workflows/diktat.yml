@@ -11,9 +11,6 @@ jobs:
     permissions:
       # required for all workflows
       security-events: write
-      # only required for workflows in private repositories
-      actions: read
-      contents: read
 
     steps:
       - uses: actions/checkout@v3
@@ -42,7 +39,7 @@ jobs:
         if: ${{ always() }}
         with:
           sarif_file: build/reports/diktat/diktat-merged.sarif
-          category: my-analysis-tool
+          category: diktat (ktlint)
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
