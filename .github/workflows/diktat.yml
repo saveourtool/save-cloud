@@ -5,11 +5,20 @@ on:
     branches: [ master ]
   pull_request:
 
+
 jobs:
   diktat_check:
     runs-on: ubuntu-20.04
     env:
       GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
 
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +40,7 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload SARIF report to Github
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         if: ${{ always() }}
         with:
           sarif_file: build/reports/diktat/diktat-merged.sarif
