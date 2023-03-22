@@ -15,7 +15,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "save-backend/src/main/kotlin/com/saveourtool/save/backend/storage/FileStorage.kt",
+                  "uri": "save-demo-cpg/src/main/kotlin/com/saveourtool/save/demo/cpg/SaveDemoCpg.kt",
                   "uriBaseId": "%SRCROOT%"
                 },
                 "region": {
@@ -26,93 +26,9 @@
             }
           ],
           "message": {
-            "text": "[UNUSED_IMPORT] unused imports should be removed: java.net.URL - unused import"
+            "text": "[UNUSED_IMPORT] unused imports should be removed: org.springframework.http.ResponseEntity - unused import"
           },
           "ruleId": "diktat-ruleset:file-structure"
-        },
-        {
-          "level": "error",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "save-cloud-common/src/jvmMain/kotlin/com/saveourtool/save/storage/StorageProjectReactor.kt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "[UNUSED_IMPORT] unused imports should be removed: java.net.URL - unused import"
-          },
-          "ruleId": "diktat-ruleset:file-structure"
-        },
-        {
-          "level": "error",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "save-cloud-common/src/jvmMain/kotlin/com/saveourtool/save/storage/DefaultStoragePreSignedUrl.kt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startColumn": 1,
-                  "startLine": 30
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "[WRONG_INDENTATION] only spaces are allowed for indentation and each indentation should equal to 4 spaces (tabs are not allowed): expected 12 but was 8"
-          },
-          "ruleId": "diktat-ruleset:indentation"
-        },
-        {
-          "level": "error",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "save-cloud-common/src/jvmMain/kotlin/com/saveourtool/save/storage/DefaultStoragePreSignedUrl.kt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startColumn": 1,
-                  "startLine": 31
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "[WRONG_INDENTATION] only spaces are allowed for indentation and each indentation should equal to 4 spaces (tabs are not allowed): expected 16 but was 12"
-          },
-          "ruleId": "diktat-ruleset:indentation"
-        },
-        {
-          "level": "error",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "save-cloud-common/src/jvmMain/kotlin/com/saveourtool/save/storage/DefaultStoragePreSignedUrl.kt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startColumn": 1,
-                  "startLine": 40
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "[WRONG_INDENTATION] only spaces are allowed for indentation and each indentation should equal to 4 spaces (tabs are not allowed): expected 12 but was 8"
-          },
-          "ruleId": "diktat-ruleset:indentation"
         }
       ],
       "tool": {

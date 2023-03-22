@@ -7,10 +7,16 @@ on:
 
 jobs:
   diktat_check:
+    permissions:
+      contents: read
+      security-events: write
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          # required for correct codecov upload
+          fetch-depth: 0
       - name: Upload SARIF report to Github
         uses: github/codeql-action/upload-sarif@v2
         if: ${{ always() }}
