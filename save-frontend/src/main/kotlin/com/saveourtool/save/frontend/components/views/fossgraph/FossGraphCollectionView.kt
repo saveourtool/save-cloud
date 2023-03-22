@@ -79,9 +79,9 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                         name = vulnerabilityFilters.prefixName
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                VulnerabilityFilter.created
+                                VulnerabilityFilter("", vulnerabilityFilters.active)
                             } else {
-                                VulnerabilityFilter(filterValue)
+                                VulnerabilityFilter(filterValue, vulnerabilityFilters.active)
                             }
                             setVulnerabilityFilters { filter }
 
