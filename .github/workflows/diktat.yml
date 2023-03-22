@@ -42,7 +42,7 @@ jobs:
           category: diktat (ktlint)
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
-        if: ${{ always() }}
+        if: ${{ failure() }}
         with:
           name: sarif-reports
           path: "**/build/reports/diktat"
