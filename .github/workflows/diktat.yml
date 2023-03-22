@@ -39,7 +39,6 @@ jobs:
         if: ${{ always() }}
         with:
           sarif_file: build/reports/diktat/diktat-merged.sarif
-          category: diktat (ktlint)
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
