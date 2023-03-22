@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
+import org.springframework.http.ResponseEntity
 
 /**
  * An entrypoint for spring boot for save-demo
