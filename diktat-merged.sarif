@@ -19,7 +19,7 @@
                   "uriBaseId": "%SRCROOT%"
                 },
                 "region": {
-                  "startColumn": 1,
+                  "startColumn": 3,
                   "startLine": 1
                 }
               }
