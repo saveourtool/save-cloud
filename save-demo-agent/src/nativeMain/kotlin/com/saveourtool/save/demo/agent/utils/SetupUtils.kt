@@ -55,7 +55,6 @@ private fun executeSetupSh(setupShTimeoutMillis: Long, setupShName: String = "se
     fs.exists(it.toPath())
 }
     ?.let { setupSh ->
-        setupSh.toPath()
         ProcessBuilder(true, fs).exec(
             "./$setupSh",
             CWD,
