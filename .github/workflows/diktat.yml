@@ -8,9 +8,7 @@ on:
 
 jobs:
   diktat_check:
-    runs-on: ubuntu-20.04
-    env:
-      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    runs-on: ubuntu-latest
 
     permissions:
       # required for all workflows
