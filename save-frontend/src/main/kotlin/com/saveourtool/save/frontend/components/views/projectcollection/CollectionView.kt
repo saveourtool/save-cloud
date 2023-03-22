@@ -171,19 +171,10 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                             }
                         }
 
-                        when (state.selectedMenu) {
-                            ProjectListTab.PUBLIC -> projectsTable {
-                                filters = state.filters
-                                getData = { _, _ ->
-                                    getProjects()
-                                }
-                            }
-
-                            ProjectListTab.PRIVATE -> projectsTable {
-                                filters = state.filters
-                                getData = { _, _ ->
-                                    getProjects()
-                                }
+                        projectsTable {
+                            filters = state.filters
+                            getData = { _, _ ->
+                                getProjects()
                             }
                         }
                     }
