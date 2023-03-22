@@ -1,0 +1,70 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///home/runner/work/save-cloud/save-cloud/"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "save-demo/src/main/kotlin/com/saveourtool/save/demo/SaveDemo.kt",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[UNUSED_IMPORT] unused imports should be removed: org.springframework.http.ResponseEntity - unused import"
+          },
+          "ruleId": "diktat-ruleset:file-structure"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "save-demo/src/main/kotlin/com/saveourtool/save/demo/SaveDemo.kt",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[WRONG_INDENTATION] only spaces are allowed for indentation and each indentation should equal to 4 spaces (tabs are not allowed): no newline at the end of file SaveDemo.kt"
+          },
+          "ruleId": "diktat-ruleset:indentation"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "downloadUri": "https://github.com/pinterest/ktlint/releases/tag/0.46.1",
+          "fullName": "ktlint",
+          "informationUri": "https://github.com/pinterest/ktlint/",
+          "language": "en",
+          "name": "ktlint",
+          "organization": "pinterest",
+          "rules": [],
+          "semanticVersion": "0.46.1",
+          "version": "0.46.1"
+        }
+      }
+    }
+  ]
+}

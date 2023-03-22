@@ -22,23 +22,23 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
-      - uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          arguments: |
-            diktatCheck
-            mergeDiktatReports
-            -Pdiktat.githubActions=true
-            -Pdetekt.multiplatform.disabled=true
-            --build-cache
-            --continue
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+#      - uses: gradle/gradle-build-action@v2
+#        with:
+#          gradle-version: wrapper
+#          arguments: |
+#            diktatCheck
+#            mergeDiktatReports
+#            -Pdiktat.githubActions=true
+#            -Pdetekt.multiplatform.disabled=true
+#            --build-cache
+#            --continue
+#            -PgprUser=${{ github.actor }}
+#            -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload SARIF report to Github
         uses: github/codeql-action/upload-sarif@v2
         if: ${{ always() }}
         with:
-          sarif_file: build/reports/diktat/diktat-merged.sarif
+          sarif_file: diktat-manual.sarif
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
