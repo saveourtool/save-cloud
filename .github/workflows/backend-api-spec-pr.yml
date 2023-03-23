@@ -18,7 +18,7 @@ jobs:
           #committer: GitHub <noreply@github.com>
           #author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           #signoff: false
-          branch: example-patches
+          branch: infra/update-backend-api-spec
           delete-branch: true
           title: '[Update] New version of backend api spec'
           body: |
