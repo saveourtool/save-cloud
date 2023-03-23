@@ -8145,6 +8145,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
           }
         ],
         "responses": {
@@ -8281,6 +8287,14 @@
       "post": {
         "description": "Update vulnerability.",
         "operationId": "update",
+        "parameters": [
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
