@@ -38,7 +38,10 @@ fabric8 = "6.5.0"
 arrow-kt = "1.1.5"
 publish = "1.3.0"
 download = "5.4.0"
-cpg = "5.1.0"
+cpg = "6.2.1"
+# should be taken from cpg
+cpg-neo4j-ogm = { strictly = "4.0.2" }
+cpg-neo4j-java-driver = { strictly = "5.3.1" }
 aws-sdk = "2.20.27"
 
 [plugins]
@@ -102,7 +105,6 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
-spring-data-neo4j = { module = "org.springframework.data:spring-data-neo4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web" }
@@ -150,6 +152,9 @@ mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "m
 # graph utilities
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg" }
 cpg-python = { module = "de.fraunhofer.aisec:cpg-language-python", version.ref = "cpg" }
+neo4j-ogm-core = { module = "org.neo4j:neo4j-ogm-core", version.ref = "cpg-neo4j-ogm"}
+neo4j-ogm-bolt-driver = { module = "org.neo4j:neo4j-ogm-bolt-driver", version.ref = "cpg-neo4j-ogm"}
+neo4j-java-driver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "cpg-neo4j-java-driver" }
 
 # testing
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }

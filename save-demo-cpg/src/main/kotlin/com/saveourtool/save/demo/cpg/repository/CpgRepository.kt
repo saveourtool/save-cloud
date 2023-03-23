@@ -8,6 +8,7 @@ import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.frontends.Language
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.edge.PropertyEdge
 import org.neo4j.ogm.response.model.RelationshipModel
@@ -102,7 +103,8 @@ class CpgRepository(
             configProperties.uri,
             configProperties.authentication.username,
             configProperties.authentication.password,
-            Node::class.java.packageName, DemoQuery::class.java.packageName
+            Node::class.java.packageName, Language::class.java.packageName,
+            DemoQuery::class.java.packageName,
         )
     }
 
