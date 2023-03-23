@@ -49,11 +49,16 @@ fun useOnceAction(): (() -> Unit) -> Unit {
 
 /**
  * Custom hook to enable tooltips.
+ *
+ * Requires element to have "data-toggle=tooltip" attribute set
+ * Show timeout can be set by setting "data-show-timeout=100"
+ * Hide timeout can be set by setting "data-hide-timeout=100"
+ * In order to update the tooltip content dynamically, you need to change "data-original-title" attribute
+ *
+ * @see [enableTooltip]
  */
 fun useTooltip() {
-    useEffect {
-        enableTooltip()
-    }
+    useEffect { enableTooltip() }
 }
 
 /**

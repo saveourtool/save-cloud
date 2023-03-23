@@ -26,7 +26,10 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 autoComplete = AutoComplete.off
                 placeholder = "Test file name"
                 value = demoDto.fileName
-                disabled = isDisabled
+                this.disabled = isDisabled
+                asDynamic()["data-toggle"] = "tooltip"
+                asDynamic()["data-placement"] = "right"
+                title = "Name of a file that would contain input code. It should match the name used in run command!"
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(fileName = event.target.value)
@@ -42,6 +45,9 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 placeholder = "Output file name"
                 value = demoDto.outputFileName
                 disabled = isDisabled
+                asDynamic()["data-toggle"] = "tooltip"
+                asDynamic()["data-placement"] = "left"
+                title = "Name of a file that contains the output of a tool e.g. list of warnings."
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(outputFileName = event.target.value.ifBlank { null })
@@ -54,6 +60,9 @@ internal fun ChildrenBuilder.renderDemoSettings(demoDto: DemoDto, setDemoDto: St
                 placeholder = "Config name"
                 value = demoDto.configName
                 disabled = isDisabled
+                asDynamic()["data-toggle"] = "tooltip"
+                asDynamic()["data-placement"] = "right"
+                title = "Name of config file for your tool. You may leave it empty if none is required."
                 onChange = { event ->
                     setDemoDto { request ->
                         request.copy(configName = event.target.value.ifBlank { null })

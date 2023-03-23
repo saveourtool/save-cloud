@@ -6,9 +6,12 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoStatus
 import csstype.ClassName
-import react.ChildrenBuilder
+import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
+
+private const val HIDE_TIMEOUT_DEFAULT_MILLIS = 100
+private const val HIDE_TIMEOUT_ON_ERROR_MILLIS = 800
 
 /**
  * Display current demo status wrapped into bordered colorful pill
@@ -26,8 +29,17 @@ internal fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
                 DemoStatus.STOPPED -> "border-secondary"
                 DemoStatus.ERROR -> "border-danger"
             }
-            className =
-                    ClassName("border $borderStyle d-flex align-items-center justify-content-between rounded-pill m-3")
+            id = "status-label"
+            className = ClassName("border $borderStyle d-flex align-items-center justify-content-between rounded-pill m-3")
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
+            asDynamic()["data-html"] = true
+            asDynamic()["data-original-title"] = demoStatus.statusTooltip
+            asDynamic()["data-hide-timeout"] = if (demoStatus == DemoStatus.ERROR) {
+                HIDE_TIMEOUT_ON_ERROR_MILLIS
+            } else {
+                HIDE_TIMEOUT_DEFAULT_MILLIS
+            }
             div {
                 className = ClassName("col m-3 flex-wrap")
                 label {

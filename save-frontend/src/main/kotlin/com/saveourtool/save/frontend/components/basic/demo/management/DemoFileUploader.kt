@@ -45,6 +45,9 @@ internal fun ChildrenBuilder.renderFileUploading(
         className = ClassName("d-flex justify-content-between align-items-center")
         div {
             className = ClassName("col pl-0")
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "left"
+            title = "Unfortunately, GitHub tool download is temporary disabled. Please, upload the tool manually."
             input {
                 className = ClassName("form-control col mb-2")
                 autoComplete = AutoComplete.off
