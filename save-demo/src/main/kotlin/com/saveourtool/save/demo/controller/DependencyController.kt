@@ -7,6 +7,7 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.asyncEffect
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 
@@ -90,19 +91,14 @@ class DependencyController(
     ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMapIterable { demo ->
-            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) to it }
+        .asyncEffect { demo ->
+            dependencyStorage.cleanDependenciesNotIn(demo, version, fileDtos.map { fileDto -> fileDto.name })
         }
-        .filterWhen { (dependency, _) ->
-            dependencyStorage.doesExist(dependency).map(Boolean::not)
-        }
-        .flatMap { (dependency, fileDto) ->
-            downloadToolService.downloadToStorage(fileDto, dependency)
-        }
+        .flatMapIterable { demo -> fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) to it } }
+        .filterWhen { (dependency, _) -> dependencyStorage.doesExist(dependency).map(Boolean::not) }
+        .flatMap { (dependency, fileDto) -> downloadToolService.downloadToStorage(fileDto, dependency) }
         .collectList()
-        .map {
-            it.size
-        }
+        .map { it.size }
         .map { size ->
             log.info { "Successfully downloaded $size files from file storage." }
             StringResponse.ok(

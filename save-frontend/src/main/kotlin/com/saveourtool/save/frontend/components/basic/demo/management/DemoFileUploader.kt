@@ -107,6 +107,7 @@ internal fun ChildrenBuilder.renderFileUploading(
                     }
                     updateFileDtos = { setSelectedFileDtos(it) }
                     this.isDisabled = isDisabled
+                    uploadFilesButtonTooltip = "Executables / Configuration files / setup.sh"
                 }
             }
         }

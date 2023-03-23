@@ -4,6 +4,7 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
+import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.service.DemoService
 import com.saveourtool.save.utils.blockingToFlux
@@ -35,12 +36,14 @@ class DemoController(
     private val demoRunnerFactory: RunnerFactory,
 ) {
     /**
-     * @return all [DemoDto]s as [Flux]
+     * @return all [DemoStatus.RUNNING] [DemoDto]s as [Flux]
      */
-    @GetMapping("/all")
-    fun all(): Flux<DemoDto> = blockingToFlux {
-        demoService.getAllDemos().map { it.toDto() }
+    @GetMapping("/active")
+    fun active(): Flux<DemoDto> = blockingToFlux {
+        demoService.getAllDemos().map { it to demoService.getStatus(it).block() }
     }
+        .filter { (_, status) -> status == DemoStatus.RUNNING }
+        .map { it.first.toDto() }
 
     /**
      * @param organizationName saveourtool organization name

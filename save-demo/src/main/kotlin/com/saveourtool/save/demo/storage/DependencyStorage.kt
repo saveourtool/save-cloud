@@ -113,6 +113,30 @@ class DependencyStorage(
         )
     }
 
+    /**
+     * @param demo Demo entity
+     * @param version version of a tool
+     * @param dependencyNames list of dependency names that should be present in storage
+     * @return number of deleted files, wrapped into [Mono]
+     */
+    fun cleanDependenciesNotIn(
+        demo: Demo,
+        version: String,
+        dependencyNames: List<String>,
+    ): Mono<Int> = blockingToMono {
+        s3KeyManager.findAllDependenies(
+            demo.organizationName,
+            demo.projectName,
+            version,
+        )
+    }
+        .flatMapIterable { it }
+        .filter { it.fileName !in dependencyNames }
+        .flatMap { delete(it) }
+        .collectList()
+        .map { it.size }
+        .doOnSuccess { log.debug { "Cleaned $it useless dependencies." } }
+
     private fun downloadToTempDir(
         tempDir: Path,
         organizationName: String,
