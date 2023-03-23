@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic.demo
+package com.saveourtool.save.frontend.components.basic.demo.run
 
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
@@ -20,17 +20,9 @@ import com.saveourtool.save.utils.Languages
 import csstype.ClassName
 import js.core.asList
 import react.*
-import react.dom.aria.AriaRole
-import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.br
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import web.file.FileReader
 import web.html.InputType
@@ -68,12 +60,12 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
     }
 
     val (demoRunRequest, setDemoRunRequest) = useState(DemoRunRequest.empty)
-    val (demoResult, setDemoResult) = useState(DemoResult.empty)
+    val (demoResult, setDemoResult) = useState<DemoResult?>(null)
     val (codeLines, setCodeLines) = useState(DEFAULT_CODE)
 
     val sendRunRequest = useDeferredRequest {
         val result: DemoResult = post(
-            "$demoApiUrl/${props.projectCoordinates}/run",
+            "$demoApiUrl/${props.projectCoordinates}/run/stub",
             jsonHeaders,
             Json.encodeToString(
                 demoRunRequest.copy(
@@ -111,8 +103,8 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
                     editorTitle = "Output code"
                     selectedTheme = props.selectedTheme
                     selectedMode = props.selectedMode
-                    savedText = demoResult.outputText.joinToString("\n")
-                    draftText = demoResult.outputText.joinToString("\n")
+                    savedText = demoResult?.outputText?.joinToString("\n").orEmpty()
+                    draftText = demoResult?.outputText?.joinToString("\n").orEmpty()
                     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                     onDraftTextUpdate = { }
                     isDisabled = true
@@ -179,8 +171,8 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
         }
         div {
             className = ClassName("ml-1 mr-1")
-            displayAlertWithWarnings(demoResult) {
-                setDemoResult(DemoResult.empty)
+            demoOutputComponent {
+                this.demoResult = demoResult
             }
         }
     }
@@ -204,60 +196,4 @@ external interface DemoRunComponentProps : Props {
      * saveourtool [ProjectCoordinates]
      */
     var projectCoordinates: ProjectCoordinates
-}
-
-private fun ChildrenBuilder.displayAlertWithWarnings(result: DemoResult, flushWarnings: () -> Unit) {
-    div {
-        val show = if (result.warnings.isEmpty() && result.logs.isEmpty()) {
-            ""
-        } else {
-            "show"
-        }
-        val isError = result.terminationCode != 0 && result.warnings.isEmpty()
-        val alertStyle = if (isError) {
-            "alert-danger"
-        } else {
-            "alert-warning"
-        }
-        className = ClassName("alert $alertStyle alert-dismissible fade $show mb-0")
-        role = "alert".unsafeCast<AriaRole>()
-        button {
-            type = ButtonType.button
-            className = ClassName("close")
-            ariaLabel = "Close"
-            fontAwesomeIcon(faTimesCircle)
-            onClick = {
-                flushWarnings()
-            }
-        }
-        if (isError) {
-            h4 {
-                className = ClassName("alert-heading")
-                +"Something went wrong... See the logs below:"
-                result.logs.forEach { logLine ->
-                    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-                    br { }
-                    +logLine
-                }
-            }
-        } else {
-            h4 {
-                className = ClassName("alert-heading")
-                val warningWord = if (result.warnings.size == 1) {
-                    "warning"
-                } else {
-                    "warnings"
-                }
-                +"Detected ${result.warnings.size} $warningWord:"
-            }
-            result.warnings.forEach { warning ->
-                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-                hr { }
-                p {
-                    className = ClassName("mb-0")
-                    +warning
-                }
-            }
-        }
-    }
 }
