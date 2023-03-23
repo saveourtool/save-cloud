@@ -42,6 +42,7 @@ jobs:
 
       - name: Commit and push if api spec is changed
         run: |
+          touch tmpfile && git add tmpfile
           git add save-backend/backend-api-docs.json
           if git diff --staged --quiet; then
             echo Everything is UP-TO-DATE
