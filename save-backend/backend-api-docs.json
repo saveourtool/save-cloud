@@ -2448,7 +2448,7 @@
     "/api/v1/files/delete": {
       "delete": {
         "description": "Delete a file by id.",
-        "operationId": "delete",
+        "operationId": "delete_1",
         "parameters": [
           {
             "description": "ID of additional file",
@@ -8133,6 +8133,59 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/delete": {
+      "delete": {
+        "description": "Deleted vulnerability.",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Deleted vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/save": {
       "post": {
         "description": "Save vulnerability.",
@@ -8234,6 +8287,14 @@
       "post": {
         "description": "Update vulnerability.",
         "operationId": "update",
+        "parameters": [
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

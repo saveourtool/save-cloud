@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.fossgraph
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -15,6 +16,8 @@ import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.AlignItems
 import csstype.ClassName
@@ -28,23 +31,10 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
-import react.router.useParams
+import react.router.useNavigate
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-/**
- * [VFC] for foss graph view
- */
-@Suppress("MAGIC_NUMBER")
-val fossGraphView: VFC = VFC {
-    val params = useParams()
-    val vulnerabilityName = params["vulnerabilityName"]!!.toString()
-
-    fossGraph {
-        name = vulnerabilityName
-    }
-}
 
 @Suppress(
     "MAGIC_NUMBER",
@@ -57,8 +47,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     val projectWindowOpenness = useWindowOpenness()
 
-    val params = useParams()
-    val vulnerabilityName = params["vulnerabilityName"]!!.toString()
+    val navigate = useNavigate()
 
     val (vulnerabilityProjects, setVulnerabilityProjects) = useState<Set<VulnerabilityProjectDto>>(setOf())
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
@@ -87,9 +76,33 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
+    val enrollUpdateRequest = useDeferredRequest {
+        val vulnerabilityUpdate = vulnerability.copy(isActive = true)
+        val response = post(
+            url = "$apiUrl/vulnerabilities/update",
+            headers = jsonHeaders,
+            body = Json.encodeToString(vulnerabilityUpdate),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            navigate(to = "/${FrontendRoutes.FOSS_GRAPH}")
+        }
+    }
+
+    val enrollDeleteRequest = useDeferredRequest {
+        val response = delete(
+            url = "$apiUrl/vulnerabilities/delete?name=${props.name}",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            navigate(to = "/${FrontendRoutes.FOSS_GRAPH}")
+        }
+    }
+
     useRequest {
         val vulnerabilityNew = get(
-            "$apiUrl/vulnerabilities/by-name-with-description?name=$vulnerabilityName",
+            "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
@@ -150,6 +163,19 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     div {
         className = ClassName("card card-body mt-0")
+        props.currentUserInfo?.globalRole?.let { role ->
+            if (role.isHigherOrEqualThan(Role.SUPER_ADMIN) && !vulnerability.isActive) {
+                div {
+                    className = ClassName("d-flex justify-content-end")
+                    buttonBuilder(label = "Reject", style = "danger", classes = "mr-2") {
+                        enrollDeleteRequest()
+                    }
+                    buttonBuilder(label = "Approve", style = "success") {
+                        enrollUpdateRequest()
+                    }
+                }
+            }
+        }
 
         h1 {
             className = ClassName("h3 mb-0 text-center text-gray-800")
@@ -196,7 +222,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
                             value = "${vulnerability.description}"
-                            rows = 5
+                            rows = 8
                             disabled = true
                         }
                     }
@@ -208,7 +234,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
                 div {
                     className = ClassName("d-flex justify-content-end")
-                    buttonBuilder("Add project", classes = "mr-2") {
+                    buttonBuilder("Add project", classes = "mr-2", isOutline = true) {
                         projectWindowOpenness.openWindow()
                     }
                     buttonBuilder(label = "Save", isDisabled = !isUpdateVulnerability) {
@@ -249,4 +275,9 @@ external interface FossGraphViewProps : Props {
      * Name of security vulnerabilities
      */
     var name: String
+
+    /**
+     * Information about current user
+     */
+    var currentUserInfo: UserInfo?
 }
