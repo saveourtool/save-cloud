@@ -149,14 +149,10 @@ class OrganizationService(
      * @param organizationFilter
      * @return list of organizations with that match [organizationFilter]
      */
-    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = if (organizationFilter.prefix.isBlank()) {
-        organizationRepository.findByStatusIn(organizationFilter.statuses)
-    } else {
-        organizationRepository.findByNameStartingWithAndStatusIn(
-            organizationFilter.prefix,
-            organizationFilter.statuses,
-        )
-    }
+    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
+        organizationFilter.prefix,
+        organizationFilter.statuses,
+    )
 
     /**
      * @param organization
