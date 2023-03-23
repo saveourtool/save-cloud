@@ -79,7 +79,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
 
     useRequest {
         val fetchedDemos: List<DemoDto> = get(
-            url = "$demoApiUrl/all",
+            url = "$demoApiUrl/active",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
