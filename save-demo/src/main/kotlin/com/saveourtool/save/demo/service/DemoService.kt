@@ -106,12 +106,15 @@ class DemoService(
             demo.apply {
                 this.id = demoFromDb.requiredId()
                 val existingCommands = demoFromDb.runCommands.filter { (it.modeName to it.command) in runCommands.toList() }
-                val newCommands = runCommands.filterKeys { modeName -> modeName !in existingCommands.map { it.modeName } }.toRunCommandEntityList(this)
-                    .also {
-                        runCommandRepository.saveAllAndFlush(it)
-                    }
-
-                this.runCommands = existingCommands + newCommands
+                val changedCommands = demoFromDb.runCommands
+                    .filter { it.modeName in runCommands.keys }
+                    .filter { it !in existingCommands }
+                    .map { runCommand -> runCommand.apply { command = requireNotNull(runCommands[modeName]) } }
+                val newCommands = runCommands
+                    .filterKeys { modeName -> modeName !in existingCommands.map { it.modeName } }
+                    .filterKeys { modeName -> modeName !in changedCommands.map { it.modeName } }
+                    .toRunCommandEntityList(this)
+                this.runCommands = existingCommands + changedCommands + newCommands
             }
         }
         ?.let { demoRepository.save(it) }
