@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
-          token: ${{ secrets.PAT }}
+          #token: ${{ secrets.PAT }}
           #commit-message: Update report
           #committer: GitHub <noreply@github.com>
           #author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
