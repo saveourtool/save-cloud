@@ -2,6 +2,8 @@ package com.saveourtool.save.demo
 
 import kotlinx.serialization.Serializable
 
+private const val CONTACT_US_HTML_LINK = "<a href=\"https://github.com/saveourtool/save-cloud/issues/new\">contact us</a>"
+
 /**
  * Enum that defines demo status
  * @property statusTooltip
@@ -11,7 +13,7 @@ enum class DemoStatus(val statusTooltip: String) {
     /**
      * Demo is created but stopped by error
      */
-    ERROR("Oops, some issue has occurred. Please, check logs and contact us."),
+    ERROR("Oops, some issue has occurred. Please, check logs and $CONTACT_US_HTML_LINK."),
 
     /**
      * No demo created yet

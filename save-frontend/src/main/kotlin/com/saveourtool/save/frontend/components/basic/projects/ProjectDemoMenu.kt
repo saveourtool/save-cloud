@@ -16,7 +16,6 @@ import com.saveourtool.save.frontend.components.basic.demo.*
 import com.saveourtool.save.frontend.components.basic.demo.management.*
 import com.saveourtool.save.frontend.components.basic.demo.management.renderButtons
 import com.saveourtool.save.frontend.components.basic.demo.management.renderFileUploading
-import com.saveourtool.save.frontend.components.basic.demo.management.renderStatusLabel
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -177,6 +176,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         getDemoStatus()
         getDemoFiles()
     }
+
     useTooltip()
 
     val (selectedModeCommand, setSelectedModeCommand) = useState<RunCommandPair?>(null)
