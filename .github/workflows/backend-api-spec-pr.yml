@@ -1,0 +1,20 @@
+name: Create PR for new version of backend api spec
+on:
+  push:
+    branches:
+      #- infra/update-backend-api-spec
+      - 'feature/update-api-workflow'
+jobs:
+  create_pr_for_backend_api_spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+#        with:
+#          commit-message: commit-msg
+#          title: commit-title
+#          body: ommit-body
+#          branch: infra/update-backend-api-spec
