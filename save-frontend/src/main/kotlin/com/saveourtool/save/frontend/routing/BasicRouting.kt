@@ -17,8 +17,8 @@ import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
-import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -131,6 +131,13 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     val fossGraphCollectionView: VFC = VFC {
         fossGraphCollectionView {
+            currentUserInfo = props.userInfo
+        }
+    }
+
+    val fossGraphView: VFC = withRouter { _, params ->
+        fossGraph {
+            name = requireNotNull(params["vulnerabilityName"])
             currentUserInfo = props.userInfo
         }
     }
