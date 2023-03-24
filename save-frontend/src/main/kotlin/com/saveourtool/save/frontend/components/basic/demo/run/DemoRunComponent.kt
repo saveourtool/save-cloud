@@ -65,7 +65,7 @@ val demoRunComponent: FC<DemoRunComponentProps> = FC { props ->
 
     val sendRunRequest = useDeferredRequest {
         val result: DemoResult = post(
-            "$demoApiUrl/${props.projectCoordinates}/run/stub",
+            "$demoApiUrl/${props.projectCoordinates}/run",
             jsonHeaders,
             Json.encodeToString(
                 demoRunRequest.copy(

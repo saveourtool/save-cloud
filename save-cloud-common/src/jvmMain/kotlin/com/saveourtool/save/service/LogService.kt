@@ -36,7 +36,26 @@ interface LogService {
         limit: Int,
     ): Mono<StringList>
 
+    /**
+     * @param labels [Map] where keys are label names, values are label values
+     * @param from query is from this timestamp in UTC
+     * @param to query is to this timestamp in UTC
+     * @param limit limit for result
+     * @return logs as [Mono] of [String]s
+     */
+    fun getByExactLabels(
+        labels: Map<String, String>,
+        from: Instant,
+        to: Instant,
+        limit: Int,
+    ): Mono<StringList>
+
     companion object {
+        /**
+         * Number of lines that should be fetched from log processor by default
+         */
+        const val LOG_SIZE_LIMIT_DEFAULT = "1000"
+
         /**
          * Stub implementation of [LogService]
          */
@@ -57,6 +76,15 @@ interface LogService {
                 limit: Int,
             ): Mono<StringList> = Mono.just(
                 listOf("Stub implementation: requested logs by application name for $applicationName from $from to $to with limit $limit")
+            )
+
+            override fun getByExactLabels(
+                labels: Map<String, String>,
+                from: Instant,
+                to: Instant,
+                limit: Int
+            ): Mono<StringList> = Mono.just(
+                listOf("Stub implementation: requested logs by labels [$labels] from $from to $to with limit $limit")
             )
         }
     }
