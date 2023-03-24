@@ -24,14 +24,11 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.textarea
 import react.useState
 
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.*
 
 private const val DEFAULT_LIMIT = 1000
-private const val MAX_ROWS_TEXTAREA = 50
-private const val MIN_ROWS_TEXTAREA = 10
+private const val ROWS_TEXTAREA = 15
 @Suppress("MAGIC_NUMBER")
 private val stepSize = 10.minutes
 
@@ -84,7 +81,7 @@ val demoContainerLogButton: FC<DemoContainerLogButtonProps> = FC { props ->
                     className = ClassName("d-flex justify-content-center")
                     textarea {
                         className = ClassName("form-control")
-                        rows = max(MIN_ROWS_TEXTAREA, min(MAX_ROWS_TEXTAREA, logs.size))
+                        rows = ROWS_TEXTAREA
                         value = logs.joinToString("\n").ifEmpty { "No logs found" }
                     }
                 }
