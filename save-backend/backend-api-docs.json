@@ -10031,7 +10031,8 @@
           "isActive",
           "name",
           "progress",
-          "projects"
+          "projects",
+          "userId"
         ],
         "type": "object",
         "properties": {
@@ -10053,6 +10054,10 @@
             "items": {
               "$ref": "#/components/schemas/VulnerabilityProjectDto"
             }
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
