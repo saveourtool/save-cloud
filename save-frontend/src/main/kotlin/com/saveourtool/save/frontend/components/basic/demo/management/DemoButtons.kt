@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
@@ -14,6 +15,7 @@ import react.dom.html.ReactHTML.div
 /**
  * Display buttons of demo management card
  *
+ * @param projectCoordinates saveourtool [ProjectCoordinates]
  * @param demoStatus [DemoStatus] of this demo
  * @param userRole current user role, required for button disabling
  * @param createOrUpdateDemo callback that sends creation request to backend
@@ -24,6 +26,7 @@ import react.dom.html.ReactHTML.div
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 internal fun ChildrenBuilder.renderButtons(
+    projectCoordinates: ProjectCoordinates,
     demoStatus: DemoStatus,
     userRole: Role,
     createOrUpdateDemo: () -> Unit,
@@ -78,13 +81,11 @@ internal fun ChildrenBuilder.renderButtons(
                 }
             }
 
-            DemoStatus.STOPPING -> buttonBuilder(
-                "Reload",
-                style = "secondary",
-                isDisabled = userRole.isLowerThan(Role.VIEWER)
-            ) {
-                refreshDemo()
-            }
+            DemoStatus.STOPPING -> buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(Role.VIEWER)) { refreshDemo() }
+        }
+        demoContainerLogButton {
+            this.projectCoordinates = projectCoordinates
+            isDisabled = demoStatus == DemoStatus.NOT_CREATED
         }
     }
 }

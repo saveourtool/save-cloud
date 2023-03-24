@@ -4,11 +4,13 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkProjectGithubService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.service.LogService
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -19,8 +21,10 @@ import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -30,16 +34,19 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.time.LocalDateTime
 
 /**
  * Controller that allows adding tools to save-demo
  */
+@ApiSwaggerSupport
 @RestController
 @RequestMapping("/api/$v1/demo")
 class DemoManagerController(
     private val projectService: ProjectService,
     private val lnkProjectGithubService: LnkProjectGithubService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val logService: LogService,
     configProperties: ConfigProperties,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -290,6 +297,53 @@ class DemoManagerController(
             .toEntity()
     }
 
+    @GetMapping("/{organizationName}/{projectName}/logs")
+    @RequiresAuthorizationSourceHeader
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "demo version, manual by default", required = false),
+        Parameter(name = "from", `in` = ParameterIn.QUERY, description = "start of requested time range in ISO format with default time zone", required = true),
+        Parameter(name = "to", `in` = ParameterIn.QUERY, description = "end of requested time range in ISO format with default time zone", required = true),
+        Parameter(name = "limit", `in` = ParameterIn.QUERY, description = "limit for result", required = false),
+    )
+    @Operation(
+        method = "GET",
+        summary = "Get demo logs.",
+        description = "Get demo logs.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched demo logs.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for demo management.")
+    @ApiResponse(responseCode = "404", description = "Could not find saveourtool project or demo of a project.")
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+    fun getLogs(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime,
+        @RequestParam(required = false, defaultValue = LogService.LOG_SIZE_LIMIT_DEFAULT) limit: Int,
+        authentication: Authentication,
+    ): Mono<StringListResponse> = projectService.projectByCoordinatesOrNotFound(projectName, organizationName) {
+        "Could not find $organizationName/$projectName."
+    }
+        .requireOrSwitchToForbidden({ projectPermissionEvaluator.hasPermission(authentication, this, Permission.WRITE) }) {
+            "Not enough permission for accessing $organizationName/$projectName."
+        }
+        .flatMap {
+            logService.getByExactLabels(
+                mapOf(
+                    "organizationName" to organizationName,
+                    "projectName" to projectName,
+                    "version" to version,
+                ),
+                from.toInstantAtDefaultZone(),
+                to.toInstantAtDefaultZone(),
+                limit,
+            )
+        }
+        .map { ResponseEntity.ok(it) }
+
     private inline fun <reified T : Any> forwardRequestCheckingPermission(
         requiredPermission: Permission,
         organizationName: String,
@@ -311,5 +365,8 @@ class DemoManagerController(
         projectName: String,
     ) = onStatus({ it == HttpStatus.NOT_FOUND }) {
         Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find demo for $organizationName/$projectName."))
+    }
+    companion object {
+        private const val SAVE_DEMO_AGENT_KOMPOSE_NAME = "save-demo-agent"
     }
 }
