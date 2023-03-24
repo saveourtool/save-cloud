@@ -1,8 +1,7 @@
 name: Create PR for new version of backend api spec
 on:
-  push:
-    branches:
-      - 'infra/update-backend-api-spec'
+  branches:
+    - 'infra/update-backend-api-spec'
 jobs:
   create_pr_for_backend_api_spec:
     runs-on: ubuntu-latest
