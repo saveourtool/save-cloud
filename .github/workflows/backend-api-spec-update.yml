@@ -38,6 +38,7 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push if api spec is changed
+        id: commit-and-push
         run: |
           git add save-backend/backend-api-docs.json
           if git diff --staged --quiet; then
@@ -48,4 +49,15 @@ jobs:
             git config user.email 'github-actions[bot]@users.noreply.github.com'
             git commit -m "Update backend-api-docs.json"
             git push
+            echo "SHOULD_CREATE_PR=1" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create Pull Request
+        if: ${{ startsWith(steps.commit-and-push.outputs.SHOULD_CREATE_PR, '1') }}
+        run: |
+          gh pr create -B master -H infra/update-backend-api-spec \
+          --title '[Open API] New version of backend api spec' \
+          --body 'Update backend api spec [auto-generated]'
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
