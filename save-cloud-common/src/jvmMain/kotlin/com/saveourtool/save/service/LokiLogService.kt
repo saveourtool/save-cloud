@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono
 
 import java.time.Instant
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
@@ -85,8 +86,8 @@ class LokiLogService(
         .uri(
             "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward&limit={limit}",
             query,
-            start.toString(),
-            end.toString(),
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(start),
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(end),
             batchSize(),
         )
         .also {
