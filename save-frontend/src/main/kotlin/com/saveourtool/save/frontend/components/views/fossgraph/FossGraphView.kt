@@ -101,25 +101,24 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
-    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     useRequest {
-        val vulnerabilityNew = get(
+        val vulnerabilityNew: VulnerabilityDto = get(
             url = "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
             .unsafeMap {
-                it.decodeFromJsonString<VulnerabilityDto>()
+                it.decodeFromJsonString()
             }
 
         setVulnerability(vulnerabilityNew)
 
-        val userInfo = get(
+        val userInfo: UserInfo = get(
             url = "$apiUrl/users/${props.currentUserInfo?.name}",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
-            .decodeFromJsonString<UserInfo>()
+            .decodeFromJsonString()
 
         setUser(userInfo)
     }
