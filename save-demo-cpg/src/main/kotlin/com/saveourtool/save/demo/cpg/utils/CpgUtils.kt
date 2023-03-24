@@ -8,6 +8,7 @@ import de.fraunhofer.aisec.cpg.graph.Node
 import org.neo4j.ogm.response.model.RelationshipModel
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import org.neo4j.ogm.response.model.NodeModel
 
 /**
  * @return [CpgNode] from [Node]
@@ -25,6 +26,26 @@ fun Node.toCpgNode() = CpgNode(
             isInferred = isInferred,
             isImplicit = isImplicit,
             argumentIndex = argumentIndex,
+        )
+    ),
+)
+
+/**
+ * @return [CpgNode] from [NodeModel]
+ */
+@ExperimentalSerializationApi
+fun NodeModel.toCpgNode() = CpgNode(
+    id.toString(),
+    CpgNodeAttributes(
+        property("localName").toString(),
+        additionalInfo = CpgNodeAdditionalInfo(
+            code = property("code")?.toString(),
+            comment = property("comment")?.toString(),
+            location = property("location")?.toString(),
+            file = property("file")?.toString(),
+            isInferred = property("isInferred")?.toString().toBoolean(),
+            isImplicit = property("isImplicit")?.toString().toBoolean(),
+            argumentIndex = property("argumentIndex")?.toString()?.toInt() ?: -1,
         )
     ),
 )

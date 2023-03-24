@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.cpg.controller
 
+import arrow.core.flatten
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
@@ -10,6 +11,8 @@ import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
 import arrow.core.getOrElse
+import arrow.core.right
+import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -43,6 +46,7 @@ const val FILE_NAME_SEPARATOR = "==="
 class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
+    val treeSitterService: TreeSitterService,
     val cpgRepository: CpgRepository,
 ) {
     /**
@@ -54,20 +58,39 @@ class CpgController(
     fun uploadCode(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
+        doUploadCode(
+            request,
+            { folder -> ResultWithLogs(treeSitterService.translate(folder).values.flatten().right(), emptyList()) },
+        ) {
+            cpgRepository.save(it)
+        }
+//        doUploadCode(
+//            request,
+//            cpgService::translate,
+//        ) {
+//            cpgRepository.save(it)
+//        }
+    }
+
+    private fun <T> doUploadCode(
+        @RequestBody request: CpgRunRequest,
+        translateFunction: (Path) -> ResultWithLogs<T>,
+        saveFunction: (T) -> Long,
+    ): CpgResult {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
-        var logs: MutableList<String> = mutableListOf()
-        try {
+        val logs: MutableList<String> = mutableListOf()
+        return try {
             createFiles(request, tmpFolder)
-            val (result, logsFromLogback) = cpgService.translate(tmpFolder)
-            logs = logsFromLogback.toMutableList()
+            val (result, logsFromLogback) = translateFunction(tmpFolder)
+            logs.addAll(logsFromLogback)
 
             result
                 .map {
-                    cpgRepository.save(it)
+                    saveFunction(it)
                 }
                 .map {
                     CpgResult(
-                        cpgRepository.getGraph(it),
+                        cpgRepository.getCpgGraph(it),
                         "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
                         logs,
                     )

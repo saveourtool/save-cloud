@@ -19,6 +19,9 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+    maven {
+        setUrl("https://jitpack.io")
+    }
     mavenCentral()
 }
 val jepArchive by configurations.creating
@@ -33,29 +36,25 @@ dependencies {
     implementation(projects.saveCloudCommon)
     api(libs.arrow.kt.core)
 
-    implementation(libs.neo4j.ogm.core)
-    implementation(libs.neo4j.ogm.bolt.driver)
-    implementation(libs.neo4j.java.driver)
+    val excludeLogging: Action<ExternalModuleDependency> = Action {
+        // we use logback
+        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.apache.logging.log4j", "log4j-core")
+        // we don't migrate to slf4j 2.x yet
+        exclude("org.slf4j", "slf4j-api")
+    }
+    implementation(libs.neo4j.ogm.core, excludeLogging)
+    implementation(libs.neo4j.ogm.bolt.driver, excludeLogging)
+    implementation(libs.neo4j.java.driver, excludeLogging)
 
-    implementation(libs.cpg.core) {
-        // we use logback
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-        exclude("org.apache.logging.log4j", "log4j-core")
-        // we don't migrate to slf4j 2.x yet
-        exclude("org.slf4j", "slf4j-api")
-    }
-    implementation(libs.cpg.python) {
-        // we use logback
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-        exclude("org.apache.logging.log4j", "log4j-core")
-        // we don't migrate to slf4j 2.x yet
-        exclude("org.slf4j", "slf4j-api")
-    }
+    implementation(libs.cpg.core, excludeLogging)
+    implementation(libs.cpg.python, excludeLogging)
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
+    implementation("com.github.serenadeai:java-tree-sitter:1.1.2")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
