@@ -15,10 +15,10 @@ abstract class BaseEntityWithDate : BaseEntity() {
     /**
      * Create date of entity
      **/
-    var createDate: LocalDateTime? = null
+    open var createDate: LocalDateTime? = null
 
     /**
      * Update date of entity
      **/
-    var updateDate: LocalDateTime? = null
+    open var updateDate: LocalDateTime? = null
 }
