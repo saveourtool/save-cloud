@@ -14,11 +14,11 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          gh pr create -B master -H infra/update-backend-api-spec\
-          --title '[Update] New version of backend api spec'\
-          --body 'Update backend api spec\
-          ### What's done:\
-          * Update backend api spec\
+          gh pr create -B master -H infra/update-backend-api-spec \
+          --title '[Update] New version of backend api spec' \
+          --body 'Update backend api spec \
+          ### What's done: \
+          * Update backend api spec \
           * Auto-generated'
 
         env:
