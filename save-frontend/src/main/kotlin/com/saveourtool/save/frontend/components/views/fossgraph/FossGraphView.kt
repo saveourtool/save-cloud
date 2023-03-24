@@ -52,6 +52,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val (vulnerabilityProjects, setVulnerabilityProjects) = useState<Set<VulnerabilityProjectDto>>(setOf())
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
+    val (user, setUser) = useState(props.currentUserInfo)
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
         setVulnerability {
@@ -100,9 +101,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     useRequest {
         val vulnerabilityNew = get(
-            "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
+            url = "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
@@ -111,6 +113,15 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             }
 
         setVulnerability(vulnerabilityNew)
+
+        val userInfo = get(
+            url = "$apiUrl/users/${props.currentUserInfo?.name}",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+            .decodeFromJsonString<UserInfo>()
+
+        setUser(userInfo)
     }
 
     vulnerabilityProjectWindow {
@@ -163,16 +174,20 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     div {
         className = ClassName("card card-body mt-0")
-        props.currentUserInfo?.globalRole?.let { role ->
-            if (role.isHigherOrEqualThan(Role.SUPER_ADMIN) && !vulnerability.isActive) {
-                div {
-                    className = ClassName("d-flex justify-content-end")
-                    buttonBuilder(label = "Reject", style = "danger", classes = "mr-2") {
-                        enrollDeleteRequest()
-                    }
-                    buttonBuilder(label = "Approve", style = "success") {
-                        enrollUpdateRequest()
-                    }
+
+        val isSuperAdmin = props.currentUserInfo?.globalRole?.isHigherOrEqualThan(Role.SUPER_ADMIN) == true
+        val isOwner = user?.id == vulnerability.userId
+        div {
+            className = ClassName("d-flex justify-content-end")
+
+            if (isSuperAdmin || isOwner) {
+                buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
+                    enrollDeleteRequest()
+                }
+            }
+            if (isSuperAdmin && !vulnerability.isActive) {
+                buttonBuilder(label = "Approve", style = "success") {
+                    enrollUpdateRequest()
                 }
             }
         }
