@@ -2,7 +2,7 @@ name: Create PR for new version of backend api spec
 on:
   push:
     branches:
-      - 'refs/heads/infra/update-backend-api-spec'
+      - 'infra/update-backend-api-spec'
 jobs:
   create_pr_for_backend_api_spec:
     runs-on: ubuntu-latest
@@ -10,6 +10,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: 'infra/update-backend-api-spec'
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
@@ -18,7 +20,7 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           #signoff: false
-          branch: 'refs/heads/infra/update-backend-api-spec'
+          branch: 'infra/update-backend-api-spec'
           #delete-branch: true
           title: '[Update] New version of backend api spec'
           body: |
