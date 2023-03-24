@@ -1,0 +1,101 @@
+/**
+ * Function component for demo output displaying
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
+package com.saveourtool.save.frontend.components.basic.demo.run
+
+import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.diktat.*
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
+
+import csstype.ClassName
+import csstype.Cursor
+import js.core.jso
+import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.textarea
+
+import kotlin.math.min
+
+private const val MAX_ROWS_TEXTAREA = 10
+
+/**
+ * [FC] to display output of demo run
+ */
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "KDOC_WITHOUT_RETURN_TAG",
+    "LongMethod",
+    "TYPE_ALIAS"
+)
+val demoOutputComponent: FC<DemoOutputComponentProps> = FC { props ->
+    val (selectedTab, setSelectedTab) = useState<DemoOutputTab?>(null)
+
+    useEffect(props.demoResult) { props.demoResult?.let { setSelectedTab(DemoOutputTab.OUTPUT) } }
+
+    div {
+        className = ClassName("")
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            nav {
+                className = ClassName("nav nav-tabs mb-4")
+                DemoOutputTab.values().forEach { tab ->
+                    li {
+                        className = ClassName("nav-item")
+                        style = selectedTab?.let {
+                            jso { cursor = "pointer".unsafeCast<Cursor>() }
+                        }
+                        val classVal = when {
+                            selectedTab == tab -> " active font-weight-bold"
+                            props.demoResult == null -> " disabled "
+                            else -> ""
+                        }
+                        p {
+                            className = ClassName("nav-link $classVal text-gray-800")
+                            onClick = {
+                                setSelectedTab { currentlySelectedTab -> tab.takeIf { it != currentlySelectedTab } }
+                            }
+                            +tab.name
+                        }
+                    }
+                }
+            }
+        }
+
+        val displayRows = when (selectedTab) {
+            null -> null
+            DemoOutputTab.OUTPUT -> props.demoResult?.warnings.orEmpty()
+            DemoOutputTab.LOGS -> props.demoResult?.logs.orEmpty()
+        }
+
+        displayRows?.let { lines ->
+            textarea {
+                className = ClassName("form-control")
+                rows = min(MAX_ROWS_TEXTAREA, lines.size)
+                value = lines.joinToString("\n")
+            }
+        }
+    }
+}
+
+/**
+ * [demoOutputComponent] [Props]
+ */
+external interface DemoOutputComponentProps : Props {
+    /**
+     * [DemoResult] fetched from save-demo
+     */
+    var demoResult: DemoResult?
+}
+
+private enum class DemoOutputTab {
+    LOGS,
+    OUTPUT,
+    ;
+}
