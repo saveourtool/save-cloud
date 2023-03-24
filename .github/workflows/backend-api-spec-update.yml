@@ -12,15 +12,15 @@ jobs:
   update_backend_api_spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: 'master'
-
       - uses: peterjgrainger/action-create-branch@v2.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           branch: 'infra/update-backend-api-spec'
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'infra/update-backend-api-spec'
 
       - name: Set up Java
         uses: actions/setup-java@v3
