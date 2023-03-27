@@ -130,7 +130,6 @@ fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
 private fun ContainerPort.default(port: Int) = apply {
     protocol = "TCP"
     containerPort = port
-    hostPort = port
     name = "agent-server"
 }
 
