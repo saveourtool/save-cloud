@@ -23,6 +23,7 @@ repositories {
         setUrl("https://jitpack.io")
     }
     mavenCentral()
+    mavenLocal()
 }
 val jepArchive by configurations.creating
 
@@ -55,6 +56,7 @@ dependencies {
         builtBy(resolveJep)
     })
     implementation("com.github.serenadeai:java-tree-sitter:1.1.2")
+    implementation("io.github.oxisto:kotlin-tree-jna:0.0.0-SNAPSHOT")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files

@@ -12,7 +12,7 @@ import com.saveourtool.save.utils.getLogger
 
 import arrow.core.getOrElse
 import arrow.core.right
-import com.saveourtool.save.demo.cpg.service.TreeSitterService
+import com.saveourtool.save.demo.cpg.service.JavaTreeSitterService
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -46,7 +46,7 @@ const val FILE_NAME_SEPARATOR = "==="
 class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
-    val treeSitterService: TreeSitterService,
+    val treeSitterService: JavaTreeSitterService,
     val cpgRepository: CpgRepository,
 ) {
     /**

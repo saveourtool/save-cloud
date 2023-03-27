@@ -1,26 +1,21 @@
 package com.saveourtool.save.demo.cpg.service
 
-import ai.serenade.treesitter.Languages
-import ai.serenade.treesitter.Node
-import ai.serenade.treesitter.Parser
-import ai.serenade.treesitter.TreeCursor
 import com.saveourtool.save.demo.cpg.entity.TreeSitterLocation
 import com.saveourtool.save.demo.cpg.entity.TreeSitterNode
+import io.github.oxisto.kotlintree.jvm.CppParser
+import io.github.oxisto.kotlintree.jvm.Node
+import io.github.oxisto.kotlintree.jvm.TreeCursor
+import io.github.oxisto.kotlintree.jvm.TreeSitter
 import org.springframework.stereotype.Service
 import java.nio.file.Path
-import javax.annotation.PostConstruct
 import kotlin.io.path.*
 
 /**
+ *
  * A service for [tree-sitter](https://tree-sitter.github.io/tree-sitter/) using [kotlintree](https://github.com/oxisto/kotlintree)
  */
 @Service
-class TreeSitterService {
-    @PostConstruct
-    fun init() {
-        System.load("/mnt/d/projects/java-tree-sitter/libjava-tree-sitter.so")
-    }
-
+class KotlinTreeSitterService {
     /**
      * Translate all code in provided folder
      *
@@ -29,18 +24,12 @@ class TreeSitterService {
      */
     @OptIn(ExperimentalPathApi::class)
     fun translate(folder: Path): Map<String, List<TreeSitterNode>> {
-        return Parser().use { parser ->
-            parser.setLanguage(Languages.java())
+        return CppParser().use { parser ->
             folder.walk()
                 .map { path ->
                     val fileName = path.relativize(folder).pathString
-                    parser.parseString(path.readText())
-                        .use { tree ->
-                            tree.rootNode.walk()
-                                .use { cursor ->
-                                    fileName to cursor.getNodes(fileName)
-                                }
-                        }
+                    val tree = parser.parse(path.toFile())
+                    fileName to tree.rootNode.newCursor()?.getNodes(fileName).orEmpty()
                 }
                 .toMap()
         }
@@ -55,14 +44,17 @@ class TreeSitterService {
                         parent = currentNode
                     )
                 }
-                if (cursor.gotoNextSibling()) {
+                if (cursor.hasNext()) {
+                    cursor.gotoNextSibling()
                     return@generateSequence cursor to cursor.toTreeSitterNode(
                         fileName = fileName,
                         parent = currentNode.parent,
                         prev = currentNode,
                     )
                 }
-                if (cursor.gotoParent() && cursor.gotoNextSibling()) {
+                cursor.gotoParent()
+                if (cursor.hasNext()) {
+                    cursor.gotoNextSibling()
                     return@generateSequence cursor to cursor.toTreeSitterNode(
                         fileName = fileName,
                         parent = currentNode.parent?.parent,
@@ -105,8 +97,12 @@ class TreeSitterService {
                 startBytes = this.startByte,
                 endBytes = this.endByte,
             ),
-            localName = this.type,
-            code = this.nodeString,
+            localName = this.type ?: "N/A",
+            code = this.string ?: "N/A",
         )
+
+        private fun TreeCursor.gotoParent() {
+            TreeSitter.INSTANCE.ts_tree_cursor_goto_parent(pointer)
+        }
     }
 }
