@@ -11,6 +11,7 @@ import react.react
 enum class Color(val hexColor: String) {
     GREEN("#00d500"),
     RED("#ac0000"),
+    YELLOW("#f0dd0e"),
     ;
 }
 
