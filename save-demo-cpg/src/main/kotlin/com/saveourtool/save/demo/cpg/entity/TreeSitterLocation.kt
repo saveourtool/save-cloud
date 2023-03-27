@@ -9,11 +9,15 @@ import org.neo4j.ogm.typeconversion.CompositeAttributeConverter
  * @property startBytes
  * @property endBytes
  */
-data class TreeSitterLocation(
-    var fileName: String,
-    var startBytes: Int,
-    var endBytes: Int,
-) {
+class TreeSitterLocation {
+    var fileName: String = "N/A"
+    var startBytes: Int = 0
+    var endBytes: Int = 0
+
+    override fun toString(): String {
+        return "TreeSitterLocation(fileName='$fileName', startBytes=$startBytes, endBytes=$endBytes)"
+    }
+
     companion object {
 
         /**
@@ -31,11 +35,11 @@ data class TreeSitterLocation(
 
             override fun toEntityAttribute(value: Map<String?, *>): TreeSitterLocation? {
                 return try {
-                    TreeSitterLocation(
-                        value.getValue(FILE_NAME).toString(),
-                        value.getValue(START_BYTES).toString().toInt(),
-                        value.getValue(END_BYTES).toString().toInt(),
-                    )
+                    TreeSitterLocation().apply {
+                        fileName = value.getValue(FILE_NAME).toString()
+                        startBytes = value.getValue(START_BYTES).toString().toInt()
+                        endBytes = value.getValue(END_BYTES).toString().toInt()
+                    }
                 } catch (e: NullPointerException) {
                     null
                 }

@@ -95,18 +95,18 @@ class JavaTreeSitterService {
             fileName: String,
             parent: TreeSitterNode? = null,
             prev: TreeSitterNode? = null,
-        ): TreeSitterNode = TreeSitterNode(
-            prev = prev,
-            next = null,
-            parent = parent,
-            child = mutableListOf(),
-            location = TreeSitterLocation(
-                fileName = fileName,
-                startBytes = this.startByte,
-                endBytes = this.endByte,
-            ),
-            localName = this.type,
-            code = this.nodeString,
-        )
+        ): TreeSitterNode = TreeSitterNode().apply {
+            this.prev = prev
+            this.next = null
+            this.parent = parent
+            this.child = mutableListOf()
+            this.location = TreeSitterLocation().apply {
+                this.fileName = fileName
+                this.startBytes = this@toTreeSitterNode.startByte
+                this.endBytes = this@toTreeSitterNode.endByte
+            }
+            this.localName = this@toTreeSitterNode.type
+            this.code = this@toTreeSitterNode.nodeString
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.cpg.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import org.neo4j.ogm.annotation.GeneratedValue
 import org.neo4j.ogm.annotation.Id
 import org.neo4j.ogm.annotation.NodeEntity
@@ -17,23 +18,33 @@ import org.neo4j.ogm.annotation.typeconversion.Convert
  * @property child
  */
 @NodeEntity
-data class TreeSitterNode(
+class TreeSitterNode {
     @Id @GeneratedValue
-    var id: Long? = null,
-    @Relationship(value = "SIBLING", direction = Relationship.Direction.INCOMING)
-    var prev: TreeSitterNode? = null,
-    @Relationship(value = "SIBLING", direction = Relationship.Direction.OUTGOING)
-    var next: TreeSitterNode? = null,
-    @Relationship(value = "PARENT", direction = Relationship.Direction.INCOMING)
-    var parent: TreeSitterNode? = null,
-    @Relationship(value = "PARENT", direction = Relationship.Direction.OUTGOING)
-    var child: MutableList<TreeSitterNode> = mutableListOf(),
-    @Convert(TreeSitterLocation.Companion.Converter::class)
-    var location: TreeSitterLocation,
+    var id: Long? = null
 
-    var localName: String,
-    var code: String,
-) {
+    @Relationship(value = "SIBLING", direction = Relationship.Direction.INCOMING)
+    @JsonBackReference
+    var prev: TreeSitterNode? = null
+
+    @Relationship(value = "SIBLING", direction = Relationship.Direction.OUTGOING)
+    @JsonBackReference
+    var next: TreeSitterNode? = null
+
+    @Relationship(value = "PARENT", direction = Relationship.Direction.INCOMING)
+    @JsonBackReference
+    var parent: TreeSitterNode? = null
+
+    @Relationship(value = "PARENT", direction = Relationship.Direction.OUTGOING)
+    @JsonBackReference
+    var child: MutableList<TreeSitterNode> = mutableListOf()
+
+    @Convert(TreeSitterLocation.Companion.Converter::class)
+    var location: TreeSitterLocation = TreeSitterLocation()
+
+    var localName: String = "N/A"
+
+    var code: String = "N/A"
+
     /**
      * @return [id] as not null with validating
      * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
