@@ -38,6 +38,9 @@ import react.router.useNavigate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private const val FOR_GREEN = 34
+private const val FOR_YELLOW = 67
+
 @Suppress(
     "MAGIC_NUMBER",
     "TOO_LONG_FUNCTION",
@@ -227,9 +230,9 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
                     val progress = vulnerability.progress
-                    val color = if (progress < 34) {
+                    val color = if (progress < FOR_GREEN) {
                         Color.GREEN.hexColor
-                    } else if (progress < 67) {
+                    } else if (progress < FOR_YELLOW) {
                         Color.YELLOW.hexColor
                     } else {
                         Color.RED.hexColor
