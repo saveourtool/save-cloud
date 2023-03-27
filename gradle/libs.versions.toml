@@ -8,7 +8,7 @@ serialization = "1.5.0"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
 kotlin-wrappers = "1.0.0-pre.490"
-spring-boot = "2.7.8"
+spring-boot = "2.7.10"
 spring-cloud = "3.1.6"
 spring-cloud-kubernetes = "2.1.6"
 kafka-client = "3.4.0"
@@ -28,21 +28,21 @@ mySql = "8.0.32"
 testcontainers = "1.17.6"
 okhttp3 = "4.10.0"
 reckon = "0.16.1"
-commons-compress = "1.22"
+commons-compress = "1.23.0"
 zip4j = "2.11.5"
 ktoml = "0.4.1"
 springdoc = "1.6.15"
 kotlinx-cli = "0.3.5"
 spotless = "6.17.0"
-fabric8 = "6.5.0"
+fabric8 = "6.5.1"
 arrow-kt = "1.1.5"
 publish = "1.3.0"
 download = "5.4.0"
 cpg = "6.2.1"
 # should be taken from cpg
-cpg-neo4j-ogm = { strictly = "4.0.2" }
-cpg-neo4j-java-driver = { strictly = "5.3.1" }
-aws-sdk = "2.20.27"
+cpg-neo4j-ogm = { strictly = "4.0.4" }
+cpg-neo4j-java-driver = { strictly = "5.6.0" }
+aws-sdk = "2.20.32"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -119,7 +119,7 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.8" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.9" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }

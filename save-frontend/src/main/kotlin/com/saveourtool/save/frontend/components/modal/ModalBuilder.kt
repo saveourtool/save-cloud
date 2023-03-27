@@ -235,7 +235,7 @@ fun ChildrenBuilder.modalBuilder(
     classes: String = "",
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
-    buttonBuilder: ChildrenBuilder.() -> Unit,
+    buttonBuilder: (ChildrenBuilder.() -> Unit)?,
 ) {
     div {
         className = ClassName("modal-dialog $classes")
@@ -249,9 +249,11 @@ fun ChildrenBuilder.modalBuilder(
                 className = ClassName("modal-body")
                 bodyBuilder()
             }
-            div {
-                className = ClassName("modal-footer")
-                buttonBuilder()
+            buttonBuilder?.let {
+                div {
+                    className = ClassName("modal-footer")
+                    it()
+                }
             }
         }
     }
