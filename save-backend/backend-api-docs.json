@@ -1734,6 +1734,16 @@
             },
             "description": "Successfully deleted demo."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -1755,6 +1765,11 @@
             "description": "Could not find saveourtool project or demo of a project."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Delete demo.",
         "tags": [
           "demo-manager-controller"
@@ -1820,6 +1835,16 @@
             },
             "description": "Successfully deleted file."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -1841,6 +1866,11 @@
             "description": "Could not find project in organization."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Delete a file.",
         "tags": [
           "demo-manager-controller"
@@ -1901,6 +1931,19 @@
             },
             "description": "Successfully fetched list of files."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -1928,7 +1971,148 @@
             "description": "Could not find project in organization."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Get list of files.",
+        "tags": [
+          "demo-manager-controller"
+        ]
+      }
+    },
+    "/api/v1/demo/{organizationName}/{projectName}/logs": {
+      "get": {
+        "description": "Get demo logs.",
+        "operationId": "getLogs",
+        "parameters": [
+          {
+            "description": "name of saveourtool organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "name of saveourtool project",
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "demo version, manual by default",
+            "in": "query",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "manual"
+            }
+          },
+          {
+            "description": "start of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "end of requested time range in ISO format with default time zone",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "description": "limit for result",
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1000
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched demo logs."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Not enough permission for demo management."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Could not find saveourtool project or demo of a project."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get demo logs.",
         "tags": [
           "demo-manager-controller"
         ]
@@ -1985,6 +2169,16 @@
             },
             "description": "Successfully added demo or updated existing."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -2016,6 +2210,11 @@
             "description": "Invalid demo creation request."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Add demo for a tool or update existing.",
         "tags": [
           "demo-manager-controller"
@@ -2063,6 +2262,16 @@
             },
             "description": "Successfully started demo."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -2084,6 +2293,11 @@
             "description": "Could not find saveourtool project or demo of a project."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Start demo container.",
         "tags": [
           "demo-manager-controller"
@@ -2131,6 +2345,16 @@
             },
             "description": "Successfully stopped demo."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -2152,6 +2376,11 @@
             "description": "Could not find saveourtool project or demo of a project."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Stop demo.",
         "tags": [
           "demo-manager-controller"
@@ -2234,6 +2463,16 @@
             },
             "description": "Successfully uploaded file to demo."
           },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
           "403": {
             "content": {
               "*/*": {
@@ -2255,6 +2494,11 @@
             "description": "Could not find project in organization."
           }
         },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
         "summary": "Attach file to demo.",
         "tags": [
           "demo-manager-controller"

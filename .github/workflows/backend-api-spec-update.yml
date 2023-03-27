@@ -4,16 +4,23 @@ on:
   schedule:
     # triggers the workflow every day at 5:30 UTC
     - cron: '30 5 * * *'
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        default: master
+        description: Branch to update backend api spec from
+        required: false
 
 jobs:
   update_backend_api_spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: peterjgrainger/action-create-branch@v2.2.0
+      - uses: peterjgrainger/action-create-branch@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          branch: '/refs/heads/infra/update-backend-api-spec'
+          branch: 'infra/update-backend-api-spec'
 
       - uses: actions/checkout@v3
         with:
