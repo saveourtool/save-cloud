@@ -4,6 +4,13 @@ on:
   schedule:
     # triggers the workflow every day at 5:30 UTC
     - cron: '30 5 * * *'
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        default: master
+        description: Branch to update backend api spec from
+        required: false
 
 jobs:
   update_backend_api_spec:
