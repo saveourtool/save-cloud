@@ -62,10 +62,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
         setVulnerability {
-            it.copy(projects = it.projects.plus(project))
+            it.copy(projects = it.projects.plus(project.copy(vulnerabilityName = it.name)))
         }
         setVulnerabilityProjects {
-            it.plus(project)
+            it.plus(project.copy(vulnerabilityName = vulnerability.name))
         }
         setIsUpdateVulnerability(true)
         projectWindowOpenness.closeWindow()
@@ -131,7 +131,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     vulnerabilityProjectWindow {
         this.windowOpenness = projectWindowOpenness
-        this.vulnerabilityName = vulnerabilityName
         this.fetchProjectCredentials = fetchProject
     }
 
