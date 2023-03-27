@@ -114,7 +114,11 @@ class KubernetesService(
         demo.toRunConfiguration(),
     )
 
-    private suspend fun configureDemoAgent(demo: Demo, version: String, retryNumber: Int = RETRY_TIMES): StringResponse {
+    private suspend fun configureDemoAgent(
+        demo: Demo,
+        version: String,
+        retryNumber: Int = RETRY_TIMES
+    ): StringResponse {
         logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
         val configuration = getConfiguration(demo, version)
         return demoAgentRequestWrapper("/setup", demo) { url ->
@@ -188,7 +192,7 @@ class KubernetesService(
      */
     private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
         kc.getJobPods(demo).firstOrNull()
-    } ?: throw KubernetesRunnerException("Could not run a job in ${ RETRY_TIMES * RETRY_DELAY_MILLIS } seconds.")
+    } ?: throw KubernetesRunnerException("Could not run a job in ${RETRY_TIMES * RETRY_DELAY_MILLIS} seconds.")
 
     private suspend fun <R> demoAgentRequestWrapper(
         urlPath: String,
@@ -198,6 +202,7 @@ class KubernetesService(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
+        private const val REQUEST_TIMEOUT_MILLIS = 20_000L
         private const val RETRY_DELAY_MILLIS = 500L
         private const val RETRY_TIMES = 2
         private const val RETRY_TIMES_QUICK = 1
@@ -205,6 +210,10 @@ class KubernetesService(
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
                 json(json)
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+                socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
             }
         }
     }
