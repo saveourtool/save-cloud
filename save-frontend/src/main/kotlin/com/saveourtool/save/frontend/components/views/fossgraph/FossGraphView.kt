@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -36,6 +38,9 @@ import react.router.useNavigate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private const val FOR_GREEN = 34
+private const val FOR_YELLOW = 67
+
 @Suppress(
     "MAGIC_NUMBER",
     "TOO_LONG_FUNCTION",
@@ -46,6 +51,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
     val projectWindowOpenness = useWindowOpenness()
+    val deleteVulnerabilityWindowOpenness = useWindowOpenness()
 
     val navigate = useNavigate()
 
@@ -56,10 +62,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
         setVulnerability {
-            it.copy(projects = it.projects.plus(project))
+            it.copy(projects = it.projects.plus(project.copy(vulnerabilityName = it.name)))
         }
         setVulnerabilityProjects {
-            it.plus(project)
+            it.plus(project.copy(vulnerabilityName = vulnerability.name))
         }
         setIsUpdateVulnerability(true)
         projectWindowOpenness.closeWindow()
@@ -125,7 +131,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     vulnerabilityProjectWindow {
         this.windowOpenness = projectWindowOpenness
-        this.vulnerabilityName = vulnerabilityName
         this.fetchProjectCredentials = fetchProject
     }
 
@@ -171,6 +176,22 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         usePageSelection = false,
     )
 
+    displayModal(
+        deleteVulnerabilityWindowOpenness.isOpen(),
+        "Deletion of vulnerability",
+        "Are you sure you want to remove this vulnerability?",
+        mediumTransparentModalStyle,
+        deleteVulnerabilityWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok") {
+            enrollDeleteRequest()
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
+    }
+
     div {
         className = ClassName("card card-body mt-0")
 
@@ -181,7 +202,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    enrollDeleteRequest()
+                    deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
             if (isSuperAdmin && !vulnerability.isActive) {
@@ -208,8 +229,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
                     val progress = vulnerability.progress
-                    val color = if (progress < 51) {
+                    val color = if (progress < FOR_GREEN) {
                         Color.GREEN.hexColor
+                    } else if (progress < FOR_YELLOW) {
+                        Color.YELLOW.hexColor
                     } else {
                         Color.RED.hexColor
                     }

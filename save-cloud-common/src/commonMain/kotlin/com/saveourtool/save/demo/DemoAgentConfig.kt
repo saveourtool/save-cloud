@@ -51,7 +51,6 @@ data class DemoConfiguration(
  * @property configFileName name of config file or null if not supported
  * @property runCommands [RunCommandMap] where key is mode name and value is run command for that mode
  * @property outputFileName name of a file that contains the output information e.g. report
- * @property logFileName name of file that contains logs
  */
 @Serializable
 data class RunConfiguration(
@@ -59,7 +58,6 @@ data class RunConfiguration(
     val configFileName: String?,
     val runCommands: RunCommandMap,
     val outputFileName: String?,
-    val logFileName: String = "logs.txt",
 )
 
 /**
