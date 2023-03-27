@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -46,6 +48,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
     val projectWindowOpenness = useWindowOpenness()
+    val deleteVulnerabilityWindowOpenness = useWindowOpenness()
 
     val navigate = useNavigate()
 
@@ -171,6 +174,22 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         usePageSelection = false,
     )
 
+    displayModal(
+        deleteVulnerabilityWindowOpenness.isOpen(),
+        "Deletion of vulnerability",
+        "Are you sure you want to remove this vulnerability?",
+        mediumTransparentModalStyle,
+        deleteVulnerabilityWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok") {
+            enrollDeleteRequest()
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
+    }
+
     div {
         className = ClassName("card card-body mt-0")
 
@@ -181,7 +200,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    enrollDeleteRequest()
+                    deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
             if (isSuperAdmin && !vulnerability.isActive) {
@@ -208,8 +227,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 div {
                     className = ClassName("col-xl col-md-6 mb-4")
                     val progress = vulnerability.progress
-                    val color = if (progress < 51) {
+                    val color = if (progress < 34) {
                         Color.GREEN.hexColor
+                    } else if (progress < 67) {
+                        Color.YELLOW.hexColor
                     } else {
                         Color.RED.hexColor
                     }
