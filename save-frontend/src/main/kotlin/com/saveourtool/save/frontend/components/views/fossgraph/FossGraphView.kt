@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
 import com.saveourtool.save.frontend.utils.*
@@ -24,7 +25,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.AlignItems
 import csstype.ClassName
 import csstype.Display
-import js.core.get
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -59,6 +59,9 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
     val (user, setUser) = useState(props.currentUserInfo)
+
+    val (deleteProject, setDeleteProject) = useState<VulnerabilityProjectDto?>(null)
+    val (isDeleteProject, setIsDeleteProject) = useState(false)
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
         setVulnerability {
@@ -107,6 +110,20 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
+    val enrollDeleteProjectRequest = useDeferredRequest {
+        deleteProject?.let {project ->
+            val response = delete(
+                url = "$apiUrl/vulnerabilities/delete-project?name=${project.name}&vulnerabilityName=${props.name}",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+            if (response.ok) {
+                setVulnerability { it.copy(projects = it.projects.minus(project)) }
+                setDeleteProject(null)
+            }
+        }
+    }
+
     useRequest {
         val vulnerabilityNew: VulnerabilityDto = get(
             url = "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
@@ -147,6 +164,20 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         }
                     }
                 }
+                column("delete", "") { cellProps ->
+                    Fragment.create {
+                        td {
+                            div {
+                                className = ClassName("d-flex justify-content-end")
+                                buttonBuilder(faTrashAlt, style = "") {
+                                    setDeleteProject(value = cellProps.row.original)
+                                    setIsDeleteProject(true)
+                                    deleteVulnerabilityWindowOpenness.openWindow()
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         isTransparentGrid = true,
@@ -168,6 +199,20 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         }
                     }
                 }
+                column("delete", "") { cellProps ->
+                    Fragment.create {
+                        td {
+                            div {
+                                className = ClassName("d-flex justify-content-end")
+                                buttonBuilder(faTrashAlt, style = "") {
+                                    setDeleteProject(value = cellProps.row.original)
+                                    setIsDeleteProject(true)
+                                    deleteVulnerabilityWindowOpenness.openWindow()
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         isTransparentGrid = true,
@@ -178,13 +223,17 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     displayModal(
         deleteVulnerabilityWindowOpenness.isOpen(),
-        "Deletion of vulnerability",
-        "Are you sure you want to remove this vulnerability?",
+        "Deletion of ${if (isDeleteProject) "project" else "vulnerability"}",
+        "Are you sure you want to remove this ${if (isDeleteProject) "project" else "vulnerability"}?",
         mediumTransparentModalStyle,
         deleteVulnerabilityWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Ok") {
-            enrollDeleteRequest()
+            if (isDeleteProject) {
+                enrollDeleteProjectRequest()
+            } else {
+                enrollDeleteRequest()
+            }
             deleteVulnerabilityWindowOpenness.closeWindow()
         }
         buttonBuilder("Close", "secondary") {
@@ -202,6 +251,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
+                    setIsDeleteProject(false)
                     deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
