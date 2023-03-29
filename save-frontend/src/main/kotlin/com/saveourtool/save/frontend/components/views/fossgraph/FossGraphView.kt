@@ -59,6 +59,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
     val (user, setUser) = useState(props.currentUserInfo)
+
     val (deleteProject, setDeleteProject) = useState<VulnerabilityProjectDto?>(null)
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
