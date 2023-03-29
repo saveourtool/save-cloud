@@ -113,7 +113,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val enrollDeleteProjectRequest = useDeferredRequest {
         deleteProject?.let {project ->
             val response = delete(
-                url = "$apiUrl/vulnerabilities/delete-project?name=${project.name}&vulnerabilityName=${props.name}",
+                url = "$apiUrl/vulnerabilities/delete-project?projectName=${project.name}&vulnerabilityName=${props.name}",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
