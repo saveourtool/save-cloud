@@ -59,9 +59,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
     val (user, setUser) = useState(props.currentUserInfo)
-
     val (deleteProject, setDeleteProject) = useState<VulnerabilityProjectDto?>(null)
-    val (isDeleteProject, setIsDeleteProject) = useState(false)
 
     val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
         setVulnerability {
@@ -171,7 +169,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 className = ClassName("d-flex justify-content-end")
                                 buttonBuilder(faTrashAlt, style = "") {
                                     setDeleteProject(value = cellProps.row.original)
-                                    setIsDeleteProject(true)
                                     deleteVulnerabilityWindowOpenness.openWindow()
                                 }
                             }
@@ -206,7 +203,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 className = ClassName("d-flex justify-content-end")
                                 buttonBuilder(faTrashAlt, style = "") {
                                     setDeleteProject(value = cellProps.row.original)
-                                    setIsDeleteProject(true)
                                     deleteVulnerabilityWindowOpenness.openWindow()
                                 }
                             }
@@ -223,17 +219,19 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
     displayModal(
         deleteVulnerabilityWindowOpenness.isOpen(),
-        "Deletion of ${if (isDeleteProject) "project" else "vulnerability"}",
-        "Are you sure you want to remove this ${if (isDeleteProject) "project" else "vulnerability"}?",
+        "Deletion of ${deleteProject?.let {
+            "project"
+        } ?: "vulnerability"}",
+        "Are you sure you want to remove this ${deleteProject?.let {
+            "project"
+        } ?: "vulnerability"}?",
         mediumTransparentModalStyle,
         deleteVulnerabilityWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Ok") {
-            if (isDeleteProject) {
+            deleteProject?.let {
                 enrollDeleteProjectRequest()
-            } else {
-                enrollDeleteRequest()
-            }
+            } ?: enrollDeleteRequest()
             deleteVulnerabilityWindowOpenness.closeWindow()
         }
         buttonBuilder("Close", "secondary") {
@@ -251,7 +249,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    setIsDeleteProject(false)
+                    setDeleteProject(null)
                     deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
