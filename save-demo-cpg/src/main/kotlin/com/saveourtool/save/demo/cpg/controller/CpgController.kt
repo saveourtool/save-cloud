@@ -95,7 +95,7 @@ class CpgController(
                 .map { queryId ->
                     CpgResult(
                         graphFunction(queryId),
-                        "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
+                        CpgRepository.getQueryForNodes(queryId),
                         logs,
                     )
                 }

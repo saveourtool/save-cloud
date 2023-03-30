@@ -101,17 +101,7 @@ class CpgRepository(
     private fun Session.getCpgNodes(queryId: Long) = getNodes<Node>(queryId)
 
     private inline fun <reified T : Any> Session.getNodes(queryId: Long) = query(
-        T::class.java, """
-        CALL {
-          MATCH (q:DemoQuery)
-          WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
-          RETURN q.nodeIds AS nodeIds
-        }
-        WITH nodeIds
-        MATCH (n)
-        WHERE ID(n) IN nodeIds
-        RETURN n
-    """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
+        T::class.java, QUERY_NODES, mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     ).toList()
 
     private fun Session.getEdges(queryId: Long) = query("""
@@ -170,5 +160,23 @@ class CpgRepository(
         private const val QUERY_ID_PARAMETER_NAME = "queryId"
         private const val QUERY_ID_PARAMETER_PLACEHOLDER = "\$$QUERY_ID_PARAMETER_NAME"
         private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
+        private val QUERY_NODES = """
+            CALL {
+              MATCH (q:DemoQuery)
+              WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
+              RETURN q.nodeIds AS nodeIds
+            }
+            WITH nodeIds
+            MATCH (n)
+            WHERE ID(n) IN nodeIds
+            RETURN n
+        """.trimIndent()
+
+        /**
+         * @return a query for nodes by queryId
+         */
+        fun getQueryForNodes(queryId: Long): String = QUERY_NODES.replace(QUERY_ID_PARAMETER_PLACEHOLDER, queryId.toString())
+            .lineSequence()
+            .joinToString(" ")
     }
 }
