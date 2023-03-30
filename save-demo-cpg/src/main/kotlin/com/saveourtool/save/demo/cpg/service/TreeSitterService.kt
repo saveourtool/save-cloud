@@ -15,7 +15,7 @@ import kotlin.io.path.*
  * A service for [tree-sitter](https://tree-sitter.github.io/tree-sitter/) using [kotlintree](https://github.com/oxisto/kotlintree)
  */
 @Service
-class KotlinTreeSitterService {
+class TreeSitterService {
     /**
      * Translate all code in provided folder
      *

@@ -12,8 +12,7 @@ import com.saveourtool.save.utils.getLogger
 
 import arrow.core.getOrElse
 import arrow.core.right
-import com.saveourtool.save.demo.cpg.service.JavaTreeSitterService
-import com.saveourtool.save.demo.cpg.service.KotlinTreeSitterService
+import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -47,7 +46,7 @@ const val FILE_NAME_SEPARATOR = "==="
 class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
-    val treeSitterService: KotlinTreeSitterService,
+    val treeSitterService: TreeSitterService,
     val cpgRepository: CpgRepository,
 ) {
     /**
@@ -55,28 +54,38 @@ class CpgController(
      * @return result of uploading, it contains ID to request the result further
      */
     @PostMapping("/upload-code")
-    @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")
     fun uploadCode(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
-        doUploadCode(
-            request,
-            { folder -> ResultWithLogs(treeSitterService.translate(folder).values.flatten().right(), emptyList()) },
-        ) {
-            cpgRepository.save(it)
+        when (request.params.engine) {
+            CpgEngine.CPG -> {
+                doUploadCode(
+                    request,
+                    cpgService::translate,
+                    { cpgRepository.save(it) }
+                ) {
+                    cpgRepository.getCpgGraph(it)
+                }
+            }
+            CpgEngine.TREE_SITTER -> {
+                doUploadCode(
+                    request,
+                    { folder -> ResultWithLogs(treeSitterService.translate(folder).values.flatten().right(), emptyList()) },
+                    { cpgRepository.save(it) }
+                ) {
+                    cpgRepository.getGraphForTreeSitter(it)
+                }
+            }
         }
-//        doUploadCode(
-//            request,
-//            cpgService::translate,
-//        ) {
-//            cpgRepository.save(it)
-//        }
+
     }
 
+    @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")
     private fun <T> doUploadCode(
         @RequestBody request: CpgRunRequest,
         translateFunction: (Path) -> ResultWithLogs<T>,
         saveFunction: (T) -> Long,
+        graphFunction: (Long) -> CpgGraph,
     ): CpgResult {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
         val logs: MutableList<String> = mutableListOf()
@@ -89,9 +98,9 @@ class CpgController(
                 .map {
                     saveFunction(it)
                 }
-                .map {
+                .map { queryId ->
                     CpgResult(
-                        cpgRepository.getCpgGraph(it),
+                        graphFunction(queryId),
                         "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
                         logs,
                     )

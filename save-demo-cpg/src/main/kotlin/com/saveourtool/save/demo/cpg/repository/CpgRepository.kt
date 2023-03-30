@@ -84,7 +84,7 @@ class CpgRepository(
     @OptIn(ExperimentalSerializationApi::class)
     fun getCpgGraph(queryId: Long): CpgGraph {
         val (nodes, edges) = connect().use { session ->
-            session.getCpgNodes(queryId) to session.getEdges(queryId)
+            session.getNodes<Node>(queryId) to session.getEdges(queryId)
         }
         return CpgGraph(nodes = nodes.map { it.toCpgNode() }.toList(), edges = edges.map { it.toCpgEdge() }.toList())
     }
@@ -94,15 +94,17 @@ class CpgRepository(
      * @return result of CPG
      */
     @OptIn(ExperimentalSerializationApi::class)
-    fun getGraph(queryId: Long): CpgGraph {
+    fun getGraphForTreeSitter(queryId: Long): CpgGraph {
         val (nodes, edges) = connect().use { session ->
-            session.getNodes(queryId) to session.getEdges(queryId)
+            session.getNodes<TreeSitterNode>(queryId) to session.getEdges(queryId)
         }
         return CpgGraph(nodes = nodes.map { it.toCpgNode() }.toList(), edges = edges.map { it.toCpgEdge() }.toList())
     }
 
-    private fun Session.getCpgNodes(queryId: Long) = query(
-        Node::class.java, """
+    private fun Session.getCpgNodes(queryId: Long) = getNodes<Node>(queryId)
+
+    private inline fun <reified T : Any> Session.getNodes(queryId: Long) = query(
+        T::class.java, """
         CALL {
           MATCH (q:DemoQuery)
           WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
@@ -114,25 +116,6 @@ class CpgRepository(
         RETURN n
     """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     ).toList()
-
-    private fun Session.getNodes(queryId: Long) = query("""
-        CALL {
-          MATCH (q:DemoQuery)
-          WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
-          RETURN q.nodeIds AS nodeIds
-        }
-        WITH nodeIds
-        MATCH (n)
-        WHERE ID(n) IN nodeIds
-        RETURN n
-    """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
-    )
-        .asSequence()
-        .map {
-            it.values
-        }
-        .flatten()
-        .filterIsInstance<NodeModel>()
 
     private fun Session.getEdges(queryId: Long) = query("""
         CALL {

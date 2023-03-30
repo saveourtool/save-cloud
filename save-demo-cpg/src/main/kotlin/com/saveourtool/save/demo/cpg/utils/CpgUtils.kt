@@ -3,6 +3,7 @@
 package com.saveourtool.save.demo.cpg.utils
 
 import com.saveourtool.save.demo.cpg.*
+import com.saveourtool.save.demo.cpg.entity.TreeSitterNode
 
 import de.fraunhofer.aisec.cpg.graph.Node
 import org.neo4j.ogm.response.model.RelationshipModel
@@ -34,18 +35,18 @@ fun Node.toCpgNode() = CpgNode(
  * @return [CpgNode] from [NodeModel]
  */
 @ExperimentalSerializationApi
-fun NodeModel.toCpgNode() = CpgNode(
+fun TreeSitterNode.toCpgNode() = CpgNode(
     id.toString(),
     CpgNodeAttributes(
-        property("localName").toString(),
+        localName,
         additionalInfo = CpgNodeAdditionalInfo(
-            code = property("code")?.toString(),
-            comment = property("comment")?.toString(),
-            location = property("location")?.toString(),
-            file = property("file")?.toString(),
-            isInferred = property("isInferred")?.toString().toBoolean(),
-            isImplicit = property("isImplicit")?.toString().toBoolean(),
-            argumentIndex = property("argumentIndex")?.toString()?.toInt() ?: -1,
+            code = code,
+            comment = "N/A",
+            location = location.toString(),
+            file = location.fileName,
+            isInferred = false,
+            isImplicit = false,
+            argumentIndex = -1,
         )
     ),
 )
