@@ -19,9 +19,6 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
-    maven {
-        setUrl("https://jitpack.io")
-    }
     mavenCentral()
     mavenLocal()
 }
@@ -55,7 +52,6 @@ dependencies {
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
-    implementation("com.github.serenadeai:java-tree-sitter:1.1.2")
     implementation("io.github.oxisto:kotlin-tree-jna:0.0.0-SNAPSHOT")
 }
 
