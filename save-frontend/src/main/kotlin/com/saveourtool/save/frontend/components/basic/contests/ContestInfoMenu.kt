@@ -4,11 +4,10 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 
@@ -58,9 +57,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
             div {
                 className = ClassName("text-center")
                 columnCard {
-                    child(reactMarkdown(jso {
-                        this.children = contest?.description ?: "No description provided **yet**"
-                    }))
+                    markdown(contest?.description ?: "No description provided **yet**")
                 }
             }
         }
