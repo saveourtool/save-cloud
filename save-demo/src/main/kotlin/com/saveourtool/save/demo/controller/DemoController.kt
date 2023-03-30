@@ -4,9 +4,9 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.service.DemoService
+import com.saveourtool.save.filters.DemoFilter
 import com.saveourtool.save.utils.blockingToFlux
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -36,13 +37,19 @@ class DemoController(
     private val demoRunnerFactory: RunnerFactory,
 ) {
     /**
-     * @return all [DemoStatus.RUNNING] [DemoDto]s as [Flux]
+     * @param filter [DemoFilter], [DemoFilter.any] by default
+     * @param demoAmount number of [DemoDto]s that should be fetched, [DemoDto.DEFAULT_FETCH_NUMBER] by default
+     * @return all [DemoDto]s matching [filter] as [Flux]
      */
-    @GetMapping("/active")
-    fun active(): Flux<DemoDto> = blockingToFlux {
-        demoService.getAllDemos().map { it to demoService.getStatus(it).block() }
+    @PostMapping("/demo-list")
+    fun getFilteredDemoList(
+        @RequestBody(required = false) filter: DemoFilter = DemoFilter.any,
+        @RequestParam(required = false, defaultValue = DemoDto.DEFAULT_FETCH_NUMBER.toString())
+        demoAmount: Int = DemoDto.DEFAULT_FETCH_NUMBER,
+    ): Flux<DemoDto> = blockingToFlux {
+        demoService.getFiltered(filter, demoAmount).toList().map { it to demoService.getStatus(it).block() }
     }
-        .filter { (_, status) -> status == DemoStatus.RUNNING }
+        .filter { (_, status) -> status in filter.statuses }
         .map { it.first.toDto() }
 
     /**

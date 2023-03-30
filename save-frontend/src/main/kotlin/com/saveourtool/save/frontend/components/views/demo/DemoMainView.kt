@@ -21,16 +21,17 @@ val demoMainView: VFC = VFC {
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {
-                className = ClassName("row justify-content-center")
-
+                className = ClassName("d-flex justify-content-center")
                 div {
-                    className = ClassName("col-md-4")
+                    className = ClassName("col-md-4 d-flex align-items-stretch")
                     div {
-                        className = ClassName("mb-2")
-                        introductionSection()
-                    }
-                    div {
-                        featuredDemos()
+                        div {
+                            className = ClassName("mb-2")
+                            introductionSection()
+                        }
+                        div {
+                            featuredDemos()
+                        }
                     }
                 }
                 div {

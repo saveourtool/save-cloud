@@ -7,6 +7,8 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.lodash.debounce
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import js.core.jso
 import org.w3c.dom.EventSource
@@ -284,6 +286,18 @@ fun <T : Any> useStateFromProps(valueFromProps: T): StateInstance<T> {
     }
     return state
 }
+
+/**
+ * Hook to get callbacks to perform requests in functional components with [debounce].
+ *
+ * @param debouncePeriodMillis debounce period milliseconds
+ * @param request request that should be sent
+ * @return a function to trigger request execution.
+ */
+fun useDebouncedDeferredRequest(
+    debouncePeriodMillis: Int = DEFAULT_DEBOUNCE_PERIOD,
+    request: suspend WithRequestStatusContext.() -> Unit,
+) = debounce(useDeferredRequest(request), debouncePeriodMillis)
 
 /**
  * Reads the response of `application/x-ndjson` `Content-Type`.
