@@ -118,7 +118,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             )
             if (response.ok) {
                 setVulnerability { it.copy(projects = it.projects.minus(project)) }
-                setDeleteProject(null)
             }
         }
     }
