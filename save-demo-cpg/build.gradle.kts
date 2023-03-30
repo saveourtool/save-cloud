@@ -20,7 +20,6 @@ repositories {
         }
     }
     mavenCentral()
-    mavenLocal()
 }
 val jepArchive by configurations.creating
 

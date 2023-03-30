@@ -178,5 +178,6 @@ class CpgRepository(
         fun getQueryForNodes(queryId: Long): String = QUERY_NODES.replace(QUERY_ID_PARAMETER_PLACEHOLDER, queryId.toString())
             .lineSequence()
             .joinToString(" ")
+            .replace("  ", " ")
     }
 }
