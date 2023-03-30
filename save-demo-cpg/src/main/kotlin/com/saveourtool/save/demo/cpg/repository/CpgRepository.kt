@@ -21,7 +21,6 @@ import org.slf4j.Logger
 import org.springframework.stereotype.Repository
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.neo4j.ogm.response.model.NodeModel
 
 /**
  * @property configProperties
@@ -61,19 +60,17 @@ class CpgRepository(
         }
     }
 
-    private fun doSave(saveAction: (Session) -> Unit): Long {
-        return connect().use { session ->
-            session.beginTransaction().use { transaction ->
-                val nodeIds: MutableSet<Long> = mutableSetOf()
-                val eventListener = createEventListener(nodeIds)
-                session.register(eventListener)
-                saveAction(session)
-                val demoQuery = DemoQuery(nodeIds = nodeIds)
-                session.dispose(eventListener)
-                session.save(demoQuery)
-                transaction?.commit()
-                demoQuery.requiredId()
-            }
+    private fun doSave(saveAction: (Session) -> Unit): Long = connect().use { session ->
+        session.beginTransaction().use { transaction ->
+            val nodeIds: MutableSet<Long> = mutableSetOf()
+            val eventListener = createEventListener(nodeIds)
+            session.register(eventListener)
+            saveAction(session)
+            val demoQuery = DemoQuery(nodeIds = nodeIds)
+            session.dispose(eventListener)
+            session.save(demoQuery)
+            transaction?.commit()
+            demoQuery.requiredId()
         }
     }
 

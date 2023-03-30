@@ -7,42 +7,59 @@ import org.neo4j.ogm.annotation.NodeEntity
 import org.neo4j.ogm.annotation.Relationship
 import org.neo4j.ogm.annotation.typeconversion.Convert
 
-
 /**
- * Entity to store [ai.serenade.treesitter.Node]
- *
- * @property id
- * @property prev
- * @property next
- * @property parent
- * @property child
+ * Entity to store [io.github.oxisto.kotlintree.jvm.Node]
  */
 @NodeEntity
 class TreeSitterNode {
+    /**
+     * ID which NEO4j generates
+     */
     @Id @GeneratedValue
     var id: Long? = null
 
+    /**
+     * Previous node on one level horizontally
+     */
     @Relationship(value = "SIBLING", direction = Relationship.Direction.INCOMING)
     @JsonBackReference
     var prev: TreeSitterNode? = null
 
+    /**
+     * Next node on one level horizontally
+     */
     @Relationship(value = "SIBLING", direction = Relationship.Direction.OUTGOING)
     @JsonBackReference
     var next: TreeSitterNode? = null
 
+    /**
+     * Node on one level up
+     */
     @Relationship(value = "PARENT", direction = Relationship.Direction.INCOMING)
     @JsonBackReference
     var parent: TreeSitterNode? = null
 
+    /**
+     * All node on one level down
+     */
     @Relationship(value = "PARENT", direction = Relationship.Direction.OUTGOING)
     @JsonBackReference
     var child: MutableList<TreeSitterNode> = mutableListOf()
 
+    /**
+     * Location of this node
+     */
     @Convert(TreeSitterLocation.Companion.Converter::class)
     var location: TreeSitterLocation = TreeSitterLocation()
 
+    /**
+     * Local name -- probably type of node
+     */
     var localName: String = "N/A"
 
+    /**
+     * A code of this node in parsed AST tree
+     */
     var code: String = "N/A"
 
     /**

@@ -1,18 +1,16 @@
 package com.saveourtool.save.demo.cpg.controller
 
-import arrow.core.flatten
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.repository.CpgRepository
 import com.saveourtool.save.demo.cpg.service.CpgService
+import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
 import arrow.core.getOrElse
-import arrow.core.right
-import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -35,6 +33,7 @@ const val FILE_NAME_SEPARATOR = "==="
  * @property configProperties
  * @property cpgService
  * @property cpgRepository
+ * @property treeSitterService
  */
 @ApiSwaggerSupport
 @Tags(
@@ -58,26 +57,21 @@ class CpgController(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
         when (request.params.engine) {
-            CpgEngine.CPG -> {
-                doUploadCode(
-                    request,
-                    cpgService::translate,
-                    { cpgRepository.save(it) }
-                ) {
-                    cpgRepository.getCpgGraph(it)
-                }
+            CpgEngine.CPG -> doUploadCode(
+                request,
+                cpgService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getCpgGraph(it)
             }
-            CpgEngine.TREE_SITTER -> {
-                doUploadCode(
-                    request,
-                    { folder -> ResultWithLogs(treeSitterService.translate(folder).values.flatten().right(), emptyList()) },
-                    { cpgRepository.save(it) }
-                ) {
-                    cpgRepository.getGraphForTreeSitter(it)
-                }
+            CpgEngine.TREE_SITTER -> doUploadCode(
+                request,
+                treeSitterService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getGraphForTreeSitter(it)
             }
         }
-
     }
 
     @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")

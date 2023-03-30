@@ -6,10 +6,10 @@ import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.entity.TreeSitterNode
 
 import de.fraunhofer.aisec.cpg.graph.Node
+import org.neo4j.ogm.response.model.NodeModel
 import org.neo4j.ogm.response.model.RelationshipModel
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.neo4j.ogm.response.model.NodeModel
 
 /**
  * @return [CpgNode] from [Node]

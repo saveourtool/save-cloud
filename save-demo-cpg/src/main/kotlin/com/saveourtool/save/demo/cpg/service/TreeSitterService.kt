@@ -2,13 +2,23 @@ package com.saveourtool.save.demo.cpg.service
 
 import com.saveourtool.save.demo.cpg.entity.TreeSitterLocation
 import com.saveourtool.save.demo.cpg.entity.TreeSitterNode
+import com.saveourtool.save.demo.cpg.utils.ResultWithLogs
+
+import arrow.core.flatten
+import arrow.core.right
 import io.github.oxisto.kotlintree.jvm.CppParser
 import io.github.oxisto.kotlintree.jvm.Node
 import io.github.oxisto.kotlintree.jvm.TreeCursor
 import io.github.oxisto.kotlintree.jvm.TreeSitter
 import org.springframework.stereotype.Service
+
 import java.nio.file.Path
+
 import kotlin.io.path.*
+
+typealias TreeSitterNodeList = List<TreeSitterNode>
+typealias TreeSitterResult = Map<String, TreeSitterNodeList>
+private typealias TreeSitterCursorAndNode = Pair<TreeCursor, TreeSitterNode>
 
 /**
  *
@@ -22,48 +32,48 @@ class TreeSitterService {
      * @param folder
      * @return result from CPG with logs
      */
+    fun translate(folder: Path): ResultWithLogs<TreeSitterNodeList> = ResultWithLogs(doTranslate(folder).values.flatten().right(), emptyList())
+
     @OptIn(ExperimentalPathApi::class)
-    fun translate(folder: Path): Map<String, List<TreeSitterNode>> {
-        return CppParser().use { parser ->
-            folder.walk()
-                .filter { it.isRegularFile() }
-                .map { path ->
-                    val fileName = folder.relativize(path).pathString
-                    val tree = parser.parse(path.toFile())
-                    fileName to tree.rootNode.newCursor()?.getNodes(fileName).orEmpty()
-                }
-                .toMap()
-        }
+    private fun doTranslate(folder: Path): TreeSitterResult = CppParser().use { parser ->
+        folder.walk()
+            .filter { it.isRegularFile() }
+            .map { path ->
+                val fileName = folder.relativize(path).pathString
+                val tree = parser.parse(path.toFile())
+                fileName to tree.rootNode.newCursor()?.getNodes(fileName).orEmpty()
+            }
+            .toMap()
     }
 
     companion object {
-        private fun TreeCursor.doGenerateNodes(fileName: String): Sequence<Pair<TreeCursor, TreeSitterNode>> =
-            generateSequence(this to this.toTreeSitterNode(fileName)) { (cursor, currentNode) ->
-                if (cursor.gotoFirstChild()) {
-                    return@generateSequence cursor to cursor.toTreeSitterNode(
-                        fileName = fileName,
-                        parent = currentNode
-                    )
+        private fun TreeCursor.doGenerateNodes(fileName: String): Sequence<TreeSitterCursorAndNode> =
+                generateSequence(this to this.toTreeSitterNode(fileName)) { (cursor, currentNode) ->
+                    if (cursor.gotoFirstChild()) {
+                        return@generateSequence cursor to cursor.toTreeSitterNode(
+                            fileName = fileName,
+                            parent = currentNode
+                        )
+                    }
+                    if (cursor.hasNext()) {
+                        cursor.gotoNextSibling()
+                        return@generateSequence cursor to cursor.toTreeSitterNode(
+                            fileName = fileName,
+                            parent = currentNode.parent,
+                            prev = currentNode,
+                        )
+                    }
+                    cursor.gotoParent()
+                    if (cursor.hasNext()) {
+                        cursor.gotoNextSibling()
+                        return@generateSequence cursor to cursor.toTreeSitterNode(
+                            fileName = fileName,
+                            parent = currentNode.parent?.parent,
+                            prev = currentNode.parent,
+                        )
+                    }
+                    null
                 }
-                if (cursor.hasNext()) {
-                    cursor.gotoNextSibling()
-                    return@generateSequence cursor to cursor.toTreeSitterNode(
-                        fileName = fileName,
-                        parent = currentNode.parent,
-                        prev = currentNode,
-                    )
-                }
-                cursor.gotoParent()
-                if (cursor.hasNext()) {
-                    cursor.gotoNextSibling()
-                    return@generateSequence cursor to cursor.toTreeSitterNode(
-                        fileName = fileName,
-                        parent = currentNode.parent?.parent,
-                        prev = currentNode.parent,
-                    )
-                }
-                null
-            }
 
         private fun TreeCursor.generateNodes(fileName: String): Sequence<TreeSitterNode> =
                 doGenerateNodes(fileName).map { (_, currentNode) -> currentNode }
