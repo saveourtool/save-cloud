@@ -37,14 +37,10 @@ class TreeSitterLocation {
                 )
             } ?: emptyMap()
 
-            override fun toEntityAttribute(value: Map<String?, *>): TreeSitterLocation? = try {
-                TreeSitterLocation().apply {
-                    fileName = value.getValue(FILE_NAME).toString()
-                    startBytes = value.getValue(START_BYTES).toString().toInt()
-                    endBytes = value.getValue(END_BYTES).toString().toInt()
-                }
-            } catch (e: NullPointerException) {
-                null
+            override fun toEntityAttribute(value: Map<String?, *>): TreeSitterLocation? = TreeSitterLocation().apply {
+                fileName = value[FILE_NAME]?.toString() ?: return null
+                startBytes = value[START_BYTES]?.toString()?.toInt() ?: return null
+                endBytes = value[END_BYTES]?.toString()?.toInt() ?: return null
             }
 
             companion object {
