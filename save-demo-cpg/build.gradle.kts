@@ -20,6 +20,17 @@ repositories {
         }
     }
     mavenCentral()
+    mavenLocal()
+    maven {
+        name = "0x6675636b796f75676974687562/kotlintree"
+        url = uri("https://maven.pkg.github.com/0x6675636b796f75676974687562/kotlintree")
+        credentials {
+            username = providers.gradleProperty("gprUser").orNull
+                ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gprKey").orNull
+                ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 val jepArchive by configurations.creating
 
