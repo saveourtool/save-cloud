@@ -20,14 +20,13 @@ repositories {
         }
     }
     mavenCentral()
-    mavenLocal()
     maven {
         name = "0x6675636b796f75676974687562/kotlintree"
         url = uri("https://maven.pkg.github.com/0x6675636b796f75676974687562/kotlintree")
         credentials {
-            username = providers.gradleProperty("gprUser").orNull
+            username = project.findProperty("gpr.user") as String?
                 ?: System.getenv("GITHUB_ACTOR")
-            password = providers.gradleProperty("gprKey").orNull
+            password = project.findProperty("gpr.key") as String?
                 ?: System.getenv("GITHUB_TOKEN")
         }
     }
