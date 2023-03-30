@@ -62,7 +62,7 @@ dependencies {
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
-    implementation("io.github.oxisto:kotlin-tree-jna:0.0.0-SNAPSHOT")
+    implementation("io.github.oxisto:kotlin-tree-jna:0.0.1")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files
