@@ -7,7 +7,6 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.frontend.components.basic.demo.welcome.demoList
 import com.saveourtool.save.frontend.components.basic.demo.welcome.featuredDemos
 import com.saveourtool.save.frontend.components.basic.demo.welcome.introductionSection
-import com.saveourtool.save.frontend.components.basic.demo.welcome.statistics
 import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import react.VFC
@@ -31,11 +30,7 @@ val demoMainView: VFC = VFC {
                         introductionSection()
                     }
                     div {
-                        className = ClassName("mb-2")
                         featuredDemos()
-                    }
-                    div {
-                        statistics()
                     }
                 }
                 div {

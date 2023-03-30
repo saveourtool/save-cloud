@@ -10,8 +10,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import csstype.ClassName
-import csstype.rem
-import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -40,7 +38,7 @@ internal val featuredDemos = VFC {
     }
 
     @Suppress("MAGIC_NUMBER")
-    carousel(featuredDemos, "demoCarousel", jso { height = 8.rem }) { demoDto ->
+    carousel(featuredDemos, "demoCarousel") { demoDto ->
         div {
             className = ClassName("col-3 ml-auto justify-content-center")
             img {
@@ -50,9 +48,9 @@ internal val featuredDemos = VFC {
             }
         }
         div {
-            className = ClassName("col-6 mr-auto")
+            className = ClassName("col-6 mr-auto d-flex align-items-center")
             div {
-                className = ClassName("card-body d-flex flex-column align-items-start")
+                className = ClassName("card-body d-flex flex-column")
                 strong {
                     className = ClassName("d-inline-block mb-2 text-info")
                     +"Featured Demo"
