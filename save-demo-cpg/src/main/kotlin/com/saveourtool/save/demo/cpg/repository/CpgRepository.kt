@@ -79,7 +79,7 @@ class CpgRepository(
      * @return result of CPG
      */
     @OptIn(ExperimentalSerializationApi::class)
-    fun getCpgGraph(queryId: Long): CpgGraph {
+    fun getGraph(queryId: Long): CpgGraph {
         val (nodes, edges) = connect().use { session ->
             session.getNodes<Node>(queryId) to session.getEdges(queryId)
         }

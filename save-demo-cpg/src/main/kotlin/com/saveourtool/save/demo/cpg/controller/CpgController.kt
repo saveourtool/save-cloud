@@ -45,8 +45,8 @@ const val FILE_NAME_SEPARATOR = "==="
 class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
-    val treeSitterService: TreeSitterService,
     val cpgRepository: CpgRepository,
+    val treeSitterService: TreeSitterService,
 ) {
     /**
      * @param request
@@ -62,7 +62,7 @@ class CpgController(
                 cpgService::translate,
                 cpgRepository::save
             ) {
-                cpgRepository.getCpgGraph(it)
+                cpgRepository.getGraph(it)
             }
             CpgEngine.TREE_SITTER -> doUploadCode(
                 request,
@@ -74,7 +74,7 @@ class CpgController(
         }
     }
 
-    @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")
+    @Suppress("TooGenericExceptionCaught")
     private fun <T> doUploadCode(
         @RequestBody request: CpgRunRequest,
         translateFunction: (Path) -> ResultWithLogs<T>,
