@@ -24,9 +24,9 @@ repositories {
         name = "0x6675636b796f75676974687562/kotlintree"
         url = uri("https://maven.pkg.github.com/0x6675636b796f75676974687562/kotlintree")
         credentials {
-            username = project.findProperty("gpr.user") as String?
+            username = project.findProperty("gprUser") as String?
                 ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty("gpr.key") as String?
+            password = project.findProperty("gprKey") as String?
                 ?: System.getenv("GITHUB_TOKEN")
         }
     }
