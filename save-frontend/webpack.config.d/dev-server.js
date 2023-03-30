@@ -28,7 +28,7 @@ config.devServer = Object.assign(
         },
         {
           context: ["/cpg/api/**"],
-          target: 'http://127.0.1.1:5500',
+          target: 'http://localhost:5500',
           logLevel: 'debug',
         },
         {
