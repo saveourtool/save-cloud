@@ -20,6 +20,16 @@ repositories {
         }
     }
     mavenCentral()
+    maven {
+        name = "0x6675636b796f75676974687562/kotlintree"
+        url = uri("https://maven.pkg.github.com/0x6675636b796f75676974687562/kotlintree")
+        credentials {
+            username = project.findProperty("gprUser") as String?
+                ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gprKey") as String?
+                ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 val jepArchive by configurations.creating
 
@@ -51,6 +61,7 @@ dependencies {
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
+    implementation("io.github.oxisto:kotlin-tree-jna:0.0.1")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files

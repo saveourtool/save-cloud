@@ -5,6 +5,7 @@ import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.repository.CpgRepository
 import com.saveourtool.save.demo.cpg.service.CpgService
+import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
@@ -32,6 +33,7 @@ const val FILE_NAME_SEPARATOR = "==="
  * @property configProperties
  * @property cpgService
  * @property cpgRepository
+ * @property treeSitterService
  */
 @ApiSwaggerSupport
 @Tags(
@@ -44,31 +46,56 @@ class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
     val cpgRepository: CpgRepository,
+    val treeSitterService: TreeSitterService,
 ) {
     /**
      * @param request
      * @return result of uploading, it contains ID to request the result further
      */
     @PostMapping("/upload-code")
-    @Suppress("TooGenericExceptionCaught", "DoubleMutabilityForCollection")
     fun uploadCode(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
+        when (request.params.engine) {
+            CpgEngine.CPG -> doUploadCode(
+                request,
+                cpgService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getGraph(it)
+            }
+            CpgEngine.TREE_SITTER -> doUploadCode(
+                request,
+                treeSitterService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getGraphForTreeSitter(it)
+            }
+        }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun <T> doUploadCode(
+        @RequestBody request: CpgRunRequest,
+        translateFunction: (Path) -> ResultWithLogs<T>,
+        saveFunction: (T) -> Long,
+        graphFunction: (Long) -> CpgGraph,
+    ): CpgResult {
         val tmpFolder = createTempDirectory(request.params.language.modeName)
-        var logs: MutableList<String> = mutableListOf()
-        try {
+        val logs: MutableList<String> = mutableListOf()
+        return try {
             createFiles(request, tmpFolder)
-            val (result, logsFromLogback) = cpgService.translate(tmpFolder)
-            logs = logsFromLogback.toMutableList()
+            val (result, logsFromLogback) = translateFunction(tmpFolder)
+            logs.addAll(logsFromLogback)
 
             result
                 .map {
-                    cpgRepository.save(it)
+                    saveFunction(it)
                 }
-                .map {
+                .map { queryId ->
                     CpgResult(
-                        cpgRepository.getGraph(it),
-                        "match (e: Component where e.name = \"${tmpFolder.fileName.name}\") return e;",
+                        graphFunction(queryId),
+                        CpgRepository.getQueryForNodes(queryId),
                         logs,
                     )
                 }
