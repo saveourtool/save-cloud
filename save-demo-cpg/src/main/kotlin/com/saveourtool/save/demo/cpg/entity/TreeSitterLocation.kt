@@ -35,7 +35,7 @@ class TreeSitterLocation {
                     END_BYTES to value.endBytes,
                     LOCATION to value.toString(),
                 )
-            } ?: emptyMap()
+            }.orEmpty()
 
             override fun toEntityAttribute(value: Map<String?, *>): TreeSitterLocation? = TreeSitterLocation().apply {
                 fileName = value[FILE_NAME]?.toString() ?: return null

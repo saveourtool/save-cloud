@@ -44,6 +44,7 @@ class TreeSitterNode {
      */
     @Relationship(value = "PARENT", direction = Relationship.Direction.OUTGOING)
     @JsonBackReference
+    @Suppress("DoubleMutabilityForCollection")
     var child: MutableList<TreeSitterNode> = mutableListOf()
 
     /**
