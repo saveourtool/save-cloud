@@ -207,6 +207,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                 }
                 hr { }
                 renderButtons(
+                    ProjectCoordinates(props.organizationName, props.projectName),
                     demoStatus,
                     props.userProjectRole,
                     createOrUpdateDemo,

@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRati
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
+import com.saveourtool.save.frontend.components.views.demo.demoMainView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
@@ -82,10 +83,10 @@ val basicRouting: FC<AppProps> = FC { props ->
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
                 TestExecutionFilter(
-                    status = params.get("status")?.let { TestResultStatus.valueOf(it) },
-                    fileName = params.get("fileName"),
-                    testSuite = params.get("testSuite"),
-                    tag = params.get("tag")
+                    status = params["status"]?.let { TestResultStatus.valueOf(it) },
+                    fileName = params["fileName"],
+                    testSuite = params["testSuite"],
+                    tag = params["tag"]
                 )
             }
             testAnalysisEnabled = true
@@ -120,7 +121,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val demoView: FC<Props> = withRouter { _, params ->
+    val demoView: VFC = withRouter { _, params ->
         demoView {
             projectCoordinates = ProjectCoordinates(
                 requireNotNull(params["organizationName"]),
@@ -169,6 +170,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             fossGraphCollectionView.create() to "/$FOSS_GRAPH",
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
             fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
+            demoMainView.create() to "/$DEMO",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
@@ -257,7 +259,7 @@ private val fallbackNode = FallbackView::class.react.create {
  */
 external interface AppProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }

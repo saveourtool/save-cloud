@@ -2,9 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -14,11 +12,7 @@ import csstype.rem
 import history.Location
 import js.core.jso
 import react.*
-import react.dom.aria.AriaRole
-import react.dom.aria.ariaExpanded
-import react.dom.aria.ariaLabelledBy
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.NavigateFunction
@@ -75,67 +69,12 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val location = useLocation()
     var isDemoDropdownActive by useState(false)
     val deactivateDropdown = { isDemoDropdownActive = false }
-    val (demos, setDemos) = useState(listOf<DemoDto>())
-
-    useRequest {
-        val fetchedDemos: List<DemoDto> = get(
-            url = "$demoApiUrl/active",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler
-        )
-            .unsafeMap { response ->
-                if (response.ok) {
-                    response.decodeFromJsonString()
-                } else {
-                    emptyList()
-                }
-            }
-        // TODO: takes only 3 values to avoid a long list of demo, needs to be revised
-        setDemos(fetchedDemos.take(3))
-    }
 
     ul {
         className = ClassName("navbar-nav mx-auto")
-        li {
-            className = ClassName("nav-item dropdown no-arrow")
-            style = jso {
-                width = 5.rem
-            }
-            a {
-                className = ClassName("nav-link dropdown-toggle text-light")
-                asDynamic()["data-toggle"] = "dropdown"
-                ariaExpanded = false
-                id = "demoDropdown"
-                role = "button".unsafeCast<AriaRole>()
-                +"Demo"
-                onClickCapture = { _ ->
-                    isDemoDropdownActive = !isDemoDropdownActive
-                }
-            }
-            div {
-                className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
-                ariaLabelledBy = "demoDropdown"
-
-                demoDropdownEntry(
-                    "CPG",
-                    "/${FrontendRoutes.DEMO.path}/cpg",
-                    location,
-                    navigate,
-                    deactivateDropdown,
-                )
-                demos.forEach { demo ->
-                    demoDropdownEntry(
-                        "${demo.projectCoordinates}",
-                        "/${FrontendRoutes.DEMO.path}/${demo.projectCoordinates}",
-                        location,
-                        navigate,
-                        deactivateDropdown,
-                    )
-                }
-            }
-        }
         sequenceOf(
+            TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
+            TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.rem, text = "CPG"),
             TopBarLink(hrefAnchor = FrontendRoutes.FOSS_GRAPH.path, width = 7.rem, text = "FossGraph"),
             TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
