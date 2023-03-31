@@ -54,6 +54,10 @@ data class DemoDto(
     fun getAvailableMods(): List<String> = runCommands.keys.toList()
 
     companion object {
+        /**
+         * Amount of [DemoDto]s that should be fetched by default
+         */
+        const val DEFAULT_FETCH_NUMBER = 10
         val empty = emptyForProject("", "")
 
         /**

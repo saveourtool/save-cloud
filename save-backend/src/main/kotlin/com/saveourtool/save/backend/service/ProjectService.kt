@@ -151,7 +151,6 @@ class ProjectService(
      * @return project's with filter
      */
     fun getFiltered(projectFilter: ProjectFilter): List<Project> = projectRepository.findAll { root, _, cb ->
-
         val publicPredicate = projectFilter.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
         val orgNamePredicate = if (projectFilter.organizationName.isBlank()) {
             cb.and()

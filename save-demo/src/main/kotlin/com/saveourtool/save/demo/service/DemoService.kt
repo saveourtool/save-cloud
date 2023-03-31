@@ -9,10 +9,12 @@ import com.saveourtool.save.demo.repository.DemoRepository
 import com.saveourtool.save.demo.repository.RunCommandRepository
 import com.saveourtool.save.demo.runners.RunnerFactory
 import com.saveourtool.save.demo.storage.DependencyStorage
+import com.saveourtool.save.filters.DemoFilter
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -88,9 +90,31 @@ class DemoService(
     )
 
     /**
-     * @return list of [Demo]s that are stored in database
+     * @param demoFilter [DemoFilter]
+     * @param pageSize amount of [Demo]s that should be fetched
+     * @return list of [Demo]s that match [DemoFilter]
      */
-    fun getAllDemos(): List<Demo> = demoRepository.findAll()
+    fun getFiltered(demoFilter: DemoFilter, pageSize: Int): List<Demo> = demoRepository.findAll({ root, _, cb ->
+        with(demoFilter) {
+            val organizationNamePredicate = if (organizationName.isBlank()) {
+                cb.and()
+            } else {
+                cb.like(root.get("organizationName"), "%$organizationName%")
+            }
+            val projectNamePredicate = if (projectName.isBlank()) {
+                cb.and()
+            } else {
+                cb.like(root.get("projectName"), "%$projectName%")
+            }
+
+            cb.and(
+                organizationNamePredicate,
+                projectNamePredicate,
+            )
+        }
+    }, PageRequest.ofSize(pageSize))
+        .filter { demoFilter.statuses.isEmpty() || getStatus(it).block() in demoFilter.statuses }
+        .toList()
 
     /**
      * @param demo [Demo] entity
@@ -131,7 +155,7 @@ class DemoService(
      * @param projectName saveourtool project name
      * @return [Demo] connected with project [organizationName]/[projectName] or null if not present
      */
-    @Transactional
+    @Transactional(readOnly = true)
     fun findBySaveourtoolProject(
         organizationName: String,
         projectName: String,

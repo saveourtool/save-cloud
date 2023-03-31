@@ -5,41 +5,43 @@
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
 import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.filters.DemoFilter
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
+
 import csstype.ClassName
+import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
+import react.useEffect
 import react.useState
 
-private val withBackground = cardComponent(isBordered = true, hasBg = true)
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+private val withBackground = cardComponent(isBordered = true, hasBg = true, isPaddingBottomNull = true)
 
 val demoList = VFC {
-    val (organizationName, setOrganizationName) = useState("")
-    val (projectName, setProjectName) = useState("")
+    val (filter, setFilter) = useState(DemoFilter.running)
 
-    val (demos, setDemos) = useState<List<DemoDto>>(emptyList())
-
-    useRequest {
-        val fetchedDemos: List<DemoDto> = get(
-            url = "$demoApiUrl/active",
+    val (demoDtos, setDemoDtos) = useState<List<DemoDto>>(emptyList())
+    val getFilteredDemos = useDebouncedDeferredRequest {
+        val demos: List<DemoDto> = post(
+            url = "$demoApiUrl/demo-list",
+            params = jso<dynamic> { demoAmount = DemoDto.DEFAULT_FETCH_NUMBER },
             headers = jsonHeaders,
+            body = Json.encodeToString(filter),
             loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler
         )
-            .unsafeMap { response ->
-                if (response.ok) {
-                    response.decodeFromJsonString()
-                } else {
-                    emptyList()
-                }
-            }
-        @Suppress("MAGIC_NUMBER")
-        setDemos(fetchedDemos.take(3))
+            .decodeFromJsonString()
+        setDemoDtos(demos)
     }
+
+    useEffect(filter) { getFilteredDemos() }
 
     withBackground {
         div {
@@ -49,14 +51,29 @@ val demoList = VFC {
                 input {
                     className = ClassName("form-control")
                     placeholder = "Organization"
-                    value = organizationName
-                    onChange = { setOrganizationName(it.target.value) }
+                    value = filter.organizationName
+                    onChange = { event ->
+                        setFilter { oldFilter -> oldFilter.copy(organizationName = event.target.value) }
+                    }
                 }
                 input {
                     className = ClassName("form-control")
                     placeholder = "Project"
-                    value = projectName
-                    onChange = { setProjectName(it.target.value) }
+                    value = filter.projectName
+                    onChange = { event ->
+                        setFilter { oldFilter -> oldFilter.copy(projectName = event.target.value) }
+                    }
+                }
+            }
+        }
+
+        ul {
+            className = ClassName("list-group list-group-flush")
+            demoDtos.map { demoDto ->
+                Link {
+                    to = "/demo/${demoDto.projectCoordinates}"
+                    className = ClassName("list-group-item")
+                    +demoDto.projectCoordinates.toString()
                 }
             }
         }

@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
-import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteVersioned
@@ -88,24 +87,21 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
     val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
     val (filters, setFilters) = useState(TestSuiteFilter.empty)
-    val getFilteredTestSuites = debounce(
-        useDeferredRequest {
-            if (filters.isNotEmpty()) {
-                val testSuitesFromBackend: List<TestSuiteVersioned> = get(
-                    url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
-                        filters.copy(language = encodeURIComponent(filters.language))
-                        .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
-                    }",
-                    headers = jsonHeaders,
-                    loadingHandler = ::noopLoadingHandler,
-                    responseHandler = ::noopResponseHandler,
-                )
-                    .decodeFromJsonString()
-                setFilteredTestSuites(testSuitesFromBackend)
-            }
-        },
-        DEFAULT_DEBOUNCE_PERIOD,
-    )
+    val getFilteredTestSuites = useDebouncedDeferredRequest(DEFAULT_DEBOUNCE_PERIOD) {
+        if (filters.isNotEmpty()) {
+            val testSuitesFromBackend: List<TestSuiteVersioned> = get(
+                url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
+                    filters.copy(language = encodeURIComponent(filters.language))
+                    .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
+                }",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString()
+            setFilteredTestSuites(testSuitesFromBackend)
+        }
+    }
 
     useEffect(filters) {
         if (filters.isEmpty()) {
