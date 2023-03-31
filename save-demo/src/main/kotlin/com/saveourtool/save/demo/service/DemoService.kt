@@ -14,7 +14,6 @@ import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -95,7 +94,7 @@ class DemoService(
      * @param pageSize amount of [Demo]s that should be fetched
      * @return list of [Demo]s that match [DemoFilter]
      */
-    fun getFiltered(demoFilter: DemoFilter, pageSize: Int): Page<Demo> = demoRepository.findAll({ root, _, cb ->
+    fun getFiltered(demoFilter: DemoFilter, pageSize: Int): List<Demo> = demoRepository.findAll({ root, _, cb ->
         with(demoFilter) {
             val organizationNamePredicate = if (organizationName.isBlank()) {
                 cb.and()
@@ -114,6 +113,8 @@ class DemoService(
             )
         }
     }, PageRequest.ofSize(pageSize))
+        .filter { demoFilter.statuses.isEmpty() || getStatus(it).block() in demoFilter.statuses }
+        .toList()
 
     /**
      * @param demo [Demo] entity
@@ -154,6 +155,7 @@ class DemoService(
      * @param projectName saveourtool project name
      * @return [Demo] connected with project [organizationName]/[projectName] or null if not present
      */
+    @Transactional(readOnly = true)
     fun findBySaveourtoolProject(
         organizationName: String,
         projectName: String,

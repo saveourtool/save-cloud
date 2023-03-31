@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -43,14 +44,15 @@ class DemoController(
      */
     @PostMapping("/demo-list")
     fun getFilteredDemoList(
-        @RequestBody(required = false) filter: DemoFilter = DemoFilter.any,
+        @RequestBody(required = false) filter: DemoFilter?,
         @RequestParam(required = false, defaultValue = DemoDto.DEFAULT_FETCH_NUMBER.toString())
         demoAmount: Int = DemoDto.DEFAULT_FETCH_NUMBER,
-    ): Flux<DemoDto> = blockingToFlux {
-        demoService.getFiltered(filter, demoAmount).toList().map { it to demoService.getStatus(it).block() }
-    }
-        .filter { (_, status) -> status in filter.statuses }
-        .map { it.first.toDto() }
+    ): Flux<DemoDto> = filter.toMono()
+        .switchIfEmpty(DemoFilter.any.toMono())
+        .flatMapMany { demoFilter ->
+            blockingToFlux { demoService.getFiltered(demoFilter, demoAmount) }
+        }
+        .map { it.toDto() }
 
     /**
      * @param organizationName saveourtool organization name
