@@ -3,6 +3,7 @@ package com.saveourtool.save.demo.cpg.repository
 import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.entity.DemoQuery
+import com.saveourtool.save.demo.cpg.entity.TreeSitterNode
 import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
@@ -38,19 +39,38 @@ class CpgRepository(
             "Count base nodes to save [components: ${result.components.size}, additionalNode: ${result.additionalNodes.size}]"
         }
 
-        return connect().use { session ->
-            session.beginTransaction().use { transaction ->
-                val nodeIds: MutableSet<Long> = mutableSetOf()
-                val eventListener = createEventListener(nodeIds)
-                session.register(eventListener)
-                session.save(result.components, DEFAULT_SAVE_DEPTH)
-                session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
-                val demoQuery = DemoQuery(nodeIds = nodeIds)
-                session.dispose(eventListener)
-                session.save(demoQuery)
-                transaction?.commit()
-                demoQuery.requiredId()
-            }
+        return doSave { session ->
+            session.save(result.components, DEFAULT_SAVE_DEPTH)
+            session.save(result.additionalNodes, DEFAULT_SAVE_DEPTH)
+        }
+    }
+
+    /**
+     * @param result CPG result to save it in NEO4J
+     * @return ID of [DemoQuery]
+     */
+    fun save(result: Collection<TreeSitterNode>): Long {
+        log.info { "Using import depth: $DEFAULT_SAVE_DEPTH" }
+        log.info {
+            "Count base nodes to save [tree-sitter: ${result.size}]"
+        }
+
+        return doSave { session ->
+            session.save(result, DEFAULT_SAVE_DEPTH)
+        }
+    }
+
+    private fun doSave(saveAction: (Session) -> Unit): Long = connect().use { session ->
+        session.beginTransaction().use { transaction ->
+            val nodeIds: MutableSet<Long> = mutableSetOf()
+            val eventListener = createEventListener(nodeIds)
+            session.register(eventListener)
+            saveAction(session)
+            val demoQuery = DemoQuery(nodeIds = nodeIds)
+            session.dispose(eventListener)
+            session.save(demoQuery)
+            transaction?.commit()
+            demoQuery.requiredId()
         }
     }
 
@@ -61,23 +81,25 @@ class CpgRepository(
     @OptIn(ExperimentalSerializationApi::class)
     fun getGraph(queryId: Long): CpgGraph {
         val (nodes, edges) = connect().use { session ->
-            session.getNodes(queryId) to session.getEdges(queryId)
+            session.getNodes<Node>(queryId) to session.getEdges(queryId)
         }
-        return CpgGraph(nodes = nodes.map { it.toCpgNode() }, edges = edges.map { it.toCpgEdge() })
+        return CpgGraph(nodes = nodes.map { it.toCpgNode() }.toList(), edges = edges.map { it.toCpgEdge() }.toList())
     }
 
-    private fun Session.getNodes(queryId: Long) = query(
-        Node::class.java, """
-        CALL {
-          MATCH (q:DemoQuery)
-          WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
-          RETURN q.nodeIds AS nodeIds
+    /**
+     * @param queryId ID of [DemoQuery]
+     * @return result of CPG
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun getGraphForTreeSitter(queryId: Long): CpgGraph {
+        val (nodes, edges) = connect().use { session ->
+            session.getNodes<TreeSitterNode>(queryId) to session.getEdges(queryId)
         }
-        WITH nodeIds
-        MATCH (n)
-        WHERE ID(n) IN nodeIds
-        RETURN n
-    """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
+        return CpgGraph(nodes = nodes.map { it.toCpgNode() }.toList(), edges = edges.map { it.toCpgEdge() }.toList())
+    }
+
+    private inline fun <reified T : Any> Session.getNodes(queryId: Long) = query(
+        T::class.java, queryNodes, mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     ).toList()
 
     private fun Session.getEdges(queryId: Long) = query("""
@@ -92,6 +114,7 @@ class CpgRepository(
         RETURN r, n1, n2
     """.trimIndent(), mapOf(QUERY_ID_PARAMETER_NAME to queryId)
     )
+        .asSequence()
         .map {
             it.values
         }
@@ -120,6 +143,7 @@ class CpgRepository(
                         is Node -> nodeIds.add(requireNotNull(entity.id) {
                             "Object (${entity.javaClass.simpleName}) $entity doesn't have ID"
                         })
+                        is TreeSitterNode -> nodeIds.add(entity.requiredId())
                         is PropertyEdge<*> -> log.debug("Skip for now ${entity.javaClass.simpleName}")
                         else -> log.error("Object type ${entity.javaClass.simpleName} is not supported")
                     }
@@ -134,5 +158,25 @@ class CpgRepository(
         private const val QUERY_ID_PARAMETER_NAME = "queryId"
         private const val QUERY_ID_PARAMETER_PLACEHOLDER = "\$$QUERY_ID_PARAMETER_NAME"
         private const val TIME_BETWEEN_CONNECTION_TRIES: Long = 6000
+        private val queryNodes = """
+            CALL {
+              MATCH (q:DemoQuery)
+              WHERE ID(q) = $QUERY_ID_PARAMETER_PLACEHOLDER
+              RETURN q.nodeIds AS nodeIds
+            }
+            WITH nodeIds
+            MATCH (n)
+            WHERE ID(n) IN nodeIds
+            RETURN n
+        """.trimIndent()
+
+        /**
+         * @param queryId
+         * @return a query for nodes by queryId
+         */
+        fun getQueryForNodes(queryId: Long): String = queryNodes.replace(QUERY_ID_PARAMETER_PLACEHOLDER, queryId.toString())
+            .lineSequence()
+            .joinToString(" ")
+            .replace("  ", " ")
     }
 }

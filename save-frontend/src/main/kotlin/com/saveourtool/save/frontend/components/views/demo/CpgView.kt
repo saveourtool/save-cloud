@@ -136,7 +136,7 @@ val cpgView: VFC = VFC {
                                         cpgResult.cpgGraph.nodes.find { node -> node.key == nodeName }?.let { node ->
                                             displayCpgNodeAdditionalInfo(
                                                 node.attributes.label,
-                                                cpgResult.applicationName,
+                                                cpgResult.query,
                                                 node.attributes.additionalInfo,
                                             ) {
                                                 setSelectedNodeName(it)
@@ -154,12 +154,12 @@ val cpgView: VFC = VFC {
                             }
                             div {
                                 val alertStyle = when {
-                                    cpgResult.applicationName.isBlank() -> ""
-                                    cpgResult.applicationName.startsWith("Error") -> "alert-warning"
+                                    cpgResult.query.isBlank() -> ""
+                                    cpgResult.query.startsWith("Error") -> "alert-warning"
                                     else -> "alert-primary"
                                 }
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
-                                +cpgResult.applicationName
+                                +cpgResult.query
                             }
                         }
                     }
