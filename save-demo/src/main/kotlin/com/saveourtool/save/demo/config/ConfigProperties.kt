@@ -38,10 +38,11 @@ data class ConfigProperties(
  *
  * @property apiServerUrl
  * @property serviceAccount
- * @property namespace
+ * @property currentNamespace namespace that demo works in
  * @property useGvisor
  * @property agentSubdomainName name of service that is created in order to access agents
  * @property agentPort port of agent that should be used to access it
+ * @property agentNamespace namespace that demo-agents should work in, [currentNamespace] by default
  * @property agentCpuRequests
  * @property agentCpuLimits
  * @property agentMemoryRequests
@@ -52,10 +53,11 @@ data class ConfigProperties(
 data class KubernetesConfig(
     val apiServerUrl: String,
     val serviceAccount: String,
-    val namespace: String,
+    val currentNamespace: String,
     val useGvisor: Boolean,
     val agentSubdomainName: String,
     val agentPort: Int,
+    val agentNamespace: String = currentNamespace,
     val agentCpuRequests: String = "100m",
     val agentCpuLimits: String = "500m",
     val agentMemoryRequests: String = "300Mi",

@@ -4,6 +4,7 @@ package com.saveourtool.save.demo.utils
 
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.demo.config.KubernetesConfig
+import com.saveourtool.save.demo.entity.Demo
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.ktor.http.*
@@ -105,18 +106,18 @@ private suspend fun <T> KubernetesClient.portForwardingRequest(
  * Note that [request] returns object of generic type [R] allowing to either return HttpResponse or body of the response.
  *
  * @param urlPath endpoint path segments (e.g. "/run")
- * @param demoPod [Pod] with save-demo-agent that runs requested demo
+ * @param demo [Demo] entity
  * @param kubernetesSettings kubernetes configuration
  * @param request callback that receives [Url]
  * @return result of type [R]
  */
 suspend fun <R> demoAgentRequestWrapper(
     urlPath: String,
-    demoPod: Pod,
+    demo: Demo,
     kubernetesSettings: KubernetesConfig,
     request: suspend (Url) -> R,
 ): R {
-    val host = addressToDnsResolution(demoPod.status.podIP, kubernetesSettings)
+    val host = addressByServiceName(demo, kubernetesSettings)
     return request(
         URLBuilder(
             host = host,
@@ -141,7 +142,26 @@ suspend fun <R> demoAgentRequestWrapper(
 fun addressToDnsResolution(podIp: String, kubernetesSettings: KubernetesConfig) = listOf(
     podIp.replace(".", "-"),
     kubernetesSettings.agentSubdomainName,
-    kubernetesSettings.namespace,
+    kubernetesSettings.currentNamespace,
+    "svc",
+    CLUSTER_DOMAIN,
+)
+    .joinToString(".")
+
+/**
+ * Get DNS-resolvable name of pod that is controlled by Service in [KubernetesConfig.agentNamespace]
+ *
+ * Url is constructed like this:
+ *
+ * {SERVICE-NAME}.{AGENT-NAMESPACE}.svc.{CLUSTER.DOMAIN}
+ *
+ * @param demo [Demo] entity
+ * @param kubernetesSettings kubernetes configuration
+ * @return DNS-resolvable name of pod in format {SERVICE-NAME}.{AGENT-NAMESPACE}.svc.{CLUSTER.DOMAIN}
+ */
+fun addressByServiceName(demo: Demo, kubernetesSettings: KubernetesConfig) = listOf(
+    serviceNameForDemo(demo),
+    kubernetesSettings.agentNamespace,
     "svc",
     CLUSTER_DOMAIN,
 )
