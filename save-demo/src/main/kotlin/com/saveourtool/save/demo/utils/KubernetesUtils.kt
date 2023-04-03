@@ -27,7 +27,63 @@ private const val DEMO_VERSION = "version"
 private const val REPLICAS_PER_DEMO = 1
 private const val TTL_AFTER_COMPLETED = 3600
 
+private const val SHA1_PREFIX_SIZE = 6
+
 private val logger = LoggerFactory.getLogger("KubernetesUtils")
+
+/**
+ * Create kubernetes resource and process possible exceptions
+ *
+ * @param resourceToCreate resource (e.g. [Job], [Service] etc) that should be created by [KubernetesClient]
+ * @return created [HasMetadata] resource
+ * @throws KubernetesRunnerException on failed job creation
+ */
+fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T): T = try {
+    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}" }
+    resource(resourceToCreate).create().also {
+        logger.info("Created ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}")
+    }
+} catch (kex: KubernetesClientException) {
+    throw KubernetesRunnerException("Unable to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}", kex)
+}
+
+/**
+ * @param demo demo entity
+ * @return [ScalableResource] of [Job]
+ */
+fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
+    .v1()
+    .jobs()
+    .withName(jobNameForDemo(demo))
+
+/**
+ * @param demo demo entity
+ * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
+ */
+fun KubernetesClient.isJobReady(demo: Demo) = getJobByName(demo).isReady
+
+/**
+ * @param demo demo entity
+ * @return list of ips of pods that are run by job associated with [demo]
+ */
+fun KubernetesClient.getJobPodsIps(demo: Demo) = getJobPods(demo)
+    .map { it.status.podIP }
+
+/**
+ * @param demo demo entity
+ * @return list of pods that are run by job associated with [demo]
+ */
+fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
+    .withLabel(DEMO_ORG_NAME, demo.organizationName)
+    .withLabel(DEMO_PROJ_NAME, demo.projectName)
+    .list()
+    .items
+
+private fun ContainerPort.default(port: Int) = apply {
+    protocol = "TCP"
+    containerPort = port
+    name = "agent-server"
+}
 
 /**
  * @param demo demo entity
@@ -124,60 +180,6 @@ fun getServiceObjectForDemo(
 }
 
 /**
- * Create kubernetes resource and process possible exceptions
- *
- * @param resourceToCreate resource (e.g. [Job], [Service] etc) that should be created by [KubernetesClient]
- * @return created [HasMetadata] resource
- * @throws KubernetesRunnerException on failed job creation
- */
-fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T): T = try {
-logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}" }
-    resource(resourceToCreate).create().also {
-        logger.info("Created ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}")
-    }
-} catch (kex: KubernetesClientException) {
-    throw KubernetesRunnerException("Unable to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}", kex)
-}
-
-/**
- * @param demo demo entity
- * @return [ScalableResource] of [Job]
- */
-fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
-    .v1()
-    .jobs()
-    .withName(jobNameForDemo(demo))
-
-/**
- * @param demo demo entity
- * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
- */
-fun KubernetesClient.isJobReady(demo: Demo) = getJobByName(demo).isReady
-
-/**
- * @param demo demo entity
- * @return list of ips of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPodsIps(demo: Demo) = getJobPods(demo)
-    .map { it.status.podIP }
-
-/**
- * @param demo demo entity
- * @return list of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
-    .withLabel(DEMO_ORG_NAME, demo.organizationName)
-    .withLabel(DEMO_PROJ_NAME, demo.projectName)
-    .list()
-    .items
-
-private fun ContainerPort.default(port: Int) = apply {
-    protocol = "TCP"
-    containerPort = port
-    name = "agent-server"
-}
-
-/**
  * @param demo demo entity
  * @return name of job that is/should be assigned to [demo]
  */
@@ -252,5 +254,3 @@ private fun demoAgentContainerSpec(
         }
     }
 }
-
-private const val SHA1_PREFIX_SIZE = 6
