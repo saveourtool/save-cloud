@@ -1,13 +1,13 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.authservice.utils.toUser
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.PermissionService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.utils.toUser
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -110,7 +110,7 @@ class PermissionController(
     ) = getUserAndProjectOrNotFound(setRoleRequest.userName, projectName, organizationName, authentication)
         .filter { (user, project) ->
             // fixme: could be `@PreAuthorize`, but organizationService cannot be found smh
-            val organization = organizationService.findByName(organizationName)
+            val organization = organizationService.findByNameAndCreatedStatus(organizationName)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             val hasOrganizationPermissions = organizationPermissionEvaluator.canChangeRoles(organization, authentication, user, setRoleRequest.role)
             val hasProjectPermissions = projectPermissionEvaluator.canChangeRoles(project, authentication, user, setRoleRequest.role)
@@ -146,7 +146,7 @@ class PermissionController(
         authentication: Authentication,
     ) = getUserAndProjectOrNotFound(userName, projectName, organizationName, authentication)
         .filter { (user, project) ->
-            val organization = organizationService.findByName(organizationName)
+            val organization = organizationService.findByNameAndCreatedStatus(organizationName)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
             val hasOrganizationPermissions = organizationPermissionEvaluator.canChangeRoles(organization, authentication, user)
             val hasProjectPermissions = projectPermissionEvaluator.canChangeRoles(project, authentication, user)
@@ -174,7 +174,7 @@ class PermissionController(
             USER_NOT_FOUND_ERROR_MESSAGE
         }
         .zipWith(
-            projectService.findByNameAndOrganizationName(projectName, organizationName).toMono()
+            projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono()
         )
         .filter { (_, project) ->
             // if project is hidden from the user, who attempts permission update,

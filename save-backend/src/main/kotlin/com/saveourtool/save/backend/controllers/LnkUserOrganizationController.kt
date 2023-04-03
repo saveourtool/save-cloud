@@ -7,21 +7,21 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.toUser
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.toUser
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -44,8 +44,6 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-import java.util.*
-
 /**
  * Controller for processing links between users and their roles in organizations
  */
@@ -55,13 +53,13 @@ import java.util.*
     Tag(name = "organizations"),
 )
 @RestController
-@RequestMapping("/api/$v1/organizations/")
+@RequestMapping("/api/$v1/organizations")
 class LnkUserOrganizationController(
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationService: OrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
-    @GetMapping("{organizationName}/users")
+    @GetMapping("/{organizationName}/users")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -77,7 +75,7 @@ class LnkUserOrganizationController(
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = organizationService.findByName(organizationName)
+    ): Mono<List<UserInfo>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE
@@ -86,7 +84,7 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getAllUsersAndRolesByOrganization(it)
         }
         .map { mapOfPermissions ->
-            mapOfPermissions.filter { it.value != Role.NONE }.map { (user, role) ->
+            mapOfPermissions.map { (user, role) ->
                 user.toUserInfo(organizations = mapOf(organizationName to role))
             }
         }
@@ -122,7 +120,7 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getRole(user, organization)
         }
 
-    @PostMapping("{organizationName}/users/roles")
+    @PostMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -155,7 +153,7 @@ class LnkUserOrganizationController(
             )
         }
 
-    @DeleteMapping("{organizationName}/users/roles/{userName}")
+    @DeleteMapping("/{organizationName}/users/roles/{userName}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -186,7 +184,7 @@ class LnkUserOrganizationController(
             ResponseEntity.ok("Successfully removed role of user ${user.name} in organization ${organization.name}")
         }
 
-    @GetMapping("{organizationName}/users/not-from")
+    @GetMapping("/{organizationName}/users/not-from")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -210,7 +208,7 @@ class LnkUserOrganizationController(
             prefix.isNotEmpty()
         }
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -254,31 +252,35 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    @GetMapping("/by-user/not-deleted")
+    @PostMapping("/by-filters")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
-        summary = "Get user's organizations.",
-        description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
+        method = "POST",
+        summary = "Get the list of organizations available to the current user and matching the filters, if any",
+        description = "Get organizations by filters available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "filters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
-    fun getOrganizationWithRoles(
+    fun getOrganizationWithRolesAndFilters(
+        @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication,
-    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+    ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
-        .flatMapMany {
-            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
-        }
-        .filter {
-            it.organization != null && it.organization?.status != OrganizationStatus.DELETED
+        .flatMapIterable {
+            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilter)
         }
         .map {
-            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            OrganizationWithUsers(
+                organization = it.organization.toDto(),
+                userRoles = mapOf(it.user.name!! to it.role),
+            )
         }
 
     private fun getUserAndOrganizationWithPermissions(
@@ -294,7 +296,7 @@ class LnkUserOrganizationController(
             USER_NOT_FOUND_ERROR_MESSAGE
         }
         .zipWith(
-            organizationService.findByName(organizationName).toMono()
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
         )
         .switchIfEmptyToNotFound {
             ORGANIZATION_NOT_FOUND_ERROR_MESSAGE

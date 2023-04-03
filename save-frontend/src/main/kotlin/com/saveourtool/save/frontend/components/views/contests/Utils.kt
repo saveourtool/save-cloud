@@ -8,6 +8,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.*
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
@@ -15,18 +16,13 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.js.jso
-
 /**
  * @param title
  * @param icon
  */
 fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
     div {
-        className = ClassName("row")
-        style = jso {
-            justifyContent = JustifyContent.center
-        }
+        className = ClassName("row justify-content-center")
         h4 {
             style = jso {
                 color = "#5a5c69".unsafeCast<Color>()
@@ -43,17 +39,19 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
  * @param selectedTab
  * @param tabsList
  * @param setSelectedTab
+ * @param navClassName
  */
-fun ChildrenBuilder.tab(selectedTab: String, tabsList: List<String>, setSelectedTab: (String) -> Unit) {
+fun ChildrenBuilder.tab(
+    selectedTab: String,
+    tabsList: List<String>,
+    navClassName: String = "nav nav-tabs mb-4",
+    setSelectedTab: (String) -> Unit
+) {
     div {
-        className = ClassName("row")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-        }
+        className = ClassName("row justify-content-center")
 
         nav {
-            className = ClassName("nav nav-tabs mb-4")
+            className = ClassName(navClassName)
             tabsList.forEachIndexed { i, value ->
                 li {
                     key = i.toString()

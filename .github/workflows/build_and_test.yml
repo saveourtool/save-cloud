@@ -29,8 +29,8 @@ jobs:
           java-version: 11
           distribution: temurin
       - name: Install system packages
-        # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
       - name: Retrieve Kotlin version
         run: |
           kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
@@ -40,21 +40,8 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      # https://gvisor.dev/docs/user_guide/install/
-      - name: Install gvisor runsc runtime
-        run: |
-          ARCH=$(uname -m)
-          URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
-          wget -nv ${URL}/runsc ${URL}/runsc.sha512 \
-            ${URL}/containerd-shim-runsc-v1 ${URL}/containerd-shim-runsc-v1.sha512
-          sha512sum -c runsc.sha512 \
-            -c containerd-shim-runsc-v1.sha512
-          rm -f *.sha512
-          chmod a+rx runsc containerd-shim-runsc-v1
-          sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
-          sudo /usr/local/bin/runsc install
-          sudo systemctl reload docker
-      - uses: gradle/gradle-build-action@v2
+      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
+        uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
@@ -63,11 +50,31 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-            -Porg.gradle.caching=true
+            -x :save-orchestrator-common:build
+            -x :save-orchestrator:build
+            -x :save-sandbox:build
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
+            --build-cache
+      - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-orchestrator-common:build
+            :save-orchestrator:build
+            :save-sandbox:build
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
 
       - name: Upload gradle reports
         if: ${{ always() }}

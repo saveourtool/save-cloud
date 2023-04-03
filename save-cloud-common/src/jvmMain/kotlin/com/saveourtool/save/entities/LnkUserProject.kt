@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.spring.entity.BaseEntity
 import javax.persistence.*
 import javax.persistence.Entity
 import javax.persistence.Enumerated
@@ -16,12 +17,12 @@ import javax.persistence.ManyToOne
 class LnkUserProject(
     @ManyToOne
     @JoinColumn(name = "project_id")
-    var project: Project?,
+    var project: Project,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User,
 
     @Enumerated(EnumType.STRING)
-    var role: Role?,
+    var role: Role,
 ) : BaseEntity()

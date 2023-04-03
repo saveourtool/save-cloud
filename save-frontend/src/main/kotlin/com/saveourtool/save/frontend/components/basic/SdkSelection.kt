@@ -6,53 +6,97 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.getSdkVersions
-import com.saveourtool.save.domain.sdks
+import com.saveourtool.save.domain.*
+import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.useStateFromProps
 
 import csstype.ClassName
-import org.w3c.dom.HTMLSelectElement
-import react.ChildrenBuilder
-import react.FC
-import react.PropsWithChildren
+import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.select
+import web.html.HTMLSelectElement
 
 /**
  * Component for sdk selection
  */
-val sdkSelection = sdkSelection()
+val sdkSelection: FC<SdkProps> = FC { props ->
+    val (sdkName, setSdkName) = useStateFromProps(props.selectedSdk.getPrettyName())
+    val (sdkVersion, setSdkVersion) = useStateFromProps(props.selectedSdk.version)
+
+    if (props.title.isNotBlank()) {
+        label {
+            className =
+                    ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+            +props.title
+        }
+    }
+    div {
+        className = ClassName("card align-items-left mb-3 pt-0 pb-0")
+        div {
+            className = ClassName("card-body align-items-left pb-1 pt-3")
+            div {
+                className = ClassName("row no-gutters align-items-left")
+                selection(
+                    "SDK",
+                    sdkName,
+                    sdks,
+                    isDisabled = props.isDisabled,
+                ) { element ->
+                    val newSdkName = element.value
+                    val newSdkVersion = newSdkName.getSdkVersions().first()
+                    setSdkName(newSdkName)
+                    setSdkVersion(newSdkVersion)
+                    props.onSdkChange("$newSdkName:$newSdkVersion".toSdk())
+                }
+            }
+            div {
+                className = ClassName("row no-gutters align-items-left")
+                className = ClassName("d-inline")
+                selection(
+                    "Version",
+                    sdkVersion,
+                    sdkName.getSdkVersions(),
+                    isDisabled = props.isDisabled,
+                ) { element ->
+                    val newSdkVersion = element.value
+                    setSdkVersion(newSdkVersion)
+                    props.onSdkChange("$sdkName:$newSdkVersion".toSdk())
+                }
+            }
+        }
+    }
+}
 
 /**
  * Props for SdkSelection component
  */
 external interface SdkProps : PropsWithChildren {
     /**
-     * Name of the selected SDK
+     * Title for sdk selector
      */
-    var selectedSdk: String
+    var title: String
 
     /**
-     * Version of the selected SDK
+     * The selected SDK
      */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 
     /**
-     * Callback invoked when `input` for SDK name is changed
+     * Callback invoked when SDK is changed
      */
-    var onSdkChange: (HTMLSelectElement) -> Unit
+    var onSdkChange: (Sdk) -> Unit
 
     /**
-     * Callback invoked when `input` for SDK version is changed
+     * Flag to disable sdk selection
      */
-    var onVersionChange: (HTMLSelectElement) -> Unit
+    var isDisabled: Boolean
 }
 
 private fun ChildrenBuilder.selection(
     labelValue: String,
     value: String,
     options: List<String>,
+    isDisabled: Boolean,
     onChangeFun: (HTMLSelectElement) -> Unit,
 ) = div {
     className = ClassName("input-group mb-3")
@@ -63,52 +107,5 @@ private fun ChildrenBuilder.selection(
             +labelValue
         }
     }
-    select {
-        className = ClassName("custom-select")
-        this.value = value
-        onChange = {
-            val target = it.target
-            onChangeFun(target)
-        }
-        id = labelValue
-        options.forEach {
-            option {
-                this.value = it
-                +it
-            }
-        }
-    }
+    selectorBuilder(value, options, "custom-select", isDisabled) { onChangeFun(it.target) }
 }
-
-private fun sdkSelection() =
-        FC<SdkProps> { props ->
-            label {
-                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                +"2. Select the SDK if needed:"
-            }
-            div {
-                className = ClassName("card align-items-left mb-3 pt-0 pb-0")
-                div {
-                    className = ClassName("card-body align-items-left pb-1 pt-3")
-                    div {
-                        className = ClassName("row no-gutters align-items-left")
-                        selection(
-                            "SDK",
-                            props.selectedSdk,
-                            sdks,
-                            props.onSdkChange,
-                        )
-                    }
-                    div {
-                        className = ClassName("row no-gutters align-items-left")
-                        className = ClassName("d-inline")
-                        selection(
-                            "Version",
-                            props.selectedSdkVersion,
-                            props.selectedSdk.getSdkVersions(),
-                            props.onVersionChange,
-                        )
-                    }
-                }
-            }
-        }

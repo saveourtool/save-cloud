@@ -4,9 +4,6 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.test.TestDto
-
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,17 +26,15 @@ data class ExecutionProgress(
 /**
  * A heartbeat sent from Agent to Orchestrator.
  *
- * @property agentId unique ID of the agent which sent the heartbeat
+ * @property agentInfo info about agent
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
- * @property timestamp the time of heartbeat posting
  */
 @Serializable
 data class Heartbeat(
-    val agentId: String,
+    val agentInfo: AgentInfo,
     val state: AgentState,
     val executionProgress: ExecutionProgress,
-    val timestamp: Instant,
 )
 
 /**
@@ -60,10 +55,16 @@ object WaitResponse : HeartbeatResponse()
 object ContinueResponse : HeartbeatResponse()
 
 /**
- * @property tests a list of new jobs for this agent
- * @property cliArgs command line arguments for SAVE launch
+ * @property config configuration to init agent
  */
-@Serializable data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
+@Serializable
+data class InitResponse(val config: AgentInitConfig) : HeartbeatResponse()
+
+/**
+ * @property config configuration to run agent
+ */
+@Serializable
+data class NewJobResponse(val config: AgentRunConfig) : HeartbeatResponse()
 
 /**
  * A response that indicates that agent should exit gracefully

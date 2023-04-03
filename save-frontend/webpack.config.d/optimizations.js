@@ -1,3 +1,11 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+config.plugins.push(
+    new HtmlWebpackPlugin({
+        template: 'index.html'
+    })
+);
+
 if (config.mode === "production") {
     config.optimization = {
         // todo: use https://webpack.js.org/guides/output-management/ instead of manually adding js files into html

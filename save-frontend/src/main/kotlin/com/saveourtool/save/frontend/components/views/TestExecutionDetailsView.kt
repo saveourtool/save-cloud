@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
 
 import csstype.ClassName
+import js.core.get
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.br
@@ -26,58 +27,74 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import react.router.useParams
 
-import kotlinx.js.get
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-@Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
-private fun ChildrenBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table {
-    className = ClassName("table table-bordered")
-    tbody {
-        tr {
-            td {
-                +"Command"
-            }
-            td {
-                small {
-                    samp {
-                        +(testResultDebugInfo.debugInfo?.execCmd ?: "N/A")
-                    }
-                }
-            }
-        }
-        tr {
-            td {
-                +"Test status"
-            }
-            td {
-                val status = testResultDebugInfo.testStatus
-                val longMessage: String = when (status) {
-                    is Pass -> (status.message ?: "").ifBlank { "Completed successfully without additional information" }
-                    is Fail -> status.reason
-                    is Ignored -> status.reason
-                    is Crash -> status.description
-                }
-                +"${status::class.simpleName} with message:"
-                br { }
-                multilineText(longMessage)
-            }
-        }
-        with(testResultDebugInfo.debugInfo!!) {
-            listOf(
-                "stdout" to ::stdout,
-                "stderr" to ::stderr
-            )
-        }.forEach { (title, getContent) ->
+/**
+ * Display status of [TestResultDebugInfo]
+ *
+ * @param testResultDebugInfo
+ */
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+fun ChildrenBuilder.displayTestResultDebugInfoStatus(testResultDebugInfo: TestResultDebugInfo) {
+    val status = testResultDebugInfo.testStatus
+    val longMessage: String = when (status) {
+        is Pass -> (status.message ?: "").ifBlank { "Completed successfully without additional information" }
+        is Fail -> status.reason
+        is Ignored -> status.reason
+        is Crash -> status.description
+    }
+    +"${status::class.simpleName} with message:"
+    br { }
+    multilineText(longMessage)
+}
+
+/**
+ * Display [TestResultDebugInfo]
+ *
+ * @param testResultDebugInfo
+ */
+@Suppress("TOO_LONG_FUNCTION")
+fun ChildrenBuilder.displayTestResultDebugInfo(testResultDebugInfo: TestResultDebugInfo) {
+    table {
+        className = ClassName("table table-bordered")
+        tbody {
             tr {
                 td {
-                    +title
+                    +"Command"
                 }
                 td {
                     small {
                         samp {
-                            getContent()?.let(::multilineTextWithIndices)
-                                ?: +"N/A"
+                            +(testResultDebugInfo.debugInfo?.execCmd ?: "N/A")
+                        }
+                    }
+                }
+            }
+            tr {
+                td {
+                    +"Test status"
+                }
+                td {
+                    displayTestResultDebugInfoStatus(testResultDebugInfo)
+                }
+            }
+            with(testResultDebugInfo.debugInfo!!) {
+                listOf(
+                    "stdout" to ::stdout,
+                    "stderr" to ::stderr
+                )
+            }.forEach { (title, getContent) ->
+                tr {
+                    td {
+                        +title
+                    }
+                    td {
+                        small {
+                            samp {
+                                getContent()?.let(::multilineTextWithIndices)
+                                    ?: +"N/A"
+                            }
                         }
                     }
                 }
@@ -85,7 +102,6 @@ private fun ChildrenBuilder.resultsTable(testResultDebugInfo: TestResultDebugInf
         }
     }
 }
-
 private fun ChildrenBuilder.fallback(status: String) = div {
     +status
 }
@@ -104,8 +120,7 @@ fun testExecutionDetailsView() = FC<Props> {
     val testResultLocation = TestResultLocation(
         params["testSuiteName"]!!,
         params["pluginName"]!!,
-        testFilePath.substringBeforeLast("/", ""),
-        testFilePath.substringAfterLast("/"),
+        testFilePath,
     )
 
     val (status, setStatus) = useState("Loading...")
@@ -136,7 +151,7 @@ fun testExecutionDetailsView() = FC<Props> {
     }
 
     testResultDebugInfo?.let {
-        resultsTable(testResultDebugInfo)
+        displayTestResultDebugInfo(testResultDebugInfo)
     }
         ?: fallback(status)
 }

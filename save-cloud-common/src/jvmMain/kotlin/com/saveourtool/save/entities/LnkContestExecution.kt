@@ -1,9 +1,13 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntity
+
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.OneToOne
+
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * Entity that represents a link between [Contest] and [Execution]
@@ -30,7 +34,7 @@ class LnkContestExecution(
         execution.project.organization.name,
         contest.name,
         execution.score,
-        execution.startTime,
+        execution.startTime.toKotlinLocalDateTime(),
         execution.status,
         execution.sdk,
         execution.failedTests != 0L,

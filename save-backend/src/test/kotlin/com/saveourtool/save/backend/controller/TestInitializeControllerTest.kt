@@ -1,11 +1,11 @@
 package com.saveourtool.save.backend.controller
 
+import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.utils.MySqlExtension
-import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -28,7 +28,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
 )
@@ -117,27 +117,27 @@ class TestInitializeControllerTest {
     @Test
     fun `should return test executions in batches`() {
         webClient.get()
-            .uri("/internal/getTestBatches?agentId=container-4")
+            .uri("/internal/agents/get-next-run-config?containerId=container-4")
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<TestBatch>()
+            .expectBody<AgentRunConfig>()
             .consumeWith { entityExchangeResult ->
                 val batch = entityExchangeResult.responseBody!!
                 log.debug { batch.toString() }
-                assertTrue(batch.isNotEmpty())
-                assertEquals(10, batch.size)
+                assertTrue(batch.cliArgs.isNotEmpty())
+                assertEquals(10, batch.cliArgs.split(" ").size)
             }
 
         webClient.get()
-            .uri("/internal/getTestBatches?agentId=container-4")
+            .uri("/internal/agents/get-next-run-config?containerId=container-4")
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<TestBatch>()
+            .expectBody<AgentRunConfig>()
             .consumeWith { entityExchangeResult ->
                 val body = entityExchangeResult.responseBody!!
-                assertTrue(body.size == 3) { "Expected 3 tests, but got $body instead" }
+                assertTrue(body.cliArgs.split(" ").size == 3) { "Expected 3 tests, but got $body instead" }
             }
     }
 

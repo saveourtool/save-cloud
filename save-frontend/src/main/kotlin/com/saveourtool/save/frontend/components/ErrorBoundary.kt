@@ -8,6 +8,7 @@ import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.topBarComponent
 
 import csstype.ClassName
+import js.core.jso
 import react.Component
 import react.PropsWithChildren
 import react.RStatics
@@ -16,8 +17,6 @@ import react.State
 import react.create
 import react.dom.html.ReactHTML.div
 import react.react
-
-import kotlinx.js.jso
 
 /**
  * State of error boundary component

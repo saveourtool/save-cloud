@@ -1,6 +1,8 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -27,7 +29,7 @@ class TestSuitesSource(
     var git: Git,
     var testRootPath: String,
     var latestFetchedVersion: String?,
-) : BaseEntityWithDto<TestSuitesSourceDto>() {
+) : BaseEntityWithDtoWithId<TestSuitesSourceDto>() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
      */
@@ -37,7 +39,8 @@ class TestSuitesSource(
         description = description,
         gitDto = git.toDto(),
         testRootPath = testRootPath,
-        latestFetchedVersion = latestFetchedVersion
+        latestFetchedVersion = latestFetchedVersion,
+        id = id,
     )
 
     companion object {
@@ -74,7 +77,9 @@ class TestSuitesSource(
                 git,
                 testRootPath,
                 latestFetchedVersion,
-            )
+            ).apply {
+                this.id = this@toTestSuiteSource.id
+            }
         }
     }
 }

@@ -4,17 +4,17 @@
 
 package com.saveourtool.save.gateway.security
 
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
-import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
@@ -41,8 +41,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-
-typealias StringResponse = ResponseEntity<String>
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -80,16 +78,18 @@ class WebSecurityConfig(
         .authorizeExchange { authorizeExchangeSpec ->
             // this is default data that is required by FE to operate properly
             authorizeExchangeSpec.pathMatchers(
+                // FixMe: Extract into properties
                 "/",
                 "/login", "/logout",
                 "/sec/oauth-providers", "/sec/user",
                 "/error",
+                "/neo4j/**",
             )
                 .permitAll()
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**")
+                .pathMatchers("/api/**", "/sandbox/api/**", "/demo/api/**")
                 .access { authentication, authorizationContext ->
                     AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                         authentication, authorizationContext

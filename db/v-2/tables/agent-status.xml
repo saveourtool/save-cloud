@@ -13,4 +13,14 @@
                                  referencedTableName="agent"/>
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-agent-status" author="frolov">
+        <dropForeignKeyConstraint baseTableName="agent_status" constraintName="fk_agent_status_agent"/>
+        <addForeignKeyConstraint baseColumnNames="agent_id"
+          baseTableName="agent_status"
+          constraintName="fk_agent_status_agent"
+          referencedColumnNames="id"
+          referencedTableName="agent"
+          onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -6,16 +6,17 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.externals.fontawesome.faCheckDouble
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -34,12 +35,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     /**
      * Lambda invoked when test suites were successfully set
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit
 
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteVersioned>
 
     /**
      * Specific organization name which reduces list of test suites source.
@@ -51,13 +52,19 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
+    var currentOrganizationName: String
 }
 
 @Suppress(
     "TOO_MANY_PARAMETERS",
     "TOO_LONG_FUNCTION",
     "LongParameterList",
-    "LongMethod"
+    "LongMethod",
+    "ComplexMethod",
 )
 private fun ChildrenBuilder.showBreadcrumb(
     selectedOrganization: String?,
@@ -76,6 +83,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                 className = ClassName("breadcrumb-item")
                 a {
                     role = "button".unsafeCast<AriaRole>()
+                    className = selectedOrganization?.let { ClassName("btn-link") }
                     onClick = {
                         selectedOrganization?.let {
                             onOrganizationsClick()
@@ -90,6 +98,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                     className = ClassName("breadcrumb-item $isActive")
                     a {
                         role = "button".unsafeCast<AriaRole>()
+                        className = selectedTestSuiteSource?.let { ClassName("btn-link") }
                         onClick = {
                             selectedTestSuiteSource?.let {
                                 onSelectedOrganizationClick()
@@ -105,6 +114,7 @@ private fun ChildrenBuilder.showBreadcrumb(
                     className = ClassName("breadcrumb-item $isActive")
                     a {
                         role = "button".unsafeCast<AriaRole>()
+                        className = selectedTestSuiteVersion?.let { ClassName("btn-link") }
                         onClick = {
                             if (shouldDisplayVersion) {
                                 selectedTestSuiteVersion?.let {
@@ -131,19 +141,26 @@ private fun ChildrenBuilder.showBreadcrumb(
     }
 }
 
-private fun ChildrenBuilder.showAvaliableOptions(
+private fun ChildrenBuilder.showAvailableOptions(
     options: List<String>,
     onOptionClick: (String) -> Unit,
 ) {
     ul {
         className = ClassName("list-group")
-        options.forEach { option ->
+        if (options.isEmpty()) {
             li {
                 className = ClassName("list-group-item")
-                onClick = {
-                    onOptionClick(option)
+                +"There is no test suite that you can manage."
+            }
+        } else {
+            options.forEach { option ->
+                a {
+                    className = ClassName("btn text-center list-group-item list-group-item-action")
+                    onClick = {
+                        onOptionClick(option)
+                    }
+                    +option
                 }
-                +option
             }
         }
     }
@@ -155,37 +172,37 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
     val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
     val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
 
     val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
     val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
     val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
-    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
+    val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
     useRequest {
-        val url = when (props.selectorPurpose) {
-            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/available"
-            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/get-by-organization?organizationName=${props.specificOrganizationName}"
-            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/available?isContest=true"
+        val options = when (props.selectorPurpose) {
+            TestSuiteSelectorPurpose.PUBLIC -> "?permission=READ"
+            TestSuiteSelectorPurpose.PRIVATE -> "?permission=WRITE"
+            TestSuiteSelectorPurpose.CONTEST -> "?permission=READ&isContest=true"
         }
         val response = get(
-            url = url,
+            url = "$apiUrl/test-suites/${props.currentOrganizationName}/available$options",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
 
-        val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
+        val testSuites: List<TestSuiteVersioned> = response.decodeFromJsonString()
         setFetchedTestSuites(testSuites)
-        setAvailableOrganizations(testSuites.map { it.source.organizationName }.distinct())
+        setAvailableOrganizations(testSuites.map { it.organizationName }.distinct())
     }
 
     useEffect(selectedOrganization) {
         selectedOrganization?.let { selectedOrganization ->
             setAvailableTestSuiteSources(
-                fetchedTestSuites.map { it.source }
+                fetchedTestSuites
                     .filter { it.organizationName == selectedOrganization }
-                    .map { it.name }
+                    .map { it.sourceName }
                     .distinct()
             )
         } ?: setAvailableTestSuiteSources(emptyList())
@@ -194,7 +211,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     useEffect(selectedTestSuiteSource) {
         selectedTestSuiteSource?.let { selectedTestSuiteSource ->
             setAvailableTestSuitesVersions(
-                fetchedTestSuites.filter { it.source.name == selectedTestSuiteSource }
+                fetchedTestSuites.filter { it.sourceName == selectedTestSuiteSource }
                     .map { it.version }
                     .distinct()
             )
@@ -205,7 +222,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
             setAvailableTestSuites(
                 fetchedTestSuites.filter {
-                    it.source.name == selectedTestSuiteSource && it.version == selectedTestSuiteVersion
+                    it.sourceName == selectedTestSuiteSource && it.version == selectedTestSuiteVersion
                 }
             )
         } ?: setAvailableTestSuites(emptyList())
@@ -259,6 +276,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     ""
                 }
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-secondary $active")
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "bottom"
@@ -275,7 +293,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                                     .distinctBy { it.id }
                             }
                                 .also { testSuites ->
-                                    props.onTestSuiteIdsUpdate(testSuites.map { it.requiredId() })
+                                    props.onTestSuitesUpdate(testSuites)
                                 }
                         }
                     }
@@ -287,25 +305,25 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         div {
             className = ClassName("")
             when {
-                selectedOrganization == null -> showAvaliableOptions(
+                selectedOrganization == null -> showAvailableOptions(
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                     setNamePrefix("")
                 }
-                selectedTestSuiteSource == null -> showAvaliableOptions(
+                selectedTestSuiteSource == null -> showAvailableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                     setNamePrefix("")
                 }
-                selectedTestSuiteVersion == null -> showAvaliableOptions(
+                selectedTestSuiteVersion == null -> showAvailableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                     setNamePrefix("")
                 }
-                else -> showAvaliableTestSuites(
+                else -> showAvailableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
                     TestSuiteSelectorMode.BROWSER,
@@ -321,7 +339,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                             }
                             .toList()
                             .also { listOfTestSuiteDtos ->
-                                props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                                props.onTestSuitesUpdate(listOfTestSuiteDtos)
                             }
                     }
                 }

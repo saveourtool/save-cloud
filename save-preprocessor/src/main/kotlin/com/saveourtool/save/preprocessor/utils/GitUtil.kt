@@ -14,6 +14,7 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.TagOpt
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.jetbrains.annotations.Blocking
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
@@ -39,26 +40,29 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
 /**
  * @param branch
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, branchWithPrefix = branch to Constants.R_HEADS)
+@Blocking
+fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = branch to Constants.R_HEADS)
 
 /**
  * @param tagName
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
+@Blocking
+fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
 
 /**
  * @param commitId
  * @param pathToDirectory
- * @return commit timestamp as [Instant]
+ * @return commit id and timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
+@Blocking
+fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): GitCommitInfo = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
 
 /**
  * Sorted set of tags for [GitDto]
@@ -105,24 +109,23 @@ private fun Map<String, Ref>.findDefaultBranchName(): String? = this[Constants.H
     ?.name
     ?.replace(Constants.R_HEADS, "")
 
+@Blocking
 private fun GitDto.doCloneToDirectory(
     pathToDirectory: Path,
     branchWithPrefix: Pair<String, String>? = null,
     commitToCheckout: String? = null,
-): Instant = Git.cloneRepository()
+): GitCommitInfo = Git.cloneRepository()
     .setCredentialsProvider(credentialsProvider())
     .setURI(url)
     .setDirectory(pathToDirectory.toFile())
     .setRemote(Constants.DEFAULT_REMOTE_NAME)
     .let { command ->
         branchWithPrefix?.let { (branch, branchToClonePrefix) ->
-            command.setNoCheckout(false)
-                .setBranch(branch)
+            command.setBranch(branch)
                 .setCloneAllBranches(false)
                 .setTagOption(TagOpt.AUTO_FOLLOW)
                 .setBranchesToClone(listOf("$branchToClonePrefix$branch"))
-        } ?: command.setNoCheckout(true)
-            .setNoTags()
+        } ?: command.setNoTags()
             .setBranch(Constants.HEAD)
     }
     .callWithRethrow()
@@ -134,11 +137,14 @@ private fun GitDto.doCloneToDirectory(
         }
         withRethrow {
             val objectId = git.repository.resolve(Constants.HEAD)
-            RevWalk(git.repository).use {
-                it.parseCommit(objectId)
-                    .authorIdent
-                    .whenAsInstant
-            }
+            GitCommitInfo(
+                id = objectId.name,
+                time = RevWalk(git.repository).use {
+                    it.parseCommit(objectId)
+                        .authorIdent
+                        .whenAsInstant
+                }
+            )
         }
     }
 

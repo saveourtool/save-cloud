@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
@@ -13,15 +13,15 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.ClassName
 import react.FC
 import react.Props
-import react.dom.html.InputType
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.useEffect
-
 import react.useState
+import web.html.InputType
 
 val testExecutionFiltersRow = testExecutionFiltersRow()
 
@@ -41,12 +41,12 @@ external interface FiltersRowProps : Props {
     /**
      * All filters in one class property [filters]
      */
-    var filters: TestExecutionFilters
+    var filters: TestExecutionFilter
 
     /**
      * lambda to change [filters]
      */
-    var onChangeFilters: (TestExecutionFilters) -> Unit
+    var onChangeFilters: (TestExecutionFilter) -> Unit
 }
 
 /**
@@ -176,6 +176,7 @@ private fun testExecutionFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
@@ -183,11 +184,12 @@ private fun testExecutionFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setFilters(TestExecutionFilters.empty)
-                    props.onChangeFilters(TestExecutionFilters.empty)
+                    setFilters(TestExecutionFilter.empty)
+                    props.onChangeFilters(TestExecutionFilter.empty)
                 }
             }
         }
@@ -231,6 +233,7 @@ private fun nameFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-secondary mr-3")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
@@ -238,6 +241,7 @@ private fun nameFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-secondary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {

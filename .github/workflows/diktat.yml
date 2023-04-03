@@ -7,9 +7,10 @@ on:
 
 jobs:
   diktat_check:
-    runs-on: ubuntu-20.04
-    env:
-      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
 
     steps:
       - uses: actions/checkout@v3
@@ -37,8 +38,8 @@ jobs:
           sarif_file: build/reports/diktat/diktat-merged.sarif
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
-        if: ${{ always() }}
+        if: ${{ failure() }}
         with:
           name: sarif-reports
-          path: "**/build/diktat-sarif-reports/"
+          path: "**/build/reports/diktat"
           retention-days: 1

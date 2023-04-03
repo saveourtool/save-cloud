@@ -4,12 +4,11 @@ import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -19,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import java.util.Optional
+import java.util.*
 
 /**
  * Service for project
@@ -31,6 +30,7 @@ import java.util.Optional
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+
     private val userRepository: UserRepository
 ) {
     /**
@@ -50,6 +50,23 @@ class ProjectService(
         requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
         return Pair(projectId, projectSaveStatus)
     }
+
+    /**
+     * Mark organization with [project] as [newProjectStatus]
+     * Before performing the function, check for user permissions by the [project].
+     *
+     * @param newProjectStatus is new status for [project]
+     * @param project is organization in which the status will be changed
+     * @return project
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun changeProjectStatus(project: Project, newProjectStatus: ProjectStatus): Project = project
+        .apply {
+            status = newProjectStatus
+        }
+        .let {
+            projectRepository.save(it)
+        }
 
     /**
      * @param project [Project] to be updated
@@ -77,54 +94,89 @@ class ProjectService(
     /**
      * @param name
      * @param organizationName
+     * @param statuses
+     * @return project by [name], [organizationName] and [statuses]
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
+    fun findByNameAndOrganizationNameAndStatusIn(name: String, organizationName: String, statuses: Set<ProjectStatus>) =
+            projectRepository.findByNameAndOrganizationNameAndStatusIn(name, organizationName, statuses)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @return project by [name], [organizationName] and [CREATED] status
+     */
+    fun findByNameAndOrganizationNameAndCreatedStatus(name: String, organizationName: String) =
+            findByNameAndOrganizationNameAndStatusIn(name, organizationName, EnumSet.of(ProjectStatus.CREATED))
 
     /**
      * @param organizationName
+     * @return List of the Organization projects
      */
-    fun findByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName).let { Flux.fromIterable(it) }
-
-    /**
-     * @return project's without status
-     */
-    fun getNotDeletedProjects(): List<Project> {
-        val projects = projectRepository.findAll { root, _, cb ->
-            cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
-        }
-        return projects
-    }
+    fun getAllByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName)
 
     /**
      * @param organizationName
+     * @return Flux of the Organization projects
+     */
+    fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
+
+    /**
+     * @param organizationName is [organization] name
      * @param authentication
+     * @param statuses is status`s
      * @return list of not deleted projects
      */
-    fun getNotDeletedProjectsByOrganizationName(
+    fun getProjectsByOrganizationNameAndStatusIn(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = findByOrganizationName(organizationName)
+        statuses: Set<ProjectStatus>
+    ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
-            it.status != ProjectStatus.DELETED
+            it.status in statuses
         }
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
     /**
-     * @param projectFilters
+     * @param organizationName
+     * @param authentication
+     * @return projects by organizationName and [CREATED] status
+     */
+    fun getProjectsByOrganizationNameAndCreatedStatus(organizationName: String, authentication: Authentication?) =
+            getProjectsByOrganizationNameAndStatusIn(organizationName, authentication, EnumSet.of(ProjectStatus.CREATED))
+
+    /**
+     * @param projectFilter is filter for [projects]
      * @return project's with filter
      */
-    fun getNotDeletedProjectsWithFilter(projectFilters: ProjectFilters?): List<Project> {
-        val name = projectFilters?.name?.let { "%$it%" }
-        val projects = projectRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
-            cb.and(
-                namePredicate,
-                cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
-            )
+    fun getFiltered(projectFilter: ProjectFilter): List<Project> = projectRepository.findAll { root, _, cb ->
+        val publicPredicate = projectFilter.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilter.organizationName.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilter.organizationName)
         }
-        return projects
+        val namePredicate = if (projectFilter.name.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<String>("name"), projectFilter.name)
+        }
+
+        cb.and(
+            root.get<ProjectStatus>("status").`in`(projectFilter.statuses),
+            publicPredicate,
+            orgNamePredicate,
+            namePredicate,
+        )
+    }
+
+    /**
+     * @param value is a string for a wrapper to search by match on a string in the database
+     * @return string by match on a string in the database
+     */
+    private fun wrapValue(value: String) = value.let {
+        "%$value%"
     }
 
     /**
@@ -146,7 +198,7 @@ class ProjectService(
         messageIfNotFound: String? = null,
         statusIfForbidden: HttpStatus = HttpStatus.FORBIDDEN,
     ): Mono<Project> = with(projectPermissionEvaluator) {
-        Mono.fromCallable { findByNameAndOrganizationName(projectName, organizationName) }
+        Mono.fromCallable { findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName) }
             .switchIfEmpty {
                 Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageIfNotFound))
             }
@@ -164,4 +216,19 @@ class ProjectService(
      * @return [Project] with given [id]
      */
     fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param lazyMessage
+     * @return [Mono] of [Project] or [Mono.error] if [Project] is not found
+     */
+    fun projectByCoordinatesOrNotFound(
+        name: String,
+        organizationName: String,
+        lazyMessage: () -> String,
+    ): Mono<Project> = blockingToMono {
+        findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
+    }
+        .switchIfEmptyToNotFound(lazyMessage)
 }

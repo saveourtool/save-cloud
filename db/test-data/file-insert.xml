@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="file-insert" author="nulls" context="dev">
+        <insert dbms="mysql" tableName="file">
+            <column name="id" value="1"/>
+            <column name="name" value="test.bat"/>
+            <column name="uploaded_time" value="2022-12-30 01:02:03"/>
+            <column name="size_bytes" value="-1"/>
+            <column name="is_executable" valueBoolean="false"/>
+            <column name="project_id" value="1"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

@@ -10,7 +10,11 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.PieChartColors
 import com.saveourtool.save.frontend.externals.chart.pieChart
@@ -23,18 +27,14 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.*
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
-import react.table.columns
-import react.table.useExpanded
-import react.table.usePagination
-import react.table.useSortBy
 
 import kotlinx.datetime.Instant
-import kotlinx.js.jso
 
 /**
  * [Props] for [ContestExecutionView]
@@ -78,7 +78,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                     val result = when (cellProps.row.original.status) {
                         ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
                         ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
                             ResultColorAndIcon("text-danger", faExclamationTriangle)
@@ -101,7 +101,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                                 cursor = "pointer".unsafeCast<Cursor>()
                             }
                             onClick = {
-                                cellProps.row.toggleRowExpanded()
+                                cellProps.row.toggleExpanded(null)
                             }
 
                             +"${cellProps.value.status}"
@@ -167,8 +167,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
-                ExecutionStatus.OBSOLETE -> Colors.GREY
-                ExecutionStatus.PENDING -> Colors.GREY
+                ExecutionStatus.OBSOLETE, ExecutionStatus.PENDING, ExecutionStatus.INITIALIZATION -> Colors.GREY
                 ExecutionStatus.RUNNING -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
             }
@@ -181,7 +180,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
         renderExpandedRow = { tableInstance, row ->
             tr {
                 td {
-                    colSpan = tableInstance.columns.size
+                    colSpan = tableInstance.visibleColumnsCount()
                     div {
                         className = ClassName("row")
                         displayExecutionInfoHeader(row.original, true, "row col-11")
@@ -199,11 +198,9 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                 }
             }
         },
-        plugins = arrayOf(
-            useSortBy,
-            useExpanded,
-            usePagination
-        )
+        tableOptionsCustomizer = {
+            enableExpanding(it)
+        }
     )
 
     private fun getPieChartData(execution: ExecutionDto) = execution
@@ -222,7 +219,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
     )
     override fun ChildrenBuilder.render() {
         executionsTable {
-            tableHeader = "Executions details"
+            tableHeader = "Executions details for contest ${props.contestName}"
             getData = { _, _ ->
                 get(
                     url = "$apiUrl/contests/${props.contestName}/executions/${props.organizationName}/${props.projectName}",

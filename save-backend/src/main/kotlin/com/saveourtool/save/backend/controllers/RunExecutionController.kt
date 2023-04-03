@@ -1,28 +1,26 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.EmptyResponse
-import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.BackendInternalFileStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.request.CreateExecutionRequest
+import com.saveourtool.save.spring.utils.applyAll
+import com.saveourtool.save.storage.impl.InternalFileKey
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -51,14 +49,17 @@ class RunExecutionController(
     private val testExecutionService: TestExecutionService,
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
+    private val internalFileStorage: BackendInternalFileStorage,
     objectMapper: ObjectMapper,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientOrchestrator = WebClient.builder()
         .baseUrl(configProperties.orchestratorUrl)
         .codecs {
             it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
         }
+        .applyAll(customizers)
         .build()
     private val scheduler = Schedulers.boundedElastic()
 
@@ -69,23 +70,26 @@ class RunExecutionController(
      */
     @PostMapping("/trigger")
     fun trigger(
-        @RequestBody request: RunExecutionRequest,
+        @RequestBody request: CreateExecutionRequest,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
         .validateContestEnrollment(request)
         .flatMap {
-            executionService.createNew(
-                projectCoordinates = request.projectCoordinates,
-                testSuiteIds = request.testSuiteIds,
-                files = request.files,
-                username = authentication.username(),
-                sdk = request.sdk,
-                execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
-                testingType = request.testingType,
-                contestName = request.contestName,
-            )
+            blockingToMono {
+                executionService.createNew(
+                    projectCoordinates = request.projectCoordinates,
+                    testSuiteIds = request.testSuiteIds,
+                    testsVersion = request.testsVersion,
+                    fileIds = request.fileIds,
+                    username = authentication.username(),
+                    sdk = request.sdk,
+                    execCmd = request.execCmd,
+                    batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                    testingType = request.testingType,
+                    contestName = request.contestName,
+                )
+            }
         }
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap { execution ->
@@ -116,7 +120,7 @@ class RunExecutionController(
                 execution.project.name
             )
         }
-        .flatMap { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { blockingToMono { executionService.createNewCopy(it, authentication.username()) } }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
@@ -143,7 +147,7 @@ class RunExecutionController(
             }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: CreateExecutionRequest) =
             filter { projectCoordinates ->
                 if (request.testingType == TestingType.CONTEST_MODE) {
                     lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
@@ -159,9 +163,7 @@ class RunExecutionController(
     private fun asyncTrigger(execution: Execution) {
         val executionId = execution.requiredId()
         blockingToMono {
-            val tests = execution.parseAndGetTestSuiteIds()
-                .orEmpty()
-                .flatMap { testService.findTestsByTestSuiteId(it) }
+            val tests = testService.findTestsByExecutionId(executionId)
             log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
             meterRegistry.timer("save.backend.saveTestExecution").record {
                 testExecutionService.saveTestExecutions(execution, tests)
@@ -201,7 +203,11 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution)
+        .bodyValue(
+            execution.toRunRequest(
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveAgentKey),
+            )
+        )
         .retrieve()
         .toBodilessEntity()
 

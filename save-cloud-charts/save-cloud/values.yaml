@@ -1,19 +1,23 @@
 imageRegistry: ghcr.io/saveourtool
-dockerTag: latest  # this should be set explicitly during chart installation
+# dockerTag: <TDB>  # this should be set explicitly during chart installation
 
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
 pullPolicy: IfNotPresent
+ingress:
+  enabled: false
+  https:
+    enabled: false
 backend:
   name: backend
   profile: dev,secure,kubernetes
   imageName: save-backend
   containerPort: 5800
+  managementPort: 5801
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
-  dbPasswordFile: /home/cnb/secrets/db_secrets
 frontend:
   name: frontend
   imageName: save-frontend
@@ -22,6 +26,16 @@ orchestrator:
   name: orchestrator
   imageName: save-orchestrator
   containerPort: 5100
+  managementPort: 5101
+  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
+  clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
+sandbox:
+  name: sandbox
+  profile: dev,secure
+  imageName: save-sandbox
+  containerPort: 5400
+  managementPort: 5401
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
@@ -29,6 +43,7 @@ preprocessor:
   name: preprocessor
   imageName: save-preprocessor
   containerPort: 5200
+  managementPort: 5201
   # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
   clusterIP: null
 gateway:
@@ -43,6 +58,9 @@ gateway:
     annotations: {}
     # Any additional options for Service `spec` block
     spec: {}
+s3:
+  external: true
+  secretFile: /home/cnb/secrets/s3_secrets
 storage:
   size: 10Gi
 reposStorage:
@@ -57,16 +75,21 @@ mysql:
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
   # Name of the database schema that will be used by save-cloud deployment
-  schema: save_cloud
+  backend_schema: save_cloud
+  sandbox_schema: save_sandbox
+  demo_schema: save_demo
+  root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application
     enabled: false
+  dbPasswordFile: /home/cnb/secrets/db_secrets
 
 # Values for dependencies
 grafana:
   enabled: false
   image:
-    tag: 9.0.1
+    repository: grafana/grafana
+    tag: 9.4.3
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate
@@ -81,33 +104,33 @@ prometheus:
   enabled: false
   alertmanager:
     enabled: false
-  kubeStateMetrics:
+  kube-state-metrics:
     enabled: false
   configmapReload:
     prometheus:
       enabled: false
-    alertmanager:
-      enabled: false
-  nodeExporter:
+  prometheus-node-exporter:
     enabled: false
   server:
     image:
-      tag: v2.36.2
+      repository: quay.io/prometheus/prometheus
+      tag: v2.42.0
     strategy:
       # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
       type: Recreate
-  pushgateway:
+  prometheus-pushgateway:
     enabled: false
 
 promtail:
   image:
-    tag: 2.5.0
+    repository: grafana/promtail
+    tag: 2.7.4
   podLabels:
     # This label will make promtail scrape itself according to the pipeeline stages below.
     io.kompose.service: promtail
   config:
     clients:
-      - url: http://save-cloud-loki:3100/loki/api/v1/push
+      - url: http://loki:3100/loki/api/v1/push
     snippets:
       pipelineStages:
         - cri: {}
@@ -129,12 +152,71 @@ promtail:
             - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
-  image:
-    tag: 2.5.0
-  persistence:
-    enabled: true
-  config:
-    ingester:
-      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
-      max_chunk_age: 2h
-      chunk_idle_period: 2h
+  # For compatibility with PV created in v2; see https://github.com/grafana/loki/issues/7267#issuecomment-1264472870
+  # for a more comprehensive list.
+  fullnameOverride: save-cloud-loki
+  gateway:
+    enabled: false
+  ingress:
+    # See https://github.com/grafana/loki/issues/7318
+    paths:
+      headless:
+        - /
+      read:
+      write:
+  loki:
+    image:
+      repository: grafana/loki
+      tag: 2.7.4
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    structuredConfig:
+      ingester:
+        # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+        max_chunk_age: 2h
+        chunk_idle_period: 2h
+    storage:
+      type: 'filesystem'
+    rulerConfig:
+      storage:
+        type: 'local'
+  singleBinary:
+    replicas: 1
+
+neo4j:
+  enabled: true
+  ingress:
+    enabled: false
+  svc:
+    annotations: {}
+    # Any additional options for Service `spec` block
+    spec: {}
+  neo4j:
+    edition: community
+    name: simple-neo4j
+    resources:
+      cpu: "500m"
+      memory: "2Gi"
+  volumes:
+    data:
+      mode: selector
+      selector:
+
+demo_cpg:
+  name: demo-cpg
+  profile: dev
+  imageName: save-demo-cpg
+  containerPort: 5500
+  managementPort: 5501
+  clusterIP: null
+demo:
+  name: demo
+  profile: dev
+  imageName: save-demo
+  containerPort: 5421
+  managementPort: 5422
+  clusterIP: null
+  agentSubdomainName: demo-agent-service
+  agentPort: 23456
+  agentNamespace: save-agent

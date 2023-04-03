@@ -13,8 +13,6 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.js.jso
-
 /**
  * SUMMARY tab in ContestView
  */
@@ -45,7 +43,7 @@ private fun ChildrenBuilder.displayTopProjects(sortedResults: List<ContestResult
                 "${index + 1}. ",
                 contestResult.projectName,
                 contestResult.organizationName,
-                contestResult.score?.toString() ?: "-",
+                contestResult.score?.toFixedStr(2) ?: "-",
                 "#/${contestResult.organizationName}/${contestResult.projectName}"
             )
         }
@@ -117,13 +115,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
         setSortedResults(results)
     }
     div {
-        className = ClassName("mb-3")
-        style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            flexDirection = FlexDirection.column
-            alignItems = AlignItems.center
-        }
+        className = ClassName("mb-3 row justify-content-center align-items-center")
         if (sortedResults.isEmpty()) {
             h6 {
                 className = ClassName("text-center")

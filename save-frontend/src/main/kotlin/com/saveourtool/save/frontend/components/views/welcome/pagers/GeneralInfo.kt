@@ -5,12 +5,11 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import csstype.*
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.p
-
-import kotlinx.js.jso
 
 private const val SAVE_CLI_TEXT = """
      Imagine, that you are a developer of some complex tool, for example a Compiler or a Static Analyzer. 
@@ -56,34 +55,18 @@ private const val CONTESTS_TEXT = """
 fun ChildrenBuilder.renderGeneralInfoPage() {
     div {
         style = jso {
-            justifyContent = JustifyContent.center
-            display = Display.flex
-            alignItems = AlignItems.center
-            alignSelf = AlignSelf.center
             color = "rgb(6, 7, 89)".unsafeCast<Color>()
         }
-        className = ClassName("row")
+        className = ClassName("row justify-content-center")
 
         div {
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.center
-            }
-            className = ClassName("row mt-5")
+            className = ClassName("row justify-content-center mt-5")
             text("Framework", SAVE_CLI_TEXT)
             text("Easy CI", EASY_CI_TEXT)
         }
 
         div {
-            style = jso {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-                alignSelf = AlignSelf.center
-            }
-
+            className = ClassName("row justify-content-center")
             text("Benchmarks", BENCHMARKS_TEXT)
             text("Contests", CONTESTS_TEXT)
         }

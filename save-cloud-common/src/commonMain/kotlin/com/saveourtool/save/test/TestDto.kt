@@ -6,7 +6,6 @@ package com.saveourtool.save.test
 
 import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.domain.toPluginType
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
@@ -35,19 +34,6 @@ data class TestDto(
      */
     fun joinAdditionalFiles() = additionalFiles.joinToString(DATABASE_DELIMITER)
 }
-
-/**
- * @property test [TestDto] of a test that is requested
- * @property testSuitesSource source of test
- * @property version version of this test
- */
-@Serializable
-data class TestFilesRequest(
-    val test: TestDto,
-    val testSuitesSource: TestSuitesSourceDto,
-    val version: String,
-
-)
 
 /**
  * @return [List] of plugin names

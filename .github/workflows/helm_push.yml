@@ -41,11 +41,11 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         run: |
-          git checkout origin/${{ inputs.branch }}
-      - uses: gittools/actions/gitversion/setup@v0.9.13
+          git switch --force-create ${{ inputs.branch }} origin/${{ inputs.branch }}
+      - uses: gittools/actions/gitversion/setup@v0.10.2
         with:
           versionSpec: 5.x
-      - uses: gittools/actions/gitversion/execute@v0.9.13
+      - uses: gittools/actions/gitversion/execute@v0.10.2
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
@@ -61,6 +61,7 @@ jobs:
           cd ${{ env.CHARTS_DIR }}
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo add prometheus https://prometheus-community.github.io/helm-charts
+          helm repo add neo4j https://helm.neo4j.com/neo4j
           helm dependency build
           cd -
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}

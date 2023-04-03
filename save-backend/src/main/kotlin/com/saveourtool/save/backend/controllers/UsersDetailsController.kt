@@ -1,19 +1,19 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
+
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -33,15 +33,6 @@ class UsersDetailsController(
     private val userDetailsService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
-    /**
-     * @param userName username
-     * @return [ImageInfo] about user's avatar
-     */
-    @GetMapping("/{userName}/avatar")
-    @PreAuthorize("permitAll()")
-    fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            userRepository.findByName(userName).toMonoOrNotFound().map { ImageInfo(it.avatar) }
-
     /**
      * @param userName username
      * @return [UserInfo] info about user's

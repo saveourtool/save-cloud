@@ -1,14 +1,15 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.S11nTestConfig
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -44,7 +45,6 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 
 import java.time.LocalDateTime
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("test")
@@ -62,6 +62,7 @@ import java.util.concurrent.TimeUnit
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
     UserDetailsService::class,
+    S11nTestConfig::class,
 )
 @MockBeans(
     MockBean(ExecutionService::class),
@@ -72,7 +73,8 @@ import java.util.concurrent.TimeUnit
     MockBean(TestSuiteRepository::class),
     MockBean(TestRepository::class),
     MockBean(TestExecutionRepository::class),
-    MockBean(TestSuitesSourceSnapshotStorage::class),
+    MockBean(TestsSourceVersionService::class),
+    MockBean(TestsSourceSnapshotStorage::class),
     MockBean(ExecutionRepository::class),
     MockBean(AgentStatusRepository::class),
     MockBean(AgentRepository::class),
@@ -80,6 +82,8 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkUserProjectRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(LnkContestProjectService::class),
+    MockBean(LnkOrganizationTestSuiteService::class),
+    MockBean(LnkExecutionTestSuiteService::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -88,7 +92,6 @@ class OrganizationControllerTest {
         "OrgForTests",
         OrganizationStatus.CREATED,
         dateCreated = LocalDateTime.now(),
-        ownerId = 1
     ).also { it.id = 1 }
     private val adminUser = User(
         "admin",
@@ -129,8 +132,19 @@ class OrganizationControllerTest {
     @WithMockUser(value = "admin", roles = ["VIEWER"])
     fun `delete organization with owner permission`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
-        webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
+            .exchange()
+            .expectStatus()
+            .isOk
+    }
+
+    @Test
+    @WithMockUser(value = "JohDoe", roles = ["SUPER_ADMIN"])
+    fun `ban organization with super-admin permission`() {
+        mutateMockedUserAndLink(organization, johnDoeUser, Role.SUPER_ADMIN)
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -140,8 +154,8 @@ class OrganizationControllerTest {
     @WithMockUser(value = "JohDoe", roles = ["VIEWER"])
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
-        webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete")
+        webClient.post()
+            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -307,6 +321,7 @@ class OrganizationControllerTest {
             LnkUserOrganization(organization, user, userRole)
         )
         given(organizationRepository.findByName(any())).willReturn(organization)
+        given(organizationRepository.findByNameAndStatusIn(any(), any())).willReturn(organization)
         whenever(organizationRepository.save(any())).thenReturn(organization)
         given(userRepository.findByName(any())).willReturn(user)
         given(userRepository.findByNameAndSource(any(), any())).willReturn(user)

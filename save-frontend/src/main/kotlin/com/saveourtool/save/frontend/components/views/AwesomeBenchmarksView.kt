@@ -24,13 +24,13 @@ import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
 import history.Location
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -48,9 +48,9 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import web.html.InputType
 
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 const val ALL_LANGS = "all"
 
@@ -81,6 +81,11 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
      * Selected language
      */
     var lang: String
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -103,13 +108,15 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         scope.launch {
             getBenchmarks()
+            setState {
+                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            }
         }
     }
 
     override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         }

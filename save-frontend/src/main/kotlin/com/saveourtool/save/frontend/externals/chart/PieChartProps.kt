@@ -2,8 +2,8 @@
 
 package com.saveourtool.save.frontend.externals.chart
 
-import org.w3c.dom.events.Event
 import react.PropsWithChildren
+import web.events.Event
 
 /**
  * Props of [PieChart]

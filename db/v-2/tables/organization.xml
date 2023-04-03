@@ -58,4 +58,19 @@
       <column name="can_create_contests" type="boolean" defaultValue="0"/>
     </addColumn>
   </changeSet>
+
+  <changeSet id="remove-and-add-fk-organization" author="frolov">
+    <dropForeignKeyConstraint baseTableName="organization" constraintName="fk_user_organization"/>
+    <addForeignKeyConstraint baseColumnNames="owner_id"
+      baseTableName="organization"
+      constraintName="fk_organization_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="modify-data-type-4" author="frolov">
+    <modifyDataType tableName="organization" columnName="date_created" newDataType="DATETIME(3)"/>
+  </changeSet>
+
 </databaseChangeLog>

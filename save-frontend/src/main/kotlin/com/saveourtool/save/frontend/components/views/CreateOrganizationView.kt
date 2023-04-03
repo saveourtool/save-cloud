@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import csstype.Width
+import js.core.jso
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
@@ -28,7 +29,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

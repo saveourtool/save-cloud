@@ -1,28 +1,28 @@
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLOptionElement
-import org.w3c.dom.HTMLSelectElement
+import web.html.HTMLDivElement
+import web.html.HTMLOptionElement
+import web.html.HTMLSelectElement
 import react.*
 import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
     @Suppress("TYPE_ALIAS")
-    private val selectFormRequired: FC<SelectFormRequiredProps<Organization>> = selectFormRequired()
+    private val selectFormRequired: FC<SelectFormRequiredProps<OrganizationDto>> = selectFormRequired()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organizations/get/list") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response, listOf(
-                        Organization.stub(1).apply { name = "Test Organization 1" },
-                        Organization.stub(2),
-                        Organization.stub(3),
+                        OrganizationDto.empty.copy(name = "Test Organization 1"),
+                        OrganizationDto.empty,
+                        OrganizationDto.empty,
                     )
                 )
             }
@@ -71,7 +71,7 @@ class SelectFormTest {
             rest.get("/api/$v1/organizations/get/list") { _, res, _ ->
                 res { response ->
                     mockMswResponse(
-                        response, emptyList<Organization>()
+                        response, emptyList<OrganizationDto>()
                     )
                 }
             }

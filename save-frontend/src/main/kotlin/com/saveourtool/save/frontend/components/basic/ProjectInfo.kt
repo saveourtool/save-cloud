@@ -6,16 +6,17 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
+import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import react.FC
 import react.Props
-import react.StateSetter
-import react.dom.html.InputType
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -24,6 +25,12 @@ import react.dom.html.ReactHTML.label
 import react.useEffect
 import react.useRef
 import react.useState
+import web.html.InputType
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+val projectInfo = projectInfo()
 
 private val projectInformationHeaders = mapOf(
     "name" to "Tested tool name: ",
@@ -38,28 +45,21 @@ external interface ProjectInfoProps : Props {
     /**
      * Project passed from parent component that should be used for initial values
      */
-    var project: Project?
+    var project: ProjectDto
 
     /**
-     * Whether fields for project info should be disabled
+     * Callback to update project state in ProjectView after update request's response is received.
      */
-    var isEditDisabled: Boolean?
+    var onProjectUpdate: ((ProjectDto) -> Unit)?
 }
 
-/**
- * @param turnEditMode
- * @param onProjectSave
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "KDOC_WITHOUT_RETURN_TAG",
     "LongMethod",
     "TYPE_ALIAS"
 )
-fun projectInfo(
-    turnEditMode: (isOff: Boolean) -> Unit,
-    onProjectSave: (draftProject: Project?, setDraftProject: StateSetter<Project?>) -> Unit,
-) = FC<ProjectInfoProps> { props ->
+private fun projectInfo() = FC<ProjectInfoProps> { props ->
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
     useEffect(props.project) {
@@ -68,16 +68,47 @@ fun projectInfo(
             projectRef.current = props.project
         }
     }
+
+    val updateProject = useDeferredRequest {
+        props.onProjectUpdate?.let { onProjectUpdate ->
+            post(
+                "$apiUrl/projects/update",
+                jsonHeaders,
+                Json.encodeToString(draftProject),
+                loadingHandler = ::loadingHandler,
+            ).let {
+                if (it.ok) {
+                    onProjectUpdate(draftProject)
+                }
+            }
+        }
+    }
+
     val idToValue = mapOf(
-        "name" to draftProject?.name,
-        "url" to draftProject?.url,
-        "description" to draftProject?.description,
+        "name" to draftProject.name,
+        "url" to draftProject.url,
+        "description" to draftProject.description,
     )
-    val idToValueSetter: Map<String, (String) -> Project?> = mapOf(
-        "name" to { draftProject?.copy(name = it) },
-        "url" to { draftProject?.copy(url = it) },
-        "description" to { draftProject?.copy(description = it) },
+    val idToValueSetter: Map<String, (String) -> ProjectDto> = mapOf(
+        "name" to { draftProject.copy(name = it) },
+        "url" to { draftProject.copy(url = it) },
+        "description" to { draftProject.copy(description = it) },
     )
+    val (isEditDisabled, setIsEditDisabled) = useState(true)
+    props.onProjectUpdate?.let {
+        div {
+            className = ClassName("d-flex justify-content-center")
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
+                +"Edit  "
+                fontAwesomeIcon(icon = faEdit)
+                onClick = {
+                    setIsEditDisabled { !it }
+                }
+            }
+        }
+    }
     form {
         div {
             className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom")
@@ -86,7 +117,7 @@ fun projectInfo(
                     className = ClassName("col-md-6 pl-0 pr-0")
                     label {
                         className = ClassName("control-label col-auto justify-content-between pl-0")
-                        +projectInformationHeaders[fieldId]!!
+                        +projectInformationHeaders.getValue(fieldId)
                     }
                 }
                 div {
@@ -97,16 +128,12 @@ fun projectInfo(
                             className = ClassName("form-control-plaintext pt-0 pb-0")
                             type = InputType.text
                             this.id = fieldId
-                            value = text ?: ""
-                            disabled = if (fieldId == "name") {
-                                // temporary workaround for https://github.com/saveourtool/save-cloud/issues/589#issuecomment-1049674021
-                                true
-                            } else {
-                                props.isEditDisabled ?: true
-                            }
+                            value = text
+                            // temporary workaround for https://github.com/saveourtool/save-cloud/issues/589#issuecomment-1049674021
+                            disabled = fieldId != "name" && props.onProjectUpdate != null && isEditDisabled
+                            readOnly = fieldId == "name" || props.onProjectUpdate == null
                             onChange = { event ->
-                                val tg = event.target
-                                setDraftProject(idToValueSetter[fieldId]!!(tg.value))
+                                setDraftProject(idToValueSetter.getValue(fieldId)(event.target.value))
                             }
                         }
                     }
@@ -118,23 +145,23 @@ fun projectInfo(
             className = ClassName("ml-3 mt-2 align-items-right float-right")
             button {
                 className = ClassName("btn")
+                type = ButtonType.button
                 fontAwesomeIcon(icon = faCheck)
-                id = "Save new project info"
-                hidden = true
+                hidden = isEditDisabled
                 onClick = {
-                    onProjectSave(draftProject, setDraftProject)
-                    turnEditMode(true)
+                    updateProject()
+                    setIsEditDisabled(true)
                 }
             }
 
             button {
                 className = ClassName("btn")
+                type = ButtonType.button
                 fontAwesomeIcon(icon = faTimesCircle)
-                id = "Cancel"
-                hidden = true
+                hidden = isEditDisabled
                 onClick = {
                     setDraftProject(props.project)
-                    turnEditMode(true)
+                    setIsEditDisabled(true)
                 }
             }
         }

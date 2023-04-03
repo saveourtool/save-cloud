@@ -8,14 +8,15 @@ package com.saveourtool.save.frontend.components.tables
 
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
-import csstype.ClassName
+import com.saveourtool.save.frontend.utils.useRequestStatusContext
 
-import org.w3c.fetch.Response
+import csstype.ClassName
+import csstype.Cursor
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
@@ -26,24 +27,30 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.table.Column
-import react.table.PluginHook
-import react.table.Row
-import react.table.TableInstance
-import react.table.TableOptions
-import react.table.TableRowProps
-import react.table.usePagination
-import react.table.useSortBy
-import react.table.useTable
+import react.router.NavigateFunction
+import react.router.useNavigate
+import tanstack.react.table.renderCell
+import tanstack.react.table.renderHeader
+import tanstack.react.table.useReactTable
+import tanstack.table.core.Column
+import tanstack.table.core.ColumnDef
+import tanstack.table.core.Header
+import tanstack.table.core.Row
+import tanstack.table.core.RowData
+import tanstack.table.core.SortDirection
+import tanstack.table.core.SortingState
+import tanstack.table.core.Table
+import tanstack.table.core.TableOptions
+import tanstack.table.core.TableState
+import tanstack.table.core.getCoreRowModel
+import tanstack.table.core.getSortedRowModel
 
-import kotlin.js.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 /**
  * [Props] of a data table
@@ -74,12 +81,18 @@ external interface TableProps<D : Any> : Props {
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param usePageSelection whether to display entries settings
- * @param plugins
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @param isTransparentGrid
+ * @param tableOptionsCustomizer can customize [TableOptions] in scope of [FC]; for example:
+ * ```kotlin
+ *  {
+ *      val (sorting, setSorting) = useState<SortingState>(emptyArray())
+ *      it.initialState!!.sorting = sorting
+ *  }
+ * ```
  * @return a functional react component
  */
 @Suppress(
@@ -92,19 +105,19 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught",
     "MAGIC_NUMBER",
-    "LAMBDA_IS_NOT_LAST_PARAMETER"
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
-fun <D : Any, P : TableProps<D>> tableComponent(
-    columns: (P) -> Array<out Column<D, *>>,
+fun <D : RowData, P : TableProps<D>> tableComponent(
+    columns: (P) -> Array<out ColumnDef<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
-    plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR") tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {},
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
-    renderExpandedRow: (ChildrenBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: ChildrenBuilder.(table: TableInstance<D>) -> Unit = {},
+    getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
+    renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: ChildrenBuilder.(table: Table<D>, navigate: NavigateFunction) -> Unit = { _, _ -> },
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
 ): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
@@ -117,23 +130,38 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val (dataAccessException, setDataAccessException) = useState<Exception?>(null)
     val scope = CoroutineScope(Dispatchers.Default)
 
-    val tableInstance: TableInstance<D> = useTable(options = jso {
+    val (sorting, setSorting) = useState<SortingState>(emptyArray())
+    val tableInstance: Table<D> = useReactTable(options = jso<TableOptions<D>> {
         this.columns = useMemo { columns(props) }
         this.data = data
+        this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
         }
         this.initialState = jso {
-            this.pageSize = initialPageSize
-            this.pageIndex = pageIndex
+            this.pagination = jso {
+                this.pageSize = initialPageSize
+                this.pageIndex = pageIndex
+            }
+            this.sorting = sorting
         }
+        this.asDynamic().state = jso<TableState> {
+            // Apparently, setting `initialState` is not enough and examples from tanstack-react-table use `state` in `TableOptions`.
+            // It's not present in kotlin-wrappers v.423 though.
+            this.sorting = sorting
+        }
+        this.onSortingChange = { updater ->
+            setSorting.invoke(updater)
+        }
+        this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
+        this.getPaginationRowModel = tanstack.table.core.getPaginationRowModel()
         additionalOptions()
-    }, plugins = plugins)
+    }.also { tableOptionsCustomizer(it) })
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
-        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
+        arrayOf(tableInstance.getState().pagination.pageIndex, tableInstance.getState().pagination.pageSize, pageCount)
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
@@ -142,7 +170,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     useEffect(*dependencies) {
         if (useServerPaging) {
             scope.launch {
-                val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
+                val newPageCount = props.getPageCount!!.invoke(tableInstance.getState().pagination.pageSize)
                 if (newPageCount != pageCount) {
                     setPageCount(newPageCount)
                 }
@@ -150,19 +178,14 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         }
     }
 
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
+    val context = useRequestStatusContext()
+
     useEffect(*dependencies) {
         scope.launch {
             try {
-                setData(context.(props.getData)(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.(props.getData)(
+                    tableInstance.getState().pagination.pageIndex, tableInstance.getState().pagination.pageSize
+                ))
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case
@@ -182,6 +205,8 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         }
     }
 
+    val navigate = useNavigate()
+
     div {
         className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
         div {
@@ -197,30 +222,31 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                 className = ClassName("table-responsive")
                 table {
                     className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
-                    spread(tableInstance.getTableProps())
                     width = 100.0
                     cellSpacing = "0"
                     thead {
-                        commonHeader(tableInstance)
-                        tableInstance.headerGroups.map { headerGroup ->
+                        commonHeader(tableInstance, navigate)
+                        tableInstance.getHeaderGroups().map { headerGroup ->
                             tr {
-                                spread(headerGroup.getHeaderGroupProps())
-                                headerGroup.headers.map { column ->
-                                    val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.canSort) columnProps.className else ClassName("")
+                                id = headerGroup.id
+                                headerGroup.headers.map { header: Header<D, out Any?> ->
+                                    val column = header.column
                                     th {
                                         this.className = className
-                                        +column.render("Header")
-                                        // fixme: find a way to set `canSort`; now it's always true
-                                        if (column.canSort) {
-                                            spread(columnProps)
+                                        child(
+                                            renderHeader(header)
+                                        )
+                                        if (column.getCanSort()) {
+                                            style = style ?: jso()
+                                            style?.cursor = "pointer".unsafeCast<Cursor>()
                                             span {
-                                                +when {
-                                                    column.isSorted -> " 🔽"
-                                                    column.isSortedDesc -> " 🔼"
+                                                +when (column.getIsSorted()) {
+                                                    SortDirection.asc -> " 🔽"
+                                                    SortDirection.desc -> " 🔼"
                                                     else -> ""
                                                 }
                                             }
+                                            onClick = column.getToggleSortingHandler()
                                         }
                                     }
                                 }
@@ -228,18 +254,11 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         }
                     }
                     tbody {
-                        spread(tableInstance.getTableBodyProps())
-                        tableInstance.page.map { row ->
-                            tableInstance.prepareRow(row)
+                        tableInstance.getRowModel().rows.map { row ->
                             tr {
-                                spread(row.getRowProps(getRowProps(row)))
-                                row.cells.map { cell ->
-                                    // fixme: userProps are not present in actual html, but .render("Cell") produces td, so can't wrap
-                                    child(cell.render("Cell", userProps = json().apply {
-                                        spread(cell.getCellProps()) { key, value ->
-                                            this[key] = value
-                                        }
-                                    }))
+                                spread(getRowProps(row))
+                                row.getVisibleCells().map { cell ->
+                                    child(renderCell(cell))
                                 }
                             }
                             if (row.isExpanded) {
@@ -270,7 +289,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         className = ClassName("row ml-1")
                         +"Page "
                         em {
-                            +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
+                            +"${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
                         }
                     }
                 }

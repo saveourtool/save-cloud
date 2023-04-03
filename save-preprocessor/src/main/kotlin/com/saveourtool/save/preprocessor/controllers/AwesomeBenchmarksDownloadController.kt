@@ -5,9 +5,11 @@ import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.utils.*
+import com.saveourtool.save.spring.utils.applyAll
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.slf4j.LoggerFactory
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +22,6 @@ import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
@@ -30,13 +31,16 @@ import kotlinx.serialization.serializer
  *
  * @property configProperties config properties
  */
-@OptIn(ExperimentalPathApi::class)
 @RestController
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
     private val gitPreprocessorService: GitPreprocessorService,
+    customizers: List<WebClientCustomizer>,
 ) {
-    private val webClientBackend = WebClient.create(configProperties.backend)
+    private val webClientBackend = WebClient.builder()
+        .baseUrl(configProperties.backend)
+        .applyAll(customizers)
+        .build()
 
     /**
      * Controller to download standard test suites
@@ -50,11 +54,11 @@ class AwesomeBenchmarksDownloadController(
                 .doOnSuccess {
                     Mono.fromCallable { gitDto.detectDefaultBranchName() }
                         .flatMap { branch ->
-                            log.debug("Starting to download awesome-benchmarks")
+                            log.info("Starting to download awesome-benchmarks")
                             gitPreprocessorService.cloneBranchAndProcessDirectory(
                                 gitDto,
                                 branch
-                            ) { repositoryDir: Path, _ ->
+                            ) { (repositoryDir: Path) ->
                                 log.info("Awesome-benchmarks were downloaded to ${repositoryDir.absolutePathString()}")
                                 processDirectoryAndCleanUp(repositoryDir)
                             }

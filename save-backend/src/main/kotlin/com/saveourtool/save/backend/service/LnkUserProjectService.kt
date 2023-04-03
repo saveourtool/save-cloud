@@ -1,14 +1,15 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getHighestRole
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -27,7 +28,7 @@ class LnkUserProjectService(
      * @return all users with role in project
      */
     fun getAllUsersAndRolesByProject(project: Project) =
-            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role ?: Role.NONE) }
+            lnkUserProjectRepository.findByProject(project).associate { it.user to (it.role) }
 
     /**
      * @param userId
@@ -116,10 +117,11 @@ class LnkUserProjectService(
 
     /**
      * @param userId
+     * @param statuses
      * @return list of [Project]s that are connected to user with [userId]
      */
-    fun getNonDeletedProjectsByUserId(userId: Long): List<Project> = lnkUserProjectRepository.findByUserIdAndProjectStatus(userId, ProjectStatus.CREATED)
-        .mapNotNull { it.project }
+    fun getProjectsByUserIdAndStatuses(userId: Long, statuses: Set<ProjectStatus> = setOf(ProjectStatus.CREATED)): List<Project> =
+            lnkUserProjectRepository.findByUserIdAndProjectStatusIn(userId, statuses).mapNotNull { it.project }
 
     /**
      * @param authentication

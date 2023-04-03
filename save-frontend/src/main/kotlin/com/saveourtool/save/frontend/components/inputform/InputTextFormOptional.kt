@@ -9,18 +9,19 @@ package com.saveourtool.save.frontend.components.inputform
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.useTooltipAndPopover
+
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
 import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.aria.ariaDescribedBy
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.sup
+import web.html.HTMLInputElement
+import web.html.InputType
 
 /**
  * constant FC to avoid re-creation

@@ -23,12 +23,10 @@ import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
-import org.w3c.dom.*
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -39,6 +37,8 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import web.html.*
+import web.html.InputType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -196,7 +196,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                                     loadingHandler = ::loadingHandler,
                                                 )
                                                     .unsafeMap {
-                                                        it.decodeFromJsonString<List<Organization>>()
+                                                        it.decodeFromJsonString<List<OrganizationDto>>()
                                                     }
                                                     .map {
                                                         it.name

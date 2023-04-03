@@ -2,9 +2,14 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.spring.repository.BaseEntityRepository
+import org.springframework.data.jpa.repository.Lock
+import org.springframework.data.jpa.repository.QueryHints
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.Optional
+import javax.persistence.LockModeType
+import javax.persistence.QueryHint
 
 /**
  * Repository of execution
@@ -19,6 +24,20 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
     fun getAllByProjectNameAndProjectOrganization(name: String, organization: Organization): List<Execution>
 
     /**
+     * @param name name of project
+     * @param organization organization of project
+     * @param start start date
+     * @param end end date
+     * @return list of executions
+     */
+    fun findByProjectNameAndProjectOrganizationAndStartTimeBetween(
+        name: String,
+        organization: Organization,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ): List<Execution>
+
+    /**
      * Get latest (by start time an) execution by project name and organization
      *
      * @param name name of project
@@ -29,14 +48,10 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
     fun findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name: String, organizationName: String): Optional<Execution>
 
     /**
-     * @param project to find execution
+     * @param id if the execution
      * @return execution
      */
-    fun findTopByProjectOrderByStartTimeDesc(project: Project): Execution?
-
-    /**
-     * @param id to find execution, which contain this suite id
-     * @return list of [Execution]'s
-     */
-    fun findAllByTestSuiteIdsContaining(id: String): List<Execution>
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(QueryHint(name = "javax.persistence.lock.timeout", value = "10000"))
+    fun findWithLockingById(id: Long): Execution?
 }

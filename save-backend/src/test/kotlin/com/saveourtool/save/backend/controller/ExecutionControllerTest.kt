@@ -4,8 +4,8 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.LnkContestExecutionService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -32,7 +32,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
 )
@@ -114,8 +114,8 @@ class ExecutionControllerTest {
 
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }
-        webClient.get()
-            .uri("/api/$v1/executionDtoList?name=${project.name}&organizationName=${project.organization.name}")
+        webClient.post()
+            .uri("/api/$v1/executionDtoList?projectName=${project.name}&organizationName=${project.organization.name}")
             .exchange()
             .expectStatus()
             .isOk

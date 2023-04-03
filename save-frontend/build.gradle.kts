@@ -1,13 +1,15 @@
-import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.versionForDockerImages
-
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("js")
+    id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -22,14 +24,16 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
-    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.http)
 }
 
 kotlin {
@@ -45,6 +49,11 @@ kotlin {
                         }
                         null -> useChromeHeadless()
                     }
+                }
+            }
+            commonWebpackConfig {
+                cssSupport {
+                    enabled.set(true)
                 }
             }
         }
@@ -66,12 +75,14 @@ kotlin {
             compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
+            compileOnly(devNpm("html-webpack-plugin", "^5.5.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("devicon", "^2.15.1"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0"))
@@ -81,6 +92,7 @@ kotlin {
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
+            implementation(npm("react-calendar", "^3.8.0"))
             implementation(npm("bootstrap", "^4.6.0"))
             implementation(npm("react", "^18.0.0"))
             implementation(npm("react-dom", "^18.0.0"))
@@ -92,6 +104,18 @@ kotlin {
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
             implementation(npm("react-ace", "^10.1.0"))
+            implementation(npm("react-avatar-image-cropper", "^1.4.2"))
+            implementation(npm("react-circle", "^1.1.1"))
+            // react-sigma
+            implementation(npm("@react-sigma/core", "^3.1.0"))
+            implementation(npm("sigma", "^2.4.0"))
+            implementation(npm("graphology", "^0.25.1"))
+            implementation(npm("graphology-layout", "^0.6.1"))
+            implementation(npm("graphology-layout-forceatlas2", "^0.10.1"))
+            implementation(npm("@react-sigma/layout-core", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-random", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
+            implementation(npm("@react-sigma/layout-forceatlas2", "^3.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
@@ -176,40 +200,21 @@ tasks.named<KotlinJsTest>("browserTest").configure {
     inputs.file(mswScriptTargetFile)
 }
 
-// generate kotlin file with project version to include in web page
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_VERSION = "$version"
-
-            """.trimIndent()
-        )
-    }
-}
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
-    dependsOn(generateVersionFileTaskProvider)
-    inputs.file("$buildDir/generated/src/generated/Versions.kt")
-}
-tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
-    dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(
+        tasks.named("generateSaveCloudVersionFile").map {
+            it.outputs.files.singleFile
+        }
+    )
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().forEach { kotlinWebpack ->
-    kotlinWebpack.doFirst {
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
+    // Since we inject timestamp into HTML file, we would like this task to always be re-run.
+    inputs.property("Build timestamp", System.currentTimeMillis())
+    doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
+            include("index.html")
         }
         copy {
             from(additionalWebpackResources)
@@ -234,30 +239,6 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
 }
 
-tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
-    inputs.property("project version", version.toString())
-    inputs.file("$projectDir/nginx.conf")
-
-    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
-    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
-    buildpacks = listOf("paketo-buildpacks/nginx")
-    environment = mapOf(
-        "BP_WEB_SERVER_ROOT" to "static",
-    )
-    isVerboseLogging = true
-    System.getenv("GHCR_PWD")?.let { registryPassword ->
-        isPublish = true
-        docker {
-            publishRegistry {
-                username = "saveourtool"
-                password = registryPassword
-                url = "https://ghcr.io"
-            }
-        }
-    }
-}
-
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
-configureSpotless()

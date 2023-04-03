@@ -29,8 +29,8 @@ jobs:
         with:
           gradle-version: wrapper
           arguments: |
-            kotlinStoreYarnLock
-            -Porg.gradle.caching=true
+            kotlinUpgradeYarnLock
+            --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Dedupe generated yarn.lock

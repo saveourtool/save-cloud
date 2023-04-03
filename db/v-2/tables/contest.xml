@@ -69,4 +69,26 @@
 
     <addUniqueConstraint tableName="featured_contests" columnNames="contest_id" constraintName="uq_contest_id"/>
   </changeSet>
+
+  <changeSet id="remove-and-add-fk-contest" author="frolov">
+    <dropForeignKeyConstraint baseTableName="contest" constraintName="fk_contest_organization"/>
+    <addForeignKeyConstraint baseColumnNames="organization_id"
+      baseTableName="contest"
+      constraintName="fk_contest_organization"
+      referencedColumnNames="id"
+      referencedTableName="organization"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="drop-test-suite-ids" author="sanyavertolet">
+    <dropColumn tableName="contest">
+      <column name="test_suite_ids"/>
+    </dropColumn>
+  </changeSet>
+
+  <changeSet id="modify-data-type-1" author="frolov">
+    <modifyDataType tableName="contest" columnName="start_time" newDataType="DATETIME(3)"/>
+    <modifyDataType tableName="contest" columnName="end_time" newDataType="DATETIME(3)"/>
+  </changeSet>
+
 </databaseChangeLog>

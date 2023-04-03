@@ -10,20 +10,26 @@ import kotlinx.serialization.Serializable
  * Project data transfer object
  *
  * @property name name of a project
- * @property organizationName name of an organization that is connected to the project
- * @property description description of a project
- * @property isPublic flag is project public or not
  * @property url url of a project
+ * @property description description of a project
+ * @property status
+ * @property isPublic flag is project public or not
  * @property email email of a project
+ * @property numberOfContainers
+ * @property organizationName name of an organization that is connected to the project
+ * @property contestRating
  */
 @Serializable
 data class ProjectDto(
     val name: String,
-    val organizationName: String,
-    val isPublic: Boolean = true,
-    val description: String = "",
     val url: String = "",
+    val description: String = "",
+    var status: ProjectStatus = ProjectStatus.CREATED,
+    val isPublic: Boolean = true,
     val email: String = "",
+    var numberOfContainers: Int = 3,
+    val organizationName: String,
+    var contestRating: Double = 0.0,
 ) : Validatable {
     /**
      * Project name validation

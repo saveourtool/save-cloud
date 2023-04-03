@@ -1,25 +1,18 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.service.ContestService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.TestService
-import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.entities.Contest
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.Contest.Companion.toContest
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -35,12 +28,11 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import java.time.LocalDateTime
-import java.util.*
 
 /**
  * Controller for working with contests.
@@ -50,7 +42,6 @@ import java.util.*
     Tag(name = "contests"),
 )
 @RestController
-@OptIn(ExperimentalStdlibApi::class)
 @RequestMapping(path = ["/api/$v1/contests"])
 @Suppress("LongParameterList")
 internal class ContestController(
@@ -59,7 +50,8 @@ internal class ContestController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationService: OrganizationService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
+    private val lnkContestTestSuiteService: LnkContestTestSuiteService,
 ) {
     @GetMapping("/{contestName}")
     @Operation(
@@ -73,7 +65,9 @@ internal class ContestController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched contest by it's name.")
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
     fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = getContestOrNotFound(contestName)
-        .map { it.toDto() }
+        .map { contest ->
+            contest.toDto()
+        }
 
     @GetMapping("/{contestName}/is-featured")
     @Operation(
@@ -89,8 +83,8 @@ internal class ContestController(
     fun isContestFeatured(
         @PathVariable contestName: String,
     ): Mono<Boolean> = getContestOrNotFound(contestName)
-        .map {
-            contestService.isContestFeatured(it.requiredId())
+        .map { contest ->
+            contestService.isContestFeatured(contest.requiredId())
         }
 
     @PostMapping("/featured/add-or-delete")
@@ -151,7 +145,9 @@ internal class ContestController(
         @RequestParam(defaultValue = "10") pageSize: Int,
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findContestsInProgress(pageSize)
-    ).map { it.toDto() }
+    ).map {
+        it.toDto()
+    }
 
     @GetMapping("/finished")
     @Operation(
@@ -167,7 +163,9 @@ internal class ContestController(
         @RequestParam(defaultValue = "10") pageSize: Int,
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findFinishedContests(pageSize)
-    ).map { it.toDto() }
+    ).map {
+        it.toDto()
+    }
 
     @GetMapping("/{contestName}/public-test")
     @Operation(
@@ -180,45 +178,31 @@ internal class ContestController(
         Parameter(name = "testSuiteId", `in` = ParameterIn.QUERY, description = "id of a testSuite", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
-    @ApiResponse(responseCode = "403", description = "Cannot fetch public test from test suite not connected to contest.")
-    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided.")
+    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided/not attached to given contest.")
     @Suppress("TOO_LONG_FUNCTION")
     fun getPublicTestForContest(
         @PathVariable contestName: String,
         @RequestParam testSuiteId: Long,
     ): Mono<TestFilesContent> = getContestOrNotFound(contestName)
-        .zipWith(Mono.just(testSuiteId))
-        .filter { (contest, testSuiteId) ->
-            testSuiteId in contest.getTestSuiteIds()
+        .map { contest ->
+            contest.testSuites().find { it.id == testSuiteId }
+                .orNotFound {
+                    "No test suite with id $testSuiteId was found in contest $contestName."
+                }
         }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Test suite with id $testSuiteId is not connected to contest $contestName."
-        }
-        .flatMap { (_, testSuiteId) ->
-            testSuitesService.findTestSuiteById(testSuiteId).toMono()
-        }
-        .switchIfEmptyToNotFound {
-            "No test suite with id $testSuiteId was found."
-        }
-        .flatMap {
-            Mono.zip(
-                it.toMono(),
-                Mono.justOrEmpty(testService.findFirstTestByTestSuiteId(it.requiredId()))
-            )
-        }
+        .zipWith(
+            Mono.justOrEmpty(testService.findFirstTestByTestSuiteId(testSuiteId))
+        )
         .switchIfEmptyToNotFound {
             "No tests were found for test suite with id $testSuiteId."
         }
         .flatMap { (testSuite, test) ->
-            Mono.zip(
-                testSuite.toMono(),
-                testSuitesSourceSnapshotStorage.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
-            )
-        }
-        .map { (testSuite, testFilesContent) ->
-            testFilesContent.copy(
-                language = testSuite.language
-            )
+            testsSourceSnapshotStorage.getTestContent(TestFilesRequest(test.toDto(), testSuite.sourceSnapshot.toDto()))
+                .map { testFilesContent ->
+                    testFilesContent.copy(
+                        language = testSuite.language
+                    )
+                }
         }
 
     @GetMapping("/by-organization")
@@ -239,7 +223,9 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findPageOfContestsByOrganizationName(organizationName, Pageable.ofSize(pageSize))
     )
-        .map { it.toDto() }
+        .map {
+            it.toDto()
+        }
 
     @GetMapping("/newest")
     @Operation(
@@ -256,29 +242,8 @@ internal class ContestController(
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.getNewestContests(pageSize)
     )
-        .map { it.toDto() }
-
-    @GetMapping("/{contestName}/test-suites")
-    @Operation(
-        method = "GET",
-        summary = "Get test suites connected to contest.",
-        description = "Get list of test suites dtos.",
-    )
-    @Parameters(
-        Parameter(name = "contestName", `in` = ParameterIn.QUERY, description = "name of a contest", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched test suites.")
-    fun getTestSuiteDtosByContestName(
-        @PathVariable contestName: String,
-    ): Flux<TestSuiteDto> = getContestOrNotFound(contestName)
         .map {
-            it.getTestSuiteIds()
-        }
-        .flatMapMany { testSuiteIds ->
-            testSuitesService.findTestSuitesByIds(testSuiteIds).toFlux()
-        }
-        .map {
-            it.toDto(it.requiredId())
+            it.toDto()
         }
 
     @PostMapping("/create")
@@ -304,15 +269,15 @@ internal class ContestController(
         contestDto.organizationName
     )
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound()
         .filter {
             organizationPermissionEvaluator.canCreateContests(it, authentication)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN)
-        .map {
-            contestDto.toContest(it)
+        .map { organization ->
+            contestDto.toContest(organization, emptyList())
         }
         .filter {
             it.validate()
@@ -326,7 +291,18 @@ internal class ContestController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "Contest with name [${contestDto.name}] already exists!"
         }
+        .zipWith(
+            Mono.fromCallable {
+                testSuitesService.findTestSuitesByIds(contestDto.testSuites.map { it.id })
+            }
+        )
+        .map { (contest, testSuites) ->
+            testSuites.map { testSuite ->
+                LnkContestTestSuite(contest, testSuite)
+            }
+        }
         .map {
+            lnkContestTestSuiteService.saveAll(it)
             ResponseEntity.ok("Contest has been successfully created!")
         }
 
@@ -348,30 +324,87 @@ internal class ContestController(
         @RequestBody contestRequest: ContestDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
-        organizationService.findByName(contestRequest.organizationName).toMono(),
-        Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
+        organizationService.findByNameAndCreatedStatus(contestRequest.organizationName).toMono(),
+        contestService.findByName(contestRequest.name).toMono(),
     )
         .switchIfEmptyToNotFound {
             "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
-            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            if (contestRequest.status == ContestStatus.DELETED) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            }
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "You do not have enough permissions to edit this contest."
         }
         .map { (organization, contest) ->
             contestService.updateContest(
-                contestRequest.toContest(organization).apply { id = contest.id }
+                contestRequest.toContest(organization, contest.testSuiteLinks).apply {
+                    id = contest.id
+                }
             )
             ResponseEntity.ok("Contest successfully updated")
         }
 
-    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.just(contestName)
-        .flatMap {
-            Mono.justOrEmpty(contestService.findByName(it))
-        }
+    @PostMapping("/update-all")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "POST",
+        summary = "Update contest.",
+        description = "Change existing contest settings.",
+    )
+    @Parameters(
+        Parameter(name = "contestRequest", `in` = ParameterIn.DEFAULT, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission to edit current contest.")
+    @ApiResponse(responseCode = "404", description = "Either organization or contest with such name was not found.")
+    fun updateAllContest(
+        @RequestBody contestsRequest: List<ContestDto>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.zip(
+        organizationService.findByNameAndCreatedStatus(contestsRequest.first().organizationName).toMono(),
+        contestsRequest.map { contestRequest -> contestService.findByName(contestRequest.name) }.toMono(),
+    )
         .switchIfEmptyToNotFound {
+            "Either organization [${contestsRequest.first().organizationName}] or one or more contests in [${contestsRequest.map { it.name }}] was not found."
+        }
+        .filter { (organization, _) ->
+            if (contestsRequest.none { it.status == ContestStatus.DELETED }) {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.WRITE)
+            } else {
+                organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+            }
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "You do not have enough permissions to edit this contest."
+        }
+        .map { (organization, contests) ->
+            contestsRequest.map { contestRequest ->
+                contests.singleOrNull {
+                    contestRequest.name == it?.name && contestRequest.organizationName == it.organization.name
+                }
+                    .orNotFound {
+                        "Could not find contest with name ${contestRequest.name} from organization ${contestRequest.organizationName}"
+                    }
+                    .let { contest ->
+                        contestService.updateContest(
+                            contestRequest.toContest(organization, contest.testSuiteLinks).apply {
+                                id = contest.id
+                            }
+                        )
+                    }
+            }
+            ResponseEntity.ok("Contest successfully updated")
+        }
+
+    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.fromCallable {
+        contestService.findByName(contestName).orNotFound {
             "Could not find contest with name $contestName."
         }
+    }
 }

@@ -2,91 +2,70 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.domain.SandboxFileInfo
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
-import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
+import com.saveourtool.save.frontend.components.basic.fileuploader.fileUploaderForSandbox
+import com.saveourtool.save.frontend.components.basic.sdkSelection
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.fontawesome.faUpload
+import com.saveourtool.save.frontend.externals.fontawesome.faArrowLeft
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.info.UserInfo
 
+import csstype.AlignItems
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
+import csstype.Color
+import csstype.Display
+import io.ktor.http.*
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
-import react.dom.html.InputType
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.h6
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.strong
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.p
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
-/**
- * [Props] of [SandboxView]
- */
-external interface SandboxViewProps : Props {
-    /**
-     * [UserInfo] of a current user
-     */
-    var currentUserInfo: UserInfo?
-}
+val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
 /**
  * [State] for [SandboxView]
  */
 external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
-     * Code from text editor
-     */
-    var codeText: String
-
-    /**
-     * Config from text editor
-     */
-    var configText: String
-
-    /**
-     * setup.sh from text editor
-     */
-    var setupShText: String
-
-    /**
      * Selected files
      */
-    var files: MutableList<FileInfo>
-
-    /**
-     * Flag that indicates if any file is uploading
-     */
-    var isUploading: Boolean
-
-    /**
-     * Bytes to send
-     */
-    var suiteByteSize: Long
-
-    /**
-     * Bytes sent to server
-     */
-    var bytesReceived: Long
+    var files: List<SandboxFileInfo>
 
     /**
      * Result of save-cli execution
      */
-    var debugInfo: String?
+    var debugInfo: TestResultDebugInfo?
 
     /**
-     * Currently selected FileType - config, test or setup.sh
+     * Selected SDK
      */
-    var selectedFile: FileType?
+    var selectedSdk: Sdk
+
+    /**
+     * Flag that displays if modal is open
+     */
+    var isModalOpen: Boolean
 }
 
 /**
@@ -94,53 +73,67 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
+class SandboxView : AbstractView<Props, SandboxViewState>(true) {
+    private val closeModal = {
+        setState {
+            isModalOpen = false
+        }
+    }
     init {
-        state.codeText = codeExample
-        state.configText = configExample
-        state.setupShText = setupShExample
         state.debugInfo = null
-        state.files = mutableListOf()
-        state.suiteByteSize = 0
-        state.isUploading = false
-        state.bytesReceived = 0
-        state.selectedFile = null
+        state.files = listOf()
+        state.selectedSdk = Sdk.Default
+        state.isModalOpen = false
     }
 
     override fun ChildrenBuilder.render() {
-        h3 {
-            className = ClassName("text-center")
-            +"Sandbox"
+        renderHeader()
+
+        state.debugInfo?.let { debugInfo ->
+            displayModal(
+                isOpen = state.isModalOpen,
+                title = "Additional debug info",
+                classes = "modal-lg",
+                bodyBuilder = { displayTestResultDebugInfo(debugInfo) },
+                modalStyle = largeTransparentModalStyle,
+                onCloseButtonPressed = closeModal,
+            ) {
+                buttonBuilder("Ok") { closeModal() }
+            }
         }
-        renderCodeEditor()
 
-        renderDebugInfo()
-
-        renderToolUpload()
-    }
-
-    private fun ChildrenBuilder.renderCodeEditor() {
         div {
-            className = ClassName("")
-            codeEditorComponent {
-                editorTitle = "Code editor"
-                selectedFile = state.selectedFile
-                onSelectedFileUpdate = {
-                    setState { selectedFile = it }
-                }
-                editorText = when (state.selectedFile) {
-                    FileType.CODE -> state.codeText
-                    FileType.SAVE_TOML -> state.configText
-                    FileType.SETUP_SH -> state.setupShText
-                    else -> "Press on any of the buttons above to start editing"
-                }
-                onEditorTextUpdate = {
-                    setState {
-                        when (state.selectedFile) {
-                            FileType.CODE -> codeText = it
-                            FileType.SAVE_TOML -> configText = it
-                            FileType.SETUP_SH -> setupShText = it
-                            else -> { }
+            className = ClassName("d-flex justify-content-center")
+            div {
+                className = ClassName(" flex-wrap col-10")
+
+                renderDebugInfo()
+                renderCodeEditor()
+
+                div {
+                    className = ClassName("row mt-3 mb-3")
+                    div {
+                        className = ClassName("col-4")
+                        div {
+                            className = ClassName("card")
+                            div {
+                                className = ClassName("row")
+                                renderToolUpload()
+                                renderUploadHint()
+                            }
+                        }
+                    }
+                    div {
+                        className = ClassName("col-8")
+                        // ======== sdk selection =========
+                        sdkSelection {
+                            title = ""
+                            selectedSdk = state.selectedSdk
+                            onSdkChange = { newSdk ->
+                                setState {
+                                    selectedSdk = newSdk
+                                }
+                            }
                         }
                     }
                 }
@@ -148,131 +141,145 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         }
     }
 
-    // private fun ChildrenBuilder.renderFileSelector() {
-    // div {
-    // className = ClassName("d-flex justify-content-end")
-    // button {
-    // className = ClassName("btn btn-info-outline")
-    // asDynamic()["data-toggle"] = "collapse"
-    // asDynamic()["data-target"] = "#codeEditorFileSelector"
-    // asDynamic()["data-controls"] = "codeEditorFileSelector"
-    // ariaExpanded = false
-    // onClick = {
-    // setState {
-    // isFileSelectorCollapsed = !isFileSelectorCollapsed
-    // }
-    // }
-    // +">>>"
-    // }
-    // displayCodeEditorFileSelector(
-    // state.selectedFileType,
-    // ) {
-    // setState {
-    // selectedFileType = it
-    // }
-    // }
-    // }
-    // }
+    private fun ChildrenBuilder.renderHeader() {
+        h2 {
+            className = ClassName("text-center mt-3")
+            style = jso {
+                color = Color("#FFFFFF")
+            }
+            +"Sandbox"
+        }
+
+        h4 {
+            className = ClassName("text-center")
+            +"try your SAVE configuration online"
+        }
+    }
+
+    private fun ChildrenBuilder.renderCodeEditor() {
+        div {
+            className = ClassName("")
+            sandboxCodeEditorComponent {
+                editorTitle = ""
+                doRunExecution = ::runExecution
+                doResultReload = ::resultReload
+            }
+        }
+    }
+
+    private fun ChildrenBuilder.renderUploadHint() {
+        div {
+            className = ClassName("col-6")
+            style = jso {
+                display = Display.flex
+                alignItems = AlignItems.flexEnd
+            }
+
+            p {
+                className = ClassName("text-info mt-1")
+                fontAwesomeIcon(icon = faArrowLeft)
+                +" upload your tested tool and all other needed files"
+            }
+        }
+    }
 
     private fun ChildrenBuilder.renderDebugInfo() {
         state.debugInfo?.let { debugInfo ->
             div {
-                h6 {
-                    className = ClassName("text-center")
-                    +"DebugInfo"
+                val alertStyle = when (debugInfo.testStatus) {
+                    is Pass -> "success"
+                    is Fail -> "danger"
+                    is Ignored -> "secondary"
+                    is Crash -> "danger"
+                    else -> "info"
                 }
-                +debugInfo
+                div {
+                    className = ClassName("alert alert-$alertStyle alert-dismissible fade show")
+                    role = "alert".unsafeCast<AriaRole>()
+                    div {
+                        displayTestResultDebugInfoStatus(debugInfo)
+                        buttonBuilder("See more details...", "link", classes = "p-0") {
+                            setState {
+                                isModalOpen = true
+                            }
+                        }
+                    }
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("align-self-center close")
+                        asDynamic()["data-dismiss"] = "alert"
+                        ariaLabel = "Close"
+                        fontAwesomeIcon(icon = faTimesCircle)
+                        onClick = {
+                            setState {
+                                this.debugInfo = null
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     private fun ChildrenBuilder.renderToolUpload() {
         div {
-            className = ClassName("m-3")
-            div {
-                className = ClassName("d-flex justify-content-center")
-                label {
-                    className = ClassName("btn btn-outline-secondary")
-                    input {
-                        type = InputType.file
-                        multiple = true
-                        hidden = true
-                        onChange = {
-                            onFileInput(it.target)
-                        }
+            className = ClassName("col-6")
+            fileUploaderForSandbox(
+                state.files,
+                { fileToAdd ->
+                    setState {
+                        files = files + fileToAdd
                     }
-                    fontAwesomeIcon(icon = faUpload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Regular files/Executable files/ZIP Archives"
-                    strong { +"Upload tool" }
                 }
-            }
-        }
-    }
-
-    private fun onFileInput(element: HTMLInputElement) {
-        scope.launch {
-            setState {
-                isUploading = true
-                element.files!!.asList().forEach { file ->
-                    suiteByteSize += file.size.toLong()
-                }
-            }
-
-            element.files!!.asList().forEach { file ->
-                val response: FileInfo = post(
-                    "",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    },
-                    loadingHandler = ::noopLoadingHandler,
-                )
-                    .decodeFromJsonString()
-
+            ) { fileToDelete ->
                 setState {
-                    // add only to selected files so that this entry isn't duplicated
-                    files.add(response)
-                    bytesReceived += response.sizeBytes
+                    files = files - fileToDelete
                 }
-            }
-            setState {
-                isUploading = false
             }
         }
     }
 
-    companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
-        private val configExample = """
-            |[general]
-            |tags = ["demo"]
-            |description = "saveourtool online demo"
-            |suiteName = Test
-            |execCmd="RUN_COMMAND"
-            |language = "Kotlin"
-            |
-            |[warn]
-            |execFlags = "--build-upon-default-config -i"
-            |actualWarningsPattern = "\\w+ - (\\d+)/(\\d+) - (.*)${'$'}" # (default value)
-            |testNameRegex = ".*Test.*" # (default value)
-            |patternForRegexInWarning = ["{{", "}}"]
-            |# Extra flags will be extracted from a line that mathces this regex if it's present in a file
-            |runConfigPattern = "# RUN: (.+)"
-        """.trimMargin()
-        private val codeExample = """
-            |package com.example
-            |
-            |data class BestLanguage(val name = "Kotlin")
-            |
-            |fun main {
-            |    val bestLanguage = BestLanguage()
-            |    println("saveourtool loves ${ '$' }{bestLanguage.name}")
-            |}
-        """.trimMargin()
-        private val setupShExample = """
-            |python3.10 -m pip install pylint
-        """.trimMargin()
+    private fun resultReload() {
+        scope.launch {
+            val response = get(
+                "$sandboxApiUrl/get-debug-info",
+                Headers().apply {
+                    set("Accept", "application/octet-stream")
+                },
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+
+            if (response.ok) {
+                val resultDebugInfo: TestResultDebugInfo = response.decodeFromJsonString()
+                setState {
+                    debugInfo = resultDebugInfo
+                }
+            } else {
+                window.alert("There is no debug info yet. Try to run execution and wait until it is finished.")
+            }
+        }
+    }
+
+    private fun runExecution(successMessage: String) {
+        scope.launch {
+            val response = post(
+                url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
+            )
+            if (response.ok) {
+                window.alert(successMessage)
+            } else if (response.isConflict()) {
+                window.alert("There is already a running execution")
+            }
+        }
+    }
+
+    companion object :
+        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         init {
             ContestView.contextType = requestStatusContext
         }

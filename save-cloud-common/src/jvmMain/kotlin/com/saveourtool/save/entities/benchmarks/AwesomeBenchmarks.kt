@@ -1,10 +1,11 @@
 package com.saveourtool.save.entities.benchmarks
 
-import com.saveourtool.save.entities.BaseEntity
-import com.saveourtool.save.entities.Entity
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
+import javax.persistence.Table
 
 /**
  * Enity that is used for representing the entity in the DB
@@ -21,6 +22,7 @@ import javax.persistence.Enumerated
  * @property documentation
  */
 @Entity
+@Table(name = AwesomeBenchmarks.TABLE_NAME)
 data class AwesomeBenchmarks(
     val name: String,
     @Enumerated(EnumType.STRING)
@@ -34,7 +36,11 @@ data class AwesomeBenchmarks(
     val homepage: String,
     val sources: String,
     val documentation: String,
-) : BaseEntity()
+) : BaseEntity() {
+    companion object {
+        const val TABLE_NAME = "awesome_benchmarks"
+    }
+}
 
 /**
  * @return the benchmark converted to entity (in db format)

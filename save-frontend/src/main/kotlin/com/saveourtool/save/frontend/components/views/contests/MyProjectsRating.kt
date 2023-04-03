@@ -4,17 +4,16 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
-
-import kotlinx.js.jso
 
 val myProjectsRating = myProjectsRatings()
 
@@ -23,14 +22,14 @@ val myProjectsRating = myProjectsRatings()
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
-    val (myProjects, setMyProjects) = useState(emptySet<Project>())
+    val (myProjects, setMyProjects) = useState(emptySet<ProjectDto>())
     val getMyProjects = useDeferredRequest {
         setMyProjects(
             get(
                 url = "$apiUrl/projects/get-for-current-user",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<Set<Project>>()
+            ).decodeFromJsonString<Set<ProjectDto>>()
         )
     }
 
@@ -53,11 +52,7 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                 title(" Your stats ", icon = faUser)
                 if (myProjects.isEmpty()) {
                     div {
-                        className = ClassName("row")
-                        style = jso {
-                            alignItems = AlignItems.center
-                            justifyContent = JustifyContent.center
-                        }
+                        className = ClassName("row justify-content-center")
                         p {
                             +"You don't have any projects"
                         }
@@ -65,23 +60,15 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                 }
                 myProjects.forEach {
                     div {
-                        className = ClassName("row")
-                        style = jso {
-                            alignItems = AlignItems.center
-                            justifyContent = JustifyContent.center
-                        }
-                        p {
-                            +it.name
+                        className = ClassName("row justify-content-center align-items-center")
+                        h4 {
+                            +it.contestRating.toFixedStr(2)
                         }
                     }
                     div {
-                        className = ClassName("row")
-                        style = jso {
-                            alignItems = AlignItems.center
-                            justifyContent = JustifyContent.center
-                        }
-                        h4 {
-                            +"432796"
+                        className = ClassName("row justify-content-center align-items-center")
+                        p {
+                            +it.name
                         }
                     }
                 }

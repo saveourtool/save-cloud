@@ -52,4 +52,43 @@
         </sql>
     </changeSet>
 
+    <changeSet id="drop_resources_root_path" author="frolov">
+        <dropColumn tableName="execution" columnName="resources_root_path"/>
+    </changeSet>
+
+    <changeSet id="drop_test_suite_ids" author="frolov">
+        <dropColumn tableName="execution" columnName="test_suite_ids"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-execution" author="frolov">
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_project"/>
+        <addForeignKeyConstraint baseColumnNames="project_id"
+          baseTableName="execution"
+          constraintName="fk_execution_project"
+          referencedColumnNames="id"
+          referencedTableName="project"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="execution"
+          constraintName="fk_execution_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="modify-data-type-2" author="frolov">
+        <modifyDataType tableName="execution" columnName="start_time" newDataType="DATETIME(3)"/>
+        <modifyDataType tableName="execution" columnName="end_time" newDataType="DATETIME(3)"/>
+    </changeSet>
+
+    <changeSet id="add-save-cli-version" author="nulls">
+        <addColumn tableName="execution">
+            <column name="save_cli_version" type="varchar(100)" defaultValue="N/A">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

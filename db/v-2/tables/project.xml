@@ -68,4 +68,13 @@
         <modifyDataType tableName="project" columnName="contest_rating" newDataType="double DEFAULT 0.0"/>
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-project" author="frolov">
+        <dropForeignKeyConstraint baseTableName="project" constraintName="fk_project_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="project"
+          constraintName="fk_project_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

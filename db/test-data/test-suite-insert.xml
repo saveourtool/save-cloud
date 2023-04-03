@@ -11,9 +11,9 @@
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="description" value="description"/>
             <column name="language" value="Java"/>
-            <column name="version" value="123"/>
-            <column name="source_id" value="1" />
-            <column name="plugins" value="WarnPlugin" />
+            <column name="source_snapshot_id" value="1" />
+            <column name="plugins" value="WarnPlugin"/>
+            <column name="is_public" valueBoolean="false"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -22,9 +22,9 @@
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="description" value="description"/>
             <column name="language" value="null"/>
-            <column name="version" value="123"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="1" />
             <column name="plugins" value="WarnPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -33,9 +33,9 @@
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="description" value="description"/>
             <column name="language" value="C++"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="4" />
             <column name="plugins" value="WarnPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
     </changeSet>
     <changeSet id="test-suite-insert" author="petertrr" context="dev">
@@ -46,9 +46,9 @@
             <column name="description" value="description"/>
             <column name="language" value="null"/>
             <column name="tags" value="security,codestyle"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="5" />
             <column name="plugins" value="FixAndWarnPlugin,WarnPlugin" />
+            <column name="is_public" valueBoolean="true"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -58,9 +58,9 @@
             <column name="description" value="description"/>
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="6" />
             <column name="plugins" value="FixPlugin,FixAndWarnPlugin,WarnPlugin" />
+            <column name="is_public" valueBoolean="true"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -70,9 +70,9 @@
             <column name="description" value="description"/>
             <column name="language" value="Java"/>
             <column name="tags" value="NPE,security"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="7" />
             <column name="plugins" value="FixPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -82,9 +82,9 @@
             <column name="description" value="description"/>
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="8" />
             <column name="plugins" value="WarnPlugin" />
+            <column name="is_public" valueBoolean="true"/>
         </insert>
 
 
@@ -95,9 +95,9 @@
             <column name="description" value="description"/>
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="9" />
             <column name="plugins" value="WarnPlugin" />
+            <column name="is_public" valueBoolean="true"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -107,9 +107,9 @@
             <column name="description" value="description"/>
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="10" />
             <column name="plugins" value="WarnPlugin,FixAndWarnPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -119,9 +119,9 @@
             <column name="description" value="description"/>
             <column name="language" value="Java"/>
             <column name="tags" value="NPE,security"/>
-            <column name="version" valueComputed="id"/>
-            <column name="source_id" value="1" />
+            <column name="source_snapshot_id" value="11" />
             <column name="plugins" value="WarnPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
     </changeSet>
     <changeSet id="add-standard-test-suite" author="nulls">
@@ -132,9 +132,9 @@
             <column name="description" value="description"/>
             <column name="language" value="Java"/>
             <column name="tags" value="NPE,security"/>
-            <column name="version" value="123"/>
-            <column name="source_id" value="2" />
+            <column name="source_snapshot_id" value="12" />
             <column name="plugins" value="FixPlugin" />
+            <column name="is_public" valueBoolean="false"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

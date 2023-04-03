@@ -223,6 +223,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-3")
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary d-flex justify-content-center")
                 +"Participate"
                 onClick = {

@@ -6,19 +6,15 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h6
 import react.useState
-
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val testSuiteSelectorManagerMode = testSuiteSelectorManagerMode()
 
@@ -27,46 +23,38 @@ val testSuiteSelectorManagerMode = testSuiteSelectorManagerMode()
  */
 external interface TestSuiteSelectorManagerModeProps : Props {
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteVersioned>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
+    var currentOrganizationName: String
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProps> { props ->
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (preselectedTestSuites, setPreselectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest {
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids",
-            headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuiteIds),
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setPreselectedTestSuites(testSuitesFromBackend)
-        setSelectedTestSuites(testSuitesFromBackend)
-    }
+    val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     useTooltip()
-    if (preselectedTestSuites.isEmpty()) {
+    if (props.preselectedTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No test suites are selected yet."
         }
     } else {
-        showAvaliableTestSuites(
-            preselectedTestSuites,
+        showAvailableTestSuites(
+            props.preselectedTestSuites,
             selectedTestSuites,
             TestSuiteSelectorMode.MANAGER,
         ) { testSuite ->
@@ -81,7 +69,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
                     }
                     .toList()
                     .also { listOfTestSuiteDtos ->
-                        props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                        props.onTestSuitesUpdate(listOfTestSuiteDtos)
                     }
             }
         }

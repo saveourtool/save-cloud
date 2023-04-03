@@ -17,4 +17,14 @@
         <dropColumn tableName="test" columnName="tags" />
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-test" author="frolov">
+        <dropForeignKeyConstraint baseTableName="test" constraintName="fk_test_test_suite"/>
+        <addForeignKeyConstraint baseColumnNames="test_suite_id"
+          baseTableName="test"
+          constraintName="fk_test_test_suite"
+          referencedColumnNames="id"
+          referencedTableName="test_suite"
+          onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

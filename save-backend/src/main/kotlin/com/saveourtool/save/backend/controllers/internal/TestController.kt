@@ -1,23 +1,17 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.service.TestService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.trace
 
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 
 /**
  *  Controller used to initialize tests
@@ -27,7 +21,6 @@ import reactor.core.publisher.Mono
 class TestController(
     private val testService: TestService,
     private val meterRegistry: MeterRegistry,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
     /**
      * @param testDtos list of [TestDto]s to save into the DB
@@ -40,21 +33,6 @@ class TestController(
             testService.saveTests(testDtos)
         }
     }
-
-    /**
-     * @param agentId
-     * @return test batches
-     */
-    @GetMapping("/getTestBatches")
-    fun testBatches(@RequestParam agentId: String) = testService.getTestBatches(agentId)
-
-    /**
-     * @param testFilesRequest
-     * @return [TestFilesContent] filled with test files
-     */
-    @PostMapping("/tests/get-content")
-    fun getContent(@RequestBody testFilesRequest: TestFilesRequest): Mono<TestFilesContent> =
-            testSuitesSourceSnapshotStorage.getTestContent(testFilesRequest)
 
     companion object {
         private val log: Logger = getLogger<TestController>()

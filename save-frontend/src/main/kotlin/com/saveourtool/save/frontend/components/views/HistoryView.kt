@@ -7,17 +7,19 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.filters.ExecutionFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.externals.calendar.calendar
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
-import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
@@ -25,18 +27,23 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import csstype.Background
 import csstype.ClassName
+import js.core.jso
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
-import react.table.columns
+import web.html.InputType
 
+import kotlin.js.Date
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.js.jso
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [Props] for tests execution history
@@ -86,6 +93,21 @@ external interface HistoryViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
+
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ExecutionFilter
+}
+
+/**
+ * [Props] of a data table with filters for execution
+ */
+external interface FiltersProps : TableProps<ExecutionDto> {
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ExecutionFilter?
 }
 
 /**
@@ -93,19 +115,22 @@ external interface HistoryViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "TOO_MANY_LINES_IN_LAMBDA",
+)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
-    @Suppress(
-        "MAGIC_NUMBER",
-        "TYPE_ALIAS",
-    )
-    private val executionsTable: FC<TableProps<ExecutionDto>> = tableComponent(
+    private val selectedExecutionIds = mutableListOf<Long>()
+    private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
                     val result = when (cellProps.row.original.status) {
                         ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
                         ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
                             ResultColorAndIcon("text-danger", faExclamationTriangle)
@@ -123,116 +148,102 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                         }
                     }
                 }
-                column("status", "Status", { status }) { cellProps ->
+                column("status", "Status", { status }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +"${cellProps.value}"
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("startDate", "Start time", { startTime }) { cellProps ->
+                column("startDate", "Start time", { startTime }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +(formattingDate(cellProps.value) ?: "Starting")
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("endDate", "End time", { endTime }) { cellProps ->
+                column("endDate", "End time", { endTime }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +(formattingDate(cellProps.value) ?: "Starting")
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
                     }
                 }
-                column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
+                column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                +"${cellProps.value}"
+                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("contestName", "Participating in contest", { contestName ?: "N/A" }) { cellProps ->
-                    Fragment.create {
-                        td {
-                            a {
-                                val newLocation = cellProps.row.original.contestName?.let {
-                                    "${window.location.origin}/#/contests/$it"
-                                } ?: "${window.location}"
-                                href = newLocation
-                                +cellProps.value
-                                fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
-                            }
-                        }
-                    }
-                }
-                column("running", "Running", { runningTests }) { cellProps ->
+                column("running", "Running", { runningTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.RUNNING
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("passed", "Passed", { passedTests }) { cellProps ->
+                column("passed", "Passed", { passedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.PASSED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("failed", "Failed", { failedTests }) { cellProps ->
+                column("failed", "Failed", { failedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.FAILED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
                 }
-                column("skipped", "Skipped", { skippedTests }) { cellProps ->
+                column("skipped", "Skipped", { skippedTests }) { cellContext ->
                     Fragment.create {
                         td {
                             a {
                                 href = getHrefToExecution(
-                                    cellProps.row.original.id,
-                                    cellProps.row.original.status,
+                                    cellContext.row.original.id,
+                                    cellContext.row.original.status,
                                     TestResultStatus.IGNORED
                                 )
-                                +"${cellProps.value}"
+                                +"${cellContext.value}"
                             }
                         }
                     }
@@ -240,13 +251,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 column("checkBox", "") { cellProps ->
                     Fragment.create {
                         td {
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn btn-small")
-                                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                                disabled = cellProps.value.contestName != null
-                                onClick = {
-                                    deleteExecution(cellProps.value.id)
+                            input {
+                                type = InputType.checkbox
+                                id = "checkbox"
+                                defaultChecked = selectedExecutionIds.contains(cellProps.row.original.id)
+                                onChange = { event ->
+                                    setState {
+                                        if (event.target.checked) {
+                                            selectedExecutionIds.add(cellProps.row.original.id)
+                                        } else {
+                                            selectedExecutionIds.remove(cellProps.row.original.id)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -258,7 +274,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
                 ExecutionStatus.OBSOLETE -> Colors.GREY
-                ExecutionStatus.PENDING -> Colors.GREY
+                ExecutionStatus.PENDING, ExecutionStatus.INITIALIZATION -> Colors.GREY
                 ExecutionStatus.RUNNING -> Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
             }
@@ -267,6 +283,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
+        },
+        getAdditionalDependencies = {
+            arrayOf(it.filters)
         }
     )
     init {
@@ -304,7 +323,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             { setState { isDeleteExecutionWindowOpen = false } }
         ) {
             buttonBuilder("Ok") {
-                deleteExecutionBuilder(state.deleteExecutionId)
+                deleteSelectedExecutionsBuilder()
                 setState { isDeleteExecutionWindowOpen = false }
             }
             buttonBuilder("Cancel", "secondary") {
@@ -313,28 +332,79 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
 
         div {
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-danger mb-4")
-                onClick = {
-                    deleteExecutions()
-                }
-                +"Delete all executions"
+            className = ClassName("d-flex justify-content-end")
+            buttonBuilder(
+                classes = "mb-4 mr-2",
+                label = "Delete selected executions",
+                isDisabled = selectedExecutionIds.isEmpty(),
+                isOutline = true,
+                style = "danger"
+            ) {
+                deleteSelectedExecutions()
+            }
+            buttonBuilder(
+                classes = "mb-4 mr-5",
+                label = "Delete all executions",
+                style = "danger",
+            ) {
+                deleteExecutions()
             }
         }
-        executionsTable {
-            tableHeader = "Executions details"
-            getData = { _, _ ->
-                get(
-                    url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-                    headers = jsonHeaders,
-                    loadingHandler = ::classLoadingHandler
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<Array<ExecutionDto>>()
+        div {
+            className = ClassName("row justify-content-center")
+
+            div {
+                className = ClassName("col-2 mr-3")
+
+                div {
+                    className = ClassName("card-body mt-0 pt-0 pr-0 pl-0")
+
+                    div {
+                        className = ClassName("card shadow mb-4")
+                        calendar(
+                            onChange = { date, _ ->
+                                setState {
+                                    filters = createFilter(date)
+                                }
+                            },
+                        )
                     }
+
+                    div {
+                        className = ClassName("row justify-content-center")
+                        buttonBuilder(
+                            label = "Clear all",
+                        ) {
+                            setState {
+                                filters = ExecutionFilter.empty
+                            }
+                        }
+                    }
+                }
             }
-            getPageCount = null
+
+            div {
+                className = ClassName("col-9")
+                executionsTable {
+                    filters = state.filters
+                    tableHeader = "Executions details"
+                    getData = { _, _ ->
+                        post(
+                            url = "$apiUrl/executionDtoList?projectName=${props.name}&organizationName=${props.organizationName}",
+                            headers = jsonHeaders,
+                            body = filters?.let { Json.encodeToString(it) } ?: undefined,
+                            loadingHandler = ::classLoadingHandler,
+                        ).unsafeMap {
+                            Json.decodeFromString<Array<ExecutionDto>>(
+                                it.text().await()
+                            )
+                        }.apply {
+                            asDynamic().debugInfo = null
+                        }
+                    }
+                    getPageCount = null
+                }
+            }
         }
     }
 
@@ -343,6 +413,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             .toString()
             .replace("[TZ]".toRegex(), " ")
     }
+
+    private fun createFilter(date: Date): ExecutionFilter = ExecutionFilter(
+        startTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 0, 0, 0),
+        endTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 23, 59, 59),
+    )
 
     private fun deleteExecutions() {
         setState {
@@ -369,21 +444,20 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun deleteExecution(id: Long) {
+    private fun deleteSelectedExecutions() {
         setState {
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isDeleteExecutionWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this execution?"
-            deleteExecutionId = listOf(id)
+            confirmMessage = "Are you sure you want to delete selected executions?"
         }
     }
 
-    private fun deleteExecutionBuilder(executionIds: List<Long>) {
+    private fun deleteSelectedExecutionsBuilder() {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
+                        "$apiUrl/execution/delete?executionIds=${selectedExecutionIds.joinToString(DATABASE_DELIMITER)}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler

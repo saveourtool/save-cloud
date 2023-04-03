@@ -22,14 +22,14 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import history.Location
 import react.*
-import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+import web.html.InputType
 
 import kotlinx.coroutines.launch
 
@@ -76,6 +76,11 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Contest. This field is acts as a marker of contest existence
      */
     var contest: ContestDto
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -92,8 +97,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
-                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+            changeUrl(state.selectedMenu, ContestMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
         } else if (props.currentContestName != prevProps.currentContestName) {
@@ -103,6 +107,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidMount() {
         super.componentDidMount()
+        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
         fetchContest()
@@ -137,7 +142,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     private fun ChildrenBuilder.renderFeaturedCheckbox() {
-        if (props.currentUserInfo?.globalRole == Role.SUPER_ADMIN) {
+        if (props.currentUserInfo.isSuperAdmin()) {
             div {
                 className = ClassName("d-sm-flex justify-content-center form-check pb-2")
                 div {
@@ -154,7 +159,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                     }
                 }
                 div {
-                    ReactHTML.label {
+                    label {
                         className = ClassName("form-check-label")
                         htmlFor = "isFeaturedCheckbox"
                         +"Featured contest"

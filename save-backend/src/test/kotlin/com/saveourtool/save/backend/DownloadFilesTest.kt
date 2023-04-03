@@ -1,43 +1,31 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
+import com.saveourtool.save.backend.controllers.FileController
+import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.storage.AvatarStorage
-import com.saveourtool.save.backend.storage.DebugInfoStorage
-import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
+import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
-import org.slf4j.LoggerFactory
+import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -46,13 +34,10 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.FileSystemResource
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
@@ -60,20 +45,21 @@ import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-
+import reactor.kotlin.core.publisher.toMono
+import java.nio.ByteBuffer
 import java.nio.file.Path
-import java.nio.file.Paths
+
+import java.time.LocalDateTime
+import java.util.*
+import java.util.concurrent.Future
 import kotlin.io.path.*
 
 @ActiveProfiles("test")
-@WebFluxTest(controllers = [DownloadFilesController::class])
+@WebFluxTest(controllers = [DownloadFilesController::class, FileController::class, FileInternalController::class])
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    FileStorage::class,
-    AvatarStorage::class,
-    DebugInfoStorage::class,
-    ExecutionInfoStorage::class,
+    S11nTestConfig::class,
 )
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -81,48 +67,55 @@ import kotlin.io.path.*
     MockBean(OrganizationService::class),
     MockBean(UserDetailsService::class),
     MockBean(ExecutionService::class),
+    MockBean(AgentService::class),
+    MockBean(ProjectPermissionEvaluator::class),
+    MockBean(DebugInfoStorage::class),
+    MockBean(ExecutionInfoStorage::class),
 )
 class DownloadFilesTest {
-    private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
-    private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
-    private var testProject: Project = Project(
-        organization = organization,
-        name = "TheProject",
-        url = "example.com",
-        description = "This is an example project",
-        status = ProjectStatus.CREATED,
-        userId = 2,
-    ).apply {
-        id = 3
+    private val organization = Organization.stub(2).apply {
+        name = "Example.com"
     }
-    private var testProject2: Project = Project(
-        organization = organization2,
-        name = "huaweiName",
-        url = "huawei.com",
-        description = "test description",
-        status = ProjectStatus.CREATED,
-        userId = 1,
+    private val organization2 = Organization.stub(1).apply {
+        name = "Huawei"
+    }
+    private var testProject: Project = Project.stub(3, organization).apply {
+        name = "TheProject"
+        url = "example.com"
+        description = "This is an example project"
+    }
+    private var testProject2: Project = Project.stub(1, organization2).apply {
+        name = "huaweiName"
+        url = "huawei.com"
+        description = "test description"
+    }
+    private var file1: File = File(
+        project = testProject,
+        name = "test-1.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = 11L,
+        isExecutable = false,
     ).apply {
-        id = 1
+        id = 1L
+    }
+    private var file2: File = File(
+        project = testProject2,
+        name = "test-2.txt",
+        uploadedTime = LocalDateTime.now(),
+        sizeBytes = 22L,
+        isExecutable = false,
+    ).apply {
+        id = 2L
     }
 
     @Autowired
     lateinit var webTestClient: WebTestClient
-    
-    @Autowired
-    private lateinit var fileStorage: FileStorage
-
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
 
     @MockBean
-    private lateinit var agentRepository: AgentRepository
+    private lateinit var fileStorage: FileStorage
 
     @MockBean
     private lateinit var projectService: ProjectService
-
-    @MockBean
-    private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @Test
     @Suppress("TOO_LONG_FUNCTION")
@@ -132,46 +125,42 @@ class DownloadFilesTest {
             details = AuthenticationDetails(id = 1)
         }
 
+        val fileContent = "Lorem ipsum"
+        whenever(fileStorage.doesExist(file1.toDto()))
+            .thenReturn(true.toMono())
+        whenever(fileStorage.getFileById(eq(file1.requiredId())))
+            .thenReturn(Mono.just(file1.toDto()))
+        whenever(fileStorage.download(eq(file1.toDto())))
+            .thenReturn(Flux.just(ByteBuffer.wrap(fileContent.toByteArray())))
+        whenever(fileStorage.listByProject(eq(file1.project)))
+            .thenReturn(Flux.just(file1.toDto()))
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject.name), eq(organization.name)))
+            .thenReturn(testProject)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), eq(organization.name), eq(Permission.READ), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
 
-        val tmpFile = createTempFile("test", "txt")
-            .writeLines("Lorem ipsum".lines())
-        Paths.get(configProperties.fileStorage.location).createDirectories()
-
-        val sampleFileInfo = tmpFile.toFileInfo()
-        val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "TheProject"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
-            .subscribeOn(Schedulers.immediate())
-            .toFuture()
-            .get()
-
-        webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(sampleFileInfo)
+        webTestClient.get()
+            .uri("/api/$v1/files/download?fileId={fileId}", file1.requiredId())
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
             .isOk
             .expectBody()
             .consumeWith {
-                Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
+                Assertions.assertArrayEquals(fileContent.toByteArray(), it.responseBody)
             }
 
         webTestClient.get()
-            .uri("/api/$v1/files/Example.com/TheProject/list")
+            .uri("/api/$v1/files/{organizationName}/{projectName}/list", testProject.organization.name, testProject.name)
             .exchange()
             .expectStatus()
             .isOk
-            .expectBodyList<FileInfo>()
+            .expectBodyList<FileDto>()
             .hasSize(1)
-            .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
+            .consumeWith<WebTestClient.ListBodySpec<FileDto>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().name
-                )
-                Assertions.assertTrue(
-                    it.responseBody!!.first().sizeBytes > 0
+                    listOf(file1.toDto()), it.responseBody
                 )
             }
     }
@@ -185,21 +174,30 @@ class DownloadFilesTest {
             .isNotFound
     }
 
+    @Suppress("LongMethod")
     @Test
     @WithMockUser(roles = ["ADMIN"])
-    fun checkUpload() {
+    fun checkUpload(@TempDir tmpDir: Path) {
         mutateMockedUser {
             details = AuthenticationDetails(id = 1)
         }
 
+        val fileContent = "Some content"
+        val file = (tmpDir / file2.name).createFile()
+            .also { it.writeText(fileContent) }
+        whenever(fileStorage.doesExist(argThat { candidateTo(file2) }))
+            .thenReturn(Mono.just(false))
+        whenever(fileStorage.upload(argThat { candidateTo(file2) }, eq(file.fileSize()), argThat { collectToString() == fileContent }))
+            .thenReturn(Mono.just(file2.toDto()))
+
+        whenever(projectService.findByNameAndOrganizationNameAndCreatedStatus(eq(testProject2.name), eq(organization2.name)))
+            .thenReturn(testProject2)
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject2.name), eq(organization2.name), eq(Permission.WRITE), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject2) }
 
-        val tmpFile = createTempFile("test", "txt")
-            .writeLines("Lorem ipsum".lines())
-
         val body = MultipartBodyBuilder().apply {
-            part("file", FileSystemResource(tmpFile))
+            val resource = FileSystemResource(file)
+            part("file", resource)
         }
             .build()
 
@@ -207,19 +205,15 @@ class DownloadFilesTest {
             .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
+            .header(CONTENT_LENGTH_CUSTOM, file.fileSize().toString())
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ShortFileInfo>()
+            .expectBody<FileDto>()
             .consumeWith { result ->
-                Assertions.assertTrue(
-                    Flux.just(result.responseBody!!)
-                        .map { it.toStorageKey() }
-                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
-                        .single()
-                        .subscribeOn(Schedulers.immediate())
-                        .toFuture()
-                        .get() > 0
+                Assertions.assertEquals(
+                    file2.toDto(),
+                    result.responseBody
                 )
             }
     }
@@ -228,15 +222,13 @@ class DownloadFilesTest {
     fun `should save test data`() {
         val execution: Execution = mock()
         whenever(execution.id).thenReturn(1)
-        whenever(agentRepository.findByContainerId("container-1"))
-            .thenReturn(Agent("container-1", execution, "0.0.1"))
 
         webTestClient.post()
-            .uri("/internal/files/debug-info?agentId=container-1")
+            .uri("/internal/files/debug-info?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(
-                    TestResultLocation("suite1", "plugin1", "path/to/test", "Test.test"),
+                    TestResultLocation("suite1", "plugin1", "path/to/test/Test.test"),
                     DebugInfo("./a.out", "stdout", "stderr", 42L),
                     Pass(null),
                 )
@@ -247,15 +239,27 @@ class DownloadFilesTest {
     }
 
     companion object {
-        @JvmStatic private val logger = LoggerFactory.getLogger(DownloadFilesTest::class.java)
-        @TempDir internal lateinit var tmpDir: Path
+        private fun FileDto.candidateTo(file: File) = name == file.name && projectCoordinates == file.project.toProjectCoordinates()
 
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("backend.fileStorage.location") {
-                tmpDir.absolutePathString()
-            }
-        }
+        /**
+         * Sometimes, the [block][Mono.block] operation of the resulting [Mono]
+         * may get executed using a non-blocking scheduler, such as
+         * [Schedulers.single] or [Schedulers.parallel], resulting in a failure
+         * at [reactor.core.publisher.BlockingSingleSubscriber.blockingGet].
+         *
+         * As a workaround, we first convert the [Mono] to a [Future].
+         *
+         * See [#1787](https://github.com/saveourtool/save-cloud/pull/1787) for details.
+         *
+         * @see Mono.block
+         * @see Schedulers.single
+         * @see Schedulers.parallel
+         * @see reactor.core.publisher.BlockingSingleSubscriber.blockingGet
+         */
+        @Blocking
+        private fun Flux<ByteBuffer>.collectToString(): String? = collectToInputStream()
+            .map { it.bufferedReader().readText() }
+            .toFuture()
+            .get()
     }
 }

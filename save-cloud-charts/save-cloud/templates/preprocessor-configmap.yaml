@@ -8,3 +8,4 @@ data:
     save.orchestrator=http://orchestrator
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.preprocessor.managementPort }}

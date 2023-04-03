@@ -7,10 +7,8 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.GIT_HASH_PREFIX_LENGTH
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -25,11 +23,12 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
-fun ChildrenBuilder.showAvaliableTestSuites(
-    testSuites: List<TestSuiteDto>,
-    selectedTestSuites: List<TestSuiteDto>,
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+fun ChildrenBuilder.showAvailableTestSuites(
+    testSuites: List<TestSuiteVersioned>,
+    selectedTestSuites: List<TestSuiteVersioned>,
     displayMode: TestSuiteSelectorMode?,
-    onTestSuiteClick: (TestSuiteDto) -> Unit,
+    onTestSuiteClick: (TestSuiteVersioned) -> Unit,
 ) {
     div {
         className = ClassName("list-group")
@@ -40,7 +39,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                 ""
             }
             a {
-                className = ClassName("list-group-item list-group-item-action $active")
+                className = ClassName("btn list-group-item list-group-item-action $active")
                 onClick = {
                     onTestSuiteClick(testSuite)
                 }
@@ -51,35 +50,45 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                         +(testSuite.name)
                     }
                     small {
-                        +(testSuite.language ?: "")
+                        +testSuite.language
                     }
                 }
-                p {
-                    +(testSuite.description ?: "")
+                div {
+                    className = ClassName("clearfix mb-1")
+                    div {
+                        className = ClassName("float-left")
+                        p {
+                            +testSuite.description
+                        }
+                    }
+                    div {
+                        className = ClassName("float-right")
+                        if (displayMode.shouldDisplayVersion()) {
+                            small {
+                                asDynamic()["data-toggle"] = "tooltip"
+                                asDynamic()["data-placement"] = "bottom"
+                                title = "Hash of commit/branch name/tag name"
+                                +testSuite.version
+                            }
+                        }
+                    }
                 }
                 div {
-                    className = ClassName("d-flex justify-content-between")
+                    className = ClassName("clearfix")
                     small {
+                        className = ClassName("float-left")
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Test suite tags"
-                        +(testSuite.tags?.joinToString(", ") ?: "")
-                    }
-
-                    if (displayMode.shouldDisplayVersion()) {
-                        small {
-                            asDynamic()["data-toggle"] = "tooltip"
-                            asDynamic()["data-placement"] = "bottom"
-                            title = "Hash of commit with current test suite"
-                            +testSuite.version.take(GIT_HASH_PREFIX_LENGTH)
-                        }
+                        +testSuite.tags
                     }
 
                     small {
+                        className = ClassName("float-right")
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Plugin type"
-                        +(testSuite.plugins.joinToString(", ") { it.pluginName() })
+                        +testSuite.plugins
                     }
                 }
             }

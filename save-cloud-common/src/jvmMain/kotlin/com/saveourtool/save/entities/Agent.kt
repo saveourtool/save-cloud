@@ -1,25 +1,35 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
 
 /**
  * @property containerId id of the container, inside which the agent is running
- * @property execution id of the execution, which the agent is serving
- * @property version version of the agent binary
- * @property isAuthenticated whether this agent has already received a token from orchestrator
+ * @property containerName name of the container, inside which the agent is running
+ * @property version
  */
 @Entity
 class Agent(
     var containerId: String,
+    var containerName: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "execution_id")
-    var execution: Execution,
+    var version: String,
+) : BaseEntityWithDto<AgentDto>() {
+    /**
+     * @return [AgentDto] from [Agent]
+     */
+    override fun toDto(): AgentDto = AgentDto(
+        containerId = containerId,
+        containerName = containerName,
+        version = version,
+    )
+}
 
-    var version: String? = null,
-
-    var isAuthenticated: Boolean,
-) : BaseEntity()
+/**
+ * @return [Agent] from [AgentDto]
+ */
+fun AgentDto.toEntity() = Agent(
+    containerId = containerId,
+    containerName = containerName,
+    version = version,
+)

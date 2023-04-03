@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
@@ -8,32 +7,29 @@ import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 import react.create
 import react.react
 
 import kotlin.js.Promise
 import kotlin.test.*
-import kotlinx.js.jso
+import js.core.jso
 
 class ProjectViewTest {
-    private val testOrganization = Organization(
-        "TestOrg",
-        OrganizationStatus.CREATED,
-        2,
-        LocalDateTime(2022, 6, 1, 12, 25),
-    )
-    private val testProject = Project(
-        "TestProject",
-        null,
-        "Project Description",
-        ProjectStatus.CREATED,
-        true,
-        2,
-        "email@test.org",
-        organization = testOrganization,
-    )
+    private val testOrganization = OrganizationDto.empty
+        .copy(
+            name = "TestOrg",
+            dateCreated = LocalDateTime(2022, 6, 1, 12, 25),
+        )
+    private val testProject = ProjectDto.empty
+        .copy(
+            name = "TestProject",
+            description = "Project Description",
+            isPublic = true,
+            email = "email@test.org",
+            organizationName = testOrganization.name,
+        )
     private val testUserInfo = UserInfo(
         "TestUser",
         source = "basic",
@@ -64,7 +60,7 @@ class ProjectViewTest {
             res { response ->
                 mockMswResponse(
                     response,
-                    emptyList<FileInfo>()
+                    emptyList<FileDto>()
                 )
             }
         },

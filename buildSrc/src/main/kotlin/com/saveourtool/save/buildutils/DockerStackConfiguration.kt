@@ -4,9 +4,11 @@
 
 package com.saveourtool.save.buildutils
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
@@ -17,7 +19,67 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+@Suppress("CONSTANT_UPPERCASE")
+const val NEO4J_STARTUP_DELAY_MILLIS = 30_000L
+const val MINIO_STARTUP_DELAY_MILLIS = 5_000L
 const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
+
+fun Project.registerLiquibaseTask(profile: String) {
+    val registerLiquibaseTaskBackend = registerLiquibaseTask(
+        projectName = "save-backend",
+        relativeChangeLogFile = "db/db.changelog-master.xml",
+        profile = profile
+    )
+    val registerLiquibaseTaskSandbox = registerLiquibaseTask(
+        projectName = "save-sandbox",
+        relativeChangeLogFile = "save-sandbox/db/db.changelog-sandbox.xml",
+        profile = profile
+    )
+    val registerLiquibaseTaskDemo = registerLiquibaseTask(
+        projectName = "save-demo",
+        relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
+        profile = profile
+    )
+    tasks.register("liquibaseUpdate") {
+        dependsOn(
+            registerLiquibaseTaskBackend,
+            registerLiquibaseTaskSandbox,
+            registerLiquibaseTaskDemo
+        )
+    }
+}
+
+private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String): TaskProvider<Exec> {
+    val taskName = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
+    val credentials = getDatabaseCredentials(projectName, profile)
+
+    return tasks.register<Exec>(taskName) {
+        val contexts = when (profile) {
+            "prod" -> "prod"
+            "dev" -> "dev"
+            else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+        }
+
+        val changeLogFile = rootDir.resolve(relativeChangeLogFile)
+        val changeLogFileSource = "${changeLogFile.parent}"
+        val changeLogFileTarget = relativeChangeLogFile.substringBeforeLast("/")
+        commandLine(
+            "docker", "run",
+            "-v", "$changeLogFileSource:/liquibase/changelog/$changeLogFileTarget",
+            "--rm",
+            "--env", "INSTALL_MYSQL=true",
+            "--network", "build_default",
+            "liquibase/liquibase:4.20",
+            "--url=${credentials.getDatabaseUrlForLiquibaseInDocker()}",
+            "--changeLogFile=$relativeChangeLogFile",
+            "--username=${credentials.username}",
+            "--password=${credentials.password}",
+            "--log-level=info",
+            "--contexts=$contexts",
+            "update"
+        )
+    }
+}
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
@@ -33,7 +95,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml"
-        val composeFile = "$buildDir/docker-compose.yaml"
+        val composeFile = file("$buildDir/docker-compose.yaml")
         val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
@@ -53,7 +115,17 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
-                           |      - "MYSQL_DATABASE=save_cloud"
+                           |    command: ["--log_bin_trust_function_creators=1"]
+                           |
+                           |  neo4j:
+                           |    image: neo4j:5.1.0-community
+                           |    container_name: neo4j
+                           |    ports:
+                           |        - "7474:7474"
+                           |        - "7687:7687"
+                           |    environment:
+                           |        - "NEO4J_AUTH=neo4j/123"
+                           |
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -61,7 +133,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      ZOOKEEPER_TICK_TIME: 2000
                            |    ports:
                            |      - 22181:2181
-                           |  
+                           |
                            |  kafka:
                            |    image: confluentinc/cp-kafka:latest
                            |    depends_on:
@@ -75,7 +147,18 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-                           |  
+                           |
+                           |  minio:
+                           |    image: minio/minio:latest
+                           |    container_name: minio
+                           |    command: server /data --console-address ":9090"
+                           |    ports:
+                           |      - 9000:9000
+                           |      - 9090:9090
+                           |    environment:
+                           |      MINIO_ROOT_USER: admin
+                           |      MINIO_ROOT_PASSWORD: adminadmin
+                           |
                            |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
@@ -84,7 +167,7 @@ fun Project.createStackDeployTask(profile: String) {
                         it
                     }
                 }
-            file(composeFile)
+            composeFile
                 .apply { createNewFile() }
                 .writeText(newText)
         }
@@ -105,7 +188,9 @@ fun Project.createStackDeployTask(profile: String) {
                     FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
+                    DEMO_TAG=${defaultVersionOrProperty("demo.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()
             )
@@ -140,13 +225,15 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("backend"))
             Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
+            Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
+            Files.createDirectories(configsDir.resolve("demo"))
         }
         description =
                 "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
         // this command puts env variables into compose file
         val composeCmd =
-                "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
+                "docker compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
         val stackCmd = "docker stack deploy --compose-file -" +
                 if (useOverride && composeOverride.exists()) {
                     " --compose-file ${composeOverride.canonicalPath}"
@@ -169,65 +256,62 @@ fun Project.createStackDeployTask(profile: String) {
     }
 
     // in case you are running it on MAC, first do the following: docker pull --platform linux/x86_64 mysql
-    tasks.register<Exec>("startMysqlDbService") {
-        dependsOn("generateComposeFile")
-        doFirst {
-            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
-        }
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
-        errorOutput = ByteArrayOutputStream()
-        doLast {
-            logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
-            Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
-        }
-    }
+    val mysqlTaskName = registerService("mysql", MYSQL_STARTUP_DELAY_MILLIS)
     tasks.named("liquibaseUpdate") {
-        mustRunAfter("startMysqlDbService")
+        mustRunAfter(mysqlTaskName)
     }
     tasks.register("startMysqlDb") {
         dependsOn("liquibaseUpdate")
-        dependsOn("startMysqlDbService")
+        dependsOn(mysqlTaskName)
     }
 
-    tasks.register<Exec>("startKafka") {
-        dependsOn("generateComposeFile")
-        doFirst {
-            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d kafka]")
-        }
-        errorOutput = ByteArrayOutputStream()
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "kafka")
-        doLast {
-            logger.lifecycle("Waiting $KAFKA_STARTUP_DELAY_MILLIS millis for kafka to start")
-            Thread.sleep(KAFKA_STARTUP_DELAY_MILLIS)  // wait for kafka to start, can be manually increased when needed
-        }
+    registerService("neo4j", NEO4J_STARTUP_DELAY_MILLIS)
+
+    val kafkaTaskName = registerService("kafka", KAFKA_STARTUP_DELAY_MILLIS)
+    tasks.register("startKafka") {
+        dependsOn(kafkaTaskName)
+    }
+
+    val minioTaskName = registerService("minio", MINIO_STARTUP_DELAY_MILLIS)
+    tasks.register("startMinio") {
+        dependsOn(minioTaskName)
     }
 
     tasks.register<Exec>("restartMysqlDb") {
         dependsOn("generateComposeFile")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
+        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
         finalizedBy("startMysqlDb")
     }
 
     tasks.register<Exec>("restartKafka") {
         dependsOn("generateComposeFile")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
+        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
+        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
         finalizedBy("startKafka")
+    }
+
+    tasks.register<Exec>("restartMinio") {
+        dependsOn("generateComposeFile")
+        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "minio")
+        finalizedBy("startMinio")
     }
 
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
         commandLine(
-            "docker-compose",
+            "docker",
+            "compose",
             "--file",
             "$buildDir/docker-compose.yaml",
             "up",
             "-d",
             "orchestrator",
+            "sandbox",
             "backend",
             "frontend",
-            "preprocessor"
+            "preprocessor",
+            "demo"
         )
     }
 
@@ -243,7 +327,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-frontend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-sandbox", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }
@@ -261,3 +345,41 @@ private fun Project.declareDexService() =
             |  volumes:
             |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
         """.trimMargin()
+
+/**
+ * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
+ * only [a-z0-9][.][_][-].
+ * FixMe: temporarily copy-pasted in here and in gradle/plugins
+ *
+ * @return correctly formatted version
+ */
+fun Project.versionForDockerImages(): String =
+    (project.findProperty("build.dockerTag") as String? ?: version.toString())
+        .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
+
+private fun Project.registerService(serviceName: String, startupDelayInMillis: Long, overrideTaskName: String? = null): String {
+    val taskName = overrideTaskName ?: "start${serviceName.capitalized()}Service"
+    tasks.register<Exec>(taskName) {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker compose --file $buildDir/docker-compose.yaml up -d $serviceName]")
+        }
+        standardOutput = ByteArrayOutputStream()
+        errorOutput = ByteArrayOutputStream()
+        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", serviceName)
+        isIgnoreExitValue = true
+        doLast {
+            val execResult = executionResult.get()
+            if (execResult.exitValue != 0) {
+                logger.lifecycle("$taskName failed with following output:")
+                logger.info(standardOutput.toString())
+                logger.error(errorOutput.toString())
+                execResult.assertNormalExitValue()
+                execResult.rethrowFailure()
+            }
+            logger.lifecycle("Waiting $startupDelayInMillis millis for $serviceName to start")
+            Thread.sleep(startupDelayInMillis)
+        }
+    }
+    return taskName
+}

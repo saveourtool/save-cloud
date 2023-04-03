@@ -1,10 +1,11 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-
-typealias StringResponse = ResponseEntity<String>
 
 /**
  * Controller that handles operation with users

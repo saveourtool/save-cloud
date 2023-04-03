@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository

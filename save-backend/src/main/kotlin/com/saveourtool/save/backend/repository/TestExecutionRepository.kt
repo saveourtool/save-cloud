@@ -2,8 +2,8 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -14,7 +14,7 @@ import javax.transaction.Transactional
  * Repository of execution
  */
 @Repository
-interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpecificationExecutor<TestExecution> {
+interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     /**
      * @param status
      * @param id
@@ -138,7 +138,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      * @param testSuite is testSuiteName
      * @param tag is tag
      * @param pageable a request for a page
-     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
     @Query(
@@ -164,7 +163,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     ): List<TestExecution>
 
     /**
-     * Returns test executions for agent [agentContainerId] and status [status]
+     * Returns test executions for agent [com.saveourtool.save.entities.Agent.containerId] and status [TestExecution.status]
      *
      * @param agentContainerId
      * @param status
@@ -178,9 +177,9 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      * @param executionId if of execution
      * @param filePath path to test file
      * @param pluginName name of the plugin from test execution
-     * @return Optional TestExecution
+     * @return found [TestExecution] or null
      */
-    fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): Optional<TestExecution>
+    fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): TestExecution?
 
     /**
      * Returns a TestExecution matched by a set of fields
@@ -194,10 +193,11 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     /**
      * @param executionId
      * @param agentId
+     * @param status
      * @return list of TestExecution's
      */
     @Suppress("TYPE_ALIAS")
-    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): List<TestExecution>
+    fun findByExecutionIdAndAgentIdAndStatus(executionId: Long, agentId: Long, status: TestResultStatus): List<TestExecution>
 
     /**
      * Delete a TestExecution matched by a set of fields
@@ -222,12 +222,4 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      */
     @Transactional
     fun deleteByExecutionIdIn(executionIds: List<Long>)
-
-    /**
-     * Delete a TestExecution with execution Ids
-     *
-     * @param id project id
-     */
-    @Transactional
-    fun deleteByExecutionProjectId(id: Long)
 }

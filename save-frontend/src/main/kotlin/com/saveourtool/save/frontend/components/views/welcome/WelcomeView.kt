@@ -18,14 +18,12 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import csstype.*
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
-import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.main
@@ -34,7 +32,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 
 /**
  * [State] of project creation view component
@@ -126,17 +123,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                     className = ClassName("row")
                     // Marketing information
-                    div {
-                        className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white")
-                        marketingTitle("Software")
-                        marketingTitle("Analysis")
-                        marketingTitle("Verification &")
-                        marketingTitle("Evaluation")
-                        h3 {
-                            className = ClassName("mt-4")
-                            +"Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
-                        }
-                    }
+                    welcomeMarketingTitle("text-white")
 
                     // Sign-in header
                     div {
@@ -153,26 +140,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
-                div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        display = Display.flex
-                        flexDirection = FlexDirection.column
-                        alignItems = AlignItems.center
-                        position = Position.absolute
-                        bottom = 7.em
-                        left = "50%".unsafeCast<Left>()
-                    }
-                    h1 {
-                        className = ClassName("animate__animated animate__pulse animate__infinite")
-                        style = jso {
-                            fontSize = 5.rem
-                            color = "#ffffff".unsafeCast<Color>()
-                        }
-                        fontAwesomeIcon(faChevronDown)
-                    }
-                }
+
+                chevron("#FFFFFF")
             }
 
             div {
@@ -298,33 +267,13 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
                 menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                if (props.userInfo.isSuperAdmin()) {
+                    hrNoMargin()
+                    menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }
-        }
-    }
-
-    private fun ChildrenBuilder.marketingTitle(str: String) {
-        div {
-            className = ClassName("mb-0 mt-0")
-            h1Bold(str[0].toString())
-            h1Normal(str.substring(1, str.length))
-        }
-    }
-
-    private fun ChildrenBuilder.h1Bold(str: String) = h1 {
-        +str
-        style = jso {
-            fontWeight = "bold".unsafeCast<FontWeight>()
-            display = Display.inline
-            fontSize = "4.5rem".unsafeCast<FontSize>()
-        }
-    }
-
-    private fun ChildrenBuilder.h1Normal(str: String) = h1 {
-        +str
-        style = jso {
-            display = Display.inline
         }
     }
 

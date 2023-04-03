@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="created" content="<%= Date.now() %>">
 
     <title>SAVE Cloud Service</title>
 
@@ -23,7 +24,7 @@
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
     <!--  highlight.js for code highlighting  -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/intellij-light.min.css" title="Intellij Light" >
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/intellij-light.min.css" title="Intellij Light" >
 </head>
 
 <body style="background-color: #fcfcfc">
@@ -33,7 +34,7 @@
 </div>
 
 <!-- Kotlin/JS compiled script -->
-<script src="save-frontend.js"></script>
-<script src="save-frontend-vendors.js"></script>
+<script src="save-frontend.js?built-at=<%= Date.now() %>"></script>
+<script src="save-frontend-vendors.js?built-at=<%= Date.now() %>"></script>
 </body>
 </html>

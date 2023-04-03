@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -36,10 +37,10 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
 
     /**
      * @param userId
-     * @param status
+     * @param statuses is set of [statuses], one of which a projects can have
      * @return List of [LnkUserProject] where user with [userId] is a member
      */
-    fun findByUserIdAndProjectStatus(userId: Long, status: ProjectStatus): List<LnkUserProject>
+    fun findByUserIdAndProjectStatusIn(userId: Long, statuses: Set<ProjectStatus>): List<LnkUserProject>
 
     /**
      * Save [LnkUserProject] using only ids and role string.

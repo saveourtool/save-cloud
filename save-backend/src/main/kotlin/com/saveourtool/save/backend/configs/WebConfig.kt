@@ -7,14 +7,11 @@
 
 package com.saveourtool.save.backend.configs
 
-import com.saveourtool.save.core.result.Crash
-import com.saveourtool.save.core.result.Fail
-import com.saveourtool.save.core.result.Ignored
-import com.saveourtool.save.core.result.Pass
-import com.saveourtool.save.core.result.TestStatus
+import com.saveourtool.save.domain.supportTestStatus
+import com.saveourtool.save.test.analysis.metrics.supportTestMetrics
+import com.saveourtool.save.test.analysis.results.supportAnalysisResult
+import com.saveourtool.save.utils.supportKLocalDateTime
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -29,9 +26,12 @@ import org.springframework.web.reactive.config.WebFluxConfigurer
 @Configuration
 class WebConfig {
     @Bean
-    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
-        jacksonObjectMapperBuilder
-            .mixIn(TestStatus::class.java, TestStatusMixin::class.java)
+    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
+        builder
+            .supportTestStatus()
+            .supportKLocalDateTime()
+            .supportTestMetrics()
+            .supportAnalysisResult()
     }
 
     @Bean
@@ -57,12 +57,3 @@ class WebConfig {
         }
     }
 }
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    JsonSubTypes.Type(value = Pass::class),
-    JsonSubTypes.Type(value = Fail::class),
-    JsonSubTypes.Type(value = Ignored::class),
-    JsonSubTypes.Type(value = Crash::class),
-)
-internal class TestStatusMixin

@@ -113,11 +113,11 @@ class ContestService(
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
     fun createContestIfNotPresent(newContest: Contest): Boolean =
-            if (contestRepository.findByName(newContest.name).isEmpty) {
+            contestRepository.findByName(newContest.name)?.let {
+                false
+            } ?: run {
                 contestRepository.save(newContest.apply { creationTime = LocalDateTime.now() })
                 true
-            } else {
-                false
             }
 
     /**

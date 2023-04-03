@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -19,15 +19,11 @@ import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
 import csstype.rem
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
-import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
+import js.core.asList
+import js.core.jso
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -37,10 +33,11 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.html.HTMLInputElement
+import web.html.InputType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -62,11 +59,6 @@ external interface RegistrationViewState : State {
      * Conflict error message
      */
     var conflictErrorMessage: String?
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
 
     /**
      * Validation of input fields
@@ -183,18 +175,23 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     )
     private fun ChildrenBuilder.renderAvatar() {
         label {
+            className = ClassName("btn")
+            title = "Change the user's avatar"
             input {
                 type = InputType.file
                 hidden = true
                 onChange = { event ->
-                    postImageUpload(event.target)
+                    scope.launch {
+                        event.target.files!!.asList().single().let { file ->
+                            postImageUpload(file, props.userInfo?.name!!, AvatarType.USER, ::classLoadingHandler)
+                        }
+                    }
                 }
             }
-            ariaLabel = "Change user's avatar"
             img {
                 className =
                         ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                src = state.image?.path?.let {
+                src = props.userInfo?.avatar?.let {
                     "/api/$v1/avatar$it"
                 }
                     ?: "img/undraw_profile.svg"
@@ -244,22 +241,4 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             }
         }
     }
-
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::classLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
-                    }
-                }
-            }
 }

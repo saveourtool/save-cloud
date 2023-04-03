@@ -1,55 +1,39 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.repository.TestRepository
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.ScoreType
-import com.saveourtool.save.utils.calculateScore
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.isValidScore
+import com.saveourtool.save.utils.*
 
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 
-import java.nio.file.Paths
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
-
-import kotlin.io.path.pathString
 
 /**
  * Service for test result
  */
 @Service
-class TestExecutionService(private val testExecutionRepository: TestExecutionRepository,
-                           private val testRepository: TestRepository,
-                           private val agentRepository: AgentRepository,
-                           private val executionRepository: ExecutionRepository,
-                           transactionManager: PlatformTransactionManager,
+class TestExecutionService(
+    private val testExecutionRepository: TestExecutionRepository,
+    private val agentRepository: AgentRepository,
+    private val agentService: AgentService,
+    private val executionRepository: ExecutionRepository,
 ) {
-    private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
-    private val transactionTemplate = TransactionTemplate(transactionManager).apply {
-        propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
-    }
-
     /**
      * Returns a page of [TestExecution]s with [executionId]
      *
@@ -64,7 +48,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         executionId: Long,
         page: Int,
         pageSize: Int,
-        filters: TestExecutionFilters,
+        filters: TestExecutionFilter,
     ): List<TestExecution> {
         val wrappedFileName = wrapValue(filters.fileName)
         val wrappedTestSuiteName = wrapValue(filters.testSuite)
@@ -84,20 +68,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * Get test executions by [agentContainerId] and [status]
-     *
-     * @param agentContainerId
-     * @param status
-     * @return a list of test executions
-     */
-    internal fun getTestExecutions(agentContainerId: String, status: TestResultStatus) = testExecutionRepository
-        .findByAgentContainerIdAndStatus(agentContainerId, status)
-
-    /**
      * @param executionId
      * @return a list of test executions
      */
-    internal fun getTestExecutions(executionId: Long): List<TestExecution> =
+    internal fun getAllTestExecutions(executionId: Long): List<TestExecution> =
             testExecutionRepository.findByExecutionId(executionId)
 
     /**
@@ -117,6 +91,16 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testExecutionRepository.findByExecutionIdGroupByTestSuite(executionId, status.name, PageRequest.of(page, pageSize))
 
     /**
+     * Get test executions by [containerId] and [status]
+     *
+     * @param containerId
+     * @param status
+     * @return a list of test executions
+     */
+    internal fun getAllTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
+        .findByAgentContainerIdAndStatus(containerId, status)
+
+    /**
      * Finds TestExecution by test location
      *
      * @param executionId under this executionId test has been executed
@@ -125,7 +109,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId, pluginName, FilenameUtils.separatorsToUnix(Paths.get(testLocation, testName).pathString)
+            executionId, pluginName, FilenameUtils.separatorsToUnix(testPath)
         )
     }
 
@@ -142,15 +126,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testExecutionRepository.countByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite)
 
     /**
-     * @param projectId
-     */
-    internal fun deleteTestExecutionWithProjectId(projectId: Long?) {
-        projectId?.let {
-            testExecutionRepository.deleteByExecutionProjectId(projectId)
-        }
-    }
-
-    /**
      * @param executionIds list of ids
      * @return Unit
      */
@@ -158,7 +133,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
-     * @param testExecutionsDtos
+     * @param testExecutionResults
      * @return list of lost tests
      */
     @Suppress(
@@ -170,93 +145,86 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         "MagicNumber",
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
-    @Transactional
-    fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
-        log.debug { "Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}" }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun saveTestResult(testExecutionResults: List<TestExecutionResult>): List<TestExecutionResult> {
+        log.debug { "Saving ${testExecutionResults.size} test results from agent ${testExecutionResults.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
-        val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
-            "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
+        val agentContainerId = requireNotNull(testExecutionResults.first().agentContainerId) {
+            "Attempt to save test results without assigned agent. testExecutionResults=$testExecutionResults"
         }
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
 
-        val executionId = agent.execution.id!!
-        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        val executionId = agentService.getExecution(agent).requiredId()
+        val lostTests: MutableList<TestExecutionResult> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { testExecDto ->
+        testExecutionResults.forEach { testExecutionResult ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
-                testExecDto.pluginName,
-                testExecDto.filePath
+                testExecutionResult.pluginName,
+                testExecutionResult.filePath
             )
-            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
             foundTestExec.also {
-                if (it.isEmpty) {
-                    log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
-                }
+                it ?: log.error("Test execution $testExecutionResult for execution id=$executionId was not found in the DB")
             }
-                .filter {
+                ?.takeIf {
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
-                .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
-                    it.status = testExecDto.status
-                    when (testExecDto.status) {
+                ?.let {
+                    it.startTime = testExecutionResult.startTimeSeconds.secondsToJLocalDateTime()
+                    it.endTime = testExecutionResult.endTimeSeconds.secondsToJLocalDateTime()
+                    it.status = testExecutionResult.status
+                    when (testExecutionResult.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
                         else -> counters.skipped++
                     }
-                    it.unmatched = testExecDto.unmatched
-                    it.matched = testExecDto.matched
-                    it.expected = testExecDto.expected
-                    it.unexpected = testExecDto.unexpected
+                    it.unmatched = testExecutionResult.unmatched
+                    it.matched = testExecutionResult.matched
+                    it.expected = testExecutionResult.expected
+                    it.unexpected = testExecutionResult.unexpected
 
                     with(counters) {
-                        unmatchedChecks += testExecDto.unmatched.orZeroIfNotApplicable()
-                        matchedChecks += testExecDto.matched.orZeroIfNotApplicable()
-                        expectedChecks += testExecDto.expected.orZeroIfNotApplicable()
-                        unexpectedChecks += testExecDto.unexpected.orZeroIfNotApplicable()
+                        unmatchedChecks += testExecutionResult.unmatched.orZeroIfNotApplicable()
+                        matchedChecks += testExecutionResult.matched.orZeroIfNotApplicable()
+                        expectedChecks += testExecutionResult.expected.orZeroIfNotApplicable()
+                        unexpectedChecks += testExecutionResult.unexpected.orZeroIfNotApplicable()
                     }
 
                     testExecutionRepository.save(it)
-                },
-                    {
-                        lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
-                    })
-        }
-        val lock = locks.computeIfAbsent(executionId) { Any() }
-        synchronized(lock) {
-            transactionTemplate.execute {
-                val execution = executionRepository.findById(executionId).get()
-                execution.apply {
-                    log.debug {
-                        "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
-                                "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
-                    }
-                    runningTests -= counters.total()
-                    passedTests += counters.passed
-                    failedTests += counters.failed
-                    skippedTests += counters.skipped
-
-                    unmatchedChecks += counters.unmatchedChecks
-                    matchedChecks += counters.matchedChecks
-                    expectedChecks += counters.expectedChecks
-                    unexpectedChecks += counters.unexpectedChecks
-
-                    val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
-
-                    if (!executionScore.isValidScore()) {
-                        log.error("Execution score for execution id $id is invalid: $executionScore")
-                    }
-                    score = executionScore
                 }
-                executionRepository.save(execution)
-            }
+                ?: run {
+                    lostTests.add(testExecutionResult)
+                    val testExecutionId = foundTestExec?.requiredId()
+                    log.error("Test execution $testExecutionResult with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
+                }
         }
+        val execution = executionRepository.findWithLockingById(executionId).orNotFound()
+        execution.apply {
+            log.debug {
+                "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                        "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
+            }
+            runningTests -= counters.total()
+            passedTests += counters.passed
+            failedTests += counters.failed
+            skippedTests += counters.skipped
+
+            unmatchedChecks += counters.unmatchedChecks
+            matchedChecks += counters.matchedChecks
+            expectedChecks += counters.expectedChecks
+            unexpectedChecks += counters.unexpectedChecks
+
+            val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
+
+            if (!executionScore.isValidScore()) {
+                log.error("Execution score for execution id $id is invalid: $executionScore")
+            }
+            score = executionScore
+        }
+        executionRepository.save(execution)
         return lostTests
     }
 
@@ -305,17 +273,17 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
-        val executionId = agent.execution.id!!
+        val executionId = agentService.getExecution(agent).requiredId()
         testDtos.forEach { test ->
             val testExecution = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
                 test.pluginName,
                 test.filePath
-            )
-                .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
-                    NoSuchElementException()
-                }
+            ).orNotFound {
+                val errorMessage = "Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}"
+                log.error(errorMessage)
+                errorMessage
+            }
             testExecutionRepository.save(testExecution.apply {
                 this.agent = agent
             })
@@ -323,44 +291,56 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param agentsList the list of agents, for which corresponding test executions should be marked as failed
-     * @param condition
+     * @param containerId the container ID of agent, for which corresponding test executions should be marked as failed
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(agentsList: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
-        agentsList.forEach { agentContainerId ->
-            val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
-                "Agent with containerId=[$agentContainerId] was not found in the DB"
-            }
-            val agentId = agent.id!!
-            val executionId = agent.execution.id!!
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String) {
+        val agent = agentService.getAgentByContainerId(containerId)
+        val agentId = agent.requiredId()
+        val executionId = agentService.getExecution(agent).requiredId()
 
-            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
-                executionId,
-                agentId
-            ).filter(condition)
+        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentIdAndStatus(
+            executionId,
+            agentId,
+            TestResultStatus.READY_FOR_TESTING,
+        )
 
-            if (testExecutionList.isEmpty()) {
-                // Crashed agent could be not assigned with tests, so just warn and return
-                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
-                return@forEach
-            }
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
 
-            testExecutionList.map { testExecution ->
-                testExecutionRepository.save(testExecution.apply {
-                    this.status = TestResultStatus.INTERNAL_ERROR
-                    // In case of execution without errors all information about test execution we take from
-                    // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
-                    this.endTime = LocalDateTime.now()
-                })
-            }.also { testExecutions ->
-                if (testExecutions.isNotEmpty()) {
-                    log.info("Test executions with ids ${testExecutions.map { it.id }} were failed with internal error")
-                }
+    /**
+     * @param executionId the ID of an execution, for which corresponding test executions should be marked as failed
+     */
+    @Transactional
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long) {
+        val testExecutionList = testExecutionRepository.findByExecutionId(executionId)
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
+
+    private fun List<TestExecution>.doMarkTestExecutionOfAgentsAsFailed() = this
+        .map { testExecution ->
+            testExecution.apply {
+                this.status = TestResultStatus.INTERNAL_ERROR
+                // In case of execution without errors all information about test execution we take from
+                // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
+                this.endTime = LocalDateTime.now()
             }
         }
-    }
+        .let { testExecutionRepository.saveAll(it) }
+        .also {
+            log.info("Test executions with ids ${this.map { it.requiredId() }} were failed with internal error")
+        }
 
     private fun Long?.orZeroIfNotApplicable() = this?.takeUnless { CountWarnings.isNotApplicable(it.toInt()) } ?: 0
 

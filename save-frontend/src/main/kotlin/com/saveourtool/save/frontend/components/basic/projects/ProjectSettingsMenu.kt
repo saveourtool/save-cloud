@@ -3,15 +3,16 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
@@ -24,6 +25,12 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.router.useNavigate
+import web.html.HTMLInputElement
+import web.html.InputType
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * SETTINGS tab in ProjectView
@@ -37,7 +44,7 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Current project settings
      */
-    var project: Project
+    var project: ProjectDto
 
     /**
      * Information about current user
@@ -50,25 +57,32 @@ external interface ProjectSettingsMenuProps : Props {
     var selfRole: Role
 
     /**
-     * Callback to delete project
+     * Callback to update project state in ProjectView after update request's response is received.
      */
-    var deleteProjectCallback: () -> Unit
-
-    /**
-     * Callback to update project settings
-     */
-    var updateProjectSettings: (Project) -> Unit
+    var onProjectUpdate: (ProjectDto) -> Unit
 
     /**
      * Callback to show error message
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (Response, String) -> Unit
+}
 
-    /**
-     * Callback to show notification message
-     */
-    var updateNotificationMessage: (String, String) -> Unit
+/**
+ * Makes a call to change project status
+ *
+ * @param status - the status that will be assigned to the project [project]
+ * @param projectPath - the path [organizationName/projectName] for response
+ * @return lazy response
+ */
+fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }
 
 @Suppress(
@@ -82,17 +96,29 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
-
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
             projectRef.current = props.project
         }
     }
+    val navigate = useNavigate()
 
-    val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val projectPath = props.project.let { "${it.organizationName}/${it.name}" }
 
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
+    val updateProject = useDeferredRequest {
+        post(
+            url = "$apiUrl/projects/update",
+            headers = jsonHeaders,
+            body = Json.encodeToString(draftProject),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
+        ).let {
+            if (it.ok) {
+                props.onProjectUpdate(draftProject)
+            }
+        }
+    }
 
     div {
         className = ClassName("row justify-content-center mb-2")
@@ -107,10 +133,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 selfUserInfo = props.currentUserInfo
                 groupPath = projectPath
                 groupType = "project"
-                this.wasConfirmationModalShown = wasConfirmationModalShown
-                updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.projects }
-                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -154,9 +177,9 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = draftProject.public
+                                defaultChecked = draftProject.isPublic
                                 name = "projectVisibility"
-                                type = react.dom.html.InputType.radio
+                                type = InputType.radio
                                 id = "isProjectPublicSwitch"
                                 value = "public"
                             }
@@ -170,9 +193,9 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("form-check-inline")
                             input {
                                 className = ClassName("form-check-input")
-                                defaultChecked = !draftProject.public
+                                defaultChecked = !draftProject.isPublic
                                 name = "projectVisibility"
-                                type = react.dom.html.InputType.radio
+                                type = InputType.radio
                                 id = "isProjectPrivateSwitch"
                                 value = "private"
                             }
@@ -183,7 +206,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             }
                         }
                         onChange = {
-                            setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
+                            setDraftProject(draftProject.copy(isPublic = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }
@@ -226,21 +249,44 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             type = ButtonType.button
                             className = ClassName("btn btn-sm btn-primary")
                             onClick = {
-                                props.updateProjectSettings(draftProject)
+                                updateProject()
                             }
                             +"Save changes"
                         }
                     }
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-danger")
-                            disabled = !props.selfRole.hasDeletePermission()
-                            onClick = {
-                                props.deleteProjectCallback()
+                        actionButton {
+                            title = "WARNING: About to delete this project..."
+                            errorTitle = "You cannot delete the project ${props.project.name}"
+                            message = "Are you sure you want to delete the project $projectPath?"
+                            clickMessage = "Also ban this project"
+                            onActionSuccess = { _ ->
+                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                             }
-                            +"Delete project"
+                            buttonStyleBuilder = { childrenBuilder ->
+                                with(childrenBuilder) {
+                                    +"Delete ${props.project.name}"
+                                }
+                            }
+                            classes = "btn btn-sm btn-danger"
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                val actionName = if (isClickMode) "ban" else "delete"
+                                with(childrenBuilder) {
+                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
+                                        action()
+                                        closeWindow()
+                                    }
+                                    buttonBuilder("Cancel") {
+                                        closeWindow()
+                                    }
+                                }
+                            }
+                            conditionClick = props.currentUserInfo.isSuperAdmin()
+                            sendRequest = { isBanned ->
+                                val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                responseChangeProjectStatus(projectPath, newStatus)
+                            }
                         }
                     }
                 }

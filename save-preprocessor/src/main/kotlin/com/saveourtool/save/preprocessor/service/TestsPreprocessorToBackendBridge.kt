@@ -1,13 +1,19 @@
 package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.spring.utils.applyAll
+import com.saveourtool.save.storage.request.UploadRequest
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestsSourceSnapshotDto
+import com.saveourtool.save.test.TestsSourceVersionDto
 import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.*
+
+import org.jetbrains.annotations.NonBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.core.io.InputStreamResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -16,87 +22,98 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.Instant
+
+typealias TestsSourceSnapshotUploadRequest = UploadRequest<TestsSourceSnapshotDto>
 
 /**
- * A bridge from preprocesor to backend (rest api wrapper)
+ * A bridge from preprocessor to backend (rest api wrapper)
  */
 @Service
 class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
-    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backend)
-        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .applyAll(customizers)
         .build()
+    private val uploadWebClient = WebClient.create()
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @param creationTime
+     * @param snapshotDto
      * @param resourceWithContent
-     * @return empty response
+     * @return updated [snapshotDto]
      */
+    @NonBlocking
     fun saveTestsSuiteSourceSnapshot(
-        testSuitesSource: TestSuitesSourceDto,
-        version: String,
-        creationTime: Instant,
+        snapshotDto: TestsSourceSnapshotDto,
         resourceWithContent: Resource,
-    ): Mono<Unit> = webClientBackend.post()
-        .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
-            testSuitesSource.organizationName, testSuitesSource.name,
-            version, creationTime.toEpochMilli())
-        .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(BodyInserters.fromMultipartData("content", resourceWithContent))
+    ): Mono<TestsSourceSnapshotDto> = webClientBackend.post()
+        .uri("/test-suites-sources/generate-url-to-upload-snapshot")
+        .bodyValue(snapshotDto)
+        .header(CONTENT_LENGTH_CUSTOM, resourceWithContent.contentLength().toString())
+        .accept(MediaType.APPLICATION_JSON)
         .retrieve()
-        .bodyToMono()
+        .bodyToMono<TestsSourceSnapshotUploadRequest>()
+        .flatMap { uploadRequest ->
+            uploadWebClient.put()
+                .uri(uploadRequest.url.toURI())
+                .headers { it.putAll(uploadRequest.headers) }
+                // a workaround to avoid overriding Content-Type by Spring which uses resource extension to resolve it
+                .body(BodyInserters.fromResource(InputStreamResource(resourceWithContent.inputStream)))
+                .retrieve()
+                .blockingToBodilessEntity()
+                .onErrorResume { ex ->
+                    webClientBackend.delete()
+                        .uri("/test-suites-sources/delete-snapshot?snapshotId={id}", uploadRequest.key.requiredId())
+                        .retrieve()
+                        .toBodilessEntity()
+                        .then(Mono.error(ex))
+                }
+                .thenReturn(uploadRequest.key)
+        }
 
     /**
-     * @param testSuitesSource
-     * @param version
-     * @return true if backend knows [version], otherwise -- false
+     * @param sourceId
+     * @param commitId
+     * @return [TestsSourceSnapshotDto] found by provided values
      */
-    fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
-            webClientBackend.get()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono()
+    @NonBlocking
+    fun findTestsSourceSnapshot(sourceId: Long, commitId: String): Mono<TestsSourceSnapshotDto> = webClientBackend.get()
+        .uri("/test-suites-sources/find-snapshot?sourceId={sourceId}&commitId={commitId}", sourceId, commitId)
+        .retrieve()
+        .blockingBodyToMono()
+
+    /**
+     * @param testsSourceVersionDto the version to save.
+     * @return `true` if the [version][testsSourceVersionDto] was saved, `false`
+     *   if the version with the same [name][TestsSourceVersionDto.name] and
+     *   numeric [snapshot id][TestsSourceVersionDto.snapshotId] already exists.
+     */
+    @NonBlocking
+    fun saveTestsSourceVersion(testsSourceVersionDto: TestsSourceVersionDto): Mono<Boolean> = webClientBackend
+        .post()
+        .uri("/test-suites-sources/save-version")
+        .bodyValue(testsSourceVersionDto)
+        .retrieve()
+        .blockingBodyToMono()
 
     /**
      * @param testSuiteDto
      * @return saved [TestSuite]
      */
+    @NonBlocking
     fun saveTestSuite(testSuiteDto: TestSuiteDto): Mono<TestSuite> = webClientBackend.post()
         .uri("/test-suites/save")
         .bodyValue(testSuiteDto)
         .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param testSuitesSource
-     * @param version
-     * @return empty response
-     */
-    fun deleteTestSuitesAndSourceSnapshot(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Unit> =
-            webClientBackend.delete()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-test-suites-and-snapshot?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono<Boolean>()
-                .map { isDeleted ->
-                    with(testSuitesSource) {
-                        log.debug {
-                            "Result of delete operation for $name in $organizationName is $isDeleted"
-                        }
-                    }
-                }
+        .blockingBodyToMono()
 
     /**
      * @param tests
      * @return empty response
      */
+    @NonBlocking
     fun saveTests(tests: Flux<TestDto>): Flux<EmptyResponse> = tests
         .buffer(TESTS_BUFFER_SIZE)
         .doOnNext {
@@ -107,7 +124,7 @@ class TestsPreprocessorToBackendBridge(
                 .uri("/initializeTests")
                 .bodyValue(chunk)
                 .retrieve()
-                .toBodilessEntity()
+                .blockingToBodilessEntity()
         }
 
     companion object {

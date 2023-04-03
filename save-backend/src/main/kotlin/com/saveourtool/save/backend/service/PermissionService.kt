@@ -63,6 +63,6 @@ class PermissionService(
                                     projectName: String
     ): Mono<Tuple2<User, Project>> = Mono.zip(
         userRepository.findByName(userName).toMono(),
-        projectService.findByNameAndOrganizationName(projectName, organizationName).toMono(),
+        projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono(),
     )
 }

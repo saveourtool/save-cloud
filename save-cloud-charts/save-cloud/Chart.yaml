@@ -13,7 +13,7 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: prometheus
-    version: ^15.8.2
+    version: ^19.0.0
     repository: https://prometheus-community.github.io/helm-charts
     condition: prometheus.enabled
   - name: promtail
@@ -21,6 +21,10 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
   - name: loki
-    version: ^2.0.0
+    version: ^4.0.0
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
+  - name: neo4j
+    version: ^5.0.0
+    repository: https://helm.neo4j.com/neo4j
+    condition: neo4j.enabled

@@ -2,8 +2,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.ComponentWithScope
 
-import react.Props
-import react.State
+import react.*
 
 import kotlinx.browser.document
 

@@ -1,11 +1,13 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.spring.entity.BaseEntity
+import java.net.URL
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -19,7 +21,6 @@ import javax.persistence.ManyToOne
  * @property startTime
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
- * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
@@ -33,7 +34,7 @@ import javax.persistence.ManyToOne
  * @property expectedChecks
  * @property unexpectedChecks
  * @property sdk
- * @property additionalFiles
+ * @property saveCliVersion
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -54,8 +55,6 @@ class Execution(
 
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
-
-    var testSuiteIds: String?,
 
     var batchSize: Int?,
 
@@ -84,7 +83,7 @@ class Execution(
 
     var sdk: String,
 
-    var additionalFiles: String,
+    var saveCliVersion: String,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -121,31 +120,24 @@ class Execution(
         unexpectedChecks = unexpectedChecks,
         testSuiteSourceName = testSuiteSourceName,
         score = score,
-        contestName = null,
     )
 
     /**
-     * Parse and get testSuiteIds as List<Long>
-     *
-     * @return list of TestSuite IDs
+     * @param saveAgentUrl an url to download save-agent
+     * @return [RunExecutionRequest] created from current entity
      */
-    fun parseAndGetTestSuiteIds(): List<Long>? = parseAndGetTestSuiteIds(this.testSuiteIds)
-
-    /**
-     * Format and set provided list of TestSuite IDs
-     *
-     * @param testSuiteIds list of TestSuite IDs
-     */
-    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = formatTestSuiteIds(testSuiteIds)
+    fun toRunRequest(
+        saveAgentUrl: URL,
+    ): RunExecutionRequest {
+        require(status == ExecutionStatus.PENDING) {
+            "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
+        }
+        return RunExecutionRequest(
+            executionId = requiredId(),
+            sdk = sdk.toSdk(),
+            saveAgentUrl = saveAgentUrl.toString(),
+        )
     }
-
-    /**
-     * Parse and get additionalFiles as List<String>
-     *
-     * @return list of keys [FileKey] of additional files
-     */
-    fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
 
     companion object {
         /**
@@ -159,7 +151,6 @@ class Execution(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.RUNNING,
-            testSuiteIds = null,
             batchSize = 20,
             type = TestingType.PUBLIC_TESTS,
             version = null,
@@ -173,31 +164,12 @@ class Execution(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
-            additionalFiles = "",
+            saveCliVersion = "N/A",
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,
             testSuiteSourceName = "",
             score = null,
         )
-
-        /**
-         * Parse and get testSuiteIds as List<Long>
-         *
-         * @param testSuiteIds
-         * @return list of TestSuite IDs
-         */
-        fun parseAndGetTestSuiteIds(testSuiteIds: String?): List<Long>? = testSuiteIds
-            ?.split(DATABASE_DELIMITER)
-            ?.map { it.trim().toLong() }
-
-        /**
-         * @param testSuiteIds list of TestSuite IDs
-         * @return formatted string
-         */
-        fun formatTestSuiteIds(testSuiteIds: List<Long>): String = testSuiteIds
-            .distinct()
-            .sorted()
-            .joinToString(DATABASE_DELIMITER)
     }
 }

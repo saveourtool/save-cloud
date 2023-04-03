@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 

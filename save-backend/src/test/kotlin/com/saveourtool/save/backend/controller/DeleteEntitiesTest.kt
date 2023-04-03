@@ -8,7 +8,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.postJsonAndAssert
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
@@ -38,7 +38,7 @@ import java.util.Optional
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient(timeout = "60000")
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
 )
 class DeleteEntitiesTest {
@@ -65,8 +65,14 @@ class DeleteEntitiesTest {
         whenever(projectRepository.findByNameAndOrganizationName(any(), any())).thenReturn(
             Project.stub(99).apply { id = 1 }
         )
+        whenever(projectRepository.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).thenReturn(
+            Project.stub(99).apply { id = 1 }
+        )
         whenever(organizationRepository.findByName(any())).thenReturn(
-            Organization("stub", OrganizationStatus.CREATED, null, null, null)
+            Organization.stub(null)
+        )
+        whenever(organizationRepository.findByNameAndStatusIn(any(), any())).thenReturn(
+            Organization.stub(null).copy(status = OrganizationStatus.CREATED)
         )
         with(projectPermissionEvaluator) {
             whenever(any<Mono<Project?>>().filterByPermission(any(), any(), any())).thenCallRealMethod()

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="lnk-execution-agent-insert" author="nulls" context="dev">
+        <insert dbms="mysql" tableName="lnk_execution_agent">
+            <column name="id" value="1" />
+            <column name="execution_id" value="1" />
+            <column name="agent_id" value="1" />
+        </insert>
+        <insert dbms="mysql" tableName="lnk_execution_agent">
+            <column name="id" value="2" />
+            <column name="execution_id" value="1" />
+            <column name="agent_id" value="2" />
+        </insert>
+        <insert dbms="mysql" tableName="lnk_execution_agent">
+            <column name="id" value="3" />
+            <column name="execution_id" value="3" />
+            <column name="agent_id" value="3" />
+        </insert>
+        <insert dbms="mysql" tableName="lnk_execution_agent">
+            <column name="id" value="4" />
+            <column name="execution_id" value="4" />
+            <column name="agent_id" value="4" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

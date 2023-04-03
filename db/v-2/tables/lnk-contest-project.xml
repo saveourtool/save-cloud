@@ -50,4 +50,36 @@
     <modifyDataType tableName="lnk_contest_project" columnName="best_score" newDataType="double"/>
   </changeSet>
 
+  <changeSet id="remove-and-add-fk-lnk-contest-project" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_contest"/>
+    <addForeignKeyConstraint baseColumnNames="contest_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_contest"
+      referencedColumnNames="id"
+      referencedTableName="contest"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_project"/>
+    <addForeignKeyConstraint baseColumnNames="project_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_project"
+      referencedColumnNames="id"
+      referencedTableName="project"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_project" constraintName="fk_lnk_contest_project_execution"/>
+    <addForeignKeyConstraint baseColumnNames="best_execution_id"
+      baseTableName="lnk_contest_project"
+      constraintName="fk_lnk_contest_project_execution"
+      referencedColumnNames="id"
+      referencedTableName="execution"
+      onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="drop-test-suite-ids" author="kgevorkyan">
+    <dropColumn tableName="lnk_contest_project">
+      <column name="best_score"/>
+    </dropColumn>
+  </changeSet>
+
 </databaseChangeLog>

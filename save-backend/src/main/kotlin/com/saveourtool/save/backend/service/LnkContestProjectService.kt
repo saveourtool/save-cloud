@@ -57,7 +57,7 @@ class LnkContestProjectService(
      * @return best score of [project] under [Contest] with name [contestName]
      */
     fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
-            lnkContestProjectRepository.findByProjectAndContestName(project, contestName)?.bestScore
+            lnkContestProjectRepository.findByProjectAndContestName(project, contestName)?.bestExecution?.score
 
     /**
      * @param project a [Project]
@@ -68,7 +68,7 @@ class LnkContestProjectService(
     fun saveLnkContestProject(project: Project, contest: Contest): Boolean = if (lnkContestProjectRepository.findByContestAndProject(contest, project).isPresent) {
         false
     } else {
-        lnkContestProjectRepository.save(LnkContestProject(project, contest, null, 0.0))
+        lnkContestProjectRepository.save(LnkContestProject(project, contest, null))
         true
     }
 
@@ -87,7 +87,7 @@ class LnkContestProjectService(
             .orElseThrow {
                 IllegalStateException("Project ${project.shortToString()} is not bound to contest name=${contest.name}")
             }
-        val oldBestScore = lnkContestProject.bestScore
+        val oldBestScore = lnkContestProject.bestExecution?.score
         if (oldBestScore == null || oldBestScore <= newScore) {
             logger.debug {
                 "For project ${project.shortToString()} updating best_score from execution " +
@@ -95,7 +95,6 @@ class LnkContestProjectService(
                         "[id=${newExecution.id},score=$newScore]"
             }
             lnkContestProject.bestExecution = newExecution
-            lnkContestProject.bestScore = newExecution.score
             lnkContestProjectRepository.save(lnkContestProject)
 
             updateProjectContestRating(project)
@@ -104,7 +103,7 @@ class LnkContestProjectService(
 
     private fun updateProjectContestRating(project: Project) {
         val projectContestRating = lnkContestProjectRepository.findByProject(project).mapNotNull {
-            it.bestScore
+            it.bestExecution?.score
         }.sum()
 
         projectService.updateProject(project.apply {

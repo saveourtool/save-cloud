@@ -33,10 +33,25 @@ on:
         default: true
         description: Build new image of save-orchestrator
         required: false
+      sandbox:
+        type: boolean
+        default: true
+        description: Build new image of save-sandbox
+        required: false
       preprocessor:
         type: boolean
         default: true
         description: Build new image of save-preprocessor
+        required: false
+      demo:
+        type: boolean
+        default: true
+        description: Build new image of save-demo
+        required: false
+      demo-cpg:
+        type: boolean
+        default: true
+        description: Build new image of save-demo-cpg
         required: false
 
 jobs:
@@ -57,7 +72,7 @@ jobs:
         name: Prepare to build
         working-directory: save-cloud
         run: |
-          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage :save-demo:bootBuildImage :save-demo-cpg:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
@@ -69,9 +84,12 @@ jobs:
           if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
           if ${{ inputs.frontend }} == 'true'; then GRADLE_TASKS+=":save-frontend:buildImage "; fi
           if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
+          if ${{ inputs.sandbox }} == 'true'; then GRADLE_TASKS+=":save-sandbox:bootBuildImage "; fi
           if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
+          if ${{ inputs.demo }} == 'true'; then GRADLE_TASKS+=":save-demo:bootBuildImage "; fi
+          if ${{ inputs.demo-cpg }} == 'true'; then GRADLE_TASKS+=":save-demo-cpg:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
-      - name: checkout save-core
+      - name: checkout save-cli
         uses: actions/checkout@v3
         with:
           repository: saveourtool/save-cli
@@ -91,8 +109,8 @@ jobs:
         run: |
           kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-core =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo SAVE_CORE_VERSION=$sv >> $GITHUB_ENV
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo SAVE_CLI_VERSION=$sv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
         with:
@@ -101,23 +119,20 @@ jobs:
       - working-directory: save
         run: git status && git diff
       - uses: gradle/gradle-build-action@v2
-        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
+        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
         with:
           gradle-version: wrapper
           build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
-            -Porg.gradle.caching=true
+            --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            -Preckon.stage=snapshot
       - name: Set environment variable with save-cli version
-        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
+        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
         run: |
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
-      - name: Set SAVE_CLI_VERSION if it's not set yet
-        run: |
-          # If using release version of save-cli, this variable should be empty at this point
-          if [ -z "$SAVE_CLI_VERSION" ]; then echo SAVE_CLI_VERSION="$SAVE_CORE_VERSION" >> $GITHUB_ENV; fi
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
@@ -125,10 +140,10 @@ jobs:
           arguments: |
             ${{ env.GRADLE_TASKS }}
             --stacktrace
-            -Porg.gradle.caching=true
+            --build-cache
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
+            -PsaveCliPath=${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
@@ -137,6 +152,12 @@ jobs:
         with:
           name: save-agent-distribution
           path: 'save-cloud/save-agent/build/libs/save-agent-*-distribution.jar'
+          retention-days: 5
+      - name: Upload save-demo-agent-distribution.jar
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-demo-agent-distribution
+          path: 'save-cloud/save-demo-agent/build/libs/save-demo-agent-*-distribution.jar'
           retention-days: 5
       - name: Upload gradle reports
         if: ${{ always() }}

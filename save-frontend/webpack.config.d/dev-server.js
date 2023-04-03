@@ -4,13 +4,32 @@ config.devServer = Object.assign(
     {
       proxy: [
         {
-          context: ["/api/**", "**.ico", "**.png"],
+          context: ["/api/**"],
           target: 'http://localhost:5800',
           logLevel: 'debug',
           onProxyReq: function (proxyReq, req, res) {
             proxyReq.setHeader("Authorization", "Basic YWRtaW46");
             proxyReq.setHeader("X-Authorization-Source", "basic");
           }
+        },
+        {
+          context: ["/sandbox/api/**"],
+          target: 'http://localhost:5400',
+          logLevel: 'debug',
+          onProxyReq: function (proxyReq, req, res) {
+            proxyReq.setHeader("Authorization", "Basic YWRtaW46");
+            proxyReq.setHeader("X-Authorization-Source", "basic");
+          }
+        },
+        {
+          context: ["/demo/api/**"],
+          target: 'http://localhost:5421',
+          logLevel: 'debug',
+        },
+        {
+          context: ["/cpg/api/**"],
+          target: 'http://localhost:5500',
+          logLevel: 'debug',
         },
         {
           bypass: (req, res) => {

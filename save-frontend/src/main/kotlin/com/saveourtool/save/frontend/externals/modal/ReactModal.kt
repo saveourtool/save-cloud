@@ -6,13 +6,13 @@
 
 package com.saveourtool.save.frontend.externals.modal
 
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
 import react.Component
 import react.PropsWithChildren
 import react.ReactElement
 import react.State
+import web.dom.Element
+import web.html.HTMLDivElement
+import web.html.HTMLElement
 
 /**
  * [Props] of modal component

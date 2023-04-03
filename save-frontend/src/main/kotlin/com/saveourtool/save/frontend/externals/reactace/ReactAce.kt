@@ -1,4 +1,4 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 @file:JsModule("react-ace")
 @file:JsNonModule
 
@@ -45,6 +45,7 @@ external interface AceEditorProps : Props {
     var defaultValue: String
     var enableSnippets: Boolean
     var setOptions: dynamic
+    var markers: Array<AceMarker>
 
     @Suppress("TYPE_ALIAS")
     var onChange: (value: String, event: dynamic) -> Unit
@@ -64,5 +65,18 @@ external interface AceEditorProps : Props {
     // keyboardHandler?: string;
     // commands?: ICommand[];
     // annotations?: Ace.Annotation[];
-    // markers?: IMarker[];
+}
+
+/**
+ * Line markers for [reactAce]
+ */
+@JsName("IMarker")
+external interface AceMarker {
+    var startRow: Int
+    var startCol: Int
+    var endRow: Int
+    var endCol: Int
+    var className: String
+    var type: dynamic
+    var inFront: Boolean
 }

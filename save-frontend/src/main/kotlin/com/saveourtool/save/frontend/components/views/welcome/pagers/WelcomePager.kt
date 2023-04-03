@@ -4,14 +4,15 @@ import com.saveourtool.save.frontend.externals.animations.Animation
 import react.ChildrenBuilder
 
 val allWelcomePagers = listOf(
-    listOf(HighLevelSave),
+    // listOf(HighLevelSave),
     listOf(SloganAboutCi),
     listOf(GeneralInfoFirstPicture, GeneralInfoSecondPicture, GeneralInfoThirdPicture, GeneralInfoFourthPicture),
     listOf(SloganAboutBenchmarks),
     listOf(AwesomeBenchmarks),
     listOf(SloganAboutTests),
+    listOf(TestsSelector),
     listOf(SloganAboutContests),
-    listOf(BobPager)
+    listOf(Contests)
 )
 
 /**

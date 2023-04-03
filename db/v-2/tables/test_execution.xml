@@ -40,4 +40,22 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="remove-and-add-fk-test-execution" author="frolov">
+        <dropForeignKeyConstraint baseTableName="test_execution" constraintName="fk_test_execution_execution"/>
+        <addForeignKeyConstraint baseColumnNames="execution_id"
+          baseTableName="test_execution"
+          constraintName="fk_test_execution_execution"
+          referencedColumnNames="id"
+          referencedTableName="execution"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="test_execution" constraintName="fk_test_execution_test"/>
+        <addForeignKeyConstraint baseColumnNames="test_id"
+          baseTableName="test_execution"
+          constraintName="fk_test_execution_test"
+          referencedColumnNames="id"
+          referencedTableName="test"
+          onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

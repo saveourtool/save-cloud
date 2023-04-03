@@ -8,24 +8,20 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.manageTestSuitePermissionsComponent
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
+import com.saveourtool.save.test.*
 import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.td
-import react.table.columns
 
-import kotlinx.serialization.json.*
+import kotlinx.browser.window
 
 /**
  * TESTS tab in OrganizationView
@@ -47,21 +43,26 @@ external interface OrganizationTestsMenuProps : Props {
     var selfRole: Role
 }
 
+private suspend fun WithRequestStatusContext.getTestSuitesSourcesWithId(
+    organizationName: String,
+) = get(
+    url = "$apiUrl/test-suites-sources/$organizationName/list",
+    headers = jsonHeaders,
+    loadingHandler = ::loadingHandler,
+)
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
+    useTooltip()
     val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
+    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
-        val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
+        val response = getTestSuitesSourcesWithId(props.organizationName)
         if (response.ok) {
-            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
-            setTestSuitesSourcesWithId(emptyList())
+            setTestSuitesSources(emptyList())
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
@@ -72,37 +73,37 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     )
 
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
-    val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
-    val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
+    val (testsSourceVersionInfoList, setTestsSourceVersionInfoList) = useState(emptyList<TestsSourceVersionInfo>())
+    val fetchTestsSourcesVersionInfoList = useDeferredRequest {
         selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
-                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
+                url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-version",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
             if (response.ok) {
                 response.unsafeMap {
-                    it.decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
+                    it.decodeFromJsonString<TestsSourceVersionInfoList>()
                 }.let {
-                    setTestSuitesSourceSnapshotKeys(it)
+                    setTestsSourceVersionInfoList(it)
                 }
             } else {
-                setTestSuitesSourceSnapshotKeys(emptyList())
+                setTestsSourceVersionInfoList(emptyList())
             }
         }
     }
 
-    val (testSuitesSourceSnapshotKeyToDelete, setTestSuitesSourceSnapshotKeyToDelete) = useState<TestSuitesSourceSnapshotKey>()
+    val (testsSourceVersionInfoToDelete, setTestsSourceVersionInfoToDelete) = useState<TestsSourceVersionInfo>()
     val deleteTestSuitesSourcesSnapshotKey = useDeferredRequest {
-        testSuitesSourceSnapshotKeyToDelete?.let { key ->
+        testsSourceVersionInfoToDelete?.let { key ->
             delete(
-                url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
+                url = with(key) {
+                    "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(sourceName)}/delete-version?version=$version"
+                },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-                // TODO: body is forbidden in delete in some implementations, probably we should not support it
-                body = undefined
             )
-            setTestSuitesSourceSnapshotKeyToDelete(null)
+            setTestsSourceVersionInfoToDelete(null)
         }
     }
     val selectHandler: (TestSuitesSourceDto) -> Unit = {
@@ -110,215 +111,78 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setSelectedTestSuitesSource(null)
         } else {
             setSelectedTestSuitesSource(it)
-            fetchTestSuitesSourcesSnapshotKeys()
+            fetchTestsSourcesVersionInfoList()
         }
     }
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
-    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
-        setTestSuiteSourceWithIdToUpsert(it)
+    val (testSuiteSourceToUpsert, setTestSuiteSourceToUpsert) = useState<TestSuitesSourceDto>()
+    val editHandler: (TestSuitesSourceDto) -> Unit = {
+        setTestSuiteSourceToUpsert(it)
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
-    val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
-        setTestSuitesSourceSnapshotKeyToDelete(it)
-        deleteTestSuitesSourcesSnapshotKey()
-        setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+    val deleteHandler: (TestsSourceVersionInfo) -> Unit = {
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.sourceName}?")) {
+            setTestsSourceVersionInfoToDelete(it)
+            deleteTestSuitesSourcesSnapshotKey()
+            setTestsSourceVersionInfoList(testsSourceVersionInfoList.filterNot(it::equals))
+        }
     }
-    val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
-
+    val refreshTestSuitesSources = useDeferredRequest {
+        val response = getTestSuitesSourcesWithId(props.organizationName)
+        if (response.ok) {
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
+        } else {
+            setTestSuitesSources(emptyList())
+        }
+    }
+    val refreshHandler: () -> Unit = {
+        refreshTestSuitesSources()
+        fetchTestsSourcesVersionInfoList()
+    }
+    val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
+    manageTestSuitePermissionsComponent {
+        organizationName = props.organizationName
+        isModalOpen = managePermissionsMode != null
+        closeModal = { setManagePermissionsMode(null) }
+        mode = managePermissionsMode
+    }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
-        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        testSuitesSource = testSuiteSourceToUpsert,
         organizationName = props.organizationName,
     ) {
         setIsSourceCreated { !it }
     }
+
     div {
         className = ClassName("d-flex justify-content-center mb-3")
-        button {
-            type = ButtonType.button
-            className = ClassName("btn btn-sm btn-primary")
-            disabled = !props.selfRole.hasWritePermission()
-            onClick = {
-                setTestSuiteSourceWithIdToUpsert(null)
-                testSuitesSourceUpsertWindowOpenness.openWindow()
-            }
-            +"+ Create test suites source"
+        buttonBuilder("+ Create test suites source", "primary", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2") {
+            testSuitesSourceUpsertWindowOpenness.openWindow()
+        }
+        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2 ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.TRANSFER)
+        }
+        buttonBuilder("Publish test suites", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.PUBLISH)
         }
     }
+
     div {
-        className = ClassName("mb-2")
-        testSuitesSourcesTable {
-            getData = { _, _ ->
-                testSuitesSourcesWithId.toTypedArray()
-            }
-            content = testSuitesSourcesWithId
-        }
-    }
-
-    selectedTestSuitesSource?.let {
-        div {
-            className = ClassName("mb-2")
-            testSuitesSourceSnapshotKeysTable {
-                getData = { _, _ ->
-                    testSuitesSourceSnapshotKeys.toTypedArray()
-                }
-                content = testSuitesSourceSnapshotKeys
-            }
+        className = ClassName("mb-2 d-flex justify-content-center")
+        when (selectedTestSuitesSource) {
+            null -> showTestSuitesSources(testSuitesSources, selectHandler, fetchHandler, editHandler, refreshHandler)
+            else -> showTestsSourceVersionInfoList(
+                selectedTestSuitesSource,
+                testsSourceVersionInfoList,
+                selectHandler,
+                editHandler,
+                fetchHandler,
+                deleteHandler,
+                refreshHandler,
+            )
         }
     }
 }
-
-/**
- * Extensions for [TableProps] which adds content field (where content of table is taken from external variable)
- */
-external interface TablePropsWithContent<D : Any> : TableProps<D> {
-    /**
-     * Signal to update table
-     */
-    var content: List<D>
-}
-
-@Suppress(
-    "MAGIC_NUMBER",
-    "TYPE_ALIAS",
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "LAMBDA_IS_NOT_LAST_PARAMETER",
-)
-private fun prepareTestSuitesSourcesTable(
-    selectHandler: (TestSuitesSourceDto) -> Unit,
-    fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDtoWithId>> = tableComponent(
-    columns = {
-        columns {
-            column(id = "organizationName", header = "Organization", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +cellProps.value.organizationName
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +cellProps.value.name
-                    }
-                }
-            }
-            column(id = "description", header = "Description", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +(cellProps.value.description ?: "Description is not provided")
-                    }
-                }
-            }
-            column(id = "git-url", header = "Git location", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        a {
-                            // a little hack -- GitHub redirect from master to main if it's required
-                            href = "${cellProps.value.gitDto.url}/tree/master/${cellProps.value.testRootPath}"
-                            +"source"
-                        }
-                    }
-                }
-            }
-            column(id = "fetch", header = "Fetch new version", { this.content }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                fetchHandler(cellProps.value)
-                            }
-                            +"fetch"
-                        }
-                    }
-                }
-            }
-            column(id = "edit", header = "Edit", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                editHandler(cellProps.value)
-                            }
-                            +"edit"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)
-
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private fun prepareTestSuitesSourceSnapshotKeysTable(
-    deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit
-): FC<TablePropsWithContent<TestSuitesSourceSnapshotKey>> = tableComponent(
-    columns = {
-        columns {
-            column(id = "version", header = "Version", { version }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value
-                    }
-                }
-            }
-            column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value.toString()
-                    }
-                }
-            }
-            column(id = "delete", header = "Delete version", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                deleteHandler(cellProps.value)
-                            }
-                            +"delete"
-                        }
-                    }
-                }
-            }
-        }
-    },
-    initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.content)
-    },
-)

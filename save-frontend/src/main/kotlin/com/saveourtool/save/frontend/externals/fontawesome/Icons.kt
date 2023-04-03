@@ -84,6 +84,10 @@ external val faSearch: FontAwesomeIconModule
 @JsNonModule
 external val faRedo: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faSync")
+@JsNonModule
+external val faReload: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faCopyright")
 @JsNonModule
 external val faCopyright: FontAwesomeIconModule
@@ -108,6 +112,10 @@ external val faCheckCircle: FontAwesomeIconModule
 @JsNonModule
 external val faPlus: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faInfoCircle")
+@JsNonModule
+external val faInfoCircle: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faAlignJustify")
 @JsNonModule
 external val faAlignJustify: FontAwesomeIconModule
@@ -115,6 +123,14 @@ external val faAlignJustify: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faArrowRight")
 @JsNonModule
 external val faArrowRight: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowLeft")
+@JsNonModule
+external val faArrowLeft: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowDown")
+@JsNonModule
+external val faArrowDown: FontAwesomeIconModule
 
 @JsModule("@fortawesome/free-solid-svg-icons/faLightbulb")
 @JsNonModule
@@ -175,3 +191,23 @@ external val faTag: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faCodeBranch")
 @JsNonModule
 external val faCodeBranch: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faCaretSquareRight")
+@JsNonModule
+external val faCaretSquareRight: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faSyncAlt")
+@JsNonModule
+external val faSyncAlt: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faPoo")
+@JsNonModule
+external val faPoo: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faDice")
+@JsNonModule
+external val faDice: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faBug")
+@JsNonModule
+external val faBug: FontAwesomeIconModule

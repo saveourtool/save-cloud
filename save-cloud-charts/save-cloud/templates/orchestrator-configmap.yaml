@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://backend/internal
+    orchestrator.backend-url=http://backend/internal
 
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
@@ -12,13 +12,12 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
-    orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
+    management.server.port={{ .Values.orchestrator.managementPort }}
+    orchestrator.agent-settings.heartbeat-url=http://{{ .Values.orchestrator.name }}/heartbeat
     orchestrator.agent-settings.debug=true
 
-    orchestrator.test-resources.tmp-path=/tmp/save/resources
-
     logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
+    logging.level.org.springframework=DEBUG
 
     {{ if .Values.orchestrator.applicationProperties }}
     {{- .Values.orchestrator.applicationProperties | nindent 4 }}

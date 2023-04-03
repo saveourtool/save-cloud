@@ -6,15 +6,19 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+
 import csstype.ClassName
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLSelectElement
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.html.HTMLButtonElement
+import web.html.HTMLSelectElement
 
 /**
  * Enum that stores types of confirmation windows for different situations.
@@ -28,7 +32,7 @@ enum class ConfirmationType {
 }
 
 /**
- * Function to create buttons for modals
+ * Function to create buttons for modals with text as content
  *
  * @param label text that will be displayed on button
  * @param style color-defining string
@@ -36,6 +40,7 @@ enum class ConfirmationType {
  * @param isOutline flag that defines either usual button or outlined will be displayed
  * @param isActive flag that defines whether button should be displayed as pressed or not
  * @param classes additional classes for button
+ * @param title title for tooltip
  * @param onClickFun button click handler
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
@@ -46,24 +51,36 @@ fun ChildrenBuilder.buttonBuilder(
     isOutline: Boolean = false,
     isActive: Boolean = false,
     classes: String = "",
+    title: String? = null,
     onClickFun: MouseEventHandler<HTMLButtonElement>,
 ) {
-    button {
-        val outline = if (isOutline) {
-            "outline-"
-        } else {
-            ""
-        }
-        val active = if (isActive) {
-            "active"
-        } else {
-            ""
-        }
-        className = ClassName("btn btn-$outline$style $active $classes")
-        disabled = isDisabled
-        onClick = onClickFun
-        +label
-    }
+    buttonBuilder({ +label }, style, isDisabled, isOutline, isActive, classes, title, onClickFun)
+}
+
+/**
+ * Function to create buttons for modals with icon as content
+ *
+ * @param icon icon that will be displayed on button
+ * @param style color-defining string
+ * @param isDisabled flag that might disable button
+ * @param isOutline flag that defines either usual button or outlined will be displayed
+ * @param isActive flag that defines whether button should be displayed as pressed or not
+ * @param classes additional classes for button
+ * @param title title for tooltip
+ * @param onClickFun button click handler
+ */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+fun ChildrenBuilder.buttonBuilder(
+    icon: FontAwesomeIconModule,
+    style: String? = "primary",
+    isDisabled: Boolean = false,
+    isOutline: Boolean = false,
+    isActive: Boolean = false,
+    classes: String = "",
+    title: String? = null,
+    onClickFun: MouseEventHandler<HTMLButtonElement>,
+) {
+    buttonBuilder({ fontAwesomeIcon(icon) }, style, isDisabled, isOutline, isActive, classes, title, onClickFun)
 }
 
 /**
@@ -93,5 +110,44 @@ fun ChildrenBuilder.selectorBuilder(
                 +currentOption
             }
         }
+    }
+}
+
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "LAMBDA_IS_NOT_LAST_PARAMETER")
+private fun ChildrenBuilder.buttonBuilder(
+    labelBuilder: ChildrenBuilder.() -> Unit,
+    style: String? = "primary",
+    isDisabled: Boolean = false,
+    isOutline: Boolean = false,
+    isActive: Boolean = false,
+    classes: String = "",
+    title: String? = null,
+    onClickFun: MouseEventHandler<HTMLButtonElement>,
+) {
+    button {
+        type = ButtonType.button
+        val builtClasses = buildString {
+            append("btn")
+            style?.let {
+                append(" btn-")
+                if (isOutline) {
+                    append("outline-")
+                }
+                append(it)
+                if (isActive) {
+                    append(" active")
+                }
+            }
+            append(" $classes")
+        }
+        className = ClassName(builtClasses)
+        disabled = isDisabled
+        onClick = onClickFun
+        title?.let {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
+            this.title = title
+        }
+        labelBuilder()
     }
 }

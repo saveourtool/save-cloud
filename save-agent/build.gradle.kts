@@ -1,18 +1,26 @@
-import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.pathToSaveCliVersion
-import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
 }
 
 kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = Versions.jdk
+            }
+        }
+    }
+
     // Create a target for the host platform.
-    val hostTarget = linuxX64 {
+    val linuxTarget = linuxX64 {
         binaries.executable {
             entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
@@ -28,37 +36,71 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        val linuxX64Main by getting {
+
+        commonMain {
+            kotlin {
+                srcDir(
+                    tasks.named("generateSaveCloudVersionFile").map {
+                        it.outputs.files.singleFile
+                    }
+                )
+            }
             dependencies {
+                implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
                 implementation(libs.save.plugins.fix)
                 implementation(libs.save.reporters)
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
-        val linuxX64Test by getting {
+        commonTest {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.ktor.client.mock)
             }
         }
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.apache)
+                implementation(libs.commons.compress)
+            }
+        }
+
+        val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation(libs.junit.jupiter.engine)
+            }
+        }
+
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.curl)
+                implementation(libs.kotlinx.coroutines.core.linuxx64)
+            }
+        }
+        val linuxX64Test by getting
     }
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
+
     val copyAgentDistribution by tasks.registering(Jar::class) {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
         from(linkTask.flatMap { it.outputFile })
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/linuxX64Main/resources/agent.toml"))
     }
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {
@@ -69,15 +111,15 @@ kotlin {
     // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
     if (false) {
         // this doesn't work for 1.4.31, maybe will be fixed later
-        hostTarget.binaries.getTest("DEBUG").apply {
-            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
+        linuxTarget.binaries.getTest("DEBUG").apply {
+            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${linuxTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
         val createCoverageReportTask by tasks.creating {
-            dependsOn("${hostTarget.name}Test")
+            dependsOn("${linuxTarget.name}Test")
             description = "Create coverage report"
 
             doLast {
-                val testDebugBinary = hostTarget.binaries.getTest("DEBUG").outputFile
+                val testDebugBinary = linuxTarget.binaries.getTest("DEBUG").outputFile
                 val llvmPath = "${System.getenv()["HOME"]}/.konan/dependencies/clang-llvm-8.0.0-linux-x86-64/bin"
                 exec {
                     commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
@@ -87,7 +129,7 @@ kotlin {
                 }
             }
         }
-        tasks.named("${hostTarget.name}Test") {
+        tasks.named("${linuxTarget.name}Test") {
             finalizedBy(createCoverageReportTask)
         }
     }
@@ -95,38 +137,6 @@ kotlin {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
-}
-configureSpotless()
-
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    inputs.file(pathToSaveCliVersion)
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        val saveCliVersion = readSaveCliVersion()
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
-
-            """.trimIndent()
-        )
-    }
-}
-val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
-    dependsOn(generateVersionFileTaskProvider)
 }
 
 /*

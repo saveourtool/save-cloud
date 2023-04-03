@@ -7,19 +7,17 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -28,16 +26,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.data.domain.PageRequest
-
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -116,7 +111,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
@@ -137,7 +132,7 @@ class LnkContestProjectController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched contests avaliable for project.")
+    @ApiResponse(responseCode = "200", description = "Successfully fetched contests available for project.")
     fun getAvailableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -217,11 +212,13 @@ class LnkContestProjectController(
             it.execution.toDto()
         }
 
-    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = Mono.justOrEmpty(contestService.findByName(contestName))
+    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = blockingToMono {
+        contestService.findByName(contestName)
+    }
         .switchIfEmptyToNotFound {
             "Could not find contest with name $contestName."
         }
-        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
+        .zipWith(projectService.findByNameAndOrganizationNameAndCreatedStatus(projectName, organizationName).toMono())
         .switchIfEmptyToNotFound {
             "Could not find project with name $organizationName/$projectName."
         }
@@ -258,11 +255,9 @@ class LnkContestProjectController(
             "No such project found or not enough permission to see the project",
             HttpStatus.FORBIDDEN,
         ),
-        Mono.justOrEmpty(contestService.findByName(contestName)),
+        blockingToMono { contestService.findByName(contestName) },
     )
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+        .switchIfEmptyToNotFound()
         .filter { (project, _) ->
             project.public
         }
@@ -296,12 +291,14 @@ class LnkContestProjectController(
     fun getBestResultsInUserProjects(
         @PathVariable contestName: String,
         authentication: Authentication,
-    ): Flux<ContestResult> = Mono.justOrEmpty(contestService.findByName(contestName))
+    ): Flux<ContestResult> = blockingToMono {
+        contestService.findByName(contestName)
+    }
         .switchIfEmptyToNotFound {
             "Contest with name $contestName was not found."
         }
         .map { contest ->
-            contest to lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
+            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
         }
         .flatMapMany { (contest, projectIds) ->
             blockingToFlux {

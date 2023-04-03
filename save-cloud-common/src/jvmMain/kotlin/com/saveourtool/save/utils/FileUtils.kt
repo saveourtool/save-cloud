@@ -1,24 +1,43 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
+@file:JvmName("FileUtilsJVM")
+
 package com.saveourtool.save.utils
 
+import com.akuleshov7.ktoml.file.TomlFileReader
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
+import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.PosixFilePermission
+import java.util.*
+import java.util.stream.Collectors
+
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
+import kotlin.jvm.Throws
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.reduce
+import kotlinx.serialization.serializer
 
 private const val DEFAULT_BUFFER_SIZE = 4096
+
+actual val fs: FileSystem = FileSystem.SYSTEM
 
 /**
  * @return content of file as [Flux] of [DataBuffer]
@@ -57,6 +76,30 @@ fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
             .then(Mono.just(target))
 
 /**
+ * Creates (if it does not exist) and appends [Flux] of [ByteBuffer] to file by path [target]
+ *
+ * @param target path to file to where a content from receiver will be written
+ * @return [Mono] with number of bytes received
+ */
+fun Flux<ByteBuffer>.collectToFile(target: Path): Mono<Int> = map { byteBuffer ->
+    target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
+        Channels.newChannel(os).use { it.write(byteBuffer) }
+    }
+}.collect(Collectors.summingInt { it })
+
+/**
+ * Creates (if it does not exist) and appends [Flow] of [ByteBuffer] to file by path [target]
+ *
+ * @param target path to file to where a content from receiver will be written
+ * @return number of bytes received
+ */
+suspend fun Flow<ByteBuffer>.collectToFile(target: Path): Int = map { byteBuffer ->
+    target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
+        Channels.newChannel(os).use { it.write(byteBuffer) }
+    }
+}.reduce { result, value -> result + value }
+
+/**
  * @param stop
  * @return count of parts (folders + current file) till [stop]
  */
@@ -66,12 +109,49 @@ fun Path.countPartsTill(stop: Path): Int = generateSequence(this, Path::getParen
 
 /**
  * @param stop
- * @return list of name of paths (folders + current file) till [stop]
+ * @return list of name of paths (folders + current file) till [stop] (including stop.name)
  */
 fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::getParent)
     .takeWhile { it != stop }
     .map { it.name }
     .toList()
+
+/**
+ * Requires that this path is absolute, throwing an [IllegalArgumentException]
+ * if it's not.
+ *
+ * @return this path.
+ * @throws IllegalArgumentException if this path is relative.
+ */
+@Throws(IllegalArgumentException::class)
+fun Path.requireIsAbsolute(): Path = apply {
+    require(isAbsolute) {
+        "The path is not absolute: $this"
+    }
+}
+
+actual fun okio.Path.markAsExecutable() {
+    val file = this.toFile().toPath()
+    Files.setPosixFilePermissions(file, Files.getPosixFilePermissions(file) + EnumSet.of(
+        PosixFilePermission.OWNER_EXECUTE,
+        PosixFilePermission.GROUP_EXECUTE,
+        PosixFilePermission.OTHERS_EXECUTE,
+    ))
+}
+
+actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
+    fs.write(
+        file = file,
+        mustCreate = mustCreate,
+    ) {
+        write(this@writeToFile).flush()
+    }
+}
+
+actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C = TomlFileReader.decodeFromFile(
+    serializer(),
+    configPath.toString(),
+)
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

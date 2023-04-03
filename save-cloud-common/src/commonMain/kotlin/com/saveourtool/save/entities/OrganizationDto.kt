@@ -1,32 +1,30 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
+import kotlinx.datetime.LocalDateTime
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
+ * @property status
  * @property dateCreated date created organization
  * @property avatar
  * @property description
  * @property canCreateContests
- * @property userRoles map where keys are usernames and values are their [Role]s
- * @property globalRating
  */
 @Serializable
 data class OrganizationDto(
     val name: String,
+    var status: OrganizationStatus = OrganizationStatus.CREATED,
     @Contextual
-    val dateCreated: LocalDateTime? = null,
+    val dateCreated: LocalDateTime = getCurrentLocalDateTime(),
     val avatar: String? = null,
     val description: String = "",
     val canCreateContests: Boolean = false,
-    val userRoles: Map<String, Role> = emptyMap(),
-    val globalRating: Double? = null,
 ) : Validatable {
     /**
      * Validation of organization name
@@ -50,12 +48,6 @@ data class OrganizationDto(
          */
         val empty = OrganizationDto(
             name = "",
-            dateCreated = null,
-            avatar = null,
-            description = "",
-            canCreateContests = false,
-            userRoles = emptyMap(),
-            globalRating = null,
         )
     }
 }

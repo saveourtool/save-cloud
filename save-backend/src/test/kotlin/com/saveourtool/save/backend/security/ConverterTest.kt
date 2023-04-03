@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.security
 
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.CustomAuthenticationBasicConverter
+import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders

@@ -5,7 +5,9 @@ package com.saveourtool.save.frontend.components.basic.contests
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
+import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 import csstype.*
 import react.*
@@ -14,7 +16,6 @@ import react.dom.html.ReactHTML.div
 
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.td
-import react.table.columns
 
 /**
  * SUBMISSIONS tab in ContestView
@@ -28,11 +29,11 @@ val contestSubmissionsMenu = contestSubmissionsMenu()
 private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
     columns = {
         columns {
-            column(id = "project_name", header = "Project Name", { this }) { cellProps ->
+            column(id = "project_name", header = "Project Name", { this }) { cellContext ->
                 Fragment.create {
                     td {
                         a {
-                            cellProps.value.let {
+                            cellContext.value.let {
                                 href = "#/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
                                 +"${it.organizationName}/${it.projectName}"
                             }
@@ -40,24 +41,24 @@ private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
                     }
                 }
             }
-            column(id = "sdk", header = "SDK", { this }) { cellProps ->
+            column(id = "sdk", header = "SDK", { this }) { cellCtx ->
                 Fragment.create {
                     td {
-                        +cellProps.value.sdk
+                        +cellCtx.value.sdk
                     }
                 }
             }
-            column(id = "submission_time", header = "Last submission time", { this }) { cellProps ->
+            column(id = "submission_time", header = "Last submission time", { this }) { cellCtx ->
                 Fragment.create {
                     td {
-                        +(cellProps.value.submissionTime?.toString()?.replace("T", " ") ?: "No data")
+                        +(cellCtx.value.submissionTime?.toString()?.replace("T", " ") ?: "No data")
                     }
                 }
             }
-            column(id = "status", header = "Last submission status", { this }) { cellProps ->
+            column(id = "status", header = "Last submission status", { this }) { cellCtx ->
                 Fragment.create {
                     td {
-                        cellProps.value.let { displayStatus(it.submissionStatus, it.hasFailedTest, it.score) }
+                        cellCtx.value.let { displayStatus(it.submissionStatus, it.hasFailedTest, it.score) }
                     }
                 }
             }
@@ -81,7 +82,7 @@ external interface ContestSubmissionsMenuProps : Props {
 private fun ChildrenBuilder.displayStatus(status: ExecutionStatus, hasFailedTests: Boolean, score: Double?) {
     span {
         className = when (status) {
-            ExecutionStatus.PENDING -> ClassName("")
+            ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ClassName("")
             ExecutionStatus.RUNNING -> ClassName("")
             ExecutionStatus.ERROR -> ClassName("text-danger")
             ExecutionStatus.OBSOLETE -> ClassName("text-secondary")

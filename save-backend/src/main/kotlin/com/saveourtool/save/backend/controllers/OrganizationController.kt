@@ -1,26 +1,18 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.service.GitService
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.service.TestSuitesSourceService
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -41,12 +33,12 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.util.EnumSet
 
-import java.time.LocalDateTime
+typealias OrganizationDtoList = List<OrganizationDto>
 
 /**
  * Controller for working with organizations.
@@ -65,48 +57,51 @@ internal class OrganizationController(
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val testsSourceVersionService: TestsSourceVersionService,
+    private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     config: ConfigProperties,
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
-    @GetMapping("/all")
+    @PostMapping("/all-by-filters")
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
+        method = "POST",
         summary = "Get all organizations",
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations() = Mono.fromCallable {
-        organizationService.findAll()
-    }
+    fun getAllOrganizationsByFilters(
+        @RequestBody organizationFilter: OrganizationFilter
+    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilter).map(Organization::toDto) }
 
-    @PostMapping("/not-deleted")
+    @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Get non-deleted organizations.",
-        description = "Get non-deleted organizations.",
+        summary = "Get organizations with rating matching filters.",
+        description = "Get filtered organizations with rating available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
-    fun getNotDeletedOrganizations(
-        @RequestBody(required = false) organizationFilters: OrganizationFilters?,
-        authentication: Authentication,
-    ): Flux<OrganizationDto> =
-            organizationService.getNotDeletedOrganizations(organizationFilters)
-                .toFlux<Organization>()
-                .flatMap { organization ->
-                    organizationService.getGlobalRating(organization.name, authentication).map {
-                        organization to it
-                    }
+    fun getFilteredOrganizationsWithRating(
+        @RequestBody organizationFilter: OrganizationFilter,
+        authentication: Authentication?,
+    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter)
+        .flatMap { organizationDto ->
+            organizationService.getGlobalRating(organizationDto.name, authentication)
+                .map { rating ->
+                    OrganizationWithRating(
+                        organization = organizationDto,
+                        globalRating = rating,
+                    )
                 }
-                .map { (organization, rating) ->
-                    organization.toDto().copy(globalRating = rating)
-                }
+        }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -122,11 +117,13 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-    ) = Mono.fromCallable {
-        organizationService.findByName(organizationName)
-    }.switchIfEmptyToNotFound {
-        "Organization not found by name $organizationName"
+    ) = blockingToMono {
+        organizationService.findByNameAndCreatedStatus(organizationName)
     }
+        .map { it.toDto() }
+        .switchIfEmptyToNotFound {
+            "Organization not found by name $organizationName"
+        }
 
     @GetMapping("/get/list")
     @PreAuthorize("permitAll()")
@@ -136,36 +133,32 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
-    ): Flux<Organization> = authentication.toMono()
+    ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
             (auth.details as AuthenticationDetails).id
         }
         .flatMapMany {
-            lnkUserOrganizationService.findAllByAuthentication(it)
+            lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)
         }
-        .mapNotNull {
-            it.organization as Organization
+        .map {
+            it.organization.toDto()
         }
 
-    @GetMapping("/{organizationName}/avatar")
+    @GetMapping("/get/by-prefix")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get avatar by organization name.",
-        description = "Get organization avatar by organization name.",
+        summary = "Get organization by prefix.",
+        description = "Get list of organizations matching prefix.",
     )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched avatar by organization name.")
-    fun avatar(
-        @PathVariable organizationName: String
-    ): Mono<ImageInfo> = Mono.fromCallable {
-        organizationService.findByName(organizationName)?.avatar.let { ImageInfo(it) }
-    }
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationNamesByPrefix(
+        @RequestParam prefix: String
+    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilter(prefix))
+        .map { it.name }
+        .collectList()
 
     @PostMapping("/{organizationName}/manage-contest-permission")
     @RequiresAuthorizationSourceHeader
@@ -191,7 +184,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByName(organizationName).toMono()
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
@@ -224,7 +217,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(newOrganization)
         .map {
-            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
+            organizationService.saveOrganization(it.toOrganization())
         }
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
@@ -266,7 +259,7 @@ internal class OrganizationController(
         organizationName
     )
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -278,7 +271,7 @@ internal class OrganizationController(
             "Not enough permission for managing organization $organizationName."
         }
         .filter {
-            organizationService.findByName(organization.name) != null
+            organizationService.findByNameAndCreatedStatus(organization.name) != null
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There already is an organization with name ${organization.name}"
@@ -290,39 +283,66 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
-    @DeleteMapping("/{organizationName}/delete")
+    @PostMapping("/{organizationName}/change-status")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE",
-        summary = "Delete existing organization.",
-        description = "Delete existing organization by its name.",
+        method = "POST",
+        summary = "Change status existing organization.",
+        description = "Change status existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "type of status being set", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
+    @ApiResponse(responseCode = "200", description = "Successfully change status an organization.")
+    @ApiResponse(responseCode = "400", description = "Invalid new status of the organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for this action on organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
-    fun deleteOrganization(
+    @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
+    fun changeOrganizationStatus(
         @PathVariable organizationName: String,
+        @RequestParam status: OrganizationStatus,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono()
-        }
+    ): Mono<StringResponse> = blockingToMono {
+        organizationService.findByNameAndStatuses(organizationName, EnumSet.allOf(OrganizationStatus::class.java))
+    }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
+            it.status != status
+        }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid new status of the organization $organizationName"
+        }
+        .filter {
+            organizationPermissionEvaluator.hasPermissionToChangeStatus(authentication, it, status)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for deletion of organization $organizationName."
+            "Not enough permission for this action with organization $organizationName."
         }
-        .map {
-            organizationService.deleteOrganization(it.name)
-            ResponseEntity.ok("Organization deleted")
+        .filter {
+            status != OrganizationStatus.DELETED || !organizationService.hasProjects(organizationName)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "There are projects connected to $organizationName. Please delete all of them and try again."
+        }
+        .map {organization ->
+            when (status) {
+                OrganizationStatus.BANNED -> {
+                    organizationService.banOrganization(organization)
+                    ResponseEntity.ok("Successfully banned the organization")
+                }
+                OrganizationStatus.DELETED -> {
+                    organizationService.deleteOrganization(organization)
+                    ResponseEntity.ok("Successfully deleted the organization")
+                }
+                OrganizationStatus.CREATED -> {
+                    organizationService.recoverOrganization(organization)
+                    ResponseEntity.ok("Successfully recovered the organization")
+                }
+            }
         }
 
     @GetMapping("/{organizationName}/list-git")
@@ -343,7 +363,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -420,7 +440,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -431,25 +451,25 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization git credentials."
         }
-        .map { organization ->
-            // Find and remove all corresponding data to the current git repository from DB and file system storage
-            val git = gitService.getByOrganizationAndUrl(organization, url)
-            val testSuitesSources = testSuitesSourceService.findByGit(git)
-            // List of test suites for removing data from storage at next step
-            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
-                val testSuites = testSuitesService.getBySource(testSuitesSource)
-                testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
-                testSuitesSourceService.delete(testSuitesSource)
-                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
-                testSuites.firstOrNull()
+        .asyncEffect { organization ->
+            // Find all tests sources and remove all corresponding snapshots from storage
+            blockingToFlux {
+                val git = gitService.getByOrganizationAndUrl(organization, url)
+                testSuitesSourceService.findByGit(git)
             }
-            gitService.delete(organization, url)
-            testSuitesList
+                .flatMap { testsSourceSnapshotStorage.deleteAll(it) }
+                .map { deleted ->
+                    if (!deleted) {
+                        logger.warn {
+                            "Failed to clean-up tests snapshots for git url $url in $organizationName"
+                        }
+                    }
+                }
+                .then(Mono.just(Unit))
         }
-        .flatMap { testSuitesList ->
-            Flux.fromIterable(testSuitesList).map { testSuite ->
-                cleanupStorageData(testSuite)
-            }.collectList()
+        .map { organization ->
+            // it removes TestSuitesSource and TestSuite by cascade constrain
+            gitService.delete(organization, url)
         }
         .map {
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
@@ -478,7 +498,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<Double> = Mono.just(organizationName)
         .flatMap {
-            organizationService.findByName(it).toMono()
+            organizationService.findByNameAndCreatedStatus(it).toMono()
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
@@ -487,20 +507,16 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun cleanupStorageData(testSuite: TestSuite) = testSuitesSourceSnapshotStorage.findKey(
-        testSuite.source.organization.name,
-        testSuite.source.name,
-        testSuite.version,
-    ).flatMap { key ->
-        testSuitesSourceSnapshotStorage.delete(key)
-    }
+    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter): Flux<OrganizationDto> = blockingToFlux {
+        organizationService.getFiltered(filters)
+    }.map { it.toDto() }
 
     private fun upsertGitCredential(
         organizationName: String,
         gitDto: GitDto,
         authentication: Authentication,
         isUpdate: Boolean
-    ): Mono<StringResponse> = blockingToMono { organizationService.findByName(organizationName) }
+    ): Mono<StringResponse> = blockingToMono { organizationService.findByNameAndCreatedStatus(organizationName) }
         .switchIfEmptyToNotFound {
             "Could not find organization with name $organizationName"
         }

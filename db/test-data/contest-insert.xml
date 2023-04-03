@@ -10,8 +10,8 @@
             <column header="id" name="id" type="bigint"/>
             <column header="name" name="name" type="varchar(250)"/>
             <column header="status" name="status" type="varchar(250)" defaultValue="CREATED"/>
-            <column header="start_time" name="start_time" type="timestamp"/>
-            <column header="end_time" name="end_time" type="timestamp"/>
+            <column header="start_time" name="start_time" type="DATETIME(3)"/>
+            <column header="end_time" name="end_time" type="DATETIME(3)"/>
             <column header="description" name="description" type="varchar(1024)"/>
             <column header="organization_id" name="organization_id" type="bigint"/>
         </loadData>

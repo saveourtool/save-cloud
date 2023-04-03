@@ -1,6 +1,9 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.backend.configs.WebSecurityConfig
+import com.saveourtool.save.authservice.config.WebSecurityConfig
+import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
+import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
+import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -8,14 +11,10 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.v1
@@ -27,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -40,7 +40,8 @@ import reactor.util.function.Tuples
     LnkUserProjectService::class,
     LnkUserOrganizationService::class,
     ConvertingAuthenticationManager::class,
-    UserDetailsService::class,
+    AuthenticationUserDetailsService::class,
+    AuthenticationUserRepository::class,
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {
@@ -55,6 +56,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var organizationService: OrganizationService
     @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
+    @MockBean private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @Test
     @WithMockUser
@@ -114,7 +116,7 @@ class PermissionControllerTest {
             permission = Permission.WRITE,
         )
         given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 99, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name  = "Example Org" })
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
@@ -137,7 +139,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99),
             permission = Permission.WRITE,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
@@ -159,7 +161,7 @@ class PermissionControllerTest {
             project = Project.stub(id = 99).apply { public = false },
             permission = null,
         )
-        given(organizationRepository.findByName(any())).willReturn(Organization("Example Org", OrganizationStatus.CREATED, ownerId = 42, null, null))
+        given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
@@ -242,14 +244,17 @@ class PermissionControllerTest {
         given(permissionService.findUserAndProject(any(), any(), any())).willAnswer { invocationOnMock ->
             Tuples.of(user(invocationOnMock), project).let { Mono.just(it) }
         }
-        given(organizationService.findByName(any())).willReturn(project.organization)
-        given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(project)
+        given(organizationService.findByNameAndCreatedStatus(any())).willReturn(project.organization)
+        given(organizationService.findByNameAndStatuses(any(), any())).willReturn(project.organization)
+        given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willReturn(project)
+        given(projectService.findByNameAndOrganizationNameAndStatusIn(any(), any(), any())).willReturn(project)
         given(projectPermissionEvaluator.hasPermission(any(), any(), any())).willAnswer {
             when (it.arguments[2] as Permission?) {
                 null -> false
                 Permission.READ -> permission != null
-                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE
-                Permission.DELETE -> permission == Permission.DELETE
+                Permission.WRITE -> permission == Permission.WRITE || permission == Permission.DELETE || permission == Permission.BAN
+                Permission.DELETE -> permission == Permission.DELETE || permission == Permission.BAN
+                Permission.BAN -> permission == Permission.BAN
             }
         }
         given(projectService.findUserByName(any())).willAnswer { invocationOnMock ->

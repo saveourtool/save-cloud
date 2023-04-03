@@ -9,7 +9,6 @@ import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
@@ -17,14 +16,17 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.table.TableInstance
+import tanstack.table.core.RowData
+import tanstack.table.core.Table
+import tanstack.table.core.Updater
+import web.html.InputType
 
 /**
  * @param tableInstance
  * @param setPageIndex
  * @return set entries block
  */
-fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div {
+fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageIndex: StateSetter<Int>) = div {
     className = ClassName("row mt-3")
     div {
         className = ClassName("col-0 pt-1 pr-0")
@@ -47,7 +49,9 @@ fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPag
                 onChange = {
                     val entries = it.target.value
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
-                    tableInstance.setPageSize(entries.toInt())
+                    tableInstance.setPageSize(
+                        Updater(entries.toInt())
+                    )
                 }
             }
         }
@@ -66,8 +70,8 @@ fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPag
  * @return paging control block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <D : Any> ChildrenBuilder.pagingControl(
-    tableInstance: TableInstance<D>,
+fun <D : RowData> ChildrenBuilder.pagingControl(
+    tableInstance: Table<D>,
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
     pageCount: Int,
@@ -186,7 +190,7 @@ fun <D : Any> ChildrenBuilder.pagingControl(
  * @return jump to page block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
+fun <D : RowData> ChildrenBuilder.jumpToPage(tableInstance: Table<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
         form {
             var number = 0
             div {
@@ -221,7 +225,7 @@ fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPag
                         div {
                             className = ClassName("input-group-append mt-3")
                             button {
-                                type = ButtonType.submit
+                                type = ButtonType.button
                                 className = ClassName("btn btn-outline-secondary")
                                 onClick = {
                                     setPageIndexAndGoToPage(tableInstance, setPageIndex, number)
@@ -234,11 +238,11 @@ fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPag
             }
         }
 
-private fun <D : Any> setPageIndexAndGoToPage(
-    tableInstance: TableInstance<D>,
+private fun <D : RowData> setPageIndexAndGoToPage(
+    tableInstance: Table<D>,
     setPageIndex: StateSetter<Int>,
     index: Int
 ) {
     setPageIndex(index)
-    tableInstance.gotoPage(index)
+    tableInstance.setPageIndex(Updater(index))
 }

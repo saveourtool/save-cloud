@@ -1,16 +1,16 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.EmptyResponse
-import com.saveourtool.save.backend.StringList
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.request.TestsSourceFetchRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
@@ -28,7 +28,7 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
-    private val gitService: GitService,
+    private val testsSourceVersionService: TestsSourceVersionService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -81,12 +81,6 @@ class TestSuitesSourceService(
      * @return entity
      */
     fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
-
-    /**
-     * @param entity
-     */
-    @Transactional
-    fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
 
     /**
      * Raw update
@@ -146,18 +140,52 @@ class TestSuitesSourceService(
      * @param testSuitesSource test suites source which requested to be fetched
      * @param mode mode of fetching, it controls how [version] is used
      * @param version tag, branch or commit (depends on [mode])
+     * @param userId ID of [com.saveourtool.save.entities.User]
      * @return empty response
      */
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
         mode: TestSuitesSourceFetchMode,
         version: String,
-    ): Mono<EmptyResponse> = preprocessorWebClient
-        .post()
-        .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
-        .bodyValue(testSuitesSource)
-        .retrieve()
-        .toBodilessEntity()
+        userId: Long,
+    ): Mono<EmptyResponse> = blockingToMono { validateDuplicateVersion(testSuitesSource, mode, version) }
+        .filter { it }
+        .flatMap {
+            val request = TestsSourceFetchRequest(
+                source = testSuitesSource,
+                mode = mode,
+                version = version,
+                createdByUserId = userId,
+            )
+            preprocessorWebClient
+                .post()
+                .uri("/test-suites-sources/fetch")
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+        }
+
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    private fun validateDuplicateVersion(
+        source: TestSuitesSourceDto,
+        mode: TestSuitesSourceFetchMode,
+        version: String
+    ): Boolean {
+        if (mode == TestSuitesSourceFetchMode.BY_BRANCH) {
+            // we calculate version using commitId for branch on late phase
+            return true
+        }
+        val doesExist = testsSourceVersionService.doesVersionExist(
+            sourceId = source.requiredId(),
+            version = version,
+        )
+        if (doesExist) {
+            log.debug {
+                "Detected that source ${source.organizationName}/${source.name} already contains such version $version and we skip fetching a new version."
+            }
+        }
+        return !doesExist
+    }
 
     /**
      * @param testSuitesSource test suites source for which a list of tags is requested
@@ -184,4 +212,8 @@ class TestSuitesSourceService(
         .bodyValue(testSuitesSource.gitDto)
         .retrieve()
         .bodyToMono()
+
+    companion object {
+        private val log: Logger = getLogger<TestSuitesSourceService>()
+    }
 }

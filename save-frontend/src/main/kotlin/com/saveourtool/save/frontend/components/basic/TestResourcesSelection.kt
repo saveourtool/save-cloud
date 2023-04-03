@@ -12,19 +12,16 @@ import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPriv
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.utils.WindowOpenness
-import com.saveourtool.save.frontend.utils.useWindowOpenness
-import com.saveourtool.save.frontend.utils.withUnusedArg
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import csstype.ClassName
 import react.*
-import react.dom.html.InputType
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.select
 
 val testResourcesSelection = prepareTestResourcesSelection()
 
@@ -34,7 +31,6 @@ val testResourcesSelection = prepareTestResourcesSelection()
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
-    var isSubmitButtonPressed: Boolean?
 
     // properties for CONTEST_MODE
     var projectName: String
@@ -45,12 +41,12 @@ external interface TestResourcesProps : PropsWithChildren {
     var setSelectedContest: (ContestDto) -> Unit
 
     // properties for PRIVATE_TESTS mode
-    var selectedPrivateTestSuiteIds: List<Long>
-    var setSelectedPrivateTestSuiteIds: (List<Long>) -> Unit
+    var selectedPrivateTestSuites: List<TestSuiteVersioned>
+    var setSelectedPrivateTestSuites: (List<TestSuiteVersioned>) -> Unit
 
     // properties for PUBLIC_TESTS mode
-    var selectedPublicTestSuiteIds: List<Long>
-    var setSelectedPublicTestSuiteIds: (List<Long>) -> Unit
+    var selectedPublicTestSuites: List<TestSuiteVersioned>
+    var setSelectedPublicTestSuites: (List<TestSuiteVersioned>) -> Unit
     var execCmd: String
     var setExecCmd: (String) -> Unit
     var batchSizeForAnalyzer: String
@@ -63,7 +59,7 @@ private fun ChildrenBuilder.addAdditionalProperty(
     placeholder: String,
     tooltipText: String,
     labelText: String,
-    inputType: InputType,
+    isOnlyNumbers: Boolean,
     onChangeFunc: (String) -> Unit
 ) = div {
     className = ClassName("input-group mb-3")
@@ -78,15 +74,8 @@ private fun ChildrenBuilder.addAdditionalProperty(
     }
 
     input {
-        type = inputType
-        name = "itemText"
         // workaround to have a default value for Batch field
-        if (labelText.isNotEmpty()) {
-            defaultValue = "1"
-        }
         key = "itemText"
-        @Suppress("MAGIC_NUMBER")
-        min = 1.0
         className = ClassName("form-control")
         if (tooltipText.isNotBlank()) {
             asDynamic()["data-toggle"] = "tooltip"
@@ -95,21 +84,25 @@ private fun ChildrenBuilder.addAdditionalProperty(
         }
         this.value = value
         this.placeholder = placeholder
-        onChange = {
-            onChangeFunc(it.target.value)
+        onChange = { event ->
+            event.target.value.let { value ->
+                if (!isOnlyNumbers || value.all { it.isDigit() }) {
+                    onChangeFunc(value)
+                }
+            }
         }
     }
 }
 
 private fun ContestDto.label(): String = "$organizationName/$name"
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "TYPE_ALIAS")
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
     testSuiteSelectorWindowOpenness: WindowOpenness,
-    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
-    selectedTestSuiteIds: List<Long>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+    testSuitesInSelectorState: StateInstance<List<TestSuiteVersioned>>,
+    selectedTestSuites: List<TestSuiteVersioned>,
+    setSelectedTestSuites: (List<TestSuiteVersioned>) -> Unit,
 ) {
     div {
         className = ClassName("card shadow mb-4 w-100")
@@ -122,33 +115,34 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 "Execution command",
                 "Execution command that will be used to run the tool and tests",
                 "",
-                InputType.text,
+                false,
                 props.setExecCmd
             )
-            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time (1 by default)." +
                     " To know more about batch size, please visit: https://github.com/saveourtool/save."
             addAdditionalProperty(
                 props.batchSizeForAnalyzer,
                 "",
                 toolTipTextForBatchSize,
-                "Batch size (default: 1):",
-                InputType.number,
+                "Batch size:",
+                true,
                 props.setBatchSizeForAnalyzer
             )
 
             when (props.testingType) {
                 TestingType.PRIVATE_TESTS -> showPrivateTestSuitesSelectorModal(
                     props.organizationName,
-                    selectedTestSuiteIds,
+                    selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
-                    testSuiteIdsInSelectorState,
-                    setSelectedTestSuiteIds
+                    testSuitesInSelectorState,
+                    setSelectedTestSuites
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
-                    selectedTestSuiteIds,
+                    props.organizationName,
+                    selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
-                    testSuiteIdsInSelectorState,
-                    setSelectedTestSuiteIds
+                    testSuitesInSelectorState,
+                    setSelectedTestSuites
                 )
                 else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
             }
@@ -158,7 +152,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 className = ClassName("mt-2")
                 inputTextFormRequired {
                     form = InputTypes.TEST_SUITE_IDS
-                    textValue = selectedTestSuiteIds.joinToString(", ")
+                    textValue = selectedTestSuites.joinToString(", ") { it.name }
                     validInput = true
                     classes = "col-12 pl-2 pr-2 text-center"
                     name = "Test Suites:"
@@ -188,6 +182,7 @@ private fun ChildrenBuilder.renderForContestMode(
         div {
             className = ClassName("card-body d-flex justify-content-center")
             button {
+                type = ButtonType.button
                 className = ClassName("d-flex justify-content-center btn btn-primary")
                 +"Enroll for a contest"
                 onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
@@ -203,22 +198,16 @@ private fun ChildrenBuilder.renderForContestMode(
         div {
             className = ClassName("input-group-prepend")
 
-            select {
-                className = ClassName("form-control")
-                props.availableContests.forEach {
-                    option {
-                        +it.label()
-                    }
+            selectorBuilder(
+                props.selectedContest.label(),
+                props.availableContests.map { it.label() },
+                "form-control custom-select",
+            ) { event ->
+                val selectedContestLabel = event.target.value
+                val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
+                    "Invalid contest is selected $selectedContestLabel"
                 }
-                required = true
-                value = props.selectedContest.label()
-                onChange = { event ->
-                    val selectedContestLabel = event.target.value
-                    val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
-                        "Invalid contest is selected $selectedContestLabel"
-                    }
-                    props.setSelectedContest(selectedContest)
-                }
+                props.setSelectedContest(selectedContest)
             }
         }
     }
@@ -234,10 +223,10 @@ private fun ChildrenBuilder.renderForContestMode(
 private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     // states for private mode
     val testSuiteSelectorWindowOpennessPrivateMode = useWindowOpenness()
-    val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<Long>())
+    val testSuitesInSelectorStatePrivateMode = useState(emptyList<TestSuiteVersioned>())
     // states for public mode
     val testSuiteSelectorWindowOpennessPublicMode = useWindowOpenness()
-    val testSuiteIdsInSelectorStatePublicMode = useState(emptyList<Long>())
+    val testSuitesInSelectorStatePublicMode = useState(emptyList<TestSuiteVersioned>())
     // states for contest mode
     val contestEnrollerWindowOpenness = useWindowOpenness()
 
@@ -261,16 +250,16 @@ private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
         TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
             props,
             testSuiteSelectorWindowOpennessPrivateMode,
-            testSuiteIdsInSelectorStatePrivateMode,
-            props.selectedPrivateTestSuiteIds,
-            props.setSelectedPrivateTestSuiteIds
+            testSuitesInSelectorStatePrivateMode,
+            props.selectedPrivateTestSuites,
+            props.setSelectedPrivateTestSuites
         )
         TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
             props,
             testSuiteSelectorWindowOpennessPublicMode,
-            testSuiteIdsInSelectorStatePublicMode,
-            props.selectedPublicTestSuiteIds,
-            props.setSelectedPublicTestSuiteIds
+            testSuitesInSelectorStatePublicMode,
+            props.selectedPublicTestSuites,
+            props.setSelectedPublicTestSuites
         )
         TestingType.CONTEST_MODE -> renderForContestMode(
             props,

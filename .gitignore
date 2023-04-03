@@ -3,6 +3,7 @@ target
 build
 !ktlint/src/main/resources/config/.idea
 /.idea
+/.mailmap
 *.iml
 out
 .DS_Store
@@ -13,3 +14,6 @@ save-cloud-charts/save-cloud/charts
 
 # JPA Buddy
 /.jpb/
+
+# Vim swap files
+*.swp

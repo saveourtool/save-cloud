@@ -4,12 +4,14 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -17,22 +19,18 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
+import js.core.jso
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import web.html.HTMLInputElement
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -55,16 +53,6 @@ external interface UserSettingsProps : PropsWithChildren {
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
 external interface UserSettingsViewState : State {
     /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
-
-    /**
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
@@ -75,9 +63,24 @@ external interface UserSettingsViewState : State {
     var token: String?
 
     /**
-     * Organizations connected to user
+     * A list of organization with users connected to user
      */
-    var selfOrganizationDtos: List<OrganizationDto>
+    var selfOrganizationWithUserList: List<OrganizationWithUsers>
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
+
+    /**
+     * Flag to handle avatar Window
+     */
+    var isAvatarWindowOpen: Boolean
+
+    /**
+     * User avatar
+     */
+    var avatar: String
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -86,8 +89,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private val renderMenu = renderMenu()
 
     init {
-        state.isUploading = false
-        state.selfOrganizationDtos = emptyList()
+        state.selfOrganizationWithUserList = emptyList()
+        state.isAvatarWindowOpen = false
     }
 
     /**
@@ -105,20 +108,25 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     override fun componentDidMount() {
         super.componentDidMount()
+        val comparator: Comparator<OrganizationWithUsers> =
+                compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+                    .thenBy { it.organization.name }
+
         scope.launch {
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationDtos = getOrganizationDtos()
+            val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
-                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationDtos = organizationDtos
+                selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
         }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
+        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
         userInfo.email?.let { fieldsMap[InputTypes.USER_EMAIL] = it }
         userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
         userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
@@ -134,6 +142,21 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            title = AVATAR_TITLE
+            onCloseWindow = {
+                setState {
+                    isAvatarWindowOpen = false
+                }
+            }
+            imageUpload = { file ->
+                scope.launch {
+                    postImageUpload(file, props.userName!!, AvatarType.USER, ::noopLoadingHandler)
+                }
+            }
+        }
+
         div {
             className = ClassName("row justify-content-center")
             // ===================== LEFT COLUMN =======================================================================
@@ -143,7 +166,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary")
                     div {
                         className = ClassName("col mr-2 pr-0 pl-0")
-                        style = kotlinx.js.jso {
+                        style = jso {
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
                         div {
@@ -154,30 +177,29 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     div {
                                         className = ClassName("col-md-4 pl-0 pr-0")
                                         label {
-                                            input {
-                                                type = InputType.file
-                                                hidden = true
-                                                onChange = {
-                                                    postImageUpload(it.target)
+                                            className = ClassName("btn")
+                                            title = AVATAR_TITLE
+                                            onClick = {
+                                                setState {
+                                                    isAvatarWindowOpen = true
                                                 }
                                             }
-                                            ariaLabel = "Change avatar owner"
                                             img {
                                                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                                src = state.image?.path?.let {
-                                                    "/api/$v1/avatar$it"
-                                                }
-                                                    ?: run {
-                                                        "img/undraw_profile.svg"
-                                                    }
+                                                src = state.avatar
                                                 height = 60.0
                                                 width = 60.0
+                                                onError = {
+                                                    setState {
+                                                        avatar = AVATAR_PLACEHOLDER
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                     div {
                                         className = ClassName("col-md-6 pl-0")
-                                        style = kotlinx.js.jso {
+                                        style = jso {
                                             display = Display.flex
                                             alignItems = AlignItems.center
                                         }
@@ -282,8 +304,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
     fun updateUser() {
+        val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
+        val nameInDb = state.userInfo!!.name
+        val oldName = if (newName != nameInDb) nameInDb else null
         val newUserInfo = UserInfo(
-            name = state.userInfo!!.name,
+            name = newName ?: nameInDb,
+            oldName = oldName,
             originalLogins = state.userInfo!!.originalLogins,
             source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
@@ -302,44 +328,35 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post(
+            val response = post(
                 "$apiUrl/users/save",
                 headers,
                 Json.encodeToString(newUserInfo),
                 loadingHandler = ::classLoadingHandler,
             )
+            if (response.isConflict()) {
+                val responseText = response.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
+            } else {
+                setState {
+                    conflictErrorMessage = null
+                }
+            }
         }
     }
 
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                }
-                element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::classLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
-
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationDtos() = get(
-        "$apiUrl/organizations/by-user/not-deleted",
-        Headers(),
+    private suspend fun getOrganizationWithUsersList() = post(
+        url = "$apiUrl/organizations/by-filters",
+        headers = jsonHeaders,
+        body = Json.encodeToString(OrganizationFilter.all),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
+
+    companion object {
+        private const val AVATAR_TITLE = "Change avatar owner"
+    }
 }

@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
@@ -26,7 +25,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
-import kotlinx.browser.window
 import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -119,7 +117,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
+        !contestDto.name.isValidName() || contestDto.testSuites.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -141,7 +139,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {
@@ -154,11 +152,12 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         className = ClassName("card")
         contestCreationCard {
             showContestTestSuitesSelectorModal(
-                contestDto.testSuiteIds,
+                contestDto.organizationName,
+                contestDto.testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
-            ) {
-                setContestDto(contestDto.copy(testSuiteIds = it))
+            ) { testSuites ->
+                setContestDto(contestDto.copy(testSuites = testSuites))
             }
             div {
                 className = ClassName("")
@@ -216,7 +215,9 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_TEST_SUITE_IDS
                             conflictMessage = null
-                            textValue = contestDto.testSuiteIds.sorted().joinToString(", ")
+                            textValue = contestDto.testSuites.map { it.name }
+                                .sorted()
+                                .joinToString(", ")
                             validInput = true
                             classes = "col-12 pl-2 pr-2 text-center"
                             name = "Test Suites:"
