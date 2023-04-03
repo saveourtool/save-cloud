@@ -219,3 +219,4 @@ demo:
   clusterIP: null
   agentSubdomainName: demo-agent-service
   agentPort: 23456
+  agentNamespace: save-agent

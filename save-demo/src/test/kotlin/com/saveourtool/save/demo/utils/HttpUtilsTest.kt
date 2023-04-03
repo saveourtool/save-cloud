@@ -1,6 +1,8 @@
 package com.saveourtool.save.demo.utils
 
 import com.saveourtool.save.demo.config.KubernetesConfig
+import com.saveourtool.save.demo.entity.Demo
+import com.saveourtool.save.domain.Sdk
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import org.assertj.core.api.Assertions.assertThat
@@ -62,10 +64,33 @@ class HttpUtilsTest {
     @Test
     fun addressToDnsResolutionTest() {
         val resolvableAddress = addressToDnsResolution("192.168.0.1", stubKubernetesConfig)
-        assertThat(resolvableAddress).isEqualTo("192-168-0-1.my-subdomain-name.my-namespace.svc.cluster.local")
+        with(stubKubernetesConfig) {
+            assertThat(resolvableAddress).isEqualTo(
+                "192-168-0-1.${agentSubdomainName}.${currentNamespace}.svc.cluster.local"
+            )
+        }
+    }
+
+    @Test
+    fun addressByServiceNameTest() {
+        val resolvableAddress = addressByServiceName(stubDemo, stubKubernetesConfig)
+        assertThat(resolvableAddress).isEqualTo(
+            "${serviceNameForDemo(stubDemo)}.${stubKubernetesConfig.agentNamespace}.svc.cluster.local"
+        )
     }
 
     companion object {
+        private val stubDemo = Demo(
+            "organization",
+            "project",
+            Sdk.Default.toString(),
+            "",
+            null,
+            null,
+            null,
+            null,
+        )
+
         private val stubKubernetesConfig = KubernetesConfig(
             "",
             "",
@@ -73,6 +98,7 @@ class HttpUtilsTest {
             false,
             "my-subdomain-name",
             23456,
+            agentNamespace = "agent-namespace",
         )
     }
 }

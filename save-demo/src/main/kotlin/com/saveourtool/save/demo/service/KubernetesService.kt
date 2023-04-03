@@ -61,7 +61,7 @@ class KubernetesService(
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(
                 DemoInternalFileStorage.saveDemoAgent
             ).toString()
-            kc.startJob(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
+            createConfiguredJob(demo, downloadAgentUrl)
             demo
         } catch (kre: KubernetesRunnerException) {
             throw ResponseStatusException(
@@ -113,6 +113,13 @@ class KubernetesService(
         demo.toDemoConfiguration(version),
         demo.toRunConfiguration(),
     )
+
+    private fun createConfiguredJob(demo: Demo, downloadAgentUrl: String) {
+        val job = getJobObjectForDemo(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
+        val createdJob = kc.createResourceOrThrow(job)
+        val service = getServiceObjectForDemo(demo, createdJob, kubernetesSettings)
+        kc.createResourceOrThrow(service)
+    }
 
     private suspend fun configureDemoAgent(
         demo: Demo,
@@ -198,7 +205,7 @@ class KubernetesService(
         urlPath: String,
         demo: Demo,
         request: suspend (Url) -> R,
-    ): R = demoAgentRequestWrapper(urlPath, getPodByDemo(demo), kubernetesSettings, request)
+    ): R = demoAgentRequestWrapper(urlPath, demo, kubernetesSettings, request)
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
