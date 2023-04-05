@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-@Suppress("MemberNameEqualsClassName")
 actual class AtomicLong actual constructor(value: Long) {
     actual fun get(): Long = throw NotImplementedError(NOT_IMPLEMENTED_ON_JS)
 
