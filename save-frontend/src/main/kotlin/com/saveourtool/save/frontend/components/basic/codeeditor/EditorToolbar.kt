@@ -52,10 +52,10 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
             className = ClassName("input-group")
             div {
                 className = ClassName("input-group-prepend")
-                buttonBuilder(faUpload, isOutline = true, title = "Save changes on server") {
+                buttonBuilder(faUpload, isOutline = true, title = "Save your code snippet on the server") {
                     onUploadChanges()
                 }
-                buttonBuilder(faDownload, isOutline = true, title = "Save changes on server") {
+                buttonBuilder(faDownload, isOutline = true, title = "Download your previously saved snippet from the server") {
                     onReloadChanges()
                 }
                 FileType.values().forEach { fileType ->

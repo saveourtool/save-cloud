@@ -21,12 +21,12 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.router.useNavigate
+import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

@@ -9,7 +9,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.toUser
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -18,10 +17,11 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationWithUsers
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -267,14 +267,14 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRolesAndFilters(
-        @RequestBody organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmptyToNotFound()
         .flatMapIterable {
-            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilters)
+            lnkUserOrganizationService.getOrganizationsAndRolesByUserAndFilters(it, organizationFilter)
         }
         .map {
             OrganizationWithUsers(

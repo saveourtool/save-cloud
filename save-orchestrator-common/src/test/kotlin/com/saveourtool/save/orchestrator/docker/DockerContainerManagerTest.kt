@@ -1,37 +1,49 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.service.ContainerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledOnOs
-import org.junit.jupiter.api.condition.EnabledOnOs
-import org.junit.jupiter.api.condition.OS
+import com.saveourtool.save.orchestrator.utils.DockerClientTestConfiguration
+import com.saveourtool.save.orchestrator.utils.silentlyCleanupContainer
+import com.saveourtool.save.utils.error
+import com.saveourtool.save.utils.getLogger
+import org.junit.jupiter.api.*
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.ActiveProfiles
 
 import kotlin.io.path.createTempFile
+import kotlin.math.absoluteValue
+import kotlin.random.Random
 
-@SpringBootTest
-@Import(Beans::class, DockerContainerRunner::class)
-@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
+@SpringBootTest(properties = ["orchestrator.docker.runtime=runc"])
+@ActiveProfiles("docker-test")
+@Import(
+    DockerClientTestConfiguration::class,
+    DockerContainerRunner::class,
+)
+@MockBeans(
+    MockBean(OrchestratorAgentService::class),
+)
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerContainerRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
-    private lateinit var testImageId: String
-    @MockBean private lateinit var orchestratorAgentService: OrchestratorAgentService
+
+    init {
+        if (System.getProperty("os.name").lowercase().contains("win")) {
+            System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
+        }
+    }
 
     @BeforeEach
     fun setUp() {
@@ -45,23 +57,35 @@ class DockerContainerManagerTest {
             .first {
                 it.repoTags?.contains("ghcr.io/saveourtool/save-base:eclipse-temurin-11") == true
             }
-        dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
 
     @Test
     fun `should create a container with specified cmd and then copy resources into it`() {
+        val executionId = Random.nextLong().absoluteValue
         val testFile = createTempFile().toFile()
         testFile.writeText("wow such testing")
-        testContainerId = dockerAgentRunner.create(
-            executionId = 42,
-            configuration = ContainerService.RunConfiguration(
-                baseImage.repoTags.first(),
-                listOf("bash", "-c", "./script.sh"),
-                workingDir = "/",
-                env = emptyMap(),
-            ),
-            replicas = 1,
-        ).single()
+        try {
+            dockerAgentRunner.createAndStart(
+                executionId = executionId,
+                configuration = ContainerService.RunConfiguration(
+                    baseImage.repoTags.first(),
+                    listOf("bash", "-c", "./script.sh"),
+                    workingDir = "/",
+                    env = emptyMap(),
+                ),
+                replicas = 1,
+            )
+        } catch (ex: ContainerRunnerException) {
+            log.error(ex) {
+                "Failed test with exception: ${ex.message}"
+            }
+            fail(ex)
+        }
+        testContainerId = dockerClient.listContainersCmd()
+            .withNameFilter(listOf("-$executionId-"))
+            .exec()
+            .map { it.id }
+            .single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
@@ -72,7 +96,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42"))
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-$executionId"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
@@ -82,19 +106,11 @@ class DockerContainerManagerTest {
     @AfterEach
     fun tearDown() {
         if (::testContainerId.isInitialized) {
-            dockerClient.removeContainerCmd(testContainerId).exec()
+            dockerClient.silentlyCleanupContainer(testContainerId)
         }
-        if (::testImageId.isInitialized) {
-            dockerClient.removeImageCmd(testImageId).exec()
-        }
-        dockerClient.removeVolumeCmd("test-volume").exec()
     }
-}
 
-@EnabledOnOs(OS.WINDOWS)
-@TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
-class DockerContainerManagerTestOnWindows : DockerContainerManagerTest() {
-    init {
-        System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
+    companion object {
+        private val log: Logger = getLogger<DockerContainerManagerTest>()
     }
 }

@@ -8,6 +8,7 @@ metadata:
 stringData:
   spring.datasource.backend-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.backend_schema }}'
   spring.datasource.sandbox-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.sandbox_schema }}'
+  spring.datasource.demo-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.demo_schema }}'
   spring.datasource.username: root
   spring.datasource.password: {{ .Values.mysql.root_password | quote }}
 
@@ -30,7 +31,7 @@ spec:
         io.kompose.service: mysql
     spec:
       containers:
-        - image: mysql:8.0.28
+        - image: mysql:8.0.28-oracle
           name: mysql
           ports:
             - containerPort: 3306

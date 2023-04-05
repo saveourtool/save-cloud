@@ -1,17 +1,17 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
-import java.nio.file.Paths
 import java.time.LocalDateTime
-
-import kotlin.io.path.pathString
 
 /**
  * Service for test result
@@ -51,7 +48,7 @@ class TestExecutionService(
         executionId: Long,
         page: Int,
         pageSize: Int,
-        filters: TestExecutionFilters,
+        filters: TestExecutionFilter,
     ): List<TestExecution> {
         val wrappedFileName = wrapValue(filters.fileName)
         val wrappedTestSuiteName = wrapValue(filters.testSuite)
@@ -74,7 +71,7 @@ class TestExecutionService(
      * @param executionId
      * @return a list of test executions
      */
-    internal fun getTestExecutions(executionId: Long): List<TestExecution> =
+    internal fun getAllTestExecutions(executionId: Long): List<TestExecution> =
             testExecutionRepository.findByExecutionId(executionId)
 
     /**
@@ -100,7 +97,7 @@ class TestExecutionService(
      * @param status
      * @return a list of test executions
      */
-    internal fun getTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
+    internal fun getAllTestExecutions(containerId: String, status: TestResultStatus) = testExecutionRepository
         .findByAgentContainerIdAndStatus(containerId, status)
 
     /**
@@ -112,7 +109,7 @@ class TestExecutionService(
      */
     internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId, pluginName, FilenameUtils.separatorsToUnix(Paths.get(testLocation, testName).pathString)
+            executionId, pluginName, FilenameUtils.separatorsToUnix(testPath)
         )
     }
 
@@ -136,7 +133,7 @@ class TestExecutionService(
             testExecutionRepository.deleteByExecutionIdIn(executionIds)
 
     /**
-     * @param testExecutionsDtos
+     * @param testExecutionResults
      * @return list of lost tests
      */
     @Suppress(
@@ -149,62 +146,60 @@ class TestExecutionService(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
-        log.debug { "Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}" }
+    fun saveTestResult(testExecutionResults: List<TestExecutionResult>): List<TestExecutionResult> {
+        log.debug { "Saving ${testExecutionResults.size} test results from agent ${testExecutionResults.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
-        val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
-            "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
+        val agentContainerId = requireNotNull(testExecutionResults.first().agentContainerId) {
+            "Attempt to save test results without assigned agent. testExecutionResults=$testExecutionResults"
         }
         val agent = requireNotNull(agentRepository.findByContainerId(agentContainerId)) {
             "Agent with containerId=[$agentContainerId] was not found in the DB"
         }
 
         val executionId = agentService.getExecution(agent).requiredId()
-        val lostTests: MutableList<TestExecutionDto> = mutableListOf()
+        val lostTests: MutableList<TestExecutionResult> = mutableListOf()
         val counters = Counters()
-        testExecutionsDtos.forEach { testExecDto ->
+        testExecutionResults.forEach { testExecutionResult ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
                 executionId,
-                testExecDto.pluginName,
-                testExecDto.filePath
+                testExecutionResult.pluginName,
+                testExecutionResult.filePath
             )
-            val testExecutionId: Long? = foundTestExec.map { it.id }.orElse(null)
             foundTestExec.also {
-                if (it.isEmpty) {
-                    log.error("Test execution $testExecDto for execution id=$executionId was not found in the DB")
-                }
+                it ?: log.error("Test execution $testExecutionResult for execution id=$executionId was not found in the DB")
             }
-                .filter {
+                ?.takeIf {
                     // update only those test executions, that haven't been updated before
                     it.status == TestResultStatus.RUNNING
                 }
-                .ifPresentOrElse({
-                    it.startTime = testExecDto.startTimeSeconds?.secondsToLocalDateTime()
-                    it.endTime = testExecDto.endTimeSeconds?.secondsToLocalDateTime()
-                    it.status = testExecDto.status
-                    when (testExecDto.status) {
+                ?.let {
+                    it.startTime = testExecutionResult.startTimeSeconds.secondsToJLocalDateTime()
+                    it.endTime = testExecutionResult.endTimeSeconds.secondsToJLocalDateTime()
+                    it.status = testExecutionResult.status
+                    when (testExecutionResult.status) {
                         TestResultStatus.PASSED -> counters.passed++
                         TestResultStatus.FAILED -> counters.failed++
                         else -> counters.skipped++
                     }
-                    it.unmatched = testExecDto.unmatched
-                    it.matched = testExecDto.matched
-                    it.expected = testExecDto.expected
-                    it.unexpected = testExecDto.unexpected
+                    it.unmatched = testExecutionResult.unmatched
+                    it.matched = testExecutionResult.matched
+                    it.expected = testExecutionResult.expected
+                    it.unexpected = testExecutionResult.unexpected
 
                     with(counters) {
-                        unmatchedChecks += testExecDto.unmatched.orZeroIfNotApplicable()
-                        matchedChecks += testExecDto.matched.orZeroIfNotApplicable()
-                        expectedChecks += testExecDto.expected.orZeroIfNotApplicable()
-                        unexpectedChecks += testExecDto.unexpected.orZeroIfNotApplicable()
+                        unmatchedChecks += testExecutionResult.unmatched.orZeroIfNotApplicable()
+                        matchedChecks += testExecutionResult.matched.orZeroIfNotApplicable()
+                        expectedChecks += testExecutionResult.expected.orZeroIfNotApplicable()
+                        unexpectedChecks += testExecutionResult.unexpected.orZeroIfNotApplicable()
                     }
 
                     testExecutionRepository.save(it)
-                },
-                    {
-                        lostTests.add(testExecDto)
-                        log.error("Test execution $testExecDto with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
-                    })
+                }
+                ?: run {
+                    lostTests.add(testExecutionResult)
+                    val testExecutionId = foundTestExec?.requiredId()
+                    log.error("Test execution $testExecutionResult with id=$testExecutionId for execution id=$executionId cannot be updated because its status is not RUNNING")
+                }
         }
         val execution = executionRepository.findWithLockingById(executionId).orNotFound()
         execution.apply {
@@ -284,11 +279,11 @@ class TestExecutionService(
                 executionId,
                 test.pluginName,
                 test.filePath
-            )
-                .orElseThrow {
-                    log.error("Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}")
-                    NoSuchElementException()
-                }
+            ).orNotFound {
+                val errorMessage = "Can't find test_execution for executionId=$executionId, test.pluginName=${test.pluginName}, test.filePath=${test.filePath}"
+                log.error(errorMessage)
+                errorMessage
+            }
             testExecutionRepository.save(testExecution.apply {
                 this.agent = agent
             })
@@ -296,44 +291,56 @@ class TestExecutionService(
     }
 
     /**
-     * @param containerIds the list of agents, for which corresponding test executions should be marked as failed
-     * @param condition
+     * @param containerId the container ID of agent, for which corresponding test executions should be marked as failed
      */
     @Transactional
     @Suppress("UnsafeCallOnNullableType")
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, condition: (TestExecution) -> Boolean = { true }) {
-        containerIds.forEach { containerId ->
-            val agent = requireNotNull(agentRepository.findByContainerId(containerId)) {
-                "Agent with containerId=[$containerId] was not found in the DB"
-            }
-            val agentId = agent.requiredId()
-            val executionId = agentService.getExecution(agent).requiredId()
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(containerId: String) {
+        val agent = agentService.getAgentByContainerId(containerId)
+        val agentId = agent.requiredId()
+        val executionId = agentService.getExecution(agent).requiredId()
 
-            val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentId(
-                executionId,
-                agentId
-            ).filter(condition)
+        val testExecutionList = testExecutionRepository.findByExecutionIdAndAgentIdAndStatus(
+            executionId,
+            agentId,
+            TestResultStatus.READY_FOR_TESTING,
+        )
 
-            if (testExecutionList.isEmpty()) {
-                // Crashed agent could be not assigned with tests, so just warn and return
-                log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
-                return@forEach
-            }
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId and agentId=$agentId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
 
-            testExecutionList.map { testExecution ->
-                testExecutionRepository.save(testExecution.apply {
-                    this.status = TestResultStatus.INTERNAL_ERROR
-                    // In case of execution without errors all information about test execution we take from
-                    // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
-                    this.endTime = LocalDateTime.now()
-                })
-            }.also { testExecutions ->
-                if (testExecutions.isNotEmpty()) {
-                    log.info("Test executions with ids ${testExecutions.map { it.id }} were failed with internal error")
-                }
+    /**
+     * @param executionId the ID of an execution, for which corresponding test executions should be marked as failed
+     */
+    @Transactional
+    fun markAllTestExecutionsOfExecutionAsFailed(executionId: Long) {
+        val testExecutionList = testExecutionRepository.findByExecutionId(executionId)
+        if (testExecutionList.isEmpty()) {
+            // Crashed agent could be not assigned with tests, so just warn and return
+            log.warn("Can't find `test_execution`s for executionId=$executionId")
+            return
+        }
+        testExecutionList.doMarkTestExecutionOfAgentsAsFailed()
+    }
+
+    private fun List<TestExecution>.doMarkTestExecutionOfAgentsAsFailed() = this
+        .map { testExecution ->
+            testExecution.apply {
+                this.status = TestResultStatus.INTERNAL_ERROR
+                // In case of execution without errors all information about test execution we take from
+                // json report, however in case when agent is crashed, it's unavailable, so fill at least end time
+                this.endTime = LocalDateTime.now()
             }
         }
-    }
+        .let { testExecutionRepository.saveAll(it) }
+        .also {
+            log.info("Test executions with ids ${this.map { it.requiredId() }} were failed with internal error")
+        }
 
     private fun Long?.orZeroIfNotApplicable() = this?.takeUnless { CountWarnings.isNotApplicable(it.toInt()) } ?: 0
 

@@ -12,7 +12,7 @@
 
 package com.saveourtool.save.frontend.externals
 
-import dom.html.HTMLElement
+import web.html.HTMLElement
 
 inline fun <reified T : HTMLElement> BoundFunctions.findByTextAndCast(text: String, options: dynamic = undefined, waitForOptions: dynamic = null) =
         findByText(text, options, waitForOptions).then { it as T }

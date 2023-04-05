@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
@@ -45,11 +46,12 @@ class ContainerLogController(
         Parameter(name = "limit", `in` = ParameterIn.QUERY, description = "limit for result", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched logs for container.")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getByApplicationName(
         @RequestParam applicationName: String,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime,
-        @RequestParam(required = false, defaultValue = LIMIT_DEFAULT) limit: Int,
+        @RequestParam(required = false, defaultValue = LogService.LOG_SIZE_LIMIT_DEFAULT) limit: Int,
     ): Mono<StringListResponse> = logService.getByApplicationName(applicationName, from.toInstantAtDefaultZone(), to.toInstantAtDefaultZone(), limit)
         .map { ResponseEntity.ok(it) }
 
@@ -66,11 +68,12 @@ class ContainerLogController(
         Parameter(name = "limit", `in` = ParameterIn.QUERY, description = "limit for result", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched logs for container.")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun getByContainerName(
         @RequestParam containerName: String,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime,
-        @RequestParam(required = false, defaultValue = LIMIT_DEFAULT) limit: Int,
+        @RequestParam(required = false, defaultValue = LogService.LOG_SIZE_LIMIT_DEFAULT) limit: Int,
     ): Mono<StringListResponse> = logService.getByContainerName(containerName, from.toInstantAtDefaultZone(), to.toInstantAtDefaultZone(), limit)
         .map { ResponseEntity.ok(it) }
 
@@ -85,9 +88,10 @@ class ContainerLogController(
         Parameter(name = "limit", `in` = ParameterIn.QUERY, description = "limit for result", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched logs for container.")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun logs(
         @RequestParam containerName: String,
-        @RequestParam(required = false, defaultValue = LIMIT_DEFAULT) limit: Int,
+        @RequestParam(required = false, defaultValue = LogService.LOG_SIZE_LIMIT_DEFAULT) limit: Int,
     ): Mono<StringListResponse> = blockingToMono {
         agentService.getAgentByContainerName(containerName)
     }
@@ -103,8 +107,4 @@ class ContainerLogController(
             )
         }
         .map { ResponseEntity.ok(it) }
-
-    companion object {
-        private const val LIMIT_DEFAULT = "1000"
-    }
 }

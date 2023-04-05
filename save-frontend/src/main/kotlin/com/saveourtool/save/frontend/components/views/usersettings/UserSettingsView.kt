@@ -4,13 +4,14 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationWithUsers
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getUser
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -18,23 +19,18 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import dom.html.HTMLInputElement
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
-import web.http.FormData
+import web.html.HTMLInputElement
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -57,16 +53,6 @@ external interface UserSettingsProps : PropsWithChildren {
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
 external interface UserSettingsViewState : State {
     /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
-
-    /**
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
@@ -85,6 +71,16 @@ external interface UserSettingsViewState : State {
      * Conflict error message
      */
     var conflictErrorMessage: String?
+
+    /**
+     * Flag to handle avatar Window
+     */
+    var isAvatarWindowOpen: Boolean
+
+    /**
+     * User avatar
+     */
+    var avatar: String
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -93,8 +89,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private val renderMenu = renderMenu()
 
     init {
-        state.isUploading = false
         state.selfOrganizationWithUserList = emptyList()
+        state.isAvatarWindowOpen = false
     }
 
     /**
@@ -122,9 +118,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val organizationDtos = getOrganizationWithUsersList()
             setState {
                 userInfo = user
-                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
         }
     }
@@ -146,6 +142,21 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            title = AVATAR_TITLE
+            onCloseWindow = {
+                setState {
+                    isAvatarWindowOpen = false
+                }
+            }
+            imageUpload = { file ->
+                scope.launch {
+                    postImageUpload(file, props.userName!!, AvatarType.USER, ::noopLoadingHandler)
+                }
+            }
+        }
+
         div {
             className = ClassName("row justify-content-center")
             // ===================== LEFT COLUMN =======================================================================
@@ -166,24 +177,23 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     div {
                                         className = ClassName("col-md-4 pl-0 pr-0")
                                         label {
-                                            input {
-                                                type = InputType.file
-                                                hidden = true
-                                                onChange = {
-                                                    postImageUpload(it.target)
+                                            className = ClassName("btn")
+                                            title = AVATAR_TITLE
+                                            onClick = {
+                                                setState {
+                                                    isAvatarWindowOpen = true
                                                 }
                                             }
-                                            ariaLabel = "Change avatar owner"
                                             img {
                                                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                                src = state.image?.path?.let {
-                                                    "/api/$v1/avatar$it"
-                                                }
-                                                    ?: run {
-                                                        "img/undraw_profile.svg"
-                                                    }
+                                                src = state.avatar
                                                 height = 60.0
                                                 width = 60.0
+                                                onError = {
+                                                    setState {
+                                                        avatar = AVATAR_PLACEHOLDER
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -337,36 +347,16 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         }
     }
 
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                }
-                element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::classLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
-
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationWithUsersList() = post(
         url = "$apiUrl/organizations/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(OrganizationFilters.all),
+        body = Json.encodeToString(OrganizationFilter.all),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
+
+    companion object {
+        private const val AVATAR_TITLE = "Change avatar owner"
+    }
 }

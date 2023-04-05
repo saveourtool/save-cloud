@@ -6,10 +6,10 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(LnkUserProjectService::class),
 )
@@ -61,7 +61,7 @@ class ProjectControllerTest {
             .post()
             .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters.created)
+            .bodyValue(ProjectFilter.created)
             .exchange()
             .expectStatus()
             .isOk
@@ -122,7 +122,13 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+        )
 
         projectRepository.save(project)
 
@@ -145,7 +151,13 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete1",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+        )
 
         projectRepository.save(project)
 
@@ -168,7 +180,13 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 3)
         }
         val organization: Organization = organizationRepository.getOrganizationById(2)
-        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "ToDelete1",
+            "http://test.com",
+            "",
+            ProjectStatus.CREATED,
+            organization = organization,
+        )
 
         projectRepository.save(project)
 
@@ -193,7 +211,13 @@ class ProjectControllerTest {
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, organization = organization)
+        val project = Project(
+            "I",
+            "http://test.com",
+            "uurl",
+            ProjectStatus.CREATED,
+            organization = organization,
+        )
         saveProjectAndAssert(
             project,
             { expectStatus().isOk }

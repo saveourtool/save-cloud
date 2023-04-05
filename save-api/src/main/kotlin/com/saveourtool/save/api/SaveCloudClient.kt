@@ -11,8 +11,8 @@ import com.saveourtool.save.api.utils.getLatestExecution
 import com.saveourtool.save.api.utils.initializeHttpClient
 import com.saveourtool.save.api.utils.submitExecution
 import com.saveourtool.save.api.utils.uploadAdditionalFile
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus.PENDING
 import com.saveourtool.save.execution.ExecutionStatus.RUNNING
@@ -22,7 +22,7 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.getLogger
 
 import arrow.core.Either
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
@@ -77,7 +77,7 @@ class SaveCloudClient(
         }
         log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(additionalFileInfoList, contestName).getOrHandle { httpStatus ->
+        val executionRequest = submitExecution(additionalFileInfoList, contestName).getOrElse { httpStatus ->
             return "Failed to submit execution: HTTP $httpStatus".left()
         }
 
@@ -105,7 +105,7 @@ class SaveCloudClient(
      *   successful completion, or the HTTP status code if failed.
      */
     private suspend fun submitExecution(
-        additionalFiles: List<FileKey>?,
+        additionalFiles: List<FileDto>?,
         contestName: String?,
     ): Either<HttpStatusCode, CreateExecutionRequest> {
         val createExecutionRequest = CreateExecutionRequest(
@@ -116,7 +116,9 @@ class SaveCloudClient(
             testSuiteIds = evaluatedToolProperties.testSuites
                 .split(DATABASE_DELIMITER)
                 .map { it.toLong() },
-            files = additionalFiles.orEmpty(),
+            fileIds = additionalFiles
+                ?.map { it.requiredId() }
+                .orEmpty(),
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
@@ -176,7 +178,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<FileKey>? {
+    ): List<FileDto>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -186,9 +188,8 @@ class SaveCloudClient(
         }
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
-            .map { it.key }
 
-        val resultFileInfoList: MutableList<FileKey> = mutableListOf()
+        val resultFileInfoList: MutableList<FileDto> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
@@ -198,7 +199,7 @@ class SaveCloudClient(
                 resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: FileKey = httpClient.uploadAdditionalFile(file).key
+                val uploadedFile: FileDto = httpClient.uploadAdditionalFile(file)
                 resultFileInfoList.add(uploadedFile)
             }
         }

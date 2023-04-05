@@ -18,6 +18,8 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 
+import kotlin.time.toJavaDuration
+import kotlin.time.toKotlinDuration
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.KSerializer
@@ -27,7 +29,9 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModuleBuilder
 
+typealias KDuration = kotlin.time.Duration
 typealias KLocalDateTime = kotlinx.datetime.LocalDateTime
+typealias JDuration = java.time.Duration
 typealias JLocalDateTime = java.time.LocalDateTime
 typealias JInstant = java.time.Instant
 
@@ -40,6 +44,21 @@ private object JLocalDateTimeKSerializer : KSerializer<JLocalDateTime> {
     override fun serialize(encoder: Encoder, value: JLocalDateTime) = kotlinxSerializer.serialize(encoder, value.toKotlinLocalDateTime())
 }
 
+private object KDurationJsonSerializer : JsonSerializer<KDuration>() {
+    override fun serialize(value: KDuration?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+        gen?.codec?.writeValue(gen, value?.toJavaDuration())
+    }
+}
+
+private object KDurationJsonDeserializer : JsonDeserializer<KDuration>() {
+    @Suppress("UnsafeCallOnNullableType")
+    override fun deserialize(parser: JsonParser?, ctxt: DeserializationContext?): KDuration =
+            parser
+                ?.codec
+                ?.readValue(parser, JDuration::class.java)
+                ?.toKotlinDuration()!!
+}
+
 private object KLocalDateTimeJsonSerializer : JsonSerializer<KLocalDateTime>() {
     override fun serialize(value: KLocalDateTime?, gen: JsonGenerator?, serializers: SerializerProvider?) {
         gen?.codec?.writeValue(gen, value?.toJavaLocalDateTime())
@@ -47,15 +66,11 @@ private object KLocalDateTimeJsonSerializer : JsonSerializer<KLocalDateTime>() {
 }
 
 private object KLocalDateTimeJsonDeserializer : JsonDeserializer<KLocalDateTime>() {
+    @Suppress("UnsafeCallOnNullableType")
     override fun deserialize(parser: JsonParser?, ctxt: DeserializationContext?): KLocalDateTime = parser
         ?.codec
         ?.readValue(parser, JLocalDateTime::class.java)
-        ?.toKotlinLocalDateTime()
-        .let { result ->
-            requireNotNull(result) {
-                "Jackson guarantees that it cannot be null"
-            }
-        }
+        ?.toKotlinLocalDateTime()!!
 }
 
 /**
@@ -74,6 +89,19 @@ fun SerializersModuleBuilder.supportJLocalDateTime() {
 fun Jackson2ObjectMapperBuilder.supportKLocalDateTime(): Jackson2ObjectMapperBuilder = this
     .serializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonSerializer)
     .deserializerByType(KLocalDateTime::class.java, KLocalDateTimeJsonDeserializer)
+
+/**
+ * Reads and writes [kotlin.time.Duration] by reading/writing an instance of
+ * [java.time.Duration].
+ * _Jackson_ can't handle [kotlin.time.Duration] automatically yet.
+ * The resulting behaviour will be identical to that of `kotlinx.serialization`
+ * (both _JVM_ and _JS Legacy_).
+ *
+ * @return the original builder.
+ */
+fun Jackson2ObjectMapperBuilder.supportKDuration(): Jackson2ObjectMapperBuilder =
+        serializerByType(KDuration::class.java, KDurationJsonSerializer)
+            .deserializerByType(KDuration::class.java, KDurationJsonDeserializer)
 
 /**
  * @return [java.time.Instant] from [java.time.LocalDateTime] at default [java.time.ZoneId]

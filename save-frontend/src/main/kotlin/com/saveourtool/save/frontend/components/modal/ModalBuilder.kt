@@ -235,38 +235,91 @@ fun ChildrenBuilder.modalBuilder(
     classes: String = "",
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
-    buttonBuilder: ChildrenBuilder.() -> Unit,
+    buttonBuilder: (ChildrenBuilder.() -> Unit)?,
 ) {
     div {
         className = ClassName("modal-dialog $classes")
         div {
             className = ClassName("modal-content")
-            div {
-                className = ClassName("modal-header")
-                h5 {
-                    className = ClassName("modal-title")
-                    +title
-                }
-                onCloseButtonPressed?.let {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("close")
-                        asDynamic()["data-dismiss"] = "modal"
-                        ariaLabel = "Close"
-                        span {
-                            fontAwesomeIcon(icon = faTimesCircle)
-                            onClick = { onCloseButtonPressed() }
-                        }
-                    }
-                }
-            }
+            onCloseFun(
+                title,
+                onCloseButtonPressed,
+            )
             div {
                 className = ClassName("modal-body")
                 bodyBuilder()
             }
+            buttonBuilder?.let {
+                div {
+                    className = ClassName("modal-footer")
+                    it()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Creates modals with bootstrap styles for uploading avatars.
+ *
+ * @param title title of the modal that will be shown in top-left corner
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param isOpen
+ */
+fun ChildrenBuilder.modalAvatarBuilder(
+    isOpen: Boolean,
+    title: String,
+    onCloseButtonPressed: (() -> Unit),
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = mediumTransparentModalStyle
+        div {
+            className = ClassName("modal-dialog")
             div {
-                className = ClassName("modal-footer")
-                buttonBuilder()
+                className = ClassName("modal-content")
+                onCloseFun(
+                    title,
+                    onCloseButtonPressed,
+                )
+                div {
+                    className = ClassName("justify-content-center modal-footer")
+                    buttonBuilder()
+                }
+                div {
+                    className = ClassName("modal-body")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @param title
+ * @param onCloseButtonPressed
+ */
+fun ChildrenBuilder.onCloseFun(
+    title: String,
+    onCloseButtonPressed: (() -> Unit)?,
+) {
+    div {
+        className = ClassName("modal-header")
+        h5 {
+            className = ClassName("modal-title")
+            +title
+        }
+        onCloseButtonPressed?.let {
+            button {
+                type = ButtonType.button
+                className = ClassName("close")
+                asDynamic()["data-dismiss"] = "modal"
+                ariaLabel = "Close"
+                span {
+                    fontAwesomeIcon(icon = faTimesCircle)
+                    onClick = { onCloseButtonPressed() }
+                }
             }
         }
     }

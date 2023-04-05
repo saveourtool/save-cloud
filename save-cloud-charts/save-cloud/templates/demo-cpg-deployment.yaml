@@ -22,11 +22,15 @@ spec:
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: demo-cpg
+          # FixMe: set correct command when building image
+          command: ["/cnb/process/executable-jar"]
           {{- include "spring-boot.common" (merge (dict "service" .Values.demo_cpg) .) | nindent 10 }}
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.demo_cpg) .) | nindent 12 }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
+            - name: CLASSPATH
+              value: /workspace/BOOT-INF/lib/*:.
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.demo_cpg | nindent 10 }}

@@ -9,9 +9,10 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.test.TestsSourceVersionInfo
+import com.saveourtool.save.test.TestsSourceVersionInfoList
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.prettyPrint
-import com.saveourtool.save.utils.secondsToInstant
 
 import csstype.ClassName
 import csstype.Cursor
@@ -29,7 +30,7 @@ import react.dom.html.ReactHTML.ul
  * Display single TestSuiteSource as list option
  *
  * @param isSelected flag that defines if this test suite source is selected or not
- * @param testSuitesSourceDtoWithId
+ * @param testSuitesSourceDto
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
@@ -42,10 +43,10 @@ import react.dom.html.ReactHTML.ul
     "LongMethod",
 )
 fun ChildrenBuilder.showTestSuitesSourceAsListElement(
-    testSuitesSourceDtoWithId: TestSuitesSourceDtoWithId,
+    testSuitesSourceDto: TestSuitesSourceDto,
     isSelected: Boolean,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     refreshHandler: () -> Unit,
 ) {
@@ -57,7 +58,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             button {
                 className = ClassName("btn btn-lg btn-link p-0 mb-1")
                 onClick = {
-                    selectHandler(testSuitesSourceDtoWithId)
+                    selectHandler(testSuitesSourceDto)
                 }
                 label {
                     style = jso {
@@ -70,17 +71,17 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
                             faArrowRight
                         }
                     )
-                    +("  ${testSuitesSourceDtoWithId.content.name}")
+                    +("  ${testSuitesSourceDto.name}")
                 }
             }
 
             buttonBuilder(faEdit, null, title = "Edit source") {
-                editHandler(testSuitesSourceDtoWithId)
+                editHandler(testSuitesSourceDto)
             }
         }
         div {
             p {
-                +(testSuitesSourceDtoWithId.content.description ?: "Description is not provided.")
+                +(testSuitesSourceDto.description ?: "Description is not provided.")
             }
         }
         div {
@@ -88,7 +89,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
             div {
                 className = ClassName("float-left")
                 buttonBuilder("Fetch new version", "info", isOutline = true, classes = "btn-sm mr-2") {
-                    fetchHandler(testSuitesSourceDtoWithId.content)
+                    fetchHandler(testSuitesSourceDto)
                 }
             }
             if (isSelected) {
@@ -104,7 +105,7 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
                 asDynamic()["data-toggle"] = "tooltip"
                 asDynamic()["data-placement"] = "bottom"
                 title = "Organization-creator"
-                +(testSuitesSourceDtoWithId.content.organizationName)
+                +(testSuitesSourceDto.organizationName)
             }
         }
     }
@@ -113,17 +114,17 @@ fun ChildrenBuilder.showTestSuitesSourceAsListElement(
 /**
  * Display list of TestSuiteSources as a list
  *
- * @param testSuitesSources [TestSuitesSourceDtoWithIdList]
+ * @param testSuitesSources [TestSuitesSourceDtoList]
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
  * @param refreshHandler
  */
 fun ChildrenBuilder.showTestSuitesSources(
-    testSuitesSources: TestSuitesSourceDtoWithIdList,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    testSuitesSources: TestSuitesSourceDtoList,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     refreshHandler: () -> Unit,
 ) {
     div {
@@ -135,30 +136,30 @@ fun ChildrenBuilder.showTestSuitesSources(
 }
 
 /**
- * Display list of [TestSuitesSourceSnapshotKey] of [selectedTestSuiteSource]
+ * Display list of [TestsSourceVersionInfo] of [selectedTestSuiteSource]
  *
  * @param selectedTestSuiteSource
- * @param testSuitesSourcesSnapshotKeys
+ * @param testsSourceVersionInfoList
  * @param selectHandler callback invoked on TestSuitesSource selection
  * @param editHandler callback invoked on edit TestSuitesSource button pressed
  * @param fetchHandler callback invoked on fetch button pressed
- * @param deleteHandler callback invoked on [TestSuitesSourceSnapshotKey] deletion
+ * @param deleteHandler callback invoked on [TestsSourceVersionInfo] deletion
  * @param refreshHandler
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
-fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
-    selectedTestSuiteSource: TestSuitesSourceDtoWithId,
-    testSuitesSourcesSnapshotKeys: TestSuitesSourceSnapshotKeyList,
-    selectHandler: (TestSuitesSourceDtoWithId) -> Unit,
-    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+fun ChildrenBuilder.showTestsSourceVersionInfoList(
+    selectedTestSuiteSource: TestSuitesSourceDto,
+    testsSourceVersionInfoList: TestsSourceVersionInfoList,
+    selectHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-    deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit,
+    deleteHandler: (TestsSourceVersionInfo) -> Unit,
     refreshHandler: () -> Unit,
 ) {
     ul {
         className = ClassName("list-group col-8")
         showTestSuitesSourceAsListElement(selectedTestSuiteSource, true, selectHandler, editHandler, fetchHandler, refreshHandler)
-        if (testSuitesSourcesSnapshotKeys.isEmpty()) {
+        if (testsSourceVersionInfoList.isEmpty()) {
             li {
                 className = ClassName("list-group-item list-group-item-light")
                 +"This source is not fetched yet..."
@@ -178,21 +179,21 @@ fun ChildrenBuilder.showTestSuitesSourceSnapshotKeys(
                     }
                 }
             }
-            testSuitesSourcesSnapshotKeys.forEach { testSuitesSourceSnapshotKey ->
+            testsSourceVersionInfoList.forEach { testsSourceVersionInfo ->
                 li {
                     className = ClassName("list-group-item")
                     div {
                         className = ClassName("clearfix")
                         div {
                             className = ClassName("float-left")
-                            +testSuitesSourceSnapshotKey.version
+                            +testsSourceVersionInfo.version
                         }
                         buttonBuilder(faTimesCircle, style = null, classes = "float-right btn-sm pt-0 pb-0") {
-                            deleteHandler(testSuitesSourceSnapshotKey)
+                            deleteHandler(testsSourceVersionInfo)
                         }
                         div {
                             className = ClassName("float-right")
-                            +testSuitesSourceSnapshotKey.creationTimeInMills.secondsToInstant().prettyPrint()
+                            +testsSourceVersionInfo.creationTime.prettyPrint()
                         }
                     }
                 }

@@ -46,7 +46,6 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - /home/saveu/configs/sandbox:/home/cnb/config
-      - save-fs-storage:/home/cnb/files
       - save-tmp-resources:/tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -62,7 +61,6 @@ services:
       - db_username
       - db_password
     volumes:
-      - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/backend:/home/cnb/config
     ports:
       - "5800:5800"
@@ -82,7 +80,6 @@ services:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     volumes:
       - save:/home/cnb/
-      - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/preprocessor:/home/cnb/config
     ports:
       - "5200:5200"
@@ -109,7 +106,7 @@ services:
   demo:
     image: ghcr.io/saveourtool/save-demo:${DEMO_TAG}
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
     ports:
       - "5421:5421"
     volumes:
@@ -131,7 +128,7 @@ services:
         - "prometheus-job=save-demo-cpg"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.40.6
+    image: prom/prometheus:v2.42.0
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -148,7 +145,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.3.1
+    image: grafana/grafana:9.4.3
     ports:
       - "9100:3000"
     volumes:
@@ -160,7 +157,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:2.7.1
+    image: grafana/loki:2.7.4
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/loki.yaml
@@ -179,7 +176,6 @@ networks:
 
 volumes:
   save:
-  save-fs-storage:
   grafana-storage:
   prometheus-storage:
   loki-storage:

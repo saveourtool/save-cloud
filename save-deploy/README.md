@@ -12,7 +12,25 @@ save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for s
 * To build the project and run all tests, execute `./gradlew build`.
 * For deployment, all microservices are packaged as docker images with the version based on latest git tag and latest commit hash, if there are commits after tag.
 
-Deployment is performed on server via docker swarm or locally via docker-compose. See detailed information below.
+Deployment is performed on server via docker swarm or locally via `docker compose`. See detailed information below.
+
+### Dependency to `save-cli`
+The `libs.version.toml` contains `save-cli` version.
+The `save-agent` uses this version as a compile dependency to read execution's reports.
+
+The `save-backend` and `save-sandbox` download newer versions of `save-cli` from _GitHub_ on startup.
+
+#### Using a `SNAPSHOT` version of `save-cli`
+
+If `save-cli` is set to snapshot version in `lib.version.toml`, we download `save-cli`'s sources and build them in _GitHub_ action: [Build and push Docker images](../.github/workflows/deploy_images.yml).
+Then _Gradle_ adds the result (_.kexe_) to `save-backend` and `save-sandbox` as a runtime dependency
+
+**Under the hood:** _Gradle_ supports two variables `saveCliVersion` and `saveCliPath`.
+The `saveCliVersion` overrides version of `save-cli` from `lib.version.toml`.
+The `saveCliPath` specifies a path to `save-cli`'s _.kexe_ and it's required when version of `save-cli` is **SNAPSHOT**.
+
+**Note:** `libs.version.toml` can contain _blabla-SNAPSHOT_ version, but we will build a version from the latest main in `save-cli`
+and set the built version of `save-cli` to generated file: `generated/SaveCliVersion.kt`.
 
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
@@ -66,7 +84,7 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
   
 ## Local deployment
 Usually, not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
-* Ensure that docker daemon is running and docker-compose is installed.
+* Ensure that docker daemon is running and `docker compose` is installed.
   * If running on a system without Unix socket connection to the Docker Daemon (e.g. with Docker for Windows), docker daemon should have HTTP
     port enabled. Then, `docker-tcp` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
@@ -183,19 +201,100 @@ Usually, not the whole stack is required for development. Application logic is p
    The resulting application settings may look like this: [screenshot](../info/img/github-oauth-app-settings.png).
 
 ## Local debugging
-You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
-If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
-To run on Windows you need to compile `save-agent` on WSL and put `saveAgentDistroFilepath` to `%USERPROFILE%\.gradle\gradle.properties` <br/>
-For example:
+You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.
 
-    saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+#### Using `save-agent` executable on Windows
+
+If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.
+To run on Windows, you need to build and package `save-agent` on WSL.
+
+When building from the WSL, better use a separate local _Git_ repository, for
+two reasons:
+
+1. Sometimes, WSL doesn't have enough permissions to create directories on the
+   NTFS file system, so file access errors may occur.
+1. Windows and Linux versions of _Gradle_ will use different absolute paths when
+   accessing the same local _Git_ repository, so, unless you each time do a full
+   rebuild, you'll encounter `NoSuchFileException` errors when switching from
+   Windows to WSL and back. 
+
+Under WSL, from a separate local _Git_ repository run:
+
+```bash
+./gradlew :save-agent:copyAgentDistribution
+```
+
+and provide the path to the JAR archive which contains `save-agent.kexe` via the
+`saveAgentDistroFilepath` _Gradle_ property, by setting the above property
+either under project-specific `gradle.properties`, or, globally, under
+`%USERPROFILE%\.gradle\gradle.properties`, e.g.:
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
+```
+
+Using forward slashes on Windows is allowed, too (_Gradle_ will understand such
+paths just fine):
+
+```properties
+# gradle.properties
+saveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
+```
+
+Alternatively, you can set the property directly on the command line
+(`-PsaveAgentDistroFilepath=...`) or on a per _Run Configuration_ basis (in IDEA).
+
+Once the _agent_ distribution is built and `saveAgentDistroFilepath` is set, you
+can run (on Windows):
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro
+```
+
+or
+
+```bat
+gradlew.bat :save-backend:downloadSaveAgentDistro -PsaveAgentDistroFilepath=file:////wsl$/Ubuntu/home/username/projects/save-cloud/save-agent/build/libs/save-agent-0.4.0-SNAPSHOT-distribution.jar
+```
+
+Once the task completes, the _agent_ JAR can be found under
+`save-backend\build\agentDistro` directory.
+
+For the classpath changes to take effect:
+
+1. Reload the project from disk (_Project_ tool window in IDEA).
+1. Reload the project model (_Gradle_ tool window in IDEA).
+1. Re-start the _back-end_ application.
+
+Then verify that the agent is indeed available for download from the _S3_
+by checking the path `s3:/cnb/cnb/files/internal-storage/latest/save-agent.kexe`.
+It should be available by url: `http://127.0.0.1:9090/browser/cnb/cnb/files/internal-storage/latest/save-agent.kexe`
+
+Similarly, troubles downloading an _agent_ binary from the _S3_ can be
+diagnosed using `docker logs` (post-mortem).
+Here, you can see a container failing to execute the JSON data
+([#1663](https://github.com/saveourtool/save-cloud/issues/1663)):
+
+```console
+$ docker container ls -a | grep -F 'save-execution' | awk '{ print $1 }' | xargs -n1 -r docker logs 2>&1 | grep -F 'save-agent.kexe'
++ curl -vvv http://host.docker.internal:9000/cnb/cnb/files/internal-storage/latest/save-agent.kexe?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=DZHORWNWWGHIRY54R97V%2F20230215%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230215T082823Z&X-Amz-Expires=604800&X-Amz-Security-Token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJEWkhPUldOV1dHSElSWTU0Ujk3ViIsImV4cCI6MTY3NjQ5MTU0NiwicGFyZW50IjoiYWRtaW4ifQ._yowS3oqSpE61BkFp7Gr0Ll9qBL4XFF9cJNT6FZBQeul-JkOaw3LGQKCIwiwvTAqXv0BRQzKAY8t4Fa82oSBLg&X-Amz-SignedHeaders=host&versionId=null&X-Amz-Signature=2bf63f08642ca46eb93752771f768504a22e303900b3dab85a50525f1981a420 --output save-agent.kexe
++ chmod +x save-agent.kexe
++ ./save-agent.kexe
+./save-agent.kexe: 1: <?xml version="1.0" encoding="UTF-8"?> <Error><Code>SignatureDoesNotMatch</Code><Message>The request signature we calculated does not match the signature you provided. Check your key and signing method.</Message><Key>cnb/files/internal-storage/latest/save-agent.kexe</Key><BucketName>cnb</BucketName><Resource>/cnb/cnb/files/internal-storage/latest/save-agent.kexe</Resource><RequestId>1743F2288515EEB0</RequestId><HostId>3f1ca0e4-b874-42fa-9843-5d2cc7de7d28</HostId></Error>: not found
+```
+
+#### Using a custom `save-cli` executable on Windows
 
 If you need to test changes in `save-cli` you can also compile `SNAPSHOT` version of `save-cli` on WSL <br/>
 and set `saveCliPath` and `saveCliVersion` in `%USERPROFILE%\.gradle\gradle.properties` <br/>
 For example:
 
-    saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
-    saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```properties
+# gradle.properties
+saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
+saveCliVersion=0.4.0-alpha.0.42+78a24a8
+```
 
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
 
@@ -203,10 +302,6 @@ the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe
 If setting `save-agent`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
 Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be available via TCP.
 Do not forget to use `mac` profile.
-
-#### Note: 
-* This works only if snapshot version of save-core is set in lib.version.toml. 
-* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
 | port | description            |
@@ -217,7 +312,7 @@ Do not forget to use `mac` profile.
 | 5100 | save-orchestrator      |
 | 5200 | save-test-preprocessor |
 | 5300 | api-gateway            |
- | 5400 | save-sandbox          |
+| 5400 | save-sandbox           |
 | 9090 | prometheus             |
 | 9091 | node_exporter          |
 | 9100 | grafana                |

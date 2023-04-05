@@ -1,21 +1,21 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.demo.DemoAdditionalParams
 import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.runners.Runner
+import reactor.core.publisher.Mono
 
 /**
  * Abstract service interface for different demonstration services
  */
-abstract class AbstractDemoService<in P : DemoAdditionalParams, in K : Any, out R : DemoResult>(
-    private val runner: Runner<P, K, R>,
+open class AbstractDemoService(
+    private val runner: Runner,
 ) {
     /**
-     * Run demo on [demoFileLines] with [demoAdditionalParams] and return result as [DemoResult]
+     * Run demo on [runRequest] and return result as [DemoResult]
      *
-     * @param demoFileLines list of lines of input file that will be used for demo
-     * @param demoAdditionalParams additional params as [DemoAdditionalParams]
+     * @param runRequest additional params as [DemoRunRequest]
      * @return report as [DemoResult]
      */
-    abstract fun launch(demoFileLines: List<String>, demoAdditionalParams: P? = null): R
+    fun run(runRequest: DemoRunRequest = DemoRunRequest.empty): Mono<DemoResult> = runner.run(runRequest)
 }

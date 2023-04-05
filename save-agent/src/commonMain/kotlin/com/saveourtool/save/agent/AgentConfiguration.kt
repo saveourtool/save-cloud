@@ -6,19 +6,18 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.utils.requiredEnv
+import generated.SAVE_CLOUD_VERSION
 
 import kotlinx.serialization.Serializable
 
 /**
  * Configuration for save agent.
  *
- * @property id agent id
- * @property name agent name
- * @property version agent version
+ * @property info agent info
  * @property heartbeat configuration of heartbeats
  * @property cliCommand a command that agent will use to run SAVE cli
  * @property requestTimeoutMillis timeout for all http request
@@ -30,9 +29,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AgentConfiguration(
-    val id: String,
-    val name: String,
-    val version: String,
+    val info: AgentInfo,
     val heartbeat: HeartbeatConfig,
     val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
     val requestTimeoutMillis: Long = 60000,
@@ -47,11 +44,13 @@ data class AgentConfiguration(
          * @return [AgentConfiguration] with required fields initialized from env
          */
         internal fun initializeFromEnv() = AgentConfiguration(
-            id = requiredEnv(AgentEnvName.CONTAINER_ID),
-            name = requiredEnv(AgentEnvName.CONTAINER_NAME),
-            version = requiredEnv(AgentEnvName.AGENT_VERSION),
+            info = AgentInfo(
+                containerId = requiredEnv(AgentEnvName.CONTAINER_ID.name),
+                containerName = requiredEnv(AgentEnvName.CONTAINER_NAME.name),
+                version = SAVE_CLOUD_VERSION,
+            ),
             heartbeat = HeartbeatConfig(
-                url = requiredEnv(AgentEnvName.HEARTBEAT_URL),
+                url = requiredEnv(AgentEnvName.HEARTBEAT_URL.name),
             ),
         )
     }

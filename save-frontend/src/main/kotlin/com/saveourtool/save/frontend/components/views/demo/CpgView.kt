@@ -108,7 +108,7 @@ val cpgView: VFC = VFC {
                     this.resultBuilder = { builder ->
                         with(builder) {
                             div {
-                                className = ClassName("card card-body")
+                                className = ClassName("card card-body px-0 py-0")
                                 style = jso {
                                     height = "83%".unsafeCast<Height>()
                                     display = Display.block
@@ -136,7 +136,7 @@ val cpgView: VFC = VFC {
                                         cpgResult.cpgGraph.nodes.find { node -> node.key == nodeName }?.let { node ->
                                             displayCpgNodeAdditionalInfo(
                                                 node.attributes.label,
-                                                cpgResult.applicationName,
+                                                cpgResult.query,
                                                 node.attributes.additionalInfo,
                                             ) {
                                                 setSelectedNodeName(it)
@@ -153,9 +153,13 @@ val cpgView: VFC = VFC {
                                 }
                             }
                             div {
-                                val alertStyle = if (cpgResult.applicationName.isNotBlank()) "alert-primary" else ""
+                                val alertStyle = when {
+                                    cpgResult.query.isBlank() -> ""
+                                    cpgResult.query.startsWith("Error") -> "alert-warning"
+                                    else -> "alert-primary"
+                                }
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
-                                +cpgResult.applicationName
+                                +cpgResult.query
                             }
                         }
                     }
@@ -170,8 +174,16 @@ val cpgView: VFC = VFC {
         div {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
-                    +log
-                    br { }
+                    when {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> pre {
+                            className = ClassName("text-danger")
+                            +log
+                        }
+                        else -> {
+                            +log
+                            br { }
+                        }
+                    }
                 }
 
                 "alert-primary"

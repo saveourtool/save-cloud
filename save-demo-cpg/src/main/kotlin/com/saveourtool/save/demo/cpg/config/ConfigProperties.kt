@@ -16,14 +16,13 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val authentication: Authentication,
     var uri: String
-)
-
-/**
- * @property username
- * @property password
- */
-@ConfigurationProperties(prefix = "authentication")
-data class Authentication(
-    var username: String,
-    var password: String,
-)
+) {
+    /**
+     * @property username
+     * @property password
+     */
+    data class Authentication(
+        var username: String,
+        var password: String,
+    )
+}

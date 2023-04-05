@@ -4,10 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -19,6 +18,7 @@ import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
+import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -26,28 +26,22 @@ import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 
 import csstype.*
-import dom.html.HTMLInputElement
 import history.Location
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
-import web.http.FormData
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -89,16 +83,6 @@ external interface OrganizationProps : PropsWithChildren {
  * [State] of project view component
  */
 external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
-
-    /**
-     * Image to owner avatar
-     */
-    var image: ImageInfo?
-
     /**
      * Organization
      */
@@ -158,6 +142,16 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Contains the paths of default and other tabs
      */
     var paths: PathsForTabs
+
+    /**
+     * Flag to handle avatar Window
+     */
+    var isAvatarWindowOpen: Boolean
+
+    /**
+     * Organization avatar
+     */
+    var avatar: String
 }
 
 /**
@@ -165,7 +159,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
     init {
-        state.isUploading = false
         state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = mutableListOf()
@@ -175,6 +168,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.isConfirmWindowOpen = false
         state.isErrorOpen = false
         state.confirmationType = ConfirmationType.DELETE_CONFIRM
+        state.isAvatarWindowOpen = false
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -209,12 +203,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             setState {
                 paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
-                image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
@@ -441,7 +435,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): List<ProjectDto> = post(
         url = "$apiUrl/projects/by-filters",
         headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilters("", props.organizationName, statuses)),
+        body = Json.encodeToString(ProjectFilter("", props.organizationName, statuses)),
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -487,30 +481,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.decodeFromJsonString()
         }
 
-    private fun postImageUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                }
-                element.files!!.asList().single().let { file ->
-                    val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.organizationName}&type=${AvatarType.ORGANIZATION}",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-                    setState {
-                        image = response
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
-
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
             className = ClassName("col-3 mb-4")
@@ -526,6 +496,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
+        avatarForm {
+            isOpen = state.isAvatarWindowOpen
+            title = AVATAR_TITLE
+            onCloseWindow = {
+                setState {
+                    isAvatarWindowOpen = false
+                }
+            }
+            imageUpload = { file ->
+                scope.launch {
+                    postImageUpload(file, props.organizationName, AvatarType.ORGANIZATION, ::noopLoadingHandler)
+                }
+            }
+        }
+
         div {
             className = ClassName("row d-flex")
             div {
@@ -535,24 +520,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     alignItems = AlignItems.center
                 }
                 label {
-                    input {
-                        type = InputType.file
-                        hidden = true
-                        onChange = { event ->
-                            postImageUpload(event.target)
+                    className = ClassName("btn")
+                    title = AVATAR_TITLE
+                    onClick = {
+                        setState {
+                            isAvatarWindowOpen = true
                         }
                     }
-                    ariaLabel = "Change organization's avatar"
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                        src = state.image?.path?.let {
-                            "/api/$v1/avatar$it"
-                        }
-                            ?: run {
-                                "img/company.svg"
-                            }
+                        src = state.avatar
                         height = 100.0
                         width = 100.0
+                        onError = {
+                            setState {
+                                avatar = AVATAR_PLACEHOLDER
+                            }
+                        }
                     }
                 }
 
@@ -609,6 +593,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
         OrganizationView::class
     ) {
+        private const val AVATAR_TITLE = "Change organization's avatar"
         const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = requestStatusContext

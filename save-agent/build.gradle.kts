@@ -1,11 +1,13 @@
-import com.saveourtool.save.buildutils.configureSpotless
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
 }
 
 kotlin {
@@ -35,7 +37,14 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        val commonMain by getting {
+        commonMain {
+            kotlin {
+                srcDir(
+                    tasks.named("generateSaveCloudVersionFile").map {
+                        it.outputs.files.singleFile
+                    }
+                )
+            }
             dependencies {
                 implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
@@ -51,7 +60,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
                 implementation(libs.ktor.client.mock)
@@ -91,7 +100,7 @@ kotlin {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
         from(linkTask.flatMap { it.outputFile })
-        from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
+        from(file("$projectDir/src/linuxX64Main/resources/agent.toml"))
     }
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {
@@ -129,7 +138,6 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
-configureSpotless()
 
 /*
  * On Windows, it's impossible to link a Linux executable against

@@ -6,7 +6,7 @@ package com.saveourtool.save.api.utils
 
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
-import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.extractUserNameAndSource
@@ -67,18 +67,18 @@ private object UserInformation {
  * @return list of available files from storage
  */
 suspend fun HttpClient.getAvailableFilesList(
-): List<FileInfo> = getRequestWithAuthAndJsonContentType(
+): List<FileDto> = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/$v1/files/list"
 ).body()
 
 /**
  * @param file
- * @return FileInfo of uploaded file
+ * @return [FileDto] of uploaded file
  */
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): FileInfo = this.post {
+): FileDto = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {

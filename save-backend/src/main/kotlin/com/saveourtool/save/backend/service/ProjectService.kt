@@ -5,8 +5,10 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -145,18 +147,29 @@ class ProjectService(
             getProjectsByOrganizationNameAndStatusIn(organizationName, authentication, EnumSet.of(ProjectStatus.CREATED))
 
     /**
-     * @param projectFilters is filter for [projects]
+     * @param projectFilter is filter for [projects]
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters): List<Project> =
-            when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
-                true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
-                true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
-                false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
-                false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
-                    ?.let { listOf(it) }.orEmpty()
-                else -> throw IllegalStateException("Impossible state")
-            }
+    fun getFiltered(projectFilter: ProjectFilter): List<Project> = projectRepository.findAll { root, _, cb ->
+        val publicPredicate = projectFilter.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilter.organizationName.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilter.organizationName)
+        }
+        val namePredicate = if (projectFilter.name.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<String>("name"), projectFilter.name)
+        }
+
+        cb.and(
+            root.get<ProjectStatus>("status").`in`(projectFilter.statuses),
+            publicPredicate,
+            orgNamePredicate,
+            namePredicate,
+        )
+    }
 
     /**
      * @param value is a string for a wrapper to search by match on a string in the database
@@ -203,4 +216,19 @@ class ProjectService(
      * @return [Project] with given [id]
      */
     fun findById(id: Long): Optional<Project> = projectRepository.findById(id)
+
+    /**
+     * @param name
+     * @param organizationName
+     * @param lazyMessage
+     * @return [Mono] of [Project] or [Mono.error] if [Project] is not found
+     */
+    fun projectByCoordinatesOrNotFound(
+        name: String,
+        organizationName: String,
+        lazyMessage: () -> String,
+    ): Mono<Project> = blockingToMono {
+        findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
+    }
+        .switchIfEmptyToNotFound(lazyMessage)
 }

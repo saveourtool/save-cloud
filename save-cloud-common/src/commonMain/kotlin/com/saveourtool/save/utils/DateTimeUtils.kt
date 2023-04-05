@@ -4,20 +4,38 @@
 
 package com.saveourtool.save.utils
 
+import kotlin.time.Duration
 import kotlinx.datetime.*
 
 /**
- * @return [Instant] from epoch time
+ * @return [Instant] from epoch time in mills
  */
-fun Long.secondsToInstant(): Instant = Instant.fromEpochMilliseconds(this)
+fun Long.millisToInstant(): Instant = Instant.fromEpochMilliseconds(this)
 
 /**
- * @return pretty string representation of [Instant]
+ * @return [Instant] from epoch time in seconds
  */
-fun Instant.prettyPrint() = this.toString()
+fun Long.secondsToInstant(): Instant = Instant.fromEpochSeconds(this)
+
+/**
+ * @param timeZone timezone to print the date time in
+ * @return pretty string representation of [LocalDateTime]
+ */
+fun LocalDateTime.prettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
+    .toString()
     .replace("T", " ")
     .replace("Z", "")
     .replace("-", ".")
+
+/**
+ * @param duration
+ */
+operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).plus(duration).toLocalDateTime(TimeZone.UTC)
+
+/**
+ * @param duration
+ */
+operator fun LocalDateTime.minus(duration: Duration) = toInstant(TimeZone.UTC).minus(duration).toLocalDateTime(TimeZone.UTC)
 
 /**
  * @return current local date-time in UTC timezone

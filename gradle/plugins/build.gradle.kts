@@ -1,10 +1,12 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
 }
 
 repositories {
-    gradlePluginPortal()
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -13,14 +15,16 @@ dependencies {
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.spring.boot.gradle.plugin)
     implementation(libs.kotlin.plugin.allopen)
-    implementation(libs.gradle.plugin.spotless)
     implementation(libs.download.plugin)
     implementation(libs.reckon.gradle.plugin)
+    implementation(libs.detekt.gradle.plugin)
+    implementation(libs.diktat.gradle.plugin)
+    implementation(libs.gradle.plugin.spotless)
+    implementation(libs.publish.gradle.plugin)
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "17"
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }

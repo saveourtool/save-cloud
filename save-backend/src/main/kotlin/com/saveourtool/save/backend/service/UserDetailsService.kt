@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -47,15 +48,15 @@ class UserDetailsService(
 
     /**
      * @param name
-     * @param relativePath
      * @throws NoSuchElementException
      */
-    fun saveAvatar(name: String, relativePath: String) {
-        val user = userRepository.findByName(name)
-            .orNotFound()
-            .apply {
-                avatar = relativePath
-            }
+    fun updateAvatarVersion(name: String) {
+        val user = userRepository.findByName(name).orNotFound()
+        var version = user.avatar?.substringAfterLast("?")?.toInt() ?: 0
+
+        user.apply {
+            avatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+        }
         user.let { userRepository.save(it) }
     }
 

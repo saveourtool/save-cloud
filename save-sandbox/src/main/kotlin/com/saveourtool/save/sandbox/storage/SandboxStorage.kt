@@ -1,12 +1,12 @@
 package com.saveourtool.save.sandbox.storage
 
+import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.pathNamesTill
+import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
+import com.saveourtool.save.storage.PATH_DELIMITER
+import com.saveourtool.save.storage.concatS3Key
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import java.nio.file.Path
-import kotlin.io.path.div
 
 /**
  * Storage implementation for sandbox
@@ -14,10 +14,14 @@ import kotlin.io.path.div
 @Component
 class SandboxStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<SandboxStorageKey>(Path.of(configProperties.fileStorage.location) / "sandbox", PATH_PARTS_COUNT) {
+    s3Operations: S3Operations,
+) : AbstractSimpleReactiveStorage<SandboxStorageKey>(
+    s3Operations,
+    concatS3Key(configProperties.s3Storage.prefix, "sandbox"),
+) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
-    override fun buildKey(rootDir: Path, pathToContent: Path): SandboxStorageKey {
-        val (filename, typeName, userId) = pathToContent.pathNamesTill(rootDir)
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): SandboxStorageKey {
+        val (userId, typeName, filename) = s3KeySuffix.split(PATH_DELIMITER)
         return SandboxStorageKey(
             userId.toLong(),
             SandboxStorageKeyType.valueOf(typeName),
@@ -25,8 +29,8 @@ class SandboxStorage(
         )
     }
 
-    override fun buildPathToContent(rootDir: Path, key: SandboxStorageKey): Path =
-            rootDir / key.userId.toString() / key.type.name / key.fileName
+    override fun doBuildS3KeySuffix(key: SandboxStorageKey): String =
+            concatS3Key(key.userId.toString(), key.type.name, key.fileName)
 
     /**
      * @param userId
@@ -38,9 +42,5 @@ class SandboxStorage(
         vararg types: SandboxStorageKeyType
     ): Flux<SandboxStorageKey> = list().filter {
         it.userId == userId && it.type in types
-    }
-
-    companion object {
-        private const val PATH_PARTS_COUNT = 3  // userId + key.type + fileName
     }
 }

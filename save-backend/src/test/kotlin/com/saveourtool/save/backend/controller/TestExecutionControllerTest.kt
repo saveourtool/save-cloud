@@ -1,17 +1,21 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
-import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.storage.DebugInfoStorage
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
+import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.utils.secondsToJLocalDateTime
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,6 +23,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,10 +38,12 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.kotlin.core.publisher.toMono
+import java.time.Instant
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
-@ExtendWith(MySqlExtension::class)
+@ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
 )
@@ -55,9 +63,17 @@ class TestExecutionControllerTest {
     @Autowired
     private lateinit var transactionManager: PlatformTransactionManager
 
+    @MockBean
+    private lateinit var debugInfoStorage: DebugInfoStorage
+
+    @MockBean
+    private lateinit var executionInfoStorage: ExecutionInfoStorage
+
     @BeforeEach
     fun setUp() {
         transactionTemplate = TransactionTemplate(transactionManager)
+        whenever(debugInfoStorage.doesExist(any())).thenReturn(false.toMono())
+        whenever(executionInfoStorage.doesExist(any())).thenReturn(false.toMono())
     }
 
     @Test
@@ -81,12 +97,13 @@ class TestExecutionControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
+        val expectedExecutionCount = 20
         webClient.post()
-            .uri("/api/$v1/test-executions?executionId=1&page=0&size=20")
+            .uri("/api/$v1/test-executions?executionId=1&page=0&size=$expectedExecutionCount")
             .exchange()
-            .expectBody<List<TestExecutionDto>>()
+            .expectBody<List<TestExecutionExtDto>>()
             .consumeWith {
-                assertEquals(20, it.responseBody!!.size)
+                assertEquals(expectedExecutionCount, it.responseBody!!.size)
             }
     }
 
@@ -115,7 +132,7 @@ class TestExecutionControllerTest {
     @WithMockUser
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
-        val testExecutionDtoFirst = TestExecutionDto(
+        val testExecutionDtoFirst = TestExecutionResult(
             "testPath29",
             "WarnPlugin",
             "container-3",
@@ -128,7 +145,7 @@ class TestExecutionControllerTest {
             expected = 0,
             unexpected = 0,
         )
-        val testExecutionDtoSecond = TestExecutionDto(
+        val testExecutionDtoSecond = TestExecutionResult(
             "testPath30",
             "WarnPlugin",
             "container-3",
@@ -141,8 +158,8 @@ class TestExecutionControllerTest {
             expected = 0,
             unexpected = 0,
         )
-        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
-        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
+        val passedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId, true)
+        val failedTestsBefore = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId, false)
         webClient.post()
             .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
@@ -151,10 +168,10 @@ class TestExecutionControllerTest {
             .expectBody<String>()
             .isEqualTo("Saved")
         val tests = getAllTestExecutions()
-        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId!!, true)
-        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
-        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
-        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
+        val passedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoSecond.agentContainerId, true)
+        val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId, false)
+        assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds.secondsToJLocalDateTime().withNano(0) })
+        assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds.secondsToJLocalDateTime().withNano(0) })
         assertEquals(passedTestsBefore, passedTestsAfter - 1)
         assertEquals(failedTestsBefore, failedTestsAfter - 1)
         assertTrue(tests.any {
@@ -174,7 +191,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should not save data if provided fields are invalid`() {
-        val testExecutionDto = TestExecutionDto(
+        val testExecutionDto = TestExecutionResult(
             "test-not-exists",
             "WarnPlugin",
             "container-1",
@@ -239,6 +256,6 @@ class TestExecutionControllerTest {
             }!!
 
     companion object {
-        private const val DEFAULT_DATE_TEST_EXECUTION = 1L
+        private val DEFAULT_DATE_TEST_EXECUTION: Long = Instant.now().epochSecond
     }
 }

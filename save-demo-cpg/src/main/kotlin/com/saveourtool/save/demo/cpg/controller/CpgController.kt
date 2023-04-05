@@ -5,11 +5,12 @@ import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.repository.CpgRepository
 import com.saveourtool.save.demo.cpg.service.CpgService
+import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import com.saveourtool.save.demo.cpg.utils.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.getLogger
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import de.fraunhofer.aisec.cpg.*
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -32,6 +33,7 @@ const val FILE_NAME_SEPARATOR = "==="
  * @property configProperties
  * @property cpgService
  * @property cpgRepository
+ * @property treeSitterService
  */
 @ApiSwaggerSupport
 @Tags(
@@ -44,6 +46,7 @@ class CpgController(
     val configProperties: ConfigProperties,
     val cpgService: CpgService,
     val cpgRepository: CpgRepository,
+    val treeSitterService: TreeSitterService,
 ) {
     /**
      * @param request
@@ -53,33 +56,68 @@ class CpgController(
     fun uploadCode(
         @RequestBody request: CpgRunRequest,
     ): Mono<CpgResult> = blockingToMono {
-        val tmpFolder = createTempDirectory(request.params.language.modeName)
-        try {
-            createFiles(request, tmpFolder)
+        when (request.params.engine) {
+            CpgEngine.CPG -> doUploadCode(
+                request,
+                cpgService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getGraph(it)
+            }
+            CpgEngine.TREE_SITTER -> doUploadCode(
+                request,
+                treeSitterService::translate,
+                cpgRepository::save
+            ) {
+                cpgRepository.getGraphForTreeSitter(it)
+            }
+        }
+    }
 
-            val (result, logs) = cpgService.translate(tmpFolder)
+    @Suppress("TooGenericExceptionCaught")
+    private fun <T> doUploadCode(
+        @RequestBody request: CpgRunRequest,
+        translateFunction: (Path) -> ResultWithLogs<T>,
+        saveFunction: (T) -> Long,
+        graphFunction: (Long) -> CpgGraph,
+    ): CpgResult {
+        val tmpFolder = createTempDirectory(request.params.language.modeName)
+        val logs: MutableList<String> = mutableListOf()
+        return try {
+            createFiles(request, tmpFolder)
+            val (result, logsFromLogback) = translateFunction(tmpFolder)
+            logs.addAll(logsFromLogback)
+
             result
                 .map {
-                    cpgRepository.save(it)
+                    saveFunction(it)
                 }
-                .map {
+                .map { queryId ->
                     CpgResult(
-                        cpgRepository.getGraph(it),
-                        tmpFolder.fileName.name,
+                        graphFunction(queryId),
+                        CpgRepository.getQueryForNodes(queryId),
                         logs,
                     )
                 }
-                .getOrHandle {
-                    CpgResult(
-                        CpgGraph.placeholder,
-                        "NONE",
-                        logs + "Exception: ${it.message} ${it.stackTraceToString()}",
-                    )
+                .getOrElse {
+                    logs += "Exception: ${it.message} ${it.stackTraceToString()}"
+                    logs.stubCpgResult(ERROR_PARSING)
                 }
+        } catch (e: Exception) {
+            // this is a very generic exception, but unfortunately we cannot let users get any stacktrace on the FE
+            logs += "Exception: ${e.message} ${e.stackTraceToString()}"
+            logs.stubCpgResult(ERROR_DB)
         } finally {
             FileUtils.deleteDirectory(tmpFolder.toFile())
         }
     }
+
+    private fun List<String>.stubCpgResult(error: String) =
+            CpgResult(
+                CpgGraph.placeholder,
+                error,
+                this,
+            )
 
     private fun createFiles(request: CpgRunRequest, tmpFolder: Path) {
         val files: MutableList<SourceCodeFile> = mutableListOf()
@@ -124,5 +162,7 @@ class CpgController(
 
     companion object {
         private val log: Logger = getLogger<CpgController>()
+        private const val ERROR_DB = "Error happened on read/write from/to a graph database, check logs for more details"
+        private const val ERROR_PARSING = "Error happened during the parsing of code to CPG, check logs for more details"
     }
 }

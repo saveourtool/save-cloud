@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.agent
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 /**
@@ -27,17 +26,15 @@ data class ExecutionProgress(
 /**
  * A heartbeat sent from Agent to Orchestrator.
  *
- * @property containerId unique ID of the agent which sent the heartbeat
+ * @property agentInfo info about agent
  * @property state current state of the Agent
  * @property executionProgress current progress of tests execution with this Agent
- * @property timestamp the time of heartbeat posting
  */
 @Serializable
 data class Heartbeat(
-    val containerId: String,
+    val agentInfo: AgentInfo,
     val state: AgentState,
     val executionProgress: ExecutionProgress,
-    val timestamp: Instant,
 )
 
 /**

@@ -4,18 +4,19 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.SAVE_AGENT_VERSION
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.OrchestratorAgentService
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.ContainerService
+import com.saveourtool.save.orchestrator.utils.emptyResponseAsMono
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -26,11 +27,9 @@ import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Flux
 
-import org.springframework.http.ResponseEntity
-import reactor.kotlin.core.publisher.toMono
+import reactor.core.publisher.Mono
+import java.net.URL
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class)
@@ -61,30 +60,30 @@ class AgentsControllerTest {
                 env = emptyMap(),
             )
         )
-        whenever(containerService.createContainers(any(), any()))
-            .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
         whenever(containerRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
 
-        whenever(containerService.startContainersAndUpdateExecution(any(), anyList()))
-            .thenReturn(Flux.just(1L, 2L, 3L))
-        whenever(orchestratorAgentService.addAgents(anyLong(), anyList()))
-            .thenReturn(listOf<Long>(1, 2).toMono())
-        whenever(orchestratorAgentService.updateAgentStatusesWithDto(anyList()))
-            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
+        whenever(containerService.validateContainersAreStarted(any()))
+            .thenReturn(Mono.just(Unit).then())
+        whenever(orchestratorAgentService.addAgent(anyLong(), any()))
+            .thenReturn(emptyResponseAsMono)
+        whenever(orchestratorAgentService.updateAgentStatus(any()))
+            .thenReturn(emptyResponseAsMono)
+        whenever(orchestratorAgentService.updateExecutionStatus(anyLong(), any(), anyOrNull()))
+            .thenReturn(emptyResponseAsMono)
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
+            .bodyValue(execution.toRunRequest(URL("https://someUrl")))
             .exchange()
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(containerService).prepareConfiguration(any())
-        verify(containerService).createContainers(any(), any())
-        verify(containerService).startContainersAndUpdateExecution(any(), anyList())
+        verify(containerService).createAndStartContainers(any(), any())
+        verify(containerService).validateContainersAreStarted(any())
     }
 
     @Test
@@ -93,20 +92,8 @@ class AgentsControllerTest {
         val execution = Execution.stub(project)
 
         assertThrows<IllegalArgumentException> {
-            execution.toRunRequest(SAVE_AGENT_VERSION, "someUrl")
+            execution.toRunRequest(URL("https://someUrl"))
         }
-    }
-
-    @Test
-    fun `should stop agents by id`() {
-        webClient
-            .post()
-            .uri("/stopAgents")
-            .body(BodyInserters.fromValue(listOf("id-of-agent")))
-            .exchange()
-            .expectStatus()
-            .isOk
-        verify(containerService).stopAgents(anyList())
     }
 
     @Test
@@ -118,6 +105,6 @@ class AgentsControllerTest {
             .isOk
 
         Thread.sleep(2_500)
-        verify(containerService, times(1)).cleanup(anyLong())
+        verify(containerService, times(1)).cleanupAllByExecution(anyLong())
     }
 }

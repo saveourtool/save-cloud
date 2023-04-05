@@ -1,13 +1,15 @@
-import com.saveourtool.save.buildutils.configureSpotless
-
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
+@Suppress("DSL_SCOPE_VIOLATION", "RUN_IN_SCRIPT")  // https://github.com/gradle/gradle/issues/22797
 plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.build-frontend-image-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
+    id("com.saveourtool.save.buildutils.save-cloud-version-file-configuration")
+    alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
@@ -50,7 +52,9 @@ kotlin {
                 }
             }
             commonWebpackConfig {
-                cssSupport.enabled = true
+                cssSupport {
+                    enabled.set(true)
+                }
             }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
@@ -100,6 +104,8 @@ kotlin {
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
             implementation(npm("react-ace", "^10.1.0"))
+            implementation(npm("react-avatar-image-cropper", "^1.4.2"))
+            implementation(npm("react-circle", "^1.1.1"))
             // react-sigma
             implementation(npm("@react-sigma/core", "^3.1.0"))
             implementation(npm("sigma", "^2.4.0"))
@@ -194,34 +200,12 @@ tasks.named<KotlinJsTest>("browserTest").configure {
     inputs.file(mswScriptTargetFile)
 }
 
-// generate kotlin file with project version to include in web page
-val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    inputs.property("project version", version.toString())
-    outputs.file(versionsFile)
-
-    doFirst {
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_VERSION = "$version"
-
-            """.trimIndent()
-        )
-    }
-}
 kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile> {
-    dependsOn(generateVersionFileTaskProvider)
-    inputs.file("$buildDir/generated/src/generated/Versions.kt")
-}
-tasks.named<org.gradle.jvm.tasks.Jar>("kotlinSourcesJar") {
-    dependsOn(generateVersionFileTaskProvider)
+    kotlin.srcDir(
+        tasks.named("generateSaveCloudVersionFile").map {
+            it.outputs.files.singleFile
+        }
+    )
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
@@ -258,4 +242,3 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
-configureSpotless()

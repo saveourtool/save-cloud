@@ -3,15 +3,16 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.modal.displayModalWithCheckBox
+
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.html.InputType
 
 val actionButton: FC<ButtonWithActionProps> = FC { props ->
     val windowOpenness = useWindowOpenness()

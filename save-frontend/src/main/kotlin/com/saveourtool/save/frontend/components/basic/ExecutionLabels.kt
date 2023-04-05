@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
-import dom.html.HTMLAnchorElement
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
@@ -31,6 +30,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
+import web.html.HTMLAnchorElement
 
 /**
  * Class contains all execution statistics values for rending
@@ -96,7 +96,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.failedTests = executionDto?.failedTests?.toString() ?: "0"
         this.runningTests = executionDto?.runningTests?.toString() ?: "0"
         this.passRate = executionDto
-            ?.let { "${calculateRate(it.passedTests, it.allTests)}" }
+            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?.toString()
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
@@ -228,7 +229,7 @@ fun ChildrenBuilder.displayProjectVersion(
                 +(executionDto?.status?.name ?: "N/A")
                 div {
                     className = ClassName("text-white-50 small")
-                    +"Project version: ${executionDto?.version ?: "N/A"}"
+                    +"Tests version: ${executionDto?.version ?: "N/A"}"
                 }
             }
         }

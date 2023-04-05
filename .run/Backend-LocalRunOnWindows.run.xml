@@ -7,7 +7,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.backend.SaveApplicationKt" />
     <module name="save-cloud.save-backend.main" />
-    <shortenClasspath name="NONE" />
+    <shortenClasspath name="ARGS_FILE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

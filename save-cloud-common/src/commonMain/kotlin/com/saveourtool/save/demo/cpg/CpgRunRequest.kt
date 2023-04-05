@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.cpg
 
-import com.saveourtool.save.demo.DemoRequest
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,4 +12,4 @@ import kotlinx.serialization.Serializable
 data class CpgRunRequest(
     val codeLines: List<String>,
     val params: CpgAdditionalParams,
-) : DemoRequest
+)

@@ -20,7 +20,6 @@ import kotlinx.serialization.Serializable
  * @property unexpectedChecks
  * @property testSuiteSourceName
  * @property score see [Execution.score]
- * @property testSuiteSourceName
  */
 @Serializable
 @Suppress("LongParameterList")

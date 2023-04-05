@@ -22,7 +22,9 @@ spring:
         paths: /home/cnb/config/application.properties
       secrets:
         enabled: true
-        paths: ${DATABASE_SECRETS_PATH}
+        paths:
+          - ${DATABASE_SECRETS_PATH}
+          - ${S3_SECRETS_PATH}
 kubernetes:
   informer:
     enabled: false

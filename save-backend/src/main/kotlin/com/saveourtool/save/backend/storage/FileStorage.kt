@@ -1,71 +1,46 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.pathNamesTill
+import com.saveourtool.save.backend.repository.FileRepository
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.ReactiveStorageWithDatabase
+import com.saveourtool.save.utils.*
+
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
-import java.nio.file.Path
-import kotlin.io.path.div
+import reactor.core.publisher.Mono
 
 /**
  * Storage for evaluated tools are loaded by users
  */
 @Service
 class FileStorage(
-    configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage", PATH_PARTS_COUNT) {
+    s3Operations: S3Operations,
+    fileRepository: FileRepository,
+    s3KeyManager: FileS3KeyManager,
+) : ReactiveStorageWithDatabase<FileDto, File, FileRepository, FileS3KeyManager>(
+    s3Operations,
+    s3KeyManager,
+    fileRepository
+) {
     /**
-     * @param projectCoordinates
-     * @return list of keys in storage by [projectCoordinates]
+     * @param project
+     * @return all [FileDto]s which provided [Project] does contain
      */
-    fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
-        .filter { it.projectCoordinates == projectCoordinates }
-
-    @Suppress(
-        "DestructuringDeclarationWithTooManyEntries"
-    )
-    override fun buildKey(rootDir: Path, pathToContent: Path): FileKey {
-        val pathNames = pathToContent.pathNamesTill(rootDir)
-
-        val (name, uploadedMillis, projectName, organizationName) = pathNames
-        return FileKey(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = organizationName,
-                projectName = projectName,
-            ),
-            name = name,
-            // assuming here, that we always store files in timestamp-based directories
-            uploadedMillis = uploadedMillis.toLong(),
-        )
+    fun listByProject(
+        project: Project,
+    ): Flux<FileDto> = blockingToFlux {
+        s3KeyManager.listByProject(project)
     }
 
-    override fun buildPathToContent(rootDir: Path, key: FileKey): Path = rootDir
-        .resolve(key.projectCoordinates.organizationName)
-        .resolve(key.projectCoordinates.projectName)
-        .resolve(key.uploadedMillis.toString())
-        .resolve(key.name)
-
     /**
-     * @param projectCoordinates
-     * @return a list of [FileInfo]'s
+     * @param fileId
+     * @return [FileDto] for [File] with provided [fileId]
      */
-    fun getFileInfoList(
-        projectCoordinates: ProjectCoordinates,
-    ): Flux<FileInfo> = list(projectCoordinates)
-        .flatMap { fileKey ->
-            contentSize(fileKey).map {
-                FileInfo(
-                    fileKey,
-                    it,
-                )
-            }
-        }
-
-    companion object {
-        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
+    fun getFileById(
+        fileId: Long,
+    ): Mono<FileDto> = blockingToMono {
+        s3KeyManager.findFileById(fileId)
     }
+        .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 }

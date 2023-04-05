@@ -1,11 +1,11 @@
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.fs
 import com.saveourtool.save.agent.utils.setenv
 import com.saveourtool.save.agent.utils.updateFromEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.logType
 import com.saveourtool.save.reporter.Report
+import com.saveourtool.save.utils.fs
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -29,7 +29,6 @@ open class SaveAgentTest {
     init {
         setenv(AgentEnvName.CONTAINER_ID.name, "agent-for-test")
         setenv(AgentEnvName.CONTAINER_NAME.name, "save-agent-for-test")
-        setenv(AgentEnvName.AGENT_VERSION.name, "save-agent-version")
         setenv(AgentEnvName.HEARTBEAT_URL.name, HEARTBEAT_ENDPOINT.toLocalhostUrl())
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode")
         setenv(AgentEnvName.EXECUTION_ID.name, "1")

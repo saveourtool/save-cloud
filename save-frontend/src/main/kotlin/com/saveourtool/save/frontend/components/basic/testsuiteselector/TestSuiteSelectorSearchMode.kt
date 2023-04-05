@@ -6,23 +6,22 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.filters.TestSuiteFilters
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.filters.TestSuiteFilter
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
-import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
-import dom.html.HTMLInputElement
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.html.HTMLInputElement
+import web.html.InputType
 
 val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
 
@@ -33,12 +32,12 @@ external interface TestSuiteSelectorSearchModeProps : Props {
     /**
      * List of test suites that should be preselected
      */
-    var preselectedTestSuites: List<TestSuiteDto>
+    var preselectedTestSuites: List<TestSuiteVersioned>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteVersioned>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
@@ -66,16 +65,16 @@ private fun ChildrenBuilder.buildInput(
 }
 
 private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
-    testSuites: List<TestSuiteDto>,
-    selectedTestSuites: List<TestSuiteDto>,
+    testSuites: List<TestSuiteVersioned>,
+    selectedTestSuites: List<TestSuiteVersioned>,
     isOnlyLatestVersion: Boolean,
-    onTestSuiteClick: (TestSuiteDto) -> Unit,
+    onTestSuiteClick: (TestSuiteVersioned) -> Unit,
 ) {
     val testSuitesToBeShown = testSuites.filter {
-        !isOnlyLatestVersion || it.version == it.source.latestFetchedVersion
+        !isOnlyLatestVersion || it.isLatestFetchedVersion
     }
 
-    showAvaliableTestSuites(
+    showAvailableTestSuites(
         testSuitesToBeShown,
         selectedTestSuites,
         TestSuiteSelectorMode.SEARCH,
@@ -86,26 +85,23 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
-    val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (filters, setFilters) = useState(TestSuiteFilters.empty)
-    val getFilteredTestSuites = debounce(
-        useDeferredRequest {
-            if (filters.isNotEmpty()) {
-                val testSuitesFromBackend: List<TestSuiteDto> = get(
-                    url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
-                        filters.copy(language = encodeURIComponent(filters.language))
-                        .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
-                    }",
-                    headers = jsonHeaders,
-                    loadingHandler = ::noopLoadingHandler,
-                    responseHandler = ::noopResponseHandler,
-                )
-                    .decodeFromJsonString()
-                setFilteredTestSuites(testSuitesFromBackend)
-            }
-        },
-        DEFAULT_DEBOUNCE_PERIOD,
-    )
+    val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
+    val (filters, setFilters) = useState(TestSuiteFilter.empty)
+    val getFilteredTestSuites = useDebouncedDeferredRequest(DEFAULT_DEBOUNCE_PERIOD) {
+        if (filters.isNotEmpty()) {
+            val testSuitesFromBackend: List<TestSuiteVersioned> = get(
+                url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
+                    filters.copy(language = encodeURIComponent(filters.language))
+                    .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
+                }",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString()
+            setFilteredTestSuites(testSuitesFromBackend)
+        }
+    }
 
     useEffect(filters) {
         if (filters.isEmpty()) {

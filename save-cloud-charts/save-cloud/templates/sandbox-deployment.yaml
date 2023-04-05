@@ -36,6 +36,8 @@ spec:
                   fieldPath: status.hostIP
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.mysql.dbPasswordFile }}
+            - name: S3_SECRETS_PATH
+              value: {{ .Values.s3.secretFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
             - name: POD_NAMESPACE
@@ -52,16 +54,17 @@ spec:
                   fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: fs-storage
-              mountPath: /home/cnb/files
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
+            - name: s3-secrets
+              mountPath: {{ .Values.s3.secretFile }}
           {{- include "spring-boot.management" .Values.sandbox | nindent 10 }}
           resources:
             limits:
               memory: 800M
             requests:
               memory: 600M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -77,7 +80,7 @@ spec:
             - mountPath: /data
               name: migrations-data
         - name: liquibase-runner
-          image: liquibase/liquibase:4.15
+          image: liquibase/liquibase:4.20
           securityContext:
             runAsUser: 1001
             runAsGroup: 1001
@@ -118,13 +121,14 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
-        - name: fs-storage
-          persistentVolumeClaim:
-            claimName: {{ .Values.sandbox.name }}-fs-storage
         - name: database-secret
           secret:
             secretName: db-secrets
+        - name: s3-secrets
+          secret:
+            secretName: s3-secrets
         - name: migrations-data
           emptyDir: { }

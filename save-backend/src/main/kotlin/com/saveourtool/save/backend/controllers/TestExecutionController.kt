@@ -1,24 +1,31 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.filters.TestExecutionFilters
-import com.saveourtool.save.from
+import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.test.analysis.api.TestIdGenerator
+import com.saveourtool.save.test.analysis.api.testId
+import com.saveourtool.save.test.analysis.entities.metadata
+import com.saveourtool.save.test.analysis.metrics.TestMetrics
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
+import arrow.core.plus
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
@@ -28,9 +35,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+import reactor.kotlin.extra.bool.logicalOr
 
 import java.math.BigInteger
 
@@ -45,12 +55,15 @@ import java.math.BigInteger
 )
 @RestController
 @Transactional
+@Suppress("LongParameterList")
 class TestExecutionController(
     private val testExecutionService: TestExecutionService,
     private val executionService: ExecutionService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val debugInfoStorage: DebugInfoStorage,
-    private val executionInfoStorage: ExecutionInfoStorage
+    private val executionInfoStorage: ExecutionInfoStorage,
+    private val testAnalysisService: TestAnalysisService,
+    private val testIdGenerator: TestIdGenerator,
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -61,6 +74,7 @@ class TestExecutionController(
      * @param filters
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
+     * @param testAnalysis if `true`, also perform test analysis.
      * @return a list of [TestExecutionDto]s
      */
     @PostMapping("/api/$v1/test-executions")
@@ -70,25 +84,81 @@ class TestExecutionController(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestBody(required = false) filters: TestExecutionFilters?,
+        @RequestBody(required = false) filters: TestExecutionFilter?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
+        @RequestParam(required = false, defaultValue = "false") testAnalysis: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = executionService.findExecution(executionId)
-        .toMonoOrNotFound()
+    ): Flux<TestExecutionExtDto> = blockingToMono {
+        executionService.findExecution(executionId)
+    }
+        .switchIfEmptyToNotFound()
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
-        .flatMapIterable {
-            log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
-        }
-        .map { it.toDto() }
-        .runIf({ checkDebugInfo }) {
-            flatMap { testExecutionDto ->
-                debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
-                    .zipWith(executionInfoStorage.doesExist(executionId))
-                    .map { testExecutionDto.copy(hasDebugInfo = (it.t1 || it.t2)) }
+        .flatMapMany { execution ->
+            val testExecutions = Flux.fromStream {
+                log.debug("Request to get test executions on page $page with size $size for execution $executionId")
+                testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilter.empty).stream()
             }
+
+            /*
+             * Test analysis: collect execution metadata.
+             */
+            val metadata = Mono.fromCallable(execution::metadata).cache().repeat()
+
+            testExecutions.zipWith(metadata)
+        }
+        .map { (testExecution, metadata) ->
+            testExecution to metadata
+        }
+        .mapRight { testExecution, metadata ->
+            /*
+             * Test analysis: collect test execution metadata.
+             */
+            metadata.extendWith(testExecution)
+        }
+        .mapLeft(TestExecution::toDto)
+        .mapRight(testIdGenerator::testId)
+        .run {
+            when {
+                /*
+                 * Test analysis.
+                 */
+                testAnalysis -> switchMap { (testExecution, testId) ->
+                    Mono.just(testExecution)
+                        .zipWith(
+                            testAnalysisService.getTestMetrics(testId),
+                            ::Pair,
+                        )
+                        .zipWith(
+                            testAnalysisService.analyze(testId).collectList(),
+                            Pair<TestExecutionDto, TestMetrics>::plus,
+                        )
+                }.flatMap { (testExecution, metrics, results) ->
+                    if (checkDebugInfo) {
+                        testExecution.hasDebugInfoAsMono()
+                            .map { hasDebugInfo ->
+                                testExecution.toExtended(testMetrics = metrics, analysisResults = results, hasDebugInfo = hasDebugInfo)
+                            }
+                    } else {
+                        testExecution.toExtended(testMetrics = metrics, analysisResults = results)
+                            .toMono()
+                    }
+                }
+
+                else -> flatMap { (testExecution, _) ->
+                    testExecution.hasDebugInfoAsMono()
+                        .map { hasDebugInfo ->
+                            testExecution.toExtended(hasDebugInfo = hasDebugInfo)
+                        }
+                }
+            }
+        }
+
+    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
+        .logicalOr(executionInfoStorage.doesExist(executionId))
+        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+            "Failure while checking for debug info availability."
         }
 
     /**
@@ -116,7 +186,7 @@ class TestExecutionController(
                 }
                 .mapNotNull {
                     if (page == null || size == null) {
-                        testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                        testExecutionService.getAllTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
                             TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
                         }
                     } else {
@@ -146,12 +216,9 @@ class TestExecutionController(
         }
         .map {
             testExecutionService.getTestExecution(executionId, testResultLocation)
-                .map { it.toDto() }
-                .orElseThrow {
-                    ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Test execution not found for executionId=$executionId and $testResultLocation"
-                    )
+                ?.toDto()
+                .orNotFound {
+                    "Test execution not found for executionId=$executionId and $testResultLocation"
                 }
         }
 
@@ -188,36 +255,34 @@ class TestExecutionController(
     @GetMapping("/internal/test-executions/get-by-container-id")
     fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
                                             @RequestParam status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(containerId, status)
+    ) = testExecutionService.getAllTestExecutions(containerId, status)
         .map { it.toDto() }
 
     /**
-     * @param onlyReadyForTesting
-     * @param containerIds
+     * @param executionId
      */
-    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
-    fun markTestExecutionsOfAgentsAsFailed(
-        @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
-        @RequestBody containerIds: Collection<String>,
-    ) {
-        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
-            if (onlyReadyForTesting) {
-                it.status == TestResultStatus.READY_FOR_TESTING
-            } else {
-                true
-            }
-        }
-    }
+    @PostMapping("/internal/test-executions/mark-all-as-failed-by-execution-id")
+    fun markAllTestExecutionsOfExecutionAsFailed(
+        @RequestParam executionId: Long,
+    ) = testExecutionService.markAllTestExecutionsOfExecutionAsFailed(executionId)
 
     /**
-     * @param testExecutionsDto
+     * @param containerId
+     */
+    @PostMapping("/internal/test-executions/mark-ready-for-testing-as-failed-by-container-id")
+    fun markReadyForTestingTestExecutionsOfAgentAsFailed(
+        @RequestBody containerId: String,
+    ) = testExecutionService.markReadyForTestingTestExecutionsOfAgentAsFailed(containerId)
+
+    /**
+     * @param testExecutionResults
      * @return response
      */
     @PostMapping(value = ["/internal/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>): ResponseEntity<String> = try {
-        if (testExecutionsDto.isEmpty()) {
+    fun saveTestResult(@RequestBody testExecutionResults: List<TestExecutionResult>): ResponseEntity<String> = try {
+        if (testExecutionResults.isEmpty()) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
-        } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
+        } else if (testExecutionService.saveTestResult(testExecutionResults).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")

@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
-import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -14,10 +13,10 @@ import csstype.None
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.datalist
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
+import web.html.InputType
 
 /**
  * Component that encapsulates debounced prefix autocompletion over [UserInfo]'s name field
@@ -84,25 +83,22 @@ external interface InputWithDebounceProps<T> : Props {
 
 private fun <T> inputWithDebounce() = FC<InputWithDebounceProps<T>> { props ->
     val (options, setOptions) = useState<List<T>>(emptyList())
-    val getOptions = debounce(
-        useDeferredRequest {
-            if (props.getString(props.selectedOption).isNotBlank()) {
-                val optionsFromBackend: List<T> = get(
-                    url = props.getUrlForOptions(props.getString(props.selectedOption)),
-                    headers = jsonHeaders,
-                    loadingHandler = ::noopLoadingHandler,
-                    responseHandler = ::noopResponseHandler,
-                )
-                    .unsafeMap {
-                        props.decodeListFromJsonString(it)
-                    }
-                setOptions(optionsFromBackend)
-            } else {
-                setOptions(emptyList())
-            }
-        },
-        props.debouncePeriod ?: DEFAULT_DEBOUNCE_PERIOD,
-    )
+    val getOptions = useDebouncedDeferredRequest(props.debouncePeriod ?: DEFAULT_DEBOUNCE_PERIOD) {
+        if (props.getString(props.selectedOption).isNotBlank()) {
+            val optionsFromBackend: List<T> = get(
+                url = props.getUrlForOptions(props.getString(props.selectedOption)),
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .unsafeMap {
+                    props.decodeListFromJsonString(it)
+                }
+            setOptions(optionsFromBackend)
+        } else {
+            setOptions(emptyList())
+        }
+    }
 
     useEffect(props.selectedOption) {
         getOptions()

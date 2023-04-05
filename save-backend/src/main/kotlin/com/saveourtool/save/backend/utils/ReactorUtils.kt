@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.backend.utils
 
-import com.saveourtool.save.utils.mapToInputStream
+import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
 import java.nio.ByteBuffer
@@ -50,18 +49,10 @@ inline fun <T> Flux<T>.filterWhenAndInvoke(crossinline onExclude: (T) -> Unit, c
 
 /**
  * @param objectMapper
- * @return convert current object to [Flux] of [ByteBuffer] as Json string using [objectMapper]
- */
-fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
-    .map { ByteBuffer.wrap(it) }
-    .toFlux()
-
-/**
- * @param objectMapper
  * @return convert [Flux] of [ByteBuffer] to object of [T] from Json string using [ObjectMapper]
  */
-inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): Mono<T> = this
-    .mapToInputStream()
+inline fun <reified T> Flux<ByteBuffer>.collectAsJsonTo(objectMapper: ObjectMapper): Mono<T> = this
+    .collectToInputStream()
     .map { objectMapper.readValue(it, T::class.java) }
 
 /**

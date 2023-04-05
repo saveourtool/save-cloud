@@ -1,7 +1,6 @@
-import com.saveourtool.save.buildutils.configureSpotless
-
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
 }
 
 dependencies {
@@ -12,5 +11,3 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
-
-configureSpotless()

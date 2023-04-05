@@ -10,7 +10,6 @@ plugins {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = Versions.jdk
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
@@ -21,6 +20,7 @@ kotlin {
     }
 }
 
+configureJacoco()
 tasks.withType<Test> {
     useJUnitPlatform()
 }

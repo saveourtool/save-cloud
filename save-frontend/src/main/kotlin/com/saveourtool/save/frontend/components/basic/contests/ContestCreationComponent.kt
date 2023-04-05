@@ -156,8 +156,8 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 contestDto.testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
-            ) { testSuiteDtos ->
-                setContestDto(contestDto.copy(testSuites = testSuiteDtos))
+            ) { testSuites ->
+                setContestDto(contestDto.copy(testSuites = testSuites))
             }
             div {
                 className = ClassName("")

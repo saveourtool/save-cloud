@@ -6,11 +6,9 @@ package com.saveourtool.save.agent.utils
 
 import platform.posix.SIGTERM
 import platform.posix.exit
-import platform.posix.getenv
 import platform.posix.signal
 
 import kotlinx.cinterop.staticCFunction
-import kotlinx.cinterop.toKString
 
 @Suppress("MemberNameEqualsClassName")
 actual class AtomicLong actual constructor(value: Long) {
@@ -33,8 +31,6 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
         holder.value = newValue
     }
 }
-
-internal actual fun getenv(envName: String): String? = getenv(envName)?.toKString()
 
 internal actual fun handleSigterm() {
     signal(SIGTERM, staticCFunction<Int, Unit> {

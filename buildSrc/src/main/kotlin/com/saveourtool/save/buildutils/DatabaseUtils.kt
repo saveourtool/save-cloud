@@ -16,28 +16,18 @@ data class DatabaseCredentials(
     val password: String
 ) {
     /**
-     * @return arguments for liquibase task
+     * @return adjusted [databaseUrl] for liquibase runner in docker
      */
-    fun toLiquibaseArguments(): Map<String, String> = mapOf(
-        "url" to "$databaseUrl?createDatabaseIfNotExist=true",
-        "username" to username,
-        "password" to password,
-    )
+    fun getDatabaseUrlForLiquibaseInDocker(): String =
+            "${databaseUrl.replace("localhost", "mysql")}?createDatabaseIfNotExist=true"
 }
 
 /**
+ * @param projectName save-backend, save-sandbox or save-demo
  * @param profile a profile to get credentials for
- * @return an instance of [DatabaseCredentials] for [profile] in backend
+ * @return an instance of [DatabaseCredentials] for [profile] in [projectName]
  */
-fun Project.getBackendDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-backend", profile)
-
-/**
- * @param profile a profile to get credentials for
- * @return an instance of [DatabaseCredentials] for [profile] in sandbox
- */
-fun Project.getSandboxDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-sandbox", profile)
-
-private fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
+fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
     val props = java.util.Properties()
     // Branch for other environments, e.g. local deployment or server deployment
     file("$projectName/src/main/resources/application-$profile.properties").inputStream().use(props::load)

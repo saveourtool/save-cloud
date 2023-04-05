@@ -11,6 +11,7 @@ enum class ProjectMenuBar {
     INFO,
     RUN,
     STATISTICS,
+    DEMO,
     SETTINGS,
     ;
 

@@ -138,7 +138,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param testSuite is testSuiteName
      * @param tag is tag
      * @param pageable a request for a page
-     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
     @Query(
@@ -178,9 +177,9 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param executionId if of execution
      * @param filePath path to test file
      * @param pluginName name of the plugin from test execution
-     * @return Optional TestExecution
+     * @return found [TestExecution] or null
      */
-    fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): Optional<TestExecution>
+    fun findByExecutionIdAndTestPluginNameAndTestFilePath(executionId: Long, pluginName: String, filePath: String): TestExecution?
 
     /**
      * Returns a TestExecution matched by a set of fields
@@ -194,10 +193,11 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
     /**
      * @param executionId
      * @param agentId
+     * @param status
      * @return list of TestExecution's
      */
     @Suppress("TYPE_ALIAS")
-    fun findByExecutionIdAndAgentId(executionId: Long, agentId: Long): List<TestExecution>
+    fun findByExecutionIdAndAgentIdAndStatus(executionId: Long, agentId: Long, status: TestResultStatus): List<TestExecution>
 
     /**
      * Delete a TestExecution matched by a set of fields

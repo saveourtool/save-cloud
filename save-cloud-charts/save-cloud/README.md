@@ -5,16 +5,26 @@ It will also create a Service for an external MySQL database.
 api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
 ## Prerequisites
-* save-backend expects the following secrets to be set under the secret `db-secrets` (`kubectl create secret generic db-secrets <...>`, 
+* **save-backend** expects the following secrets to be set under the secret `db-secrets` (`kubectl create secret generic db-secrets <...>`, 
   also see Secrets section in dev profile in [mysql-deployment.yaml](templates/mysql-deployment.yaml) as a reference):
   * `spring.datasource.username`
   * `spring.datasource.password`
   * `spring.datasource.backend-url`
   * `spring.datasource.sandbox-url`
-  
+  * `spring.datasource.demo-url`
+
   These secrets are then mounted under the path specified as `DATABASE_SECRETS_PATH` environment variable.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
+* **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
+  * `s3-storage.endpoint`
+  * `s3-storage.bucketName`
+  * `s3-storage.credentials.accessKeyId`
+  * `s3-storage.credentials.secretAccessKey`
+
+  These secrets are then mounted under the path specified as `S3_SECRETS_PATH` environment variable.
+  
+  For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic s3-secrets --from_literal=<property name>=<property value> <...>`
 * `kubectl create secret generic oauth-credentials ...` this secret should contain properties recognizable by spring security OAuth;
   it's used by api-gateway.
 

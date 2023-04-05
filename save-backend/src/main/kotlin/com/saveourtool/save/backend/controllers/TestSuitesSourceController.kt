@@ -1,18 +1,18 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.ByteBufferFluxResponse
-import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
+import com.saveourtool.save.test.TestsSourceVersionInfoList
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -20,11 +20,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.slf4j.Logger
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.multipart.Part
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -45,22 +42,14 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @Tags(
     Tag(name = "test-suites-source"),
 )
-@Suppress("LongParameterList")
+@RequestMapping("/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
-    private val testSuitesService: TestSuitesService,
+    private val testsSourceVersionService: TestsSourceVersionService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
-    private val executionService: ExecutionService,
-    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
-    @GetMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/list",
-            "/api/$v1/test-suites-sources/{organizationName}/list",
-        ],
-    )
+    @GetMapping("/{organizationName}/list")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -81,37 +70,7 @@ class TestSuitesSourceController(
                 .map { it.toDto() }
         }
 
-    @GetMapping(
-        path = [
-            "/api/$v1/test-suites-sources/{organizationName}/list-with-ids",
-        ],
-    )
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "List test suites source with id by organization name.",
-        description = "List test suites source with id by organization name.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true)
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of test suites sources with ids by organization name.")
-    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
-    fun listWithIds(
-        @PathVariable organizationName: String,
-    ): Mono<TestSuitesSourceDtoWithIdList> = getOrganization(organizationName)
-        .map { organization ->
-            testSuitesSourceService.getAllByOrganization(organization)
-                .map { it.toDtoWithId() }
-        }
-
-    @GetMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/{sourceName}",
-            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}",
-        ],
-    )
+    @GetMapping("/{organizationName}/{sourceName}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -134,120 +93,7 @@ class TestSuitesSourceController(
     ): Mono<TestSuitesSourceDto> = getTestSuitesSource(organizationName, sourceName)
         .map { it.toDto() }
 
-    @PostMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot",
-        ],
-        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
-    )
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "POST",
-        summary = "Upload a snapshot of test suites source.",
-        description = "Upload a snapshot of test suites source.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
-        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of uploading snapshot", required = true),
-        Parameter(name = "creationTime", `in` = ParameterIn.QUERY, description = "creationTime of uploading snapshot", required = true),
-        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "content of uploading snapshot", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully uploaded provided snapshot.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-    )
-    fun uploadSnapshot(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-        @RequestParam creationTime: Long,
-        @RequestPart("content") contentAsMonoPart: Mono<Part>
-    ): Mono<Unit> = findAsDtoByName(organizationName, sourceName)
-        .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
-        .flatMap { key ->
-            contentAsMonoPart.flatMap { part ->
-                val content = part.content().map { it.asByteBuffer() }
-                testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
-                    log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
-                }
-            }
-        }
-
-    @PostMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/{sourceName}/download-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/download-snapshot",
-        ],
-        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
-    )
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "POST",
-        summary = "Download a snapshot of test suites source.",
-        description = "Download a snapshot of test suites source.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
-        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of downloading snapshot", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully downloaded snapshot with provided version.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-    )
-    fun downloadSnapshot(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-    ): Mono<ByteBufferFluxResponse> = findAsDtoByName(organizationName, sourceName)
-        .flatMap {
-            it.downloadSnapshot(version)
-        }
-
-    @GetMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot",
-        ],
-    )
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Check that test suites source contains provided version.",
-        description = "Check that test suites source contains provided version.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
-        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of checking snapshot", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully checked snapshot with provided values.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-    )
-    fun containsSnapshot(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-    ): Mono<Boolean> = findAsDtoByName(organizationName, sourceName)
-        .flatMap {
-            testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
-        }
-
-    @GetMapping(
-        path = [
-            "/internal/test-suites-sources/{organizationName}/{sourceName}/list-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/list-snapshot",
-        ],
-    )
+    @GetMapping("/{organizationName}/{sourceName}/list-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -265,20 +111,15 @@ class TestSuitesSourceController(
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
     @ApiResponse(responseCode = "404", description = ".")
-    fun listSnapshotVersions(
+    fun listVersions(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
-    ): Mono<TestSuitesSourceSnapshotKeyList> = findAsDtoByName(organizationName, sourceName)
+    ): Mono<TestsSourceVersionInfoList> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
-            testSuitesSourceSnapshotStorage.list(it.organizationName, it.name)
-                .collectList()
+            blockingToMono { testsSourceVersionService.getAllAsInfo(it.organizationName, it.name) }
         }
 
-    @GetMapping(path = [
-        "/internal/test-suites-sources/{organizationName}/list-snapshot",
-        "/api/$v1/test-suites-sources/{organizationName}/list-snapshot",
-    ],
-    )
+    @GetMapping("/{organizationName}/list-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -291,16 +132,14 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for all test suites sources in requested organization.")
     @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
-    fun listSnapshots(
+    fun listVersions(
         @PathVariable organizationName: String,
-    ): Mono<TestSuitesSourceSnapshotKeyList> = getOrganization(organizationName)
+    ): Mono<TestsSourceVersionInfoList> = getOrganization(organizationName)
         .flatMap { organization ->
-            testSuitesSourceSnapshotStorage.list()
-                .filter { it.organizationName == organization.name }
-                .collectList()
+            blockingToMono { testsSourceVersionService.getAllAsInfo(organization.name) }
         }
 
-    @PostMapping("/api/$v1/test-suites-sources/create")
+    @PostMapping("/create")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -320,12 +159,12 @@ class TestSuitesSourceController(
         }
         .flatMap { testSuitesSource ->
             when (val saveStatus = testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.just(saveStatus.toResponseEntity())
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.fromCallable { saveStatus.toResponseEntity() }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
 
-    @PostMapping("/api/$v1/test-suites-sources/update")
+    @PostMapping("/update")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -351,102 +190,21 @@ class TestSuitesSourceController(
             "Git cannot be changed in TestSuitesSource"
         }
         .map { originalEntity ->
-            originalEntity.name to originalEntity.apply {
+            originalEntity.apply {
                 name = dtoToUpdate.name
                 description = dtoToUpdate.description
                 testRootPath = dtoToUpdate.testRootPath
                 latestFetchedVersion = dtoToUpdate.latestFetchedVersion
             }
         }
-        .flatMap { (originalName, updatedEntity) ->
+        .flatMap { updatedEntity ->
             when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
-                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
-                EntitySaveStatus.UPDATED -> {
-                    val newName = updatedEntity.name
-                    val movingSnapshots = if (originalName != newName) {
-                        testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
-                            .map { it to it.copy(testSuitesSourceName = newName) }
-                            .flatMap { (sourceKey, targetKey) ->
-                                testSuitesSourceSnapshotStorage.move(sourceKey, targetKey)
-                            }
-                            .then()
-                    } else {
-                        Mono.just(Unit)
-                    }
-                    movingSnapshots.then(Mono.just(saveStatus.toResponseEntity()))
-                }
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.UPDATED -> Mono.just(saveStatus.toResponseEntity())
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
 
-    @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "POST",
-        summary = "Download a snapshot of test suites source which is assigned to execution.",
-        description = "Download a snapshot of test suites source which is assigned to execution.",
-    )
-    @Parameters(
-        Parameter(name = "executionId", `in` = ParameterIn.QUERY, description = "ID of execution", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully downloaded snapshot of test suites source for requested execution.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found" +
-                " or test suites were not found by execution's ids.",
-    )
-    @ApiResponse(responseCode = "409", description = "IDs of test suites were not set on requested execution.")
-    fun downloadByExecutionId(
-        @RequestParam executionId: Long
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        val execution = executionService.findExecution(executionId)
-            .orNotFound { "Execution (id=$executionId) not found" }
-        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).firstOrNull().orNotFound {
-            "Execution (id=$executionId) doesn't have any testSuites"
-        }
-        testSuite
-            .toDto()
-            .let { it.source to it.version }
-    }.flatMap { (source, version) ->
-        source.downloadSnapshot(version)
-    }
-
-    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "List of test suites in requested test suites source.",
-        description = "List of test suites in requested test suites source.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
-    @ApiResponse(
-        responseCode = "404",
-        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-    )
-    fun getTestSuiteDtos(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
-        @RequestParam version: String,
-    ): Mono<List<TestSuiteDto>> = getTestSuitesSource(organizationName, sourceName)
-        .map { testSuitesSource ->
-            testSuitesService.getBySourceAndVersion(
-                testSuitesSource,
-                version
-            ).map {
-                it.toDto()
-            }
-        }
-
-    @DeleteMapping(
-        "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot",
-        "/internal/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot"
-    )
+    @DeleteMapping("/{organizationName}/{sourceName}/delete-version")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -463,18 +221,13 @@ class TestSuitesSourceController(
         responseCode = "404",
         description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
     )
-    fun deleteTestSuitesAndSnapshot(
+    fun deleteVersion(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<Boolean> = getTestSuitesSource(organizationName, sourceName)
-        .map {
-            testSuitesService.deleteTestSuite(it, version)
-        }
-        .then(testSuitesSourceSnapshotStorage.findKey(organizationName, sourceName, version))
-        .flatMap {
-            testSuitesSourceSnapshotStorage.delete(it)
-        }
+    ): Mono<Unit> = blockingToMono {
+        testsSourceVersionService.delete(organizationName, sourceName, version)
+    }
 
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByNameAndCreatedStatus(organizationName)
@@ -505,7 +258,7 @@ class TestSuitesSourceController(
                     "TestSuiteSource not found by ID $id"
                 }
 
-    @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
+    @PostMapping("/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -532,13 +285,13 @@ class TestSuitesSourceController(
                 ResponseEntity.accepted()
                     .body("Trigger fetching new tests from $sourceName in $organizationName")
             ).doOnSuccess {
-                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version)
+                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version, authentication.userId())
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
         }
 
-    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/tag-list-to-fetch")
+    @GetMapping("/{organizationName}/{sourceName}/tag-list-to-fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -553,15 +306,13 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.tagList(it.toDto()) }
-        .zipWith(testSuitesSourceSnapshotStorage.list(organizationName, sourceName)
-            .map { it.version }
-            .collectList())
-        .map { (tags, versions) ->
+        .map { tags ->
+            val versions = testsSourceVersionService.getAllVersions(organizationName, sourceName)
             ResponseEntity.ok()
                 .body(tags.filterNot { it in versions })
         }
 
-    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/branch-list-to-fetch")
+    @GetMapping("/{organizationName}/{sourceName}/branch-list-to-fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -578,7 +329,7 @@ class TestSuitesSourceController(
         .flatMap { testSuitesSourceService.branchList(it.toDto()) }
         .map { ResponseEntity.ok().body(it) }
 
-    @GetMapping("/api/$v1/test-suites-sources/available")
+    @GetMapping("/available")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -593,20 +344,4 @@ class TestSuitesSourceController(
         .map {testSuitesSourceList ->
             testSuitesSourceList.map { it.toDto() }
         }
-
-    private fun TestSuitesSourceDto.downloadSnapshot(
-        version: String
-    ): Mono<ByteBufferFluxResponse> = testSuitesSourceSnapshotStorage.findKey(organizationName, name, version)
-        .switchIfEmptyToNotFound {
-            "Not found a snapshot of $name in $organizationName with version=$version"
-        }
-        .map {
-            ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(testSuitesSourceSnapshotStorage.download(it))
-        }
-
-    companion object {
-        private val log: Logger = getLogger<TestSuitesSourceService>()
-    }
 }

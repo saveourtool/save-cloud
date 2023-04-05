@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -11,12 +10,9 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -50,7 +46,6 @@ import java.util.*
 )
 @RestController
 @RequestMapping(path = ["/api/$v1/projects"])
-@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
 class ProjectController(
     private val projectService: ProjectService,
     private val organizationService: OrganizationService,
@@ -81,14 +76,14 @@ class ProjectController(
         description = "Get filtered projects available for the current user.",
     )
     @Parameters(
-        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+        Parameter(name = "projectFilter", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody projectFilters: ProjectFilters,
+        @RequestBody projectFilter: ProjectFilter,
         authentication: Authentication?,
     ): Flux<ProjectDto> =
-            blockingToFlux { projectService.getFiltered(projectFilters) }
+            blockingToFlux { projectService.getFiltered(projectFilter) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }

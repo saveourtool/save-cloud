@@ -1,6 +1,8 @@
 package com.saveourtool.save.demo.controller
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.demo.DemoResult
+import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.demo.service.DiktatDemoService
 import com.saveourtool.save.utils.*
@@ -23,13 +25,11 @@ class DiktatDemoController(
     private val diktatDemoService: DiktatDemoService,
 ) {
     /**
-     * @param diktatRunRequest request data class with all required additional info
-     * @return [DiktatDemoResult]
+     * @param demoRunRequest request data class with all required additional info
+     * @return [DemoResult]
      */
     @PostMapping("/run")
     fun runCheckDemo(
-        @RequestBody diktatRunRequest: DiktatRunRequest,
-    ): Mono<DiktatDemoResult> = blockingToMono {
-        diktatDemoService.launch(diktatRunRequest.codeLines, diktatRunRequest.params)
-    }
+        @RequestBody demoRunRequest: DemoRunRequest,
+    ): Mono<DemoResult> = diktatDemoService.run(demoRunRequest)
 }

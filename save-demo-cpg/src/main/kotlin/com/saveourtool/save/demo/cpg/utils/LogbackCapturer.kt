@@ -35,6 +35,7 @@ object LogbackCapturer {
                 this.encoder = ple
                 this.outputStream = WriterOutputStream(writer, Charsets.UTF_8)
                 this.context = LogbackCapturer.context
+                this.isImmediateFlush = true
             }
             .also { it.start() }
     }

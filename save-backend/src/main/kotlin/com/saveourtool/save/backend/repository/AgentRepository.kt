@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AgentRepository : BaseEntityRepository<Agent> {
     /**
-     * Find agent by its agent id
+     * Find agent by its container id
      *
-     * @param containerId agent id
+     * @param containerId container id
      * @return [Agent]
      */
     fun findByContainerId(containerId: String): Agent?

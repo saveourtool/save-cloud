@@ -1,9 +1,9 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.BackendInternalFileStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
@@ -13,16 +13,11 @@ import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.utils.EmptyResponse
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.storage.impl.InternalFileKey
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -55,6 +50,7 @@ class RunExecutionController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     private val configProperties: ConfigProperties,
+    private val internalFileStorage: BackendInternalFileStorage,
     objectMapper: ObjectMapper,
     customizers: List<WebClientCustomizer>,
 ) {
@@ -80,17 +76,20 @@ class RunExecutionController(
         .validateAccess(authentication) { it }
         .validateContestEnrollment(request)
         .flatMap {
-            executionService.createNew(
-                projectCoordinates = request.projectCoordinates,
-                testSuiteIds = request.testSuiteIds,
-                files = request.files,
-                username = authentication.username(),
-                sdk = request.sdk,
-                execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
-                testingType = request.testingType,
-                contestName = request.contestName,
-            )
+            blockingToMono {
+                executionService.createNew(
+                    projectCoordinates = request.projectCoordinates,
+                    testSuiteIds = request.testSuiteIds,
+                    testsVersion = request.testsVersion,
+                    fileIds = request.fileIds,
+                    username = authentication.username(),
+                    sdk = request.sdk,
+                    execCmd = request.execCmd,
+                    batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                    testingType = request.testingType,
+                    contestName = request.contestName,
+                )
+            }
         }
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap { execution ->
@@ -121,7 +120,7 @@ class RunExecutionController(
                 execution.project.name
             )
         }
-        .flatMap { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { blockingToMono { executionService.createNewCopy(it, authentication.username()) } }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
@@ -206,8 +205,7 @@ class RunExecutionController(
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(
             execution.toRunRequest(
-                saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = "${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveAgentKey),
             )
         )
         .retrieve()

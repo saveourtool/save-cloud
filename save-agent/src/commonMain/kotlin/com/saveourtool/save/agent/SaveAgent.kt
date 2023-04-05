@@ -4,7 +4,6 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.processRequestToBackend
-import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
 import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
@@ -17,6 +16,8 @@ import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
+import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.requiredEnv
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
@@ -90,7 +91,11 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     // a temporary workaround for python integration
-    private fun executeAdditionallySetup(targetDirectory: Path, additionalFileNames: Collection<String>) = runCatching {
+    private fun executeAdditionallySetup(
+        targetDirectory: Path,
+        additionalFileNames: Collection<String>,
+        setupShTimeoutMillis: Long,
+    ) = runCatching {
         logDebugCustom("Will execute additionally setup of evaluated tool if it's required")
         additionalFileNames
             .singleOrNull { it == "setup.sh" }
@@ -102,7 +107,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         "./$targetFile",
                         "",
                         null,
-                        SETUP_SH_TIMEOUT
+                        setupShTimeoutMillis,
                     )
                 if (setupResult.code != 0) {
                     throw IllegalStateException("$fileName} is failed with error: ${setupResult.stderr}")
@@ -156,7 +161,7 @@ class SaveAgent(private val config: AgentConfiguration,
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong(), percentCompletion = 0))
+                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID.name).toLong(), percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -207,7 +212,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
         // a temporary workaround for python integration
-        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys)
+        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
             .runIf(
                 failureResultPredicate
             ) {
@@ -304,7 +309,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TYPE_ALIAS")
-    private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionDto>> {
+    private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionResult>> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         return reports.flatMap { report ->
@@ -312,14 +317,14 @@ class SaveAgent(private val config: AgentConfiguration,
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     val testResultStatus = tr.status.toTestResultStatus()
-                    debugInfo to TestExecutionDto(
-                        tr.resources.test.toString(),
-                        pluginExecution.plugin,
-                        config.id,
-                        config.name,
-                        testResultStatus,
-                        executionStartSeconds.get(),
-                        currentTime.epochSeconds,
+                    debugInfo to TestExecutionResult(
+                        filePath = tr.resources.test.toString(),
+                        pluginName = pluginExecution.plugin,
+                        agentContainerId = config.info.containerId,
+                        agentContainerName = config.info.containerName,
+                        status = testResultStatus,
+                        startTimeSeconds = executionStartSeconds.get(),
+                        endTimeSeconds = currentTime.epochSeconds,
                         unmatched = debugInfo.getCountWarningsAsLong { it.unmatched },
                         matched = debugInfo.getCountWarningsAsLong { it.matched },
                         expected = debugInfo.getCountWarningsAsLong { it.expected },
@@ -385,16 +390,16 @@ class SaveAgent(private val config: AgentConfiguration,
             url(config.heartbeat.url)
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.id, state.get(), executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.info, state.get(), executionProgress))
         }
             .body()
     }
 
-    private suspend fun postExecutionData(executionDataUploadUrl: String, testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
-        logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
+    private suspend fun postExecutionData(executionDataUploadUrl: String, testExecutionResults: List<TestExecutionResult>) = httpClient.post {
+        logInfoCustom("Posting execution data to backend, ${testExecutionResults.size} test executions")
         url(executionDataUploadUrl)
         contentType(ContentType.Application.Json)
-        setBody(testExecutionDtos)
+        setBody(testExecutionResults)
     }
 
     private suspend fun sendReport(debugInfoUploadUrl: String, testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
@@ -410,7 +415,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     companion object {
         private const val SAVE_CLI_TIMEOUT = 1_000_000L
-        private const val SETUP_SH_TIMEOUT = 60_000L
         private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }

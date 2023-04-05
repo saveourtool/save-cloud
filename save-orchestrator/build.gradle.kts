@@ -1,30 +1,15 @@
-import com.saveourtool.save.buildutils.*
-
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.code-quality-convention")
     id("de.undercouch.download")
-    id("org.gradle.test-retry") version "1.5.0"
 }
-
-configureJacoco()
-configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-    }
-}
-
-tasks.withType<Test> {
-    retry {
-        // There once were flaky tests in orchestrator, but it seems like they became stable.
-        // Settings can be restored or removed, as required.
-        failOnPassedAfterRetry.set(false)
-        maxFailures.set(5)
-        maxRetries.set(1)
     }
 }
 

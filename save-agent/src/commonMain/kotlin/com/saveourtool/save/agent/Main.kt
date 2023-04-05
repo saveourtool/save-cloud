@@ -6,10 +6,11 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.ktorLogger
-import com.saveourtool.save.agent.utils.readProperties
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
+import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.parseConfig
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
@@ -20,14 +21,11 @@ import okio.Path.Companion.toPath
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import kotlinx.serialization.properties.Properties
-import kotlinx.serialization.properties.decodeFromStringMap
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -42,19 +40,16 @@ internal val json = Json {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val propertiesFile = "agent.properties".toPath()
+    val propertiesFile = "agent.toml".toPath()
     val config: AgentConfiguration = if (fs.exists(propertiesFile)) {
-        Properties.decodeFromStringMap(
-            readProperties(propertiesFile.name)
-        )
+        parseConfig(propertiesFile)
     } else {
         AgentConfiguration.initializeFromEnv()
     }
         .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
-    logDebugCustom("Instantiating save-agent version ${config.version} with config $config")
+    logDebugCustom("Instantiating save-agent version ${config.info.version} with config $config")
 
     handleSigterm()
 

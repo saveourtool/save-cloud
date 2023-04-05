@@ -10,13 +10,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import dom.html.HTMLButtonElement
 import react.*
 import react.dom.html.ButtonHTMLAttributes
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.nav
 import react.router.useLocation
+import web.html.HTMLButtonElement
 
 /**
  * [Props] of the top bar component
@@ -26,11 +26,6 @@ external interface TopBarProps : PropsWithChildren {
      * Currently logged in user, or `null`.
      */
     var userInfo: UserInfo?
-
-    /**
-     * `true`, if the device is mobile (screen is less 1000px).
-     */
-    var isMobileScreen: Boolean?
 }
 
 /**
