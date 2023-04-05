@@ -6,6 +6,7 @@ package com.saveourtool.save.utils
 
 import kotlinx.cinterop.toKString
 
+@Suppress("MemberNameEqualsClassName")
 actual class AtomicLong actual constructor(value: Long) {
     private val atomicLong = kotlin.native.concurrent.AtomicLong(value)
 
