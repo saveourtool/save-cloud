@@ -34,21 +34,22 @@ data class ConfigProperties(
  * `m` stands for milli, `M` stands for Mega.
  * By default, `M` and `m` are powers of 10.
  * To be more accurate and use `M` as 1024 instead of 1000, `i` should be provided: `Mi`
- * https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/
+ * [reference](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/)
  *
- * @property apiServerUrl
- * @property serviceAccount
+ * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+ * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
+ * to authenticate save-demo to the API server
  * @property currentNamespace namespace that demo works in
- * @property useGvisor
+ * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
  * @property agentSubdomainName name of service that is created in order to access agents
  * @property agentPort port of agent that should be used to access it
  * @property agentNamespace namespace that demo-agents should work in, [currentNamespace] by default
- * @property agentCpuRequests
- * @property agentCpuLimits
- * @property agentMemoryRequests
- * @property agentMemoryLimits
- * @property agentEphemeralStorageRequests
- * @property agentEphemeralStorageLimits
+ * @property agentCpuRequests configures `resources.requests.cpu` for demo-agent pods
+ * @property agentCpuLimits configures `resources.limits.cpu` for demo-agent pods
+ * @property agentMemoryRequests configures `resources.requests.memory` for demo-agent pods
+ * @property agentMemoryLimits configures `resources.limits.memory` for demo-agent pods
+ * @property agentEphemeralStorageRequests configures `resources.requests.ephemeralStorage` for demo-agent pods
+ * @property agentEphemeralStorageLimits configures `resources.limits.ephemeralStorage` for demo-agent pods
  */
 data class KubernetesConfig(
     val apiServerUrl: String,

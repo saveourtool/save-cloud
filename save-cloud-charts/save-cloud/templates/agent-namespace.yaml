@@ -1,8 +1,8 @@
-{{ if .Values.demo.agentNamespace }}
+{{ if .Values.agentNamespace }}
 
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ .Values.demo.agentNamespace }}
+  name: {{ .Values.agentNamespace }}
 
 {{ end }}

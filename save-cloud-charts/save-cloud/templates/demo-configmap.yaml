@@ -7,7 +7,7 @@ data:
     demo.kubernetes.apiServerUrl=http://kubernetes.default.svc
     demo.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     demo.kubernetes.current-namespace=${POD_NAMESPACE}
-    demo.kubernetes.agent-namespace={{ .Values.demo.agentNamespace }}
+    demo.kubernetes.agent-namespace={{ .Values.agentNamespace }}
     demo.kubernetes.agentPort={{ .Values.demo.agentPort }}
     demo.kubernetes.agentSubdomainName={{ .Values.demo.agentSubdomainName }}
 
