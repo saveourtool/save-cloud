@@ -195,6 +195,7 @@ class DownloadToolService(
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DownloadToolService>()
         private fun httpClient(): HttpClient = HttpClient {
+            install(KubernetesServiceAccountAuthHeaderPlugin)
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
                 json(json)

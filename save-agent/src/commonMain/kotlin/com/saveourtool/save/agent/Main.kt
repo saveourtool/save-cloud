@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
+import com.saveourtool.save.utils.KubernetesServiceAccountAuthHeaderPlugin
 import com.saveourtool.save.utils.fs
 import com.saveourtool.save.utils.parseConfig
 
@@ -91,4 +92,5 @@ private fun configureHttpClient(agentConfiguration: AgentConfiguration) = HttpCl
         logger = ktorLogger
         level = if (agentConfiguration.debug) LogLevel.ALL else LogLevel.INFO
     }
+    install(KubernetesServiceAccountAuthHeaderPlugin)
 }
