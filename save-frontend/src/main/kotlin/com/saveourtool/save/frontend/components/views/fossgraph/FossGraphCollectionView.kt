@@ -110,14 +110,18 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
     div {
         @Suppress("TOO_MANY_LINES_IN_LAMBDA")
         props.currentUserInfo?.globalRole?.let { role ->
-            if (role.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
-                tab(selectedMenu.name, VulnerabilityListTab.values().map { it.name }, "nav nav-tabs mt-3") { value ->
-                    setSelectedMenu { VulnerabilityListTab.valueOf(value) }
-                    setVulnerabilityFilters {
-                        when (VulnerabilityListTab.valueOf(value)) {
-                            VulnerabilityListTab.PUBLIC -> VulnerabilityFilter(prefixName = "", active = true)
-                            VulnerabilityListTab.ADMIN -> VulnerabilityFilter(prefixName = "", active = false)
-                        }
+            val tabList = if (role.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
+                VulnerabilityListTab.values().map { it.name }
+            } else {
+                VulnerabilityListTab.values().filter { it != VulnerabilityListTab.ADMIN }.map { it.name }
+            }
+            tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
+                setSelectedMenu { VulnerabilityListTab.valueOf(value) }
+                setVulnerabilityFilters {
+                    when (VulnerabilityListTab.valueOf(value)) {
+                        VulnerabilityListTab.PUBLIC -> VulnerabilityFilter(prefixName = "", active = true)
+                        VulnerabilityListTab.ADMIN -> VulnerabilityFilter(prefixName = "", active = false)
+                        VulnerabilityListTab.OWNER -> VulnerabilityFilter(prefixName = "", active = false, isOwner = true)
                     }
                 }
             }
@@ -155,6 +159,7 @@ external interface FossGraphCollectionViewProps : Props {
 enum class VulnerabilityListTab {
     PUBLIC,
     ADMIN,
+    OWNER,
     ;
 
     companion object : TabMenuBar<VulnerabilityListTab> {

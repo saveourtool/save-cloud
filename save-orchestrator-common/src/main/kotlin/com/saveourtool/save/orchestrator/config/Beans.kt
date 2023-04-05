@@ -57,7 +57,7 @@ class Beans {
 
         return KubernetesClientBuilder()
             .withConfig(ConfigBuilder()
-                .withNamespace(kubernetesSettings.namespace)
+                .withNamespace(kubernetesSettings.currentNamespace)
                 .build())
             .build()
     }

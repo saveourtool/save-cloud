@@ -51,6 +51,7 @@ class KubernetesManager(
         val job = Job().apply {
             metadata = ObjectMeta().apply {
                 name = jobNameForExecution(executionId)
+                namespace = kubernetesSettings.agentNamespace
             }
             spec = JobSpec().apply {
                 parallelism = replicas
