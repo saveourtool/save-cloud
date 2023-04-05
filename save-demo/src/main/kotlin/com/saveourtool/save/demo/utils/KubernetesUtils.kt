@@ -184,6 +184,7 @@ fun getServiceObjectForDemo(
  * @return name of job that is/should be assigned to [demo]
  */
 fun jobNameForDemo(demo: Demo) = with(demo) {
+    // sha1 is required due to kubernetes naming restrictions - no capital letters are allowed while in save-cloud it is ok
     val sha1 = DigestUtils.sha1Hex("$organizationName$projectName")
     "demo-${organizationName.lowercase()}-${projectName.lowercase()}-${ sha1.take(SHA1_PREFIX_SIZE) }"
 }
@@ -193,6 +194,7 @@ fun jobNameForDemo(demo: Demo) = with(demo) {
  * @return name of service that is/should be connected with [demo]
  */
 fun serviceNameForDemo(demo: Demo) = with(demo) {
+    // sha1 is required due to kubernetes naming restrictions - no capital letters are allowed while in save-cloud it is ok
     val sha1 = DigestUtils.sha1Hex("$organizationName$projectName")
     "demo-${organizationName.lowercase().first()}${projectName.lowercase().first()}-${ sha1.take(SHA1_PREFIX_SIZE) }"
 }

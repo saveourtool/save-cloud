@@ -1,0 +1,12 @@
+{{ if .Values.agentNamespace }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sandbox.name }}
+  namespace: {{ .Values.agentNamespace }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.sandbox.name }}.save-cloud.svc.cluster.local
+
+{{ end }}
