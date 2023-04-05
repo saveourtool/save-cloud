@@ -10,10 +10,7 @@ import com.saveourtool.save.core.logging.logInfo
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.demo.DemoAgentConfig
-import com.saveourtool.save.utils.failureOrNotOk
-import com.saveourtool.save.utils.fs
-import com.saveourtool.save.utils.notOk
-import com.saveourtool.save.utils.requiredEnv
+import com.saveourtool.save.utils.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -36,6 +33,7 @@ private const val DOWNLOAD_REQUEST_TIMEOUT_MILLIS = 5 * 60 * 1000L
 private val httpClient = HttpClient(CIO) {
     install(ContentNegotiation) { json() }
     install(HttpTimeout)
+    install(KubernetesServiceAccountAuthHeaderPlugin)
 }
 
 private suspend fun HttpClient.download(url: String, file: Path): Result<HttpResponse> = runCatching {
