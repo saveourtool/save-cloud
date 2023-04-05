@@ -6,17 +6,16 @@ package com.saveourtool.save.utils
 
 import kotlinx.cinterop.toKString
 
-@Suppress("MemberNameEqualsClassName")
 actual class AtomicLong actual constructor(value: Long) {
-    private val atomicLong = kotlin.native.concurrent.AtomicLong(value)
+    private val kotlinAtomicLong = kotlin.native.concurrent.AtomicLong(value)
 
-    actual fun get(): Long = atomicLong.value
+    actual fun get(): Long = kotlinAtomicLong.value
 
     actual fun set(newValue: Long) {
-        atomicLong.value = newValue
+        kotlinAtomicLong.value = newValue
     }
 
-    actual fun addAndGet(delta: Long): Long = atomicLong.addAndGet(delta)
+    actual fun addAndGet(delta: Long): Long = kotlinAtomicLong.addAndGet(delta)
 }
 
 @Suppress("USE_DATA_CLASS")
