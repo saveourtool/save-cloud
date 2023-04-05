@@ -188,14 +188,14 @@ class ServiceAccountAuthenticatingManager(
 
     @Language("YAML")
     private fun tokenReviewSpec(token: String): String = """
-                |apiVersion: authentication.k8s.io/v1
-                |kind: TokenReview
-                |metadata:
-                |  name: service-account-validity-check
-                |  namespace: ${kubernetesClient.namespace}
-                |spec:
-                |  token: $token
-            """.trimMargin()
+        |apiVersion: authentication.k8s.io/v1
+        |kind: TokenReview
+        |metadata:
+        |  name: service-account-validity-check
+        |  namespace: ${kubernetesClient.namespace}
+        |spec:
+        |  token: $token
+    """.trimMargin()
 }
 
 /**

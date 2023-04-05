@@ -1,8 +1,8 @@
 package com.saveourtool.save.sandbox
 
 import com.saveourtool.save.authservice.config.SecurityWebClientCustomizers
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.s3.DefaultS3Configuration
-import com.saveourtool.save.sandbox.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan

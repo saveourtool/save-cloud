@@ -16,6 +16,7 @@ spec:
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
+      serviceAccountName: microservice-sa
       restartPolicy: Always
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
@@ -27,6 +28,7 @@ spec:
               value: /home/cnb/secrets/oauth
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M -Dreactor.netty.http.server.accessLogEnabled=true
+            - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
           resources:
             limits:
@@ -42,3 +44,4 @@ spec:
         - name: oauth-credentials
           secret:
             secretName: oauth-credentials
+        - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.gateway) | indent 10 | trim }}

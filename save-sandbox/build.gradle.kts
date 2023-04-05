@@ -27,7 +27,7 @@ tasks.withType<KotlinCompile> {
 dependencies {
     implementation(projects.saveOrchestratorCommon)
     implementation(libs.zip4j)
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
     implementation(libs.hibernate.jpa21.api)
     implementation(libs.save.plugins.warn.jvm)
     implementation(projects.authenticationService)
