@@ -49,7 +49,7 @@ class DependencyKeyManager(
      * @param version
      * @return List of [Dependency] found by provided values
      */
-    fun findAllDependenies(
+    fun findAllDependencies(
         organizationName: String,
         projectName: String,
         version: String

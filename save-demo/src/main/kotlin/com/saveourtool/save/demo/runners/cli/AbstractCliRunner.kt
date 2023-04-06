@@ -4,8 +4,6 @@ import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.demo.storage.ToolKey
-import com.saveourtool.save.demo.utils.LOG_FILE_NAME
-import com.saveourtool.save.demo.utils.REPORT_FILE_NAME
 import com.saveourtool.save.demo.utils.prependPath
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.collectToFile
@@ -23,6 +21,9 @@ import kotlin.io.path.*
  */
 abstract class AbstractCliRunner(
     protected val dependencyStorage: DependencyStorage,
+    private val reportFileName: String = "report",
+    private val stdoutFileName: String = "stdout",
+    private val stderrFileName: String = "stderr",
 ) : CliRunner {
     /**
      * logger from child
@@ -36,7 +37,6 @@ abstract class AbstractCliRunner(
 
     override fun run(testPath: Path, demoRunRequest: DemoRunRequest): Mono<DemoResult> = blockingToMono {
         val workingDir = testPath.parent
-        val outputPath = workingDir / REPORT_FILE_NAME
         val configPath = demoRunRequest.config?.joinToString("\n")
             ?.let { configContent ->
                 val requiredConfigName = requireNotNull(configName) {
@@ -44,11 +44,14 @@ abstract class AbstractCliRunner(
                 }
                 prepareFile(workingDir / requiredConfigName, configContent)
             }
-        val launchLogPath = workingDir / LOG_FILE_NAME
+        val outputPath = workingDir / reportFileName
+        val stdoutPath = workingDir / stdoutFileName
+        val stderrPath = workingDir / stderrFileName
         val command = getRunCommand(workingDir, testPath, outputPath, configPath, demoRunRequest)
         val processBuilder = createProcessBuilder(command).apply {
             redirectErrorStream(true)
-            redirectOutput(ProcessBuilder.Redirect.appendTo(launchLogPath.toFile()))
+            redirectOutput(ProcessBuilder.Redirect.appendTo(stdoutPath.toFile()))
+            redirectError(ProcessBuilder.Redirect.appendTo(stderrPath.toFile()))
 
             /*
              * Inherit JAVA_HOME for the child process.
@@ -67,23 +70,25 @@ abstract class AbstractCliRunner(
         log.debug("Running command [$command].")
         val terminationCode = processBuilder.start().waitFor()
 
-        val logs = launchLogPath.readLines()
+        val stdout = stdoutPath.readLines()
+        val stderr = stderrPath.readLines()
 
         val warnings = try {
             outputPath.readLines()
         } catch (e: IOException) {
-            logs.forEach(log::error)
             throw UncheckedIOException(e)
         }
 
-        logs.forEach(log::trace)
+        stdout.forEach(log::trace)
+        stderr.forEach(log::error)
 
         log.trace("Found ${warnings.size} warning(s): [${warnings.joinToString(", ")}]")
 
         DemoResult(
             warnings.map { it.replace(testPath.absolutePathString(), testPath.name) },
             testPath.readLines(),
-            logs,
+            stdout,
+            stderr,
             terminationCode,
         )
     }
@@ -99,7 +104,5 @@ abstract class AbstractCliRunner(
         .thenReturn(workingDir / toolKey.fileName)
         .block()
         .let { requireNotNull(it) }
-        .apply {
-            toFile().setExecutable(true, false)
-        }
+        .apply { toFile().setExecutable(true, false) }
 }

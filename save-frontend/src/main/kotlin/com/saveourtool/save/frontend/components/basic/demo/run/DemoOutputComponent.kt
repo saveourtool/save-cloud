@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.basic.demo.run
 
 import com.saveourtool.save.demo.DemoResult
-import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 
@@ -21,9 +20,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
 
-import kotlin.math.min
-
-private const val MAX_ROWS_TEXTAREA = 10
+private const val ROWS_TEXTAREA = 10
 
 /**
  * [FC] to display output of demo run
@@ -71,13 +68,14 @@ val demoOutputComponent: FC<DemoOutputComponentProps> = FC { props ->
         val displayRows = when (selectedTab) {
             null -> null
             DemoOutputTab.OUTPUT -> props.demoResult?.warnings.orEmpty()
-            DemoOutputTab.LOGS -> props.demoResult?.logs.orEmpty()
+            DemoOutputTab.STDOUT -> props.demoResult?.stdout.orEmpty()
+            DemoOutputTab.STDERR -> props.demoResult?.stderr.orEmpty()
         }
 
         displayRows?.let { lines ->
             textarea {
                 className = ClassName("form-control")
-                rows = min(MAX_ROWS_TEXTAREA, lines.size)
+                rows = ROWS_TEXTAREA
                 value = lines.joinToString("\n")
             }
         }
@@ -94,8 +92,10 @@ external interface DemoOutputComponentProps : Props {
     var demoResult: DemoResult?
 }
 
+@Suppress("WRONG_DECLARATIONS_ORDER")
 private enum class DemoOutputTab {
-    LOGS,
     OUTPUT,
+    STDOUT,
+    STDERR,
     ;
 }

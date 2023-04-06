@@ -56,29 +56,6 @@ fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
     .jobs()
     .withName(jobNameForDemo(demo))
 
-/**
- * @param demo demo entity
- * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
- */
-fun KubernetesClient.isJobReady(demo: Demo) = getJobByName(demo).isReady
-
-/**
- * @param demo demo entity
- * @return list of ips of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPodsIps(demo: Demo) = getJobPods(demo)
-    .map { it.status.podIP }
-
-/**
- * @param demo demo entity
- * @return list of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
-    .withLabel(DEMO_ORG_NAME, demo.organizationName)
-    .withLabel(DEMO_PROJ_NAME, demo.projectName)
-    .list()
-    .items
-
 private fun ContainerPort.default(port: Int) = apply {
     protocol = "TCP"
     containerPort = port
@@ -184,6 +161,7 @@ fun getServiceObjectForDemo(
  * @return name of job that is/should be assigned to [demo]
  */
 fun jobNameForDemo(demo: Demo) = with(demo) {
+    // sha1 is required due to kubernetes naming restrictions - no capital letters are allowed while in save-cloud it is ok
     val sha1 = DigestUtils.sha1Hex("$organizationName$projectName")
     "demo-${organizationName.lowercase()}-${projectName.lowercase()}-${ sha1.take(SHA1_PREFIX_SIZE) }"
 }
@@ -193,6 +171,7 @@ fun jobNameForDemo(demo: Demo) = with(demo) {
  * @return name of service that is/should be connected with [demo]
  */
 fun serviceNameForDemo(demo: Demo) = with(demo) {
+    // sha1 is required due to kubernetes naming restrictions - no capital letters are allowed while in save-cloud it is ok
     val sha1 = DigestUtils.sha1Hex("$organizationName$projectName")
     "demo-${organizationName.lowercase().first()}${projectName.lowercase().first()}-${ sha1.take(SHA1_PREFIX_SIZE) }"
 }

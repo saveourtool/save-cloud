@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.runners.cli
 
-import com.saveourtool.save.demo.DemoMode
 import com.saveourtool.save.demo.runners.command.CommandBuilder
 import com.saveourtool.save.demo.runners.command.CommandContext
 import okio.Path.Companion.toPath

@@ -16,10 +16,7 @@ import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
-import com.saveourtool.save.utils.fs
-import com.saveourtool.save.utils.requiredEnv
-import com.saveourtool.save.utils.toTestResultDebugInfo
-import com.saveourtool.save.utils.toTestResultStatus
+import com.saveourtool.save.utils.*
 
 import io.ktor.client.*
 import io.ktor.client.call.body
@@ -46,9 +43,10 @@ import kotlinx.serialization.modules.subclass
  * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")
-class SaveAgent(private val config: AgentConfiguration,
-                internal val httpClient: HttpClient,
-                private val coroutineScope: CoroutineScope,
+class SaveAgent(
+    private val config: AgentConfiguration,
+    internal val httpClient: HttpClient,
+    private val coroutineScope: CoroutineScope,
 ) {
     /**
      * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
