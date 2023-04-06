@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
  * @property demoConfiguration all the information about current demo e.g. maintainer and version
  * @property runConfiguration all the required information to run demo
  * @property demoUrl url of save-demo
+ * @property parentUserName name of a parent process user, needed for token isolation
+ * @property childUserName name of a child process user, needed for token isolation
  * @property setupShTimeoutMillis amount of milliseconds to run setup.sh if it is present, [DEFAULT_SETUP_SH_TIMEOUT_MILLIS] by default
  */
 @Serializable
@@ -20,6 +22,8 @@ data class DemoAgentConfig(
     val demoUrl: String,
     val demoConfiguration: DemoConfiguration,
     val runConfiguration: RunConfiguration,
+    val parentUserName: String?,
+    val childUserName: String?,
     val setupShTimeoutMillis: Long = DEFAULT_SETUP_SH_TIMEOUT_MILLIS,
 ) {
     companion object {

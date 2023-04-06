@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.utils.optionalEnv
 import com.saveourtool.save.utils.requiredEnv
 import generated.SAVE_CLOUD_VERSION
 
@@ -25,6 +26,8 @@ import kotlinx.serialization.Serializable
  * @property debug whether debug logging should be enabled
  * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
+ * @property parentUserName name of a parent process user, needed for token isolation
+ * @property childUserName name of a child process user, needed for token isolation
  * @property save additional configuration for save-cli
  */
 @Serializable
@@ -37,6 +40,8 @@ data class AgentConfiguration(
     val debug: Boolean = false,
     val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
+    val parentUserName: String? = null,
+    val childUserName: String? = null,
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
     companion object {
@@ -52,6 +57,8 @@ data class AgentConfiguration(
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL.name),
             ),
+            parentUserName = optionalEnv(AgentEnvName.PARENT_PROCESS_USERNAME.name),
+            childUserName = optionalEnv(AgentEnvName.CHILD_PROCESS_USERNAME.name),
         )
     }
 }

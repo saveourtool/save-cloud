@@ -111,6 +111,8 @@ class KubernetesService(
         agentConfig.demoUrl,
         demo.toDemoConfiguration(version),
         demo.toRunConfiguration(),
+        agentConfig.parentUserName,
+        agentConfig.childUserName,
     )
 
     private fun createConfiguredJob(demo: Demo, downloadAgentUrl: String) {

@@ -37,9 +37,10 @@ class KubernetesManager(
         "NestedBlockDepth",
         "ComplexMethod",
     )
-    override fun createAndStart(executionId: Long,
-                                configuration: ContainerService.RunConfiguration,
-                                replicas: Int,
+    override fun createAndStart(
+        executionId: Long,
+        configuration: ContainerService.RunConfiguration,
+        replicas: Int,
     ) {
         val baseImageTag = configuration.imageTag
         val agentRunCmd = configuration.runCmd
@@ -79,7 +80,6 @@ class KubernetesManager(
                         // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
                         restartPolicy = "Never"
                         // save-agent pods shouldn't have access to valid cluster tokens
-                        automountServiceAccountToken = false
                         containers = listOf(
                             agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.env)
                         )

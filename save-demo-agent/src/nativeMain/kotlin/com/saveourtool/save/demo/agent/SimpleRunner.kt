@@ -6,10 +6,8 @@ package com.saveourtool.save.demo.agent
 
 import com.saveourtool.save.core.files.readLines
 import com.saveourtool.save.core.utils.ProcessBuilder
-import com.saveourtool.save.demo.DemoAgentConfig
-import com.saveourtool.save.demo.DemoResult
-import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.RunConfiguration
+import com.saveourtool.save.demo.*
+import com.saveourtool.save.demo.agent.utils.wrapCommandForUser
 import com.saveourtool.save.utils.createAndWrite
 import com.saveourtool.save.utils.createAndWriteIfNeeded
 import com.saveourtool.save.utils.fs
@@ -31,13 +29,11 @@ private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 20_000L
 fun runDemo(demoRunRequest: DemoRunRequest, deferredConfig: CompletableDeferred<DemoAgentConfig>): DemoResult {
     require(demoRunRequest.mode.isNotBlank()) { "Demo mode should not be blank." }
 
-    val config = deferredConfig.getCompleted().runConfiguration
-    val runCommand = requireNotNull(config.runCommands[demoRunRequest.mode]) {
-        "Could not find run command for mode ${demoRunRequest.mode}."
-    }
+    val config = deferredConfig.getCompleted()
+    val runCommand = getRunCommand(config.runConfiguration.runCommands, demoRunRequest.mode, config.childUserName)
 
-    val (inputFile, configFile) = createRequiredFiles(demoRunRequest, config)
-    val outputFile = config.outputFileName?.toPath()
+    val (inputFile, configFile) = createRequiredFiles(demoRunRequest, config.runConfiguration)
+    val outputFile = config.runConfiguration.outputFileName?.toPath()
 
     return try {
         run(runCommand, inputFile, outputFile)
@@ -45,6 +41,20 @@ fun runDemo(demoRunRequest: DemoRunRequest, deferredConfig: CompletableDeferred<
         cleanUp(inputFile, configFile, outputFile)
     }
 }
+
+/**
+ * Get run command and prepend
+ *
+ * `sudo -u childProcessUserName`
+ *
+ * if [childProcessUserName] is not null
+ */
+private fun getRunCommand(
+    runCommands: RunCommandMap,
+    mode: String,
+    childProcessUserName: String?,
+) = requireNotNull(runCommands[mode]) { "Could not find run command for mode $mode." }
+    .wrapCommandForUser(childProcessUserName)
 
 private fun createRequiredFiles(
     demoRunRequest: DemoRunRequest,

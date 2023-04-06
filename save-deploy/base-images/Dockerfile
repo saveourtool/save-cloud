@@ -16,11 +16,12 @@ RUN if [ "$BASE_IMAGE_NAME" = "python" ]; then \
 RUN groupadd --gid 1100 save-agent && \
     groupadd --gid 1200 save-executor && \
     useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent && \
-    useradd --uid 1200 --gid 1100 --create-home --shell /bin/sh save-agent && \
+    useradd --uid 1200 --gid 1100 --create-home --shell /bin/sh save-executor && \
     usermod -aG save-executor save-agent && \
     # `WORKDIR` directive creates the directory as `root` user unless the directory already exists
     mkdir /home/save-agent/save-execution && \
     chown -R 1100:1100 /home/save-agent/save-execution && \
     echo 'save-agent ALL = (save-executor) ALL' >> /etc/sudoers
+
 USER save-agent
 WORKDIR /home/save-agent/save-execution

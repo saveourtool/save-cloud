@@ -22,7 +22,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.*
 import java.util.*
 import java.util.stream.Collectors
 
@@ -128,6 +128,20 @@ fun Path.requireIsAbsolute(): Path = apply {
     require(isAbsolute) {
         "The path is not absolute: $this"
     }
+}
+
+actual fun okio.Path.permitReadingOnlyForOwner(ownerName: String, groupName: String) {
+    val file = toFile().toPath()
+    val fileAttributeView = Files.getFileAttributeView(file, PosixFileAttributeView::class.java)
+    val lookupService = file.fileSystem.userPrincipalLookupService
+
+    val owner = lookupService.lookupPrincipalByName(ownerName)
+    val group = lookupService.lookupPrincipalByGroupName(groupName)
+
+    fileAttributeView.owner = owner
+    fileAttributeView.setGroup(group)
+
+    Files.setPosixFilePermissions(file, EnumSet.of(PosixFilePermission.OWNER_READ))
 }
 
 actual fun okio.Path.markAsExecutable() {

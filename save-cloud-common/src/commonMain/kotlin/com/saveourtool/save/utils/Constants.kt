@@ -53,3 +53,5 @@ const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
  * Default time to execute setup.sh
  */
 const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS = 60_000L
+
+const val DEFAULT_KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"

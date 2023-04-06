@@ -11,6 +11,11 @@ const val NOT_IMPLEMENTED_ON_JS = "Cannot be used in js."
 
 @Suppress("IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION")
 actual val fs: FileSystem by lazy { throw NotImplementedError(NOT_IMPLEMENTED_ON_JS) }
+
+actual fun Path.permitReadingOnlyForOwner(ownerName: String, groupName: String) {
+    throw NotImplementedError(NOT_IMPLEMENTED_ON_JS)
+}
+
 actual fun Path.markAsExecutable() {
     throw NotImplementedError(NOT_IMPLEMENTED_ON_JS)
 }

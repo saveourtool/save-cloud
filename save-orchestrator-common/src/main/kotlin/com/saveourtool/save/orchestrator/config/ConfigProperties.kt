@@ -95,10 +95,14 @@ data class ConfigProperties(
     /**
      * @property heartbeatUrl url that will be used by save-agent to post heartbeats
      * @property debug whether debug logging should be enabled or not
+     * @property parentUserName name of a parent process user, needed for token isolation
+     * @property childUserName name of a child process user, needed for token isolation
      */
     data class AgentSettings(
         val heartbeatUrl: String,
         val debug: Boolean? = null,
+        val parentUserName: String? = null,
+        val childUserName: String? = null,
     )
 
     /**

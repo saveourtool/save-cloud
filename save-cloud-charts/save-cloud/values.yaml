@@ -221,3 +221,5 @@ demo:
   agentPort: 23456
 
 agentNamespace: save-agent
+agentParentUserName: save-agent
+agentChildUserName: save-executor
