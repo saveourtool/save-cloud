@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.basic.demo.run
 
 import com.saveourtool.save.demo.DemoResult
-import com.saveourtool.save.demo.diktat.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 

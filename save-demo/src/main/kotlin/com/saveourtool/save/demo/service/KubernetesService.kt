@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.service
 
-import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.DemoStatus
@@ -39,7 +38,7 @@ import kotlinx.serialization.json.Json
 @Profile("kubernetes | minikube")
 class KubernetesService(
     private val kc: KubernetesClient,
-    private val configProperties: ConfigProperties,
+    configProperties: ConfigProperties,
     private val internalFileStorage: DemoInternalFileStorage,
 ) {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
@@ -121,18 +120,6 @@ class KubernetesService(
         kc.createResourceOrThrow(service)
     }
 
-    private suspend fun configureDemoAgent(
-        demo: Demo,
-        version: String,
-        retryNumber: Int = RETRY_TIMES
-    ): StringResponse {
-        logger.info("Configuring save-demo-agent ${demo.projectCoordinates()}")
-        val configuration = getConfiguration(demo, version)
-        return demoAgentRequestWrapper("/setup", demo) { url ->
-            sendConfigurationRequestRetrying(url, configuration, retryNumber)
-        }
-    }
-
     /**
      * Performs run request with [demoRunRequest] params to [demo]
      *
@@ -160,47 +147,6 @@ class KubernetesService(
         return response
     }
 
-    private suspend fun sendConfigurationRequestRetrying(
-        url: Url,
-        configuration: DemoAgentConfig,
-        retryNumber: Int,
-    ): StringResponse {
-        val (requestStatus, errors) = retry(retryNumber) { iteration ->
-            logger.debug("$iteration attempts left.")
-            logger.info("Sending POST request with url $url")
-            httpClient.post {
-                url(url)
-                contentType(ContentType.Application.Json)
-                accept(ContentType.Application.Json)
-                setBody(configuration)
-            }.status
-        }
-        return requestStatus?.let {
-            if (requestStatus.isSuccess()) {
-                logAndRespond(HttpStatusCode.OK, logger::info) {
-                    "Job successfully started."
-                }
-            } else {
-                logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
-                    "Could not configure demo: save-demo-agent responded with status [$requestStatus]."
-                }
-            }
-        } ?: logAndRespond(HttpStatusCode.InternalServerError, logger::error) {
-            val errorsAsString = errors.joinToString("\n", prefix = "\t") { throwable ->
-                throwable.describe()
-            }
-            "Could not configure demo:\n$errorsAsString"
-        }
-    }
-
-    /**
-     * @param demo demo entity
-     * @return url of pod with demo
-     */
-    private suspend fun getPodByDemo(demo: Demo) = retrySilently(RETRY_TIMES, RETRY_DELAY_MILLIS) {
-        kc.getJobPods(demo).firstOrNull()
-    } ?: throw KubernetesRunnerException("Could not run a job in ${RETRY_TIMES * RETRY_DELAY_MILLIS} seconds.")
-
     private suspend fun <R> demoAgentRequestWrapper(
         urlPath: String,
         demo: Demo,
@@ -211,7 +157,6 @@ class KubernetesService(
         private val logger = LoggerFactory.getLogger(KubernetesService::class.java)
         private const val REQUEST_TIMEOUT_MILLIS = 20_000L
         private const val RETRY_DELAY_MILLIS = 500L
-        private const val RETRY_TIMES = 2
         private const val RETRY_TIMES_QUICK = 1
         private val httpClient = HttpClient(Apache) {
             install(ContentNegotiation) {

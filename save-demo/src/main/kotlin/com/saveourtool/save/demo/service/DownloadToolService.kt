@@ -1,10 +1,8 @@
 package com.saveourtool.save.demo.service
 
 import com.saveourtool.save.demo.config.ConfigProperties
-import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.storage.DependencyStorage
-import com.saveourtool.save.demo.storage.toToolKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.*
@@ -25,13 +23,10 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.nio.ByteBuffer
-import javax.annotation.PostConstruct
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -100,33 +95,6 @@ class DownloadToolService(
                 }
         }
 
-    @PostConstruct
-    private fun loadToStorage() = toolService.getSupportedTools()
-        .map { it.toToolKey() }
-        .plus(DiktatDemoTool.DIKTAT.toToolKey("diktat-1.2.3.jar"))
-        .plus(DiktatDemoTool.KTLINT.toToolKey("ktlint"))
-        .toFlux()
-        .filterWhen {
-            dependencyStorage.doesExist(it.organizationName, it.projectName, it.version, it.fileName).map(Boolean::not)
-        }
-        .collectList()
-        .doOnNext { tools ->
-            if (tools.isEmpty()) {
-                logger.debug("All required tools are already present in storage.")
-            } else {
-                val toolsToBeDownloaded = tools.joinToString(", ") { it.toPrettyString() }
-                logger.info("Tools to be downloaded: [$toolsToBeDownloaded]")
-            }
-        }
-        .flatMapIterable { it }
-        .flatMap { key ->
-            downloadFromGithubAndUploadToStorage(
-                GithubRepo(key.organizationName, key.projectName),
-                key.version,
-            ).toMono()
-        }
-        .subscribe()
-
     private fun getExecutable(repo: GithubRepo, vcsTagName: String): ReleaseAsset {
         val channel: Channel<ReleaseAsset> = Channel()
         scope.launch {
@@ -155,8 +123,8 @@ class DownloadToolService(
             Snapshot(vcsTagName, getExecutableName(repo, vcsTagName))
                 .let { blockingToMono { snapshotService.saveIfNotPresent(it) } }
         }
-        .map { (repo, snapshot) ->
-            toolService.saveIfNotPresent(repo, snapshot)
+        .flatMap { (repo, snapshot) ->
+            blockingToMono { toolService.saveIfNotPresent(repo, snapshot) }
         }
         .asyncEffectIf({ this.id != null }) {
             blockingToMono { downloadFromGithubAndUploadToStorage(it.githubRepo, it.snapshot.version) }
@@ -195,6 +163,7 @@ class DownloadToolService(
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<DownloadToolService>()
         private fun httpClient(): HttpClient = HttpClient {
+            install(KubernetesServiceAccountAuthHeaderPlugin)
             install(ContentNegotiation) {
                 val json = Json { ignoreUnknownKeys = true }
                 json(json)
