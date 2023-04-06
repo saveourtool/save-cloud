@@ -1,6 +1,5 @@
 package com.saveourtool.save.demo.storage
 
-import com.saveourtool.save.demo.diktat.DiktatDemoTool
 import com.saveourtool.save.demo.entity.Dependency
 
 /**
@@ -20,17 +19,6 @@ data class ToolKey(
      */
     fun toPrettyString() = "$organizationName/$projectName ($version)"
 }
-
-/**
- * @param executableName name of an executable - later will be fetched from database
- * @return [ToolKey] from [DiktatDemoTool]
- */
-fun DiktatDemoTool.toToolKey(executableName: String) = ToolKey(
-    ownerName,
-    toolName,
-    vcsTagName,
-    executableName,
-)
 
 /**
  * @return [ToolKey] from [Dependency]

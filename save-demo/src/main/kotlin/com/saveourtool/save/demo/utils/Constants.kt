@@ -5,16 +5,6 @@
 package com.saveourtool.save.demo.utils
 
 /**
- * Default filename for single kotlin file used for diktat analysis
- */
-const val KOTLIN_TEST_NAME = "Main.kt"
-
-/**
- * Name of config file for diktat
- */
-const val DIKTAT_CONFIG_NAME = "diktat-analysis.yml"
-
-/**
  * Name of the file where the results of the run are stored
  */
 const val REPORT_FILE_NAME = "report"
