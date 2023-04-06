@@ -56,29 +56,6 @@ fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
     .jobs()
     .withName(jobNameForDemo(demo))
 
-/**
- * @param demo demo entity
- * @return true if the resource is ready or exists (if no readiness check exists), false otherwise.
- */
-fun KubernetesClient.isJobReady(demo: Demo) = getJobByName(demo).isReady
-
-/**
- * @param demo demo entity
- * @return list of ips of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPodsIps(demo: Demo) = getJobPods(demo)
-    .map { it.status.podIP }
-
-/**
- * @param demo demo entity
- * @return list of pods that are run by job associated with [demo]
- */
-fun KubernetesClient.getJobPods(demo: Demo): List<Pod> = pods()
-    .withLabel(DEMO_ORG_NAME, demo.organizationName)
-    .withLabel(DEMO_PROJ_NAME, demo.projectName)
-    .list()
-    .items
-
 private fun ContainerPort.default(port: Int) = apply {
     protocol = "TCP"
     containerPort = port

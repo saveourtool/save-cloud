@@ -35,7 +35,7 @@ class DependencyStorage(
     fun blockingList(
         demo: Demo,
         version: String,
-    ): List<Dependency> = s3KeyManager.findAllDependenies(
+    ): List<Dependency> = s3KeyManager.findAllDependencies(
         demo.organizationName,
         demo.projectName,
         version,
@@ -124,7 +124,7 @@ class DependencyStorage(
         version: String,
         dependencyNames: List<String>,
     ): Mono<Int> = blockingToMono {
-        s3KeyManager.findAllDependenies(
+        s3KeyManager.findAllDependencies(
             demo.organizationName,
             demo.projectName,
             version,
@@ -143,7 +143,7 @@ class DependencyStorage(
         projectName: String,
         version: String
     ) = blockingToFlux {
-        s3KeyManager.findAllDependenies(organizationName, projectName, version)
+        s3KeyManager.findAllDependencies(organizationName, projectName, version)
     }
         .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
