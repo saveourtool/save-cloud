@@ -69,8 +69,9 @@ private fun run(
 
     return DemoResult(
         warnings = warnings,
-        logs = executionResult.stdout,
+        stdout = executionResult.stdout,
+        stderr = executionResult.stderr,
         outputText = fs.readLines(inputFile),
-        terminationCode = executionResult.code
+        terminationCode = executionResult.code,
     )
 }

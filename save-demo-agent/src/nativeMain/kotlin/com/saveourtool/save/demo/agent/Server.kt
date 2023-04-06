@@ -100,6 +100,7 @@ private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/r
  * @param skipStartupConfiguration if true, startup configuration will be skipped
  * @return [CIOApplicationEngine]
  */
+@Suppress("ExtractKtorModule")
 fun server(serverConfiguration: ServerConfiguration, skipStartupConfiguration: Boolean = false) = embeddedServer(CIO, port = serverConfiguration.port.toInt()) {
     val deferredConfig: CompletableDeferred<DemoAgentConfig> = CompletableDeferred()
     logType.set(LogType.ALL)
