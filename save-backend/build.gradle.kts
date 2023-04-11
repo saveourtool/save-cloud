@@ -25,8 +25,14 @@ openApi {
     }
 }
 
-run {
-    tasks.findByName("inspectClassesForKotlinIC")?.mustRunAfter("forkedSpringBootRun")
+// a workaround for https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/102
+project.afterEvaluate {
+    tasks.findByName("inspectClassesForKotlinIC")
+        ?.let { incrementalTask ->
+            tasks.named("forkedSpringBootRun") {
+                mustRunAfter("jar", incrementalTask)
+            }
+        }
 }
 
 tasks.named("processTestResources") {
