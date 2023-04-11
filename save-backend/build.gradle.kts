@@ -25,12 +25,8 @@ openApi {
     }
 }
 
-tasks.named("jar") {
-    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
-}
-
 run {
-    tasks.findByName("inspectClassesForKotlinIC")?.mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
+    tasks.findByName("inspectClassesForKotlinIC")?.mustRunAfter("forkedSpringBootRun")
 }
 
 tasks.named("processTestResources") {
