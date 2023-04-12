@@ -17,7 +17,7 @@
                 <constraints foreignKeyName="fk_project_problem_project" references="project(id)" nullable="false" deleteCascade="true"/>
             </column>
             <column name="vulnerability_id" type="bigint">
-                <constraints foreignKeyName="fk_lnk_project_vulnerability_vulnerability" references="vulnerability(id)" nullable="false" deleteCascade="true"/>
+                <constraints foreignKeyName="fk_lnk_project_vulnerability_vulnerability" references="vulnerability(id)" nullable="true" deleteCascade="true"/>
             </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="true"/>
