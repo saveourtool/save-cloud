@@ -85,6 +85,7 @@ external interface ProjectSecurityMenuProps : Props {
 
 @Suppress(
     "TOO_LONG_FUNCTION",
+    "LongMethod",
 )
 private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
 
