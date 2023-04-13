@@ -34,5 +34,6 @@ class ProjectProblem(
         name = name,
         description = description,
         critical = critical,
+        vulnerabilityName = vulnerability?.name,
     )
 }

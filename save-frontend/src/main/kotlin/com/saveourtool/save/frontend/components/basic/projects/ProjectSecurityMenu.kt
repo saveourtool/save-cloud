@@ -9,6 +9,8 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.utils.withNavigate
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -82,6 +84,9 @@ external interface ProjectSecurityMenuProps : Props {
     var currentUserInfo: UserInfo
 }
 
+@Suppress(
+    "TOO_LONG_FUNCTION",
+)
 private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
 
     div {
@@ -131,6 +136,16 @@ private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
         // ===================== RIGHT COLUMN =======================================================================
         div {
             className = ClassName("col-6")
+
+            div {
+                className = ClassName("d-flex justify-content-end")
+                withNavigate { navigateContext ->
+                    buttonBuilder(label = "New problem") {
+                        navigateContext.navigate("/project/${props.project.organizationName}/${props.project.name}/security/problems/new")
+                    }
+                }
+            }
+
             problemsTable {
                 getData = { _, _ -> emptyArray() }
             }
