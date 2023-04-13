@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
@@ -143,6 +144,13 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
+    val createProjectProblemView: VFC = withRouter { _, params ->
+        createProjectProblem {
+            organizationName = requireNotNull(params["owner"])
+            projectName = requireNotNull(params["name"])
+        }
+    }
+
     Routes {
         listOf(
             WelcomeView::class.react.create { userInfo = props.userInfo } to "/",
@@ -163,6 +171,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to "/:owner/:name/history",
             projectView.create() to "/:owner/:name",
+            createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
             demoView.create() to "/$DEMO/:organizationName/:projectName",
             cpgView.create() to "/$DEMO/cpg",
