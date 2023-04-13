@@ -7,6 +7,9 @@ import kotlinx.serialization.Serializable
  * @property description
  * @property critical
  * @property vulnerabilityName
+ * @property organizationName
+ * @property projectName
+ * @property id
  */
 @Serializable
 data class ProjectProblemDto(
@@ -14,6 +17,9 @@ data class ProjectProblemDto(
     val description: String,
     val critical: ProjectProblemCritical,
     val vulnerabilityName: String?,
+    val organizationName: String,
+    val projectName: String,
+    val id: Long? = null,
 ) {
     companion object {
         val empty = ProjectProblemDto(
@@ -21,6 +27,8 @@ data class ProjectProblemDto(
             "",
             ProjectProblemCritical.LOW,
             null,
+            "",
+            "",
         )
     }
 }

@@ -37,10 +37,11 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
     val enrollRequest = useDeferredRequest {
+        val projectProblemNew = projectProblem.copy(projectName = props.projectName, organizationName = props.organizationName)
         val response = post(
             url = "$apiUrl/projects/problem/save",
             headers = jsonHeaders,
-            body = Json.encodeToString(projectProblem),
+            body = Json.encodeToString(projectProblemNew),
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
@@ -207,5 +208,5 @@ external interface CreateProjectProblemViewProps : Props {
     /**
      * Information about current user
      */
-    var projectName: String?
+    var projectName: String
 }

@@ -9,8 +9,7 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.withNavigate
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -86,6 +85,7 @@ external interface ProjectSecurityMenuProps : Props {
 
 @Suppress(
     "TOO_LONG_FUNCTION",
+    "LongMethod",
 )
 private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
 
@@ -147,7 +147,16 @@ private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
             }
 
             problemsTable {
-                getData = { _, _ -> emptyArray() }
+                getData = { _, _ ->
+                    get(
+                        url = "$apiUrl/projects/problem/all?projectName=${props.project.name}&organizationName=${props.project.organizationName}",
+                        headers = jsonHeaders,
+                        loadingHandler = ::loadingHandler,
+                    )
+                        .unsafeMap {
+                            it.decodeFromJsonString<Array<ProjectProblemDto>>()
+                        }
+                }
             }
         }
     }

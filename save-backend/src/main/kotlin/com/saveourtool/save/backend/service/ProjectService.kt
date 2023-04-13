@@ -1,13 +1,18 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.repository.vulnerability.VulnerabilityRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
@@ -26,12 +31,12 @@ import java.util.*
  * @property projectRepository
  */
 @Service
-@OptIn(ExperimentalStdlibApi::class)
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-
-    private val userRepository: UserRepository
+    private val projectProblemRepository: ProjectProblemRepository,
+    private val vulnerabilityRepository: VulnerabilityRepository,
+    private val userRepository: UserRepository,
 ) {
     /**
      * Store [project] in the database
@@ -231,4 +236,34 @@ class ProjectService(
         findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
     }
         .switchIfEmptyToNotFound(lazyMessage)
+
+    /**
+     * @param projectName name of project
+     * @param organizationName name of organization
+     * @return list of project problems
+     */
+    fun getAllProblemsByProjectNameAndProjectOrganizationName(projectName: String, organizationName: String) =
+            projectProblemRepository.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName)
+
+    /**
+     * @param problem problem of project
+     * @param authentication auth info of a current user
+     */
+    @Transactional
+    fun saveProjectProblem(problem: ProjectProblemDto, authentication: Authentication) {
+        val vulnerability = problem.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val project = projectRepository.findByNameAndOrganizationName(problem.projectName, problem.organizationName).orNotFound()
+        val userId = (authentication.details as AuthenticationDetails).id
+        val user = userRepository.getByIdOrNotFound(userId)
+
+        val projectProblem = ProjectProblem(
+            name = problem.name,
+            description = problem.description,
+            critical = problem.critical,
+            vulnerability = vulnerability,
+            project = project,
+            userId = user.requiredId(),
+        )
+        projectProblemRepository.save(projectProblem)
+    }
 }

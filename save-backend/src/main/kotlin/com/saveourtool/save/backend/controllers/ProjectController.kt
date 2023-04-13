@@ -259,6 +259,39 @@ class ProjectController(
             }
         }
 
+    @PostMapping("/problem/save")
+    @Operation(
+        method = "POST",
+        summary = "Save project problem.",
+        description = "Save project problem.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully saved project problem")
+    @PreAuthorize("permitAll()")
+    fun save(
+        @RequestBody projectProblemDto: ProjectProblemDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        projectService.saveProjectProblem(projectProblemDto, authentication)
+    }.map {
+        ResponseEntity.ok("Project problem was successfully saved")
+    }
+
+    @GetMapping("/problem/all")
+    @Operation(
+        method = "GET",
+        summary = "Get all project problems.",
+        description = "Get all project problems.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched all project problems")
+    @Suppress("TYPE_ALIAS")
+    fun getAllProjectProblems(
+        @RequestParam projectName: String,
+        @RequestParam organizationName: String,
+    ): Mono<List<ProjectProblemDto>> = blockingToMono {
+        projectService.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName).map(
+            ProjectProblem::toDto)
+    }
+
     companion object {
         @JvmStatic
         private val log = LoggerFactory.getLogger(ProjectController::class.java)
