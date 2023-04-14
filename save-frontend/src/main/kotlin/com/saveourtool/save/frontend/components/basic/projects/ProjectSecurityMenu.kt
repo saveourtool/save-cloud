@@ -40,7 +40,7 @@ private val problemsTable: FC<TableProps<ProjectProblemDto>> = tableComponent(
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${cellContext.row.original.name}"
+                            to = "/project/${cellContext.row.original.organizationName}/${cellContext.row.original.projectName}/security/problems/${cellContext.row.original.id}"
                             +cellContext.value
                         }
                     }

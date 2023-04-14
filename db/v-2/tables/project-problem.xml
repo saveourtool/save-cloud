@@ -35,4 +35,8 @@
         <addUniqueConstraint tableName="project_problem" columnNames="name,project_id"/>
     </changeSet>
 
+    <changeSet id="modify-description-type" author="frolov">
+        <modifyDataType tableName="project_problem" columnName="description" newDataType="TEXT"/>
+    </changeSet>
+
 </databaseChangeLog>
