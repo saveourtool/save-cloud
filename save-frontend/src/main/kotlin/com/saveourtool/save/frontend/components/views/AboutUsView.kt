@@ -216,6 +216,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
  * @property description brief developer description
  * @property surname
  */
+@JsExport
 data class Developer(
     val name: String,
     val surname: String,

@@ -17,7 +17,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import js.core.get
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -165,7 +164,7 @@ enum class VulnerabilityListTab {
     companion object : TabMenuBar<VulnerabilityListTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: VulnerabilityListTab = PUBLIC
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.FOSS_GRAPH.path}")
+        override val regexForUrlClassification = "/${FrontendRoutes.FOSS_GRAPH.path}"
         override fun valueOf(elem: String): VulnerabilityListTab = VulnerabilityListTab.valueOf(elem)
         override fun values(): Array<VulnerabilityListTab> = VulnerabilityListTab.values()
     }

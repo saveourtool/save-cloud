@@ -127,15 +127,15 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
-                    val result = when (cellProps.row.original.status) {
-                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
-                        ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
-                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
+                    val (resColor, resIcon) = when (cellProps.row.original.status) {
+                        ExecutionStatus.ERROR -> "text-danger" to faExclamationTriangle
+                        ExecutionStatus.OBSOLETE -> "text-secondary" to faExclamationTriangle
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> "text-success" to faSpinner
+                        ExecutionStatus.RUNNING -> "text-success" to faSpinner
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                            ResultColorAndIcon("text-danger", faExclamationTriangle)
+                            "text-danger" to faExclamationTriangle
                         } else {
-                            ResultColorAndIcon("text-success", faCheck)
+                            "text-success" to faCheck
                         }
                     }
                     Fragment.create {
@@ -143,7 +143,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                             a {
                                 href =
                                         getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                                fontAwesomeIcon(resIcon, classes = resColor)
                             }
                         }
                     }
@@ -478,12 +478,6 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     } else {
         "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
     }
-
-    /**
-     * @property resColor
-     * @property resIcon
-     */
-    private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
 
     companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext>>(HistoryView::class) {
         init {

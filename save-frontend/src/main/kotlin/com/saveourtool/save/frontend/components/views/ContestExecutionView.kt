@@ -18,10 +18,7 @@ import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.PieChartColors
 import com.saveourtool.save.frontend.externals.chart.pieChart
-import com.saveourtool.save.frontend.externals.fontawesome.faCheck
-import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
-import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -75,20 +72,20 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
-                    val result = when (cellProps.row.original.status) {
-                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
-                        ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
-                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
+                    val (resColor, resIcon) = when (cellProps.row.original.status) {
+                        ExecutionStatus.ERROR -> "text-danger" to faExclamationTriangle
+                        ExecutionStatus.OBSOLETE -> "text-secondary" to faExclamationTriangle
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> "text-success" to faSpinner
+                        ExecutionStatus.RUNNING -> "text-success" to faSpinner
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                            ResultColorAndIcon("text-danger", faExclamationTriangle)
+                            "text-danger" to faExclamationTriangle
                         } else {
-                            ResultColorAndIcon("text-success", faCheck)
+                            "text-success" to faCheck
                         }
                     }
                     Fragment.create {
                         td {
-                            fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                            fontAwesomeIcon(resIcon, classes = resColor)
                         }
                     }
                 }
@@ -239,12 +236,6 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
             .toString()
             .replace("[TZ]".toRegex(), " ")
     }
-
-    /**
-     * @property resColor
-     * @property resIcon
-     */
-    private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
 
     companion object : RStatics<ContestExecutionViewProps, State, ContestExecutionView, Context<RequestStatusContext>>(ContestExecutionView::class) {
         init {
