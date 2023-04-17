@@ -29,7 +29,10 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
     useRequest {
         val projectProblemNew: ProjectProblemDto = get(
-            url = "$apiUrl/projects/problem/get/by-id?id=${props.projectProblemId}",
+            url = "$apiUrl/projects/problem/get/by-id",
+            params = jso<dynamic> {
+                id = props.projectProblemId
+            },
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
