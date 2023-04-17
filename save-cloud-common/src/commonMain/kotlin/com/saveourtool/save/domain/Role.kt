@@ -1,15 +1,13 @@
 package com.saveourtool.save.domain
 
-import kotlinx.serialization.Serializable
-import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
+import kotlinx.serialization.Serializable
 
 /**
  * User roles
  * @property formattedName string representation of the [Role] that should be printed
  * @property priority
  */
-@ExperimentalJsExport
 @Suppress("MAGIC_NUMBER", "MagicNumber")
 @Serializable
 @JsExport

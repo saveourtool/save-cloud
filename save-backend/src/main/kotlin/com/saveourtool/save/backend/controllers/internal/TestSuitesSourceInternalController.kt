@@ -29,7 +29,7 @@ class TestSuitesSourceInternalController(
     @PostMapping("/generate-url-to-upload-snapshot")
     fun generateUrlToUpload(
         @RequestBody snapshotDto: TestsSourceSnapshotDto,
-        @RequestHeader(Constants.CONTENT_LENGTH_CUSTOM) contentLength: Long,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
     ): UploadRequest<TestsSourceSnapshotDto> = snapshotStorage.generateRequestToUpload(snapshotDto, contentLength)
 
     /**

@@ -9,8 +9,8 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.Constants.CONTENT_LENGTH_CUSTOM
-import com.saveourtool.save.utils.Constants.FILE_PART_NAME
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
 import js.core.jso
 
 import org.w3c.fetch.Headers

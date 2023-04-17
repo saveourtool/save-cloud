@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.externals.reactace
 
-import com.saveourtool.save.utils.Constants.DEBOUNCE_PERIOD_FOR_EDITORS
+import com.saveourtool.save.utils.DEBOUNCE_PERIOD_FOR_EDITORS
 import com.saveourtool.save.utils.Languages
 
 import csstype.ClassName

@@ -25,10 +25,7 @@ kotlin {
     jvmToolchain {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
-    js(IR) {
-        browser()
-        binaries.library()
-    }
+    js(IR).browser()
 
     // setup native compilation
     linuxX64()

@@ -6,7 +6,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.Constants.DEFAULT_DEBOUNCE_PERIOD
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
 import csstype.None

@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.spring.entity.BaseEntity
-import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated

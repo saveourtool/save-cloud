@@ -23,7 +23,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import csstype.Background
 import csstype.ClassName

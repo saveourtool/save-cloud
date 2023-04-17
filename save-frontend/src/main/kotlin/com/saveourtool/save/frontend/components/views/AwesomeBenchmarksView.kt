@@ -16,7 +16,7 @@ import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.utils.AwesomeBenchmarks
-import com.saveourtool.save.utils.Constants.DATABASE_DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName

@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuit
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteVersioned
-import com.saveourtool.save.utils.Constants.DEFAULT_DEBOUNCE_PERIOD
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
 import react.*

@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.Constants.URL_PATH_DELIMITER
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
