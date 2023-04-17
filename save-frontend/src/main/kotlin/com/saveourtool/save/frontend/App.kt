@@ -9,7 +9,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBar
-import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
@@ -19,7 +18,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import history.createHashHistory
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -109,24 +107,15 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     )
     override fun ChildrenBuilder.render() {
         val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
-        val navigate = useNavigate()
 
-        createHashHistory() {
-
-        }
-        createHashHistory().apply {
+        HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
 
                 withRouter<Props> { location, _ ->
                     if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
-                        navigate.invoke(
-                            to = "/${FrontendRoutes.REGISTRATION.path}",
-                            options =
-                        )
-                        useNavigate
                         Navigate {
-                            to =
+                            to = "/${FrontendRoutes.REGISTRATION.path}"
                             replace = false
                         }
                     } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
@@ -175,15 +164,16 @@ inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachLis
     routeElement: FC<Props>
 ) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
-        useRoutes()
         Route {
-            path = "$basePath/$item"
-            element = routeElement.create()
+            val pathRouteProps = this.unsafeCast<PathRouteProps>()
+            pathRouteProps.path = "$basePath/$item"
+            pathRouteProps.element = routeElement.create()
         }
     }
     Route {
-        path = basePath
-        element = routeElement.create()
+        val pathRouteProps = this.unsafeCast<PathRouteProps>()
+        pathRouteProps.path = basePath
+        pathRouteProps.element = routeElement.create()
     }
 }
 
