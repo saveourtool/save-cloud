@@ -4,8 +4,8 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 
-import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
+import kotlinx.serialization.Serializable
 
 /**
  * Represents all data related to the User

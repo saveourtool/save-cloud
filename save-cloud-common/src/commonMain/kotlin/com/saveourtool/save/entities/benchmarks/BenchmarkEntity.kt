@@ -5,8 +5,9 @@
 package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.frontend.TabMenuBar
-import kotlinx.serialization.Serializable
+
 import kotlin.js.JsExport
+import kotlinx.serialization.Serializable
 
 @Serializable
 @Suppress("WRONG_DECLARATIONS_ORDER")

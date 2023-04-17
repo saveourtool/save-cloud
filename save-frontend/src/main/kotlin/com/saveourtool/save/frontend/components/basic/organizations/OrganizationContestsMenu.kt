@@ -17,7 +17,6 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.RoleJs
 
 import csstype.ClassName
 import org.w3c.fetch.Response

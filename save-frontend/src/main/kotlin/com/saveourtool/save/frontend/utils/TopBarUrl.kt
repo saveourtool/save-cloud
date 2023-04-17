@@ -61,7 +61,7 @@ class TopBarUrl(val href: String) {
      * @param href
      */
     private fun findExclude(href: String) {
-        circumstance = SituationUrlClassification.values
+        circumstance = SituationUrlClassification.values()
             .filter { it.regex != null }
             .firstOrNull { href.contains(Regex(it.regex ?: "")) }
             ?: SituationUrlClassification.KEYWORD_PROCESS
@@ -104,56 +104,45 @@ class TopBarUrl(val href: String) {
      * This Enum class classifies work with the url address segment
      * @property regex
      */
-    sealed class SituationUrlClassification(val regex: String? = null) {
-        init {
-            lazyValues += lazy { this }
-        }
-
+    enum class SituationUrlClassification(val regex: String? = null) {
         /**
          * Situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
          */
-        object ARCHIVE : SituationUrlClassification(BenchmarkCategoryEnum.regexForUrlClassification)
+        ARCHIVE(BenchmarkCategoryEnum.regexForUrlClassification),
 
         /**
          * Situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
          */
-        object DETAILS : SituationUrlClassification("/[^/]+/[^/]+/history/execution/\\d+/details")
+        DETAILS("/[^/]+/[^/]+/history/execution/\\d+/details"),
 
         /**
          * Situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
          */
-        object EXECUTION : SituationUrlClassification("/[^/]+/[^/]+/history/execution")
+        EXECUTION("/[^/]+/[^/]+/history/execution"),
 
         /**
          * The button with this url segment is not created
          */
-        object KEYWORD_NOT_PROCESS : SituationUrlClassification()
+        KEYWORD_NOT_PROCESS,
 
         /**
          * The button with this url segment is created without changes
          */
-        object KEYWORD_PROCESS : SituationUrlClassification()
+        KEYWORD_PROCESS,
 
         /**
          * The button is created if this segment is one of the last
          */
-        object KEYWORD_PROCESS_LAST_SEGMENTS : SituationUrlClassification()
+        KEYWORD_PROCESS_LAST_SEGMENTS,
 
         /**
          * Situation with the processing of the "organization" in the url address - need for tabs in OrganizationView
          */
-        object ORGANIZATION : SituationUrlClassification(OrganizationMenuBar.regexForUrlClassification)
+        ORGANIZATION(OrganizationMenuBar.regexForUrlClassification),
 
         /**
          * Situation with the processing of the "project" in the url address - need for tabs in ProjectView
          */
-        object PROJECT : SituationUrlClassification(ProjectMenuBar.regexForUrlClassification)
-
-        companion object {
-            private val lazyValues = mutableListOf<Lazy<SituationUrlClassification>>()
-            val values: List<SituationUrlClassification> by lazy {
-                lazyValues.map { it.value }
-            }
-        }
+        PROJECT(ProjectMenuBar.regexForUrlClassification),
     }
 }

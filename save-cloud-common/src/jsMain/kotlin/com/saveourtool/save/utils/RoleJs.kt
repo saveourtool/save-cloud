@@ -30,6 +30,9 @@ object RoleJs {
      */
     val viewer = Role.VIEWER
 
+    /**
+     * @param role
+     */
     fun invoke(role: Role) = when (role) {
         Role.ADMIN -> admin
         Role.NONE -> none

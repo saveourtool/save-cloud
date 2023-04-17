@@ -1,8 +1,8 @@
-@file:JsExport
-
 /**
  * Module with defined constants
  */
+
+@file:JsExport
 
 package com.saveourtool.save.utils
 
@@ -22,6 +22,7 @@ const val DATABASE_DELIMITER = ","
  * Delimiter used to combine a list to show to user
  */
 const val PRETTY_DELIMITER = ", "
+
 /**
  * Delimiter used in URL path
  */

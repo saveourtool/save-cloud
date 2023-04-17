@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.domain.Role
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 

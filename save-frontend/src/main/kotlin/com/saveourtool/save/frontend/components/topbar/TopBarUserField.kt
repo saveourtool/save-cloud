@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*

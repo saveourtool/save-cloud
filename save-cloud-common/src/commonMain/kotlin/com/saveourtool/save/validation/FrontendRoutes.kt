@@ -36,17 +36,11 @@ enum class FrontendRoutes(val path: String) {
     override fun toString(): String = path
 
     companion object {
-        private val lazyValues = mutableListOf<Lazy<FrontendRoutes>>()
-
-        private val values by lazy {
-            lazyValues.map { it.value }
-        }
-
         /**
          * Get forbidden words from [FrontendRoutes].
          *
          * @return list of forbidden words
          */
-        fun getForbiddenWords(): Array<String> = values.map { it.path.split(URL_PATH_DELIMITER) }.flatten().toTypedArray()
+        fun getForbiddenWords() = FrontendRoutes.values().map { it.path.split(URL_PATH_DELIMITER) }.flatten().toTypedArray()
     }
 }

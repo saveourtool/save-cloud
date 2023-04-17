@@ -1,7 +1,7 @@
 package com.saveourtool.save.info
 
-import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
+import kotlinx.serialization.Serializable
 
 /**
  * Represents public information about OAuth2 provider

@@ -1,8 +1,8 @@
-@file:JsExport
-
 /**
  * Module that contains different error messages.
  */
+
+@file:JsExport
 
 package com.saveourtool.save.validation
 
@@ -22,7 +22,7 @@ const val URL_ERROR_MESSAGE = "Please input a valid URL that starts either with 
  * Error message that is shown when name input is invalid.
  */
 const val NAME_ERROR_MESSAGE =
-    "Please input a name that doesn't contain anything but english letters, numbers, dots and hyphens (but not the first and the last characters)"
+        "Please input a name that doesn't contain anything but english letters, numbers, dots and hyphens (but not the first and the last characters)"
 
 /**
  * Error message that is shown when date range input is invalid.
