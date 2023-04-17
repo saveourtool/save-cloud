@@ -58,7 +58,7 @@ val graphEvents: FC<GraphEventsProps> = FC { props ->
             enterNode = { event: dynamic ->
                 setHoveredNode(event.node)
             }
-            leaveNode = { _: dynamic ->
+            leaveNode = { event: dynamic ->
                 setHoveredNode(undefined)
             }
             clickNode = { event: dynamic ->

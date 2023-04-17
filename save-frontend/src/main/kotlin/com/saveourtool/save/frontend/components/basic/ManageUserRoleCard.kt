@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
-import com.saveourtool.save.utils.RoleJs
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
@@ -98,7 +97,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         val response = post(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = jsonHeaders,
-            body = Json.encodeToString(SetRoleRequest(userToAdd.name, RoleJs.viewer)),
+            body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
@@ -179,7 +178,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         }
         for (user in usersFromGroup) {
             val userName = user.name
-            val userRole = props.getUserGroups(user)[props.groupPath] ?: RoleJs.viewer
+            val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
             val userIndex = usersFromGroup.indexOf(user)
             div {
                 className = ClassName("row mt-2 mr-0 justify-content-between align-items-center")

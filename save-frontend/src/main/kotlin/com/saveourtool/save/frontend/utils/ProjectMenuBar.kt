@@ -24,9 +24,7 @@ enum class ProjectMenuBar {
         override val regexForUrlClassification = "/$nameOfTheHeadUrlSection/[^/]+/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
-        override fun isAvailableWithThisRole(roleName: String, elem: ProjectMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean {
-            val role = Role.valueOf(roleName)
-            return !(((elem == SETTINGS) || (elem == RUN)) && role.isLowerThan(Role.ADMIN))
-        }
+        override fun isAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =
+                !(((elem == SETTINGS) || (elem == RUN)) && role.isLowerThan(Role.ADMIN))
     }
 }

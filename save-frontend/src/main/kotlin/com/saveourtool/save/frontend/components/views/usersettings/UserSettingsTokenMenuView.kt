@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class UserSettingsTokenMenuView : UserSettingsView() {
     private val tokenCard = cardComponent(isBordered = false, hasBg = true)
     @Suppress("TOO_LONG_FUNCTION")
-    override fun renderMenu(): FC<UserSettingsProps> = FC { _ ->
+    override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         tokenCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")

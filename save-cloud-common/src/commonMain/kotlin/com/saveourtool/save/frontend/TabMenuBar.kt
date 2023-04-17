@@ -1,5 +1,6 @@
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.domain.Role
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 
@@ -42,10 +43,10 @@ interface TabMenuBar<T : Enum<T>> {
     fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem.uppercase()) == it }
 
     /**
-     * @param roleName
+     * @param role
      * @param elem
      * @param isOrganizationCanCreateContest
      * @return Returns true if the check for this tab and role is not passed, else return false
      */
-    fun isAvailableWithThisRole(roleName: String, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean = true
+    fun isAvailableWithThisRole(role: Role, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean = true
 }
