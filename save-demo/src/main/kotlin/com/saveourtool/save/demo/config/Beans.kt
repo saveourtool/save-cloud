@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.config
 
+import com.saveourtool.save.utils.BlockingBridge
 import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientBuilder
@@ -17,15 +18,21 @@ class Beans {
      * @return configured [KubernetesClient]
      */
     @Bean(destroyMethod = "close")
-    @Profile("kubernetes")
+    @Profile("kubernetes | minikube")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
         val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
             "Kubernetes settings should be passed in order to use Kubernetes"
         }
         return KubernetesClientBuilder()
             .withConfig(ConfigBuilder()
-                .withNamespace(kubernetesSettings.namespace)
+                .withNamespace(kubernetesSettings.currentNamespace)
                 .build())
             .build()
     }
+
+    /**
+     * @return [BlockingBridge]
+     */
+    @Bean
+    fun blockingBridge(): BlockingBridge = BlockingBridge.default
 }

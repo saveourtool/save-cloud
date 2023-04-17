@@ -16,7 +16,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
@@ -84,7 +84,7 @@ class TestExecutionController(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestBody(required = false) filters: TestExecutionFilters?,
+        @RequestBody(required = false) filters: TestExecutionFilter?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         @RequestParam(required = false, defaultValue = "false") testAnalysis: Boolean,
         authentication: Authentication,
@@ -98,7 +98,7 @@ class TestExecutionController(
         .flatMapMany { execution ->
             val testExecutions = Flux.fromStream {
                 log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-                testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty).stream()
+                testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilter.empty).stream()
             }
 
             /*
@@ -186,7 +186,7 @@ class TestExecutionController(
                 }
                 .mapNotNull {
                     if (page == null || size == null) {
-                        testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                        testExecutionService.getAllTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
                             TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
                         }
                     } else {
@@ -255,7 +255,7 @@ class TestExecutionController(
     @GetMapping("/internal/test-executions/get-by-container-id")
     fun getTestExecutionsForAgentWithStatus(@RequestParam containerId: String,
                                             @RequestParam status: TestResultStatus
-    ) = testExecutionService.getTestExecutions(containerId, status)
+    ) = testExecutionService.getAllTestExecutions(containerId, status)
         .map { it.toDto() }
 
     /**

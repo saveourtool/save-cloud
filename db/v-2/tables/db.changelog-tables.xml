@@ -35,6 +35,10 @@
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-description.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-project.xml" relativeToChangelogFile="true"/>
+    <include file="project-problem.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

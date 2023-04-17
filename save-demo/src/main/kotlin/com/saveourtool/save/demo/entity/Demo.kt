@@ -6,8 +6,7 @@ import com.saveourtool.save.demo.RunConfiguration
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
-import javax.persistence.Column
-import javax.persistence.Entity
+import javax.persistence.*
 
 /**
  * Entity that encapsulates all the information required for tool download and run
@@ -15,7 +14,7 @@ import javax.persistence.Entity
  * @property organizationName name of organization from saveourtool
  * @property projectName name of project from saveourtool
  * @property sdk sdk required for demo run
- * @property runCommand command that runs the tool on test file with name [fileName]
+ * @property runCommands list of [RunCommand] entities
  * @property fileName name that the tested input file should have
  * @property configName name of tool config file (or null if no config is needed)
  * @property outputFileName name of output file (or null if [outputFileName] is [fileName])
@@ -28,7 +27,6 @@ class Demo(
     var organizationName: String,
     var projectName: String,
     var sdk: String,
-    var runCommand: String,
     var fileName: String,
     var configName: String?,
     var outputFileName: String?,
@@ -36,6 +34,14 @@ class Demo(
     var githubOrganizationName: String?,
     @Column(name = "github_project")
     var githubProjectName: String?,
+    @OneToMany(
+        fetch = FetchType.EAGER,
+        mappedBy = "demo",
+        targetEntity = RunCommand::class,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+    )
+    var runCommands: List<RunCommand> = emptyList(),
 ) : BaseEntityWithDto<DemoDto>() {
     private fun githubProjectCoordinates() = githubOrganizationName?.let { organization ->
         githubProjectName?.let { project ->
@@ -57,7 +63,7 @@ class Demo(
     override fun toDto(): DemoDto = DemoDto(
         projectCoordinates(),
         "",
-        runCommand,
+        runCommands.toRunCommandsMap(),
         fileName,
         sdk.toSdk(),
         configName,
@@ -71,7 +77,7 @@ class Demo(
     fun toRunConfiguration() = RunConfiguration(
         fileName,
         configName,
-        runCommand,
+        runCommands.toRunCommandsMap(),
         outputFileName,
     )
 
@@ -84,19 +90,32 @@ class Demo(
         projectName,
         version,
     )
+
+    /**
+     * @param mode name of mode that demo should be run on
+     * @return run command for [mode]
+     */
+    fun getRunCommand(mode: String): String {
+        require(mode.isNotBlank()) { "Demo mode should not be blank." }
+        return requireNotNull(runCommands.find { it.modeName == mode }) {
+            "Could not find run command for mode $mode."
+        }.command
+    }
 }
 
 /**
+ * __Notice__ that newly created demo has neither [Demo.id] nor [Demo.runCommands] initialized
+ *
  * @return [Demo] entity filled with [DemoDto] data
  */
 fun DemoDto.toDemo() = Demo(
     projectCoordinates.organizationName,
     projectCoordinates.projectName,
     sdk.toString(),
-    runCommand,
     fileName,
     configName,
     outputFileName,
     githubProjectCoordinates?.organizationName,
     githubProjectCoordinates?.projectName,
+    emptyList()
 )

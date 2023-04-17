@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="run-command-1" author="sanyavertolet" context="dev or prod">
+        <createTable tableName="run_command">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="demo_id" type="bigint">
+                <constraints nullable="false"
+                             foreignKeyName="fk_run_command_demo"
+                             referencedColumnNames="id"
+                             referencedTableName="demo"
+                             deleteCascade="true"/>
+            </column>
+            <column name="mode_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="command" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="run_command" columnNames="demo_id, mode_name" constraintName="run_command_demo_id_mode_name_constraint"/>
+    </changeSet>
+
+</databaseChangeLog>

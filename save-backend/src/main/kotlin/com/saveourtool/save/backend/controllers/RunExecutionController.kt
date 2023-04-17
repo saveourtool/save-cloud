@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -206,8 +205,7 @@ class RunExecutionController(
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(
             execution.toRunRequest(
-                saveAgentVersion = SAVE_CLOUD_VERSION,
-                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
+                saveAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveAgentKey),
             )
         )
         .retrieve()

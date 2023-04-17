@@ -15,7 +15,7 @@ import kotlin.test.*
 class ServerTest {
     private val serverUrl = "localhost"
     private val serverConfiguration = ServerConfiguration()
-    private val server = server(serverConfiguration)
+    private val server = server(serverConfiguration, true)
 
     @BeforeTest
     fun startServer() {

@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -62,7 +62,7 @@ external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab> 
     /**
      * All filters in one value [filters]
      */
-    var filters: ProjectFilters
+    var filters: ProjectFilter
 }
 
 /**
@@ -72,7 +72,7 @@ external interface FiltersProps : TableProps<ProjectDto> {
     /**
      * All filters in one value [filters]
      */
-    var filters: ProjectFilters
+    var filters: ProjectFilter
 }
 
 /**
@@ -136,7 +136,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
 
     init {
         state.selectedMenu = ProjectListTab.defaultTab
-        state.filters = ProjectFilters(name = "", public = true)
+        state.filters = ProjectFilter(name = "", public = true)
     }
 
     @Suppress(
@@ -165,25 +165,16 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                             setState {
                                 selectedMenu = ProjectListTab.valueOf(it)
                                 filters = when (ProjectListTab.valueOf(it)) {
-                                    ProjectListTab.PUBLIC -> ProjectFilters(name = "", public = true)
-                                    ProjectListTab.PRIVATE -> ProjectFilters(name = "", public = false)
+                                    ProjectListTab.PUBLIC -> ProjectFilter(name = "", public = true)
+                                    ProjectListTab.PRIVATE -> ProjectFilter(name = "", public = false)
                                 }
                             }
                         }
 
-                        when (state.selectedMenu) {
-                            ProjectListTab.PUBLIC -> projectsTable {
-                                filters = state.filters
-                                getData = { _, _ ->
-                                    getProjects()
-                                }
-                            }
-
-                            ProjectListTab.PRIVATE -> projectsTable {
-                                filters = state.filters
-                                getData = { _, _ ->
-                                    getProjects()
-                                }
+                        projectsTable {
+                            filters = state.filters
+                            getData = { _, _ ->
+                                getProjects()
                             }
                         }
                     }

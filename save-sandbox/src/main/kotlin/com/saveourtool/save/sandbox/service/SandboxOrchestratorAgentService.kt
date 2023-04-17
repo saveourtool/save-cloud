@@ -21,8 +21,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
 
-import generated.SAVE_CLOUD_VERSION
-import generated.SAVE_CORE_VERSION
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
@@ -61,7 +59,7 @@ class SandboxOrchestratorAgentService(
         }
         .map { (execution, fileToUrls) ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION))
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveCliKey(execution.saveCliVersion))
                     .toString(),
                 testSuitesSourceSnapshotUrl = "$sandboxUrlForAgent/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
@@ -158,8 +156,7 @@ class SandboxOrchestratorAgentService(
      * @return a request to run execution
      */
     fun getRunRequest(execution: SandboxExecution): RunExecutionRequest = execution.toRunRequest(
-        saveAgentVersion = SAVE_CLOUD_VERSION,
-        saveAgentUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveAgentKey),
+        saveAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveAgentKey),
     )
 
     private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository

@@ -2,8 +2,9 @@ package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.key.S3KeyManager
+import com.saveourtool.save.storage.request.DownloadRequest
+import com.saveourtool.save.storage.request.UploadRequest
 
-import java.net.URL
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
@@ -65,5 +66,9 @@ abstract class AbstractSuspendingStorage<K : Any>(
 
     override suspend fun move(source: K, target: K): Boolean = initializer.validateAndRunSuspend { storageCoroutines.move(source, target) }
 
-    override fun generateUrlToDownload(key: K): URL? = initializer.validateAndRun { storagePreSignedUrl.generateUrlToDownload(key) }
+    override fun generateRequestToDownload(key: K): DownloadRequest<K>? = initializer.validateAndRun { storagePreSignedUrl.generateRequestToDownload(key) }
+
+    override fun generateRequestToUpload(key: K, contentLength: Long): UploadRequest<K> = initializer.validateAndRun {
+        storagePreSignedUrl.generateRequestToUpload(key, contentLength)
+    }
 }

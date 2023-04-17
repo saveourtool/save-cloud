@@ -35,7 +35,7 @@ class DependencyStorage(
     fun blockingList(
         demo: Demo,
         version: String,
-    ): List<Dependency> = s3KeyManager.findAllDependenies(
+    ): List<Dependency> = s3KeyManager.findAllDependencies(
         demo.organizationName,
         demo.projectName,
         version,
@@ -113,13 +113,37 @@ class DependencyStorage(
         )
     }
 
+    /**
+     * @param demo Demo entity
+     * @param version version of a tool
+     * @param dependencyNames list of dependency names that should be present in storage
+     * @return number of deleted files, wrapped into [Mono]
+     */
+    fun cleanDependenciesNotIn(
+        demo: Demo,
+        version: String,
+        dependencyNames: List<String>,
+    ): Mono<Int> = blockingToMono {
+        s3KeyManager.findAllDependencies(
+            demo.organizationName,
+            demo.projectName,
+            version,
+        )
+    }
+        .flatMapIterable { it }
+        .filter { it.fileName !in dependencyNames }
+        .flatMap { delete(it) }
+        .collectList()
+        .map { it.size }
+        .doOnSuccess { log.debug { "Cleaned $it useless dependencies." } }
+
     private fun downloadToTempDir(
         tempDir: Path,
         organizationName: String,
         projectName: String,
         version: String
     ) = blockingToFlux {
-        s3KeyManager.findAllDependenies(organizationName, projectName, version)
+        s3KeyManager.findAllDependencies(organizationName, projectName, version)
     }
         .flatMap { download(it).collectToFile(tempDir / it.fileName) }
         .collectList()
@@ -140,9 +164,8 @@ class DependencyStorage(
         version: String,
         archiveName: String = "archive.zip",
     ): Flux<ByteBuffer> = createTempDirectory().div("archive").createDirectory().let { tempDir ->
-        createArchive(tempDir, organizationName, projectName, version, archiveName).doOnComplete {
-            tempDir.deleteRecursively()
-        }
+        createArchive(tempDir, organizationName, projectName, version, archiveName)
+            .doOnComplete { tempDir.deleteRecursively() }
             .doOnError { tempDir.deleteRecursively() }
     }
 
@@ -152,13 +175,10 @@ class DependencyStorage(
         projectName: String,
         version: String,
         archiveName: String = "archive.zip",
-    ): Flux<ByteBuffer> =
-            downloadToTempDir(tmpDir, organizationName, projectName, version)
-                .map {
-                    tmpDir.parent.div(archiveName)
-                        .also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
-                }
-                .flatMapMany { it.toByteBufferFlux() }
+    ): Flux<ByteBuffer> = downloadToTempDir(tmpDir, organizationName, projectName, version).map {
+        tmpDir.parent.div(archiveName).also { dirToZip -> tmpDir.compressAsZipTo(dirToZip) }
+    }
+        .flatMapMany { it.toByteBufferFlux() }
 
     companion object {
         private val log: Logger = getLogger<DependencyStorage>()

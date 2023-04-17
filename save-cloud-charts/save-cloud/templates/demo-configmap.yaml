@@ -6,7 +6,8 @@ data:
   application.properties: |
     demo.kubernetes.apiServerUrl=http://kubernetes.default.svc
     demo.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
-    demo.kubernetes.namespace=${POD_NAMESPACE}
+    demo.kubernetes.current-namespace=${POD_NAMESPACE}
+    demo.kubernetes.agent-namespace={{ .Values.agentNamespace }}
     demo.kubernetes.agentPort={{ .Values.demo.agentPort }}
     demo.kubernetes.agentSubdomainName={{ .Values.demo.agentSubdomainName }}
 
@@ -21,4 +22,3 @@ data:
 
     demo.backend-url=http://backend/internal
     demo.agent-config.demo-url=http://demo
-    demo.s3-storage.endpoint=http://s3

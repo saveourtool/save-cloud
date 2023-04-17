@@ -4,9 +4,11 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.*
 import com.saveourtool.save.storage.key.AbstractS3KeyManager
 import com.saveourtool.save.storage.key.S3KeyManager
-import com.saveourtool.save.utils.downloadFromClasspath
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.toByteBufferFlux
+import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.github.GitHubHelper
+import com.saveourtool.save.utils.github.GitHubRepoInfo
+
+import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -28,6 +30,7 @@ open class AbstractInternalFileStorage(
     s3StoragePrefix: String,
     s3Operations: S3Operations,
 ) {
+    private val log: Logger = getLogger(this::class)
     private val initializer: StorageInitializer = StorageInitializer(this::class)
     private val s3KeyManager: S3KeyManager<InternalFileKey> = object : AbstractS3KeyManager<InternalFileKey>(concatS3Key(s3StoragePrefix, "internal-storage")) {
         override fun buildKeyFromSuffix(s3KeySuffix: String): InternalFileKey {
@@ -81,13 +84,10 @@ open class AbstractInternalFileStorage(
 
     /**
      * @param key
-     * @return generated [URL] to download provided [key] [InternalFileKey]
+     * @return generated [URL] to download provided [key] [InternalFileKey] from container
      * @throws ResponseStatusException with status [HttpStatus.NOT_FOUND]
      */
-    fun generateRequiredUrlToDownload(key: InternalFileKey): URL = storagePreSignedUrl.generateUrlToDownload(key)
-        .orNotFound {
-            "Not found $key in internal storage"
-        }
+    fun generateRequiredUrlToDownloadFromContainer(key: InternalFileKey): URL = storagePreSignedUrl.generateRequiredRequestToDownload(key).urlFromContainer
 
     /**
      * @param function
@@ -113,28 +113,62 @@ open class AbstractInternalFileStorage(
         function(storagePreSignedUrl)
     }
 
-    companion object {
-        private fun StorageProjectReactor<InternalFileKey>.uploadFromClasspath(key: InternalFileKey): Mono<Unit> = doesExist(key)
-            .filterWhen { exists ->
-                if (exists && key.isLatest()) {
-                    delete(key)
-                } else {
-                    exists.not().toMono()
-                }
+    private fun StorageProjectReactor<InternalFileKey>.uploadFromClasspath(key: InternalFileKey): Mono<Unit> = doesExist(key)
+        .filterWhen { exists ->
+            if (exists && key.isLatest()) {
+                delete(key)
+            } else {
+                exists.not().toMono()
             }
-            .flatMap {
-                downloadFromClasspath(key.fileName) {
-                    "Can't find ${key.name} with version ${key.version} in classpath"
+        }
+        .flatMap {
+            tryDownloadFromClasspath(key.fileName)
+                .flatMap { resource ->
+                    upload(
+                        key,
+                        resource.contentLength(),
+                        resource.toByteBufferFlux(),
+                    )
                 }
-                    .flatMap { resource ->
-                        upload(
-                            key,
-                            resource.contentLength(),
-                            resource.toByteBufferFlux(),
-                        )
+                .effectIfEmpty {
+                    log.info {
+                        "There is no ${key.name} with version ${key.version} in classpath"
                     }
+                }
+        }
+        .thenReturn(Unit)
+        .defaultIfEmpty(Unit)
+
+    /**
+     * Download save-cli from GitHub ([saveCliRepo]) latest [SAVE_CLI_LIMIT] versions
+     */
+    protected suspend fun DefaultStorageCoroutines<InternalFileKey>.downloadSaveCliFromGithub() {
+        GitHubHelper.availableTags(saveCliRepo)
+            .sorted()
+            .takeLast(SAVE_CLI_LIMIT)
+            .map { tagName ->
+                InternalFileKey.saveCliKey(tagName.removePrefix("v")) to tagName
             }
-            .thenReturn(Unit)
-            .defaultIfEmpty(Unit)
+            .filterNot { (key, _) ->
+                doesExist(key)
+            }
+            .forEach { (key, tagName) ->
+                GitHubHelper.download(saveCliRepo, tagName, key.fileName) { (content, contentLength) ->
+                    val uploadedKey = upload(key, contentLength, content.toByteBufferFlow())
+                    log.info {
+                        "Uploaded $uploadedKey to internal storage"
+                    }
+                } ?: log.warn {
+                    "Not found $key in github"
+                }
+            }
+    }
+
+    companion object {
+        private const val SAVE_CLI_LIMIT = 3
+        private val saveCliRepo = object : GitHubRepoInfo {
+            override val organizationName: String = "saveourtool"
+            override val projectName: String = "save-cli"
+        }
     }
 }

@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono
 
 import java.time.Instant
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
@@ -30,24 +31,39 @@ class LokiLogService(
         from: Instant,
         to: Instant,
         limit: Int,
-    ): Mono<StringList> {
-        val query = "{${config.labels.agentContainerName}=\"$containerName\"}"
-        return doQueryRange(query, from, to, limit)
-    }
+    ): Mono<StringList> = processQuery(listOf(config.labels.agentContainerName exact containerName), from, to, limit)
 
     override fun getByApplicationName(
         applicationName: String,
         from: Instant,
         to: Instant,
         limit: Int,
-    ): Mono<StringList> {
-        val query = with(config.labels) {
-            this.applicationName
-                ?.let { "{$it=\"$applicationName\"}" }
-                ?: "{$agentContainerName=~\"$applicationName.*\"}"
-        }
-        return doQueryRange(query, from, to, limit)
-    }
+    ): Mono<StringList> = processQuery(
+        listOf((config.labels.applicationName?.let { it exact applicationName })
+            ?: (config.labels.agentContainerName regex applicationName)),
+        from,
+        to,
+        limit,
+    )
+
+    override fun getByExactLabels(
+        labels: Map<String, String>,
+        from: Instant,
+        to: Instant,
+        limit: Int,
+    ): Mono<StringList> = processQuery(labels.map { (key, value) -> key exact value }, from, to, limit)
+
+    private fun processQuery(
+        builtLabels: List<String>,
+        from: Instant,
+        to: Instant,
+        limit: Int,
+    ): Mono<StringList> = doQueryRange("{${builtLabels.joinToString(", ")}}", from, to, limit)
+
+    private infix fun String.exact(value: String) = "$this = \"$value\""
+    private infix fun String.regex(value: String) = "$this =~ \"$value\""
+    private infix fun String.notEqual(value: String) = "$this != \"$value\""
+    private infix fun String.regexNotMatch(value: String) = "$this !~ \"$value\""
 
     private fun doQueryRange(
         query: String,
@@ -70,8 +86,8 @@ class LokiLogService(
         .uri(
             "/loki/api/v1/query_range?query={query}&start={start}&end={end}&direction=forward&limit={limit}",
             query,
-            start.toEpochNanoStr(),
-            end.toEpochNanoStr(),
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(start),
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(end),
             batchSize(),
         )
         .also {

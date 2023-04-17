@@ -14,7 +14,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
-import generated.SAVE_CORE_VERSION
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -64,23 +63,15 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                saveCliUrl = internalFileStorage.generateRequiredUrlToDownload(InternalFileKey.saveCliKey(SAVE_CORE_VERSION))
+                saveCliUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(InternalFileKey.saveCliKey(execution.saveCliVersion))
                     .toString(),
                 testSuitesSourceSnapshotUrl = executionService.getRelatedTestsSourceSnapshot(execution.requiredId())
                     .let { testsSourceSnapshot ->
-                        testsSourceSnapshotStorage.generateUrlToDownload(testsSourceSnapshot)
-                            .orNotFound {
-                                "Not found key for $testsSourceSnapshot"
-                            }
-                            .toString()
+                        testsSourceSnapshotStorage.generateRequiredRequestToDownload(testsSourceSnapshot).urlFromContainer.toString()
                     },
                 additionalFileNameToUrl = executionService.getAssignedFiles(execution)
                     .associate { file ->
-                        file.name to fileStorage.generateUrlToDownload(file)
-                            .orNotFound {
-                                "Not found key for $file"
-                            }
-                            .toString()
+                        file.name to fileStorage.generateRequiredRequestToDownload(file).urlFromContainer.toString()
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,

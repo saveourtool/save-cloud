@@ -51,6 +51,7 @@ class KubernetesManager(
         val job = Job().apply {
             metadata = ObjectMeta().apply {
                 name = jobNameForExecution(executionId)
+                namespace = kubernetesSettings.agentNamespace
             }
             spec = JobSpec().apply {
                 parallelism = replicas
@@ -72,7 +73,7 @@ class KubernetesManager(
                                 // "baseImageName" to baseImageName
                                 "io.kompose.service" to "save-agent",
                                 // todo: should be set to version of agent that is stored in backend...
-                                // "version" to SAVE_CORE_VERSION
+                                // "version" to SAVE_CLI_VERSION
                             )
                         }
                         // If agent fails, we should handle it manually (update statuses, attempt restart etc.)

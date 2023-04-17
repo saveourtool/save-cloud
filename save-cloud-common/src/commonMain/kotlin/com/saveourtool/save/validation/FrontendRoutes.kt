@@ -12,11 +12,26 @@ import kotlin.js.JsExport
  * @property path substring of url that defines given route
  */
 @JsExport
-sealed class FrontendRoutes(val path: String) {
-
-    init {
-        lazyValues += lazy { this }
-    }
+enum class FrontendRoutes(val path: String) {
+    ABOUT_US("about"),
+    AWESOME_BENCHMARKS("awesome-benchmarks"),
+    CONTESTS("contests"),
+    CONTESTS_GLOBAL_RATING("contests/global-rating"),
+    CREATE_ORGANIZATION("create-organization"),
+    CREATE_PROJECT("create-project"),
+    CREATE_VULNERABILITY("foss-graph/create-vulnerability"),
+    DEMO("demo"),
+    FOSS_GRAPH("foss-graph"),
+    MANAGE_ORGANIZATIONS("organizations"),
+    NOT_FOUND("not-found"),
+    PROJECTS("projects"),
+    REGISTRATION("registration"),
+    SANDBOX("sandbox"),
+    SETTINGS_EMAIL("settings/email"),
+    SETTINGS_ORGANIZATIONS("settings/organizations"),
+    SETTINGS_PROFILE("settings/profile"),
+    SETTINGS_TOKEN("settings/token"),
+    ;
 
     override fun toString(): String = path
 
@@ -34,22 +49,4 @@ sealed class FrontendRoutes(val path: String) {
          */
         fun getForbiddenWords(): Array<String> = values.map { it.path.split(URL_PATH_DELIMITER) }.flatten().toTypedArray()
     }
-
-    object ABOUT_US : FrontendRoutes("about")
-    object AWESOME_BENCHMARKS : FrontendRoutes("awesome-benchmarks")
-    object CONTESTS : FrontendRoutes("contests")
-    object CONTESTS_GLOBAL_RATING : FrontendRoutes("contests/global-rating")
-    object CREATE_ORGANIZATION : FrontendRoutes("create-organization")
-    object CREATE_PROJECT : FrontendRoutes("create-project")
-    object DEMO : FrontendRoutes("demo")
-    object FOSS_GRAPH : FrontendRoutes("foss-graph")
-    object MANAGE_ORGANIZATIONS : FrontendRoutes("organizations")
-    object NOT_FOUND : FrontendRoutes("not-found")
-    object PROJECTS : FrontendRoutes("projects")
-    object REGISTRATION : FrontendRoutes("registration")
-    object SANDBOX : FrontendRoutes("sandbox")
-    object SETTINGS_EMAIL : FrontendRoutes("settings/email")
-    object SETTINGS_ORGANIZATIONS : FrontendRoutes("settings/organizations")
-    object SETTINGS_PROFILE : FrontendRoutes("settings/profile")
-    object SETTINGS_TOKEN : FrontendRoutes("settings/token")
 }

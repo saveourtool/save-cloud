@@ -9,7 +9,7 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -61,7 +61,7 @@ class ProjectControllerTest {
             .post()
             .uri("/api/$v1/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(ProjectFilters.created)
+            .bodyValue(ProjectFilter.created)
             .exchange()
             .expectStatus()
             .isOk

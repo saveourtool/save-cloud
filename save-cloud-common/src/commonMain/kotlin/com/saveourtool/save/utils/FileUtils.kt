@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.core.files.findAllFilesMatching
+import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logInfo
 import okio.FileNotFoundException
 import okio.FileSystem
@@ -25,6 +27,40 @@ expect fun Path.markAsExecutable()
  * @param mustCreate will be passed to Okio's [FileSystem.write]
  */
 expect fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true)
+
+/**
+ * Unzip [Path] if it is .zip file.
+ *
+ * @param markAsExecutables if true, marks all files as executables (true by default)
+ */
+fun Path.unzipIfRequired(markAsExecutables: Boolean = true) {
+    if (name.endsWith(".zip")) {
+        unzip(markAsExecutables)
+    }
+}
+
+/**
+ * Unzip the archive by [Path].
+ *
+ * Notice that [Path] is not checked to really be an existing path to zip-archive.
+ *
+ * @param markAsExecutables if true, marks all files as executables (true by default)
+ */
+fun Path.unzip(markAsExecutables: Boolean = true) {
+    val parentDir = requireNotNull(parent)
+    extractZipTo(parentDir)
+    fs.delete(this, mustExist = true)
+    // fixme: need to store information about isExecutable in FileKey
+    if (markAsExecutables) {
+        parentDir.findAllFilesMatching {
+            if (fs.metadata(it).isRegularFile) {
+                it.markAsExecutable()
+            }
+            true
+        }
+    }
+    logDebug("Extracted archive into working dir and deleted $this")
+}
 
 /**
  * Parse config file

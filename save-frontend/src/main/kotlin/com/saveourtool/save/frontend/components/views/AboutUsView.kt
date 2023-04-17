@@ -6,10 +6,10 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
 
 import csstype.*
 import js.core.jso
@@ -103,14 +103,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                                     +SAVEOURTOOL_EMAIL
                                 }
                             }
-                            child(
-                                reactMarkdown(
-                                    jso {
-                                        this.children = saveourtoolDescription
-                                        this.className = "flex-wrap"
-                                    }
-                                )
-                            )
+                            markdown(saveourtoolDescription, "flex-wrap")
                         }
                     }
                 }

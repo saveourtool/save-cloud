@@ -35,11 +35,7 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
     val (selectedFiles, setSelectedFiles) = useState<List<FileDto>>(emptyList())
     val (availableFiles, setAvailableFiles) = useState<List<FileDto>>(emptyList())
 
-    useEffect(selectedFiles) {
-        props.updateFileDtos {
-            selectedFiles
-        }
-    }
+    useEffect(selectedFiles) { props.updateFileDtos { selectedFiles } }
 
     useRequest {
         val response = get(
@@ -53,7 +49,7 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
         }
     }
 
-    useRequest {
+    useRequest(arrayOf(selectedFiles)) {
         props.getUrlForAvailableFilesFetch?.invoke()?.let { url ->
             val response = get(
                 url,
@@ -62,14 +58,10 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
                 responseHandler = ::noopResponseHandler,
             )
             if (response.ok) {
-                val presentIndices = selectedFiles.map { it.id }
+                val presentNames = selectedFiles.map { it.name }
                 response.decodeFromJsonString<List<FileDto>>()
-                    .let { fileDtos ->
-                        fileDtos.filter { fileDto ->
-                            fileDto.id !in presentIndices
-                        }
-                    }
-                    .let { setAvailableFiles(it) }
+                    .let { fileDtos -> fileDtos.filter { fileDto -> fileDto.name !in presentNames }.distinctBy { it.name } }
+                    .let(setAvailableFiles::invoke)
             }
         }
     }
@@ -105,7 +97,8 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
                 selectorBuilder(
                     "Select a file from existing",
                     availableFiles.map { it.name }.plus("Select a file from existing"),
-                    classes = "form-control custom-select"
+                    classes = "form-control custom-select",
+                    isDisabled = props.isDisabled,
                 ) { event ->
                     val availableFile = availableFiles.first {
                         it.name == event.target.value
@@ -132,9 +125,10 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
                         }
                     }
                     fontAwesomeIcon(icon = faUpload)
+                    title = props.uploadFilesButtonTooltip ?: "Regular files/Executable files/ZIP Archives"
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "top"
-                    title = "Regular files/Executable files/ZIP Archives"
+                    asDynamic()["data-original-title"] = title
                     strong { +props.buttonLabel }
                 }
             }
@@ -143,9 +137,9 @@ val simpleFileUploader: FC<SimpleFileUploaderProps> = FC { props ->
             selectedFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    buttonBuilder(faTrash, null) {
+                    buttonBuilder(faTrash, null, isDisabled = props.isDisabled) {
                         setSelectedFiles { it.minus(file) }
-                        setAvailableFiles { it.plus(file) }
+                        setAvailableFiles { files -> files.plus(file) }
                     }
                     +file.name
                 }
@@ -195,4 +189,9 @@ external interface SimpleFileUploaderProps : Props {
      * Upload button label
      */
     var buttonLabel: String
+
+    /**
+     * Message that should be displayed as a tooltip of "Upload files" button, defaults to "Regular files/Executable files/ZIP Archives"
+     */
+    var uploadFilesButtonTooltip: String?
 }

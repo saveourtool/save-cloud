@@ -58,24 +58,18 @@ class TestsSourceVersionService(
 
     /**
      * @param organizationName
-     * @return list of [TestsSourceVersionInfo] found by provided values
-     */
-    fun getAllAsInfo(
-        organizationName: String,
-    ): List<TestsSourceVersionInfo> = versionRepository.findAllBySnapshot_Source_OrganizationName(organizationName)
-        .map(TestsSourceVersion::toInfo)
-
-    /**
-     * @param organizationName
      * @param sourceName
      * @return list of [TestsSourceVersionInfo] found by provided values
      */
     fun getAllAsInfo(
         organizationName: String,
-        sourceName: String,
-    ): List<TestsSourceVersionInfo> =
-            versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(organizationName, sourceName)
-                .map(TestsSourceVersion::toInfo)
+        sourceName: String? = null,
+    ): List<TestsSourceVersionInfo> {
+        val testsSourceVersions = sourceName
+            ?.let { versionRepository.findAllBySnapshot_Source_OrganizationNameAndSnapshot_SourceName(organizationName, it) }
+            ?: versionRepository.findAllBySnapshot_Source_OrganizationName(organizationName)
+        return testsSourceVersions.map(TestsSourceVersion::toInfo)
+    }
 
     /**
      * @param organizationName

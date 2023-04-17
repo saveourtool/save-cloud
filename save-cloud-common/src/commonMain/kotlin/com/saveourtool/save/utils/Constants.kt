@@ -54,3 +54,8 @@ object Constants {
      */
     const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 }
+
+/**
+ * Default time to execute setup.sh
+ */
+const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS = 60_000L

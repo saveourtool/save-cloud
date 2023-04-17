@@ -7,6 +7,8 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.lodash.debounce
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import js.core.jso
 import org.w3c.dom.EventSource
@@ -15,10 +17,7 @@ import org.w3c.dom.MessageEvent
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-import react.EffectBuilder
-import react.useContext
-import react.useEffect
-import react.useState
+import react.*
 
 import kotlinx.browser.document
 import kotlinx.coroutines.*
@@ -52,11 +51,16 @@ fun useOnceAction(): (() -> Unit) -> Unit {
 
 /**
  * Custom hook to enable tooltips.
+ *
+ * Requires element to have "data-toggle=tooltip" attribute set
+ * Show timeout can be set by setting "data-show-timeout=100"
+ * Hide timeout can be set by setting "data-hide-timeout=100"
+ * In order to update the tooltip content dynamically, you need to change "data-original-title" attribute
+ *
+ * @see [enableTooltip]
  */
 fun useTooltip() {
-    useEffect {
-        enableTooltip()
-    }
+    useEffect { enableTooltip() }
 }
 
 /**
@@ -259,6 +263,41 @@ fun useEventStream(
                 }
             }
         }
+
+/**
+ * [useState] modification in order to support default state value from [Props].
+ * Usually data passed with [Props] is not up-to-date yet and expected to be updated (e.g. when the response is received)
+ * In this case, [useStateFromProps] should update the state once on first [valueFromProps] change.
+ *
+ * @param valueFromProps value that somehow depends on variable from [Props]
+ * @return [StateInstance] of [valueFromProps] changing its value on first [valueFromProps] change
+ * @see [useState]
+ */
+fun <T : Any> useStateFromProps(valueFromProps: T): StateInstance<T> {
+    val state = useState(valueFromProps)
+    val onceWrapper = useOnceAction()
+    val reference = useRef(valueFromProps)
+    useEffect(valueFromProps) {
+        if (reference.current != valueFromProps) {
+            onceWrapper {
+                state.component2().invoke(valueFromProps)
+            }
+        }
+    }
+    return state
+}
+
+/**
+ * Hook to get callbacks to perform requests in functional components with [debounce].
+ *
+ * @param debouncePeriodMillis debounce period milliseconds
+ * @param request request that should be sent
+ * @return a function to trigger request execution.
+ */
+fun useDebouncedDeferredRequest(
+    debouncePeriodMillis: Int = DEFAULT_DEBOUNCE_PERIOD,
+    request: suspend WithRequestStatusContext.() -> Unit,
+) = debounce(useDeferredRequest(request), debouncePeriodMillis)
 
 /**
  * Reads the response of `application/x-ndjson` `Content-Type`.

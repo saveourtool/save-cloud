@@ -7,8 +7,12 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.asyncEffect
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 
-import org.springframework.http.HttpStatus
+import org.slf4j.Logger
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -87,24 +91,22 @@ class DependencyController(
     ): Mono<StringResponse> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
         "Could not find demo for $organizationName/$projectName."
     }
-        .flatMapIterable { demo ->
-            fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) }
+        .asyncEffect { demo ->
+            dependencyStorage.cleanDependenciesNotIn(demo, version, fileDtos.map { fileDto -> fileDto.name })
         }
-        .filterWhen {
-            dependencyStorage.doesExist(it).map(Boolean::not)
-        }
+        .flatMapIterable { demo -> fileDtos.map { Dependency(demo, version, it.name, it.requiredId()) to it } }
+        .filterWhen { (dependency, _) -> dependencyStorage.doesExist(dependency).map(Boolean::not) }
+        .flatMap { (dependency, fileDto) -> downloadToolService.downloadToStorage(fileDto, dependency) }
         .collectList()
-        .map {
-            downloadToolService.downloadToStorage(it)
-        }
+        .map { it.size }
         .map { size ->
-            StringResponse(
+            log.info { "Successfully downloaded $size files from file storage." }
+            StringResponse.ok(
                 if (size == 0) {
                     "All files are already present in demo storage."
                 } else {
                     "Successfully saved $size files to demo storage."
                 },
-                HttpStatus.OK,
             )
         }
 
@@ -114,7 +116,10 @@ class DependencyController(
      * @param version version to attach [zip] to
      * @return [Flux] of [ByteBuffer] - archive with files as content
      */
-    @GetMapping("/{organizationName}/{projectName}/download-as-zip")
+    @GetMapping(
+        path = ["/{organizationName}/{projectName}/download-as-zip"],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
+    )
     fun downloadFiles(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
@@ -123,4 +128,8 @@ class DependencyController(
         "Could not find demo for $organizationName/$projectName."
     }
         .flatMapMany { dependencyStorage.archive(it.organizationName, it.projectName, version) }
+
+    companion object {
+        private val log: Logger = getLogger<DependencyController>()
+    }
 }

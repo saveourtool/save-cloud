@@ -18,6 +18,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.utils.*
+import generated.SAVE_CLI_VERSION
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -324,18 +325,21 @@ class SandboxController(
             .flatMap {
                 storage.delete(SandboxStorageKey.debugInfoKey(userId))
             }
-            .map {
-                SandboxExecution(
-                    startTime = LocalDateTime.now(),
-                    endTime = null,
-                    status = ExecutionStatus.PENDING,
-                    sdk = sdk,
-                    userId = userId,
-                    initialized = false,
-                    failReason = null,
-                )
+            .flatMap {
+                blockingToMono {
+                    val execution = SandboxExecution(
+                        startTime = LocalDateTime.now(),
+                        endTime = null,
+                        status = ExecutionStatus.PENDING,
+                        sdk = sdk,
+                        saveCliVersion = SAVE_CLI_VERSION,
+                        userId = userId,
+                        initialized = false,
+                        failReason = null,
+                    )
+                    sandboxExecutionRepository.save(execution)
+                }
             }
-            .map { sandboxExecutionRepository.save(it) }
             .map { orchestratorAgentService.getRunRequest(it) }
             .flatMap { request ->
                 agentsController.initialize(request)

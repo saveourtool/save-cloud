@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
+import com.saveourtool.save.demo.cpg.CpgEngine
 import com.saveourtool.save.demo.cpg.CpgRunRequest
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
@@ -36,13 +37,17 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(props.preselectedLanguage)
     val (codeLines, setCodeLines) = useState(props.placeholderText)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
+    val (selectedEngine, setSelectedEngine) = useState(CpgEngine.CPG)
 
     val sendRunRequest = useDeferredRequest {
         props.resultRequest(
             this,
             CpgRunRequest(
                 codeLines.split("\n"),
-                CpgAdditionalParams(language = selectedLanguage),
+                CpgAdditionalParams(
+                    engine = selectedEngine,
+                    language = selectedLanguage,
+                ),
             )
         )
     }
@@ -92,6 +97,15 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
                     ) { event ->
                         setSelectedLanguage {
                             Languages.values().find { it.prettyName == event.target.value }!!
+                        }
+                    }
+                    selectorBuilder(
+                        selectedEngine.prettyName,
+                        CpgEngine.values().map { it.prettyName },
+                        "form-control custom-select"
+                    ) { event ->
+                        setSelectedEngine {
+                            CpgEngine.values().find { it.prettyName == event.target.value }!!
                         }
                     }
                     div {

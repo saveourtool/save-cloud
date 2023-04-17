@@ -6,16 +6,21 @@
 
 package com.saveourtool.save.frontend.routing
 
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.demo.cpgView
+import com.saveourtool.save.frontend.components.views.demo.demoMainView
 import com.saveourtool.save.frontend.components.views.demo.demoView
-import com.saveourtool.save.frontend.components.views.demo.diktatDemoView
+import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
+import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -41,7 +46,7 @@ val testExecutionDetailsView = testExecutionDetailsView()
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
-    val contestView: FC<Props> = withRouter { location, params ->
+    val contestView: VFC = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
             currentContestName = params["contestName"]
@@ -49,7 +54,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val contestExecutionView: FC<Props> = withRouter { _, params ->
+    val contestExecutionView: VFC = withRouter { _, params ->
         ContestExecutionView::class.react {
             currentUserInfo = props.userInfo
             contestName = params["contestName"]!!
@@ -58,7 +63,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val projectView: FC<Props> = withRouter { location, params ->
+    val projectView: VFC = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
@@ -67,35 +72,35 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val historyView: FC<Props> = withRouter { _, params ->
+    val historyView: VFC = withRouter { _, params ->
         HistoryView::class.react {
             name = params["name"]!!
             organizationName = params["owner"]!!
         }
     }
 
-    val executionView: FC<Props> = withRouter { location, params ->
+    val executionView: VFC = withRouter { location, params ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
-                TestExecutionFilters(
-                    status = params.get("status")?.let { TestResultStatus.valueOf(it) },
-                    fileName = params.get("fileName"),
-                    testSuite = params.get("testSuite"),
-                    tag = params.get("tag")
+                TestExecutionFilter(
+                    status = params["status"]?.let { TestResultStatus.valueOf(it) },
+                    fileName = params["fileName"],
+                    testSuite = params["testSuite"],
+                    tag = params["tag"]
                 )
             }
             testAnalysisEnabled = true
         }
     }
 
-    val creationView: FC<Props> = withRouter { _, params ->
+    val creationView: VFC = withRouter { _, params ->
         CreationView::class.react {
             organizationName = params["owner"]
         }
     }
 
-    val organizationView: FC<Props> = withRouter { location, params ->
+    val organizationView: VFC = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
@@ -103,17 +108,46 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+    val awesomeBenchmarksView: VFC = withRouter { location, _ ->
         AwesomeBenchmarksView::class.react {
             this.location = location
         }
     }
 
-    val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+    val contestGlobalRatingView: VFC = withRouter { location, _ ->
         ContestGlobalRatingView::class.react {
             organizationName = URLSearchParams(location.search).get("organizationName")
             projectName = URLSearchParams(location.search).get("projectName")
             this.location = location
+        }
+    }
+
+    val demoView: VFC = withRouter { _, params ->
+        demoView {
+            projectCoordinates = ProjectCoordinates(
+                requireNotNull(params["organizationName"]),
+                requireNotNull(params["projectName"]),
+            )
+        }
+    }
+
+    val fossGraphCollectionView: VFC = VFC {
+        fossGraphCollectionView {
+            currentUserInfo = props.userInfo
+        }
+    }
+
+    val fossGraphView: VFC = withRouter { _, params ->
+        fossGraph {
+            name = requireNotNull(params["vulnerabilityName"])
+            currentUserInfo = props.userInfo
+        }
+    }
+
+    val createProjectProblemView: VFC = withRouter { _, params ->
+        createProjectProblem {
+            organizationName = requireNotNull(params["owner"])
+            projectName = requireNotNull(params["name"])
         }
     }
 
@@ -137,12 +171,15 @@ val basicRouting: FC<AppProps> = FC { props ->
             organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to "/:owner/:name/history",
             projectView.create() to "/:owner/:name",
+            createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
             demoView.create() to "/$DEMO/:organizationName/:projectName",
-            diktatDemoView.create() to "/$DEMO/diktat",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            fossGraphView.create() to "/$FOSS_GRAPH",
+            fossGraphCollectionView.create() to "/$FOSS_GRAPH",
+            createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
+            fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
+            demoMainView.create() to "/$DEMO",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
@@ -231,7 +268,7 @@ private val fallbackNode = FallbackView::class.react.create {
  */
 external interface AppProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }

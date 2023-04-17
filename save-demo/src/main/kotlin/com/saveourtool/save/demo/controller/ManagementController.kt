@@ -1,5 +1,6 @@
 package com.saveourtool.save.demo.controller
 
+import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.entity.*
 import com.saveourtool.save.demo.service.*
@@ -25,14 +26,14 @@ class ManagementController(
      * @param demoDto
      * @return [Mono] of [DemoDto] entity
      */
-    @PostMapping("/add")
-    fun add(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
+    @PostMapping("/save-or-update")
+    fun saveOrUpdate(@RequestBody demoDto: DemoDto): Mono<DemoDto> = demoDto.toMono()
         .requireOrSwitchToResponseException({ validate() }, HttpStatus.CONFLICT) {
             "Demo creation request is invalid: fill project coordinates, run command and file name."
         }
         .asyncEffect { downloadToolService.initializeGithubDownload(it.githubProjectCoordinates, it.vcsTagName) }
         .flatMap {
-            blockingToMono { demoService.saveIfNotPresent(it.toDemo()).toDto() }
+            blockingToMono { demoService.saveOrUpdateExisting(it.toDemo(), it.runCommands).toDto() }
         }
 
     /**
@@ -66,8 +67,8 @@ class ManagementController(
         .flatMap { demoService.start(it) }
 
     /**
-     * @param organizationName
-     * @param projectName
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
      * @return [Mono] of [Unit]
      */
     @PostMapping("/{organizationName}/{projectName}/stop")
@@ -78,4 +79,24 @@ class ManagementController(
         "Could not find demo for $organizationName/$projectName."
     }
         .map { demoService.stop(it) }
+
+    /**
+     * Get [DemoAgentConfig] of [organizationName]/[projectName] demo with [version]
+     *
+     * This endpoint makes sense only when kubernetes profile is on
+     *
+     * @param organizationName saveourtool organization name
+     * @param projectName saveourtool project name
+     * @param version version of demo
+     * @return [DemoAgentConfig]
+     */
+    @GetMapping("/{organizationName}/{projectName}/configure-me")
+    fun sendConfiguration(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "manual") version: String,
+    ): Mono<DemoAgentConfig> = demoService.findBySaveourtoolProjectOrNotFound(organizationName, projectName) {
+        "Could not find demo for $organizationName/$projectName."
+    }
+        .map { demoService.getAgentConfiguration(it, version) }
 }

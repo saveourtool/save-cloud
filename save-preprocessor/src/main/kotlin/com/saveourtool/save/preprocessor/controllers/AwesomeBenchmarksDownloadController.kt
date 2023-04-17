@@ -58,7 +58,7 @@ class AwesomeBenchmarksDownloadController(
                             gitPreprocessorService.cloneBranchAndProcessDirectory(
                                 gitDto,
                                 branch
-                            ) { repositoryDir: Path, _ ->
+                            ) { (repositoryDir: Path) ->
                                 log.info("Awesome-benchmarks were downloaded to ${repositoryDir.absolutePathString()}")
                                 processDirectoryAndCleanUp(repositoryDir)
                             }

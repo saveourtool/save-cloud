@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
@@ -73,7 +73,6 @@ class OrganizationService(
      * If an organization was previously banned, then all its projects become deleted.
      *
      * @param organization an [Organization] to create
-     * @param organization
      * @return recovered organization
      */
     @Transactional
@@ -147,17 +146,13 @@ class OrganizationService(
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
-     * @param organizationFilters
-     * @return list of organizations with that match [organizationFilters]
+     * @param organizationFilter
+     * @return list of organizations with that match [organizationFilter]
      */
-    fun getFiltered(organizationFilters: OrganizationFilters): List<Organization> = if (organizationFilters.prefix.isBlank()) {
-        organizationRepository.findByStatusIn(organizationFilters.statuses)
-    } else {
-        organizationRepository.findByNameStartingWithAndStatusIn(
-            organizationFilters.prefix,
-            organizationFilters.statuses,
-        )
-    }
+    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
+        organizationFilter.prefix,
+        organizationFilter.statuses,
+    )
 
     /**
      * @param organization

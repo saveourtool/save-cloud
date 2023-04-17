@@ -6,10 +6,7 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
-import com.saveourtool.save.validation.ValidationErrorMessages.DATE_RANGE_ERROR_MESSAGE
-import com.saveourtool.save.validation.ValidationErrorMessages.EMAIL_ERROR_MESSAGE
-import com.saveourtool.save.validation.ValidationErrorMessages.NAME_ERROR_MESSAGE
-import com.saveourtool.save.validation.ValidationErrorMessages.URL_ERROR_MESSAGE
+import com.saveourtool.save.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
@@ -42,6 +39,7 @@ enum class InputTypes(
     GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
     GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    PROJECT_PROBLEM_NAME("project problem name", NAME_ERROR_MESSAGE, placeholder = "name"),
 
     // ==== signIn view
     LOGIN(
@@ -121,6 +119,9 @@ enum class InputTypes(
     // ==== ace editor
     ACE_THEME_SELECTOR("theme"),
     ACE_MODE_SELECTOR("mode"),
+
+    // ==== vulnerability
+    CVE_NAME("CVE identifier", CVE_NAME_ERROR_MESSAGE, placeholder = "CVE-2023-######"),
     ;
 }
 

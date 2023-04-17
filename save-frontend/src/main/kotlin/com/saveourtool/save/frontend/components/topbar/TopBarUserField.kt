@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.RoleJs
@@ -54,7 +55,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useState(props.userInfo?.avatar?.let { "/api/$v1/avatar$it" })
+    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -98,7 +99,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             }
                         }
                     }
-                    avatar?.let { avatar ->
+                    props.userInfo?.avatar?.let {
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")

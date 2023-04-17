@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.filters.ExecutionFilters
+import com.saveourtool.save.filters.ExecutionFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -97,7 +97,7 @@ external interface HistoryViewState : State {
     /**
      * All filters in one value [filters]
      */
-    var filters: ExecutionFilters
+    var filters: ExecutionFilter
 }
 
 /**
@@ -107,7 +107,7 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     /**
      * All filters in one value [filters]
      */
-    var filters: ExecutionFilters?
+    var filters: ExecutionFilter?
 }
 
 /**
@@ -376,7 +376,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                             label = "Clear all",
                         ) {
                             setState {
-                                filters = ExecutionFilters.empty
+                                filters = ExecutionFilter.empty
                             }
                         }
                     }
@@ -414,7 +414,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             .replace("[TZ]".toRegex(), " ")
     }
 
-    private fun createFilter(date: Date): ExecutionFilters = ExecutionFilters(
+    private fun createFilter(date: Date): ExecutionFilter = ExecutionFilter(
         startTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 0, 0, 0),
         endTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 23, 59, 59),
     )

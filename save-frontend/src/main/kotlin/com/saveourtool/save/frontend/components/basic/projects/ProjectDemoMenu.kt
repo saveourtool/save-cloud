@@ -4,24 +4,26 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.demo.DemoInfo
 import com.saveourtool.save.demo.DemoStatus
+import com.saveourtool.save.demo.RunCommandPair
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
+import com.saveourtool.save.frontend.components.basic.demo.*
+import com.saveourtool.save.frontend.components.basic.demo.management.*
+import com.saveourtool.save.frontend.components.basic.demo.management.renderButtons
+import com.saveourtool.save.frontend.components.basic.demo.management.renderFileUploading
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.RoleJs
 
 import csstype.ClassName
 import io.ktor.http.*
 import react.*
-import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
@@ -29,6 +31,9 @@ import kotlinx.serialization.json.Json
 
 private val demoInfoCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false)
 
+/**
+ * Project demo menu
+ */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
@@ -39,25 +44,24 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
     val (demoDto, setDemoDto) = useState(
         DemoDto.emptyForProject(props.organizationName, props.projectName)
     )
-
     val (demoStatus, setDemoStatus) = useState(DemoStatus.NOT_CREATED)
     val (githubProjectCoordinates, setGithubProjectCoordinates) = useState(ProjectCoordinates.empty)
-    val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
+    val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
 
-    val getDemoInfo = useDeferredRequest {
-        val infoResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}",
+    val getDemoDto = useDeferredRequest {
+        val dtoResponse = get(
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
         )
-        if (infoResponse.ok) {
-            val demoInfo: DemoInfo = infoResponse.decodeFromJsonString()
-            setDemoStatus(demoInfo.demoStatus)
-            setDemoDto(demoInfo.demoDto)
-            setGithubProjectCoordinates(demoInfo.demoDto.githubProjectCoordinates.orEmpty())
-        } else if (infoResponse.status != 404.toShort()) {
-            props.updateErrorMessage(infoResponse.statusText, infoResponse.unpackMessage())
+        if (dtoResponse.ok) {
+            val dto: DemoDto = dtoResponse.decodeFromJsonString()
+            setDemoDto(dto)
+            setSelectedSdk(dto.sdk)
+            setGithubProjectCoordinates(dto.githubProjectCoordinates.orEmpty())
+        } else if (dtoResponse.status != 404.toShort()) {
+            props.updateErrorMessage(dtoResponse.statusText, dtoResponse.unpackMessage())
             setDemoStatus(DemoStatus.ERROR)
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
@@ -82,7 +86,7 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
 
     val getDemoStatus = useDeferredRequest {
         val statusResponse = get(
-            "$apiUrl/demo/${props.organizationName}/${props.projectName}/status",
+            "$demoApiUrl/manager/${props.organizationName}/${props.projectName}/status",
             jsonHeaders,
             ::loadingHandler,
             ::noopResponseHandler,
@@ -95,18 +99,23 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    val createDemo = useDeferredRequest {
+    val (selectedFileDtos, setSelectedFileDtos) = useState(emptyList<FileDto>())
+    val createOrUpdateDemo = useDeferredRequest {
         if (githubProjectCoordinates.consideredBlank()) {
             demoDto.copy(githubProjectCoordinates = null)
         } else {
             demoDto.copy(githubProjectCoordinates = githubProjectCoordinates)
         }
+            .copy(sdk = selectedSdk)
             .let { demoRequest ->
                 post(
-                    "$apiUrl/demo/${props.organizationName}/${props.projectName}/add",
+                    "$apiUrl/demo/${props.organizationName}/${props.projectName}/save-or-update",
                     jsonHeaders,
                     Json.encodeToString(
-                        DemoCreationRequest(demoRequest, selectedFileDtos)
+                        DemoCreationRequest(
+                            demoRequest,
+                            selectedFileDtos,
+                        )
                     ),
                     ::loadingHandler,
                     ::noopResponseHandler,
@@ -150,9 +159,30 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
         }
     }
 
-    useOnce {
-        getDemoInfo()
+    val getDemoFiles = useDeferredRequest {
+        get(
+            "$apiUrl/demo/${props.organizationName}/${props.projectName}/list-file?version=manual",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        ).let { response ->
+            if (response.ok) {
+                setSelectedFileDtos(response.decodeFromJsonString<List<FileDto>>())
+            }
+        }
     }
+
+    useOnce {
+        getDemoDto()
+        getDemoStatus()
+        getDemoFiles()
+    }
+
+    useTooltip()
+
+    val (selectedModeCommand, setSelectedModeCommand) = useState<RunCommandPair?>(null)
+    val isDisabled = demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED
+    demoModeModal(selectedModeCommand, setSelectedModeCommand, isDisabled, setDemoDto)
 
     div {
         className = ClassName("d-flex justify-content-center align-items-center p-2")
@@ -164,17 +194,28 @@ val projectDemoMenu: FC<ProjectDemoMenuProps> = FC { props ->
                     renderStatusLabel(demoStatus)
                 }
                 hr { }
-                renderRunSettings(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
+                renderDemoSettings(demoDto, setDemoDto, isDisabled)
                 hr { }
-                renderFileUploading(demoStatus, demoDto, setDemoDto, githubProjectCoordinates, setGithubProjectCoordinates, setSelectedFileDtos)
+                renderRunCommand(demoDto, setDemoDto, isDisabled, setSelectedModeCommand)
                 hr { }
-                renderSdkSelector(demoDto, setDemoDto, demoStatus != DemoStatus.STOPPED && demoStatus != DemoStatus.NOT_CREATED)
+                renderFileUploading(demoDto, setDemoDto, isDisabled, githubProjectCoordinates, setGithubProjectCoordinates, setSelectedFileDtos)
+                hr { }
+                sdkSelection {
+                    title = ""
+                    this.isDisabled = isDisabled
+                    this.selectedSdk = selectedSdk
+                    onSdkChange = setSelectedSdk::invoke
+                }
                 hr { }
                 renderButtons(
+                    ProjectCoordinates(props.organizationName, props.projectName),
                     demoStatus,
                     props.userProjectRole,
-                    createDemo,
-                    getDemoStatus,
+                    createOrUpdateDemo,
+                    {
+                        getDemoStatus()
+                        getDemoFiles()
+                    },
                     startDemo,
                     stopDemo
                 ) {
@@ -212,267 +253,4 @@ external interface ProjectDemoMenuProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var updateErrorMessage: (String, String) -> Unit
-}
-
-private fun ChildrenBuilder.renderStatusLabel(demoStatus: DemoStatus) {
-    div {
-        className = ClassName("col-6 d-flex justify-content-center")
-        div {
-            val borderStyle = when (demoStatus) {
-                DemoStatus.NOT_CREATED -> "border-dark"
-                DemoStatus.STARTING, DemoStatus.STOPPING -> "border-warning"
-                DemoStatus.RUNNING -> "border-success"
-                DemoStatus.STOPPED -> "border-secondary"
-                DemoStatus.ERROR -> "border-danger"
-            }
-            className =
-                    ClassName("border $borderStyle d-flex align-items-center justify-content-between rounded-pill m-3")
-            div {
-                className = ClassName("col m-3 flex-wrap")
-                label {
-                    className = ClassName("m-0")
-                    +"Status"
-                }
-            }
-            div {
-                className = ClassName("col m-3 flex-wrap")
-                label {
-                    className = ClassName("m-0")
-                    +demoStatus.name
-                }
-            }
-        }
-    }
-}
-
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "TOO_MANY_PARAMETERS",
-    "TYPE_ALIAS",
-    "LongParameterList"
-)
-private fun ChildrenBuilder.renderFileUploading(
-    demoStatus: DemoStatus,
-    demoDto: DemoDto,
-    setDemoToolRequest: StateSetter<DemoDto>,
-    githubProjectCoordinates: ProjectCoordinates,
-    setGithubProjectCoordinates: StateSetter<ProjectCoordinates>,
-    setSelectedFileDtos: StateSetter<List<FileDto>>,
-) {
-    div {
-        className = ClassName("d-flex justify-content-between align-items-center")
-        div {
-            className = ClassName("col pl-0")
-            input {
-                className = ClassName("form-control col mb-2")
-                autoComplete = AutoComplete.off
-                placeholder = "GitHub organization name"
-                value = githubProjectCoordinates.organizationName
-                disabled = true
-                onChange = { event ->
-                    setGithubProjectCoordinates {
-                        it.copy(organizationName = event.target.value)
-                    }
-                }
-            }
-            input {
-                className = ClassName("form-control col mb-2")
-                autoComplete = AutoComplete.off
-                placeholder = "GitHub project name"
-                value = githubProjectCoordinates.projectName
-                disabled = true
-                onChange = { event ->
-                    setGithubProjectCoordinates {
-                        it.copy(projectName = event.target.value)
-                    }
-                }
-            }
-            input {
-                className = ClassName("form-control col")
-                autoComplete = AutoComplete.off
-                placeholder = "Release tag"
-                value = demoDto.vcsTagName
-                disabled = true
-                onChange = { event ->
-                    setDemoToolRequest { request ->
-                        request.copy(vcsTagName = event.target.value)
-                    }
-                }
-            }
-        }
-        div {
-            +" or "
-        }
-        div {
-            className = ClassName("col pr-0")
-            div {
-                simpleFileUploader {
-                    buttonLabel = " Upload files"
-                    getUrlForAvailableFilesFetch = {
-                        with(demoDto) {
-                            "$apiUrl/files/$projectCoordinates/list"
-                        }
-                    }
-                    getUrlForDemoFilesFetch = {
-                        with(demoDto) {
-                            "$apiUrl/demo/$projectCoordinates/list-file"
-                        }
-                    }
-                    getUrlForFileDeletion = {
-                        with(demoDto) {
-                            "$apiUrl/demo/$projectCoordinates/delete?fileId=${it.id}"
-                        }
-                    }
-                    getUrlForFileUpload = {
-                        with(demoDto) {
-                            "$apiUrl/files/$projectCoordinates/upload"
-                        }
-                    }
-                    updateFileDtos = { setSelectedFileDtos(it) }
-                    isDisabled = demoStatus == DemoStatus.STARTING || demoStatus == DemoStatus.RUNNING
-                }
-            }
-        }
-    }
-}
-
-@Suppress("TOO_LONG_FUNCTION")
-private fun ChildrenBuilder.renderRunSettings(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, disabled: Boolean) {
-    div {
-        div {
-            input {
-                className = ClassName("form-control col mb-2")
-                autoComplete = AutoComplete.off
-                placeholder = "Run command"
-                value = demoDto.runCommand
-                this.disabled = disabled
-                onChange = { event ->
-                    setDemoDto { request ->
-                        request.copy(runCommand = event.target.value)
-                    }
-                }
-            }
-        }
-        div {
-            input {
-                className = ClassName("form-control col mb-2")
-                autoComplete = AutoComplete.off
-                placeholder = "Config name"
-                value = demoDto.configName
-                this.disabled = disabled
-                onChange = { event ->
-                    setDemoDto { request ->
-                        request.copy(configName = event.target.value.ifBlank { null })
-                    }
-                }
-            }
-        }
-        div {
-            className = ClassName("d-flex justify-content-between")
-            input {
-                className = ClassName("form-control col mr-1")
-                autoComplete = AutoComplete.off
-                placeholder = "Test file name"
-                value = demoDto.fileName
-                this.disabled = disabled
-                onChange = { event ->
-                    setDemoDto { request ->
-                        request.copy(fileName = event.target.value)
-                    }
-                }
-            }
-            input {
-                className = ClassName("form-control col ml-1")
-                autoComplete = AutoComplete.off
-                placeholder = "Output file name"
-                value = demoDto.outputFileName
-                this.disabled = disabled
-                onChange = { event ->
-                    setDemoDto { request ->
-                        request.copy(outputFileName = event.target.value.ifBlank { null })
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.renderSdkSelector(demoDto: DemoDto, setDemoDto: StateSetter<DemoDto>, disabled: Boolean) {
-    div {
-        sdkSelection {
-            title = ""
-            isDisabled = disabled
-            selectedSdk = demoDto.sdk
-            onSdkChange = { newSdk ->
-                setDemoDto { oldDemoDto ->
-                    oldDemoDto.copy(sdk = newSdk)
-                }
-            }
-        }
-    }
-}
-
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
-private fun ChildrenBuilder.renderButtons(
-    demoStatus: DemoStatus,
-    userRole: Role,
-    sendDemoCreationRequest: () -> Unit,
-    getDemoStatus: () -> Unit,
-    startDemo: () -> Unit,
-    stopDemo: () -> Unit,
-    deleteDemo: () -> Unit,
-) {
-    div {
-        className = ClassName("flex-wrap d-flex justify-content-around")
-        when (demoStatus) {
-            DemoStatus.NOT_CREATED -> buttonBuilder("Create", isDisabled = userRole.isLowerThan(RoleJs.owner)) {
-                sendDemoCreationRequest()
-            }
-
-            DemoStatus.STARTING -> {
-
-                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(RoleJs.viewer)) {
-                    stopDemo()
-                }
-                buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(RoleJs.viewer)) {
-                    getDemoStatus()
-                }
-            }
-
-            DemoStatus.RUNNING -> {
-                buttonBuilder("Stop", style = "warning", isDisabled = userRole.isLowerThan(RoleJs.admin)) {
-                    stopDemo()
-                }
-                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(RoleJs.owner)) {
-                    deleteDemo()
-                }
-            }
-
-            DemoStatus.ERROR -> {
-                buttonBuilder("Run", isDisabled = userRole.isLowerThan(RoleJs.admin)) {
-                    startDemo()
-                }
-                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(RoleJs.owner)) {
-                    deleteDemo()
-                }
-            }
-
-            DemoStatus.STOPPED -> {
-                buttonBuilder("Run", isDisabled = userRole.isLowerThan(RoleJs.admin)) {
-                    startDemo()
-                }
-                buttonBuilder("Update configuration", style = "info", isDisabled = userRole.isLowerThan(RoleJs.admin)) {
-                    // update request here
-                }
-                buttonBuilder("Delete", style = "danger", isDisabled = userRole.isLowerThan(RoleJs.owner)) {
-                    deleteDemo()
-                }
-            }
-
-            DemoStatus.STOPPING -> buttonBuilder("Reload", style = "secondary", isDisabled = userRole.isLowerThan(RoleJs.viewer)) {
-                getDemoStatus()
-            }
-        }
-    }
 }

@@ -119,7 +119,7 @@ class DefaultStorageProjectReactor<K : Any>(
         s3Operations.deleteObject(s3Key)
             .toMonoAndPublishOn()
     }
-        .map { deleteKey(key) }
+        .flatMap { deleteKey(key) }
         .thenReturn(true)
         .defaultIfEmpty(false)
 
@@ -156,13 +156,10 @@ class DefaultStorageProjectReactor<K : Any>(
 
     private fun createNewS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { createNewS3Key(key) }
 
-    private fun <R : Any> S3KeyManager<K>.callAsMono(function: S3KeyManager<K>.() -> R?): Mono<R> = { function(this) }
-        .toMono()
-        .let {
+    private fun <R : Any> S3KeyManager<K>.callAsMono(function: S3KeyManager<K>.() -> R?): Mono<R> =
             if (s3KeyManager is AbstractS3KeyDatabaseManager<*, *, *>) {
-                it.subscribeOn(s3KeyManager.ioScheduler)
+                s3KeyManager.blockingBridge.blockingToMono { function(this) }
             } else {
-                it
+                { function(this) }.toMono()
             }
-        }
 }

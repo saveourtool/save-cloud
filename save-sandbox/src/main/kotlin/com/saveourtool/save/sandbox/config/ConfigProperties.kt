@@ -13,10 +13,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "sandbox")
 data class ConfigProperties(
-    val s3Storage: S3OperationsProperties,
+    override val s3Storage: S3OperationsProperties,
     val agentSettings: AgentSettings,
     val lokiConfig: LokiConfig? = null,
-) {
+) : S3OperationsProperties.Provider {
     /**
      * @property sandboxUrl the URL of save-sandbox that will be reported to save-agents.
      */
