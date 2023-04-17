@@ -128,3 +128,8 @@
 - name: MISSING_KDOC_TOP_LEVEL
   ignoreAnnotated:
     - JsName
+- name: WRONG_OVERLOADING_FUNCTION_ARGUMENTS
+  ignoreAnnotated:
+    - GetMapping
+    - PostMapping
+    - Repository

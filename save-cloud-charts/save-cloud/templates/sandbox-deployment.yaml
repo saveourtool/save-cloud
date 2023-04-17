@@ -64,6 +64,7 @@ spec:
               memory: 800M
             requests:
               memory: 600M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -79,7 +80,7 @@ spec:
             - mountPath: /data
               name: migrations-data
         - name: liquibase-runner
-          image: liquibase/liquibase:4.15
+          image: liquibase/liquibase:4.20
           securityContext:
             runAsUser: 1001
             runAsGroup: 1001
@@ -120,6 +121,7 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
         - name: database-secret

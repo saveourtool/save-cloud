@@ -28,7 +28,6 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.table
@@ -137,7 +136,7 @@ val cpgView: VFC = VFC {
                                         cpgResult.cpgGraph.nodes.find { node -> node.key == nodeName }?.let { node ->
                                             displayCpgNodeAdditionalInfo(
                                                 node.attributes.label,
-                                                cpgResult.applicationName,
+                                                cpgResult.query,
                                                 node.attributes.additionalInfo,
                                             ) {
                                                 setSelectedNodeName(it)
@@ -155,12 +154,12 @@ val cpgView: VFC = VFC {
                             }
                             div {
                                 val alertStyle = when {
-                                    cpgResult.applicationName.isBlank() -> ""
-                                    cpgResult.applicationName.startsWith("Error") -> "alert-warning"
+                                    cpgResult.query.isBlank() -> ""
+                                    cpgResult.query.startsWith("Error") -> "alert-warning"
                                     else -> "alert-primary"
                                 }
                                 className = ClassName("alert $alertStyle text-sm mt-3 pb-2 pt-2 mb-0")
-                                +cpgResult.applicationName
+                                +cpgResult.query
                             }
                         }
                     }
@@ -176,7 +175,7 @@ val cpgView: VFC = VFC {
             val alertStyle = if (cpgResult.logs.isNotEmpty()) {
                 cpgResult.logs.forEach { log ->
                     when {
-                        log.contains("ERROR") || log.startsWith("Exception:") -> p {
+                        log.contains("ERROR") || log.startsWith("Exception:") -> pre {
                             className = ClassName("text-danger")
                             +log
                         }

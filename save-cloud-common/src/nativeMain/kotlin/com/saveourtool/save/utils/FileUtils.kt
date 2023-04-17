@@ -11,13 +11,14 @@ import okio.Path.Companion.toPath
 import platform.posix.*
 
 import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.convert
 import kotlinx.serialization.serializer
 
 actual val fs: FileSystem = FileSystem.SYSTEM
 
 @OptIn(UnsafeNumber::class)
 actual fun Path.markAsExecutable() {
-    @Suppress("CAST_NEVER_SUCCEEDS") val mode: mode_t = (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH) as mode_t
+    val mode: mode_t = (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).convert()
     chmod(this.toString(), mode)
 }
 
@@ -33,7 +34,7 @@ actual fun ByteArray.writeToFile(file: Path, mustCreate: Boolean) {
  * @return path to file
  */
 fun FileSystem.createAndWrite(fileName: String, lines: List<String>) = fileName.toPath().also { path ->
-    write(path, true) { lines.forEach { codeLine -> writeUtf8(codeLine) } }
+    write(path, true) { lines.forEach { codeLine -> writeUtf8("$codeLine\n") } }
 }
 
 /**
@@ -44,10 +45,10 @@ fun FileSystem.createAndWrite(fileName: String, lines: List<String>) = fileName.
  * @return path to file if both [fileName] and [lines] are provided, null otherwise
  */
 fun FileSystem.createAndWriteIfNeeded(fileName: String?, lines: List<String>?) = fileName?.toPath()?.also { path ->
-    write(path, true) { lines?.forEach { codeLine -> writeUtf8(codeLine) } }
+    write(path, true) { lines?.forEach { codeLine -> writeUtf8("$codeLine\n") } }
 }
 
-actual inline fun <reified C : Any> parseConfig(configPath: Path): C {
-    require(fs.exists(configPath)) { "Could not find $configPath file." }
-    return TomlFileReader.decodeFromFile(serializer(), configPath.toString())
-}
+actual inline fun <reified C : Any> parseConfig(configPath: Path): C = TomlFileReader.decodeFromFile(
+    serializer(),
+    configPath.toString(),
+)

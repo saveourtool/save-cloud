@@ -6,6 +6,7 @@ package com.saveourtool.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import java.time.Duration
 
 /**
  * Class for properties
@@ -60,25 +61,35 @@ data class ConfigProperties(
     )
 
     /**
+     * `m` stands for milli, `M` stands for Mega.
+     * By default, `M` and `m` are powers of 10.
+     * To be more accurate and use `M` as 1024 instead of 1000, `i` should be provided: `Mi`
+     * [reference](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/)
+     *
      * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
      * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
      * to authenticate orchestrator to the API server
-     * @property namespace Kubernetes namespace, into which agents will be deployed.
+     * @property currentNamespace namespace that demo works in
      * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
+     * @property agentNamespace namespace that agents should work in, [currentNamespace] by default
      * @property agentCpuRequests configures `resources.requests.cpu` for agent pods
      * @property agentCpuLimits configures `resources.limits.cpu` for agent pods
      * @property agentMemoryRequests configures `resources.requests.memory` for agent pods
-     * @property agentMemoryLimits configures `resources.requests.memory` for agent pods
+     * @property agentMemoryLimits configures `resources.limits.memory` for agent pods
+     * @property ttlAfterFinished agent job time to live after it is marked as completed
      */
+    @Suppress("MagicNumber")
     data class KubernetesSettings(
         val apiServerUrl: String,
         val serviceAccount: String,
-        val namespace: String,
+        val currentNamespace: String,
         val useGvisor: Boolean,
+        val agentNamespace: String = currentNamespace,
         val agentCpuRequests: String = "100m",
         val agentCpuLimits: String = "500m",
         val agentMemoryRequests: String = "300Mi",
         val agentMemoryLimits: String = "500Mi",
+        val ttlAfterFinished: Duration = Duration.ofMinutes(3),
     )
 
     /**

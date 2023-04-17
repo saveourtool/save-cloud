@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
+import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -18,49 +19,19 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.StateSetter
 import react.VFC
-import react.dom.aria.AriaRole
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.useState
 
 const val INVERT_TO_OPPOSITE = 100
 
 val yourContests = yourContests()
-
-private fun ChildrenBuilder.carouselArrows() {
-    a {
-        style = jso {
-            filter = invert(INVERT_TO_OPPOSITE)
-        }
-        className = ClassName("carousel-control-prev ")
-        href = "#contestCarousel"
-        role = "button".unsafeCast<AriaRole>()
-        asDynamic()["data-slide"] = "prev"
-        span {
-            className = ClassName("carousel-control-prev-icon")
-        }
-    }
-    a {
-        style = jso {
-            filter = invert(INVERT_TO_OPPOSITE)
-        }
-        className = ClassName("carousel-control-next")
-        href = "#contestCarousel"
-        role = "button".unsafeCast<AriaRole>()
-        asDynamic()["data-slide"] = "next"
-        span {
-            className = ClassName("carousel-control-next-icon")
-        }
-    }
-}
 
 @Suppress("MAGIC_NUMBER")
 private fun ChildrenBuilder.stayTunedImage() {
@@ -91,38 +62,6 @@ private fun ChildrenBuilder.stayTuned() {
         }
     }
     stayTunedImage()
-}
-
-private fun ChildrenBuilder.slide(
-    classes: String,
-    contestToShow: ContestDto,
-    setSelectedContest: StateSetter<ContestDto>,
-    setIsContestEnrollerModalOpen: StateSetter<Boolean>
-) {
-    div {
-        className = ClassName("carousel-item $classes")
-        div {
-            className = ClassName("row")
-
-            div {
-                className = ClassName("col-3 ml-auto")
-
-                @Suppress("MAGIC_NUMBER")
-                img {
-                    style = jso {
-                        width = 12.rem
-                    }
-                    // FixMe: we need to have information about the programming language in contest and show an icon
-                    src = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/devicon/devicon-original.svg"
-                }
-            }
-
-            div {
-                className = ClassName("col-6 mr-auto")
-                contestDescription(contestToShow, setSelectedContest, setIsContestEnrollerModalOpen)
-            }
-        }
-    }
 }
 
 @Suppress("TOO_LONG_FUNCTION")
@@ -225,27 +164,24 @@ private fun yourContests() = VFC {
                 stayTuned()
             }
         } else {
-            div {
-                className = ClassName("carousel slide card flex-md-row box-shadow")
-                style = jso {
-                    height = 15.rem
-                }
-                id = "contestCarousel"
-                asDynamic()["data-ride"] = "carousel"
-
+            @Suppress("MAGIC_NUMBER")
+            carousel(featuredContests, "contestCarousel", jso { height = 15.rem }) { contestToShow ->
                 div {
-                    className = ClassName("carousel-inner my-auto")
-                    featuredContests.forEachIndexed { i, contestDto ->
-                        if (i == 0) {
-                            slide("active", contestDto, setSelectedContest, setIsContestEnrollerModalOpen)
-                        } else {
-                            slide("", contestDto, setSelectedContest, setIsContestEnrollerModalOpen)
+                    className = ClassName("col-3 ml-auto")
+                    img {
+                        style = jso {
+                            width = 12.rem
                         }
+                        // FixMe: we need to have information about the programming language in contest and show an icon
+                        src = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/devicon/devicon-original.svg"
                     }
                 }
-            }
 
-            carouselArrows()
+                div {
+                    className = ClassName("col-6 mr-auto")
+                    contestDescription(contestToShow, setSelectedContest, setIsContestEnrollerModalOpen)
+                }
+            }
         }
     }
 }

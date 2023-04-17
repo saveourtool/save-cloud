@@ -219,6 +219,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ProjectMenuBar.SETTINGS -> renderSettings()
             ProjectMenuBar.INFO -> renderInfo()
             ProjectMenuBar.DEMO -> renderDemo()
+            ProjectMenuBar.SECURITY -> renderSecurity()
+        }
+    }
+
+    private fun ChildrenBuilder.renderSecurity() {
+        projectSecurityMenu {
+            project = state.project
+            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
         }
     }
 

@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuite.Companion.toEntity
 import com.saveourtool.save.entities.TestsSourceSnapshot
-import com.saveourtool.save.filters.TestSuiteFilters
+import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.testsuite.TestSuiteDto
 
@@ -86,12 +86,12 @@ class TestSuitesService(
      * @return [List] of [TestSuite] that match [filters]
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): List<TestSuite> =
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilter): List<TestSuite> =
             ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("description", "source", "version", "dateAdded", "plugins")
+                .withIgnorePaths("description", "sourceSnapshot", "version", "dateAdded", "plugins")
                 .let {
                     Example.of(
                         TestSuite(

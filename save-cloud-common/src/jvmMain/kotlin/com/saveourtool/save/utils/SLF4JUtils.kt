@@ -59,7 +59,6 @@ inline fun Logger.error(exception: Throwable, msg: () -> String) {
     }
 }
 
-@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
 inline fun <reified T> getLogger(): Logger = getLogger(T::class)
 
 /**

@@ -114,6 +114,7 @@ fun showGlobalRoleConfirmation() = window.alert(SUPER_ADMIN_MESSAGE)
  * JS code lines to enable tooltip.
  *
  * @return dynamic
+ * @see [useTooltip]
  */
 // language=js
 fun enableTooltip() {
@@ -121,7 +122,14 @@ fun enableTooltip() {
     var jQuery = require("jquery")
     require("popper.js")
     require("bootstrap")
-    jQuery('[data-toggle="tooltip"]').tooltip()
+    jQuery('[data-toggle="tooltip"]').each(function() {
+        jQuery(this).tooltip({
+            delay: {
+                "show": jQuery(this).attr("data-show-timeout") || 100,
+                "hide": jQuery(this).attr("data-hide-timeout") || 100
+            }
+        })
+    })
 """)
 }
 

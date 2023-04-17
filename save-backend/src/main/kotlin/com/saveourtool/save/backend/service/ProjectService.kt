@@ -1,13 +1,18 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.repository.vulnerability.VulnerabilityRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.http.HttpStatus
@@ -26,12 +31,12 @@ import java.util.*
  * @property projectRepository
  */
 @Service
-@OptIn(ExperimentalStdlibApi::class)
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-
-    private val userRepository: UserRepository
+    private val projectProblemRepository: ProjectProblemRepository,
+    private val vulnerabilityRepository: VulnerabilityRepository,
+    private val userRepository: UserRepository,
 ) {
     /**
      * Store [project] in the database
@@ -147,18 +152,29 @@ class ProjectService(
             getProjectsByOrganizationNameAndStatusIn(organizationName, authentication, EnumSet.of(ProjectStatus.CREATED))
 
     /**
-     * @param projectFilters is filter for [projects]
+     * @param projectFilter is filter for [projects]
      * @return project's with filter
      */
-    fun getFiltered(projectFilters: ProjectFilters): List<Project> =
-            when (projectFilters.organizationName.isBlank() to projectFilters.name.isBlank()) {
-                true to true -> projectRepository.findByStatusIn(projectFilters.statuses)
-                true to false -> projectRepository.findByNameLikeAndStatusIn(wrapValue(projectFilters.name), projectFilters.statuses)
-                false to true -> projectRepository.findByOrganizationNameAndStatusIn(projectFilters.organizationName, projectFilters.statuses)
-                false to false -> findByNameAndOrganizationNameAndStatusIn(projectFilters.name, projectFilters.organizationName, projectFilters.statuses)
-                    ?.let { listOf(it) }.orEmpty()
-                else -> throw IllegalStateException("Impossible state")
-            }
+    fun getFiltered(projectFilter: ProjectFilter): List<Project> = projectRepository.findAll { root, _, cb ->
+        val publicPredicate = projectFilter.public?.let { cb.equal(root.get<Boolean>("public"), it) } ?: cb.and()
+        val orgNamePredicate = if (projectFilter.organizationName.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<Organization>("organization").get<String>("name"), projectFilter.organizationName)
+        }
+        val namePredicate = if (projectFilter.name.isBlank()) {
+            cb.and()
+        } else {
+            cb.equal(root.get<String>("name"), projectFilter.name)
+        }
+
+        cb.and(
+            root.get<ProjectStatus>("status").`in`(projectFilter.statuses),
+            publicPredicate,
+            orgNamePredicate,
+            namePredicate,
+        )
+    }
 
     /**
      * @param value is a string for a wrapper to search by match on a string in the database
@@ -220,4 +236,34 @@ class ProjectService(
         findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)
     }
         .switchIfEmptyToNotFound(lazyMessage)
+
+    /**
+     * @param projectName name of project
+     * @param organizationName name of organization
+     * @return list of project problems
+     */
+    fun getAllProblemsByProjectNameAndProjectOrganizationName(projectName: String, organizationName: String) =
+            projectProblemRepository.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName)
+
+    /**
+     * @param problem problem of project
+     * @param authentication auth info of a current user
+     */
+    @Transactional
+    fun saveProjectProblem(problem: ProjectProblemDto, authentication: Authentication) {
+        val vulnerability = problem.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val project = projectRepository.findByNameAndOrganizationName(problem.projectName, problem.organizationName).orNotFound()
+        val userId = (authentication.details as AuthenticationDetails).id
+        val user = userRepository.getByIdOrNotFound(userId)
+
+        val projectProblem = ProjectProblem(
+            name = problem.name,
+            description = problem.description,
+            critical = problem.critical,
+            vulnerability = vulnerability,
+            project = project,
+            userId = user.requiredId(),
+        )
+        projectProblemRepository.save(projectProblem)
+    }
 }

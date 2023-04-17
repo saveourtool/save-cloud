@@ -10,7 +10,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -71,12 +71,12 @@ internal class OrganizationController(
         description = "Get organizations",
     )
     @Parameters(
-        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizationsByFilters(
-        @RequestBody organizationFilters: OrganizationFilters
-    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilters).map(Organization::toDto) }
+        @RequestBody organizationFilter: OrganizationFilter
+    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilter).map(Organization::toDto) }
 
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
@@ -86,13 +86,13 @@ internal class OrganizationController(
         description = "Get filtered organizations with rating available for the current user.",
     )
     @Parameters(
-        Parameter(name = "organizationFilters", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizationsWithRating(
-        @RequestBody organizationFilters: OrganizationFilters,
+        @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication?,
-    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilters)
+    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter)
         .flatMap { organizationDto ->
             organizationService.getGlobalRating(organizationDto.name, authentication)
                 .map { rating ->
@@ -156,7 +156,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilters(prefix))
+    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilter(prefix))
         .map { it.name }
         .collectList()
 
@@ -507,7 +507,7 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun getFilteredOrganizationDtoList(filters: OrganizationFilters): Flux<OrganizationDto> = blockingToFlux {
+    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter): Flux<OrganizationDto> = blockingToFlux {
         organizationService.getFiltered(filters)
     }.map { it.toDto() }
 

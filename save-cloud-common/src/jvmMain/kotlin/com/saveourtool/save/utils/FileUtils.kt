@@ -30,6 +30,9 @@ import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
 import kotlin.jvm.Throws
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.reduce
 import kotlinx.serialization.serializer
 
 private const val DEFAULT_BUFFER_SIZE = 4096
@@ -85,6 +88,18 @@ fun Flux<ByteBuffer>.collectToFile(target: Path): Mono<Int> = map { byteBuffer -
 }.collect(Collectors.summingInt { it })
 
 /**
+ * Creates (if it does not exist) and appends [Flow] of [ByteBuffer] to file by path [target]
+ *
+ * @param target path to file to where a content from receiver will be written
+ * @return number of bytes received
+ */
+suspend fun Flow<ByteBuffer>.collectToFile(target: Path): Int = map { byteBuffer ->
+    target.outputStream(StandardOpenOption.CREATE, StandardOpenOption.APPEND).use { os ->
+        Channels.newChannel(os).use { it.write(byteBuffer) }
+    }
+}.reduce { result, value -> result + value }
+
+/**
  * @param stop
  * @return count of parts (folders + current file) till [stop]
  */
@@ -133,10 +148,10 @@ actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
     }
 }
 
-actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C {
-    require(fs.exists(configPath)) { "Could not find $configPath file." }
-    return TomlFileReader.decodeFromFile(serializer(), configPath.toString())
-}
+actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C = TomlFileReader.decodeFromFile(
+    serializer(),
+    configPath.toString(),
+)
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

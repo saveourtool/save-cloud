@@ -13,7 +13,7 @@ import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.TestingType.CONTEST_MODE
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
@@ -23,7 +23,7 @@ import com.saveourtool.save.v1
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.ktor.client.HttpClient
@@ -96,7 +96,7 @@ internal class DefaultSaveCloudClient(
     override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>> =
             postAndCheck(
                 "/projects/by-filters",
-                ProjectFilters(
+                ProjectFilter(
                     name = "",
                     organizationName = organizationName,
                 ),
@@ -160,7 +160,7 @@ internal class DefaultSaveCloudClient(
                         headers
                     )
                 })
-            ).getOrHandle { error ->
+            ).getOrElse { error ->
                 return error.left()
             }
         }
@@ -202,7 +202,7 @@ internal class DefaultSaveCloudClient(
 
         val (organizationName, projectName) = request.projectCoordinates
 
-        val ignoredExecutionIds = listExecutions(organizationName, projectName, contestName).getOrHandle { error ->
+        val ignoredExecutionIds = listExecutions(organizationName, projectName, contestName).getOrElse { error ->
             return error.left()
         }
             .asSequence()
@@ -404,7 +404,7 @@ internal class DefaultSaveCloudClient(
             val startNanos = nanoTime()
 
             while (true) {
-                val result = block().getOrHandle { error ->
+                val result = block().getOrElse { error ->
                     /*
                      * Return immediately if an error has been encountered.
                      */

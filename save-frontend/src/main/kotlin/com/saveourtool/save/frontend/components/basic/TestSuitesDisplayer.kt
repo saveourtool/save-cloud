@@ -39,7 +39,7 @@ fun ChildrenBuilder.showAvailableTestSuites(
                 ""
             }
             a {
-                className = ClassName("list-group-item list-group-item-action $active")
+                className = ClassName("btn list-group-item list-group-item-action $active")
                 onClick = {
                     onTestSuiteClick(testSuite)
                 }

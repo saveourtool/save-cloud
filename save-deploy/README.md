@@ -14,6 +14,24 @@ save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for s
 
 Deployment is performed on server via docker swarm or locally via `docker compose`. See detailed information below.
 
+### Dependency to `save-cli`
+The `libs.version.toml` contains `save-cli` version.
+The `save-agent` uses this version as a compile dependency to read execution's reports.
+
+The `save-backend` and `save-sandbox` download newer versions of `save-cli` from _GitHub_ on startup.
+
+#### Using a `SNAPSHOT` version of `save-cli`
+
+If `save-cli` is set to snapshot version in `lib.version.toml`, we download `save-cli`'s sources and build them in _GitHub_ action: [Build and push Docker images](../.github/workflows/deploy_images.yml).
+Then _Gradle_ adds the result (_.kexe_) to `save-backend` and `save-sandbox` as a runtime dependency
+
+**Under the hood:** _Gradle_ supports two variables `saveCliVersion` and `saveCliPath`.
+The `saveCliVersion` overrides version of `save-cli` from `lib.version.toml`.
+The `saveCliPath` specifies a path to `save-cli`'s _.kexe_ and it's required when version of `save-cli` is **SNAPSHOT**.
+
+**Note:** `libs.version.toml` can contain _blabla-SNAPSHOT_ version, but we will build a version from the latest main in `save-cli`
+and set the built version of `save-cli` to generated file: `generated/SaveCliVersion.kt`.
+
 ## Server deployment
 * Server should run Linux and support docker swarm and gvisor runtime. Ideally, kernel 5.+ is required.
 * [reverse-proxy.conf](reverse-proxy.conf) is a configuration for Nginx to act as a reverse proxy for save-cloud. It should be 
@@ -203,7 +221,7 @@ two reasons:
 Under WSL, from a separate local _Git_ repository run:
 
 ```bash
-./gradlew :save-agent:copyAgentDistribution
+./gradlew :save-agent:copyAgentDistribution -Preckon.stage=snapshot
 ```
 
 and provide the path to the JAR archive which contains `save-agent.kexe` via the
@@ -249,40 +267,21 @@ For the classpath changes to take effect:
 1. Reload the project model (_Gradle_ tool window in IDEA).
 1. Re-start the _back-end_ application.
 
-Then verify that the agent is indeed available for download from the _back-end_
-by running an HTTP POST request, e.g.:
+Then verify that the agent is indeed available for download from the _S3_
+by checking the path `s3:/cnb/cnb/files/internal-storage/latest/save-agent.kexe`.
+It should be available by url: `http://127.0.0.1:9090/browser/cnb/cnb/files/internal-storage/latest/save-agent.kexe`
 
-```bash
-curl -vvv -X POST http://localhost:5800/internal/files/download-save-agent --output save-agent.kexe
-```
-
-In addition to the HTTP status code, the content of the downloaded file can be
-examined.
-If the agent binary was found, the downloaded content would be an ELF executable,
-otherwise it would be JSON data with an error message:
-
-```json
-{
-    "timestamp": "2022-12-26T11:08:58.723+00:00",
-    "path": "/internal/files/download-save-agent",
-    "status": 404,
-    "error": "Not Found",
-    "message": null,
-    "requestId": "e1ab4d55-1"
-}
-```
-
-Similarly, troubles downloading an _agent_ binary from the _back-end_ can be
+Similarly, troubles downloading an _agent_ binary from the _S3_ can be
 diagnosed using `docker logs` (post-mortem).
 Here, you can see a container failing to execute the JSON data
 ([#1663](https://github.com/saveourtool/save-cloud/issues/1663)):
 
 ```console
 $ docker container ls -a | grep -F 'save-execution' | awk '{ print $1 }' | xargs -n1 -r docker logs 2>&1 | grep -F 'save-agent.kexe'
-+ curl -vvv -X POST http://host.docker.internal:5800/internal/files/download-save-agent --output save-agent.kexe
++ curl -vvv http://host.docker.internal:9000/cnb/cnb/files/internal-storage/latest/save-agent.kexe?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=DZHORWNWWGHIRY54R97V%2F20230215%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230215T082823Z&X-Amz-Expires=604800&X-Amz-Security-Token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiJEWkhPUldOV1dHSElSWTU0Ujk3ViIsImV4cCI6MTY3NjQ5MTU0NiwicGFyZW50IjoiYWRtaW4ifQ._yowS3oqSpE61BkFp7Gr0Ll9qBL4XFF9cJNT6FZBQeul-JkOaw3LGQKCIwiwvTAqXv0BRQzKAY8t4Fa82oSBLg&X-Amz-SignedHeaders=host&versionId=null&X-Amz-Signature=2bf63f08642ca46eb93752771f768504a22e303900b3dab85a50525f1981a420 --output save-agent.kexe
 + chmod +x save-agent.kexe
 + ./save-agent.kexe
-./save-agent.kexe: 1: {timestamp:2022-12-26T08:21:55.070+00:00,path:/internal/files/download-save-agent,status:404,error:Not Found,message:null,requestId:90854645-736}: not found
+./save-agent.kexe: 1: <?xml version="1.0" encoding="UTF-8"?> <Error><Code>SignatureDoesNotMatch</Code><Message>The request signature we calculated does not match the signature you provided. Check your key and signing method.</Message><Key>cnb/files/internal-storage/latest/save-agent.kexe</Key><BucketName>cnb</BucketName><Resource>/cnb/cnb/files/internal-storage/latest/save-agent.kexe</Resource><RequestId>1743F2288515EEB0</RequestId><HostId>3f1ca0e4-b874-42fa-9843-5d2cc7de7d28</HostId></Error>: not found
 ```
 
 #### Using a custom `save-cli` executable on Windows
@@ -304,10 +303,6 @@ If setting `save-agent`'s path in `gradle.properties` didn't help you (something
 Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be available via TCP.
 Do not forget to use `mac` profile.
 
-#### Note: 
-* This works only if snapshot version of save-core is set in lib.version.toml. 
-* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
-
 ## Ports allocation
 | port | description            |
 |------|------------------------|
@@ -317,7 +312,7 @@ Do not forget to use `mac` profile.
 | 5100 | save-orchestrator      |
 | 5200 | save-test-preprocessor |
 | 5300 | api-gateway            |
- | 5400 | save-sandbox          |
+| 5400 | save-sandbox           |
 | 9090 | prometheus             |
 | 9091 | node_exporter          |
 | 9100 | grafana                |

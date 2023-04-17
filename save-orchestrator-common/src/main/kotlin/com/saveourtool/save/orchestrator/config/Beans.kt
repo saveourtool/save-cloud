@@ -8,8 +8,9 @@ import com.github.dockerjava.core.DockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
-import io.fabric8.kubernetes.client.DefaultKubernetesClient
+import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -25,7 +26,7 @@ class Beans {
      * @return instance of [DockerClient]
      */
     @Bean
-    @Profile("!kubernetes")
+    @Profile("!kubernetes && !docker-test")
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {
@@ -54,6 +55,10 @@ class Beans {
             "Class [${KubernetesManager::class.simpleName}] requires `orchestrator.kubernetes.*` properties to be set"
         }
 
-        return DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)
+        return KubernetesClientBuilder()
+            .withConfig(ConfigBuilder()
+                .withNamespace(kubernetesSettings.currentNamespace)
+                .build())
+            .build()
     }
 }

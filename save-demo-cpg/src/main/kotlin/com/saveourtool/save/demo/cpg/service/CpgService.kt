@@ -3,7 +3,7 @@ package com.saveourtool.save.demo.cpg.service
 import com.saveourtool.save.demo.cpg.utils.LogbackCapturer
 import com.saveourtool.save.demo.cpg.utils.ResultWithLogs
 import de.fraunhofer.aisec.cpg.*
-import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguageFrontend
+import de.fraunhofer.aisec.cpg.frontends.python.PythonLanguage
 import org.springframework.stereotype.Service
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -31,13 +31,12 @@ class CpgService {
             .get()
     }
 
-    @OptIn(ExperimentalPython::class)
     private fun createTranslationConfiguration(folder: Path, applicationName: String): TranslationConfiguration = TranslationConfiguration.builder()
         .topLevel(null)
         // c++/java
         .defaultLanguages()
         // you can register non-default languages
-        .registerLanguage(PythonLanguageFrontend::class.java, listOf(".py"))
+        .registerLanguage<PythonLanguage>()
         .debugParser(true)
         // the directory with sources
         .softwareComponents(mutableMapOf(applicationName to listOf(folder.toFile())))

@@ -11,7 +11,7 @@ plugins {
 
 repositories {
     ivy {
-        setUrl("https://download.eclipse.org/tools/cdt/releases/10.3/cdt-10.3.2/plugins")
+        setUrl("https://download.eclipse.org/tools/cdt/releases/11.0/cdt-11.0.0/plugins")
         metadataSources {
             artifact()
         }
@@ -20,6 +20,16 @@ repositories {
         }
     }
     mavenCentral()
+    maven {
+        name = "0x6675636b796f75676974687562/kotlintree"
+        url = uri("https://maven.pkg.github.com/0x6675636b796f75676974687562/kotlintree")
+        credentials {
+            username = project.findProperty("gprUser") as String?
+                ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gprKey") as String?
+                ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 val jepArchive by configurations.creating
 
@@ -31,22 +41,27 @@ val resolveJep: TaskProvider<Copy> = tasks.register<Copy>("resolveJep") {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation("org.neo4j:neo4j-ogm-bolt-driver:3.2.39")
-    implementation("org.neo4j:neo4j-ogm-core:3.2.39")
-    implementation(libs.spring.data.neo4j)
     api(libs.arrow.kt.core)
 
-    implementation(libs.cpg.core) {
+    val excludeLogging: Action<ExternalModuleDependency> = Action {
+        // we use logback
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.apache.logging.log4j", "log4j-core")
+        // we don't migrate to slf4j 2.x yet
+        exclude("org.slf4j", "slf4j-api")
     }
-    implementation(libs.cpg.python) {
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-    }
+    implementation(libs.neo4j.ogm.core, excludeLogging)
+    implementation(libs.neo4j.ogm.bolt.driver, excludeLogging)
+    implementation(libs.neo4j.java.driver, excludeLogging)
+
+    implementation(libs.cpg.core, excludeLogging)
+    implementation(libs.cpg.python, excludeLogging)
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
+    implementation("io.github.oxisto:kotlin-tree-jna:0.0.1")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files

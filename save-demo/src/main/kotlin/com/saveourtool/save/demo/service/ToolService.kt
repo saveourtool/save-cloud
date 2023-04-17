@@ -20,11 +20,6 @@ class ToolService(
     private fun save(githubRepo: GithubRepo, snapshot: Snapshot) = toolRepository.save(Tool(githubRepo, snapshot))
 
     /**
-     * @return list of tools that are stored in database
-     */
-    fun getSupportedTools(): List<Tool> = toolRepository.findAll()
-
-    /**
      * @param githubRepo
      * @param snapshot
      * @return [Tool] entity saved to database
@@ -42,21 +37,6 @@ class ToolService(
     }
 
     /**
-     * @param githubRepo
-     * @param version
-     * @return [Tool] fetched from [githubRepo] that matches requested [version]
-     */
-    fun findByGithubRepoAndVersion(githubRepo: GithubRepo, version: String) = toolRepository.findByGithubRepoAndSnapshotVersion(githubRepo, version)
-
-    /**
-     * @param githubRepo GitHub credentials
-     * @return currently used version
-     * todo: allow to use multiple versions
-     */
-    fun findCurrentVersion(githubRepo: GithubRepo): String? = toolRepository.findByGithubRepo(githubRepo)
-        .maxOfOrNull { it.snapshot.version }
-
-    /**
      * @param githubCoordinates GitHub project coordinates
      * @return currently used version
      * todo: allow to use multiple versions
@@ -64,8 +44,6 @@ class ToolService(
     fun findCurrentVersion(githubCoordinates: ProjectCoordinates): String? = with(githubCoordinates) {
         githubRepoService.find(organizationName, projectName)
     }
-        ?.let {
-            toolRepository.findByGithubRepo(it)
-        }
+        ?.let { toolRepository.findByGithubRepo(it) }
         ?.maxOfOrNull { it.snapshot.version }
 }

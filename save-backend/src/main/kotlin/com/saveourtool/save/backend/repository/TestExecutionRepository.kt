@@ -138,7 +138,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution> {
      * @param testSuite is testSuiteName
      * @param tag is tag
      * @param pageable a request for a page
-     * @param testSuite
      * @return a list of [TestExecutionDto]s
      */
     @Query(

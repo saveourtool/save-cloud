@@ -6,13 +6,15 @@ data:
   application.properties: |
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
-    orchestrator.kubernetes.namespace=${POD_NAMESPACE}
+    orchestrator.kubernetes.current-namespace=${POD_NAMESPACE}
+    orchestrator.kubernetes.agent-namespace= {{ .Values.agentNamespace }}
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.sandbox.managementPort }}
     spring.datasource.url=${spring.datasource.sandbox-url}
 
+    sandbox.agent-settings.sandbox-url=http://{{ .Values.sandbox.name }}
     orchestrator.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     orchestrator.agent-settings.debug=true
 

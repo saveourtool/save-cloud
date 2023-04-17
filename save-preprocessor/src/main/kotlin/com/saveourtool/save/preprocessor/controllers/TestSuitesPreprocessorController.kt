@@ -1,12 +1,14 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.preprocessor.common.CloneAndProcessDirectoryAction
+import com.saveourtool.save.preprocessor.common.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
-import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.GitCommitInfo
 import com.saveourtool.save.request.TestsSourceFetchRequest
+import com.saveourtool.save.test.TestSuiteValidationResult
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.util.function.component1
@@ -26,8 +29,6 @@ import reactor.kotlin.core.util.function.component2
 import java.nio.file.Path
 
 import kotlin.io.path.div
-
-typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Unit>) -> Mono<Unit>
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -48,41 +49,50 @@ class TestSuitesPreprocessorController(
     @PostMapping("/fetch")
     fun fetch(
         @RequestBody request: TestsSourceFetchRequest,
-    ): Mono<Unit> = fetchTestSuites(
-        request = request,
-        cloneAndProcessDirectoryAction = when (request.mode) {
-            TestSuitesSourceFetchMode.BY_BRANCH -> GitPreprocessorService::cloneBranchAndProcessDirectory
-            TestSuitesSourceFetchMode.BY_COMMIT -> GitPreprocessorService::cloneCommitAndProcessDirectory
-            TestSuitesSourceFetchMode.BY_TAG -> GitPreprocessorService::cloneTagAndProcessDirectory
-        }
-    )
+    ): Flux<TestSuiteValidationResult> {
+        @Suppress("TYPE_ALIAS")
+        val cloneAndProcessDirectoryAction: GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<Flux<TestSuiteValidationResult>>) -> Flux<TestSuiteValidationResult> =
+                when (request.mode) {
+                    TestSuitesSourceFetchMode.BY_BRANCH -> GitPreprocessorService::cloneBranchAndProcessDirectoryMany
+                    TestSuitesSourceFetchMode.BY_COMMIT -> GitPreprocessorService::cloneCommitAndProcessDirectoryMany
+                    TestSuitesSourceFetchMode.BY_TAG -> GitPreprocessorService::cloneTagAndProcessDirectoryMany
+                }
+
+        return fetchTestSuites(
+            request = request,
+            cloneAndProcessDirectoryAction = cloneAndProcessDirectoryAction
+        )
+    }
 
     @NonBlocking
+    @Suppress("TYPE_ALIAS")
     private fun fetchTestSuites(
         request: TestsSourceFetchRequest,
-        cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(
-        request.source.gitDto,
-        request.version
-    ) { repositoryDirectory, gitCommitInfo ->
-        testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
-            .switchIfEmpty {
-                doFetchTests(repositoryDirectory, gitCommitInfo, request)
-            }
-            .flatMap { snapshot ->
-                testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
-            }.doOnNext { isSaved: Boolean ->
-                log.info {
-                    val messagePrefix = "Tests from ${request.source.gitDto.url}"
-                    val status = when {
-                        isSaved -> "saved"
-                        else -> "not saved: the snapshot already exists"
-                    }
-                    val messageSuffix = "(version \"${request.version}\"; commit ${gitCommitInfo.id})."
-
-                    "$messagePrefix $status $messageSuffix"
+        cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction<Flux<TestSuiteValidationResult>>,
+    ): Flux<TestSuiteValidationResult> = with(cloneAndProcessDirectoryAction) {
+        gitPreprocessorService.cloneAndProcessDirectoryAsync(
+            request.source.gitDto,
+            request.version
+        ) { (repositoryDirectory, gitCommitInfo) ->
+            testsPreprocessorToBackendBridge.findTestsSourceSnapshot(request.source.requiredId(), gitCommitInfo.id)
+                .switchIfEmpty {
+                    doFetchTests(repositoryDirectory, gitCommitInfo, request)
                 }
-            }.thenReturn(Unit)
+                .flatMap { snapshot ->
+                    testsPreprocessorToBackendBridge.saveTestsSourceVersion(request.createVersion(snapshot))
+                }.doOnNext { isSaved: Boolean ->
+                    log.info {
+                        val messagePrefix = "Tests from ${request.source.gitDto.url}"
+                        val status = when {
+                            isSaved -> "saved"
+                            else -> "not saved: the snapshot already exists"
+                        }
+                        val messageSuffix = "(version \"${request.version}\"; commit ${gitCommitInfo.id})."
+
+                        "$messagePrefix $status $messageSuffix"
+                    }
+                }.thenMany(Flux.empty())
+        }
     }
 
     @NonBlocking

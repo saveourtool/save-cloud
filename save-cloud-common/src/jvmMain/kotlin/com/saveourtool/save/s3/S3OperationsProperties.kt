@@ -3,6 +3,8 @@ package com.saveourtool.save.s3
 import reactor.core.scheduler.Schedulers
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.AwsCredentials
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import java.net.URI
 import java.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -11,7 +13,9 @@ import kotlin.time.toJavaDuration
 
 /**
  * @property endpoint S3 endpoint (URI)
+ * @property endpointFromContainer S3 endpoint (URI) for pre-signed requests from container, it's equal to [endpoint] by default
  * @property bucketName bucket name for all S3 storages
+ * @property createBucketIfNotExists a flag which control creation of bucket on start, it's false by default
  * @property prefix a common prefix for all S3 storages
  * @property credentials credentials to S3
  * @property httpClient configuration for http client to S3
@@ -19,7 +23,9 @@ import kotlin.time.toJavaDuration
  */
 data class S3OperationsProperties(
     val endpoint: URI,
+    val endpointFromContainer: URI = endpoint,
     val bucketName: String,
+    val createBucketIfNotExists: Boolean = false,
     val prefix: String = "",
     val credentials: CredentialsProperties,
     val httpClient: HttpClientProperties = HttpClientProperties(),
@@ -34,9 +40,10 @@ data class S3OperationsProperties(
         val secretAccessKey: String,
     ) {
         /**
-         * @return [AwsCredentials] created from this object
+         * @return [AwsCredentialsProvider] created from this object
          */
-        fun toAwsCredentials(): AwsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+        fun toAwsCredentialsProvider(): AwsCredentialsProvider =
+                StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey))
     }
 
     /**
@@ -62,4 +69,14 @@ data class S3OperationsProperties(
         val queueSize: Int = Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         val ttl: Duration = 60.seconds.toJavaDuration(),
     )
+
+    /**
+     * An interface which provides [S3OperationsProperties]
+     */
+    interface Provider {
+        /**
+         * [S3OperationsProperties] for s3 storage
+         */
+        val s3Storage: S3OperationsProperties
+    }
 }

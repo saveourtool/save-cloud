@@ -23,3 +23,8 @@ const val NAME_ERROR_MESSAGE = "Please input a name that doesn't contain anythin
  * Error message that is shown when date range input is invalid.
  */
 const val DATE_RANGE_ERROR_MESSAGE = "Please input a valid date range"
+
+/**
+ * Error message that is shown when CVE identifier is invalid.
+ */
+const val CVE_NAME_ERROR_MESSAGE = "CVE identifier is invalid"

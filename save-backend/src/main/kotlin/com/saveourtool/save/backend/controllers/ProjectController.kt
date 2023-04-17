@@ -10,7 +10,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -46,7 +46,6 @@ import java.util.*
 )
 @RestController
 @RequestMapping(path = ["/api/$v1/projects"])
-@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
 class ProjectController(
     private val projectService: ProjectService,
     private val organizationService: OrganizationService,
@@ -77,14 +76,14 @@ class ProjectController(
         description = "Get filtered projects available for the current user.",
     )
     @Parameters(
-        Parameter(name = "projectFilters", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+        Parameter(name = "projectFilter", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
     fun getFilteredProjects(
-        @RequestBody projectFilters: ProjectFilters,
+        @RequestBody projectFilter: ProjectFilter,
         authentication: Authentication?,
     ): Flux<ProjectDto> =
-            blockingToFlux { projectService.getFiltered(projectFilters) }
+            blockingToFlux { projectService.getFiltered(projectFilter) }
                 .filter {
                     projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
                 }
@@ -259,6 +258,39 @@ class ProjectController(
                 }
             }
         }
+
+    @PostMapping("/problem/save")
+    @Operation(
+        method = "POST",
+        summary = "Save project problem.",
+        description = "Save project problem.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully saved project problem")
+    @PreAuthorize("permitAll()")
+    fun save(
+        @RequestBody projectProblemDto: ProjectProblemDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        projectService.saveProjectProblem(projectProblemDto, authentication)
+    }.map {
+        ResponseEntity.ok("Project problem was successfully saved")
+    }
+
+    @GetMapping("/problem/all")
+    @Operation(
+        method = "GET",
+        summary = "Get all project problems.",
+        description = "Get all project problems.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched all project problems")
+    @Suppress("TYPE_ALIAS")
+    fun getAllProjectProblems(
+        @RequestParam projectName: String,
+        @RequestParam organizationName: String,
+    ): Mono<List<ProjectProblemDto>> = blockingToMono {
+        projectService.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName).map(
+            ProjectProblem::toDto)
+    }
 
     companion object {
         @JvmStatic

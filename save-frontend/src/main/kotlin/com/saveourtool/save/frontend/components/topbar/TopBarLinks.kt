@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -10,20 +11,14 @@ import csstype.Width
 import csstype.rem
 import remix.run.router.Location
 import js.core.jso
-import react.FC
-import react.Props
-import react.dom.aria.AriaRole
-import react.dom.aria.ariaExpanded
-import react.dom.aria.ariaLabelledBy
+import react.*
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.NavigateFunction
 import react.router.dom.Link
+import react.router.useLocation
 import react.router.useNavigate
-import react.useState
-
-import kotlinx.browser.window
 
 val topBarLinks = topBarLinks()
 
@@ -50,52 +45,37 @@ data class TopBarLink(
     val isExternalLink: Boolean = false,
 )
 
+private fun ChildrenBuilder.demoDropdownEntry(
+    name: String,
+    href: String,
+    location: Location,
+    navigate: NavigateFunction,
+    deactivateDropdown: () -> Unit,
+) {
+    dropdownEntry(null, name, location.pathname.endsWith(href)) { attrs ->
+        attrs.onClick = {
+            deactivateDropdown()
+            navigate(to = href)
+        }
+    }
+}
+
 /**
  * Displays the static links that do not depend on the url.
  */
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     val navigate = useNavigate()
+    val location = useLocation()
     var isDemoDropdownActive by useState(false)
+    val deactivateDropdown = { isDemoDropdownActive = false }
 
     ul {
         className = ClassName("navbar-nav mx-auto")
-        li {
-            className = ClassName("nav-item dropdown no-arrow")
-            style = jso {
-                width = 5.rem
-            }
-            a {
-                className = ClassName("nav-link dropdown-toggle text-light")
-                asDynamic()["data-toggle"] = "dropdown"
-                ariaExpanded = false
-                id = "demoDropdown"
-                role = "button".unsafeCast<AriaRole>()
-                +"Demo"
-                onClickCapture = { _ ->
-                    isDemoDropdownActive = !isDemoDropdownActive
-                }
-            }
-            div {
-                className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isDemoDropdownActive) " show" else "" }")
-                ariaLabelledBy = "demoDropdown"
-                val diktatDemoHref = "/${FrontendRoutes.DEMO.path}/diktat"
-                dropdownEntry(null, "Diktat", window.location.href.contains(diktatDemoHref)) { attrs ->
-                    attrs.onClick = {
-                        isDemoDropdownActive = false
-                        navigate(to = diktatDemoHref)
-                    }
-                }
-                val cpgDemoHref = "/${FrontendRoutes.DEMO.path}/cpg"
-                dropdownEntry(null, "CPG", window.location.href.contains(cpgDemoHref)) { attrs ->
-                    attrs.onClick = {
-                        isDemoDropdownActive = false
-                        navigate(to = cpgDemoHref)
-                    }
-                }
-            }
-        }
         sequenceOf(
+            TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
+            TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.rem, text = "CPG"),
+            TopBarLink(hrefAnchor = FrontendRoutes.FOSS_GRAPH.path, width = 7.rem, text = "FossGraph"),
             TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
             TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub", isExternalLink = true),

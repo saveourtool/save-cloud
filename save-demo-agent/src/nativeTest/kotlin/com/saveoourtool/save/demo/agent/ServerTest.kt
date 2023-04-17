@@ -1,6 +1,6 @@
 package com.saveoourtool.save.demo.agent
 
-import com.saveourtool.save.demo.agent.ServerConfiguration
+import com.saveourtool.save.demo.ServerConfiguration
 import com.saveourtool.save.demo.agent.server
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,7 +15,7 @@ import kotlin.test.*
 class ServerTest {
     private val serverUrl = "localhost"
     private val serverConfiguration = ServerConfiguration()
-    private val server = server(serverConfiguration)
+    private val server = server(serverConfiguration, true)
 
     @BeforeTest
     fun startServer() {
