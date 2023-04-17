@@ -41,6 +41,9 @@ enum class FrontendRoutes(val path: String) {
          *
          * @return list of forbidden words
          */
-        fun getForbiddenWords() = FrontendRoutes.values().map { it.path.split(URL_PATH_DELIMITER) }.flatten().toTypedArray()
+        fun getForbiddenWords() = FrontendRoutes.values()
+            .map { it.path.split(URL_PATH_DELIMITER) }
+            .flatten()
+            .toTypedArray()
     }
 }

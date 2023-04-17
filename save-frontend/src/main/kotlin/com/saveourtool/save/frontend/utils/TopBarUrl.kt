@@ -144,5 +144,6 @@ class TopBarUrl(val href: String) {
          * Situation with the processing of the "project" in the url address - need for tabs in ProjectView
          */
         PROJECT(ProjectMenuBar.regexForUrlClassification),
+        ;
     }
 }
