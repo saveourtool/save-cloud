@@ -19,7 +19,7 @@ detekt = "1.22.0"
 liquibase-core = "4.20.0"
 docker-java = "3.3.0"
 jgit = "6.5.0.202303070854-r"
-mockito = "5.2.1"
+mockito = "5.2.0"
 mockito-kotlin = "4.1.0"
 # only in save-cli
 log4j = "2.20.0"
