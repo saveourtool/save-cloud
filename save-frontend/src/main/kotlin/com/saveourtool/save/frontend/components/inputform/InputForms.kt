@@ -31,6 +31,7 @@ enum class InputTypes(
 ) {
     // ==== general
     DESCRIPTION("description", null, "description"),
+    COMMENT("comment", null, "comment"),
 
     // ==== new project view
     // TODO: need to removed or move to new modal window

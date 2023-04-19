@@ -2,15 +2,17 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.basic.commentWindow
 import com.saveourtool.save.frontend.components.basic.markdown
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.components.basic.newCommentWindow
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendRoutes
-import csstype.BorderRadius
-import csstype.ClassName
+
+import csstype.*
 import js.core.jso
 import react.FC
 import react.Props
@@ -44,6 +46,8 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
     }
 
     val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true)
+    val newCommentCard = newCommentWindow()
+    val commentCard = commentWindow()
 
     div {
         className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -144,6 +148,18 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                     columnCard {
                         markdown(projectProblem.description.split("\n").joinToString("\n\n"))
                     }
+                }
+            }
+
+            div {
+                className = ClassName("col-12 mt-4")
+                newCommentCard()
+            }
+
+            div {
+                className = ClassName("col-12 mt-4")
+                commentCard {
+                    comment = CommentDto.empty
                 }
             }
         }
