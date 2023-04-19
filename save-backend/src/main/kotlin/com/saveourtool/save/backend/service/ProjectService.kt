@@ -246,6 +246,12 @@ class ProjectService(
             projectProblemRepository.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName)
 
     /**
+     * @param id id of project problem
+     * @return project problem by id
+     */
+    fun getProjectProblemById(id: Long) = projectProblemRepository.getByIdOrNotFound(id)
+
+    /**
      * @param problem problem of project
      * @param authentication auth info of a current user
      */

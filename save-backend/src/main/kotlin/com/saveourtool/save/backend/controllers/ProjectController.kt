@@ -292,6 +292,19 @@ class ProjectController(
             ProjectProblem::toDto)
     }
 
+    @GetMapping("/problem/get/by-id")
+    @Operation(
+        method = "GET",
+        summary = "Get project problem by id.",
+        description = "Get project problem by id.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched project problem")
+    fun getProjectProblemById(
+        @RequestParam id: Long,
+    ): Mono<ProjectProblemDto> = blockingToMono {
+        projectService.getProjectProblemById(id).toDto()
+    }
+
     companion object {
         @JvmStatic
         private val log = LoggerFactory.getLogger(ProjectController::class.java)
