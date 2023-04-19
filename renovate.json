@@ -1,4 +1,5 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "enabled": true,
   "dependencyDashboard": true,
   "schedule": [
@@ -142,6 +143,12 @@
       "lockFileMaintenance": {
         "enabled": true
       }
+    }
+  ],
+  "hostRules": [
+    {
+      "matchHost": "maven.pkg.github.com",
+      "hostType": "maven"
     }
   ]
 }
