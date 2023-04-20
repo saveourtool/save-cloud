@@ -21,7 +21,7 @@ import csstype.ClassName
 import csstype.rem
 import js.core.jso
 import react.*
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div

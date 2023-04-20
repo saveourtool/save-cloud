@@ -17,7 +17,7 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.option

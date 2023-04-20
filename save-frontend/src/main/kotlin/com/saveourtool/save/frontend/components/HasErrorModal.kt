@@ -13,13 +13,13 @@ import csstype.ClassName
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
+import web.html.ButtonType
 
 /**
  * Loader animation
@@ -35,7 +35,7 @@ val ringLoader = ringLoader(jso {
  * Context to store data about current request such as errors and isLoading flag.
  */
 @Suppress("TYPE_ALIAS")
-val requestStatusContext: Context<RequestStatusContext> = createContext()
+val requestStatusContext: Context<RequestStatusContext?> = createContext()
 
 /**
  * Component that displays generic warning about unsuccessful request based on info in [requestStatusContext].

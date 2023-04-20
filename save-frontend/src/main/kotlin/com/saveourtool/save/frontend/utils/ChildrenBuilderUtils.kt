@@ -13,7 +13,7 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select

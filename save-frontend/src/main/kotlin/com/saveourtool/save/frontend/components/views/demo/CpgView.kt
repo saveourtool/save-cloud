@@ -24,7 +24,7 @@ import com.saveourtool.save.utils.Languages
 import csstype.*
 import js.core.jso
 import react.*
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div

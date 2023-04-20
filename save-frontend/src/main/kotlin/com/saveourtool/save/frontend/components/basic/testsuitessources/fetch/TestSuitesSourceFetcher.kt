@@ -19,7 +19,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import csstype.ClassName
 import js.core.jso
 import react.*
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 

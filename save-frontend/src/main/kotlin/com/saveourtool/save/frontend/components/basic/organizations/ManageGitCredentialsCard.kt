@@ -20,7 +20,7 @@ import org.w3c.fetch.Response
 import react.FC
 import react.Props
 import react.StateSetter
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr

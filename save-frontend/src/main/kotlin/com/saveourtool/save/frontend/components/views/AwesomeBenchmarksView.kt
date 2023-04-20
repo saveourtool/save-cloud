@@ -30,7 +30,6 @@ import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -51,6 +50,7 @@ import react.dom.html.ReactHTML.ul
 import web.html.InputType
 
 import kotlinx.coroutines.launch
+import web.html.ButtonType
 
 const val ALL_LANGS = "all"
 

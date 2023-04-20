@@ -8,7 +8,7 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.aria.ariaDescribedBy
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
