@@ -197,7 +197,7 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 }
 
 /**
- * [Props] for FossGraphView
+ * [Props] for CreateProjectProblemView
  */
 external interface CreateProjectProblemViewProps : Props {
     /**
