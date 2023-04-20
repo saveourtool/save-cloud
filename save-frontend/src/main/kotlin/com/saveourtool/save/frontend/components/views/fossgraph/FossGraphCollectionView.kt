@@ -17,7 +17,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import js.core.get
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td

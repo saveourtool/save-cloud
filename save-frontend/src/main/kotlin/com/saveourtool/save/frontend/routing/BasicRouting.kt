@@ -34,7 +34,6 @@ import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
 
-import js.core.get
 import org.w3c.dom.url.URLSearchParams
 import react.*
 import react.router.*
@@ -215,11 +214,9 @@ val basicRouting: FC<AppProps> = FC { props ->
         props.userInfo?.name.run {
             PathRoute {
                 path = "/$this"
-                element = VFC {
-                    useNavigate().invoke(
-                        to = "/$this/$SETTINGS_PROFILE"
-                    )
-                }.create()
+                element = Navigate.create {
+                    to = "/$this/$SETTINGS_PROFILE"
+                }
             }
         }
 

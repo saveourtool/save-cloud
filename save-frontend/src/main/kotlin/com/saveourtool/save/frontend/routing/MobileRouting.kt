@@ -21,10 +21,10 @@ val mobileRoutes = VFC {
         listOf(
             AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US.path,
             WelcomeMobileView::class.react.create() to "*",
-        ).forEach { routes ->
+        ).forEach {
             PathRoute {
-                element = routes.first
-                path = "/${routes.second}"
+                this.element = it.first
+                this.path = "/${it.second}"
             }
         }
     }
