@@ -206,8 +206,8 @@ val basicRouting: FC<AppProps> = FC { props ->
 
         ).forEach {
             PathRoute {
-                element = it.first
-                path = "/${it.second}"
+                this.element = it.first
+                this.path = "/${it.second}"
             }
         }
 
