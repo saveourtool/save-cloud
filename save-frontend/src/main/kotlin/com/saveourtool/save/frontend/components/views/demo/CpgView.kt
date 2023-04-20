@@ -24,7 +24,6 @@ import com.saveourtool.save.utils.Languages
 import csstype.*
 import js.core.jso
 import react.*
-import web.html.ButtonType
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -36,6 +35,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

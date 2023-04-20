@@ -36,9 +36,7 @@ import com.saveourtool.save.validation.FrontendRoutes.*
 
 import org.w3c.dom.url.URLSearchParams
 import react.*
-import react.router.Navigate
-import react.router.PathRoute
-import react.router.Routes
+import react.router.*
 
 val testExecutionDetailsView = testExecutionDetailsView()
 

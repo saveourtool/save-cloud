@@ -23,7 +23,6 @@ import js.core.asList
 import js.core.jso
 import react.*
 import react.dom.events.ChangeEvent
-import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -33,6 +32,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType
 

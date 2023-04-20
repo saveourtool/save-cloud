@@ -25,7 +25,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
-import remix.run.router.Location
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -35,6 +34,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
+import remix.run.router.Location
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch

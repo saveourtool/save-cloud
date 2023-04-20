@@ -9,7 +9,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBar
-import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
@@ -22,8 +21,7 @@ import csstype.ClassName
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.Navigate
-import react.router.Route
+import react.router.*
 import react.router.dom.HashRouter
 import web.dom.document
 import web.html.HTMLElement

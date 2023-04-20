@@ -11,7 +11,6 @@ import react.VFC
 import react.create
 import react.react
 import react.router.PathRoute
-import react.router.Route
 import react.router.Routes
 
 /**

@@ -23,7 +23,6 @@ import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
-import remix.run.router.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -47,10 +46,11 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import remix.run.router.Location
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.coroutines.launch
-import web.html.ButtonType
 
 const val ALL_LANGS = "all"
 

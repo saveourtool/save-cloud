@@ -17,8 +17,6 @@ import csstype.ClassName
 import csstype.Width
 import js.core.jso
 import react.*
-import react.dom.*
-import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -26,6 +24,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.html.ButtonType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch

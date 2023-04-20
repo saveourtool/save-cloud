@@ -145,15 +145,19 @@ fun useRequestStatusContext(): WithRequestStatusContext {
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) {
-            statusContext?.setResponse?.invoke(response)
+            statusContext?.run {
+                setResponse(response)
+            }
         }
         override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) {
-            statusContext?.setRedirectToFallbackView?.invoke(
-                isNeedRedirect && response.status == 404.toShort()
-            )
+            statusContext?.run {
+                setRedirectToFallbackView(
+                    isNeedRedirect && response.status == 404.toShort()
+                )
+            }
         }
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) {
-            statusContext?.setLoadingCounter?.invoke(transform)
+            statusContext?.run { setLoadingCounter(transform) }
         }
     }
     return context
