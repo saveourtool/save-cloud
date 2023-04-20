@@ -25,18 +25,17 @@ import csstype.AlignItems
 import csstype.ClassName
 import csstype.Color
 import csstype.Display
-import io.ktor.http.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
+import web.html.ButtonType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -279,7 +278,7 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
     }
 
     companion object :
-        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
+        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext?>>(SandboxView::class) {
         init {
             ContestView.contextType = requestStatusContext
         }

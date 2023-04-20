@@ -183,7 +183,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     }
 
     companion object :
-        RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
+        RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext?>>(AboutUsView::class) {
         protected const val DEFAULT_AVATAR_SIZE = "200"
         protected const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
         protected const val GITHUB_LINK = "https://github.com/"

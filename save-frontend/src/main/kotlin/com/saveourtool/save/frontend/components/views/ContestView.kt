@@ -20,7 +20,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import history.Location
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -29,6 +28,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+import remix.run.router.Location
 import web.html.InputType
 
 import kotlinx.coroutines.launch
@@ -238,7 +238,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext>>(ContestView::class) {
+    companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext?>>(ContestView::class) {
         init {
             contextType = requestStatusContext
         }

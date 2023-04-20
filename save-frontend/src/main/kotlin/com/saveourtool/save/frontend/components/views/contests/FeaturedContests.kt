@@ -19,7 +19,6 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.StateSetter
 import react.VFC
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -28,6 +27,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import react.useState
+import web.html.ButtonType
 
 const val INVERT_TO_OPPOSITE = 100
 

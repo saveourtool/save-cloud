@@ -314,7 +314,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             }
 
     companion object :
-        RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
+        RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext?>>(WelcomeView::class) {
         init {
             contextType = requestStatusContext
         }
