@@ -11,6 +11,7 @@ import javax.persistence.*
  * @property vulnerability
  * @property project
  * @property userId
+ * @property isClosed
  */
 @Entity
 class ProjectProblem(
@@ -32,6 +33,8 @@ class ProjectProblem(
 
     var userId: Long,
 
+    var isClosed: Boolean,
+
 ) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
     override fun toDto() = ProjectProblemDto(
         name = name,
@@ -40,6 +43,7 @@ class ProjectProblem(
         vulnerabilityName = vulnerability?.name,
         organizationName = project.organization.name,
         projectName = project.name,
+        isClosed = isClosed,
         id = id,
     )
 }

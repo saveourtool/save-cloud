@@ -39,4 +39,12 @@
         <modifyDataType tableName="project_problem" columnName="description" newDataType="TEXT"/>
     </changeSet>
 
+    <changeSet id="project-problem-2" author="frolov" context="dev or prod">
+        <addColumn tableName="project_problem">
+            <column name="is_closed" type="BOOLEAN" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
