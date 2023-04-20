@@ -1,10 +1,14 @@
 package com.saveourtool.save.frontend
 
 import com.saveourtool.save.domain.Role
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 
 /**
  * Interface for tab bar in many pages
  */
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 interface TabMenuBar<T : Enum<T>> {
     /**
      * Default value in every Enum classes
@@ -14,7 +18,7 @@ interface TabMenuBar<T : Enum<T>> {
     /**
      * Regular expression to determine tab based on URL
      */
-    val regexForUrlClassification: Regex
+    val regexForUrlClassification: String
 
     /**
      * name of the head section in url address for non-default tab

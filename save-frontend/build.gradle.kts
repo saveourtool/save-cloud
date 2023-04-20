@@ -37,7 +37,7 @@ dependencies {
 }
 
 kotlin {
-    js(LEGACY) {
+    js(IR) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
             testTask {
@@ -62,8 +62,11 @@ kotlin {
         useCommonJs()
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlinx.serialization.ExperimentalSerializationApi")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         sourceSets["main"].dependencies {
             compileOnly(devNpm("sass", "^1.43.0"))

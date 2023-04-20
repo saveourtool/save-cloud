@@ -25,7 +25,7 @@ kotlin {
     jvmToolchain {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
-    js(BOTH) {
+    js(IR) {
         browser()
         useCommonJs()
     }
@@ -36,7 +36,10 @@ kotlin {
 
     sourceSets {
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         val commonMain by getting {
             dependencies {

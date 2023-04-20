@@ -147,7 +147,7 @@ fun ChildrenBuilder.displayExecutionInfoHeader(
         className = ClassName(classes)
         displayProjectVersion(executionDto, isContest, "$relativeWidth $innerClasses", height)
         displayPassRate(executionDto, isContest, "$relativeWidth $innerClasses", height)
-        displayStatistics(executionDto, isContest, "$relativeWidth $innerClasses", height)
+        displayStatistics(executionDto, "$relativeWidth $innerClasses", height)
         displayRerunExecutionButton(executionDto, isContest, "$relativeWidth $innerClasses", height, onRerunExecution)
     }
 }
@@ -347,14 +347,12 @@ fun ChildrenBuilder.displayPassRate(
  * Function that renders execution statistics label
  *
  * @param executionDto execution that should be used as data source
- * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.displayStatistics(
     executionDto: ExecutionDto?,
-    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
 ) {

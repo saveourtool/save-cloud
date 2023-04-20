@@ -14,11 +14,11 @@ import react.react
  * See [faUser.d.ts](https://unpkg.com/browse/@fortawesome/free-solid-svg-icons@5.11.2/faUser.d.ts) as an example.
  * We only need [definition] field for using those icons, other fields could be added if needed.
  */
-interface FontAwesomeIconModule {
+external interface FontAwesomeIconModule {
     /**
      * Definition of FA icon ([IconDefinition] in terms of `@fortawesome/fontawesome-common-types`)
      */
-    val definition: dynamic
+    var definition: dynamic
 }
 
 /**

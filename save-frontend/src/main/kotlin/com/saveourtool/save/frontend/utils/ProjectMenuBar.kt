@@ -21,7 +21,7 @@ enum class ProjectMenuBar {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "project"
         override val defaultTab: ProjectMenuBar = INFO
-        override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = "/$nameOfTheHeadUrlSection/[^/]+/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
         override fun isAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =

@@ -164,7 +164,7 @@ enum class VulnerabilityListTab {
     companion object : TabMenuBar<VulnerabilityListTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: VulnerabilityListTab = PUBLIC
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.FOSS_GRAPH.path}")
+        override val regexForUrlClassification = "/${FrontendRoutes.FOSS_GRAPH.path}"
         override fun valueOf(elem: String): VulnerabilityListTab = VulnerabilityListTab.valueOf(elem)
         override fun values(): Array<VulnerabilityListTab> = VulnerabilityListTab.values()
     }

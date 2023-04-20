@@ -10,14 +10,11 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
-
-import kotlinx.datetime.LocalDateTime
 
 /**
  * TODO:
@@ -37,12 +34,7 @@ external interface ContestListViewProps : Props {
 /**
  * [State] of [ContestListView] component
  */
-external interface ContestListViewState : State {
-    /**
-     * current time
-     */
-    var currentDateTime: LocalDateTime
-}
+external interface ContestListViewState : State
 
 /**
  * A view with collection of contests
@@ -50,10 +42,6 @@ external interface ContestListViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>() {
-    init {
-        state.currentDateTime = getCurrentLocalDateTime()
-    }
-
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     override fun ChildrenBuilder.render() {
         main {

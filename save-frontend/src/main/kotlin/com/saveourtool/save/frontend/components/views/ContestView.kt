@@ -47,7 +47,7 @@ enum class ContestMenuBar {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
     }

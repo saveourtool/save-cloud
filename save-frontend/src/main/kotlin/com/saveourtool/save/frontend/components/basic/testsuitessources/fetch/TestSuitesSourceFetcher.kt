@@ -175,11 +175,11 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 classes = "mb-2"
                 selectClasses = "custom-select"
                 formName = "Source tag:"
-                getData = {
-                    get(
+                getData = { context ->
+                    context.get(
                         url = "$urlPrefix/tag-list-to-fetch",
                         headers = jsonHeaders,
-                        loadingHandler = ::loadingHandler,
+                        loadingHandler = context::loadingHandler,
                     )
                         .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
@@ -201,11 +201,11 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 validInput = selectedValue != null
                 classes = "mb-2"
                 formName = "Source branch:"
-                getData = {
-                    get(
+                getData = { context ->
+                    context.get(
                         url = "$urlPrefix/branch-list-to-fetch",
                         headers = jsonHeaders,
-                        loadingHandler = ::loadingHandler,
+                        loadingHandler = context::loadingHandler,
                     )
                         .unsafeMap<List<String>> {
                             it.decodeFromJsonString()

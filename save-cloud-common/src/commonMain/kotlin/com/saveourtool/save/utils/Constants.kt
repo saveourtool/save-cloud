@@ -2,7 +2,11 @@
  * Module with defined constants
  */
 
+@file:JsExport
+
 package com.saveourtool.save.utils
+
+import kotlin.js.JsExport
 
 /**
  * Link to save-cloud on GitHub
@@ -52,4 +56,5 @@ const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 /**
  * Default time to execute setup.sh
  */
-const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS = 60_000L
+@Suppress("NON_EXPORTABLE_TYPE")
+const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L

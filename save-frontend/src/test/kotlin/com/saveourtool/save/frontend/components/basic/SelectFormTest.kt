@@ -36,8 +36,8 @@ class SelectFormTest {
             render(
                 wrapper.create {
                     selectFormRequired {
-                        getData = {
-                            get(
+                        getData = { context ->
+                            context.get(
                                 "$apiUrl/organizations/get/list",
                                 jsonHeaders,
                                 loadingHandler = ::noopLoadingHandler,
@@ -80,8 +80,8 @@ class SelectFormTest {
             render(
                 wrapper.create {
                     selectFormRequired {
-                        getData = {
-                            get(
+                        getData = { context ->
+                            context.get(
                                 "$apiUrl/organizations/get/list",
                                 jsonHeaders,
                                 loadingHandler = ::noopLoadingHandler,
