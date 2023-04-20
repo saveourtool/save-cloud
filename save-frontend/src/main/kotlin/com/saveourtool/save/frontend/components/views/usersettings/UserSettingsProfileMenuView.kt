@@ -5,11 +5,11 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 
 import csstype.ClassName
 import react.FC
-import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
+import web.html.ButtonType
 import web.html.InputType
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")

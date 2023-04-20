@@ -17,9 +17,9 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
+import web.html.ButtonType
 
 import kotlinx.browser.window
-import web.html.ButtonType
 
 /**
  * Loader animation

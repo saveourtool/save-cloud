@@ -26,11 +26,9 @@ import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 
 import csstype.*
-import remix.run.router.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -42,6 +40,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
+import remix.run.router.Location
+import web.html.ButtonType
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -590,7 +590,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     companion object :
-        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
+        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext?>>(
         OrganizationView::class
     ) {
         private const val AVATAR_TITLE = "Change organization's avatar"

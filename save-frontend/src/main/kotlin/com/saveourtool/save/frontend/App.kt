@@ -21,6 +21,7 @@ import csstype.ClassName
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.*
 import react.router.dom.HashRouter
 import web.dom.document
 import web.html.HTMLElement
@@ -30,7 +31,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import react.router.*
 
 internal val topBarComponent = topBar()
 
@@ -164,16 +164,14 @@ inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachLis
     routeElement: FC<Props>
 ) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
-        Route {
-            val pathRouteProps = this.unsafeCast<PathRouteProps>()
-            pathRouteProps.path = "$basePath/$item"
-            pathRouteProps.element = routeElement.create()
+        PathRoute {
+            path = "$basePath/$item"
+            element = routeElement.create()
         }
     }
-    Route {
-        val pathRouteProps = this.unsafeCast<PathRouteProps>()
-        pathRouteProps.path = basePath
-        pathRouteProps.element = routeElement.create()
+    PathRoute {
+        path = basePath
+        element = routeElement.create()
     }
 }
 

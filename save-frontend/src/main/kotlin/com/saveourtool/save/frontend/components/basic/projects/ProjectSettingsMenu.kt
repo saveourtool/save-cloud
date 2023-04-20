@@ -16,7 +16,6 @@ import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
-import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -26,6 +25,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
+import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType
 

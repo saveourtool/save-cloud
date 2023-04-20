@@ -206,18 +206,16 @@ val basicRouting: FC<AppProps> = FC { props ->
             ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
         ).forEach {
-            Route {
-                val pathRouteProps = this.unsafeCast<PathRouteProps>()
-                pathRouteProps.element = it.first
-                pathRouteProps.path = "/${it.second}"
+            PathRoute {
+                element = it.first
+                path = "/${it.second}"
             }
         }
 
         props.userInfo?.name.run {
-            Route {
-                val pathRouteProps = this.unsafeCast<PathRouteProps>()
-                pathRouteProps.path = "/$this"
-                pathRouteProps.element = VFC {
+            PathRoute {
+                path = "/$this"
+                element = VFC {
                     useNavigate().invoke(
                         to = "/$this/$SETTINGS_PROFILE"
                     )
@@ -225,10 +223,9 @@ val basicRouting: FC<AppProps> = FC { props ->
             }
         }
 
-        Route {
-            val pathRouteProps = this.unsafeCast<PathRouteProps>()
-            pathRouteProps.path = "/$MANAGE_ORGANIZATIONS"
-            pathRouteProps.element = when (props.userInfo.isSuperAdmin()) {
+        PathRoute {
+            path = "/$MANAGE_ORGANIZATIONS"
+            element = when (props.userInfo.isSuperAdmin()) {
                 true -> OrganizationAdminView::class.react.create()
                 else -> fallbackNode
             }
@@ -259,10 +256,9 @@ val basicRouting: FC<AppProps> = FC { props ->
             contestGlobalRatingView
         )
 
-        Route {
-            val pathRouteProps = this.unsafeCast<PathRouteProps>()
-            pathRouteProps.path = "*"
-            pathRouteProps.element = FallbackView::class.react.create {
+        PathRoute {
+            path = "*"
+            element = FallbackView::class.react.create {
                 bigText = "404"
                 smallText = "Page not found"
                 withRouterLink = true

@@ -8,8 +8,8 @@ package com.saveourtool.save.frontend.utils
 
 import react.*
 import react.router.*
-import remix.run.router.Params
 import remix.run.router.Location
+import remix.run.router.Params
 
 /**
  * Interface that provides [NavigateFunction] to use [navigation support](https://reactrouter.com/en/v6.3.0/api#navigation)
