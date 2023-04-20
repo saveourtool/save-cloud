@@ -13,9 +13,9 @@ import csstype.ClassName
 import js.core.jso
 import react.ChildrenBuilder
 import react.StateInstance
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.span
+import web.html.ButtonType
 
 /**
  * @param project

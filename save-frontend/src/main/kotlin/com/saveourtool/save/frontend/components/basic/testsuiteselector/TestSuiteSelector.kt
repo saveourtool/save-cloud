@@ -18,10 +18,10 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.*
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import web.html.ButtonType
 
 val testSuiteSelector = testSuiteSelector()
 

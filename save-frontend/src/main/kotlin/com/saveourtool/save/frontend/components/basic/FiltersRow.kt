@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.ClassName
 import react.FC
 import react.Props
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
@@ -21,6 +20,7 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.useEffect
 import react.useState
+import web.html.ButtonType
 import web.html.InputType
 
 val testExecutionFiltersRow = testExecutionFiltersRow()

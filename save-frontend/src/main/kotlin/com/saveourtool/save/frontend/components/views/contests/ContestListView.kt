@@ -92,7 +92,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
     }
 
     companion object :
-        RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext>>(
+        RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext?>>(
         ContestListView::class
     ) {
         init {

@@ -6,7 +6,6 @@ import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import csstype.ClassName
-import history.Location
 import react.FC
 import react.Props
 import react.dom.aria.AriaCurrent
@@ -17,6 +16,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
 import react.router.dom.Link
+import remix.run.router.Location
 
 val topBarUrlSplits = topBarUrlSplits()
 
