@@ -269,6 +269,7 @@ class ProjectService(
             vulnerability = vulnerability,
             project = project,
             userId = user.requiredId(),
+            isClosed = false,
         )
         projectProblemRepository.save(projectProblem)
     }
