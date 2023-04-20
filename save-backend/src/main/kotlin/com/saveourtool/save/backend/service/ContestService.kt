@@ -20,7 +20,6 @@ import java.util.*
 @Service
 class ContestService(
     private val contestRepository: ContestRepository,
-    private val testSuitesService: TestSuitesService,
 ) {
     /**
      * @param contestId

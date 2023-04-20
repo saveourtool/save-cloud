@@ -11,7 +11,9 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="message" type="TEXT"/>
-            <column name="section" type="varchar(250)"/>
+            <column name="section" type="varchar(250)">
+                <constraints nullable="false"/>
+            </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="true"/>
             </column>

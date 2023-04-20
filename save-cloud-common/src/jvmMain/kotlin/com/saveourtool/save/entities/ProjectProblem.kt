@@ -11,8 +11,10 @@ import javax.persistence.*
  * @property vulnerability
  * @property project
  * @property userId
+ * @property isClosed
  */
 @Entity
+@Suppress("LongParameterList")
 class ProjectProblem(
 
     var name: String,
@@ -32,6 +34,8 @@ class ProjectProblem(
 
     var userId: Long,
 
+    var isClosed: Boolean,
+
 ) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
     override fun toDto() = ProjectProblemDto(
         name = name,
@@ -40,6 +44,7 @@ class ProjectProblem(
         vulnerabilityName = vulnerability?.name,
         organizationName = project.organization.name,
         projectName = project.name,
+        isClosed = isClosed,
         id = id,
     )
 }
