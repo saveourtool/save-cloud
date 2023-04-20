@@ -46,10 +46,11 @@ fun newCommentWindow() = FC<PropsWithChildren> {
     val enrollRequest = useDeferredRequest {
         val commentNew = comment.copy(section = window.location.hash)
         val response = post(
-            url = "$apiUrl/projects/problem/save-comment",
+            url = "$apiUrl/comments/save",
             headers = jsonHeaders,
             body = Json.encodeToString(commentNew),
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             window.location.reload()

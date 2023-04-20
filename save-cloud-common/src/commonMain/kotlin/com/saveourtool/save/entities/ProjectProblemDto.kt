@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
  * @property organizationName
  * @property projectName
  * @property id
+ * @property isClosed
  */
 @Serializable
 data class ProjectProblemDto(
@@ -19,6 +20,7 @@ data class ProjectProblemDto(
     val vulnerabilityName: String?,
     val organizationName: String,
     val projectName: String,
+    val isClosed: Boolean,
     val id: Long? = null,
 ) {
     companion object {
@@ -29,6 +31,7 @@ data class ProjectProblemDto(
             null,
             "",
             "",
+            false,
         )
     }
 }
