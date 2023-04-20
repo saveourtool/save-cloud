@@ -237,7 +237,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
             .replace("[TZ]".toRegex(), " ")
     }
 
-    companion object : RStatics<ContestExecutionViewProps, State, ContestExecutionView, Context<RequestStatusContext>>(ContestExecutionView::class) {
+    companion object : RStatics<ContestExecutionViewProps, State, ContestExecutionView, Context<RequestStatusContext?>>(ContestExecutionView::class) {
         init {
             contextType = requestStatusContext
         }

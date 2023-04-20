@@ -21,7 +21,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div

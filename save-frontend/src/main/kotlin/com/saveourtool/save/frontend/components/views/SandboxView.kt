@@ -31,7 +31,7 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
@@ -279,7 +279,7 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
     }
 
     companion object :
-        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
+        RStatics<Props, SandboxViewState, SandboxView, Context<RequestStatusContext?>>(SandboxView::class) {
         init {
             ContestView.contextType = requestStatusContext
         }

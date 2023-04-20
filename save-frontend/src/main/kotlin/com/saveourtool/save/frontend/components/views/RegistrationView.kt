@@ -23,7 +23,7 @@ import js.core.asList
 import js.core.jso
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form

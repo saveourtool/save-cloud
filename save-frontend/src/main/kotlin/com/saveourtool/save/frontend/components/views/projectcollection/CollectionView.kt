@@ -200,7 +200,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         }
     }
 
-    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
+    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext?>>(CollectionView::class) {
         init {
             contextType = requestStatusContext
         }

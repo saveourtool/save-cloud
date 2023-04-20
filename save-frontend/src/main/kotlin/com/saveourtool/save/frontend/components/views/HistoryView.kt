@@ -479,7 +479,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
     }
 
-    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext>>(HistoryView::class) {
+    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext?>>(HistoryView::class) {
         init {
             contextType = requestStatusContext
         }

@@ -19,7 +19,7 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.StateSetter
 import react.VFC
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div

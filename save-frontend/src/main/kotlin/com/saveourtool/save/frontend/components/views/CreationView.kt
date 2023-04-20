@@ -26,7 +26,7 @@ import csstype.ClassName
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -355,7 +355,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
         }
     }
 
-    companion object : RStatics<ProjectSaveViewProps, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
+    companion object : RStatics<ProjectSaveViewProps, ProjectSaveViewState, CreationView, Context<RequestStatusContext?>>(CreationView::class) {
         init {
             contextType = requestStatusContext
         }

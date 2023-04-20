@@ -23,14 +23,13 @@ import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
-import history.Location
+import remix.run.router.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -51,6 +50,7 @@ import react.dom.html.ReactHTML.ul
 import web.html.InputType
 
 import kotlinx.coroutines.launch
+import web.html.ButtonType
 
 const val ALL_LANGS = "all"
 
@@ -524,7 +524,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         }
     }
 
-    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext?>>(AwesomeBenchmarksView::class) {
         init {
             contextType = requestStatusContext
         }

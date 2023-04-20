@@ -25,7 +25,7 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import csstype.Cursor
-import history.Location
+import remix.run.router.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -352,7 +352,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     }
 
     companion object :
-        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
+        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext?>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>

@@ -33,6 +33,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import react.router.PathRoute
 
 internal val topBarComponent = topBar()
 
@@ -166,12 +167,12 @@ inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachLis
     routeElement: FC<Props>
 ) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
-        Route {
+        PathRoute {
             path = "$basePath/$item"
             element = routeElement.create()
         }
     }
-    Route {
+    PathRoute {
         path = basePath
         element = routeElement.create()
     }

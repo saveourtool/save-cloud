@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
+import web.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
