@@ -31,7 +31,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import react.router.PathRoute
 
 internal val topBarComponent = topBar()
 
