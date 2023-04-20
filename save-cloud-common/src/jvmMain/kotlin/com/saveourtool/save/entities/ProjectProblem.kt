@@ -14,6 +14,7 @@ import javax.persistence.*
  * @property isClosed
  */
 @Entity
+@Suppress("LongParameterList")
 class ProjectProblem(
 
     var name: String,
