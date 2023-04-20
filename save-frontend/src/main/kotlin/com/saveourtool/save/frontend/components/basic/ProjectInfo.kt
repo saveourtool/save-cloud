@@ -16,7 +16,6 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import react.FC
 import react.Props
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -25,6 +24,7 @@ import react.dom.html.ReactHTML.label
 import react.useEffect
 import react.useRef
 import react.useState
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString

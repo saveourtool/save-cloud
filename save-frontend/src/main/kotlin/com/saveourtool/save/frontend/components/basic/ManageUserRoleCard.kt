@@ -17,11 +17,11 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

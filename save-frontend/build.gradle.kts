@@ -57,6 +57,9 @@ kotlin {
                 }
             }
         }
+        // kotlin-wrapper migrates to commonjs and missed @JsNonModule annotations
+        // https://github.com/JetBrains/kotlin-wrappers/issues/1935
+        useCommonJs()
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
             languageSettings.optIn("kotlin.RequiresOptIn")

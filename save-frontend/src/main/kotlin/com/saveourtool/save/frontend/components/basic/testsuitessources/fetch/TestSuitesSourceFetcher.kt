@@ -16,12 +16,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
+
 import csstype.ClassName
 import js.core.jso
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import web.html.ButtonType
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()

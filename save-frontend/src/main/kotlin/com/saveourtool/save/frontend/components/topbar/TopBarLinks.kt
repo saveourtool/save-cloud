@@ -9,7 +9,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import csstype.Width
 import csstype.rem
-import history.Location
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -19,6 +18,7 @@ import react.router.NavigateFunction
 import react.router.dom.Link
 import react.router.useLocation
 import react.router.useNavigate
+import remix.run.router.Location
 
 val topBarLinks = topBarLinks()
 

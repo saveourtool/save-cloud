@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
 
 import csstype.ClassName
-import js.core.get
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.br

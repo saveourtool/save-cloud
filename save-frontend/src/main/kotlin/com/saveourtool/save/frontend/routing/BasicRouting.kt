@@ -34,12 +34,9 @@ import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
 
-import js.core.get
 import org.w3c.dom.url.URLSearchParams
 import react.*
-import react.router.Navigate
-import react.router.Route
-import react.router.Routes
+import react.router.*
 
 val testExecutionDetailsView = testExecutionDetailsView()
 
@@ -208,14 +205,14 @@ val basicRouting: FC<AppProps> = FC { props ->
             ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
         ).forEach {
-            Route {
+            PathRoute {
                 this.element = it.first
                 this.path = "/${it.second}"
             }
         }
 
         props.userInfo?.name.run {
-            Route {
+            PathRoute {
                 path = "/$this"
                 element = Navigate.create {
                     to = "/$this/$SETTINGS_PROFILE"
@@ -223,7 +220,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             }
         }
 
-        Route {
+        PathRoute {
             path = "/$MANAGE_ORGANIZATIONS"
             element = when (props.userInfo.isSuperAdmin()) {
                 true -> OrganizationAdminView::class.react.create()
@@ -256,7 +253,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             contestGlobalRatingView
         )
 
-        Route {
+        PathRoute {
             path = "*"
             element = FallbackView::class.react.create {
                 bigText = "404"
