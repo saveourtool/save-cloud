@@ -61,7 +61,6 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
-                        subdomain = ""
                         if (kubernetesSettings.useGvisor) {
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
