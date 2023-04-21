@@ -220,4 +220,5 @@ demo:
   agentSubdomainName: demo-agent-service
   agentPort: 23456
 
+namespace: save-cloud
 agentNamespace: save-agent
