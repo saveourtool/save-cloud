@@ -4,7 +4,9 @@ package com.saveourtool.save.frontend.components.basic
 
 import csstype.ClassName
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.strong
 
 private const val SAVE_FOSS_GRAPH_INTRO_MD = """
     |## save-foss-graph
@@ -31,30 +33,30 @@ private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
     "MISSING_KDOC_ON_FUNCTION",
 )
 fun ChildrenBuilder.fossGraphIntroductionComponent() {
-    ReactHTML.div {
+    div {
         className = ClassName("card flex-md-column mb-1 box-shadow")
-        ReactHTML.div {
+        div {
             className = ClassName("card-body d-flex align-items-start")
-            ReactHTML.div {
-                ReactHTML.strong {
+            div {
+                strong {
                     className = ClassName("d-inline-block mb-2 text-info")
                     +"Introducing"
                 }
                 markdown(SAVE_FOSS_GRAPH_INTRO_MD.trimMargin())
             }
-            ReactHTML.div {
+            div {
                 className = ClassName("card-img-right flex-column d-none d-md-block")
-                ReactHTML.img {
+                img {
                     className = ClassName("img-fluid")
                     src = "img/undraw_happy_announcement_re_tsm0.svg"
                 }
             }
         }
-        ReactHTML.div {
+        div {
             className = ClassName("card-body pt-0 pb-1")
             markdown(SAVE_FOSS_GRAPH_ADD_NEW_MD.trimMargin())
         }
-        ReactHTML.div {
+        div {
             className = ClassName("card-body pt-0 pb-1")
             markdown(SAVE_FOSS_GRAPH_HOW_TO_MD.trimMargin())
         }
