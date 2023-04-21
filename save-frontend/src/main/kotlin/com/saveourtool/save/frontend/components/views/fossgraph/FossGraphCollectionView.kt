@@ -8,7 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.components.basic.markdown
+import com.saveourtool.save.frontend.components.basic.fossGraphIntroductionComponent
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.components.views.contests.tab
@@ -20,9 +20,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
-import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
@@ -102,28 +100,6 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
         }
     )
 
-    @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    val saveFossGraphIntroMd = """
-    |## save-foss-graph
-    |It is a list of publicly disclosed information security vulnerabilities and exposures.
-""".trimMargin()
-
-    @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-    val saveFossGraphAddNewMd = """
-    |### New vulnerability
-    |You can suggest your own new vulnerability if you didn't find the required one in our list.
-    |After our approval, it will appear in the database.
-""".trimMargin()
-
-    val saveFossGraphHowToMd = """
-    |### How to add vulnerability in project?
-    |1. Create saveourtool [organization](#/create-organization) and [project](#/create-project);
-    |2. Go to your project's security tab;
-    |3. Create new problem and add vulnerability number;
-    |
-    |In case of any error feel free to [contact us](https://github.com/saveourtool/save-cloud/issues/new).
-""".trimMargin()
-
     main {
         className = ClassName("main-content mt-0 ps")
         div {
@@ -135,35 +111,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                     div {
                         div {
                             className = ClassName("mb-2")
-                            div {
-                                className = ClassName("card flex-md-column mb-1 box-shadow")
-                                // style = jso { minHeight = 25.rem }
-                                div {
-                                    className = ClassName("card-body d-flex align-items-start")
-                                    div {
-                                        strong {
-                                            className = ClassName("d-inline-block mb-2 text-info")
-                                            +"Introducing"
-                                        }
-                                        markdown(saveFossGraphIntroMd)
-                                    }
-                                    div {
-                                        className = ClassName("card-img-right flex-column d-none d-md-block")
-                                        img {
-                                            className = ClassName("img-fluid")
-                                            src = "img/undraw_happy_announcement_re_tsm0.svg"
-                                        }
-                                    }
-                                }
-                                div {
-                                    className = ClassName("card-body pt-0 pb-1")
-                                    markdown(saveFossGraphAddNewMd)
-                                }
-                                div {
-                                    className = ClassName("card-body pt-0 pb-1")
-                                    markdown(saveFossGraphHowToMd)
-                                }
-                            }
+                            fossGraphIntroductionComponent()
                         }
                     }
                 }
