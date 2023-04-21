@@ -41,7 +41,7 @@ enum class ProjectListTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ProjectListTab = PUBLIC
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)")
+        override val regexForUrlClassification = "/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)"
         override fun valueOf(elem: String): ProjectListTab = ProjectListTab.valueOf(elem)
         override fun values(): Array<ProjectListTab> = ProjectListTab.values()
     }
@@ -200,7 +200,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         }
     }
 
-    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
+    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext?>>(CollectionView::class) {
         init {
             contextType = requestStatusContext
         }

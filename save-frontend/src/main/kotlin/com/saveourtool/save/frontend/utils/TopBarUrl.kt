@@ -63,7 +63,7 @@ class TopBarUrl(val href: String) {
     private fun findExclude(href: String) {
         circumstance = SituationUrlClassification.values()
             .filter { it.regex != null }
-            .firstOrNull { href.contains(it.regex ?: Regex("")) }
+            .firstOrNull { href.contains(Regex(it.regex ?: "")) }
             ?: SituationUrlClassification.KEYWORD_PROCESS
     }
 
@@ -104,7 +104,7 @@ class TopBarUrl(val href: String) {
      * This Enum class classifies work with the url address segment
      * @property regex
      */
-    enum class SituationUrlClassification(val regex: Regex? = null) {
+    enum class SituationUrlClassification(val regex: String? = null) {
         /**
          * Situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
          */
@@ -113,12 +113,12 @@ class TopBarUrl(val href: String) {
         /**
          * Situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
          */
-        DETAILS(Regex("/[^/]+/[^/]+/history/execution/\\d+/details")),
+        DETAILS("/[^/]+/[^/]+/history/execution/\\d+/details"),
 
         /**
          * Situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
          */
-        EXECUTION(Regex("/[^/]+/[^/]+/history/execution")),
+        EXECUTION("/[^/]+/[^/]+/history/execution"),
 
         /**
          * The button with this url segment is not created

@@ -23,11 +23,11 @@ import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import web.html.ButtonType
 
 import kotlin.js.json
 
@@ -184,11 +184,11 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             validInput = saveStatus != EntitySaveStatus.CONFLICT
             classes = "mb-2"
             formName = "Git Credentials"
-            getData = {
-                get(
+            getData = { context ->
+                context.get(
                     "$apiUrl/organizations/${props.organizationName}/list-git",
                     headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = context::loadingHandler,
                 )
                     .unsafeMap {
                         it.decodeFromJsonString()

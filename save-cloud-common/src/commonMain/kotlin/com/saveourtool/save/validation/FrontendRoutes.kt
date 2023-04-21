@@ -6,10 +6,12 @@
 package com.saveourtool.save.validation
 
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
+import kotlin.js.JsExport
 
 /**
  * @property path substring of url that defines given route
  */
+@JsExport
 enum class FrontendRoutes(val path: String) {
     ABOUT_US("about"),
     AWESOME_BENCHMARKS("awesome-benchmarks"),
@@ -39,6 +41,9 @@ enum class FrontendRoutes(val path: String) {
          *
          * @return list of forbidden words
          */
-        fun getForbiddenWords() = FrontendRoutes.values().map { it.path.split(URL_PATH_DELIMITER) }.flatten()
+        fun getForbiddenWords() = FrontendRoutes.values()
+            .map { it.path.split(URL_PATH_DELIMITER) }
+            .flatten()
+            .toTypedArray()
     }
 }

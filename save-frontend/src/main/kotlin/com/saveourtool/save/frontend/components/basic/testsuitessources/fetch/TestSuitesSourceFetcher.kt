@@ -16,12 +16,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
+
 import csstype.ClassName
 import js.core.jso
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import web.html.ButtonType
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()
@@ -174,11 +175,11 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 classes = "mb-2"
                 selectClasses = "custom-select"
                 formName = "Source tag:"
-                getData = {
-                    get(
+                getData = { context ->
+                    context.get(
                         url = "$urlPrefix/tag-list-to-fetch",
                         headers = jsonHeaders,
-                        loadingHandler = ::loadingHandler,
+                        loadingHandler = context::loadingHandler,
                     )
                         .unsafeMap<List<String>> {
                             it.decodeFromJsonString()
@@ -200,11 +201,11 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                 validInput = selectedValue != null
                 classes = "mb-2"
                 formName = "Source branch:"
-                getData = {
-                    get(
+                getData = { context ->
+                    context.get(
                         url = "$urlPrefix/branch-list-to-fetch",
                         headers = jsonHeaders,
-                        loadingHandler = ::loadingHandler,
+                        loadingHandler = context::loadingHandler,
                     )
                         .unsafeMap<List<String>> {
                             it.decodeFromJsonString()

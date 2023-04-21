@@ -45,7 +45,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * lambda invoked once to fetch data for selection
      */
-    var getData: suspend WithRequestStatusContext.() -> List<D>
+    var getData: suspend (WithRequestStatusContext) -> List<D>
 
     /**
      * Currently chosen field
@@ -109,7 +109,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
 
     useRequest(props.getDataRequestDependencies) {
-        setElements((props.getData)())
+        setElements((props.getData)(this))
     }
 
     div {

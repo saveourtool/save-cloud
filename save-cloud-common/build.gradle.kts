@@ -25,7 +25,10 @@ kotlin {
     jvmToolchain {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
-    js(BOTH).browser()
+    js(IR) {
+        browser()
+        useCommonJs()
+    }
 
     // setup native compilation
     linuxX64()
@@ -33,7 +36,10 @@ kotlin {
 
     sourceSets {
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         val commonMain by getting {
             dependencies {

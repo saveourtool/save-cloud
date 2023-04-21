@@ -3,6 +3,8 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
+
+import kotlin.js.JsExport
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -20,6 +22,7 @@ import kotlinx.serialization.Serializable
  * @property status
  */
 @Serializable
+@JsExport
 data class ContestDto(
     val name: String,
     val status: ContestStatus,

@@ -25,9 +25,12 @@ import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import react.useState
 
+import kotlinx.browser.window
+
 val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
     val (projectProblem, setProjectProblem) = useState(ProjectProblemDto.empty)
+    val (comments, setComments) = useState(emptyList<CommentDto>())
 
     useRequest {
         val projectProblemNew: ProjectProblemDto = get(
@@ -43,6 +46,17 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
             }
 
         setProjectProblem(projectProblemNew)
+
+        val newComments = post(
+            url = "$apiUrl/comments/get-all",
+            headers = jsonHeaders,
+            body = window.location.hash,
+            loadingHandler = ::loadingHandler,
+        ).unsafeMap {
+            it.decodeFromJsonString<List<CommentDto>>()
+        }
+
+        setComments(newComments)
     }
 
     val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true)
@@ -156,10 +170,12 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                 newCommentCard()
             }
 
-            div {
-                className = ClassName("col-12 mt-4")
-                commentCard {
-                    comment = CommentDto.empty
+            comments.forEach { message ->
+                div {
+                    className = ClassName("col-12 mt-4")
+                    commentCard {
+                        comment = message
+                    }
                 }
             }
         }

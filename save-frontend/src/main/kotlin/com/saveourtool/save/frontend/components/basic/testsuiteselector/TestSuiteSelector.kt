@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.modal.*
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonWithIcon
 import com.saveourtool.save.frontend.utils.useTooltip
@@ -18,10 +17,10 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 import csstype.ClassName
 import react.*
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import web.html.ButtonType
 
 val testSuiteSelector = testSuiteSelector()
 

@@ -5,6 +5,8 @@
 package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.frontend.TabMenuBar
+
+import kotlin.js.JsExport
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,6 +15,7 @@ import kotlinx.serialization.Serializable
  * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark).
  * This enum should be synchronized with enum in awesome-benchmarks
  */
+@JsExport
 enum class BenchmarkCategoryEnum {
     ALL,
     AI,
@@ -27,7 +30,7 @@ enum class BenchmarkCategoryEnum {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "archive"
         override val defaultTab: BenchmarkCategoryEnum = ALL
-        override val regexForUrlClassification: Regex = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification: String = "/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
     }

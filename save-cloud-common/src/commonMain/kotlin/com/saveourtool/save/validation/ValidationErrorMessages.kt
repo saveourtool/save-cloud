@@ -2,7 +2,11 @@
  * Module that contains different error messages.
  */
 
+@file:JsExport
+
 package com.saveourtool.save.validation
+
+import kotlin.js.JsExport
 
 /**
  * Error message that is shown when email input is invalid.
