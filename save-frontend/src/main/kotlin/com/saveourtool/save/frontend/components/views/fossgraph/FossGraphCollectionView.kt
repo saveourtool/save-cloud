@@ -122,7 +122,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                         div {
                             className = ClassName("d-flex justify-content-center mb-1 mt-2")
                             withNavigate { navigateContext ->
-                                buttonBuilder(label = "Propose a vulnerability", style = "info") {
+                                buttonBuilder(label = "Propose a new vulnerability", style = "info") {
                                     navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
                                 }
                             }

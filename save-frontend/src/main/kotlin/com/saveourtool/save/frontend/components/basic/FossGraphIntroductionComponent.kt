@@ -9,13 +9,13 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
 
 private const val SAVE_FOSS_GRAPH_INTRO_MD = """
-    |## save-foss-graph
-    |It is a list of publicly disclosed information security vulnerabilities and exposures.
+    |## FOSS graph
+    |Current page provides the list of publicly disclosed information security vulnerabilities and exposures.
 """
 
 private const val SAVE_FOSS_GRAPH_ADD_NEW_MD = """
     |### New vulnerability
-    |You can suggest your own new vulnerability if you didn't find the required one in our list.
+    |You can suggest your own [new vulnerability](#/foss-graph/create-vulnerability), if you didn't find the required one in our list.
     |After our approval, it will appear in the database.
 """
 
