@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -30,6 +29,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import web.cssom.*
 import web.html.HTMLInputElement
 
 import kotlinx.coroutines.launch

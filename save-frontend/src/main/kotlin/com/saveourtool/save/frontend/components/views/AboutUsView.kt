@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -21,6 +20,8 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
+import web.cssom.Color
 
 /**
  * [Props] of [AboutUsView]

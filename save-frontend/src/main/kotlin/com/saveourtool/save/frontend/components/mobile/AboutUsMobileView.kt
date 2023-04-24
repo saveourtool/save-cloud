@@ -10,12 +10,12 @@ import com.saveourtool.save.frontend.components.views.Developer
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
 
 /**
  * A component representing "About us" page

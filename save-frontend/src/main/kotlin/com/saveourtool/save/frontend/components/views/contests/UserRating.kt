@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -23,6 +22,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import web.cssom.*
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

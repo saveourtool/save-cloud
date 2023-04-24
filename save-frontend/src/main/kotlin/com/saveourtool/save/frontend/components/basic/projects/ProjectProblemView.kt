@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.*
 import js.core.jso
 import react.FC
 import react.Props
@@ -24,6 +23,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import react.useState
+import web.cssom.*
 
 import kotlinx.browser.window
 

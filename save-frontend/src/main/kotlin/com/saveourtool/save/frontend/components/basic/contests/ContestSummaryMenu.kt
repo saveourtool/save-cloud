@@ -5,13 +5,13 @@ package com.saveourtool.save.frontend.components.basic.contests
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import web.cssom.*
 
 /**
  * SUMMARY tab in ContestView

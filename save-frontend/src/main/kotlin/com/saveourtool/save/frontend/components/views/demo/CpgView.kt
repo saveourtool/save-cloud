@@ -21,7 +21,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.utils.Languages
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.br
@@ -35,6 +34,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
+import web.cssom.*
 import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString

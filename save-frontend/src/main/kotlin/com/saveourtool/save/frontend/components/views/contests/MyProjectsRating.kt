@@ -8,12 +8,12 @@ import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
+import web.cssom.*
 
 val myProjectsRating = myProjectsRatings()
 

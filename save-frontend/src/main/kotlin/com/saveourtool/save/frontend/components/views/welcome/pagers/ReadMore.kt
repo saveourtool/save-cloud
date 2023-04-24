@@ -4,13 +4,20 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
-import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
+import web.cssom.AlignItems
+import web.cssom.AlignSelf
+import web.cssom.ClassName
+import web.cssom.Color
+import web.cssom.Display
+import web.cssom.JustifyContent
+import web.cssom.TextAlign
+import web.cssom.em
 
 /**
  * rendering of "Read more" section
