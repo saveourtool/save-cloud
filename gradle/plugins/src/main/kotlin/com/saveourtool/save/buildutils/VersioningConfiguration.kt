@@ -35,7 +35,11 @@ fun Project.configureVersioning() {
         }
     }
 
-    val status = Git(FileRepository(FileRepositoryBuilder().findGitDir(project.rootDir).setup()))
+    val status = FileRepositoryBuilder()
+        .findGitDir(project.rootDir)
+        .setup()
+        .let(::FileRepository)
+        .let(::Git)
         .status()
         .call()
 
