@@ -51,13 +51,13 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name?name=${projectProblem.vulnerabilityName}",
+            url = "$apiUrl/vulnerabilities/by-name-and-active?name=${projectProblem.vulnerabilityName}&isActive=true",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         if (!response.ok) {
-            setConflictErrorMessage("No vulnerability found with this CVE identifier")
+            setConflictErrorMessage("No vulnerability found with ${projectProblem.vulnerabilityName} CVE identifier")
         } else {
             setConflictErrorMessage(null)
             enrollRequest()
