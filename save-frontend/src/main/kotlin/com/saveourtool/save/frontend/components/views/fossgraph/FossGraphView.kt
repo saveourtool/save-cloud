@@ -22,9 +22,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.AlignItems
-import csstype.ClassName
-import csstype.Display
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -34,6 +31,9 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
+import web.cssom.AlignItems
+import web.cssom.ClassName
+import web.cssom.Display
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

@@ -8,10 +8,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.v1
 
-import csstype.AlignItems
-import csstype.Background
-import csstype.ClassName
-import csstype.Display
 import js.core.jso
 import react.FC
 import react.PropsWithChildren
@@ -22,6 +18,10 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.textarea
 import react.useState
+import web.cssom.AlignItems
+import web.cssom.Background
+import web.cssom.ClassName
+import web.cssom.Display
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString

@@ -8,9 +8,10 @@ import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import csstype.ClassName
+
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 /**
  * Display buttons of demo management card

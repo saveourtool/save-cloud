@@ -3,12 +3,12 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 
-import csstype.ClassName
 import react.FC
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 

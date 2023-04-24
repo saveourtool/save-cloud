@@ -14,8 +14,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
 import com.saveourtool.save.frontend.utils.useRequestStatusContext
 
-import csstype.ClassName
-import csstype.Cursor
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -44,6 +42,8 @@ import tanstack.table.core.TableOptions
 import tanstack.table.core.TableState
 import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

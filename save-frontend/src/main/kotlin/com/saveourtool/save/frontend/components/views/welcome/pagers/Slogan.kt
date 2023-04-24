@@ -7,13 +7,13 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 import com.saveourtool.save.frontend.externals.animations.Animation
 import com.saveourtool.save.frontend.externals.animations.zoomInScrollOut
 
-import csstype.Color
-import csstype.FontSize
-import csstype.TextAlign
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.h1
+import web.cssom.Color
+import web.cssom.FontSize
+import web.cssom.TextAlign
 
 /**
  * Class for a highlighted slogans

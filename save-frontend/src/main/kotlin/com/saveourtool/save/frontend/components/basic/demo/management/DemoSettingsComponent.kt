@@ -5,11 +5,12 @@
 package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoDto
-import csstype.ClassName
+
 import react.*
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 
 /**
  * Display demo file names input forms such as config filename form, input filename form etc

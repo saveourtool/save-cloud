@@ -17,8 +17,6 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
-import csstype.ClassName
-import csstype.rem
 import js.core.asList
 import js.core.jso
 import react.*
@@ -32,6 +30,8 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType

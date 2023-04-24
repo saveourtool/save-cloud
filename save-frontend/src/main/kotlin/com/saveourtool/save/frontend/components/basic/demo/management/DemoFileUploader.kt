@@ -9,12 +9,13 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 import com.saveourtool.save.frontend.utils.apiUrl
-import csstype.ClassName
+
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 
 /**
  * Display file uploader of demo management card

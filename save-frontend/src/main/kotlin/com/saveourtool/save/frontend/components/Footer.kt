@@ -1,13 +1,14 @@
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.utils.CComponent
-import csstype.ClassName
+
 import generated.SAVE_CLOUD_VERSION
 import react.*
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.footer
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
 
 /**
  * A web page footer component

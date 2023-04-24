@@ -2,13 +2,13 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
 import web.html.HTMLInputElement
 import web.html.InputType
 

@@ -21,10 +21,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.AlignItems
-import csstype.ClassName
-import csstype.Color
-import csstype.Display
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -35,6 +31,10 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
+import web.cssom.AlignItems
+import web.cssom.ClassName
+import web.cssom.Color
+import web.cssom.Display
 import web.html.ButtonType
 
 import kotlinx.browser.window

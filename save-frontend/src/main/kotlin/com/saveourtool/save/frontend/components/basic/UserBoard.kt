@@ -9,14 +9,14 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 
-import csstype.BorderRadius
-import csstype.ClassName
 import js.core.jso
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import react.dom.html.ReactHTML.img
+import web.cssom.BorderRadius
+import web.cssom.ClassName
 
 /**
  * React element type that represents user board and can be rendered

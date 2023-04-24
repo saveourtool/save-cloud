@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.a
@@ -26,6 +25,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
 import react.router.useNavigate
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString

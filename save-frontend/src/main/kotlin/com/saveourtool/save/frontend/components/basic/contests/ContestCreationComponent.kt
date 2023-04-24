@@ -16,12 +16,12 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
+import web.cssom.ClassName
 import web.html.ButtonType
 
 import kotlin.js.json

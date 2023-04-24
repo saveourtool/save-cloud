@@ -5,7 +5,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -17,6 +16,7 @@ import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.useState
+import web.cssom.ClassName
 
 /**
  * SelectFormRequired component props

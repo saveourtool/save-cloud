@@ -14,8 +14,6 @@ import com.saveourtool.save.test.TestsSourceVersionInfoList
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.prettyPrint
 
-import csstype.ClassName
-import csstype.Cursor
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.button
@@ -25,6 +23,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 /**
  * Display single TestSuiteSource as list option

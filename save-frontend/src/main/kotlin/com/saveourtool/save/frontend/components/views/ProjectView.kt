@@ -23,8 +23,6 @@ import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 
-import csstype.ClassName
-import csstype.Cursor
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -34,6 +32,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString

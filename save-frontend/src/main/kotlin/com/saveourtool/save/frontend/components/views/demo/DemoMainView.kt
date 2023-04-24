@@ -8,10 +8,11 @@ import com.saveourtool.save.frontend.components.basic.demo.welcome.demoList
 import com.saveourtool.save.frontend.components.basic.demo.welcome.featuredDemos
 import com.saveourtool.save.frontend.components.basic.demo.welcome.introductionSection
 import com.saveourtool.save.frontend.utils.*
-import csstype.ClassName
+
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
+import web.cssom.ClassName
 
 val demoMainView: VFC = VFC {
     useBackground(Style.BLUE)

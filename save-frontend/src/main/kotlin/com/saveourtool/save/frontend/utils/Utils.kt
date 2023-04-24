@@ -8,7 +8,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -23,6 +22,7 @@ import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
+import web.cssom.ClassName
 import web.dom.Element
 import web.html.HTMLInputElement
 

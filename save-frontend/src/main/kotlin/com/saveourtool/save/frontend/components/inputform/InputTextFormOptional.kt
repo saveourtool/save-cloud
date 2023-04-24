@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.useTooltipAndPopover
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -20,6 +19,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.sup
+import web.cssom.ClassName
 import web.html.HTMLInputElement
 import web.html.InputType
 

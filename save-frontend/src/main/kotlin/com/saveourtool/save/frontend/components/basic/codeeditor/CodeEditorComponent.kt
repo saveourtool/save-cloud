@@ -7,10 +7,10 @@ import com.saveourtool.save.frontend.externals.reactace.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
+import web.cssom.ClassName
 
 /**
  * Component with pure code editor

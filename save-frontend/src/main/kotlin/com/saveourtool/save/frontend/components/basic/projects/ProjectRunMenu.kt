@@ -17,10 +17,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 

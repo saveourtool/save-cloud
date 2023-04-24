@@ -17,9 +17,9 @@ import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.test.*
 import com.saveourtool.save.testsuite.*
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 

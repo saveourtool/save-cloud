@@ -18,11 +18,11 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

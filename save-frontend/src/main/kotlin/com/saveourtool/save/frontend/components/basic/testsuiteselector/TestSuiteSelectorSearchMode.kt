@@ -14,12 +14,12 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
-import csstype.ClassName
 import react.*
 import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 import web.html.HTMLInputElement
 import web.html.InputType
 

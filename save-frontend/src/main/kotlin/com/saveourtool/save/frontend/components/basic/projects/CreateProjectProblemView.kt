@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.isNotNull
 
-import csstype.ClassName
 import react.FC
 import react.Props
 import react.dom.aria.ariaDescribedBy
@@ -24,6 +23,7 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.useNavigate
 import react.useState
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

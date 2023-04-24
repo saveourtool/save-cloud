@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
 
-import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.br
@@ -25,6 +24,7 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import react.router.useParams
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

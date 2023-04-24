@@ -23,8 +23,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.rem
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -35,6 +33,8 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
 import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch

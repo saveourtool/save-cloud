@@ -4,13 +4,13 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.modal.displayModalWithCheckBox
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 

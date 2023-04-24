@@ -12,11 +12,11 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 

@@ -2,11 +2,11 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import web.cssom.ClassName
 
 private const val SAVE_FOSS_GRAPH_INTRO_MD = """
     |## FOSS graph

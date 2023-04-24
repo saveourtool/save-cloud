@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import react.FC
 import react.Fragment
 import react.Props
@@ -23,6 +22,7 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 /**
  * SECURITY tab in ProjectView

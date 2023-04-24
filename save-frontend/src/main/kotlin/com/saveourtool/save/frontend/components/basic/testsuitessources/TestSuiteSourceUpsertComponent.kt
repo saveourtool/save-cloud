@@ -19,7 +19,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.v1
 
-import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
@@ -27,6 +26,7 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import web.cssom.ClassName
 import web.html.ButtonType
 
 import kotlin.js.json

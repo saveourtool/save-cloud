@@ -11,10 +11,10 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
+import web.cssom.ClassName
 
 /**
  * TODO:

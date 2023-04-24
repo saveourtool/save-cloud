@@ -12,12 +12,13 @@ import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
 import com.saveourtool.save.frontend.utils.*
-import csstype.ClassName
+
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.td
+import web.cssom.ClassName
 
 @Suppress(
     "MAGIC_NUMBER",

@@ -11,7 +11,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.aria.*
 import react.dom.html.ReactHTML.a
@@ -22,6 +21,7 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useNavigate
+import web.cssom.ClassName
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

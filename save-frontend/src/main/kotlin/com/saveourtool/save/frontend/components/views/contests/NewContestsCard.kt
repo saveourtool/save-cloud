@@ -7,8 +7,6 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
-import csstype.rem
 import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.a
@@ -18,6 +16,8 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import react.useState
+import web.cssom.ClassName
+import web.cssom.rem
 
 val newContestsCard = newContestsCard()
 

@@ -12,11 +12,12 @@ import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faPlus
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useTooltip
-import csstype.ClassName
+
 import react.*
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 
 /**
  * A pair of input forms for Mode name and run command with "Apply" button
