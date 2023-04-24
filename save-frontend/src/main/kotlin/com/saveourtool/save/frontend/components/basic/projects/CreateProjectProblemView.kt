@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.isNotNull
 
 import csstype.ClassName
+import js.core.jso
 import react.FC
 import react.Props
 import react.dom.aria.ariaDescribedBy
@@ -51,7 +52,11 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name-and-active?name=${projectProblem.vulnerabilityName}&isActive=true",
+            url = "$apiUrl/vulnerabilities/by-name-and-active",
+            params = jso<dynamic> {
+                name = projectProblem.vulnerabilityName
+                isActive = true
+            },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
