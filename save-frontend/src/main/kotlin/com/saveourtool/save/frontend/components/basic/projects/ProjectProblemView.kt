@@ -8,6 +8,8 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.commentWindow
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.basic.newCommentWindow
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendRoutes
@@ -23,14 +25,20 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
+import react.router.useNavigate
 import react.useState
 
 import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
     val (projectProblem, setProjectProblem) = useState(ProjectProblemDto.empty)
     val (comments, setComments) = useState(emptyList<CommentDto>())
+
+    val closeProjectProblemWindowOpenness = useWindowOpenness()
+    val navigate = useNavigate()
 
     useRequest {
         val projectProblemNew: ProjectProblemDto = get(
@@ -59,9 +67,37 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         setComments(newComments)
     }
 
+    val enrollCloseRequest = useDeferredRequest {
+        val response = post(
+            url = "$apiUrl/projects/problem/update",
+            headers = jsonHeaders,
+            body = Json.encodeToString(projectProblem.copy(isClosed = true)),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            navigate(to = "/project/${props.organizationName}/${props.projectName}/security")
+        }
+    }
+
     val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true)
     val newCommentCard = newCommentWindow()
     val commentCard = commentWindow()
+
+    displayModal(
+        closeProjectProblemWindowOpenness.isOpen(),
+        "Close of ${projectProblem.name}",
+        "Are you sure you want to close this problem?",
+        mediumTransparentModalStyle,
+        closeProjectProblemWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok") {
+            enrollCloseRequest()
+            closeProjectProblemWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            closeProjectProblemWindowOpenness.closeWindow()
+        }
+    }
 
     div {
         className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -75,6 +111,15 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                 borderRadius = "2em".unsafeCast<BorderRadius>()
             }
             +projectProblem.critical.toString()
+        }
+    }
+    if (!projectProblem.isClosed) {
+        div {
+            className = ClassName("d-flex justify-content-end")
+
+            buttonBuilder(label = "Close", style = "danger", classes = "mr-2") {
+                closeProjectProblemWindowOpenness.openWindow()
+            }
         }
     }
 
