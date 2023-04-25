@@ -218,11 +218,10 @@ class DockerContainerRunner(
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
         private const val RUNNING_STATUS = "running"
+        private val kubernetesEnv: String = AgentEnvName.KUBERNETES.toEnv(false)
 
         private fun Map<AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
 
         private fun AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
-
-        private val kubernetesEnv: String = AgentEnvName.KUBERNETES.toEnv(false)
     }
 }

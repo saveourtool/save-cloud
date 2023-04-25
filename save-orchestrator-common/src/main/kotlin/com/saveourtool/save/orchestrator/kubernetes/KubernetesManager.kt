@@ -176,7 +176,6 @@ class KubernetesManager(
         }
     }
 
-
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
         private const val EXECUTION_ID_LABEL = "executionId"
@@ -192,6 +191,7 @@ class KubernetesManager(
                     }
                 }
             }
+        private val kubernetesEnv: EnvVar = AgentEnvName.KUBERNETES.toEnv(true)
 
         private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = entries.map { (key, value) -> key.toEnv(value) }
 
@@ -199,7 +199,5 @@ class KubernetesManager(
             this.name = this@toEnv.name
             this.value = value.toString()
         }
-
-        private val kubernetesEnv: EnvVar = AgentEnvName.KUBERNETES.toEnv(true)
     }
 }

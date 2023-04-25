@@ -27,6 +27,7 @@ import kotlinx.serialization.Serializable
  * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
  * @property save additional configuration for save-cli
+ * @property kubernetes a flag which shows that agent runs in k8s
  */
 @Serializable
 data class AgentConfiguration(
