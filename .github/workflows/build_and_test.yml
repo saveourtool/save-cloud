@@ -90,6 +90,8 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
             --build-cache
+            --debug
+            --full-stacktrace
       - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
         uses: gradle/gradle-build-action@v2
         with:
