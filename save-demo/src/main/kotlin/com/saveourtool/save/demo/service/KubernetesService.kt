@@ -115,9 +115,9 @@ class KubernetesService(
 
     private fun createConfiguredJob(demo: Demo, downloadAgentUrl: String) {
         val job = getJobObjectForDemo(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
-        val createdJob = kc.createResourceOrThrow(job)
+        val createdJob = kc.createResourceOrThrow(job, kubernetesSettings.agentNamespace)
         val service = getServiceObjectForDemo(demo, createdJob, kubernetesSettings)
-        kc.createResourceOrThrow(service)
+        kc.createResourceOrThrow(service, kubernetesSettings.agentNamespace)
     }
 
     /**
