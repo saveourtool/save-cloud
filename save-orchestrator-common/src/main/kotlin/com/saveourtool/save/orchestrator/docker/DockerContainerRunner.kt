@@ -80,7 +80,7 @@ class DockerContainerRunner(
     override fun isStopped(containerId: String): Boolean = dockerClient.inspectContainerCmd(containerId)
         .exec()
         .state
-        .also { log.debug("Container $containerId has state $it") }
+        .also { state -> log.debug { "Container $containerId has state $state" } }
         .status != RUNNING_STATUS
 
     override fun cleanupAllByExecution(executionId: Long) {
@@ -113,7 +113,7 @@ class DockerContainerRunner(
         for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
             val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
             val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
-            log.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            log.debug { "Reclaimed $currentReclaimedBytes bytes after prune of docker $type" }
             reclaimedBytes += currentReclaimedBytes
         }
         log.info("Reclaimed $reclaimedBytes bytes after prune command")
@@ -136,9 +136,9 @@ class DockerContainerRunner(
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
-        val envVariables = configuration.env.map { (key, value) ->
-            "$key=$value"
-        } + "${AgentEnvName.CONTAINER_NAME.name}=$containerName"
+        val envVariables = configuration.env.mapToEnvs() +
+                AgentEnvName.CONTAINER_NAME.toEnv(containerName) +
+                kubernetesEnv
 
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
@@ -218,5 +218,11 @@ class DockerContainerRunner(
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
         private const val RUNNING_STATUS = "running"
+
+        private fun Map<AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
+
+        private fun AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
+
+        private val kubernetesEnv: String = AgentEnvName.KUBERNETES.toEnv(false)
     }
 }
