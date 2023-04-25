@@ -53,7 +53,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
       - name: Build save-frontend
         uses: gradle/gradle-build-action@v2
         with:
@@ -67,7 +66,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
       - name: Build save-backend
         uses: gradle/gradle-build-action@v2
         with:
@@ -82,7 +80,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
       - name: Build save-demo
         uses: gradle/gradle-build-action@v2
         with:
@@ -97,7 +94,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
       - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
         uses: gradle/gradle-build-action@v2
         with:
@@ -113,7 +109,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
       - name: Build left modules
         uses: gradle/gradle-build-action@v2
         with:
@@ -129,7 +124,6 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
-            --build-cache
 
       - name: Upload gradle reports
         if: ${{ always() }}
