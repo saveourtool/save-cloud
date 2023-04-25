@@ -40,6 +40,20 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
+      - name: Build save-cloud-common
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-cloud-common:build
+            -x detekt
+            -x spotlessCheck
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
       - name: Build save-frontend
         uses: gradle/gradle-build-action@v2
         with:
@@ -49,14 +63,11 @@ jobs:
             :save-frontend:build
             -x detekt
             -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
             --build-cache
-            --debug
-            --full-stacktrace
       - name: Build save-backend
         uses: gradle/gradle-build-action@v2
         with:
@@ -67,6 +78,21 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
+      - name: Build save-demo
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-demo:build
+            -x detekt
+            -x spotlessCheck
+            -x :save-demo-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
@@ -83,7 +109,6 @@ jobs:
             :save-sandbox:build
             -x detekt
             -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
@@ -99,11 +124,7 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-orchestrator-common:build
-            -x :save-orchestrator:build
-            -x :save-sandbox:build
-            -x :save-backend:build
-            -x :save-frontend:build
+            -x :save-demo-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
