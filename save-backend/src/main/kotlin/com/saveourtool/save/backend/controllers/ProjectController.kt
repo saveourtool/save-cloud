@@ -316,7 +316,7 @@ class ProjectController(
         @RequestBody projectProblemDto: ProjectProblemDto,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        val problem = projectProblemDto.id?.let { projectService.getProjectProblemById(it) } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val problem = projectProblemDto.id?.let { projectService.getProjectProblemById(it) }.orNotFound()
         problem.apply {
             name = projectProblemDto.name
             description = projectProblemDto.description
