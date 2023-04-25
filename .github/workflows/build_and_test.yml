@@ -40,41 +40,6 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding save-orchestrator-common, save-orchestrator, save-sandbox, save-backend and save-frontend)
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          gradle-home-cache-cleanup: true
-          arguments: |
-            build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-orchestrator-common:build
-            -x :save-orchestrator:build
-            -x :save-sandbox:build
-            -x :save-backend:build
-            -x :save-frontend:build
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
-      - name: Build save-backend
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          gradle-home-cache-cleanup: true
-          arguments: |
-            :save-backend:build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
       - name: Build save-frontend
         uses: gradle/gradle-build-action@v2
         with:
@@ -92,6 +57,21 @@ jobs:
             --build-cache
             --debug
             --full-stacktrace
+      - name: Build save-backend
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-backend:build
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
       - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
         uses: gradle/gradle-build-action@v2
         with:
@@ -104,6 +84,26 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
+      - name: Build left modules
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            build
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -x :save-orchestrator-common:build
+            -x :save-orchestrator:build
+            -x :save-sandbox:build
+            -x :save-backend:build
+            -x :save-frontend:build
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
