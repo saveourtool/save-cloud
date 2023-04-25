@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'master'
-      
+
 concurrency:
   # https://docs.github.com/en/actions/using-jobs/using-concurrency
   # The latest queued workflow is preferred; the ones already in progress get cancelled
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +40,7 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
+      - name: Build all (excluding save-orchestrator-common, save-orchestrator, save-sandbox, save-backend and save-frontend)
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
@@ -53,6 +53,38 @@ jobs:
             -x :save-orchestrator-common:build
             -x :save-orchestrator:build
             -x :save-sandbox:build
+            -x :save-backend:build
+            -x :save-frontend:build
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
+      - name: Build save-backend
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-backend:build
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
+      - name: Build save-frontend
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          arguments: |
+            :save-frontend:build
+            -x detekt
+            -x spotlessCheck
+            -x :save-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
