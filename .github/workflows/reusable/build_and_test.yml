@@ -6,6 +6,10 @@ on:
       module:
         required: true
         type: string
+      gradle-cache-read-only:
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build_module:
@@ -39,14 +43,14 @@ jobs:
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
-          # we need to write cache for PRs too
-          cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
+          # we need to write cache for PRs
+          cache-read-only: ${{ inputs.gradle-cache-read-only }}
+          env:
+            CI: true
           arguments: |
             :${{ inputs.module }}:build
             -x detekt
             -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-demo-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}

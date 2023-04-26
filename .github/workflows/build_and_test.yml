@@ -19,24 +19,28 @@ jobs:
     uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-cloud-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-orchestrator-common:
     name: Build, test and upload code coverage (save-orchestrator-common)
     needs: [ build_save-cloud-common ]
     uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-orchestrator-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-agent:
     name: Build, test and upload code coverage (save-agent)
     needs: [ build_save-cloud-common ]
     uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-demo-agent:
     name: Build, test and upload code coverage (save-demo-agent)
     needs: [ build_save-cloud-common ]
     uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-demo-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_all:
     name: Build, test and upload code coverage by module
     needs: [ build_save-cloud-common, build_save-orchestrator-common, build_save-agent, build_save-demo-agent ]
@@ -63,6 +67,7 @@ jobs:
     uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: ${{ matrix.module }}
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
 
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage

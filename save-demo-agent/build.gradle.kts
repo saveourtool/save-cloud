@@ -1,3 +1,4 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithHostTests
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
@@ -73,5 +74,29 @@ kotlin {
     val distribution by configurations.creating
     artifacts.add(distribution.name, copyDemoAgentDistribution.flatMap { it.archiveFile }) {
         builtBy(copyDemoAgentDistribution)
+    }
+}
+
+/*
+ * On Windows, it's impossible to link a Linux executable against
+ * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ *
+ * Also, additionally disable debug artifacts for CI to speed-up builds
+ */
+tasks.named("linkDebugExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
+    }
+}
+
+tasks.named("linkReleaseExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}
+
+tasks.named("linkDebugTestLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
     }
 }
