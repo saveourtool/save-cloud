@@ -25,9 +25,21 @@ jobs:
     uses: ./.github/workflows/reusable_build_and_test.yml
     with:
       module: save-orchestrator-common
+  build_save-agent:
+    name: Build, test and upload code coverage (save-agent)
+    needs: [ build_save-cloud-common ]
+    uses: ./.github/workflows/reusable_build_and_test.yml
+    with:
+      module: save-agent
+  build_save-demo-agent:
+    name: Build, test and upload code coverage (save-demo-agent)
+    needs: [ build_save-cloud-common ]
+    uses: ./.github/workflows/reusable_build_and_test.yml
+    with:
+      module: save-demo-agent
   build_all:
     name: Build, test and upload code coverage by module
-    needs: [ build_save-cloud-common, build_save-orchestrator-common ]
+    needs: [ build_save-cloud-common, build_save-orchestrator-common, save-agent, save-demo-agent ]
     strategy:
       fail-fast: false
       matrix:
@@ -54,93 +66,11 @@ jobs:
 
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
-    needs: [ build_save-cloud-common, build_save-orchestrator-common, build_all ]
+    needs: [ build_all ]
     runs-on: ubuntu-latest
     steps:
-      - name: Download gradle reports (api-gateway)
+      - name: Download gradle reports
         uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-api-gateway
-
-      - name: Download gradle reports (save-backend)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-backend
-
-      - name: Download gradle reports (save-orchestrator-common)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-orchestrator-common
-
-      - name: Download gradle reports (save-orchestrator)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-orchestrator
-
-      - name: Download gradle reports (save-frontend)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-frontend
-
-      - name: Download gradle reports (save-cloud-common)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-cloud-common
-
-      - name: Download gradle reports (save-agent)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-agent
-
-      - name: Download gradle reports (save-preprocessor)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-preprocessor
-
-      - name: Download gradle reports (test-utils)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-test-utils
-
-      - name: Download gradle reports (save-api)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-api
-
-      - name: Download gradle reports (save-api-cli)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-api-cli
-
-      - name: Download gradle reports (save-sandbox)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-sandbox
-
-      - name: Download gradle reports (authentication-service)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-authentication-service
-
-      - name: Download gradle reports (save-demo)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-demo
-
-      - name: Download gradle reports (save-demo-cpg)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-demo-cpg
-
-      - name: Download gradle reports (test-analysis-core)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-test-analysis-core
-
-      - name: Download gradle reports (save-demo-agent)
-        uses: actions/download-artifact@v3
-        with:
-          name: gradle-reports-save-demo-agent
 
       - name: Code coverage report
         uses: codecov/codecov-action@v3
