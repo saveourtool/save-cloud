@@ -40,13 +40,13 @@ jobs:
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
       - name: Build ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
+        env:
+          CI: true
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
           # we need to write cache for PRs
           cache-read-only: ${{ inputs.gradle-cache-read-only }}
-          env:
-            CI: true
           arguments: |
             :${{ inputs.module }}:build
             -x detekt
