@@ -14,8 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_test_with_code_coverage_module:
+  build_save-cloud-common:
+    name: Build, test and upload code coverage (save-cloud-common)
+    uses: ./.github/workflows/reusable_build_and_test.yml
+    with:
+      module: save-cloud-common
+  build_save-orchestrator-common:
+    name: Build, test and upload code coverage (save-orchestrator-common)
+    needs: [ build_save-cloud-common ]
+    uses: ./.github/workflows/reusable_build_and_test.yml
+    with:
+      module: save-orchestrator-common
+  build_all:
     name: Build, test and upload code coverage by module
+    needs: [ build_save-cloud-common, build_save-orchestrator-common ]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -23,10 +35,8 @@ jobs:
         module: [
           'api-gateway',
           'save-backend',
-          'save-orchestrator-common',
           'save-orchestrator',
           'save-frontend',
-          'save-cloud-common',
           'save-agent',
           'save-preprocessor',
           'test-utils',
@@ -39,68 +49,101 @@ jobs:
           'test-analysis-core',
           'save-demo-agent'
         ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          # required for correct codecov upload
-          fetch-depth: 0
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
-      - name: Install system packages
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Retrieve Kotlin version
-        run: |
-          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-      - name: Cache konan
-        uses: actions/cache@v3
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build ${{ matrix.module }}
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          arguments: |
-            :${{ matrix.module }}:build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-demo-agent:linkDebugExecutableLinuxX64
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
+    uses: ./.github/workflows/reusable_build_and_test.yml
+    with:
+      module: ${{ matrix.module }}
 
-      - name: Upload gradle reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+  build_and_test_with_code_coverage:
+    name: Build, test and upload code coverage
+    needs: [ build_save-cloud-common, build_save-orchestrator-common, build_all ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download gradle reports (api-gateway)
+        uses: actions/download-artifact@v3
         with:
-          name: gradle-reports
-          path: '**/build/reports/'
-          retention-days: 1
-      - name: Upload frontend distribution
-        if: matrix.module == 'save-frontend'
-        uses: actions/upload-artifact@v3
+          name: gradle-reports-api-gateway
+
+      - name: Download gradle reports (save-backend)
+        uses: actions/download-artifact@v3
         with:
-          name: save-frontend
-          path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
-          retention-days: 1
+          name: gradle-reports-save-backend
+
+      - name: Download gradle reports (save-orchestrator-common)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-orchestrator-common
+
+      - name: Download gradle reports (save-orchestrator)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-orchestrator
+
+      - name: Download gradle reports (save-frontend)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-frontend
+
+      - name: Download gradle reports (save-cloud-common)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-cloud-common
+
+      - name: Download gradle reports (save-agent)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-agent
+
+      - name: Download gradle reports (save-preprocessor)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-preprocessor
+
+      - name: Download gradle reports (test-utils)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-test-utils
+
+      - name: Download gradle reports (save-api)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-api
+
+      - name: Download gradle reports (save-api-cli)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-api-cli
+
+      - name: Download gradle reports (save-sandbox)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-sandbox
+
+      - name: Download gradle reports (authentication-service)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-authentication-service
+
+      - name: Download gradle reports (save-demo)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-demo
+
+      - name: Download gradle reports (save-demo-cpg)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-demo-cpg
+
+      - name: Download gradle reports (test-analysis-core)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-test-analysis-core
+
+      - name: Download gradle reports (save-demo-agent)
+        uses: actions/download-artifact@v3
+        with:
+          name: gradle-reports-save-demo-agent
+
       - name: Code coverage report
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: false
-          flags: ${{ matrix.module }}
-
-  build_and_test_with_code_coverage:
-    name: Build, test and upload code coverage
-    needs: [build_and_test_with_code_coverage_module]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Just output
-        run: echo "Finished"
