@@ -13,7 +13,7 @@ on:
 
 jobs:
   build_module:
-    name: Build, test and upload code coverage (${{ inputs.module }})
+    name: Build ${{ inputs.module }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

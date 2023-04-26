@@ -15,34 +15,34 @@ concurrency:
 
 jobs:
   build_save-cloud-common:
-    name: Build, test and upload code coverage (save-cloud-common)
+    name: Build and test save-cloud-common
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
-    name: Build, test and upload code coverage (save-orchestrator-common)
+    name: Build and test save-orchestrator-common
     needs: [ build_save-cloud-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-orchestrator-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-agent:
-    name: Build, test and upload code coverage (save-agent)
+    name: Build and test save-agent
     needs: [ build_save-orchestrator-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-demo-agent:
-    name: Build, test and upload code coverage (save-demo-agent)
+    name: Build and test save-demo-agent
     needs: [ build_save-agent ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_all:
-    name: Build, test and upload code coverage by module
+    name: Build and test left modules
     needs: [ build_save-demo-agent ]
     strategy:
       fail-fast: false
