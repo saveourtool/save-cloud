@@ -99,3 +99,7 @@ jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
     needs: [build_and_test_with_code_coverage_module]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Just output
+        run: echo "Finished"
