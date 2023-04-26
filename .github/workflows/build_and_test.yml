@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'master'
-      
+
 concurrency:
   # https://docs.github.com/en/actions/using-jobs/using-concurrency
   # The latest queued workflow is preferred; the ones already in progress get cancelled

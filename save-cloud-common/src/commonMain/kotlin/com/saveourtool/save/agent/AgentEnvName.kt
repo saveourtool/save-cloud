@@ -10,6 +10,7 @@ enum class AgentEnvName {
     DEBUG,
     EXECUTION_ID,
     HEARTBEAT_URL,
+    KUBERNETES,
     TEST_SUITES_DIR,
     ;
 }

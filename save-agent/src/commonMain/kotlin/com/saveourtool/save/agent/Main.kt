@@ -92,5 +92,7 @@ private fun configureHttpClient(agentConfiguration: AgentConfiguration) = HttpCl
         logger = ktorLogger
         level = if (agentConfiguration.debug) LogLevel.ALL else LogLevel.INFO
     }
-    install(KubernetesServiceAccountAuthHeaderPlugin)
+    if (agentConfiguration.kubernetes) {
+        install(KubernetesServiceAccountAuthHeaderPlugin)
+    }
 }

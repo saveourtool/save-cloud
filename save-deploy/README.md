@@ -221,7 +221,7 @@ two reasons:
 Under WSL, from a separate local _Git_ repository run:
 
 ```bash
-./gradlew :save-agent:copyAgentDistribution -Preckon.stage=snapshot
+./gradlew :save-agent:clean :save-agent:build :save-agent:copyAgentDistribution -x spotlessKotlin -Preckon.stage=snapshot -Psave.profile=dev
 ```
 
 and provide the path to the JAR archive which contains `save-agent.kexe` via the
