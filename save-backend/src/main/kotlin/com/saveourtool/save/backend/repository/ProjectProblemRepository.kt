@@ -15,4 +15,12 @@ interface ProjectProblemRepository : BaseEntityRepository<ProjectProblem> {
      * @return list of project problems
      */
     fun getAllProblemsByProjectNameAndProjectOrganizationName(projectName: String, organizationName: String): List<ProjectProblem>
+
+    /**
+     * @param projectName name of project
+     * @param organizationName name of organization
+     * @param isClosed flag is project problem closed or not
+     * @return list of project problems
+     */
+    fun getAllProblemsByProjectNameAndProjectOrganizationNameAndIsClosed(projectName: String, organizationName: String, isClosed: Boolean): List<ProjectProblem>
 }
