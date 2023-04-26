@@ -14,10 +14,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_test_with_code_coverage:
-    name: Build, test and upload code coverage
+  build_and_test_with_code_coverage_module:
+    name: Build, test and upload code coverage by module
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [
+          'api-gateway',
+          'save-backend',
+          'save-orchestrator-common',
+          'save-orchestrator',
+          'save-frontend',
+          'save-cloud-common',
+          'save-agent',
+          'save-preprocessor',
+          'test-utils',
+          'save-api',
+          'save-api-cli',
+          'save-sandbox',
+          'authentication-service',
+          'save-demo',
+          'save-demo-cpg',
+          'test-analysis-core',
+          'save-demo-agent'
+        ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -40,36 +61,16 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
+      - name: Build ${{ matrix.module }}
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          gradle-home-cache-cleanup: true
           arguments: |
-            build
+            :${{ matrix.module }}:build
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-orchestrator-common:build
-            -x :save-orchestrator:build
-            -x :save-sandbox:build
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
-      - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          gradle-home-cache-cleanup: true
-          arguments: |
-            :save-orchestrator-common:build
-            :save-orchestrator:build
-            :save-sandbox:build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
+            -x :save-demo-agent:linkDebugExecutableLinuxX64
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
@@ -84,6 +85,7 @@ jobs:
           path: '**/build/reports/'
           retention-days: 1
       - name: Upload frontend distribution
+        if: matrix.module == 'save-frontend'
         uses: actions/upload-artifact@v3
         with:
           name: save-frontend
@@ -93,3 +95,11 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: false
+
+  build_and_test_with_code_coverage:
+    name: Build, test and upload code coverage
+    needs: [build_and_test_with_code_coverage_module]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Just output
+        run: echo "Finished"
