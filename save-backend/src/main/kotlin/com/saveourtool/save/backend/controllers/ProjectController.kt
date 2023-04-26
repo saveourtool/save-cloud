@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -305,8 +304,27 @@ class ProjectController(
         projectService.getProjectProblemById(id).toDto()
     }
 
-    companion object {
-        @JvmStatic
-        private val log = LoggerFactory.getLogger(ProjectController::class.java)
+    @PostMapping("/problem/update")
+    @Operation(
+        method = "POST",
+        summary = "Update project problem.",
+        description = "Update project problem.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully updated project problem")
+    @PreAuthorize("permitAll()")
+    fun update(
+        @RequestBody projectProblemDto: ProjectProblemDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        val problem = projectProblemDto.id?.let { projectService.getProjectProblemById(it) }.orNotFound()
+        problem.apply {
+            name = projectProblemDto.name
+            description = projectProblemDto.description
+            critical = projectProblemDto.critical
+            isClosed = projectProblemDto.isClosed
+        }
+        projectService.updateProjectProblem(problem)
+    }.map {
+        ResponseEntity.ok("Project problem was successfully updated")
     }
 }
