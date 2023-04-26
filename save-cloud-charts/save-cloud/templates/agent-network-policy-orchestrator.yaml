@@ -33,6 +33,9 @@ spec:
         - podSelector:
             matchLabels:
               io.kompose.service: backend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.backend.containerPort }}
     - to:
         # Allow traffic to save-sandbox
         - namespaceSelector:
