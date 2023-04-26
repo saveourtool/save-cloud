@@ -273,4 +273,11 @@ class ProjectService(
         )
         projectProblemRepository.save(projectProblem)
     }
+
+    /**
+     * @param problem problem of project
+     */
+    fun updateProjectProblem(problem: ProjectProblem) {
+        projectProblemRepository.save(problem)
+    }
 }
