@@ -16,25 +16,25 @@ concurrency:
 jobs:
   build_save-cloud-common:
     name: Build, test and upload code coverage (save-cloud-common)
-    uses: ./.github/workflows/reusable_build_and_test.yml
+    uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-cloud-common
   build_save-orchestrator-common:
     name: Build, test and upload code coverage (save-orchestrator-common)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable_build_and_test.yml
+    uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-orchestrator-common
   build_save-agent:
     name: Build, test and upload code coverage (save-agent)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable_build_and_test.yml
+    uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-agent
   build_save-demo-agent:
     name: Build, test and upload code coverage (save-demo-agent)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable_build_and_test.yml
+    uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: save-demo-agent
   build_all:
@@ -60,7 +60,7 @@ jobs:
           'test-analysis-core',
           'save-demo-agent'
         ]
-    uses: ./.github/workflows/reusable_build_and_test.yml
+    uses: ./.github/workflows/reusable/build_and_test.yml
     with:
       module: ${{ matrix.module }}
 

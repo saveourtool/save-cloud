@@ -38,6 +38,9 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          # we need to write cache for PRs too
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/release' && github.event_name != 'pull_request }}
           arguments: |
             :${{ inputs.module }}:build
             -x detekt
