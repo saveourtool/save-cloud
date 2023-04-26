@@ -12,15 +12,19 @@ dependencies {
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.slf4j", "slf4j-api")
     }
     implementation(libs.save.plugins.warn.jvm) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.slf4j", "slf4j-api")
     }
     implementation(libs.save.plugins.fix.jvm) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.slf4j", "slf4j-api")
     }
     implementation(libs.save.plugins.fixAndWarn.jvm) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
+        exclude("org.slf4j", "slf4j-api")
     }
     implementation(libs.jgit)
     implementation(libs.kotlinx.serialization.properties)
