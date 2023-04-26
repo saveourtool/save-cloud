@@ -40,7 +40,7 @@ jobs:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
           # we need to write cache for PRs too
-          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/release' && github.event_name != 'pull_request }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
           arguments: |
             :${{ inputs.module }}:build
             -x detekt
