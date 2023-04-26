@@ -42,6 +42,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         env:
           CI: true
+          SKIP_SAVE_AGENT_DEPENDENCY: true
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
