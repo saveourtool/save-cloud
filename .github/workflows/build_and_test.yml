@@ -93,6 +93,7 @@ jobs:
           retention-days: 1
       - name: Code coverage report
         uses: codecov/codecov-action@v3
+        flags: ${{ matrix.module }}
         with:
           fail_ci_if_error: false
 
