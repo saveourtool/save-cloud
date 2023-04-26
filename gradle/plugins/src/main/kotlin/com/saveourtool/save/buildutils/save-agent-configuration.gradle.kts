@@ -22,7 +22,9 @@ val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register
 )
 
 dependencies {
-    if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
+    if (System.getenv("CI") != null) {
+        logger.info("Dependency `save-agent` is omitted on CI")
+    } else if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
         logger.warn("Dependency `save-agent` is omitted on Windows and Mac because of problems with linking in cross-compilation." +
                 " Task `:save-agent:copyAgentDistribution` would fail without correct libcurl.so. If your changes are about " +
                 "save-agent, please test them on Linux " +
