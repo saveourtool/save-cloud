@@ -39,7 +39,7 @@ jobs:
         with:
           gradle-version: wrapper
           arguments: |
-            : ${{ inputs.module }}:build
+            :${{ inputs.module }}:build
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
