@@ -28,7 +28,6 @@ jobs:
   build_all:
     name: Build, test and upload code coverage by module
     needs: [ build_save-cloud-common, build_save-orchestrator-common ]
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
