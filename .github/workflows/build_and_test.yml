@@ -39,7 +39,7 @@ jobs:
       module: save-demo-agent
   build_all:
     name: Build, test and upload code coverage by module
-    needs: [ build_save-cloud-common, build_save-orchestrator-common, save-agent, save-demo-agent ]
+    needs: [ build_save-cloud-common, build_save-orchestrator-common, build_save-agent, build_save-demo-agent ]
     strategy:
       fail-fast: false
       matrix:
