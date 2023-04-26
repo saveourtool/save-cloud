@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -12,6 +11,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import web.cssom.*
 
 /**
  * rendering of a card where we suggest to propose new custom contests

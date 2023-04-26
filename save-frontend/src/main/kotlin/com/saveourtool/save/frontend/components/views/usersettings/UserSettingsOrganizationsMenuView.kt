@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spanWithClassesAndText
 import com.saveourtool.save.v1
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -23,6 +22,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import web.cssom.ClassName
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {

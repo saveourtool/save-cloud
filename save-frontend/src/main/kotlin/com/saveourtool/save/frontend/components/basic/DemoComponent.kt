@@ -17,8 +17,6 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
-import csstype.Height
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -26,6 +24,8 @@ import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
+import web.cssom.ClassName
+import web.cssom.Height
 
 @Suppress(
     "TOO_LONG_FUNCTION",

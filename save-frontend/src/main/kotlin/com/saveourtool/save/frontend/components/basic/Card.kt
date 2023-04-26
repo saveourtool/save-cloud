@@ -8,14 +8,14 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import csstype.ClassName
-import csstype.Height
-import csstype.Width
+
 import js.core.jso
 import react.FC
-
 import react.PropsWithChildren
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
+import web.cssom.Height
+import web.cssom.Width
 
 /**
  * Props for card component

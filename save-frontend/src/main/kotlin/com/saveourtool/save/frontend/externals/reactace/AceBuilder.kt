@@ -5,11 +5,11 @@ package com.saveourtool.save.frontend.externals.reactace
 import com.saveourtool.save.utils.DEBOUNCE_PERIOD_FOR_EDITORS
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import io.github.petertrr.diffutils.diff
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 /**
  * @param text displayed text

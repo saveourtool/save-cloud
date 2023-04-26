@@ -17,7 +17,6 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
@@ -26,6 +25,7 @@ import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
 import react.router.dom.Link
 import react.router.useNavigate
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

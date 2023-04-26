@@ -10,10 +10,10 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.frontend.utils.selectorBuilder
 import com.saveourtool.save.frontend.utils.useStateFromProps
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 import web.html.HTMLSelectElement
 
 /**

@@ -8,13 +8,13 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.BorderRadius
-import csstype.ClassName
 import js.core.jso
 import react.ChildrenBuilder
 import react.StateInstance
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.span
+import web.cssom.BorderRadius
+import web.cssom.ClassName
 import web.html.ButtonType
 
 /**

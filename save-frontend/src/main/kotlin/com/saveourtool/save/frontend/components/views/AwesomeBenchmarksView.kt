@@ -19,10 +19,6 @@ import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.Cursor
-import csstype.FontWeight
-import csstype.rem
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -47,6 +43,10 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Cursor
+import web.cssom.FontWeight
+import web.cssom.rem
 import web.html.ButtonType
 import web.html.InputType
 

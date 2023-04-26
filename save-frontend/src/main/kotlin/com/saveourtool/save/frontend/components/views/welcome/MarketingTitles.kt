@@ -6,13 +6,13 @@ package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.faChevronDown
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import csstype.*
-import js.core.jso
 
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
+import web.cssom.*
 
 /**
  * @param textColor

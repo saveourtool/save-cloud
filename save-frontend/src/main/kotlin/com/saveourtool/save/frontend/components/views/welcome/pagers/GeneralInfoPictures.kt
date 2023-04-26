@@ -6,12 +6,12 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import com.saveourtool.save.frontend.externals.animations.*
 
-import csstype.Color
-import csstype.Width
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
+import web.cssom.Color
+import web.cssom.Width
 
 @Suppress("CUSTOM_GETTERS_SETTERS")
 object GeneralInfoFirstPicture : WelcomePager {

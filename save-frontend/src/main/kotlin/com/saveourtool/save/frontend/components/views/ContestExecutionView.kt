@@ -23,13 +23,13 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
+import web.cssom.*
 
 import kotlinx.datetime.Instant
 

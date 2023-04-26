@@ -4,12 +4,12 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
-import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.p
+import web.cssom.*
 
 private const val SAVE_CLI_TEXT = """
      Imagine, that you are a developer of some complex tool, for example a Compiler or a Static Analyzer. 

@@ -8,12 +8,13 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.components.modal.modalAvatarBuilder
 import com.saveourtool.save.frontend.externals.imageeditor.reactAvatarImageCropper
-import csstype.ClassName
-import csstype.rem
+
 import js.core.jso
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
+import web.cssom.rem
 import web.file.File
 
 val avatarForm = avatarForm()

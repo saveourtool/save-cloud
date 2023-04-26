@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.FC
 import react.Props
@@ -24,6 +23,7 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.useState
+import web.cssom.ClassName
 import web.html.ButtonType
 
 typealias RequestWithDependency<R> = Triple<R, StateSetter<R>, () -> Unit>

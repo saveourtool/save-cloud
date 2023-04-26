@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
-import csstype.ClassName
 import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.div
@@ -19,6 +18,7 @@ import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import react.useEffect
 import react.useState
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

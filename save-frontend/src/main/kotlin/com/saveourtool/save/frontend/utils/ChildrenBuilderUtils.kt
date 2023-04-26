@@ -9,13 +9,13 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.HTMLButtonElement
 import web.html.HTMLSelectElement

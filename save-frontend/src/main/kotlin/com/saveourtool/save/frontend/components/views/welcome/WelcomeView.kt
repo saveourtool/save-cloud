@@ -17,7 +17,6 @@ import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -29,6 +28,7 @@ import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
+import web.cssom.*
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch

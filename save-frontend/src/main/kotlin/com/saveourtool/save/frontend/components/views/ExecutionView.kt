@@ -32,7 +32,6 @@ import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -40,6 +39,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
+import web.cssom.*
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await

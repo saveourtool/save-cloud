@@ -13,13 +13,13 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.router.useNavigate
+import web.cssom.ClassName
 import web.html.InputType
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()

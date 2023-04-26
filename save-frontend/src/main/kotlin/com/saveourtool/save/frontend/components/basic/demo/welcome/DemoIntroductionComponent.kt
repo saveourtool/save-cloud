@@ -5,13 +5,14 @@
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
 import com.saveourtool.save.frontend.components.basic.markdown
-import csstype.ClassName
-import csstype.rem
+
 import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import web.cssom.ClassName
+import web.cssom.rem
 
 private val saveDemoIntroMd = """
     |## save-demo

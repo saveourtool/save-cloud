@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Fragment
@@ -24,6 +23,7 @@ import react.create
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString

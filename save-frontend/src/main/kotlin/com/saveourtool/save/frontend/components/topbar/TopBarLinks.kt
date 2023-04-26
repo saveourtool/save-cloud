@@ -5,9 +5,6 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.Width
-import csstype.rem
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -18,6 +15,9 @@ import react.router.dom.Link
 import react.router.useLocation
 import react.router.useNavigate
 import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Width
+import web.cssom.rem
 
 val topBarLinks = topBarLinks()
 

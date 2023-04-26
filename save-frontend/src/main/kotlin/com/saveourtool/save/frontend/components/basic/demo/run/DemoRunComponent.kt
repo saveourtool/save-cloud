@@ -16,13 +16,13 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import js.core.asList
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.strong
+import web.cssom.ClassName
 import web.file.FileReader
 import web.html.InputType
 

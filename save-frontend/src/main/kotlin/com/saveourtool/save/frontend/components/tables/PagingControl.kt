@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.aria.ariaDescribedBy
@@ -18,6 +17,7 @@ import react.dom.html.ReactHTML.select
 import tanstack.table.core.RowData
 import tanstack.table.core.Table
 import tanstack.table.core.Updater
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 

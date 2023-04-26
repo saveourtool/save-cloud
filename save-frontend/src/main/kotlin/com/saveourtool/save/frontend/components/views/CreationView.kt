@@ -22,7 +22,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
-import csstype.ClassName
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
@@ -36,6 +35,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import web.cssom.ClassName
 import web.html.*
 import web.html.ButtonType
 import web.html.InputType

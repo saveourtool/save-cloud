@@ -6,7 +6,6 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
@@ -15,6 +14,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
+import web.cssom.*
 
 /**
  * Buttons for creation and deletion of new projects and organizations

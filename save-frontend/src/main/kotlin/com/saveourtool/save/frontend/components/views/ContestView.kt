@@ -19,7 +19,6 @@ import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -29,6 +28,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import remix.run.router.Location
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.coroutines.launch

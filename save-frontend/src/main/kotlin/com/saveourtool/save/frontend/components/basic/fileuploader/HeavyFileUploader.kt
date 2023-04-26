@@ -13,8 +13,6 @@ import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
-import csstype.ClassName
-import csstype.Width
 import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Response
@@ -30,6 +28,8 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import web.cssom.ClassName
+import web.cssom.Width
 import web.file.File
 import web.html.ButtonType
 import web.html.InputType

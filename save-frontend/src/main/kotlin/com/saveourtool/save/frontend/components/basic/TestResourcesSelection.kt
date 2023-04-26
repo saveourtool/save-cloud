@@ -15,12 +15,12 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 import web.html.ButtonType
 
 val testResourcesSelection = prepareTestResourcesSelection()

@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
@@ -25,6 +24,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType

@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
@@ -25,6 +24,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
 import react.dom.html.ReactHTML.ul
+import web.cssom.ClassName
 import web.html.ButtonType
 
 val testSuiteSelectorBrowserMode = testSuiteSelectorBrowserMode()

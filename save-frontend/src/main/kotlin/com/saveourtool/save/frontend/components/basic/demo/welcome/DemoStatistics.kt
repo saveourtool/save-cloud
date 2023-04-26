@@ -7,12 +7,13 @@ package com.saveourtool.save.frontend.components.basic.demo.welcome
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import csstype.ClassName
+
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
 import react.useState
+import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 internal val statistics = VFC {

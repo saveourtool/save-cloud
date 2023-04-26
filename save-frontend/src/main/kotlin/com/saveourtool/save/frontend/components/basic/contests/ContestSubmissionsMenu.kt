@@ -9,13 +9,13 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
-import csstype.*
+
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.td
+import web.cssom.*
 
 /**
  * SUBMISSIONS tab in ContestView

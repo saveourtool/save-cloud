@@ -9,12 +9,12 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ButtonHTMLAttributes
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.nav
 import react.router.useLocation
+import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.HTMLButtonElement
 

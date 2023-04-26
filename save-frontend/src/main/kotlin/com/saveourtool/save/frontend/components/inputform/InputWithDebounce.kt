@@ -8,14 +8,14 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
-import csstype.ClassName
-import csstype.None
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.datalist
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
+import web.cssom.ClassName
+import web.cssom.None
 import web.html.InputType
 
 /**

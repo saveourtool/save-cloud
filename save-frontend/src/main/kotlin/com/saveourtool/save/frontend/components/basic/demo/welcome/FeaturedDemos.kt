@@ -9,7 +9,7 @@ import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import csstype.ClassName
+
 import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -18,6 +18,7 @@ import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
 import react.useState
+import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 internal val featuredDemos = VFC {

@@ -17,12 +17,12 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
 import react.router.*
 import react.router.dom.HashRouter
+import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
 

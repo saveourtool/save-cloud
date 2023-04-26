@@ -7,9 +7,9 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 private val columnCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 

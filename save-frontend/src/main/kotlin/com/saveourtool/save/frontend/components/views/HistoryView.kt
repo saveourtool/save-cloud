@@ -25,14 +25,14 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
-import csstype.Background
-import csstype.ClassName
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import web.cssom.Background
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlin.js.Date

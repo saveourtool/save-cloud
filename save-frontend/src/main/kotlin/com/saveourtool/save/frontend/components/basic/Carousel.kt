@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import csstype.ClassName
-import csstype.invert
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
@@ -13,6 +11,8 @@ import react.dom.aria.AriaRole
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
+import web.cssom.invert
 
 private const val INVERT_TO_OPPOSITE = 100
 

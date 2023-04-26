@@ -25,7 +25,6 @@ import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 
-import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -41,6 +40,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
 import remix.run.router.Location
+import web.cssom.*
 import web.html.ButtonType
 
 import kotlinx.coroutines.launch

@@ -22,12 +22,12 @@ import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.coroutines.await

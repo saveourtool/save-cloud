@@ -8,10 +8,11 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.RunCommandPair
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import csstype.ClassName
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 /**
  * Clickable demo mode label

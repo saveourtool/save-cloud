@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
 import react.dom.html.ReactHTML.button
@@ -16,6 +15,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
 import web.html.ButtonType
 
 /**

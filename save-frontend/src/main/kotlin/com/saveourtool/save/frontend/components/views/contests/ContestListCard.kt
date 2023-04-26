@@ -17,8 +17,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.rem
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -26,6 +24,8 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 val contestList = contestList()

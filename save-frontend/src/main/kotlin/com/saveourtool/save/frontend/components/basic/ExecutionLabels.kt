@@ -16,8 +16,6 @@ import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
 import com.saveourtool.save.utils.isValidScore
 
-import csstype.ClassName
-import csstype.Width
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
@@ -30,6 +28,8 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
+import web.cssom.Width
 import web.html.HTMLAnchorElement
 
 /**

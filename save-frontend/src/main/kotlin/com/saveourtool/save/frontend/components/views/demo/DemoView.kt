@@ -13,9 +13,9 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.*
 import react.*
 import react.dom.html.ReactHTML.div
+import web.cssom.*
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
