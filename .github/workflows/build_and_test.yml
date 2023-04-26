@@ -16,28 +16,28 @@ concurrency:
 jobs:
   build_save-cloud-common:
     name: Build, test and upload code coverage (save-cloud-common)
-    uses: ./.github/workflows/reusable/build_and_test.yml
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-orchestrator-common:
     name: Build, test and upload code coverage (save-orchestrator-common)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable/build_and_test.yml
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-orchestrator-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-agent:
     name: Build, test and upload code coverage (save-agent)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable/build_and_test.yml
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
   build_save-demo-agent:
     name: Build, test and upload code coverage (save-demo-agent)
     needs: [ build_save-cloud-common ]
-    uses: ./.github/workflows/reusable/build_and_test.yml
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
@@ -64,7 +64,7 @@ jobs:
           'test-analysis-core',
           'save-demo-agent'
         ]
-    uses: ./.github/workflows/reusable/build_and_test.yml
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       module: ${{ matrix.module }}
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request }}
