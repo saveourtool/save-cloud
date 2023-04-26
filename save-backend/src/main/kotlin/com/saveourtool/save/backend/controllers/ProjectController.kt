@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectProblemService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -11,6 +12,7 @@ import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
+import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -47,6 +49,7 @@ import java.util.*
 @RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(
     private val projectService: ProjectService,
+    private val projectProblemService: ProjectProblemService,
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
@@ -270,7 +273,7 @@ class ProjectController(
         @RequestBody projectProblemDto: ProjectProblemDto,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        projectService.saveProjectProblem(projectProblemDto, authentication)
+        projectProblemService.saveProjectProblem(projectProblemDto, authentication)
     }.map {
         ResponseEntity.ok("Project problem was successfully saved")
     }
@@ -287,7 +290,7 @@ class ProjectController(
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
     ): Mono<List<ProjectProblemDto>> = blockingToMono {
-        projectService.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName).map(
+        projectProblemService.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName).map(
             ProjectProblem::toDto)
     }
 
@@ -301,7 +304,7 @@ class ProjectController(
     fun getProjectProblemById(
         @RequestParam id: Long,
     ): Mono<ProjectProblemDto> = blockingToMono {
-        projectService.getProjectProblemById(id).toDto()
+        projectProblemService.getProjectProblemById(id).toDto()
     }
 
     @PostMapping("/problem/update")
@@ -316,15 +319,24 @@ class ProjectController(
         @RequestBody projectProblemDto: ProjectProblemDto,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        val problem = projectProblemDto.id?.let { projectService.getProjectProblemById(it) }.orNotFound()
-        problem.apply {
-            name = projectProblemDto.name
-            description = projectProblemDto.description
-            critical = projectProblemDto.critical
-            isClosed = projectProblemDto.isClosed
-        }
-        projectService.updateProjectProblem(problem)
+        projectProblemService.updateProjectProblem(projectProblemDto)
     }.map {
         ResponseEntity.ok("Project problem was successfully updated")
     }
+
+    @PostMapping("/problem/by-filters")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Get project problems matching filters",
+        description = "Get filtered project problems available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "projectFilter", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
+    fun getFilteredProjectProblems(
+        @RequestBody projectProblemFilter: ProjectProblemFilter,
+    ): Flux<ProjectProblemDto> =
+            blockingToFlux { projectProblemService.getFiltered(projectProblemFilter).map { it.toDto() } }
 }
