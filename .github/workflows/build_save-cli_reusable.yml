@@ -12,7 +12,6 @@ jobs:
     name: Build save-cli
     if: ${{ inputs.do-build }}
     runs-on: ubuntu-latest
-
     steps:
       - name: checkout save-cli
         uses: actions/checkout@v3
@@ -61,3 +60,11 @@ jobs:
           name: gradle-reports
           path: '**/build/reports/'
           retention-days: 1
+
+  build_save-cli_skipped:
+    if: ${{ !inputs.do-build }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        run: |
+          echo "Build of save-cli is skipped"
