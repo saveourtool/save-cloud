@@ -81,7 +81,7 @@ jobs:
     needs: [ build_cli ]
     if: ${{ always() }}
     steps:
-      nothing:
+      - name: Result of job
         run: |
           echo "Status of job is ${{ needs.build_cli.status }}"
 
