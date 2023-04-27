@@ -80,6 +80,7 @@ jobs:
   build_cli_skippable:
     needs: [ build_cli ]
     if: ${{ always() }}
+    runs-on: ubuntu-latest
     steps:
       - name: Result of job
         run: |
