@@ -82,19 +82,19 @@ jobs:
     name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
     needs: [ build_cli ]
-    if: github.event_name != 'workflow_dispatch' || inputs.backend
     with:
       module: save-backend
       branch: ${{ inputs.branch }}
+      do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.backend }}
 
   deploy_sandbox:
     name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
     needs: [ build_cli ]
-    if: github.event_name != 'workflow_dispatch' || inputs.sandbox
     with:
       module: save-sandbox
       branch: ${{ inputs.branch }}
+      do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.sandbox }}
 
   deploy_all:
     name: all excluding save-backend and save-sandbox
@@ -123,7 +123,7 @@ jobs:
           - module: save-demo-cpg
             do-build: ${{ inputs.demo-cpg }}
     uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || matrix.do-build
     with:
       module: ${{ matrix.module }}
       branch: ${{ inputs.branch }}
+      do-build: ${{ github.event_name != 'workflow_dispatch' || matrix.do-build }}

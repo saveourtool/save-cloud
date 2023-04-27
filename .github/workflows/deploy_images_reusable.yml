@@ -10,10 +10,14 @@ on:
         required: false
         type: string
         default: null
+      do-build:
+        type: boolean
+        required: true
 
 jobs:
   deploy_images:
     name: Build and push Docker images
+    if: ${{ inputs.do-build }}
     runs-on: ubuntu-latest
     env:
       GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
@@ -90,3 +94,11 @@ jobs:
           name: gradle-reports
           path: '**/build/reports/'
           retention-days: 1
+
+  deploy_images_skipped:
+    if: ${{ !inputs.do-build }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        run: |
+          echo "Deploy of ${{ inputs.module }} is skipped"
