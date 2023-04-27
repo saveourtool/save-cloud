@@ -28,12 +28,10 @@ jobs:
           echo ADDITIONAL_GRADLE_OPTS= >> $GITHUB_ENV
           echo GRADLE_TASKS=:${{ inputs.module}}:bootBuildImage >> $GITHUB_ENV
       - name: Prepare to build from branch
-        working-directory: save-cloud
         run: |
           git checkout origin/${{ inputs.branch }}
           echo ADDITIONAL_GRADLE_OPTS=-Pbuild.dockerTag=${{ inputs.branch }} >> $GITHUB_ENV
       - name: Store versions in env
-        working-directory: save-cloud
         run: |
           kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo KOTLIN_VERSION=$kv >> $GITHUB_ENV

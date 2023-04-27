@@ -64,9 +64,10 @@ jobs:
       - name: checkout save-cloud
         uses: actions/checkout@v3
       - id: save-save-cli-version
-        name: Store save-cli version in env
+        name: Store save-cli version in ouypuy
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo "Detected version $sv"
           echo version=$sv >> $GITHUB_OUTPUT
 
   build_cli:
@@ -77,7 +78,7 @@ jobs:
       do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
 
   deploy_gateway:
-    name: Build and push Docker image (api-gateway)
+    name: api-gateway
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.gateway
     with:
@@ -85,7 +86,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_backend:
-    name: Build and push Docker image (save-backend)
+    name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
     needs: [ build_cli ]
     if: github.event_name != 'workflow_dispatch' || inputs.backend
@@ -94,7 +95,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_frontend:
-    name: Build and push Docker image (save-frontend)
+    name: save-frontend
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.frontend
     with:
@@ -102,7 +103,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_orchestrator:
-    name: Build and push Docker image (save-orchestrator)
+    name: save-orchestrator
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.orchestrator
     with:
@@ -110,7 +111,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_sandbox:
-    name: Build and push Docker image (save-sandbox)
+    name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
     needs: [ build_cli ]
     if: github.event_name != 'workflow_dispatch' || inputs.sandbox
@@ -119,7 +120,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_preprocessor:
-    name: Build and push Docker image (save-preprocessor)
+    name: save-preprocessor
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.preprocessor
     with:
@@ -127,7 +128,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_demo:
-    name: Build and push Docker image (save-demo)
+    name: save-demo
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.demo
     with:
@@ -135,7 +136,7 @@ jobs:
       branch: ${{ inputs.branch }}
 
   deploy_demo-cpg:
-    name: Build and push Docker image (save-demo-cpg)
+    name: save-demo-cpg
     uses: ./.github/workflows/deploy_images_reusable.yml
     if: github.event_name != 'workflow_dispatch' || inputs.demo-cpg
     with:
