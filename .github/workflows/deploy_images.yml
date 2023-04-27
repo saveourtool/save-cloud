@@ -54,6 +54,9 @@ on:
         description: Build new image of save-demo-cpg
         required: false
 
+env:
+  SAVE_CLI_VERSION: stub-SNAPSHOT
+
 jobs:
   retrieve_save_cli_version:
     name: Retrieve save-cli version from save-cloud
