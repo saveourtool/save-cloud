@@ -77,6 +77,10 @@ jobs:
     with:
       do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
 
+  build_cli_skippable:
+    needs: [ build_cli ]
+    if: ${{ always() }}
+
   deploy_gateway:
     name: api-gateway
     uses: ./.github/workflows/deploy_images_reusable.yml
@@ -88,7 +92,7 @@ jobs:
   deploy_backend:
     name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli ]
+    needs: [ build_cli_skippable ]
     if: github.event_name != 'workflow_dispatch' || inputs.backend
     with:
       module: save-backend
@@ -113,7 +117,7 @@ jobs:
   deploy_sandbox:
     name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli ]
+    needs: [ build_cli_skippable ]
     if: github.event_name != 'workflow_dispatch' || inputs.sandbox
     with:
       module: save-sandbox
