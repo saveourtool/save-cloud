@@ -307,6 +307,106 @@
         ]
       }
     },
+    "/api/v1/comments/get-all": {
+      "post": {
+        "description": "Save new comment.",
+        "operationId": "getAllBySection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully saved project problem"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save new comment.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/comments/save": {
+      "post": {
+        "description": "Save new comment.",
+        "operationId": "save_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved project problem"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save new comment.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
     "/api/v1/contests/active": {
       "get": {
         "description": "Get list of contests that are in progress now.",
@@ -316,7 +416,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -381,7 +481,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -653,7 +753,7 @@
             "description": "amount of contests that should be returned, default: 10",
             "in": "query",
             "name": "pageSize",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -709,7 +809,7 @@
             "description": "amount of records that will be returned",
             "in": "query",
             "name": "pageSize",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -1904,7 +2004,7 @@
             "description": "version of files, manual by default",
             "in": "query",
             "name": "version",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -2009,7 +2109,7 @@
             "description": "demo version, manual by default",
             "in": "query",
             "name": "version",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -2039,7 +2139,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -2414,7 +2514,7 @@
             "description": "version to attach the file to, manual by default",
             "in": "query",
             "name": "version",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": "manual"
@@ -3302,7 +3402,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3387,7 +3487,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -3452,7 +3552,7 @@
             "description": "limit for result",
             "in": "query",
             "name": "limit",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -5365,6 +5465,270 @@
         ]
       }
     },
+    "/api/v1/projects/problem/all": {
+      "get": {
+        "description": "Get all project problems.",
+        "operationId": "getAllProjectProblems",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectProblemDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all project problems"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectProblemDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all project problems.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/problem/by-filters": {
+      "post": {
+        "description": "Get filtered project problems available for the current user.",
+        "operationId": "getFilteredProjectProblems",
+        "parameters": [
+          {
+            "description": "project filters",
+            "in": "query",
+            "name": "projectFilter",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectProblemFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectProblemDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched projects."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectProblemDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get project problems matching filters",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/problem/get/by-id": {
+      "get": {
+        "description": "Get project problem by id.",
+        "operationId": "getProjectProblemById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectProblemDto"
+                }
+              }
+            },
+            "description": "Successfully fetched project problem"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectProblemDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get project problem by id.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/problem/save": {
+      "post": {
+        "description": "Save project problem.",
+        "operationId": "save_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectProblemDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved project problem"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save project problem.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/problem/update": {
+      "post": {
+        "description": "Update project problem.",
+        "operationId": "update_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectProblemDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully updated project problem"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Update project problem.",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
     "/api/v1/projects/save": {
       "post": {
         "description": "Create a new project.",
@@ -6220,7 +6584,7 @@
           {
             "in": "query",
             "name": "checkDebugInfo",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -6229,7 +6593,7 @@
           {
             "in": "query",
             "name": "testAnalysis",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7162,7 +7526,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7243,7 +7607,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7340,7 +7704,7 @@
             "description": "test suite tags substring for filtering, default is empty",
             "in": "query",
             "name": "tags",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": ""
@@ -7350,7 +7714,7 @@
             "description": "test suite name substring for filtering, default is empty",
             "in": "query",
             "name": "name",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": ""
@@ -7360,7 +7724,7 @@
             "description": "test suite language substring for filtering, default is empty",
             "in": "query",
             "name": "language",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "default": ""
@@ -7370,7 +7734,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -7436,7 +7800,7 @@
             "description": "is given request sent for browsing test suites for contest, default is false",
             "in": "query",
             "name": "isContest",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "boolean",
               "default": false
@@ -8330,10 +8694,10 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-name-with-description": {
+    "/api/v1/vulnerabilities/by-name-and-active": {
       "get": {
         "description": "Get vulnerability by name.",
-        "operationId": "getVulnerabilityWithDescriptionByName",
+        "operationId": "getVulnerabilityByNameAndActive",
         "parameters": [
           {
             "in": "query",
@@ -8341,6 +8705,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "required": true,
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -8372,6 +8744,53 @@
           }
         ],
         "summary": "Get vulnerability by name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/by-name-with-description": {
+      "get": {
+        "description": "Get vulnerability by name with description.",
+        "operationId": "getVulnerabilityWithDescriptionByName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Successfully fetched vulnerability by name with description"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get vulnerability by name with description.",
         "tags": [
           "vulnerabilities"
         ]
@@ -8425,6 +8844,61 @@
           }
         ],
         "summary": "Deleted vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/delete-project": {
+      "delete": {
+        "description": "Delete project.",
+        "operationId": "deleteProject",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "vulnerabilityName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted project in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete project.",
         "tags": [
           "vulnerabilities"
         ]
@@ -8644,6 +9118,28 @@
             "type": "string"
           },
           "tags": {
+            "type": "string"
+          }
+        }
+      },
+      "CommentDto": {
+        "required": [
+          "message",
+          "section",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "userAvatar": {
+            "type": "string"
+          },
+          "userName": {
             "type": "string"
           }
         }
@@ -9645,6 +10141,69 @@
         },
         "description": "project filters"
       },
+      "ProjectProblemDto": {
+        "required": [
+          "critical",
+          "description",
+          "isClosed",
+          "name",
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "critical": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Middle",
+              "High",
+              "Critical"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isClosed": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "vulnerabilityName": {
+            "type": "string"
+          }
+        }
+      },
+      "ProjectProblemFilter": {
+        "required": [
+          "isClosed",
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "isClosed": {
+            "type": "boolean"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          }
+        }
+      },
       "Sdk": {
         "required": [
           "name",
@@ -10308,11 +10867,15 @@
       "VulnerabilityFilter": {
         "required": [
           "active",
+          "isOwner",
           "prefixName"
         ],
         "type": "object",
         "properties": {
           "active": {
+            "type": "boolean"
+          },
+          "isOwner": {
             "type": "boolean"
           },
           "prefixName": {
