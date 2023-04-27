@@ -38,6 +38,7 @@ jobs:
         run: |
           echo GRADLE_TASKS=:${{ inputs.module}}:buildImage >> $GITHUB_ENV
       - name: Prepare to build from branch
+        if: inputs.branch
         run: |
           git checkout origin/${{ inputs.branch }}
       - name: Override dockerTag
