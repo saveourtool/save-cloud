@@ -68,9 +68,10 @@ jobs:
 
   build_cli:
     name: Build save-cli
-    if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
     needs: [ retrieve_save_cli_version ]
     uses: ./.github/workflows/build_save-cli_reusable.yml
+    with:
+      do-build: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
 
   deploy_gateway:
     name: Build and push Docker image (api-gateway)
