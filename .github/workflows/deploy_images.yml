@@ -80,6 +80,10 @@ jobs:
   build_cli_skippable:
     needs: [ build_cli ]
     if: ${{ always() }}
+    steps:
+      nothing:
+        run: |
+          echo "Status of job is ${{ needs.build_cli.status }}"
 
   deploy_gateway:
     name: api-gateway
