@@ -54,27 +54,27 @@ on:
         description: Build new image of save-demo-cpg
         required: false
 
-env:
-  SAVE_CLI_VERSION: stub-SNAPSHOT
-
 jobs:
   retrieve_save_cli_version:
     name: Retrieve save-cli version from save-cloud
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.save-save-cli-version.outputs.version }}
     steps:
       - name: checkout save-cloud
         uses: actions/checkout@v3
-      - name: Store save-cli version in env
+      - id: save-save-cli-version
+        name: Store save-cli version in env
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo SAVE_CLI_VERSION=$sv >> $GITHUB_ENV
+          echo version=$sv >> $GITHUB_OUTPUT
 
   build_cli:
     name: Build save-cli
     needs: [ retrieve_save_cli_version ]
     uses: ./.github/workflows/build_save-cli_reusable.yml
     with:
-      do-build: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
+      do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
 
   deploy_gateway:
     name: Build and push Docker image (api-gateway)
