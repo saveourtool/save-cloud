@@ -55,114 +55,85 @@ on:
         required: false
 
 jobs:
-  deploy_images:
-    name: Build and push Docker images
-    runs-on: ubuntu-20.04
-    env:
-      GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
-      ADDITIONAL_GRADLE_OPTS: ''
-
+  retrieve_save_cli_version:
+    name: Retrieve save-cli version from save-cloud
+    runs-on: ubuntu-latest
     steps:
       - name: checkout save-cloud
         uses: actions/checkout@v3
-        with:
-          path: save-cloud
-          fetch-depth: 0
-      - if: github.event_name != 'workflow_dispatch'
-        name: Prepare to build
-        working-directory: save-cloud
+      - name: Store save-cli version in env
         run: |
-          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-sandbox:bootBuildImage :save-preprocessor:bootBuildImage :save-demo:bootBuildImage :save-demo-cpg:bootBuildImage >> $GITHUB_ENV
-      - if: github.event_name == 'workflow_dispatch'
-        name: Prepare to build from branch
-        working-directory: save-cloud
-        run: |
-          git checkout origin/${{ inputs.branch }}
-          echo ADDITIONAL_GRADLE_OPTS=-Pbuild.dockerTag=${{ inputs.branch }} >> $GITHUB_ENV
-          GRADLE_TASKS=""
-          if ${{ inputs.gateway }} == 'true'; then GRADLE_TASKS+=":api-gateway:bootBuildImage "; fi
-          if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
-          if ${{ inputs.frontend }} == 'true'; then GRADLE_TASKS+=":save-frontend:buildImage "; fi
-          if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
-          if ${{ inputs.sandbox }} == 'true'; then GRADLE_TASKS+=":save-sandbox:bootBuildImage "; fi
-          if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
-          if ${{ inputs.demo }} == 'true'; then GRADLE_TASKS+=":save-demo:bootBuildImage "; fi
-          if ${{ inputs.demo-cpg }} == 'true'; then GRADLE_TASKS+=":save-demo-cpg:bootBuildImage "; fi
-          echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
-      - name: checkout save-cli
-        uses: actions/checkout@v3
-        with:
-          repository: saveourtool/save-cli
-          path: save
-          fetch-depth: 0
-          submodules: true
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
-      - name: Install system packages
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Store versions in env
-        working-directory: save-cloud
-        run: |
-          kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo SAVE_CLI_VERSION=$sv >> $GITHUB_ENV
-      - name: Cache konan
-        uses: actions/cache@v3
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - working-directory: save
-        run: git status && git diff
-      - uses: gradle/gradle-build-action@v2
-        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
-        with:
-          gradle-version: wrapper
-          build-root-directory: save
-          arguments: |
-            :save-cli:linkReleaseExecutableLinuxX64
-            --build-cache
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            -Preckon.stage=snapshot
-      - name: Set environment variable with save-cli version
-        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
-        run: |
-          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
-      - uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          build-root-directory: save-cloud
-          arguments: |
-            ${{ env.GRADLE_TASKS }}
-            --stacktrace
-            --build-cache
-            -Pdetekt.multiplatform.disabled=true
-            -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            -PsaveCliPath=${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            ${{ env.ADDITIONAL_GRADLE_OPTS }}
-      - name: Upload save-agent-distribution.jar
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-agent-distribution
-          path: 'save-cloud/save-agent/build/libs/save-agent-*-distribution.jar'
-          retention-days: 5
-      - name: Upload save-demo-agent-distribution.jar
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-demo-agent-distribution
-          path: 'save-cloud/save-demo-agent/build/libs/save-demo-agent-*-distribution.jar'
-          retention-days: 5
-      - name: Upload gradle reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: gradle-reports
-          path: '**/build/reports/'
-          retention-days: 1
+
+  build_cli:
+    name: Build save-cli
+    if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
+    needs: [ retrieve_save_cli_version ]
+    uses: ./.github/workflows/build_save-cli_reusable.yml
+
+  deploy_gateway:
+    name: Build and push Docker image (api-gateway)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.gateway
+    with:
+      module: api-gateway
+      branch: ${{ inputs.branch }}
+
+  deploy_backend:
+    name: Build and push Docker image (save-backend)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    needs: [ build_cli ]
+    if: github.event_name != 'workflow_dispatch' || inputs.backend
+    with:
+      module: save-backend
+      branch: ${{ inputs.branch }}
+
+  deploy_frontend:
+    name: Build and push Docker image (save-frontend)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.frontend
+    with:
+      module: save-frontend
+      branch: ${{ inputs.branch }}
+
+  deploy_orchestrator:
+    name: Build and push Docker image (save-orchestrator)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.orchestrator
+    with:
+      module: save-orchestrator
+      branch: ${{ inputs.branch }}
+
+  deploy_sandbox:
+    name: Build and push Docker image (save-sandbox)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    needs: [ build_cli ]
+    if: github.event_name != 'workflow_dispatch' || inputs.sandbox
+    with:
+      module: save-sandbox
+      branch: ${{ inputs.branch }}
+
+  deploy_preprocessor:
+    name: Build and push Docker image (save-preprocessor)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.preprocessor
+    with:
+      module: save-preprocessor
+      branch: ${{ inputs.branch }}
+
+  deploy_demo:
+    name: Build and push Docker image (save-demo)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.demo
+    with:
+      module: save-demo
+      branch: ${{ inputs.branch }}
+
+  deploy_demo-cpg:
+    name: Build and push Docker image (save-demo-cpg)
+    uses: ./.github/workflows/deploy_images_reusable.yml
+    if: github.event_name != 'workflow_dispatch' || inputs.demo-cpg
+    with:
+      module: save-demo-cpg
+      branch: ${{ inputs.branch }}
