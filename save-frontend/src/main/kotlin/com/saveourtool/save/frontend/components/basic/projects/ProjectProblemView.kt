@@ -67,11 +67,11 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         setComments(newComments)
     }
 
-    val enrollCloseRequest = useDeferredRequest {
+    val enrollCloseOpenRequest = useDeferredRequest {
         val response = post(
             url = "$apiUrl/projects/problem/update",
             headers = jsonHeaders,
-            body = Json.encodeToString(projectProblem.copy(isClosed = true)),
+            body = Json.encodeToString(projectProblem),
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
@@ -85,16 +85,17 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
     displayModal(
         closeProjectProblemWindowOpenness.isOpen(),
-        "Close of ${projectProblem.name}",
-        "Are you sure you want to close this problem?",
+        "${if (projectProblem.isClosed) "Close" else "Reopen"} of ${projectProblem.name}",
+        "Are you sure you want to ${if (projectProblem.isClosed) "close" else "reopen"} this problem?",
         mediumTransparentModalStyle,
         closeProjectProblemWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Ok") {
-            enrollCloseRequest()
+            enrollCloseOpenRequest()
             closeProjectProblemWindowOpenness.closeWindow()
         }
         buttonBuilder("Close", "secondary") {
+            setProjectProblem { it.copy(isClosed = !it.isClosed) }
             closeProjectProblemWindowOpenness.closeWindow()
         }
     }
@@ -113,11 +114,16 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
             +projectProblem.critical.toString()
         }
     }
-    if (!projectProblem.isClosed) {
-        div {
-            className = ClassName("d-flex justify-content-end")
-
+    div {
+        className = ClassName("d-flex justify-content-end")
+        if (!projectProblem.isClosed) {
             buttonBuilder(label = "Close", style = "danger", classes = "mr-2") {
+                setProjectProblem { it.copy(isClosed = true) }
+                closeProjectProblemWindowOpenness.openWindow()
+            }
+        } else {
+            buttonBuilder(label = "Reopen", classes = "mr-2") {
+                setProjectProblem { it.copy(isClosed = false) }
                 closeProjectProblemWindowOpenness.openWindow()
             }
         }
