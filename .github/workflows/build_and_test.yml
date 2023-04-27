@@ -14,19 +14,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_test_with_code_coverage_module:
-    name: Build, test and upload code coverage by module
-    runs-on: ubuntu-latest
+  build_save-cloud-common:
+    name: Build and test save-cloud-common
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-cloud-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-orchestrator-common:
+    name: Build and test save-orchestrator-common
+    needs: [ build_save-cloud-common ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-orchestrator-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-agent:
+    name: Build and test save-agent
+    needs: [ build_save-orchestrator-common ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-demo-agent:
+    name: Build and test save-demo-agent
+    needs: [ build_save-agent ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-demo-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_all:
+    name: Build and test left modules
+    needs: [ build_save-demo-agent ]
     strategy:
       fail-fast: false
       matrix:
         module: [
           'api-gateway',
           'save-backend',
-          'save-orchestrator-common',
           'save-orchestrator',
           'save-frontend',
-          'save-cloud-common',
           'save-agent',
           'save-preprocessor',
           'test-utils',
@@ -39,68 +64,20 @@ jobs:
           'test-analysis-core',
           'save-demo-agent'
         ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          # required for correct codecov upload
-          fetch-depth: 0
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
-      - name: Install system packages
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Retrieve Kotlin version
-        run: |
-          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-      - name: Cache konan
-        uses: actions/cache@v3
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build ${{ matrix.module }}
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          arguments: |
-            :${{ matrix.module }}:build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-demo-agent:linkDebugExecutableLinuxX64
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: ${{ matrix.module }}
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
-      - name: Upload gradle reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: gradle-reports
-          path: '**/build/reports/'
-          retention-days: 1
-      - name: Upload frontend distribution
-        if: matrix.module == 'save-frontend'
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-frontend
-          path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
-          retention-days: 1
+  build_and_test_with_code_coverage:
+    name: Build, test and upload code coverage
+    needs: [ build_all ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download gradle reports
+        uses: actions/download-artifact@v3
+
       - name: Code coverage report
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: false
-          flags: ${{ matrix.module }}
-
-  build_and_test_with_code_coverage:
-    name: Build, test and upload code coverage
-    needs: [build_and_test_with_code_coverage_module]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Just output
-        run: echo "Finished"

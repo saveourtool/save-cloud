@@ -142,10 +142,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
 /*
  * On Windows, it's impossible to link a Linux executable against
  * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ *
+ * Also, additionally disable debug artifacts for CI to speed-up builds
  */
 tasks.named("linkDebugExecutableLinuxX64") {
     onlyIf {
-        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
     }
 }
 
@@ -157,6 +159,6 @@ tasks.named("linkReleaseExecutableLinuxX64") {
 
 tasks.named("linkDebugTestLinuxX64") {
     onlyIf {
-        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
     }
 }

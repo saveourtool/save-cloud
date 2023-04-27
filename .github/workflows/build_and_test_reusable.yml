@@ -1,0 +1,72 @@
+name: Reusable build and test
+
+on:
+  workflow_call:
+    inputs:
+      module:
+        required: true
+        type: string
+      gradle-cache-read-only:
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  build_module:
+    name: Build ${{ inputs.module }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # required for correct codecov upload
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Install system packages
+        if:  inputs.module == 'save-agent' || inputs.module == 'save-demo-agent'
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      - name: Retrieve Kotlin version
+        run: |
+          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
+      - name: Cache konan
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
+      - name: Build ${{ inputs.module }}
+        uses: gradle/gradle-build-action@v2
+        env:
+          SKIP_SAVE_AGENT_DEPENDENCY: true
+        with:
+          gradle-version: wrapper
+          gradle-home-cache-cleanup: true
+          # we need to write cache for PRs
+          cache-read-only: ${{ inputs.gradle-cache-read-only }}
+          arguments: |
+            :${{ inputs.module }}:build
+            -x detekt
+            -x spotlessCheck
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
+            --build-cache
+      - name: Upload gradle reports ${{ inputs.module }}
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: gradle-reports-${{ inputs.module }}
+          path: '${{ inputs.module }}/build/reports/'
+          retention-days: 1
+      - name: Upload frontend distribution
+        if: inputs.module == 'save-frontend'
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-frontend
+          path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
+          retention-days: 1
