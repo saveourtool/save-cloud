@@ -31,6 +31,7 @@ jobs:
 
       - name: Update branch from master
         run: |
+          git status
           git pull origin master --no-edit --rebase
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
