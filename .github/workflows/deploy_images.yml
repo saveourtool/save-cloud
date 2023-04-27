@@ -81,22 +81,24 @@ jobs:
   deploy_backend:
     name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli ]
+    needs: [ build_cli, retrieve_save_cli_version ]
     with:
       module: save-backend
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.backend }}
       override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
+      save-cli-version: ${{ needs.retrieve_save_cli_version.version }}
 
   deploy_sandbox:
     name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli ]
+    needs: [ build_cli, retrieve_save_cli_version ]
     with:
       module: save-sandbox
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.sandbox }}
       override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
+      save-cli-version: ${{ needs.retrieve_save_cli_version.version }}
 
   deploy_all:
     name: all excluding save-backend and save-sandbox
@@ -130,3 +132,4 @@ jobs:
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || matrix.do-build }}
       override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
+      save-cli-version: stub

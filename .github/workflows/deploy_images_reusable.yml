@@ -4,16 +4,19 @@ on:
   workflow_call:
     inputs:
       module:
-        required: true
         type: string
+        required: true
       branch:
-        required: true
         type: string
-      override-docker-tag:
         required: true
+      override-docker-tag:
         type: boolean
+        required: true
       do-build:
         type: boolean
+        required: true
+      save-cli-version:
+        type: string
         required: true
 
 jobs:
@@ -32,6 +35,7 @@ jobs:
       - name: Prepare to build
         run: |
           echo ADDITIONAL_GRADLE_OPTS= >> $GITHUB_ENV
+          echo SAVE_CLI_GRADLE_OPTS= >> $GITHUB_ENV
           echo GRADLE_TASKS=:${{ inputs.module}}:bootBuildImage >> $GITHUB_ENV
       - name: Override gradle command for frontend
         if: inputs.module == 'save-frontend'
@@ -64,11 +68,15 @@ jobs:
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
       - name: Download save-cli
-        if: ${{ endsWith(env.SAVE_CLI_VERSION, '-SNAPSHOT') }}
+        if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
         uses: actions/download-artifact@v3
         with:
           name: save-cli
-          path: ${{ github.workspace }}/save-${{ env.SAVE_CLI_VERSION }}-linuxX64.kexe
+          path: ${{ github.workspace }}/save-${{ inputs.save-cli-version }}-linuxX64.kexe
+      - name: Override saveCliVersion and saveCliPath in Gradle
+        if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
+        run: |
+          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }} >> $GITHUB_ENV
       - name: Build image for ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
         with:
@@ -78,10 +86,9 @@ jobs:
             --stacktrace
             --build-cache
             -Pdetekt.multiplatform.disabled=true
-            -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            -PsaveCliPath=${{ github.workspace }}
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            ${{ env.SAVE_CLI_GRADLE_OPTS }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
       - name: Upload save-agent-distribution.jar
         if: inputs.module == 'save-backend'
