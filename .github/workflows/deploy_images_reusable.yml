@@ -7,9 +7,11 @@ on:
         required: true
         type: string
       branch:
-        required: false
+        required: true
         type: string
-        default: null
+      override-docker-tag:
+        required: true
+        type: boolean
       do-build:
         type: boolean
         required: true
@@ -31,9 +33,16 @@ jobs:
         run: |
           echo ADDITIONAL_GRADLE_OPTS= >> $GITHUB_ENV
           echo GRADLE_TASKS=:${{ inputs.module}}:bootBuildImage >> $GITHUB_ENV
+      - name: Override gradle command for frontend
+        if: inputs.module == 'save-frontend'
+        run: |
+          echo GRADLE_TASKS=:${{ inputs.module}}:buildImage >> $GITHUB_ENV
       - name: Prepare to build from branch
         run: |
           git checkout origin/${{ inputs.branch }}
+      - name: Override dockerTag
+        if: inputs.override-docker-tag
+        run: |
           echo ADDITIONAL_GRADLE_OPTS=-Pbuild.dockerTag=${{ inputs.branch }} >> $GITHUB_ENV
       - name: Store versions in env
         run: |

@@ -86,6 +86,7 @@ jobs:
       module: save-backend
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.backend }}
+      override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
 
   deploy_sandbox:
     name: save-sandbox
@@ -95,6 +96,7 @@ jobs:
       module: save-sandbox
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.sandbox }}
+      override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
 
   deploy_all:
     name: all excluding save-backend and save-sandbox
@@ -127,3 +129,4 @@ jobs:
       module: ${{ matrix.module }}
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || matrix.do-build }}
+      override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
