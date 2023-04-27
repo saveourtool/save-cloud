@@ -77,13 +77,6 @@ jobs:
     with:
       do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
 
-  deploy_gateway:
-    name: api-gateway
-    uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.gateway
-    with:
-      module: api-gateway
-      branch: ${{ inputs.branch }}
 
   deploy_backend:
     name: save-backend
@@ -92,22 +85,6 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.backend
     with:
       module: save-backend
-      branch: ${{ inputs.branch }}
-
-  deploy_frontend:
-    name: save-frontend
-    uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.frontend
-    with:
-      module: save-frontend
-      branch: ${{ inputs.branch }}
-
-  deploy_orchestrator:
-    name: save-orchestrator
-    uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.orchestrator
-    with:
-      module: save-orchestrator
       branch: ${{ inputs.branch }}
 
   deploy_sandbox:
@@ -119,26 +96,34 @@ jobs:
       module: save-sandbox
       branch: ${{ inputs.branch }}
 
-  deploy_preprocessor:
-    name: save-preprocessor
+  deploy_all:
+    name: all excluding save-backend and save-sandbox
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [
+          'api-gateway',
+          'save-frontend',
+          'save-orchestrator',
+          'save-preprocessor',
+          'save-demo',
+          'save-demo-cpg',
+        ]
+        include:
+          - module: api-gateway
+            do-build: ${{ inputs.gateway }}
+          - module: save-frontend
+            do-build: ${{ inputs.frontend }}
+          - module: save-orchestrator
+            do-build: ${{ inputs.orchestrator }}
+          - module: save-preprocessor
+            do-build: ${{ inputs.preprocessor }}
+          - module: save-demo
+            do-build: ${{ inputs.demo }}
+          - module: save-demo-cpg
+            do-build: ${{ inputs.demo-cpg }}
     uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.preprocessor
+    if: github.event_name != 'workflow_dispatch' || matrix.do-build
     with:
-      module: save-preprocessor
-      branch: ${{ inputs.branch }}
-
-  deploy_demo:
-    name: save-demo
-    uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.demo
-    with:
-      module: save-demo
-      branch: ${{ inputs.branch }}
-
-  deploy_demo-cpg:
-    name: save-demo-cpg
-    uses: ./.github/workflows/deploy_images_reusable.yml
-    if: github.event_name != 'workflow_dispatch' || inputs.demo-cpg
-    with:
-      module: save-demo-cpg
+      module: ${{ matrix.module }}
       branch: ${{ inputs.branch }}
