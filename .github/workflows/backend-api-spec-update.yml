@@ -26,15 +26,20 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+
+      - name: Set up Git
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Install system packages
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Update branch from master
         run: |
-          git log
-          git status
           git pull origin master --no-edit --rebase
+
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
         with:
@@ -52,8 +57,6 @@ jobs:
             echo Everything is UP-TO-DATE
           else
             echo Pushing updated backend-api-docs.json
-            git config user.name github-actions[bot]
-            git config user.email 'github-actions[bot]@users.noreply.github.com'
             git commit -m "Update backend-api-docs.json"
             git push
             echo "SHOULD_CREATE_PR=1" >> $GITHUB_OUTPUT
