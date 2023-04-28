@@ -5,12 +5,6 @@ on:
     # triggers the workflow every day at 5:30 UTC
     - cron: '30 5 * * *'
   workflow_dispatch:
-    inputs:
-      branch:
-        type: string
-        default: master
-        description: Branch to update backend api spec from
-        required: false
 
 jobs:
   update_backend_api_spec:
@@ -35,6 +29,11 @@ jobs:
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
+      - name: Update branch from master
+        run: |
+          git log
+          git status
+          git pull origin master --no-edit --rebase
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
         with:
@@ -47,7 +46,6 @@ jobs:
       - name: Commit and push if api spec is changed
         id: commit-and-push
         run: |
-          git pull origin master --no-edit
           git add save-backend/backend-api-docs.json
           if git diff --staged --quiet; then
             echo Everything is UP-TO-DATE
