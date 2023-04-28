@@ -162,6 +162,13 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         }
                     }
                 }
+                column(id = "versions", header = "Versions", { versions }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +cellContext.value
+                        }
+                    }
+                }
                 column("delete", "") { cellProps ->
                     Fragment.create {
                         td {
@@ -193,6 +200,13 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 to = cellContext.row.original.url
                                 +cellContext.value
                             }
+                        }
+                    }
+                }
+                column(id = "versions", header = "Versions", { versions }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +cellContext.value
                         }
                     }
                 }

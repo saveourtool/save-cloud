@@ -57,6 +57,7 @@ enum class InputTypes(
         NAME_TOOLTIP
     ),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
+    PROJECT_VERSION("project Url", placeholder = "0.0.1; 0.0.3-0.0.5; 1.0.1.RELEASE"),
 
     // ==== create organization view
     ORGANIZATION_NAME(
