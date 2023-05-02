@@ -6,6 +6,8 @@ import com.saveourtool.save.frontend.externals.modal.Styles
 import react.CSSProperties
 import kotlin.js.json
 
+private val defaultOverlayProperties: CSSProperties = json("zIndex" to "1000").unsafeCast<CSSProperties>()
+
 val defaultModalStyle = Styles(
     // make modal window occupy center of the screen
     content = json(
@@ -14,7 +16,8 @@ val defaultModalStyle = Styles(
         "right" to "35%",
         "bottom" to "auto",
         "overflow" to "hide"
-    ).unsafeCast<CSSProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val smallTransparentModalStyle = Styles(
@@ -27,6 +30,7 @@ val smallTransparentModalStyle = Styles(
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val mediumTransparentModalStyle = Styles(
@@ -38,7 +42,8 @@ val mediumTransparentModalStyle = Styles(
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CSSProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val largeTransparentModalStyle = Styles(
@@ -50,7 +55,8 @@ val largeTransparentModalStyle = Styles(
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CSSProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val loaderModalStyle = Styles(
@@ -64,4 +70,5 @@ val loaderModalStyle = Styles(
         // small hack to remove modal border and make loader prettier
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )

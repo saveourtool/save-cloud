@@ -54,7 +54,7 @@ external interface ModalProps : PropsWithChildren {
  */
 class Styles(
     @JsName("content") val content: CSSProperties? = undefined,
-    @JsName("overlay") val overlay: CSSProperties? = undefined
+    @JsName("overlay") val overlay: CSSProperties? = undefined,
 )
 
 /**
