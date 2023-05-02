@@ -9,7 +9,6 @@ import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.modal
-import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -80,7 +79,7 @@ fun ChildrenBuilder.showContestCreationModal(
                 "bottom" to "auto",
                 "position" to "absolute",
                 "overflow" to "hide"
-            ).unsafeCast<CssProperties>()
+            ).unsafeCast<CSSProperties>()
         )
         contestCreationComponent {
             this.organizationName = organizationName

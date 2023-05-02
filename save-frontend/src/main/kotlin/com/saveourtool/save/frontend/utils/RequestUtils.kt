@@ -655,7 +655,7 @@ private fun ComponentWithScope<*, *>.withModalResponseHandler(
     }
 }
 
-@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "MAGIC_NUMBER")
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 private fun WithRequestStatusContext.withModalResponseHandler(
     response: Response,
 ) {
