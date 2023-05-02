@@ -6,16 +6,13 @@
 
 package com.saveourtool.save.frontend.externals.modal
 
-import react.Component
-import react.PropsWithChildren
-import react.ReactElement
-import react.State
+import react.*
 import web.dom.Element
 import web.html.HTMLDivElement
 import web.html.HTMLElement
 
 /**
- * [Props] of modal component
+ * [PropsWithChildren] of modal component
  */
 external interface ModalProps : PropsWithChildren {
     /**
@@ -50,25 +47,20 @@ external interface ModalProps : PropsWithChildren {
 }
 
 /**
- * Object containing css properties. They are represented as css types, described in csstype library.
- * FixMe: add to kotlin somehow.
- */
-@JsName("CSSProperties")
-external interface CssProperties
-
-/**
  * Styles of Modal component.
+ *
  * @property content css styles for modal content
  * @property overlay css styles for modal overlay
  */
 class Styles(
-    val content: CssProperties? = undefined,
-    val overlay: CssProperties? = undefined
+    @JsName("content") val content: CSSProperties? = undefined,
+    @JsName("overlay") val overlay: CSSProperties? = undefined
 )
 
 /**
  * The value corresponding to each key is a class name. Please note that specifying a CSS class
  * for the overlay or the content will disable the default styles for that component.
+ *
  * @property base This class will always be applied to the component
  * @property afterOpen This class will be applied after the modal has been opened
  * @property beforeClose This class will be applied after the modal has requested to be closed

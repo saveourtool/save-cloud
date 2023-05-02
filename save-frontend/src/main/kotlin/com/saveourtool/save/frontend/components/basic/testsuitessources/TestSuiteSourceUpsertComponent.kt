@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -79,7 +78,7 @@ fun ChildrenBuilder.showTestSuiteSourceUpsertModal(
                 "bottom" to "auto",
                 "position" to "absolute",
                 "overflow" to "hide",
-            ).unsafeCast<CssProperties>()
+            ).unsafeCast<CSSProperties>()
         )
         div {
             className = ClassName("d-flex justify-content-between")
