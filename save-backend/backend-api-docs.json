@@ -10888,6 +10888,7 @@
           "isOpenSource",
           "name",
           "url",
+          "versions",
           "vulnerabilityName"
         ],
         "type": "object",
@@ -10899,6 +10900,9 @@
             "type": "string"
           },
           "url": {
+            "type": "string"
+          },
+          "versions": {
             "type": "string"
           },
           "vulnerabilityName": {
