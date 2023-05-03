@@ -47,7 +47,10 @@ external interface EditProjectProblemWindowProps : Props {
     var problem: ProjectProblemDto
 }
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { props ->
 
     val (projectProblem, setProjectProblem) = useStateFromProps(props.problem)
