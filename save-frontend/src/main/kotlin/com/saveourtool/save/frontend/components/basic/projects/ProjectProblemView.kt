@@ -38,6 +38,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
     val (comments, setComments) = useState(emptyList<CommentDto>())
 
     val closeProjectProblemWindowOpenness = useWindowOpenness()
+    val editProjectProblemWindowOpenness = useWindowOpenness()
     val navigate = useNavigate()
 
     useRequest {
@@ -100,6 +101,11 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         }
     }
 
+    editProjectProblemWindow {
+        windowOpenness = editProjectProblemWindowOpenness
+        problem = projectProblem
+    }
+
     div {
         className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
         h1 {
@@ -116,6 +122,10 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
     }
     div {
         className = ClassName("d-flex justify-content-end")
+        buttonBuilder(label = "Edit", classes = "mr-2") {
+            // setProjectProblem { it.copy(isClosed = true) }
+            editProjectProblemWindowOpenness.openWindow()
+        }
         if (!projectProblem.isClosed) {
             buttonBuilder(label = "Close", style = "danger", classes = "mr-2") {
                 setProjectProblem { it.copy(isClosed = true) }

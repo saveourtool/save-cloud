@@ -134,7 +134,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     val tableInstance: Table<D> = useReactTable(options = jso<TableOptions<D>> {
         this.columns = useMemo { columns(props) }
         this.data = data
-        this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
+        this.getCoreRowModel = getCoreRowModel()
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
@@ -154,7 +154,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
         this.onSortingChange = { updater ->
             setSorting.invoke(updater)
         }
-        this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
+        this.getSortedRowModel = getSortedRowModel()
         this.getPaginationRowModel = tanstack.table.core.getPaginationRowModel()
         additionalOptions()
     }.also { tableOptionsCustomizer(it) })

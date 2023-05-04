@@ -72,11 +72,13 @@ class ProjectProblemService(
     @Transactional
     fun updateProjectProblem(projectProblemDto: ProjectProblemDto) {
         val problem = projectProblemDto.id?.let { projectProblemRepository.getByIdOrNotFound(it) }.orNotFound()
+        val vulnerabilityNew = projectProblemDto.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
         problem.apply {
             name = projectProblemDto.name
             description = projectProblemDto.description
             critical = projectProblemDto.critical
             isClosed = projectProblemDto.isClosed
+            vulnerability = vulnerabilityNew
         }
         projectProblemRepository.save(problem)
     }
