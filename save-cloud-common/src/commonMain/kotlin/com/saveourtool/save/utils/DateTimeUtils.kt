@@ -34,8 +34,7 @@ fun LocalDateTime.prettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(Tim
  */
 fun LocalDateTime.veryPrettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
     .let {
-        "${it.dayOfWeek.name.toLowerCaseWithFirstCharUpperCase()}, ${it.dayOfMonth} ${it.month.name.toLowerCaseWithFirstCharUpperCase()} ${it.year} ${it.hour}:${it.minute}:${it
-            .second}"
+        "${it.dayOfWeek.name.toLowerCaseWithFirstCharUpperCase()}, ${it.dayOfMonth} ${it.month.name.toLowerCaseWithFirstCharUpperCase()} ${it.year} ${it.hour}:${it.minute}"
     }
 
 /**
