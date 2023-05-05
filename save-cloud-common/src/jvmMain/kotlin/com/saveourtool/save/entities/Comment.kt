@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDateAndDto
+import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
@@ -28,5 +29,6 @@ class Comment(
         message = message,
         userName = user.name ?: "Unknown",
         userAvatar = user.avatar,
+        createDate = createDate?.toEpochSecond(ZoneOffset.UTC),
     )
 }

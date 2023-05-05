@@ -13,12 +13,14 @@ data class CommentDto(
     val message: String,
     val userName: String,
     val userAvatar: String?,
+    val createDate: Long?,
     val section: String = "",
 ) {
     companion object {
         val empty = CommentDto(
             "",
             "Unknown",
+            null,
             null,
         )
     }

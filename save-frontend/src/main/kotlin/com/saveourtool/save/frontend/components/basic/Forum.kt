@@ -18,14 +18,12 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.textarea
 import react.useState
-import web.cssom.AlignItems
-import web.cssom.Background
-import web.cssom.ClassName
-import web.cssom.Display
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import web.cssom.*
+import kotlin.js.Date
 
 /**
  * Props for comment card component
@@ -83,7 +81,7 @@ fun newCommentWindow() = FC<PropsWithChildren> {
  */
 fun commentWindow() = FC<CommentWindowProps> { props ->
 
-    val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
+    val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
     val (avatar, setAvatar) = useState(props.comment.userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
 
     div {
@@ -127,10 +125,17 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
             }
         }
         div {
-            className = ClassName("col-10 text-left")
+            className = ClassName("card col-10 text-left border-secondary")
+            val comment = props.comment
+            div {
+                className = ClassName("col")
+                style = jso {
+                    background = "#F1F1F1".unsafeCast<Background>()
+                }
+                +(comment.createDate?.let { Date(it*1000).toUTCString() } ?: "Unknown")
+            }
             columnCard {
-                val message = props.comment.message
-                markdown(message.split("\n").joinToString("\n\n"))
+                markdown(comment.message.split("\n").joinToString("\n\n"))
             }
         }
     }
