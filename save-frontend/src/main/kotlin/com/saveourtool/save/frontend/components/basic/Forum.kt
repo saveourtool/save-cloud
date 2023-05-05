@@ -22,6 +22,7 @@ import react.useState
 import web.cssom.*
 
 import kotlinx.browser.window
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -133,7 +134,7 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
                 style = jso {
                     background = "#F1F1F1".unsafeCast<Background>()
                 }
-                +(comment.createDate?.veryPrettyPrint() ?: "Unknown")
+                +(comment.createDate?.veryPrettyPrint(TimeZone.currentSystemDefault()) ?: "Unknown")
             }
             columnCard {
                 markdown(comment.message.split("\n").joinToString("\n\n"))
