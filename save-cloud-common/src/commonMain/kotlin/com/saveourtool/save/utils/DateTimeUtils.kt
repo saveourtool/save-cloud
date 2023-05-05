@@ -48,7 +48,10 @@ operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).pl
  */
 operator fun LocalDateTime.minus(duration: Duration) = toInstant(TimeZone.UTC).minus(duration).toLocalDateTime(TimeZone.UTC)
 
-@Suppress("MAGIC_NUMBER")
+@Suppress(
+    "MAGIC_NUMBER",
+    "MagicNumber",
+)
 private fun Int.plusZero(): String = this.let { if (it < 10) "0$it" else it }.toString()
 
 private fun String.toLowerCaseWithFirstCharUpperCase() = this.toLowerCasePreservingASCIIRules().replaceFirstChar { char -> char.titlecase() }
