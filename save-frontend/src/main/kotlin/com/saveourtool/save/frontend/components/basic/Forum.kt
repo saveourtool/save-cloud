@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
+import com.saveourtool.save.utils.toUnixCalendarFormat
 import com.saveourtool.save.v1
 
 import js.core.jso
@@ -18,12 +19,10 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.textarea
 import react.useState
-import web.cssom.AlignItems
-import web.cssom.Background
-import web.cssom.ClassName
-import web.cssom.Display
+import web.cssom.*
 
 import kotlinx.browser.window
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -81,9 +80,10 @@ fun newCommentWindow() = FC<PropsWithChildren> {
 /**
  * @return a function component
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun commentWindow() = FC<CommentWindowProps> { props ->
 
-    val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
+    val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
     val (avatar, setAvatar) = useState(props.comment.userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
 
     div {
@@ -127,10 +127,17 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
             }
         }
         div {
-            className = ClassName("col-10 text-left")
+            className = ClassName("card col-10 text-left border-secondary")
+            val comment = props.comment
+            div {
+                className = ClassName("col")
+                style = jso {
+                    background = "#F1F1F1".unsafeCast<Background>()
+                }
+                +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
+            }
             columnCard {
-                val message = props.comment.message
-                markdown(message.split("\n").joinToString("\n\n"))
+                markdown(comment.message.split("\n").joinToString("\n\n"))
             }
         }
     }
