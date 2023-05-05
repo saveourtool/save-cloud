@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.utils
 
+import io.ktor.util.*
 import kotlin.time.Duration
 import kotlinx.datetime.*
 
@@ -28,6 +29,16 @@ fun LocalDateTime.prettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(Tim
     .replace("-", ".")
 
 /**
+ * @param timeZone timezone to print the date time in
+ * @return very pretty string representation of [LocalDateTime]
+ */
+fun LocalDateTime.veryPrettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
+    .let {
+        "${it.dayOfWeek.name.toLowerCaseWithFirstCharUpperCase()}, ${it.dayOfMonth} ${it.month.name.toLowerCaseWithFirstCharUpperCase()} ${it.year} ${it.hour}:${it.minute}:${it
+            .second}"
+    }
+
+/**
  * @param duration
  */
 operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).plus(duration).toLocalDateTime(TimeZone.UTC)
@@ -36,6 +47,8 @@ operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).pl
  * @param duration
  */
 operator fun LocalDateTime.minus(duration: Duration) = toInstant(TimeZone.UTC).minus(duration).toLocalDateTime(TimeZone.UTC)
+
+private fun String.toLowerCaseWithFirstCharUpperCase() = this.toLowerCasePreservingASCIIRules().replaceFirstChar { char -> char.titlecase() }
 
 /**
  * @return current local date-time in UTC timezone

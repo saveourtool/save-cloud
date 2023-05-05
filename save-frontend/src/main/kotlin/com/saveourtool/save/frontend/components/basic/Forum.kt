@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
+import com.saveourtool.save.utils.veryPrettyPrint
 import com.saveourtool.save.v1
 
 import js.core.jso
@@ -18,12 +19,11 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.textarea
 import react.useState
+import web.cssom.*
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import web.cssom.*
-import kotlin.js.Date
 
 /**
  * Props for comment card component
@@ -79,6 +79,7 @@ fun newCommentWindow() = FC<PropsWithChildren> {
 /**
  * @return a function component
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun commentWindow() = FC<CommentWindowProps> { props ->
 
     val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
@@ -132,7 +133,7 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
                 style = jso {
                     background = "#F1F1F1".unsafeCast<Background>()
                 }
-                +(comment.createDate?.let { Date(it*1000).toUTCString() } ?: "Unknown")
+                +(comment.createDate?.veryPrettyPrint() ?: "Unknown")
             }
             columnCard {
                 markdown(comment.message.split("\n").joinToString("\n\n"))
