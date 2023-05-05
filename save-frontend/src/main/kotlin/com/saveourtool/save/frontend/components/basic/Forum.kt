@@ -6,7 +6,7 @@ import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
-import com.saveourtool.save.utils.veryPrettyPrint
+import com.saveourtool.save.utils.toUnixCalendarFormat
 import com.saveourtool.save.v1
 
 import js.core.jso
@@ -134,7 +134,7 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
                 style = jso {
                     background = "#F1F1F1".unsafeCast<Background>()
                 }
-                +(comment.createDate?.veryPrettyPrint(TimeZone.currentSystemDefault()) ?: "Unknown")
+                +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
             }
             columnCard {
                 markdown(comment.message.split("\n").joinToString("\n\n"))
