@@ -9130,6 +9130,9 @@
         ],
         "type": "object",
         "properties": {
+          "createDate": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
           "message": {
             "type": "string"
           },
