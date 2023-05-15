@@ -108,15 +108,17 @@ class LnkUserOrganizationController(
         @PathVariable organizationName: String,
         @RequestParam(required = false) userName: String?,
         authentication: Authentication?,
-    ): Mono<Role> = if (authentication == null) Role.NONE.toMono() else getUserAndOrganizationWithPermissions(
-        userName ?: authentication.toUser().name!!,
-        organizationName,
-        Permission.READ,
-        authentication,
-    )
-        .map { (user, organization) ->
-            lnkUserOrganizationService.getRole(user, organization)
-        }
+    ): Mono<Role> = authentication?.let {
+        getUserAndOrganizationWithPermissions(
+            userName ?: authentication.toUser().name!!,
+            organizationName,
+            Permission.READ,
+            authentication,
+        )
+            .map { (user, organization) ->
+                lnkUserOrganizationService.getRole(user, organization)
+            }
+    } ?: Role.NONE.toMono()
 
     @PostMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
