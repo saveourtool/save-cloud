@@ -90,8 +90,6 @@ class LnkUserOrganizationController(
         }
 
     @GetMapping("/{organizationName}/users/roles")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get user's role in organization with given name.",
@@ -109,8 +107,8 @@ class LnkUserOrganizationController(
     fun getRole(
         @PathVariable organizationName: String,
         @RequestParam(required = false) userName: String?,
-        authentication: Authentication,
-    ): Mono<Role> = getUserAndOrganizationWithPermissions(
+        authentication: Authentication?,
+    ): Mono<Role> = if (authentication == null) Role.NONE.toMono() else getUserAndOrganizationWithPermissions(
         userName ?: authentication.toUser().name!!,
         organizationName,
         Permission.READ,
