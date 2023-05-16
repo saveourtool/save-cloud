@@ -90,8 +90,6 @@ class LnkUserOrganizationController(
         }
 
     @GetMapping("/{organizationName}/users/roles")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get user's role in organization with given name.",
@@ -108,17 +106,18 @@ class LnkUserOrganizationController(
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun getRole(
         @PathVariable organizationName: String,
-        @RequestParam(required = false) userName: String?,
-        authentication: Authentication,
-    ): Mono<Role> = getUserAndOrganizationWithPermissions(
-        userName ?: authentication.toUser().name!!,
-        organizationName,
-        Permission.READ,
-        authentication,
-    )
-        .map { (user, organization) ->
-            lnkUserOrganizationService.getRole(user, organization)
-        }
+        authentication: Authentication?,
+    ): Mono<Role> = authentication?.let {
+        getUserAndOrganizationWithPermissions(
+            authentication.toUser().name!!,
+            organizationName,
+            Permission.READ,
+            authentication,
+        )
+            .map { (user, organization) ->
+                lnkUserOrganizationService.getRole(user, organization)
+            }
+    } ?: Role.NONE.toMono()
 
     @PostMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
