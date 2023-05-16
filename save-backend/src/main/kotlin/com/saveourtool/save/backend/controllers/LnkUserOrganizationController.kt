@@ -106,11 +106,10 @@ class LnkUserOrganizationController(
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun getRole(
         @PathVariable organizationName: String,
-        @RequestParam(required = false) userName: String?,
         authentication: Authentication?,
     ): Mono<Role> = authentication?.let {
         getUserAndOrganizationWithPermissions(
-            userName ?: authentication.toUser().name!!,
+            authentication.toUser().name!!,
             organizationName,
             Permission.READ,
             authentication,

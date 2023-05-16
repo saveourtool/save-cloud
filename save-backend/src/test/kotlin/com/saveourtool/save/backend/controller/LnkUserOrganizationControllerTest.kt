@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.reactive.server.expectBody
 
 @WebFluxTest(controllers = [LnkUserOrganizationController::class])
 @Import(
@@ -59,49 +58,6 @@ class LnkUserOrganizationControllerTest {
 
     @MockBean
     private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
-
-    @Test
-    @WithMockUser
-    fun `should allow reading roles if user is viewer or higher`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
-        given(
-            user = { User(name = it.arguments[0] as String, null, null, "") },
-            organization = Organization.stub(id = 99),
-            organizationRole = Role.VIEWER,
-        )
-        given(lnkUserOrganizationService.getRole(any(), any())).willReturn(Role.ADMIN)
-
-        webTestClient.get()
-            .uri("/api/$v1/organizations/Huawei/users/roles?userName=admin")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<Role>()
-            .isEqualTo(Role.ADMIN)
-        verify(lnkUserOrganizationService, times(1)).getRole(any(), any())
-    }
-
-    @Test
-    @WithMockUser
-    fun `should forbid reading of roles if user doesn't have permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
-        given(
-            user = { User(name = it.arguments[0] as String, null, null, "") },
-            organization = Organization.stub(id = 99),
-            organizationRole = Role.NONE,
-        )
-
-        webTestClient.get()
-            .uri("/api/$v1/organizations/Huawei/users/roles?userName=admin")
-            .exchange()
-            .expectStatus()
-            .isForbidden
-        verify(lnkUserOrganizationService, times(0)).getRole(any(), any())
-    }
 
     @Test
     @WithMockUser
