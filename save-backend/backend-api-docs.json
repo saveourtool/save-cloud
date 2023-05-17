@@ -4969,17 +4969,7 @@
           {
             "description": "name of a user",
             "in": "query",
-            "name": "userName",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
+            "name": "userName"
           }
         ],
         "responses": {
