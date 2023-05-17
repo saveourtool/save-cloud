@@ -4,9 +4,9 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.fileuploader.fileUploaderForProjectRun

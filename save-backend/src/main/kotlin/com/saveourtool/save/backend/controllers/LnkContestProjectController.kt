@@ -11,8 +11,8 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*

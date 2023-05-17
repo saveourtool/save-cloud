@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic.contests
 
-import com.saveourtool.save.entities.ContestResult
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns

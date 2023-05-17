@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities
+package com.saveourtool.save.entities.contest
 
 import kotlin.js.JsExport
 import kotlinx.serialization.Serializable

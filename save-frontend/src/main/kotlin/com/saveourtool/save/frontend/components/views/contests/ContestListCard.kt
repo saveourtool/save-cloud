@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 import com.saveourtool.save.frontend.components.modal.displayModal

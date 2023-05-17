@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities
+package com.saveourtool.save.entities.contest
 
 import com.saveourtool.save.execution.ExecutionStatus
 import kotlinx.datetime.LocalDateTime

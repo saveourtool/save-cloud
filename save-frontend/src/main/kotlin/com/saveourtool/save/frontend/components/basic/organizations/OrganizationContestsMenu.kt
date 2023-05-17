@@ -7,8 +7,8 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
