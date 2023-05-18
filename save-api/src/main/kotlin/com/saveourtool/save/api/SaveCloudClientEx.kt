@@ -5,11 +5,11 @@ package com.saveourtool.save.api
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus.CREATED
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest

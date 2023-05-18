@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal

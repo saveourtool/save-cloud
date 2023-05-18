@@ -2,12 +2,14 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.entities.Contest
-import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.contest.ContestStatus
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
 import java.time.LocalDateTime
 import java.util.*
 

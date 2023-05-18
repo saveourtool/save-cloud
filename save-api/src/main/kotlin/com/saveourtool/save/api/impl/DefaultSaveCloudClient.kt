@@ -11,6 +11,8 @@ import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.TestingType.CONTEST_MODE
 import com.saveourtool.save.filters.ProjectFilter

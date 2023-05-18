@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu

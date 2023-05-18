@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import kotlinx.serialization.Serializable
 

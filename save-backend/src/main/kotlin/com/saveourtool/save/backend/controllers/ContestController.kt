@@ -7,6 +7,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.Contest.Companion.toContest
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.test.TestFilesContent
