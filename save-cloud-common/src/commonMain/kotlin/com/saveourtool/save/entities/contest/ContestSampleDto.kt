@@ -14,7 +14,7 @@ data class ContestSampleDto(
     companion object {
         val empty = ContestSampleDto(
             "",
-            "",
+            null,
         )
     }
 }
