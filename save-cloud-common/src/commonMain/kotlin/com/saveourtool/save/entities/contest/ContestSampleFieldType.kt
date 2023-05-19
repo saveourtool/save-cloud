@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Enum of contest sample field type
+ * @property value pretty name
  */
 @Serializable
 @Suppress("WRONG_DECLARATIONS_ORDER")
