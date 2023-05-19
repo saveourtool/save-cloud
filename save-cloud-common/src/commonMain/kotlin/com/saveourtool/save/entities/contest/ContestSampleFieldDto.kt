@@ -14,7 +14,7 @@ data class ContestSampleFieldDto(
     companion object {
         val empty = ContestSampleFieldDto(
             "",
-            ContestSampleFieldType.NUM,
+            ContestSampleFieldType.NUMBER,
         )
     }
 }

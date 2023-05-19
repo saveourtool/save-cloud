@@ -110,7 +110,7 @@ val createContestTemplateView: VFC = VFC {
                                                 onChange = {
                                                     mapField[sample.key] = ContestSampleFieldDto(
                                                         it.target.value,
-                                                        mapField[sample.key]?.type ?: ContestSampleFieldType.NUM,
+                                                        mapField[sample.key]?.type ?: ContestSampleFieldType.NUMBER,
                                                     )
                                                 }
                                             }
@@ -132,7 +132,7 @@ val createContestTemplateView: VFC = VFC {
                                                     val entries = event.target.value
                                                     mapField[sample.key] = ContestSampleFieldDto(
                                                         mapField[sample.key]?.name ?: "",
-                                                        ContestSampleFieldType.valueOf(entries)
+                                                        ContestSampleFieldType.valueOf(entries.uppercase())
                                                     )
                                                 }
                                             }
