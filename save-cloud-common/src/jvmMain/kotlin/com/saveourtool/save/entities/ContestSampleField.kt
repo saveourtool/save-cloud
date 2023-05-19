@@ -27,7 +27,6 @@ class ContestSampleField(
 
 ) : BaseEntityWithDateAndDto<ContestSampleFieldDto>() {
     override fun toDto() = ContestSampleFieldDto(
-        contestSample = contestSample.toDto(),
         name = name,
         type = type,
     )

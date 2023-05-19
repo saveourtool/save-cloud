@@ -17,6 +17,7 @@ enum class FrontendRoutes(val path: String) {
     AWESOME_BENCHMARKS("awesome-benchmarks"),
     CONTESTS("contests"),
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
+    CREATE_CONTESTS_TEMPLATE("create-contest-template"),
     CREATE_ORGANIZATION("create-organization"),
     CREATE_PROJECT("create-project"),
     CREATE_VULNERABILITY("foss-graph/create-vulnerability"),
