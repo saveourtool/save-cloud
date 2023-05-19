@@ -36,7 +36,7 @@ private fun ChildrenBuilder.stayTunedImage() {
 @Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION", "LongMethod")
 private fun welcomeContest() = VFC {
     div {
-        className = ClassName("col-lg-6")
+        className = ClassName("col-lg-5")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {

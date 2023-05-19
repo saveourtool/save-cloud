@@ -83,6 +83,12 @@ enum class InputTypes(
         "name",
         NAME_TOOLTIP
     ),
+    CONTEST_TEMPLATE_NAME(
+        "Contest template name",
+        NAME_ERROR_MESSAGE,
+        "name",
+        NAME_TOOLTIP,
+    ),
     CONTEST_START_TIME("contest starting time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),

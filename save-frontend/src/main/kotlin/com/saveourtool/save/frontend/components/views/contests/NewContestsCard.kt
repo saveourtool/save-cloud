@@ -38,7 +38,7 @@ private fun newContestsCard() = VFC {
     }
 
     div {
-        className = ClassName("col-lg-6")
+        className = ClassName("col-lg-5")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {

@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
+import com.saveourtool.save.frontend.components.views.contests.createContestTemplateView
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoMainView
 import com.saveourtool.save.frontend.components.views.demo.demoView
@@ -170,6 +171,7 @@ val basicRouting: FC<AppProps> = FC { props ->
 
             contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
             contestView.create() to "/$CONTESTS/:contestName",
+            createContestTemplateView.create() to "/$CREATE_CONTESTS_TEMPLATE",
             contestExecutionView.create() to "/$CONTESTS/:contestName/:organizationName/:projectName",
             awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
             creationView.create() to "/$CREATE_PROJECT/:owner",

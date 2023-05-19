@@ -4,22 +4,31 @@ import kotlinx.serialization.Serializable
 
 /**
  * Enum of contest sample field type
+ * @property value pretty name
  */
 @Serializable
-enum class ContestSampleFieldType {
-    /**
-     * Multi string type
-     */
-    MULTI_STRING,
-
+@Suppress("WRONG_DECLARATIONS_ORDER")
+enum class ContestSampleFieldType(val value: String) {
     /**
      * Number type
      */
-    NUM,
+    NUMBER("Number"),
 
     /**
      * Single string type
      */
-    SINGLE_STRING,
+    STRING("String"),
+
+    /**
+     * Multi string type
+     */
+    TEXT("Text"),
+
+    /**
+     * Boolean type
+     */
+    BOOLEAN("Boolean"),
     ;
+
+    override fun toString(): String = value
 }
