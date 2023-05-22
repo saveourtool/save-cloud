@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.repository
+package com.saveourtool.save.backend.repository.contest
 
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.contest.ContestStatus
