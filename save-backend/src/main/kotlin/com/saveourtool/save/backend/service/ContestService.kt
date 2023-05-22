@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.ContestRepository
+import com.saveourtool.save.backend.repository.contest.ContestRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.contest.ContestStatus
