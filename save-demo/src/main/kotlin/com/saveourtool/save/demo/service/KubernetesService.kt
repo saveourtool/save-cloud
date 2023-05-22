@@ -78,7 +78,7 @@ class KubernetesService(
      */
     fun stop(demo: Demo): List<StatusDetails> {
         logger.info("Stopping job...")
-        return kc.getJobByName(demo).delete()
+        return kc.getJobByNameInNamespace(demo, kubernetesSettings.agentNamespace).delete()
     }
 
     /**
