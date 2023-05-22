@@ -7,9 +7,9 @@ import com.saveourtool.save.entities.contest.ContestSampleFieldDto
 import com.saveourtool.save.entities.contest.ContestSampleFieldType
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.utils.Style
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.useBackground
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
+
 import react.VFC
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ReactHTML.div
@@ -26,6 +26,9 @@ import react.useState
 import web.cssom.ClassName
 import web.html.InputType
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 val createContestTemplateView: VFC = VFC {
     useBackground(Style.BLUE)
 
@@ -34,6 +37,19 @@ val createContestTemplateView: VFC = VFC {
     val (number, setNumber) = useState(0)
 
     val navigate = useNavigate()
+
+    val enrollRequest = useDeferredRequest {
+        val contestSampleWithField = contestTemplate.copy(fields = mapField.map { it.value })
+        val response = post(
+            url = "$apiUrl/contests/sample/save",
+            headers = jsonHeaders,
+            body = Json.encodeToString(contestSampleWithField),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            navigate(to = "/${FrontendRoutes.CONTESTS}")
+        }
+    }
 
     div {
         className = ClassName("page-header align-items-start min-vh-100")
@@ -147,7 +163,7 @@ val createContestTemplateView: VFC = VFC {
                                 classes = "mt-4",
                                 isDisabled = contestTemplate.name.isEmpty()
                             ) {
-                                val contestSampleWithField = contestTemplate.copy(fields = mapField.map { it.value })
+                                enrollRequest()
                             }
                         }
                     }
