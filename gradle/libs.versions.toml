@@ -86,6 +86,7 @@ kotlinx-coroutines-core-linuxx64 = { module = "org.jetbrains.kotlinx:kotlinx-cor
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-source = { module = "com.akuleshov7:ktoml-source", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
