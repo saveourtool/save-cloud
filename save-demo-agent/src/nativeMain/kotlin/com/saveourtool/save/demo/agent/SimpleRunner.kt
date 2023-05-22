@@ -5,6 +5,7 @@
 package com.saveourtool.save.demo.agent
 
 import com.saveourtool.save.core.files.readLines
+import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.demo.DemoAgentConfig
 import com.saveourtool.save.demo.DemoResult
@@ -17,6 +18,8 @@ import com.saveourtool.save.utils.fs
 import okio.Path
 import okio.Path.Companion.toPath
 
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -58,13 +61,20 @@ private fun cleanUp(inputFile: Path, configFile: Path?, outputFile: Path?) {
     configFile?.let { fs.delete(it, false) }
 }
 
+@OptIn(ExperimentalTime::class)
 private fun run(
     runCommand: String,
     inputFile: Path,
     outputFile: Path?
 ): DemoResult {
     val pb = ProcessBuilder(false, fs)
-    val executionResult = pb.exec(runCommand, ".", null, PROCESS_BUILDER_TIMEOUT_MILLIS)
+    val executionResult = measureTimedValue {
+        pb.exec(runCommand, ".", null, PROCESS_BUILDER_TIMEOUT_MILLIS)
+    }
+        .let {
+            logDebug("ProcessBuilder took ${it.duration}")
+            it.value
+        }
     val warnings = outputFile?.takeIf { fs.exists(it) }?.let { fs.readLines(it) }.orEmpty()
 
     return DemoResult(
