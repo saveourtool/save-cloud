@@ -28,6 +28,7 @@ dependencies {
     }
     implementation(libs.jgit)
     implementation(libs.kotlinx.serialization.properties)
+    implementation(libs.ktoml.source)
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
     implementation(libs.kotlinx.serialization.json)
