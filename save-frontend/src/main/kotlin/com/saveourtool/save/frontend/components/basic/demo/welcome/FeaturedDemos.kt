@@ -22,7 +22,7 @@ import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 internal val featuredDemos = VFC {
-    val (featuredDemos, setFeaturedDemos) = useState<List<DemoDto>>(
+    val (featuredDemos, setFeaturedDemos) = useState(
         listOf(
             DemoDto.emptyForProject("saveourtool", "Diktat"),
             DemoDto.emptyForProject("saveourtool", "Ktlint")
