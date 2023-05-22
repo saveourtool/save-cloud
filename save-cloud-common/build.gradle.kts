@@ -53,9 +53,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.source)
-                implementation(libs.ktoml.file)
             }
         }
         commonTest {
@@ -86,6 +83,9 @@ kotlin {
                 implementation(project.dependencies.platform(libs.aws.sdk.bom))
                 implementation(libs.aws.sdk.s3)
                 implementation(libs.aws.sdk.netty.nio)
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
+                implementation(libs.ktoml.file)
                 api(libs.kotlinx.coroutines.reactor)
             }
         }
@@ -108,6 +108,12 @@ kotlin {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
             macosX64Main.dependsOn(this)
+
+            dependencies {
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
+                implementation(libs.ktoml.file)
+            }
         }
     }
 }
