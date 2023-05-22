@@ -50,11 +50,13 @@ fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T
 
 /**
  * @param demo demo entity
+ * @param namespace namespace to look or the [demo] pod
  * @return [ScalableResource] of [Job]
  */
-fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
+fun KubernetesClient.getJobByNameInNamespace(demo: Demo, namespace: String): ScalableResource<Job> = batch()
     .v1()
     .jobs()
+    .inNamespace(namespace)
     .withName(jobNameForDemo(demo))
 
 private fun ContainerPort.default(port: Int) = apply {
