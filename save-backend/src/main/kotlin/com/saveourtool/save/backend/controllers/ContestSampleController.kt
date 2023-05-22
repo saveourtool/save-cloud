@@ -27,10 +27,10 @@ class ContestSampleController(
     @PostMapping("/save")
     @Operation(
         method = "POST",
-        summary = "Save vulnerability.",
-        description = "Save vulnerability.",
+        summary = "Save contest sample.",
+        description = "Save contest sample.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully saved vulnerability")
+    @ApiResponse(responseCode = "200", description = "Successfully saved contest sample")
     @PreAuthorize("permitAll()")
     fun save(
         @RequestBody contestSampleDto: ContestSampleDto,
@@ -38,6 +38,6 @@ class ContestSampleController(
     ): Mono<StringResponse> = blockingToMono {
         contestSampleService.save(contestSampleDto, authentication)
     }.map {
-        ResponseEntity.ok("Vulnerability was successfully saved")
+        ResponseEntity.ok("Contest sample was successfully saved")
     }
 }

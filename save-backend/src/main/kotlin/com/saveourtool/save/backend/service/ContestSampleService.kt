@@ -26,7 +26,7 @@ class ContestSampleService(
     private val userRepository: UserRepository,
 ) {
     /**
-     * @param contestSampleDto dto of new vulnerability
+     * @param contestSampleDto dto of new contest sample
      * @param authentication auth info of a current user
      */
     @Transactional
