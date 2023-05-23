@@ -55,4 +55,9 @@ class ContestSampleService(
 
         contestSampleFieldRepository.saveAll(contestSampleFields)
     }
+
+    /**
+     * @return all contest samples
+     */
+    fun getAll() = contestSampleRepository.findAll()
 }
