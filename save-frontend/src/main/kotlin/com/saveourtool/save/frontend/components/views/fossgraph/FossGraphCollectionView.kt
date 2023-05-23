@@ -165,7 +165,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                                 filters = vulnerabilityFilters
                                 getData = { _, _ ->
                                     post(
-                                        url = "$apiUrl/vulnerabilities/by-filters",
+                                        url = "$apiUrl/vulnerabilities/${props.currentUserInfo?.globalRole?.let { "by-filters" } ?: "get-all-public"}",
                                         headers = jsonHeaders,
                                         body = Json.encodeToString(vulnerabilityFilters),
                                         loadingHandler = ::noopLoadingHandler,
