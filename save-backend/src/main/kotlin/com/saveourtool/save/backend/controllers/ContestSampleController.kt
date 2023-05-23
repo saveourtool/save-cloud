@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.service.ContestSampleService
 import com.saveourtool.save.entities.contest.ContestSampleDto
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -10,10 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 /**
@@ -39,5 +37,16 @@ class ContestSampleController(
         contestSampleService.save(contestSampleDto, authentication)
     }.map {
         ResponseEntity.ok("Contest sample was successfully saved")
+    }
+
+    @GetMapping("/get/all")
+    @Operation(
+        method = "GET",
+        summary = "Get all contest samples.",
+        description = "Get list of all contest samples.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of contest samples.")
+    fun getAll() = blockingToFlux {
+        contestSampleService.getAll().map { it.toDto() }
     }
 }

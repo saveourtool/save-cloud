@@ -74,6 +74,10 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                                 currentUserInfo = props.currentUserInfo
                             }
                         }
+                        div {
+                            className = ClassName("row mb-2")
+                            contestSampleList()
+                        }
                     }
                 }
             }
