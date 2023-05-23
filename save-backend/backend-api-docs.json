@@ -363,7 +363,7 @@
     "/api/v1/comments/save": {
       "post": {
         "description": "Save new comment.",
-        "operationId": "save_2",
+        "operationId": "save_3",
         "requestBody": {
           "content": {
             "application/json": {
@@ -853,6 +853,38 @@
         "summary": "Get newest contests.",
         "tags": [
           "contests"
+        ]
+      }
+    },
+    "/api/v1/contests/sample/save": {
+      "post": {
+        "description": "Save contest sample.",
+        "operationId": "save_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestSampleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved contest sample"
+          }
+        },
+        "summary": "Save contest sample.",
+        "tags": [
+          "contest-sample-controller"
         ]
       }
     },
@@ -9223,6 +9255,48 @@
           },
           "submissionTime": {
             "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
+      "ContestSampleDto": {
+        "required": [
+          "fields",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContestSampleFieldDto"
+            }
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ContestSampleFieldDto": {
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Number",
+              "String",
+              "Text",
+              "Boolean"
+            ]
           }
         }
       },
