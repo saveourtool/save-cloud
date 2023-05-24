@@ -856,6 +856,31 @@
         ]
       }
     },
+    "/api/v1/contests/sample/get/all": {
+      "get": {
+        "description": "Get list of all contest samples.",
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestSampleDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of contest samples."
+          }
+        },
+        "summary": "Get all contest samples.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
     "/api/v1/contests/sample/save": {
       "post": {
         "description": "Save contest sample.",
@@ -8921,6 +8946,59 @@
           }
         ],
         "summary": "Delete project.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/get-all-public": {
+      "post": {
+        "description": "Get all public vulnerabilities.",
+        "operationId": "getAllPublicVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all public vulnerabilities."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all public vulnerabilities.",
         "tags": [
           "vulnerabilities"
         ]
