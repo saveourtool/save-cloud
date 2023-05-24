@@ -10,6 +10,8 @@ data:
     demo.kubernetes.agent-namespace={{ .Values.agentNamespace }}
     demo.kubernetes.agentPort={{ .Values.demo.agentPort }}
     demo.kubernetes.agentSubdomainName={{ .Values.demo.agentSubdomainName }}
+    demo.kubernetes.agent-cpu-requests=100M
+    demo.kubernetes.agent-cpu-limits=500M
 
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.demo.managementPort }}
