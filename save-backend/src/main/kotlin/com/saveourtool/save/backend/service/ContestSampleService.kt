@@ -60,4 +60,16 @@ class ContestSampleService(
      * @return all contest samples
      */
     fun getAll() = contestSampleRepository.findAll()
+
+    /**
+     * @param id contest sample id
+     * @return contest sample by id
+     */
+    fun getById(id: Long) = contestSampleRepository.getByIdOrNotFound(id)
+
+    /**
+     * @param id contest sample id
+     * @return list of contest sample field by contest sample id
+     */
+    fun getAllContestSampleFieldByContestSampleId(id: Long) = contestSampleFieldRepository.findByContestSampleId(id)
 }
