@@ -19,9 +19,7 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.textarea
 import react.useState
-import web.cssom.AlignItems
-import web.cssom.ClassName
-import web.cssom.Display
+import web.cssom.*
 import web.html.InputType
 
 val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
@@ -141,6 +139,9 @@ val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
                             className = ClassName("col-md-4 pl-2 pr-2 mt-3 input-group-sm input-group")
                             select {
                                 className = ClassName("form-control")
+                                style = jso {
+                                    height = "100%".unsafeCast<Height>()
+                                }
                                 ContestSampleFieldType.values().map { it.toString() }.forEach {
                                     option {
                                         className = ClassName("list-group-item")
