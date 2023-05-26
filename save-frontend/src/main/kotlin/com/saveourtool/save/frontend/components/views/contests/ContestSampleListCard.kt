@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.contest.ContestSampleDto
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCode
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
 import react.Fragment
 import react.VFC
@@ -30,7 +31,7 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
                 Fragment.create {
                     td {
                         Link {
-                            // FixMe: need add link to = ""
+                            to = "/${FrontendRoutes.CONTESTS_TEMPLATE.path}/${cellContext.row.original.id}"
                             +cellContext.value
                         }
                     }
