@@ -24,6 +24,7 @@ class ContestSample(
 
 ) : BaseEntityWithDateAndDto<ContestSampleDto>() {
     override fun toDto() = ContestSampleDto(
+        id = requiredId(),
         name = name,
         description = description,
     )
