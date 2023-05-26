@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.TabMenuBar
 enum class ProjectMenuBar {
     INFO,
     RUN,
+    FILES,
     STATISTICS,
     DEMO,
     SETTINGS,
