@@ -220,6 +220,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ProjectMenuBar.INFO -> renderInfo()
             ProjectMenuBar.DEMO -> renderDemo()
             ProjectMenuBar.SECURITY -> renderSecurity()
+            ProjectMenuBar.FILES -> renderFiles()
         }
     }
 
@@ -227,6 +228,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         projectSecurityMenu {
             project = state.project
             currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+        }
+    }
+
+    private fun ChildrenBuilder.renderFiles() {
+        projectFilesMenu {
+            project = state.project
+            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            selfRole = state.selfRole
         }
     }
 
@@ -252,7 +261,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 className = ClassName("nav nav-tabs mb-4")
                 ProjectMenuBar.values()
                     .filterNot {
-                        (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                        it in listOf(ProjectMenuBar.RUN, ProjectMenuBar.SETTINGS, ProjectMenuBar.FILES) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
                     .forEach { projectMenu ->
                         li {
