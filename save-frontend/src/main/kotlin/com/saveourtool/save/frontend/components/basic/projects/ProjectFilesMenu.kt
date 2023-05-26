@@ -19,7 +19,6 @@ import web.cssom.ClassName
 val projectFilesMenu: FC<ProjectFilesMenuProps> = FC { props ->
     div {
         className = ClassName("row justify-content-center mb-2")
-        // ===================== LEFT COLUMN =======================================================================
         div {
             className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
             div {
