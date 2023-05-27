@@ -856,6 +856,75 @@
         ]
       }
     },
+    "/api/v1/contests/sample/get": {
+      "get": {
+        "description": "Get contest sample by id.",
+        "operationId": "getById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestSampleDto"
+                }
+              }
+            },
+            "description": "Successfully fetched of contest sample."
+          }
+        },
+        "summary": "Get contest sample by id.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
+    "/api/v1/contests/sample/get-fields/by-sample-id": {
+      "get": {
+        "description": "Get all contest sample field by contest sample id.",
+        "operationId": "getFieldsBySampleId",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestSampleFieldDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of contest sample fields."
+          }
+        },
+        "summary": "Get all contest sample field by contest sample id.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
     "/api/v1/contests/sample/get/all": {
       "get": {
         "description": "Get list of all contest samples.",
@@ -9339,6 +9408,7 @@
       "ContestSampleDto": {
         "required": [
           "fields",
+          "id",
           "name"
         ],
         "type": "object",
@@ -9351,6 +9421,10 @@
             "items": {
               "$ref": "#/components/schemas/ContestSampleFieldDto"
             }
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           },
           "name": {
             "type": "string"
