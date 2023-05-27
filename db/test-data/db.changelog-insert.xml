@@ -31,7 +31,6 @@
     <include file="lnk-execution-file-insert.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-version-insert.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-insert.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-description-insert.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-project-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="add-tests-data" author="nulls">
