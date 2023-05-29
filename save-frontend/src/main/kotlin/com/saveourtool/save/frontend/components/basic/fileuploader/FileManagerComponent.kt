@@ -138,6 +138,8 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
+                    isMultipleFilesSupported = true
+                    tooltipMessage = "Regular files/Executable files/ZIP Archives"
                     onChangeEventHandler = { files ->
                         files!!.asList()
                             .also { fileList -> setUploadBytesTotal(fileList.sumOf { it.size }.toLong()) }
