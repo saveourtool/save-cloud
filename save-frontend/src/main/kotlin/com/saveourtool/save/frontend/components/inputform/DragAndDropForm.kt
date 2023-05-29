@@ -60,7 +60,7 @@ val dragAndDropForm: FC<DragAndDropFormProps> = FC { props ->
                 ref = inputRef
                 type = InputType.file
                 id = "input-file-upload"
-                multiple = true
+                multiple = props.isMultipleFilesSupported
                 hidden = true
                 onChange = { props.onChangeEventHandler(it.target.files) }
             }
@@ -68,7 +68,7 @@ val dragAndDropForm: FC<DragAndDropFormProps> = FC { props ->
             onClick = { onButtonClick() }
             asDynamic()["data-toggle"] = "tooltip"
             asDynamic()["data-placement"] = "bottom"
-            title = "Regular files/Executable files/ZIP Archives"
+            props.tooltipMessage?.let { title = it }
         }
     }
 }
@@ -81,4 +81,14 @@ external interface DragAndDropFormProps : Props {
      * Callback that defines file uploading process
      */
     var onChangeEventHandler: (FileList?) -> Unit
+
+    /**
+     * Flag that defines if multiple files uploading is supported or not
+     */
+    var isMultipleFilesSupported: Boolean
+
+    /**
+     * Tooltip message that should be displayed
+     */
+    var tooltipMessage: String?
 }
