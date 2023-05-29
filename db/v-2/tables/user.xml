@@ -59,4 +59,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="user-add-column-3" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="rating" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
