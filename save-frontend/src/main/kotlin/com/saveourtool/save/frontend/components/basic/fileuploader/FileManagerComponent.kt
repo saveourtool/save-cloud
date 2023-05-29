@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
@@ -18,20 +19,16 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.file.File
 import web.html.ButtonType
-import web.html.InputType
 
 import kotlinx.browser.window
 
 /**
- * @return functional component for file uploading
+ * [FC] for file uploading
  */
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -92,7 +89,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
 
     div {
         ul {
-            className = ClassName("list-group")
+            className = ClassName("list-group shadow")
             @Suppress("MAGIC_NUMBER", "MagicNumber")
             li {
                 val storageSizeMegabytes = storageBytes.toMegabytes()
@@ -136,27 +133,17 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
                     +file.prettyPrint()
                 }
             }
+
             // ===== UPLOAD FILES BUTTON =====
             li {
-                className = ClassName("list-group-item d-flex justify-content-center align-items-center")
-                label {
-                    className = ClassName("btn btn-outline-secondary m-0")
-                    input {
-                        type = InputType.file
-                        multiple = true
-                        hidden = true
-                        onChange = { event ->
-                            event.target.files!!.asList()
-                                .also { files -> setUploadBytesTotal(files.sumOf { it.size }.toLong()) }
-                                .let { setFilesForUploading(it) }
-                            uploadFiles()
-                        }
+                className = ClassName("list-group-item p-0 d-flex bg-light")
+                dragAndDropForm {
+                    onChangeEventHandler = { files ->
+                        files!!.asList()
+                            .also { fileList -> setUploadBytesTotal(fileList.sumOf { it.size }.toLong()) }
+                            .let { setFilesForUploading(it) }
+                        uploadFiles()
                     }
-                    fontAwesomeIcon(icon = faUpload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Regular files/Executable files/ZIP Archives"
-                    strong { +" Upload files " }
                 }
             }
             progressBarComponent {
