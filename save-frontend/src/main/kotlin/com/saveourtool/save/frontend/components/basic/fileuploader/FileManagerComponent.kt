@@ -42,6 +42,10 @@ import kotlinx.browser.window
 val fileManagerComponent: FC<FileManagerProps> = FC { props ->
     useTooltip()
     val (availableFiles, setAvailableFiles) = useState<List<FileDto>>(emptyList())
+    val (storageBytes, setStorageBytes) = useState(0L)
+
+    val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
+    val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
 
     useRequest {
         val fileDtos: List<FileDto> = get(
@@ -52,6 +56,8 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             .unsafeMap { it.decodeFromJsonString() }
         setAvailableFiles(fileDtos)
     }
+
+    useEffect(availableFiles) { setStorageBytes(availableFiles.sumOf { it.sizeBytes }) }
 
     val (fileToDelete, setFileToDelete) = useState<FileDto?>(null)
     val deleteFile = useDeferredRequest {
@@ -76,10 +82,10 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             val uploadedFile: FileDto = postUploadFile(
                 url = "$apiUrl/files/${props.projectCoordinates}/upload",
                 file = fileForUploading,
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
             )
                 .decodeFromJsonString()
-
+            setUploadBytesReceived { it.plus(uploadedFile.sizeBytes) }
             setAvailableFiles { it.plus(uploadedFile) }
         }
     }
@@ -87,7 +93,18 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
     div {
         ul {
             className = ClassName("list-group")
-
+            @Suppress("MAGIC_NUMBER", "MagicNumber")
+            li {
+                val storageSizeMegabytes = storageBytes.toMegabytes()
+                // todo: storage size shouldn't be more then 500MB per project
+                val textColor = when {
+                    storageSizeMegabytes > 450 -> "text-danger"
+                    storageSizeMegabytes > 350 -> "text-warning"
+                    else -> "text-dark"
+                }
+                className = ClassName("list-group-item d-flex justify-content-center $textColor")
+                +"Your storage is filled with ${storageSizeMegabytes.toFixedStr(2)} MB / 500MB."
+            }
             // ===== SELECTED FILES =====
             availableFiles.map { file ->
                 li {
@@ -118,13 +135,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
 
                     +file.prettyPrint()
                 }
-            }.ifEmpty {
-                li {
-                    className = ClassName("list-group-item d-flex justify-content-center")
-                    +"There are no files associated with your project yet."
-                }
             }
-
             // ===== UPLOAD FILES BUTTON =====
             li {
                 className = ClassName("list-group-item d-flex justify-content-center align-items-center")
@@ -136,6 +147,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
                         hidden = true
                         onChange = { event ->
                             event.target.files!!.asList()
+                                .also { files -> setUploadBytesTotal(files.sumOf { it.size }.toLong()) }
                                 .let { setFilesForUploading(it) }
                             uploadFiles()
                         }
@@ -145,6 +157,15 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
                     asDynamic()["data-placement"] = "top"
                     title = "Regular files/Executable files/ZIP Archives"
                     strong { +" Upload files " }
+                }
+            }
+            progressBarComponent {
+                current = uploadBytesReceived
+                total = uploadBytesTotal
+                getLabelText = { current, total -> "${current.toKiloBytes()} / ${total.toKiloBytes()} KB" }
+                flushCounters = {
+                    setUploadBytesTotal(0)
+                    setUploadBytesReceived(0)
                 }
             }
         }
@@ -160,3 +181,9 @@ external interface FileManagerProps : Props {
      */
     var projectCoordinates: ProjectCoordinates
 }
+
+@Suppress("MagicNumber", "MAGIC_NUMBER")
+private fun Long.toKiloBytes() = div(1024)
+
+@Suppress("MagicNumber", "MAGIC_NUMBER")
+private fun Long.toMegabytes() = toDouble().div(1024 * 1024)
