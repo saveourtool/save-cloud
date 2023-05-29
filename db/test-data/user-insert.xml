@@ -19,6 +19,7 @@
             <column header="linkedin" name="linkedin" type="varchar(250)" />
             <column header="git_hub" name="git_hub" type="varchar(250)" />
             <column header="twitter" name="twitter" type="varchar(250)" />
+            <column header="rating" name="rating" type="NUMERIC" />
         </loadData>
     </changeSet>
 
