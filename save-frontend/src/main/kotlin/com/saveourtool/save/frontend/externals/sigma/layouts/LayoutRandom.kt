@@ -11,4 +11,5 @@ import react.*
  * @return [LayoutInstance] with positions and assign functions
  */
 @JsName("useLayoutRandom")
+@JsExport
 external fun useLayoutRandom(settings: dynamic = definedExternally): LayoutInstance

@@ -11,4 +11,5 @@ import react.*
  * @return [LayoutInstance] with positions and assign functions
  */
 @JsName("useLayoutCircular")
+@JsExport
 external fun useLayoutCircular(settings: dynamic = definedExternally): LayoutInstance

@@ -23,16 +23,18 @@ import react.useEffect
  */
 @Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION")
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
+    println(props.cpgGraph)
+    println(props.selectedLayout)
     val loadGraph = useLoadGraph()
-    val (_, circularAssign) = useLayoutCircular()
-    val (_, randomAssign) = useLayoutRandom()
-    val (_, atlasAssign) = useLayoutForceAtlas2(jso {
+    val circularAssign = useLayoutCircular().asDynamic()["positions"]
+    val randomAssign = useLayoutRandom().asDynamic()["positions"]
+    val atlasAssign = useLayoutForceAtlas2(jso {
         iterations = 150
         settings = jso {
             gravity = 10
             barnesHutOptimize = true
         }
-    })
+    }).asDynamic()["positions"]
 
     useEffect(props.cpgGraph.nodes, props.selectedLayout) {
         loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
@@ -43,6 +45,7 @@ val graphLoader: FC<GraphLoaderProps> = FC { props ->
             }
             SigmaLayout.CIRCULAR -> circularAssign()
             SigmaLayout.RANDOM -> randomAssign()
+            else -> circularAssign()
         }
     }
 }
@@ -68,7 +71,7 @@ enum class SigmaLayout(val layoutName: String) {
     RANDOM("Random"),
     ;
     companion object {
-        val preferredLayout = CIRCULAR
+        val preferredLayout = RANDOM
     }
 }
 
