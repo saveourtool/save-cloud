@@ -223,16 +223,17 @@ private fun demoAgentContainerSpec(
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {
-            requests = mapOf(
-                "cpu" to Quantity(agentCpuRequests),
-                "memory" to Quantity(agentMemoryRequests),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageRequests),
-            )
-            limits = mapOf(
-                "cpu" to Quantity(agentCpuLimits),
-                "memory" to Quantity(agentMemoryLimits),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageLimits),
-            )
+            requests = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.requestsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.requestsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.requestsQuantity()) }
+            }
+
+            limits = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.limitsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.limitsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.limitsQuantity()) }
+            }
         }
     }
 }

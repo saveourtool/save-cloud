@@ -5,6 +5,7 @@
 package com.saveourtool.save.demo.config
 
 import com.saveourtool.save.s3.S3OperationsProperties
+import io.fabric8.kubernetes.api.model.Quantity
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -31,10 +32,6 @@ data class ConfigProperties(
 }
 
 /**
- * `m` stands for milli, `M` stands for Mega.
- * By default, `M` and `m` are powers of 10.
- * To be more accurate and use `M` as 1024 instead of 1000, `i` should be provided: `Mi`
- * [reference](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/)
  *
  * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
  * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
@@ -44,12 +41,9 @@ data class ConfigProperties(
  * @property agentSubdomainName name of service that is created in order to access agents
  * @property agentPort port of agent that should be used to access it
  * @property agentNamespace namespace that demo-agents should work in, [currentNamespace] by default
- * @property agentCpuRequests configures `resources.requests.cpu` for demo-agent pods
- * @property agentCpuLimits configures `resources.limits.cpu` for demo-agent pods
- * @property agentMemoryRequests configures `resources.requests.memory` for demo-agent pods
- * @property agentMemoryLimits configures `resources.limits.memory` for demo-agent pods
- * @property agentEphemeralStorageRequests configures `resources.requests.ephemeralStorage` for demo-agent pods
- * @property agentEphemeralStorageLimits configures `resources.limits.ephemeralStorage` for demo-agent pods
+ * @property agentCpuLimitations configures CPU [Limitations] for demo-agent pods
+ * @property agentMemoryLimitations configures memory [Limitations] for demo-agent pods
+ * @property agentEphemeralStorageLimitations configures ephemeral storage [Limitations] for demo-agent pods
  */
 data class KubernetesConfig(
     val apiServerUrl: String,
@@ -59,10 +53,41 @@ data class KubernetesConfig(
     val agentSubdomainName: String,
     val agentPort: Int,
     val agentNamespace: String = currentNamespace,
-    val agentCpuRequests: String = "100m",
-    val agentCpuLimits: String = "500m",
-    val agentMemoryRequests: String = "300Mi",
-    val agentMemoryLimits: String = "500Mi",
-    val agentEphemeralStorageRequests: String = "100Mi",
-    val agentEphemeralStorageLimits: String = "500Mi",
-)
+    val agentCpuLimitations: Limitations? = null,
+    val agentMemoryLimitations: Limitations? = defaultAgentMemoryLimitations,
+    val agentEphemeralStorageLimitations: Limitations? = defaultEphemeralStorageLimitations
+) {
+    /**
+     * Data class that configures demo-agent limitations:
+     *
+     * `m` stands for milli, `M` stands for Mega.
+     *
+     * By default, `M` and `m` are powers of 10.
+     * To be more accurate and use `M` as 1024 instead of 1000, `i` should be provided: `Mi`
+     * [reference](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/)
+     *
+     * * CPU is measured in units. This means that `500m` of CPU equals to half of a unit.
+     * * Ephemeral storage and memory is measured in bytes.
+     *
+     * @property requests configures the amount of resources that must be assigned to pod (`resources.requests.<RESOURCE_NAME>`)
+     * @property limits configures the maximum amount of resources that might be assigned to pod (`resources.limits.<RESOURCE_NAME>`)
+     */
+    data class Limitations(
+        val requests: String,
+        val limits: String,
+    ) {
+        /**
+         * @return [requests] as [Quantity]
+         */
+        fun requestsQuantity() = Quantity(requests)
+
+        /**
+         * @return [limits] as [Quantity]
+         */
+        fun limitsQuantity() = Quantity(limits)
+    }
+    companion object {
+        private val defaultAgentMemoryLimitations = Limitations("300Mi", "500Mi")
+        private val defaultEphemeralStorageLimitations = Limitations("100Mi", "500Mi")
+    }
+}
