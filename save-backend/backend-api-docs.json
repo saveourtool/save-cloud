@@ -856,6 +856,100 @@
         ]
       }
     },
+    "/api/v1/contests/sample/get": {
+      "get": {
+        "description": "Get contest sample by id.",
+        "operationId": "getById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestSampleDto"
+                }
+              }
+            },
+            "description": "Successfully fetched of contest sample."
+          }
+        },
+        "summary": "Get contest sample by id.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
+    "/api/v1/contests/sample/get-fields/by-sample-id": {
+      "get": {
+        "description": "Get all contest sample field by contest sample id.",
+        "operationId": "getFieldsBySampleId",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestSampleFieldDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of contest sample fields."
+          }
+        },
+        "summary": "Get all contest sample field by contest sample id.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
+    "/api/v1/contests/sample/get/all": {
+      "get": {
+        "description": "Get list of all contest samples.",
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestSampleDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of contest samples."
+          }
+        },
+        "summary": "Get all contest samples.",
+        "tags": [
+          "contest-sample-controller"
+        ]
+      }
+    },
     "/api/v1/contests/sample/save": {
       "post": {
         "description": "Save contest sample.",
@@ -8926,6 +9020,59 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/get-all-public": {
+      "post": {
+        "description": "Get all public vulnerabilities.",
+        "operationId": "getAllPublicVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all public vulnerabilities."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all public vulnerabilities.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/save": {
       "post": {
         "description": "Save vulnerability.",
@@ -9261,6 +9408,7 @@
       "ContestSampleDto": {
         "required": [
           "fields",
+          "id",
           "name"
         ],
         "type": "object",
@@ -9273,6 +9421,10 @@
             "items": {
               "$ref": "#/components/schemas/ContestSampleFieldDto"
             }
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           },
           "name": {
             "type": "string"
@@ -10759,6 +10911,7 @@
       "User": {
         "required": [
           "isActive",
+          "rating",
           "source"
         ],
         "type": "object",
@@ -10793,6 +10946,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int64"
           },
           "role": {
             "type": "string"

@@ -8,4 +8,10 @@ import org.springframework.stereotype.Repository
  * The repository of contest sample field entities
  */
 @Repository
-interface ContestSampleFieldRepository : BaseEntityRepository<ContestSampleField>
+interface ContestSampleFieldRepository : BaseEntityRepository<ContestSampleField> {
+    /**
+     * @param contestSampleId
+     * @return [ContestSampleField] by [contestSampleId]
+     */
+    fun findByContestSampleId(contestSampleId: Long): List<ContestSampleField>
+}

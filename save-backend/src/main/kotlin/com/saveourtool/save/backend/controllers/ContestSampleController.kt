@@ -49,4 +49,30 @@ class ContestSampleController(
     fun getAll() = blockingToFlux {
         contestSampleService.getAll().map { it.toDto() }
     }
+
+    @GetMapping("/get")
+    @Operation(
+        method = "GET",
+        summary = "Get contest sample by id.",
+        description = "Get contest sample by id.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched of contest sample.")
+    fun getById(
+        @RequestParam id: Long,
+    ) = blockingToMono {
+        contestSampleService.getById(id).toDto()
+    }
+
+    @GetMapping("/get-fields/by-sample-id")
+    @Operation(
+        method = "GET",
+        summary = "Get all contest sample field by contest sample id.",
+        description = "Get all contest sample field by contest sample id.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of contest sample fields.")
+    fun getFieldsBySampleId(
+        @RequestParam id: Long,
+    ) = blockingToMono {
+        contestSampleService.getAllContestSampleFieldByContestSampleId(id).map { it.toDto() }
+    }
 }

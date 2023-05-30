@@ -24,6 +24,7 @@ import javax.persistence.OneToMany
  * @property twitter
  * @property isActive
  * @property originalLogins
+ * @property rating rating of user
  */
 @Entity
 @Suppress("LongParameterList")
@@ -47,6 +48,7 @@ class User(
     )
     @JsonIgnore
     var originalLogins: List<OriginalLogin> = emptyList(),
+    var rating: Long = 0,
 ) : BaseEntity() {
     /**
      * @param projects roles in projects
