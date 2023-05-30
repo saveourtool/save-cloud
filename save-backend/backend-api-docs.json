@@ -10911,6 +10911,7 @@
       "User": {
         "required": [
           "isActive",
+          "rating",
           "source"
         ],
         "type": "object",
@@ -10945,6 +10946,10 @@
           },
           "password": {
             "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int64"
           },
           "role": {
             "type": "string"
