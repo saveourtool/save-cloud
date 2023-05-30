@@ -15,7 +15,7 @@ metadata:
 spec:
   hard:
     requests.cpu: "1"
-    limits.cpu: "2"
+    limits.cpu: "4"
 
 ---
 
