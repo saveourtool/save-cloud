@@ -32,6 +32,10 @@ external val faExclamationTriangle: FontAwesomeIconModule
 @JsNonModule
 external val faTimesCircle: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faTimes")
+@JsNonModule
+external val faTimes: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faQuestionCircle")
 @JsNonModule
 external val faQuestionCircle: FontAwesomeIconModule

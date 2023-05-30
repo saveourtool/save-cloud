@@ -42,6 +42,7 @@ class AuthenticationUserRepository(
             gitHub = record["git_hub"] as String?,
             twitter = record["twitter"] as String?,
             isActive = record["is_active"] as Boolean,
+            rating = record["rating"] as Long,
         ).apply {
             this.id = record["id"] as Long
         }
