@@ -53,7 +53,7 @@ data class KubernetesConfig(
     val agentSubdomainName: String,
     val agentPort: Int,
     val agentNamespace: String = currentNamespace,
-    val agentCpuLimitations: Limitations? = null,
+    val agentCpuLimitations: Limitations? = defaultAgentCpuLimitations,
     val agentMemoryLimitations: Limitations? = defaultAgentMemoryLimitations,
     val agentEphemeralStorageLimitations: Limitations? = defaultEphemeralStorageLimitations
 ) {
@@ -87,6 +87,7 @@ data class KubernetesConfig(
         fun limitsQuantity() = Quantity(limits)
     }
     companion object {
+        private val defaultAgentCpuLimitations = Limitations("200m", "2")
         private val defaultAgentMemoryLimitations = Limitations("300Mi", "500Mi")
         private val defaultEphemeralStorageLimitations = Limitations("100Mi", "500Mi")
     }

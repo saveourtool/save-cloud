@@ -5,18 +5,4 @@ kind: Namespace
 metadata:
   name: {{ .Values.agentNamespace }}
 
----
-
-apiVersion: v1
-kind: ResourceQuota
-metadata:
-  namespace: {{ .Values.agentNamespace }}
-  name: {{ .Values.agentNamespace }}-resource-quota
-spec:
-  hard:
-    requests.cpu: "1"
-    limits.cpu: "4"
-
----
-
 {{ end }}
