@@ -10,9 +10,9 @@ import okio.Path
 import okio.Path.Companion.toPath
 import platform.posix.*
 
+import kotlin.system.getTimeNanos
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
-import kotlinx.datetime.Clock
 import kotlinx.serialization.serializer
 
 actual val fs: FileSystem = FileSystem.SYSTEM
@@ -65,7 +65,7 @@ fun FileSystem.createAndWriteIfNeeded(
  * @param mustCreate if true and file is already created, IOException is thrown
  * @return path to newly-created temp dir
  */
-fun FileSystem.createTempDir(mustCreate: Boolean = true) = Clock.System.now()
+fun FileSystem.createTempDir(mustCreate: Boolean = true) = getTimeNanos()
     .toString()
     .toPath()
     .also { createDirectory(it, mustCreate) }
