@@ -7,14 +7,15 @@
 6. Submit a pull request
 7. Participate in the code review process by responding to feedback
 
-## Launching save-cloud with command line
+## Launching save-cloud with command line (usually for local development)
 1. Use `gradlew.bat startMysqlDb` on Windows and `./gradlew startMysqlDb` on other platforms for setting up database.
 Make sure you have Docker installed and active.
 2. Run backend.
 It can be run either with `./gradlew save-backend:bootRun` or with Intellij Idea Ultimate plugin from the menu `Services`.
-3. Run frontend. It can be run with `./gradlew save-frontend:run`.
+3. Prepare a storage. For local run we have MINIO: `./gradlew startMinio`
+4. Run frontend. It can be run with `./gradlew save-frontend:run`.
 You can enable hot reload by passing `--continuous` flag.
-4. More specific instructions can be found in [save-deploy](save-deploy/README.md)
+5. More specific instructions can be found in [save-deploy](save-deploy/README.md)
 
 ## Spring Intellij Idea Ultimate plugin
 In order to make Spring Intellij Idea Ultimate plugin work properly, you need to set these active profiles in service's configuration:  
