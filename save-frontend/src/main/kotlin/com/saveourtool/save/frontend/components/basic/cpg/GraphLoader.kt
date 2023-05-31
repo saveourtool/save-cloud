@@ -89,4 +89,7 @@ external interface GraphLoaderProps : Props {
     var selectedLayout: SigmaLayout
 }
 
+/**
+ * Extension to get positions from the original library
+ */
 internal fun LayoutInstance.getPositions() = this.asDynamic()["positions"]
