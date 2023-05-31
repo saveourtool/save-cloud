@@ -5,4 +5,3 @@ package com.saveourtool.save.frontend.externals.sigma.layouts
  */
 @JsExport
 external interface LayoutInstance
-

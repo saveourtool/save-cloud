@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.cpg
 
 import com.saveourtool.save.demo.cpg.CpgGraph
+import com.saveourtool.save.frontend.externals.sigma.layouts.LayoutInstance
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutRandom
@@ -23,18 +24,16 @@ import react.useEffect
  */
 @Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION")
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
-    println(props.cpgGraph)
-    println(props.selectedLayout)
     val loadGraph = useLoadGraph()
-    val circularAssign = useLayoutCircular().asDynamic()["positions"]
-    val randomAssign = useLayoutRandom().asDynamic()["positions"]
+    val circularAssign = useLayoutCircular().getPositions()
+    val randomAssign = useLayoutRandom().getPositions()
     val atlasAssign = useLayoutForceAtlas2(jso {
         iterations = 150
         settings = jso {
             gravity = 10
             barnesHutOptimize = true
         }
-    }).asDynamic()["positions"]
+    }).getPositions()
 
     useEffect(props.cpgGraph.nodes, props.selectedLayout) {
         loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
@@ -89,3 +88,5 @@ external interface GraphLoaderProps : Props {
      */
     var selectedLayout: SigmaLayout
 }
+
+internal fun LayoutInstance.getPositions() = this.asDynamic()["positions"]
