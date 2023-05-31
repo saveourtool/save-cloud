@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.cpg
 
 import com.saveourtool.save.demo.cpg.CpgGraph
+import com.saveourtool.save.frontend.externals.sigma.layouts.LayoutInstance
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutRandom
@@ -24,15 +25,15 @@ import react.useEffect
 @Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION")
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
     val loadGraph = useLoadGraph()
-    val (_, circularAssign) = useLayoutCircular()
-    val (_, randomAssign) = useLayoutRandom()
-    val (_, atlasAssign) = useLayoutForceAtlas2(jso {
+    val circularAssign = useLayoutCircular().getPositions()
+    val randomAssign = useLayoutRandom().getPositions()
+    val atlasAssign = useLayoutForceAtlas2(jso {
         iterations = 150
         settings = jso {
             gravity = 10
             barnesHutOptimize = true
         }
-    })
+    }).getPositions()
 
     useEffect(props.cpgGraph.nodes, props.selectedLayout) {
         loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
@@ -43,6 +44,7 @@ val graphLoader: FC<GraphLoaderProps> = FC { props ->
             }
             SigmaLayout.CIRCULAR -> circularAssign()
             SigmaLayout.RANDOM -> randomAssign()
+            else -> circularAssign()
         }
     }
 }
@@ -68,7 +70,7 @@ enum class SigmaLayout(val layoutName: String) {
     RANDOM("Random"),
     ;
     companion object {
-        val preferredLayout = CIRCULAR
+        val preferredLayout = RANDOM
     }
 }
 
@@ -86,3 +88,8 @@ external interface GraphLoaderProps : Props {
      */
     var selectedLayout: SigmaLayout
 }
+
+/**
+ * Extension to get positions from the original library
+ */
+internal fun LayoutInstance.getPositions() = this.asDynamic()["positions"]
