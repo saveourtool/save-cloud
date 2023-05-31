@@ -40,7 +40,7 @@ private val logger = LoggerFactory.getLogger("KubernetesUtils")
  * @throws KubernetesRunnerException on failed job creation
  */
 fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T, namespace: String): T = try {
-    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}" }
+    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.metadata.name}" }
     resource(resourceToCreate).inNamespace(namespace).create().also {
         logger.info("Created ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}")
     }
