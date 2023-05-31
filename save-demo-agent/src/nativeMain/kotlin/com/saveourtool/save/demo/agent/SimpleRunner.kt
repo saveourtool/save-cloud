@@ -13,6 +13,7 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.RunConfiguration
 import com.saveourtool.save.utils.createAndWrite
 import com.saveourtool.save.utils.createAndWriteIfNeeded
+import com.saveourtool.save.utils.createTempDir
 import com.saveourtool.save.utils.fs
 
 import okio.Path
@@ -26,6 +27,24 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 20_000L
 
 /**
+ * @param runRequest [DemoRunRequest]
+ * @param dirPath [Path] to directory where files are expected to be present (e.g. tempdir path)
+ * @return run command where [RunConfiguration.configFileName], [RunConfiguration.inputFileName] and [RunConfiguration.outputFileName]
+ *  have [dirPath] prepended
+ */
+fun RunConfiguration.getRelativeRunCommand(
+    runRequest: DemoRunRequest,
+    dirPath: Path,
+) = requireNotNull(runCommands[runRequest.mode]) { "Could not find run command for mode ${runRequest.mode}." }
+    .appendPath(inputFileName, dirPath)
+    .appendPath(configFileName, dirPath)
+    .appendPath(outputFileName, dirPath)
+
+private fun String.appendPath(oldSubstring: String?, pathToPrepend: Path) = oldSubstring?.let {
+    replace(it, "${pathToPrepend / it}")
+} ?: this
+
+/**
  * @param demoRunRequest [DemoRunRequest] that contains all the information about current run request
  * @param deferredConfig [CompletableDeferred] filled with [DemoAgentConfig] corresponding to _this_ demo
  * @return [DemoResult] filled with the results of demo run
@@ -34,32 +53,28 @@ private const val PROCESS_BUILDER_TIMEOUT_MILLIS = 20_000L
 fun runDemo(demoRunRequest: DemoRunRequest, deferredConfig: CompletableDeferred<DemoAgentConfig>): DemoResult {
     require(demoRunRequest.mode.isNotBlank()) { "Demo mode should not be blank." }
 
-    val config = deferredConfig.getCompleted().runConfiguration
-    val runCommand = requireNotNull(config.runCommands[demoRunRequest.mode]) {
-        "Could not find run command for mode ${demoRunRequest.mode}."
-    }
+    val runConfig = deferredConfig.getCompleted().runConfiguration
+    val tempDir = fs.createTempDir()
+    val runCommand = runConfig.getRelativeRunCommand(demoRunRequest, tempDir)
 
-    val (inputFile, configFile) = createRequiredFiles(demoRunRequest, config)
-    val outputFile = config.outputFileName?.toPath()
+    val (inputFile, _) = createRequiredFiles(demoRunRequest, runConfig, tempDir)
+    val outputFile = runConfig.outputFileName?.let { tempDir / it }
 
     return try {
         run(runCommand, inputFile, outputFile)
     } finally {
-        cleanUp(inputFile, configFile, outputFile)
+        cleanUp(tempDir)
     }
 }
 
 private fun createRequiredFiles(
     demoRunRequest: DemoRunRequest,
     config: RunConfiguration,
-): Pair<Path, Path?> = fs.createAndWrite(config.inputFileName, demoRunRequest.codeLines) to
+    dirPath: Path = ".".toPath(),
+): Pair<Path, Path?> = fs.createAndWrite(config.inputFileName, demoRunRequest.codeLines, dirPath) to
         fs.createAndWriteIfNeeded(config.configFileName, demoRunRequest.config)
 
-private fun cleanUp(inputFile: Path, configFile: Path?, outputFile: Path?) {
-    fs.delete(inputFile, false)
-    outputFile?.let { fs.delete(it, false) }
-    configFile?.let { fs.delete(it, false) }
-}
+private fun cleanUp(dirPath: Path) = fs.deleteRecursively(dirPath, true)
 
 @OptIn(ExperimentalTime::class)
 private fun run(
