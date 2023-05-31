@@ -13,8 +13,8 @@ enum class ProjectMenuBar {
     FILES,
     STATISTICS,
     DEMO,
-    SETTINGS,
     SECURITY,
+    SETTINGS,
     ;
 
     companion object : TabMenuBar<ProjectMenuBar> {

@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -347,7 +348,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
                 openSourceProjectTable {
                     getData = { _, _ ->
-                        vulnerability.projects.filter { it.isOpenSource }.toTypedArray()
+                        vulnerability.projects.filter { it.type == VulnerabilityProjectType.PROJECT }.toTypedArray()
                     }
                 }
 
@@ -358,7 +359,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
                 projectTable {
                     getData = { _, _ ->
-                        vulnerability.projects.filter { !it.isOpenSource }.toTypedArray()
+                        vulnerability.projects.filter { it.type == VulnerabilityProjectType.LIBRARY }.toTypedArray()
                     }
                 }
             }
