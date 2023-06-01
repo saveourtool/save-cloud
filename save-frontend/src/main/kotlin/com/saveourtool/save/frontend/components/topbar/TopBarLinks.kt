@@ -10,14 +10,17 @@ import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
-import react.router.NavigateFunction
 import react.router.dom.Link
-import react.router.useLocation
-import react.router.useNavigate
 import remix.run.router.Location
 import web.cssom.ClassName
 import web.cssom.Width
 import web.cssom.rem
+
+/**
+ * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],
+ * there is no need to highlight topbar element as we have `/#/demo` and `/#/project/.../demo`
+ */
+private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 
 val topBarLinks = topBarLinks()
 
@@ -44,31 +47,11 @@ data class TopBarLink(
     val isExternalLink: Boolean = false,
 )
 
-private fun ChildrenBuilder.demoDropdownEntry(
-    name: String,
-    href: String,
-    location: Location,
-    navigate: NavigateFunction,
-    deactivateDropdown: () -> Unit,
-) {
-    dropdownEntry(null, name, location.pathname.endsWith(href)) { attrs ->
-        attrs.onClick = {
-            deactivateDropdown()
-            navigate(to = href)
-        }
-    }
-}
-
 /**
  * Displays the static links that do not depend on the url.
  */
 @Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
 private fun topBarLinks() = FC<TopBarLinksProps> { props ->
-    val navigate = useNavigate()
-    val location = useLocation()
-    var isDemoDropdownActive by useState(false)
-    val deactivateDropdown = { isDemoDropdownActive = false }
-
     ul {
         className = ClassName("navbar-nav mx-auto")
         sequenceOf(
@@ -104,5 +87,11 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
     }
 }
 
-private fun textColor(hrefAnchor: String, location: Location) =
-        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
+private fun textColor(
+    hrefAnchor: String,
+    location: Location,
+) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
+    "text-warning"
+} else {
+    "text-light"
+}

@@ -40,7 +40,7 @@ private val logger = LoggerFactory.getLogger("KubernetesUtils")
  * @throws KubernetesRunnerException on failed job creation
  */
 fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T, namespace: String): T = try {
-    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}" }
+    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.metadata.name}" }
     resource(resourceToCreate).inNamespace(namespace).create().also {
         logger.info("Created ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}")
     }
@@ -223,16 +223,17 @@ private fun demoAgentContainerSpec(
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {
-            requests = mapOf(
-                "cpu" to Quantity(agentCpuRequests),
-                "memory" to Quantity(agentMemoryRequests),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageRequests),
-            )
-            limits = mapOf(
-                "cpu" to Quantity(agentCpuLimits),
-                "memory" to Quantity(agentMemoryLimits),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageLimits),
-            )
+            requests = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.requestsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.requestsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.requestsQuantity()) }
+            }
+
+            limits = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.limitsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.limitsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.limitsQuantity()) }
+            }
         }
     }
 }
