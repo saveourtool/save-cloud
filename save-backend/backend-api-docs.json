@@ -11056,9 +11056,11 @@
       "VulnerabilityDto": {
         "required": [
           "isActive",
+          "language",
           "name",
           "progress",
           "projects",
+          "shortDescription",
           "userId"
         ],
         "type": "object",
@@ -11068,6 +11070,17 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "C",
+              "Cpp",
+              "Java",
+              "JS",
+              "Kotlin",
+              "Other"
+            ]
           },
           "name": {
             "type": "string"
@@ -11081,6 +11094,12 @@
             "items": {
               "$ref": "#/components/schemas/VulnerabilityProjectDto"
             }
+          },
+          "relatedLink": {
+            "type": "string"
+          },
+          "shortDescription": {
+            "type": "string"
           },
           "userId": {
             "type": "integer",
@@ -11109,19 +11128,24 @@
       },
       "VulnerabilityProjectDto": {
         "required": [
-          "isOpenSource",
           "name",
+          "type",
           "url",
           "versions",
           "vulnerabilityName"
         ],
         "type": "object",
         "properties": {
-          "isOpenSource": {
-            "type": "boolean"
-          },
           "name": {
             "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Commit",
+              "Library",
+              "Project"
+            ]
           },
           "url": {
             "type": "string"
