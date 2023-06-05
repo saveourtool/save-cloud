@@ -57,6 +57,13 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                         }
                     }
                 }
+                column(id = "short_description", header = "Description", { progress }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +cellContext.row.original.shortDescription
+                        }
+                    }
+                }
                 column(id = "progress", header = "Criticality", { progress }) { cellContext ->
                     Fragment.create {
                         td {
