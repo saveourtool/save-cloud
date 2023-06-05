@@ -15,13 +15,10 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
 import web.cssom.*
 
-val myProjectsRating = myProjectsRatings()
-
 /**
- * @return functional component
+ * [FC] that displays user's project ratings
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun myProjectsRatings() = FC<ContestListViewProps> { props ->
+val myProjectsRating: FC<ContestListViewProps> = FC { props ->
     val (myProjects, setMyProjects) = useState(emptySet<ProjectDto>())
     val getMyProjects = useDeferredRequest {
         setMyProjects(
@@ -42,11 +39,14 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 40.rem
+                @Suppress("MAGIC_NUMBER")
+                minHeight = 20.rem
+                height = "100%".unsafeCast<Height>()
             }
             div {
                 className = ClassName("col")
                 style = jso {
+                    @Suppress("MAGIC_NUMBER")
                     minHeight = 7.rem
                 }
                 title(" Your stats ", icon = faUser)

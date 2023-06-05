@@ -20,16 +20,18 @@ private const val INVERT_TO_OPPOSITE = 100
  * @param items
  * @param carouselBodyId
  * @param styles
+ * @param outerClasses
  * @param displayItem
  */
 fun <T : Any> ChildrenBuilder.carousel(
     items: List<T>,
     carouselBodyId: String,
     styles: CSSProperties? = null,
+    outerClasses: String = "",
     displayItem: ChildrenBuilder.(T) -> Unit,
 ) {
     div {
-        className = ClassName("carousel slide card flex-md-row box-shadow")
+        className = ClassName("carousel slide card flex-md-row box-shadow $outerClasses")
         style = styles
         id = carouselBodyId
         asDynamic()["data-ride"] = "carousel"

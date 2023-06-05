@@ -29,93 +29,8 @@ import react.useState
 import web.cssom.*
 import web.html.ButtonType
 
-const val INVERT_TO_OPPOSITE = 100
-
-val yourContests = yourContests()
-
 @Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.stayTunedImage() {
-    img {
-        className = ClassName("card-img-right flex-auto d-none d-md-block")
-        src = "img/undraw_notify_re_65on.svg"
-        style = jso {
-            width = 24.rem
-        }
-    }
-}
-
-private fun ChildrenBuilder.stayTuned() {
-    div {
-        className = ClassName("card-body d-flex flex-column align-items-start")
-        strong {
-            className = ClassName("d-inline-block mb-2 text-primary")
-            +"Featured Contest"
-        }
-        h3 {
-            className = ClassName("mb-0 text-dark")
-            +"Stay turned..."
-        }
-        p {
-            className = ClassName("card-text mb-auto")
-            +("Right now there is no contest that we would recommend you to participate in, but it is going to change soon. " +
-                    "Stay turned and soon we will find good contests for you and your tools!")
-        }
-    }
-    stayTunedImage()
-}
-
-@Suppress("TOO_LONG_FUNCTION")
-private fun ChildrenBuilder.contestDescription(
-    contestToShow: ContestDto,
-    setSelectedContest: StateSetter<ContestDto>,
-    setIsContestEnrollerModalOpen: StateSetter<Boolean>
-) {
-    div {
-        className = ClassName("card-body d-flex flex-column align-items-start")
-        strong {
-            className = ClassName("d-inline-block mb-2 text-info")
-            +"Featured Contest"
-        }
-        h3 {
-            className = ClassName("mb-0")
-            a {
-                className = ClassName("text-dark")
-                href = "#/contests/${contestToShow.name}"
-                +contestToShow.name
-            }
-        }
-        p {
-            className = ClassName("card-text mb-auto")
-            +(contestToShow.description ?: "No description provided yet.")
-        }
-        p {
-            className = ClassName("card-text mb-auto")
-            +("Created by: ${contestToShow.organizationName}")
-        }
-        div {
-            className = ClassName("row mt-1")
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-sm btn-outline-primary mr-1")
-                onClick = {
-                    setSelectedContest(contestToShow)
-                    setIsContestEnrollerModalOpen(true)
-                }
-                +"Enroll"
-            }
-
-            a {
-                className = ClassName("btn btn-sm btn-outline-success")
-                href = "#/contests/${contestToShow.name}"
-                +"Description "
-                fontAwesomeIcon(icon = faArrowRight)
-            }
-        }
-    }
-}
-
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun yourContests() = VFC {
+internal val featuredContests = VFC {
     val (featuredContests, setFeaturedContests) = useState<List<ContestDto>>(emptyList())
     useRequest {
         val contests: List<ContestDto> = get(
@@ -164,7 +79,6 @@ private fun yourContests() = VFC {
                 stayTuned()
             }
         } else {
-            @Suppress("MAGIC_NUMBER")
             carousel(featuredContests, "contestCarousel", jso { height = 15.rem }) { contestToShow ->
                 div {
                     className = ClassName("col-3 ml-auto")
@@ -181,6 +95,86 @@ private fun yourContests() = VFC {
                     className = ClassName("col-6 mr-auto")
                     contestDescription(contestToShow, setSelectedContest, setIsContestEnrollerModalOpen)
                 }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.stayTunedImage() {
+    img {
+        className = ClassName("card-img-right flex-auto d-none d-md-block")
+        src = "img/undraw_notify_re_65on.svg"
+        style = jso {
+            @Suppress("MAGIC_NUMBER")
+            width = 24.rem
+        }
+    }
+}
+
+private fun ChildrenBuilder.stayTuned() {
+    div {
+        className = ClassName("card-body d-flex flex-column align-items-start")
+        strong {
+            className = ClassName("d-inline-block mb-2 text-primary")
+            +"Featured Contest"
+        }
+        h3 {
+            className = ClassName("mb-0 text-dark")
+            +"Stay turned..."
+        }
+        p {
+            className = ClassName("card-text mb-auto")
+            +("Right now there is no contest that we would recommend you to participate in, but it is going to change soon. " +
+                    "Stay turned and soon we will find good contests for you and your tools!")
+        }
+    }
+    stayTunedImage()
+}
+
+private fun ChildrenBuilder.contestDescription(
+    contestToShow: ContestDto,
+    setSelectedContest: StateSetter<ContestDto>,
+    setIsContestEnrollerModalOpen: StateSetter<Boolean>
+) {
+    div {
+        className = ClassName("card-body d-flex flex-column align-items-start")
+        strong {
+            className = ClassName("d-inline-block mb-2 text-info")
+            +"Featured Contest"
+        }
+        h3 {
+            className = ClassName("mb-0")
+            a {
+                className = ClassName("text-dark")
+                href = "#/contests/${contestToShow.name}"
+                +contestToShow.name
+            }
+        }
+        p {
+            className = ClassName("card-text mb-auto")
+            +(contestToShow.description ?: "No description provided yet.")
+        }
+        p {
+            className = ClassName("card-text mb-auto")
+            +("Created by: ${contestToShow.organizationName}")
+        }
+        div {
+            className = ClassName("row mt-1")
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-sm btn-outline-primary mr-1")
+                onClick = {
+                    setSelectedContest(contestToShow)
+                    setIsContestEnrollerModalOpen(true)
+                }
+                +"Enroll"
+            }
+
+            a {
+                className = ClassName("btn btn-sm btn-outline-success")
+                href = "#/contests/${contestToShow.name}"
+                +"Description "
+                fontAwesomeIcon(icon = faArrowRight)
             }
         }
     }

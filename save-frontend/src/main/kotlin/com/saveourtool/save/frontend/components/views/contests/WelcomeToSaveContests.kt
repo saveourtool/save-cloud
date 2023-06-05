@@ -4,10 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.frontend.utils.*
-
 import js.core.jso
-import react.*
+import react.ChildrenBuilder
+import react.VFC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -15,37 +14,26 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import web.cssom.ClassName
+import web.cssom.Height
 import web.cssom.rem
-
-val welcomeContest = welcomeContest()
-
-@Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.stayTunedImage() {
-    img {
-        className = ClassName("card-img-right flex-auto d-none d-md-block")
-        src = "img/undraw_certificate_re_yadi.svg"
-        style = jso {
-            width = 12.rem
-        }
-    }
-}
 
 /**
  * Rendering of featured contest card
  */
-@Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION", "LongMethod")
-private fun welcomeContest() = VFC {
+internal val welcomeToSaveContests = VFC {
     div {
         className = ClassName("col-lg-5")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                height = 14.rem
+                @Suppress("MAGIC_NUMBER")
+                maxHeight = 15.rem
+                height = "100%".unsafeCast<Height>()
             }
             stayTunedImage()
 
             div {
-                className = ClassName("card-body d-flex flex-column align-items-start")
+                className = ClassName("card-body pb-0 d-flex flex-column align-items-start")
                 strong {
                     className = ClassName("d-inline-block mb-2 text-info")
                     +"Welcome to SAVE contests!"
@@ -64,6 +52,17 @@ private fun welcomeContest() = VFC {
                     +(" to it with your project. ")
                 }
             }
+        }
+    }
+}
+
+private fun ChildrenBuilder.stayTunedImage() {
+    img {
+        className = ClassName("card-img-right flex-auto d-none d-md-block")
+        src = "img/undraw_certificate_re_yadi.svg"
+        style = jso {
+            @Suppress("MAGIC_NUMBER")
+            width = 12.rem
         }
     }
 }

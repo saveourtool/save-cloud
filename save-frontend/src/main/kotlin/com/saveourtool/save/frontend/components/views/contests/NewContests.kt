@@ -17,15 +17,13 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import react.useState
 import web.cssom.ClassName
+import web.cssom.Height
 import web.cssom.rem
-
-val newContestsCard = newContestsCard()
 
 /**
  * rendering of newly added contests
  */
-@Suppress("MAGIC_NUMBER")
-private fun newContestsCard() = VFC {
+internal val newContests = VFC {
     val (newContests, setNewContests) = useState<List<ContestDto>>(emptyList())
     useRequest {
         val contests: List<ContestDto> = get(
@@ -42,7 +40,8 @@ private fun newContestsCard() = VFC {
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                height = 14.rem
+                @Suppress("MAGIC_NUMBER") maxHeight = 15.rem
+                height = "100%".unsafeCast<Height>()
             }
 
             div {
@@ -75,7 +74,7 @@ private fun newContestsCard() = VFC {
                 className = ClassName("card-img-right flex-auto d-none d-md-block")
                 src = "img/undraw_exciting_news_re_y1iw.svg"
                 style = jso {
-                    width = 12.rem
+                    @Suppress("MAGIC_NUMBER") width = 12.rem
                 }
             }
         }

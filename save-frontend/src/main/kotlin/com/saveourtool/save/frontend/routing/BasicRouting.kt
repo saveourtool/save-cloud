@@ -171,7 +171,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
             RegistrationView::class.react.create { userInfo = props.userInfo } to "/$REGISTRATION",
             CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
-            ContestListView::class.react.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+            contestListView.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
 
             contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
             contestView.create() to "/$CONTESTS/:contestName",
