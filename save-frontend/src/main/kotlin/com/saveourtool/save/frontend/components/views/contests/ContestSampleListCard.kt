@@ -18,12 +18,7 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import web.cssom.ClassName
 
-val contestSampleList = contestSampleListCard()
-
-@Suppress(
-    "MAGIC_NUMBER",
-    "TYPE_ALIAS",
-)
+@Suppress("TYPE_ALIAS")
 private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponent(
     columns = {
         columns {
@@ -46,12 +41,12 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
             }
         }
     },
-    initialPageSize = 10,
+    initialPageSize = @Suppress("MAGIC_NUMBER") 10,
     useServerPaging = false,
     usePageSelection = false,
 )
 
-private fun contestSampleListCard() = VFC {
+internal val contestSampleList = VFC {
     div {
         className = ClassName("col")
         div {

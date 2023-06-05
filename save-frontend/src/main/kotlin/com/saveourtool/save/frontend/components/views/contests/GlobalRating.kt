@@ -22,113 +22,18 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
 import web.cssom.*
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val userRating = userRating()
-
-/**
- * Enum that contains values for the tab that is used in rating card
- */
-enum class UserRatingTab {
-    ORGS,
-    TOOLS,
-    ;
-
-    companion object : TabMenuBar<UserRatingTab> {
-        // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
-        override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: UserRatingTab = UserRatingTab.ORGS
-        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)"
-        override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
-        override fun values(): Array<UserRatingTab> = UserRatingTab.values()
-    }
-}
-
-private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<ProjectDto>) {
-    projects.forEachIndexed { i, project ->
-        div {
-            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
-            div {
-                className = ClassName("col-lg-2")
-                h3 {
-                    className = ClassName("text-info")
-                    +(i + 1).toString()
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                p {
-                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    strong {
-                        className = ClassName("d-block text-gray-dark")
-                        a {
-                            href = "#/${project.url}"
-                            +project.name
-                        }
-                    }
-                    +("${project.description} ")
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-4")
-                p {
-                    +project.contestRating.toFixedStr(2)
-                }
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationWithRating>) {
-    organizations.forEachIndexed { i, organizationWithRating ->
-        div {
-            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
-            div {
-                className = ClassName("col-lg-2")
-                h3 {
-                    className = ClassName("text-info")
-                    +(i + 1).toString()
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                p {
-                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    with(organizationWithRating.organization) {
-                        strong {
-                            className = ClassName("d-block text-gray-dark")
-                            a {
-                                href = "#/$name"
-                                +name
-                            }
-                        }
-                        +"$description "
-                    }
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-4")
-                p {
-                    +organizationWithRating.globalRating.toFixedStr(2)
-                }
-            }
-        }
-    }
-}
+private const val MAX_AMOUNT_OF_RECORDS = 3
 
 /**
  * @return functional component for the rating card
  */
-@Suppress("TOO_LONG_FUNCTION")
-private fun userRating() = VFC {
+internal val globalRating = VFC {
     val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
     val (organizationsWithRating, setOrganizationsWithRating) = useState<Set<OrganizationWithRating>>(emptySet())
@@ -160,7 +65,9 @@ private fun userRating() = VFC {
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 40.rem
+                @Suppress("MAGIC_NUMBER")
+                minHeight = 20.rem
+                height = "100%".unsafeCast<Height>()
             }
 
             div {
@@ -171,8 +78,8 @@ private fun userRating() = VFC {
                     setSelectedTab(UserRatingTab.valueOf(it))
                 }
                 when (selectedTab) {
-                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizationsWithRating)
-                    UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
+                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizationsWithRating, MAX_AMOUNT_OF_RECORDS)
+                    UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects, MAX_AMOUNT_OF_RECORDS)
                 }
 
                 div {
@@ -188,6 +95,107 @@ private fun userRating() = VFC {
                         href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Enum that contains values for the tab that is used in rating card
+ */
+enum class UserRatingTab {
+    ORGS,
+    TOOLS,
+    ;
+
+    companion object : TabMenuBar<UserRatingTab> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: UserRatingTab = UserRatingTab.ORGS
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)"
+        override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
+        override fun values(): Array<UserRatingTab> = UserRatingTab.values()
+    }
+}
+
+private fun ChildrenBuilder.renderingProjectChampionsTable(
+    projects: Set<ProjectDto>,
+    maxAmount: Int,
+) {
+    projects.take(maxAmount).forEachIndexed { i, project ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    strong {
+                        className = ClassName("d-block text-gray-dark")
+                        Link {
+                            to = "#/${project.url}"
+                            +project.name
+                        }
+                    }
+                    +("${project.description} ")
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +project.contestRating.toFixedStr(2)
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(
+    organizations: Set<OrganizationWithRating>,
+    maxAmount: Int,
+) {
+    organizations.take(maxAmount).forEachIndexed { i, organizationWithRating ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    with(organizationWithRating.organization) {
+                        strong {
+                            className = ClassName("d-block text-gray-dark")
+                            a {
+                                href = "#/$name"
+                                +name
+                            }
+                        }
+                        +"$description "
+                    }
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +organizationWithRating.globalRating.toFixedStr(2)
                 }
             }
         }

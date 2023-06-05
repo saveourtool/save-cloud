@@ -16,8 +16,7 @@ import web.cssom.*
 /**
  * rendering of a card where we suggest to propose new custom contests
  */
-@Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.proposeContest() {
+internal fun ChildrenBuilder.proposeContest() {
     div {
         className = ClassName("row mt-3")
 

@@ -25,87 +25,14 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
 import web.cssom.ClassName
+import web.cssom.Height
 import web.cssom.rem
 import web.html.ButtonType
 
-val contestList = contestList()
-
 /**
- * this enum is used in a tab for contests
+ * [FC] that renders the stylish table with contests
  */
-enum class ContestTypesTab {
-    ACTIVE, FINISHED, PLANNED
-}
-
-private fun ChildrenBuilder.contests(
-    selectedTab: ContestTypesTab,
-    activeContests: Set<ContestDto>,
-    finishedContests: Set<ContestDto>,
-    onEnrollButtonPressed: (String) -> Unit,
-) {
-    when (selectedTab) {
-        ContestTypesTab.ACTIVE -> contestListTable(activeContests, onEnrollButtonPressed)
-        ContestTypesTab.FINISHED -> contestListTable(finishedContests, null)
-        ContestTypesTab.PLANNED -> {
-            // FixMe: Add planned contests
-        }
-    }
-}
-
-@Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.contestListTable(
-    contests: Set<ContestDto>,
-    onEnrollButtonPressed: ((String) -> Unit)?,
-) {
-    contests.forEach { contest ->
-        div {
-            className = ClassName("media text-muted pb-3")
-            img {
-                className = ClassName("rounded")
-                src = "img/undraw_code_inspection_bdl7.svg"
-                style = jso {
-                    width = 4.2.rem
-                }
-            }
-
-            div {
-                className = ClassName("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left")
-                strong {
-                    className = ClassName("d-block text-gray-dark")
-                    +contest.name
-                }
-                +(contest.description ?: "")
-
-                div {
-                    className = ClassName("navbar-landing mt-3")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-outline-success ml-auto mr-2")
-                        disabled = onEnrollButtonPressed == null
-                        onClick = {
-                            onEnrollButtonPressed?.let {
-                                onEnrollButtonPressed(contest.name)
-                            }
-                        }
-                        +"Enroll"
-                    }
-                    a {
-                        className = ClassName("btn btn-outline-info mr-2")
-                        href = "#/${FrontendRoutes.CONTESTS.path}/${contest.name}"
-                        +"Rules and more "
-                        fontAwesomeIcon(icon = faArrowRight)
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * @return functional component that render the stylish table with contests
- */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun contestList() = VFC {
+val contestList = VFC {
     val (isContestEnrollerModalOpen, setIsContestEnrollerModalOpen) = useState(false)
     val (isConfirmationModalOpen, setIsConfirmationModalOpen) = useState(false)
     val (enrollmentResponseString, setEnrollmentResponseString) = useState("")
@@ -158,9 +85,11 @@ private fun contestList() = VFC {
     div {
         className = ClassName("col-lg-6")
         div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
+            className = ClassName("card flex-md-row flex-wrap d-block mb-1 box-shadow")
             style = jso {
-                minHeight = 40.rem
+                @Suppress("MAGIC_NUMBER")
+                minHeight = 20.rem
+                height = "100%".unsafeCast<Height>()
             }
 
             div {
@@ -175,6 +104,77 @@ private fun contestList() = VFC {
                 contests(selectedTab, activeContests, finishedContests) {
                     setSelectedContestName(it)
                     setIsContestEnrollerModalOpen(true)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * this enum is used in a tab for contests
+ */
+enum class ContestTypesTab {
+    ACTIVE, FINISHED, PLANNED
+}
+
+private fun ChildrenBuilder.contests(
+    selectedTab: ContestTypesTab,
+    activeContests: Set<ContestDto>,
+    finishedContests: Set<ContestDto>,
+    onEnrollButtonPressed: (String) -> Unit,
+) {
+    when (selectedTab) {
+        ContestTypesTab.ACTIVE -> contestListTable(activeContests, onEnrollButtonPressed)
+        ContestTypesTab.FINISHED -> contestListTable(finishedContests, null)
+        ContestTypesTab.PLANNED -> {
+            // FixMe: Add planned contests
+        }
+    }
+}
+
+private fun ChildrenBuilder.contestListTable(
+    contests: Set<ContestDto>,
+    onEnrollButtonPressed: ((String) -> Unit)?,
+) {
+    contests.forEach { contest ->
+        div {
+            className = ClassName("media text-muted pb-3")
+            img {
+                className = ClassName("rounded")
+                src = "img/undraw_code_inspection_bdl7.svg"
+                style = jso {
+                    @Suppress("MAGIC_NUMBER")
+                    width = 4.2.rem
+                }
+            }
+
+            div {
+                className = ClassName("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left")
+                strong {
+                    className = ClassName("d-block text-gray-dark")
+                    +contest.name
+                }
+                +(contest.description ?: "")
+
+                div {
+                    className = ClassName("navbar-landing mt-3")
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-outline-success ml-auto mr-2")
+                        disabled = onEnrollButtonPressed == null
+                        onClick = {
+                            onEnrollButtonPressed?.let {
+                                onEnrollButtonPressed(contest.name)
+                            }
+                        }
+                        +"Enroll"
+                    }
+                    a {
+                        className = ClassName("btn btn-outline-info mr-2")
+                        href = "#/${FrontendRoutes.CONTESTS.path}/${contest.name}"
+                        +"Rules and more "
+                        fontAwesomeIcon(icon = faArrowRight)
+                    }
                 }
             }
         }
