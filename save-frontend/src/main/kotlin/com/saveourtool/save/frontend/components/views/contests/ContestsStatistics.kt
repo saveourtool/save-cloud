@@ -17,7 +17,45 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
 
-val statistics = statistics()
+internal val statistics = VFC {
+    val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/active",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setActiveContests(contests.toSet())
+    }
+
+    val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/finished",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setFinishedContests(contests.toSet())
+    }
+
+    div {
+        className = ClassName("col-lg-4")
+        div {
+            className = ClassName("card flex-md-row mb-1 box-shadow")
+            style = jso {
+                @Suppress("MAGIC_NUMBER")
+                minHeight = 15.rem
+            }
+            div {
+                className = ClassName("col-lg-12")
+                stats(activeContests, finishedContests)
+                proposeContest()
+            }
+        }
+    }
+}
 
 /**
  * @param activeContests
@@ -59,46 +97,6 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
                     className = ClassName("text-dark")
                     +finishedContests.size.toString()
                 }
-            }
-        }
-    }
-}
-
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun statistics() = VFC {
-    val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
-    useRequest {
-        val contests: List<ContestDto> = get(
-            url = "$apiUrl/contests/active",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
-        setActiveContests(contests.toSet())
-    }
-
-    val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
-    useRequest {
-        val contests: List<ContestDto> = get(
-            url = "$apiUrl/contests/finished",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
-        setFinishedContests(contests.toSet())
-    }
-
-    div {
-        className = ClassName("col-lg-4")
-        div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
-            style = jso {
-                minHeight = 15.rem
-            }
-            div {
-                className = ClassName("col-lg-12")
-                stats(activeContests, finishedContests)
-                proposeContest()
             }
         }
     }
