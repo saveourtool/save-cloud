@@ -26,6 +26,7 @@ enum class FrontendRoutes(val path: String) {
     FOSS_GRAPH("foss-graph"),
     MANAGE_ORGANIZATIONS("organizations"),
     NOT_FOUND("not-found"),
+    PROFILE("profile"),
     PROJECTS("projects"),
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
