@@ -20,6 +20,7 @@ import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
+import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -164,7 +165,8 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     Routes {
         listOf(
-            WelcomeView::class.react.create { userInfo = props.userInfo } to "/",
+            indexView.create() to "/",
+            WelcomeView::class.react.create { userInfo = props.userInfo } to "/$SAVE",
             sandboxView.create() to "/$SANDBOX",
             AboutUsView::class.react.create() to "/$ABOUT_US",
             CreationView::class.react.create() to "/$CREATE_PROJECT",
