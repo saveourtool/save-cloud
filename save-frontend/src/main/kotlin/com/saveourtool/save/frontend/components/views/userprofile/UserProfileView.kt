@@ -19,11 +19,11 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import web.cssom.*
 
@@ -55,7 +55,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             columns {
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
-                        ReactHTML.td {
+                        td {
                             Link {
                                 to = "/${FrontendRoutes.FOSS_GRAPH}/${cellContext.row.original.name}"
                                 +cellContext.value
@@ -65,14 +65,14 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
                 }
                 column(id = "short_description", header = "Description", { progress }) { cellContext ->
                     Fragment.create {
-                        ReactHTML.td {
+                        td {
                             +cellContext.row.original.shortDescription
                         }
                     }
                 }
                 column(id = "progress", header = "Criticality", { progress }) { cellContext ->
                     Fragment.create {
-                        ReactHTML.td {
+                        td {
                             +"${ cellContext.row.original.progress }"
                         }
                     }
