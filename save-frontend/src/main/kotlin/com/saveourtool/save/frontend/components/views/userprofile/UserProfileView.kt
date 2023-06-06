@@ -31,7 +31,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
     val (user, setUser) = useState<UserInfo?>(null)
-    val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITY)
+    val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
 
     useRequest {
         val userNew: UserInfo = get(
@@ -222,7 +222,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             }
 
             when (selectedMenu) {
-                UserProfileTab.VULNERABILITY -> vulnerabilityTable {
+                UserProfileTab.VULNERABILITIES -> vulnerabilityTable {
                     getData = { _, _ ->
                         get(
                             url = "$apiUrl/vulnerabilities/by-user-and-active",
@@ -259,12 +259,12 @@ external interface UserProfileViewProps : Props {
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class UserProfileTab {
-    VULNERABILITY,
+    VULNERABILITIES,
     ;
 
     companion object : TabMenuBar<UserProfileTab> {
         override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: UserProfileTab = VULNERABILITY
+        override val defaultTab: UserProfileTab = VULNERABILITIES
         override val regexForUrlClassification = "/${FrontendRoutes.PROFILE.path}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
         override fun values(): Array<UserProfileTab> = UserProfileTab.values()
