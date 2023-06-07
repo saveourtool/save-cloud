@@ -13,7 +13,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faCity
 import com.saveourtool.save.frontend.externals.fontawesome.faEnvelope
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.faGlobe
-import com.saveourtool.save.frontend.externals.fontawesome.faLinkedIn
+import com.saveourtool.save.frontend.externals.fontawesome.faLink
 import com.saveourtool.save.frontend.externals.fontawesome.faTwitter
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -230,12 +230,12 @@ fun ChildrenBuilder.renderLeftUserMenu(
         user?.linkedin?.let { linkedin ->
             div {
                 className = ClassName("ml-2 mb-2")
-                fontAwesomeIcon(icon = faLinkedIn) {
+                fontAwesomeIcon(icon = faLink) {
                     it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                 }
                 Link {
                     to = linkedin
-                    +linkedin.substringAfterLast("/")
+                    +("in/" + linkedin.substringAfterLast("/"))
                 }
             }
         }
