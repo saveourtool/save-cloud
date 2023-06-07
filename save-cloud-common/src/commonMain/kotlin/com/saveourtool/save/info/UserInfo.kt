@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
  * @property isActive
  * @property oldName is always null except for the process of renaming the user.
  * @property originalLogins
+ * @property rating
  */
 @Serializable
 @JsExport
@@ -39,13 +40,14 @@ data class UserInfo(
     val organizations: Map<String, Role> = emptyMap(),
     val email: String? = null,
     val avatar: String? = null,
-    var company: String? = null,
-    var location: String? = null,
-    var linkedin: String? = null,
-    var gitHub: String? = null,
-    var twitter: String? = null,
+    val company: String? = null,
+    val location: String? = null,
+    val linkedin: String? = null,
+    val gitHub: String? = null,
+    val twitter: String? = null,
     val globalRole: Role? = null,
-    var isActive: Boolean = false,
+    val isActive: Boolean = false,
+    val rating: Long = 0,
 ) : Validatable {
     /**
      * Validation of organization name

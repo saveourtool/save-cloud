@@ -119,6 +119,11 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else ""}")
                 ariaLabelledBy = "userDropdown"
                 props.userInfo?.name?.let { name ->
+                    dropdownEntry(faUser, "Profile") { attrs ->
+                        attrs.onClick = {
+                            navigate(to = "/${FrontendRoutes.PROFILE.path}/$name")
+                        }
+                    }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
                             navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL.path}")
