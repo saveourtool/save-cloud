@@ -72,7 +72,6 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
-        authentication: Authentication?,
     ): Mono<List<UserInfo>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
