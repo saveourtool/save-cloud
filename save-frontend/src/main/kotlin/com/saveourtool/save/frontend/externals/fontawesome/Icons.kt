@@ -219,3 +219,11 @@ external val faBug: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faShieldVirus")
 @JsNonModule
 external val faShieldVirus: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faGlobe")
+@JsNonModule
+external val faGlobe: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faLink")
+@JsNonModule
+external val faLink: FontAwesomeIconModule

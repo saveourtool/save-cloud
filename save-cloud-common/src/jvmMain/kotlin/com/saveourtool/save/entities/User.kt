@@ -70,5 +70,6 @@ class User(
         twitter = twitter,
         location = location,
         isActive = isActive,
+        rating = rating,
     )
 }

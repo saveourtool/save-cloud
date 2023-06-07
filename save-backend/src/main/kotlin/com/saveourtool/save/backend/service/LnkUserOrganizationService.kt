@@ -160,6 +160,12 @@ class LnkUserOrganizationService(
     }
 
     /**
+     * @param userName name of User
+     * @return list of lnkUserOrganization
+     */
+    fun findAllByUserName(userName: String) = lnkUserOrganizationRepository.findByUserName(userName)
+
+    /**
      * @param authentication
      * @param organization
      * @return the highest of two roles: the one in [organization] and global one.
