@@ -235,7 +235,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                 }
                 Link {
                     to = linkedin
-                    +("in/" + linkedin.substringAfterLast("/"))
+                    +"in/${linkedin.substringAfterLast("/")}"
                 }
             }
         }
