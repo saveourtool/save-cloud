@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -215,10 +216,9 @@ internal class OrganizationController(
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(newOrganization)
-        .map {
-            organizationService.saveOrganization(it.toOrganization())
-        }
+    ): Mono<StringResponse> = blockingToMono {
+        organizationService.saveOrganization(newOrganization.toOrganization())
+    }
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
         }
@@ -328,7 +328,8 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
-        .map {organization ->
+        .publishOn(Schedulers.boundedElastic())
+        .map { organization ->
             when (status) {
                 OrganizationStatus.BANNED -> {
                     organizationService.banOrganization(organization)

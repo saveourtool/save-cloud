@@ -115,9 +115,7 @@ suspend fun Response.unpackMessageOrNull(): String? {
  * @see Response.unpackMessage
  * @see Response.unpackMessageOrNull
  */
-suspend fun Response.unpackMessageOrHttpStatus(): String =
-        unpackMessageOrNull()
-            ?: "HTTP $status $statusText"
+suspend fun Response.unpackMessageOrHttpStatus(): String = unpackMessageOrNull() ?: "HTTP $status $statusText"
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -550,6 +548,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
 
 /**
+ * @return true if given [Response] has 401 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isUnauthorized(): Boolean = this.status == 401.toShort()
+
+/**
  * Reads the HTTP response body as a flow of strings.
  *
  * @return the string  flow produced from the body of this HTTP response.
@@ -669,6 +673,7 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
 ) {
     if (!response.ok && !response.isConflict()) {
         val statusContext: RequestStatusContext = this.asDynamic().context
+        statusContext.setRedirectToFallbackView(response.isUnauthorized())
         statusContext.setResponse.invoke(response)
     }
 }

@@ -7,10 +7,12 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
@@ -71,17 +73,15 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         state.conflictErrorMessage = null
     }
 
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun saveOrganization() {
         scope.launch {
-            val responseFromCreationOrganization =
-                    post(
-                        "$apiUrl/organizations/save",
-                        jsonHeaders,
-                        Json.encodeToString(state.organizationDto),
-                        loadingHandler = ::classLoadingHandler,
-                        responseHandler = ::classComponentResponseHandlerWithValidation,
-                    )
+            val responseFromCreationOrganization = post(
+                "$apiUrl/organizations/save",
+                jsonHeaders,
+                Json.encodeToString(state.organizationDto),
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
+            )
             if (responseFromCreationOrganization.ok) {
                 window.location.href = "${window.location.origin}#/${state.organizationDto.name}/"
                 window.location.reload()
@@ -90,7 +90,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                 setState {
                     conflictErrorMessage = responseText
                 }
-            } else {
+            } else if (!responseFromCreationOrganization.isUnauthorized()) {
                 responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
                         isErrorWithOrganizationSave = true
@@ -179,6 +179,13 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                     }
                 }
             }
+        }
+    }
+    companion object : RStatics<Props, OrganizationSaveViewState, CreateOrganizationView, Context<RequestStatusContext?>>(
+        CreateOrganizationView::class
+    ) {
+        init {
+            CreateOrganizationView.contextType = requestStatusContext
         }
     }
 }
