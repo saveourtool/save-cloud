@@ -9,12 +9,19 @@ package com.saveourtool.save.frontend.components.views.userprofile
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.views.contests.tab
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.fontawesome.faCity
+import com.saveourtool.save.frontend.externals.fontawesome.faEnvelope
+import com.saveourtool.save.frontend.externals.fontawesome.faGithub
+import com.saveourtool.save.frontend.externals.fontawesome.faGlobe
+import com.saveourtool.save.frontend.externals.fontawesome.faLinkedIn
+import com.saveourtool.save.frontend.externals.fontawesome.faTwitter
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
+
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
