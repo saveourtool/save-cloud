@@ -146,6 +146,20 @@ internal class OrganizationController(
             it.organization.toDto()
         }
 
+    @GetMapping("/get/list-by-user-name")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get your organizations.",
+        description = "Get list of all organizations where current user is a participant.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationsByUserName(
+        @RequestParam userName: String,
+    ): Flux<OrganizationDto> = blockingToFlux {
+        lnkUserOrganizationService.findAllByUserName(userName).map { it.organization.toDto() }
+    }
+
     @GetMapping("/get/by-prefix")
     @PreAuthorize("permitAll()")
     @Operation(
