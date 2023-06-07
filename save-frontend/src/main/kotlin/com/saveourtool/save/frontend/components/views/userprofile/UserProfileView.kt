@@ -94,7 +94,10 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 /**
  * [Props] of user profile view component
  */
-@Suppress("MISSING_KDOC_TOP_LEVEL", "TYPE_ALIAS")
+@Suppress(
+    "MISSING_KDOC_TOP_LEVEL",
+    "TYPE_ALIAS",
+)
 external interface UserProfileViewProps : Props {
     /**
      * User name
@@ -123,7 +126,11 @@ enum class UserProfileTab {
  * @param user
  * @param organizations
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "CyclomaticComplexMethod",
+)
 fun ChildrenBuilder.renderLeftUserMenu(
     user: UserInfo?,
     organizations: List<OrganizationDto>,
