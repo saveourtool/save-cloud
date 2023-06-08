@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.FC
@@ -15,6 +16,7 @@ import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import react.dom.html.ReactHTML.img
+import react.router.dom.Link
 import web.cssom.BorderRadius
 import web.cssom.ClassName
 
@@ -48,18 +50,21 @@ private fun userBoard() = FC<UserBoardProps> { props ->
                 div {
                     className = ClassName("col-md-4 px-0")
                     figure {
-                        img {
-                            className = ClassName("img-fluid px-sm-3")
-                            style = jso {
-                                borderRadius = "50%".unsafeCast<BorderRadius>()
-                            }
-                            src = user.avatar?.let { path ->
-                                "/api/$v1/avatar$path"
-                            }
-                                ?: run {
-                                    "img/undraw_profile.svg"
+                        Link {
+                            img {
+                                className = ClassName("img-fluid px-sm-3")
+                                style = jso {
+                                    borderRadius = "50%".unsafeCast<BorderRadius>()
                                 }
-                            alt = ""
+                                src = user.avatar?.let { path ->
+                                    "/api/$v1/avatar$path"
+                                }
+                                    ?: run {
+                                        "img/undraw_profile.svg"
+                                    }
+                                alt = ""
+                            }
+                            to = "/${FrontendRoutes.PROFILE.path}/${user.name}"
                         }
                     }
                 }
