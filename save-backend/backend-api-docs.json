@@ -4102,6 +4102,59 @@
         ]
       }
     },
+    "/api/v1/organizations/get/list-by-user-name": {
+      "get": {
+        "description": "Get list of all organizations where current user is a participant.",
+        "operationId": "getOrganizationsByUserName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of organizations."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get your organizations.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/save": {
       "post": {
         "description": "Create a new organization.",
@@ -4934,12 +4987,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
           }
         ],
         "responses": {
@@ -8912,6 +8959,67 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/by-user-and-active": {
+      "get": {
+        "description": "Get list of vulnerabilities by user id.",
+        "operationId": "getVulnerabilityByUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of vulnerabilities by user id"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get list of vulnerabilities by user id.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/delete": {
       "delete": {
         "description": "Deleted vulnerability.",
@@ -10968,7 +11076,8 @@
           "name",
           "organizations",
           "originalLogins",
-          "projects"
+          "projects",
+          "rating"
         ],
         "type": "object",
         "properties": {
@@ -11044,6 +11153,10 @@
                 "VIEWER"
               ]
             }
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int64"
           },
           "source": {
             "type": "string"
