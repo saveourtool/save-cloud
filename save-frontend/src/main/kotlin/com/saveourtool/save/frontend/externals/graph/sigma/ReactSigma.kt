@@ -2,7 +2,7 @@
 @file:JsModule("@react-sigma/core")
 @file:JsNonModule
 
-package com.saveourtool.save.frontend.externals.sigma
+package com.saveourtool.save.frontend.externals.graph.sigma
 
 import react.*
 

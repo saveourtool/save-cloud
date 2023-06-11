@@ -2,7 +2,7 @@
  * Utils for CpgGraph and Sigma in general
  */
 
-package com.saveourtool.save.frontend.externals.sigma
+package com.saveourtool.save.frontend.externals.graph.sigma
 
 import com.saveourtool.save.demo.cpg.CpgEdge
 import com.saveourtool.save.demo.cpg.CpgGraph
@@ -19,7 +19,7 @@ private val cpgJsonSerializer = Json { encodeDefaults = true }
 /**
  * @return serialized graph that can be used with useLoadGraph hook
  */
-fun CpgGraph.toJson() = let { graph ->
+fun CpgGraph.toGraphologyJson() = let { graph ->
     val str = cpgJsonSerializer.encodeToString(graph)
     js("JSON.parse(str);")
 }

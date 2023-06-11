@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.demo
 
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
 import com.saveourtool.save.demo.cpg.CpgEngine
@@ -33,7 +33,7 @@ import web.cssom.Height
     "LongMethod",
     "TYPE_ALIAS"
 )
-val demoComponent: FC<DemoComponentProps> = FC { props ->
+val graphDemoComponent: FC<GraphDemoComponentProps> = FC { props ->
     val (selectedLanguage, setSelectedLanguage) = useState(props.preselectedLanguage)
     val (codeLines, setCodeLines) = useState(props.placeholderText)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
@@ -145,7 +145,7 @@ val demoComponent: FC<DemoComponentProps> = FC { props ->
  * DemoComponent [Props]
  */
 @Suppress("TYPE_ALIAS")
-external interface DemoComponentProps : Props {
+external interface GraphDemoComponentProps : Props {
     /**
      * Callback to display the result
      */
