@@ -91,7 +91,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val enrollUpdateRequest = useDeferredRequest {
         val vulnerabilityUpdate = vulnerability.copy(isActive = true)
         val response = post(
-            url = "$apiUrl/vulnerabilities/update",
+            url = "$apiUrl/vulnerabilities/approve",
             headers = jsonHeaders,
             body = Json.encodeToString(vulnerabilityUpdate),
             loadingHandler = ::loadingHandler,
