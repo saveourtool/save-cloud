@@ -51,7 +51,6 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
         },
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
         isTransparentGrid = true,
     )
 

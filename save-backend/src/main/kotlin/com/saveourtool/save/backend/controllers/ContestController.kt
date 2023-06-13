@@ -104,7 +104,6 @@ internal class ContestController(
     @ApiResponse(responseCode = "404", description = "Contest with given name is not found.")
     fun addOrDeleteContestToFeatured(
         @RequestParam contestName: String,
-        authentication: Authentication,
     ): Mono<StringResponse> = getContestOrNotFound(contestName)
         .flatMap {
             blockingToMono {

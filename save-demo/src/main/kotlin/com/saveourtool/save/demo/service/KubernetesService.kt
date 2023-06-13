@@ -54,7 +54,7 @@ class KubernetesService(
      * @return [Mono] of [StringResponse] filled with readable message
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
+    fun start(demo: Demo, @Suppress("UnusedParameter") version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(

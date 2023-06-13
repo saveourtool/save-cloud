@@ -187,10 +187,9 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 }
             }
         },
-        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
+        isTransparentGrid = true,
     )
 
     val projectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
@@ -228,10 +227,9 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 }
             }
         },
-        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
+        isTransparentGrid = true,
     )
 
     displayModal(

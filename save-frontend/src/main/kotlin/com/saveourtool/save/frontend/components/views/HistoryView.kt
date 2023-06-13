@@ -41,7 +41,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -283,11 +282,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
-        },
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
         }
-    )
+    ) {
+        arrayOf(it.filters)
+    }
+
     init {
         state.isConfirmWindowOpen = false
         state.isDeleteExecutionWindowOpen = false

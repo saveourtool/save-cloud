@@ -136,7 +136,6 @@ class LnkContestProjectController(
     fun getAvailableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
         lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, MAX_AMOUNT)
             .mapNotNull { it.contest.id }
@@ -168,7 +167,6 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        authentication: Authentication,
     ): Flux<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMapIterable { (contest, project) ->
             lnkContestExecutionService.getPageExecutionsByContestAndProject(
@@ -200,7 +198,6 @@ class LnkContestProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @PathVariable contestName: String,
-        authentication: Authentication
     ): Mono<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMap { (contest, project) ->
             lnkContestExecutionService.getLatestExecutionByContestAndProject(contest, project).toMono()
