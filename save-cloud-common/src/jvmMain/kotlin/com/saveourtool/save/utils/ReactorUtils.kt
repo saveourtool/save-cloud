@@ -36,9 +36,6 @@ import kotlinx.coroutines.flow.map
 
 private const val DEFAULT_PART_SIZE: Long = 5 * 1024 * 1024
 
-@Suppress("WRONG_WHITESPACE")
-private val logger = getLogger({}.javaClass)
-
 /**
  * @param status
  * @param messageCreator

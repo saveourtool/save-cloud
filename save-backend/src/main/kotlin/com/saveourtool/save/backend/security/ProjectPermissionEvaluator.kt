@@ -116,7 +116,7 @@ class ProjectPermissionEvaluator(
      * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
      * Since we have all the rights issued depending on the following, you need to set [false] here
      */
-    @Suppress("FunctionOnlyReturningConstant")
+    @Suppress("FunctionOnlyReturningConstant", "UnusedParameter")
     private fun hasBanAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = false
 
     /**

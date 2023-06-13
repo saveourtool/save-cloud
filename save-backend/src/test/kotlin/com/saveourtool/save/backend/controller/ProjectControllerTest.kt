@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
-import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
@@ -32,6 +31,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(LnkUserProjectService::class),
+    MockBean(NamedParameterJdbcTemplate::class),
 )
 @Suppress("UnsafeCallOnNullableType")
 class ProjectControllerTest {
@@ -42,13 +42,7 @@ class ProjectControllerTest {
     private lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
-    private lateinit var gitRepository: GitRepository
-
-    @Autowired
     lateinit var webClient: WebTestClient
-
-    @Autowired
-    private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @Test
     @WithMockUser

@@ -303,7 +303,6 @@ class TestSuitesSourceController(
     fun tagListToFetch(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
-        authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.tagList(it.toDto()) }
         .map { tags ->
@@ -324,7 +323,6 @@ class TestSuitesSourceController(
     fun branchListToFetch(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
-        authentication: Authentication,
     ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSourceService.branchList(it.toDto()) }
         .map { ResponseEntity.ok().body(it) }
@@ -339,9 +337,8 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
     fun getOrganizationNamesWithPublicTestSuiteSources(
-        authentication: Authentication,
     ): Mono<TestSuitesSourceDtoList> = testSuitesSourceService.getAvailableTestSuiteSources().toMono()
-        .map {testSuitesSourceList ->
+        .map { testSuitesSourceList ->
             testSuitesSourceList.map { it.toDto() }
         }
 }

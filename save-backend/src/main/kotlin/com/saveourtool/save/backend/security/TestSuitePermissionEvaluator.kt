@@ -26,7 +26,7 @@ class TestSuitePermissionEvaluator(
         organization: Organization,
         testSuite: TestSuite,
         permission: Permission,
-        authentication: Authentication?,
+        @Suppress("UnusedParameter") authentication: Authentication?,
     ): Boolean = lnkOrganizationTestSuiteService.getDto(organization, testSuite).rights.let { currentRights ->
         when (permission) {
             Permission.READ -> testSuite.isPublic || canAccessTestSuite(currentRights)

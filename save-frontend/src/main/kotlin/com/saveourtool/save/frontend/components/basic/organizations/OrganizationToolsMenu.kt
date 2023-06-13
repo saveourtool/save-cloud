@@ -261,18 +261,16 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 }
             }
         },
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = { tableProps ->
-            /*-
-             * Necessary for the table to get re-rendered once a project gets
-             * deleted.
-             *
-             * The order and size of the array must remain constant.
-             */
-            arrayOf(tableProps)
-        }
-    )
+        useServerPaging = false
+    ) { tableProps ->
+        /*-
+         * Necessary for the table to get re-rendered once a project gets
+         * deleted.
+         *
+         * The order and size of the array must remain constant.
+         */
+        arrayOf(tableProps)
+    }
 
     div {
         className = ClassName("row justify-content-center")

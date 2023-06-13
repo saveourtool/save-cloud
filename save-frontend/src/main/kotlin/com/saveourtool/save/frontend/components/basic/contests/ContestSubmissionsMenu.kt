@@ -66,7 +66,6 @@ private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
     },
     initialPageSize = 10,
     useServerPaging = false,
-    usePageSelection = false,
 )
 
 /**

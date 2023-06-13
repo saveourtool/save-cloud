@@ -2,7 +2,6 @@ package com.saveourtool.save.gateway.controller
 
 import com.saveourtool.save.gateway.utils.userName
 import com.saveourtool.save.info.OauthProviderInfo
-import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
@@ -15,8 +14,6 @@ import java.security.Principal
 class SecurityInfoController(
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
 ) {
-    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
-
     /**
      * @return a list of [OauthProviderInfo] for all configured providers
      */

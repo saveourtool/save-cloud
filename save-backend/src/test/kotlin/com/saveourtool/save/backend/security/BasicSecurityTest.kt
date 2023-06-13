@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.authentication.BadCredentialsException
@@ -30,13 +31,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
     AuthenticationUserRepository::class,
 )
 @ActiveProfiles("secure")
+@MockBeans(
+    MockBean(UserRepository::class),
+    MockBean(OriginalLoginRepository::class),
+    MockBean(NamedParameterJdbcTemplate::class),
+)
 class BasicSecurityTest {
     @Autowired
     private lateinit var convertingAuthenticationManager: ConvertingAuthenticationManager
-    @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var authenticationUserRepository: AuthenticationUserRepository
-    @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
-    @MockBean private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @BeforeEach
     fun setUp() {

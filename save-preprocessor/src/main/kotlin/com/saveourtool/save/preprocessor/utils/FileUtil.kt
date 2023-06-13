@@ -2,8 +2,6 @@
 
 package com.saveourtool.save.preprocessor.utils
 
-import org.slf4j.LoggerFactory
-
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -14,7 +12,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.properties.decodeFromMap
 
 private const val RADIX = 16
-private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
  * @return hash of content of all files

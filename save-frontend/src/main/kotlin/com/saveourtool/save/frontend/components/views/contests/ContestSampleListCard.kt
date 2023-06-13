@@ -43,7 +43,6 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
     },
     initialPageSize = @Suppress("MAGIC_NUMBER") 10,
     useServerPaging = false,
-    usePageSelection = false,
 )
 
 internal val contestSampleList = VFC {

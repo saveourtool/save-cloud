@@ -120,14 +120,12 @@ private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
                 }
             }
         },
-        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(filters)
-        },
-    )
+        isTransparentGrid = true,
+    ) {
+        arrayOf(filters)
+    }
 
     div {
         className = ClassName("row justify-content-center")

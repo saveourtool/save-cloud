@@ -29,8 +29,6 @@ class UserDetailsService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
 ) : ReactiveUserDetailsService {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     override fun findByUsername(username: String): Mono<UserDetails> = {
         userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
     }.toMono().getIdentitySourceAwareUserDetails(username)
