@@ -97,14 +97,7 @@ suspend fun Response.unpackMessage(): String = unpackMessageOrNull().toString()
  * @see Response.unpackMessage
  * @see Response.unpackMessageOrHttpStatus
  */
-suspend fun Response.unpackMessageOrNull(): String? {
-    /*
-     * Sometimes the message returned is `null`, so, to avoid a `TypeError`
-     * being thrown, this needs to be declared as `Any?` rather than `dynamic`.
-     */
-    val message: Any? = json().await().asDynamic()["message"]
-    return message?.toString()
-}
+suspend fun Response.unpackMessageOrNull(): String? = decodeFieldFromJsonStringOrNull("message")
 
 /**
  * Gets errors from the back-end (_Spring Boot_ returns errors in the `message`
@@ -142,14 +135,23 @@ suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFrom
  *
  * @param fieldName
  * @return content of [fieldName] taken from response body
+ * @throws IllegalArgumentException if [fieldName] is not present in response body
  */
-suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = text().await()
+suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = decodeFieldFromJsonStringOrNull(fieldName)
+    ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
+
+/**
+ * Read [this] Response body as text and deserialize it using [Json] to [JsonObject] and take [fieldName]
+ *
+ * @param fieldName
+ * @return content of [fieldName] taken from response body or null if [fieldName] is not present
+ */
+suspend inline fun Response.decodeFieldFromJsonStringOrNull(fieldName: String): String? = text().await()
     .let { Json.parseToJsonElement(it) }
     .let { it as? JsonObject }
     ?.let { it[fieldName] }
     ?.let { it as? JsonPrimitive }
     ?.content
-    ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
 
 /**
  * @return content of [this] with type [T] encoded as JSON
