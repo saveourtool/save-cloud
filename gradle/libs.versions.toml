@@ -151,7 +151,10 @@ mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "m
 
 # graph utilities
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg" }
+cpg-cxx = { module = "de.fraunhofer.aisec:cpg-language-cxx", version.ref = "cpg" }
+cpg-java = { module = "de.fraunhofer.aisec:cpg-language-java", version.ref = "cpg" }
 cpg-python = { module = "de.fraunhofer.aisec:cpg-language-python", version.ref = "cpg" }
+cpg-typescript = { module = "de.fraunhofer.aisec:cpg-language-typescript", version.ref = "cpg" }
 neo4j-ogm-core = { module = "org.neo4j:neo4j-ogm-core", version.ref = "cpg-neo4j-ogm"}
 neo4j-ogm-bolt-driver = { module = "org.neo4j:neo4j-ogm-bolt-driver", version.ref = "cpg-neo4j-ogm"}
 neo4j-java-driver = { module = "org.neo4j.driver:neo4j-java-driver", version.ref = "cpg-neo4j-java-driver" }

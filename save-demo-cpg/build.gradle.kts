@@ -55,7 +55,10 @@ dependencies {
     implementation(libs.neo4j.java.driver, excludeLogging)
 
     implementation(libs.cpg.core, excludeLogging)
+    implementation(libs.cpg.cxx, excludeLogging)
+    implementation(libs.cpg.java, excludeLogging)
     implementation(libs.cpg.python, excludeLogging)
+    implementation(libs.cpg.typescript, excludeLogging)
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
