@@ -11,6 +11,7 @@
             <column header="name" name="name" type="STRING"/>
             <column header="date_created" name="date_created" type="DATE"/>
             <column header="can_create_contests" name="can_create_contests" type="boolean"/>
+            <column header="rating" name="rating" type="NUMERIC"/>
         </loadData>
     </changeSet>
 
