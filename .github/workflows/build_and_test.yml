@@ -64,7 +64,7 @@ jobs:
       do-build: ${{ endsWith(needs.retrieve_save_cli_version_2.save-cli-version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
-    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
+    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version_2 ]
     strategy:
       fail-fast: false
       matrix:
