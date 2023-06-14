@@ -41,11 +41,11 @@ jobs:
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
-  retrieve_save_cli_version_2:
+  retrieve_save_cli_version:
     name: Retrieve save-cli version from save-cloud
     runs-on: ubuntu-latest
     outputs:
-      save-cli-version: ${{ steps.save-cli-version.outputs.save-cli-version }}
+      version: ${{ steps.save-cli-version.outputs.version }}
     steps:
       - name: checkout save-cloud
         uses: actions/checkout@v3
@@ -54,19 +54,18 @@ jobs:
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo "Detected version <$sv>"
-          echo "save-cli-version=$sv" >> $GITHUB_OUTPUT
+          echo "echo \"version=$sv\" >> \"$GITHUB_OUTPUT\""
+          echo "version=\"$sv\"" >> "$GITHUB_OUTPUT"
   build_cli:
     name: Build save-cli
-    needs: retrieve_save_cli_version_2
+    needs: retrieve_save_cli_version
     uses: ./.github/workflows/build_save-cli_reusable.yml
-    environment:
-      SAVE_CLI_VERSION: ${{ needs.retrieve_save_cli_version_2.save-cli-version }}
     with:
-      version: ${{ env.SAVE_CLI_VERSION }}
-      do-build: ${{ endsWith(needs.retrieve_save_cli_version_2.save-cli-version, '-SNAPSHOT') }}
+      version: ${{ needs.retrieve_save_cli_version.version }}
+      do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
-    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version_2 ]
+    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
     strategy:
       fail-fast: false
       matrix:
