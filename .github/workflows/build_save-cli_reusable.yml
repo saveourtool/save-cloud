@@ -37,7 +37,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
             --build-cache
