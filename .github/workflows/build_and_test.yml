@@ -41,6 +41,26 @@ jobs:
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  retrieve_save_cli_version:
+    name: Retrieve save-cli version from save-cloud
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.save-save-cli-version.outputs.version }}
+    steps:
+      - name: checkout save-cloud
+        uses: actions/checkout@v3
+      - id: save-save-cli-version
+        name: Store save-cli version in output
+        run: |
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo "Detected version $sv"
+          echo version=$sv >> $GITHUB_OUTPUT
+  build_cli:
+    name: Build save-cli
+    needs: [ retrieve_save_cli_version ]
+    uses: ./.github/workflows/build_save-cli_reusable.yml
+    with:
+      do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
     needs: [ build_save-demo-agent ]
@@ -52,7 +72,6 @@ jobs:
           'save-backend',
           'save-orchestrator',
           'save-frontend',
-          'save-agent',
           'save-preprocessor',
           'test-utils',
           'save-api',
@@ -61,8 +80,7 @@ jobs:
           'authentication-service',
           'save-demo',
           'save-demo-cpg',
-          'test-analysis-core',
-          'save-demo-agent'
+          'test-analysis-core'
         ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:

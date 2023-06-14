@@ -19,6 +19,12 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        content {
+            includeGroup("com.saveourtool.save")
+        }
+    }
     mavenCentral()
     maven {
         name = "0x6675636b796f75676974687562/kotlintree"
