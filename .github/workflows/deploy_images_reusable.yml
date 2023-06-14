@@ -72,11 +72,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: save-cli
-          path: ${{ github.workspace }}/save-${{ inputs.save-cli-version }}-linuxX64.kexe
+          path: ${{ github.workspace }}/save
       - name: Override saveCliVersion and saveCliPath in Gradle
         if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
         run: |
-          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }} >> $GITHUB_ENV
+          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
       - name: Build image for ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
         with:
