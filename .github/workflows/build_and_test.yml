@@ -59,8 +59,10 @@ jobs:
     name: Build save-cli
     needs: retrieve_save_cli_version_2
     uses: ./.github/workflows/build_save-cli_reusable.yml
+    environment:
+      SAVE_CLI_VERSION: ${{ needs.retrieve_save_cli_version_2.save-cli-version }}
     with:
-      version: ${{ needs.retrieve_save_cli_version_2.save-cli-version }}
+      version: ${{ env.SAVE_CLI_VERSION }}
       do-build: ${{ endsWith(needs.retrieve_save_cli_version_2.save-cli-version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
