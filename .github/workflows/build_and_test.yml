@@ -54,7 +54,7 @@ jobs:
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" \n')
           echo "Detected version <$sv>"
-          echo version=$sv >> $GITHUB_OUTPUT
+          echo "version=$sv" >> $GITHUB_OUTPUT
   build_cli:
     name: Build save-cli
     needs: [ retrieve_save_cli_version ]
