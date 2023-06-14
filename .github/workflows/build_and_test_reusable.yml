@@ -10,11 +10,6 @@ on:
         required: false
         type: boolean
         default: true
-      save-cli-version:
-        required: false
-        type: string
-        # it disables logic with -SNAPSHOT
-        default: NONE
 
 jobs:
   build_module:
@@ -46,20 +41,11 @@ jobs:
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Download save-cli
-        if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
-        uses: actions/download-artifact@v3
-        with:
-          name: save-cli
-          path: ${{ github.workspace }}/save
-      - name: Override saveCliVersion and saveCliPath in Gradle
-        if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
-        run: |
-          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
       - name: Build ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
         env:
           SKIP_SAVE_AGENT_DEPENDENCY: true
+          SKIP_SAVE_CLI_DEPENDENCY: true
         with:
           gradle-version: wrapper
           gradle-home-cache-cleanup: true
