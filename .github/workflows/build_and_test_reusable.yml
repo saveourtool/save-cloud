@@ -20,9 +20,6 @@ jobs:
         with:
           # required for correct codecov upload
           fetch-depth: 0
-      - name: Prepare to build
-        run: |
-          echo SAVE_CLI_GRADLE_OPTS= >> $GITHUB_ENV
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -58,7 +55,6 @@ jobs:
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            ${{ env.SAVE_CLI_GRADLE_OPTS }}
             --scan
             --build-cache
       - name: Upload gradle reports ${{ inputs.module }}

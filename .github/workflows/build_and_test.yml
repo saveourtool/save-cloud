@@ -43,7 +43,7 @@ jobs:
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_all:
     name: Build and test left modules
-    needs: [ build_save-demo-agent, build_cli ]
+    needs: [ build_save-demo-agent ]
     strategy:
       fail-fast: false
       matrix:
