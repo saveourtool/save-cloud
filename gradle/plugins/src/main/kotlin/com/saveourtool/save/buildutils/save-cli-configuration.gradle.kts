@@ -21,7 +21,7 @@ val saveCliVersion: String = the<LibrariesForLibs>()
 
 dependencies {
     if (saveCliVersion.isSnapshot()) {
-        if (!System.getenv().containsKey("SKIP_SAVE_CLI_DEPENDENCY")) {
+        if (System.getenv().containsKey("SKIP_SAVE_CLI_DEPENDENCY")) {
             logger.info("Dependency `save-cli` is omitted on CI")
         } else {
             val target = "$buildDir/save-cli"

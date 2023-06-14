@@ -22,7 +22,7 @@ val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register
 )
 
 dependencies {
-    if (!System.getenv().containsKey("SKIP_SAVE_AGENT_DEPENDENCY")) {
+    if (System.getenv().containsKey("SKIP_SAVE_AGENT_DEPENDENCY")) {
         logger.info("Dependency `save-agent` is omitted on CI")
     } else if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
         logger.warn("Dependency `save-agent` is omitted on Windows and Mac because of problems with linking in cross-compilation." +
