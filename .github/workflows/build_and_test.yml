@@ -41,26 +41,26 @@ jobs:
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
-  retrieve_save_cli_version:
-    name: Retrieve save-cli version from save-cloud
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.save-cli-version.outputs.version }}
-    steps:
-      - name: checkout save-cloud
-        uses: actions/checkout@v3
-      - id: save-cli-version
-        name: Store save-cli version in output
-        run: |
-          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo "Detected version $sv"
-          echo version=$sv >> $GITHUB_OUTPUT
   build_cli:
     name: Build save-cli
     needs: retrieve_save_cli_version
     uses: ./.github/workflows/build_save-cli_reusable.yml
+  build_save-backend:
+    name: Build and test save-backend
+    needs: [ build_save-agent, build_cli ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do-build: ${{ endsWith(needs.retrieve_save_cli_version.outputs.version, '-SNAPSHOT') }}
+      module: save-backend
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      save-cli-version: ${{ needs.build_cli.outputs.version }}
+  build_save-sandbox:
+    name: Build and test save-sandbox
+    needs: [ build_save-agent, build_cli ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-sandbox
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      save-cli-version: ${{ needs.build_cli.outputs.version }}
   build_all:
     name: Build and test left modules
     needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
@@ -69,14 +69,12 @@ jobs:
       matrix:
         module: [
           'api-gateway',
-          'save-backend',
           'save-orchestrator',
           'save-frontend',
           'save-preprocessor',
           'test-utils',
           'save-api',
           'save-api-cli',
-          'save-sandbox',
           'authentication-service',
           'save-demo',
           'save-demo-cpg',
@@ -86,7 +84,6 @@ jobs:
     with:
       module: ${{ matrix.module }}
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      save-cli-version: ${{ needs.retrieve_save_cli_version.outputs.version }}
 
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
