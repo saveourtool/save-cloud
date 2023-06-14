@@ -53,15 +53,13 @@ jobs:
         name: Store save-cli version in output
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo "Detected version <$sv>"
-          echo "echo \"version=$sv\" >> \"$GITHUB_OUTPUT\""
-          echo "version=$sv" >> "$GITHUB_OUTPUT"
+          echo "Detected version $sv"
+          echo version=$sv >> $GITHUB_OUTPUT
   build_cli:
     name: Build save-cli
     needs: retrieve_save_cli_version
     uses: ./.github/workflows/build_save-cli_reusable.yml
     with:
-      version: ${{ needs.retrieve_save_cli_version.outputs.version }}
       do-build: ${{ endsWith(needs.retrieve_save_cli_version.outputs.version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
@@ -88,7 +86,7 @@ jobs:
     with:
       module: ${{ matrix.module }}
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      save-cli-version: ${{ needs.retrieve_save_cli_version.version }}
+      save-cli-version: ${{ needs.retrieve_save_cli_version.outputs.version }}
 
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage

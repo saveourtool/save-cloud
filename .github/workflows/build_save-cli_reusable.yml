@@ -6,10 +6,6 @@ on:
       do-build:
         type: boolean
         required: true
-      version:
-        type: string
-        required: false
-        default: 'TEST'
 
 jobs:
   build_save-cli:
