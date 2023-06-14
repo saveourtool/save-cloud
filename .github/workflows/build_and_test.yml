@@ -45,11 +45,11 @@ jobs:
     name: Retrieve save-cli version from save-cloud
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.save-save-cli-version.outputs.version }}
+      version: ${{ steps.save-cli-version.outputs.version }}
     steps:
       - name: checkout save-cloud
         uses: actions/checkout@v3
-      - id: save-save-cli-version
+      - id: save-cli-version
         name: Store save-cli version in output
         run: |
           sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')

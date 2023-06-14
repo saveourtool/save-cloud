@@ -11,8 +11,10 @@ on:
         type: boolean
         default: true
       save-cli-version:
-        required: true
+        required: false
         type: string
+        # it disables logic with -SNAPSHOT
+        default: NONE
 
 jobs:
   build_module:
