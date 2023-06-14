@@ -55,50 +55,31 @@ on:
         required: false
 
 jobs:
-  retrieve_save_cli_version:
-    name: Retrieve save-cli version from save-cloud
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.save-cli-version.outputs.version }}
-    steps:
-      - name: checkout save-cloud
-        uses: actions/checkout@v3
-      - id: save-cli-version
-        name: Store save-cli version in output
-        run: |
-          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo "Detected version $sv"
-          echo version=$sv >> $GITHUB_OUTPUT
-
   build_cli:
     name: Build save-cli
-    needs: [ retrieve_save_cli_version ]
     uses: ./.github/workflows/build_save-cli_reusable.yml
-    with:
-      do-build: ${{ endsWith(needs.retrieve_save_cli_version.outputs.version, '-SNAPSHOT') }}
-
 
   deploy_backend:
     name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli, retrieve_save_cli_version ]
+    needs: build_cli
     with:
       module: save-backend
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.backend }}
       override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
-      save-cli-version: ${{ needs.retrieve_save_cli_version.outputs.version }}
+      save-cli-version: ${{ needs.build_cli.outputs.version }}
 
   deploy_sandbox:
     name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: [ build_cli, retrieve_save_cli_version ]
+    needs: build_cli
     with:
       module: save-sandbox
       branch: ${{ inputs.branch }}
       do-build: ${{ github.event_name != 'workflow_dispatch' || inputs.sandbox }}
       override-docker-tag: ${{ github.event_name == 'workflow_dispatch' }}
-      save-cli-version: ${{ needs.retrieve_save_cli_version.outputs.version }}
+      save-cli-version: ${{ needs.build_cli.outputs.version }}
 
   deploy_all:
     name: all excluding save-backend and save-sandbox

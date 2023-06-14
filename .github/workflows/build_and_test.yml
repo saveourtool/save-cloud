@@ -43,7 +43,6 @@ jobs:
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_cli:
     name: Build save-cli
-    needs: retrieve_save_cli_version
     uses: ./.github/workflows/build_save-cli_reusable.yml
   build_save-backend:
     name: Build and test save-backend
@@ -63,7 +62,7 @@ jobs:
       save-cli-version: ${{ needs.build_cli.outputs.version }}
   build_all:
     name: Build and test left modules
-    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
+    needs: [ build_save-demo-agent, build_cli ]
     strategy:
       fail-fast: false
       matrix:
