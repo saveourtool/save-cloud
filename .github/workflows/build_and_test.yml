@@ -41,7 +41,7 @@ jobs:
     with:
       module: save-demo-agent
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
-  retrieve_save_cli_version:
+  retrieve_save_cli_version_2:
     name: Retrieve save-cli version from save-cloud
     runs-on: ubuntu-latest
     outputs:
@@ -57,11 +57,11 @@ jobs:
           echo "save-cli-version=$sv" >> $GITHUB_OUTPUT
   build_cli:
     name: Build save-cli
-    needs: retrieve_save_cli_version
+    needs: retrieve_save_cli_version_2
     uses: ./.github/workflows/build_save-cli_reusable.yml
     with:
-      version: ${{ needs.retrieve_save_cli_version.save-cli-version }}
-      do-build: ${{ endsWith(needs.retrieve_save_cli_version.save-cli-version, '-SNAPSHOT') }}
+      version: ${{ needs.retrieve_save_cli_version_2.save-cli-version }}
+      do-build: ${{ endsWith(needs.retrieve_save_cli_version_2.save-cli-version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
     needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
