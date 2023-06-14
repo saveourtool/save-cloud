@@ -10,6 +10,9 @@ on:
         required: false
         type: boolean
         default: true
+      save-cli-version:
+        required: true
+        type: string
 
 jobs:
   build_module:

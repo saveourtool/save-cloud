@@ -63,7 +63,7 @@ jobs:
       do-build: ${{ endsWith(needs.retrieve_save_cli_version.version, '-SNAPSHOT') }}
   build_all:
     name: Build and test left modules
-    needs: [ build_save-demo-agent ]
+    needs: [ build_save-demo-agent, build_cli, retrieve_save_cli_version ]
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +86,7 @@ jobs:
     with:
       module: ${{ matrix.module }}
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      save-cli-version: ${{ needs.retrieve_save_cli_version.version }}
 
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
