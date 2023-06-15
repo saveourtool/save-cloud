@@ -52,7 +52,6 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
     },
     initialPageSize = 10,
     useServerPaging = false,
-    usePageSelection = false,
 )
 
 /**

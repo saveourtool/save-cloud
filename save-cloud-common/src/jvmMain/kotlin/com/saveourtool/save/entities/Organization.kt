@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property description
  * @property canCreateContests
+ * @property rating
  */
 @Entity
 @Serializable
@@ -28,6 +29,7 @@ data class Organization(
     var avatar: String? = null,
     var description: String? = null,
     var canCreateContests: Boolean = false,
+    var rating: Long = 0,
 ) : BaseEntityWithDto<OrganizationDto>() {
     /**
      * @return [OrganizationDto]
@@ -39,6 +41,7 @@ data class Organization(
         avatar = avatar,
         description = description.orEmpty(),
         canCreateContests = canCreateContests,
+        rating = rating,
     )
 
     companion object {
@@ -71,4 +74,5 @@ fun OrganizationDto.toOrganization() = Organization(
     avatar = avatar,
     description = description,
     canCreateContests = canCreateContests,
+    rating = rating,
 )

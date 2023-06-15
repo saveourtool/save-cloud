@@ -46,7 +46,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -253,9 +252,22 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         useServerPaging = true,
-        usePageSelection = true,
         tableOptionsCustomizer = { tableOptions ->
             enableExpanding(tableOptions)
+        },
+        getRowProps = { row ->
+            val color = when (row.original.testExecution.status) {
+                TestResultStatus.FAILED -> Colors.RED
+                TestResultStatus.IGNORED -> Colors.GOLD
+                TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
+                TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
+                TestResultStatus.PASSED -> Colors.GREEN
+            }
+            jso {
+                style = jso {
+                    background = color.value.unsafeCast<Background>()
+                }
+            }
         },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
@@ -299,25 +311,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-        },
-        getRowProps = { row ->
-            val color = when (row.original.testExecution.status) {
-                TestResultStatus.FAILED -> Colors.RED
-                TestResultStatus.IGNORED -> Colors.GOLD
-                TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
-                TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
-                TestResultStatus.PASSED -> Colors.GREEN
-            }
-            jso {
-                style = jso {
-                    background = color.value.unsafeCast<Background>()
-                }
-            }
-        },
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
         }
-    )
+    ) {
+        arrayOf(it.filters)
+    }
 
     init {
         state.executionDto = null

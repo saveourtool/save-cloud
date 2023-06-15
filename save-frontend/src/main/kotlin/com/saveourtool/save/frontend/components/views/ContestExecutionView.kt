@@ -161,6 +161,9 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                 }
             }
         },
+        tableOptionsCustomizer = {
+            enableExpanding(it)
+        },
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
@@ -194,9 +197,6 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                     }
                 }
             }
-        },
-        tableOptionsCustomizer = {
-            enableExpanding(it)
         }
     )
 

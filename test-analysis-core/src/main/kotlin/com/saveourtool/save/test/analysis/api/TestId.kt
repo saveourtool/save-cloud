@@ -22,4 +22,4 @@ import com.saveourtool.save.entities.Test
  * @property hash the SHA hash that uniquely identifies this test.
  */
 @JvmInline
-value class TestId internal constructor(private val hash: String)
+value class TestId internal constructor(@Suppress("UnusedPrivateProperty") private val hash: String)

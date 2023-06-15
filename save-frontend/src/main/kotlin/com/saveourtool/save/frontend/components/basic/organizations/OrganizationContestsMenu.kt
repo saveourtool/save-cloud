@@ -92,12 +92,10 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
         }
     },
     initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.isContestCreated)
-    }
-)
+    useServerPaging = false
+) {
+    arrayOf(it.isContestCreated)
+}
 
 /**
  * OrganizationContestsMenu component props

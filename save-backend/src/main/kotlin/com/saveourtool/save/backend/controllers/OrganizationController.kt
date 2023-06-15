@@ -57,8 +57,6 @@ internal class OrganizationController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesService: TestSuitesService,
-    private val testsSourceVersionService: TestsSourceVersionService,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     config: ConfigProperties,
 ) {

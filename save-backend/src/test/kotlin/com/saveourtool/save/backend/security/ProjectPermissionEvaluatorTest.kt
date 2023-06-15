@@ -22,6 +22,7 @@ import org.mockito.kotlin.given
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -29,11 +30,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class, MockitoExtension::class)
 @Import(ProjectPermissionEvaluator::class, LnkUserProjectService::class, LnkUserOrganizationService::class)
+@MockBeans(
+    MockBean(UserRepository::class),
+    MockBean(LnkUserOrganizationService::class),
+)
 class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
-    @MockBean private lateinit var userRepository: UserRepository
-    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var userDetailsService: UserDetailsService
     private lateinit var mockProject: Project
 

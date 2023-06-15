@@ -198,7 +198,6 @@ class LnkUserOrganizationController(
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
         @RequestParam prefix: String,
-        authentication: Authentication,
     ): Mono<List<UserInfo>> = Mono.just(organizationName)
         .filter {
             prefix.isNotEmpty()

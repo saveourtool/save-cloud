@@ -366,7 +366,4 @@ class DemoManagerController(
     ) = onStatus({ it == HttpStatus.NOT_FOUND }) {
         Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find demo for $organizationName/$projectName."))
     }
-    companion object {
-        private const val SAVE_DEMO_AGENT_KOMPOSE_NAME = "save-demo-agent"
-    }
 }

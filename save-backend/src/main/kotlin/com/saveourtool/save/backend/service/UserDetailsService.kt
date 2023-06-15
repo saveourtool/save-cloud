@@ -10,7 +10,6 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 
-import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -29,8 +28,6 @@ class UserDetailsService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
 ) : ReactiveUserDetailsService {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     override fun findByUsername(username: String): Mono<UserDetails> = {
         userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
     }.toMono().getIdentitySourceAwareUserDetails(username)

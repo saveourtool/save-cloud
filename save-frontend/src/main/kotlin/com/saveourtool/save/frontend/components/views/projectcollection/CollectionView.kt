@@ -125,14 +125,12 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                 }
             }
         },
-        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
-        },
-    )
+        isTransparentGrid = true,
+    ) {
+        arrayOf(it.filters)
+    }
 
     init {
         state.selectedMenu = ProjectListTab.defaultTab

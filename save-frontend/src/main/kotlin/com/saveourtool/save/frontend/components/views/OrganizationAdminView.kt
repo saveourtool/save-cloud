@@ -187,18 +187,16 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             }
         },
         initialPageSize = INITIAL_PAGE_SIZE,
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = { tableProps ->
-            /*-
-             * Necessary for the table to get re-rendered once an organization
-             * gets deleted.
-             *
-             * The order and size of the array must remain constant.
-             */
-            arrayOf(tableProps)
-        }
-    )
+        useServerPaging = false
+    ) { tableProps ->
+        /*-
+         * Necessary for the table to get re-rendered once an organization
+         * gets deleted.
+         *
+         * The order and size of the array must remain constant.
+         */
+        arrayOf(tableProps)
+    }
 
     init {
         state.organizations = mutableListOf()

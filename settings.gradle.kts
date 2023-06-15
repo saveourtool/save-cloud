@@ -6,6 +6,7 @@ dependencyResolutionManagement {
             url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             content {
                 includeGroup("com.saveourtool.sarifutils")
+                includeGroup("com.saveourtool.save")
             }
         }
         mavenCentral()
@@ -30,7 +31,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version "3.13"
+    id("com.gradle.enterprise") version "3.13.3"
 }
 
 includeBuild("gradle/plugins")

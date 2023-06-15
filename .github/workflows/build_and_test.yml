@@ -52,7 +52,6 @@ jobs:
           'save-backend',
           'save-orchestrator',
           'save-frontend',
-          'save-agent',
           'save-preprocessor',
           'test-utils',
           'save-api',
@@ -61,8 +60,7 @@ jobs:
           'authentication-service',
           'save-demo',
           'save-demo-cpg',
-          'test-analysis-core',
-          'save-demo-agent'
+          'test-analysis-core'
         ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
