@@ -116,6 +116,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 div {
                     // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
+                    // https://github.com/matteobruni/tsparticles/discussions/4489
                     /* Particles::class.react {
                         id = "tsparticles"
                         url = "${window.location.origin}/particles.json"

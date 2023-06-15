@@ -4,16 +4,18 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.components.views.welcome.marketingTitle
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 
 import react.VFC
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.span
 import web.cssom.*
 
 val indexView: VFC = VFC {
@@ -24,46 +26,89 @@ val indexView: VFC = VFC {
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {
-                className = ClassName("grid")
+                className = ClassName("grid mt-5")
                 div {
-                    className = ClassName("row")
-                    creationCard("/", "img/save-logo-bg.jpg", "", JustifyContent.flexEnd)
-                    creationCard("/", "img/vuln-logo-bg.jpg", "", JustifyContent.flexStart)
-                }
+                    className = ClassName("row logo-parent")
 
-                div {
-                    className = ClassName("row")
-                    creationCard("/", "", "SAVE", JustifyContent.center)
-                    creationCard("/", "", "Vulnerabilities", JustifyContent.center)
+                    div {
+                        className = ClassName("col-3 text-center")
+                    }
+
+                    div {
+                        className = ClassName("col-3 text-center")
+                        creationCard(
+                            "#/${FrontendRoutes.SAVE}",
+                            "img/save-logo-bg.jpg",
+                        )
+                        neonLightingText("SAVE")
+                    }
+
+
+                    div {
+                        className = ClassName("col-3 text-center")
+                        creationCard(
+                            "#/${FrontendRoutes.VULNERABILITIES}",
+                            "img/vuln-logo-bg.jpg",
+                        )
+
+                        neonLightingText("VULN")
+                    }
+
+                    div {
+                        className = ClassName("col-3 text-center")
+                    }
+                }
+            }
+        }
+    }
+
+    div {
+        className = ClassName("row text-center")
+
+        div {
+            className = ClassName("col-3 text-center")
+        }
+    }
+}
+
+
+private fun ChildrenBuilder.creationCard(url: String, img: String) {
+    div {
+        className = ClassName("row")
+        a {
+            href = url
+            className = ClassName("column")
+            id = "grayscale"
+            @Suppress("MAGIC_NUMBER")
+            img {
+                className = ClassName("imgClass")
+                src = img
+                style = jso {
+                    width = "80%".unsafeCast<Width>()
+                    border = "0.2rem solid hsl(186 100% 69%)".unsafeCast<Border>()
                 }
             }
         }
     }
 }
 
-private fun ChildrenBuilder.creationCard(url: String, img: String, text: String, justifyContentValue: JustifyContent) {
+private fun ChildrenBuilder.neonLightingText(input: String) {
     div {
-        className = ClassName("col-6")
-        style = jso {
-            justifyContent = justifyContentValue
-            display = Display.flex
-            alignItems = AlignItems.center
-            alignSelf = AlignSelf.start
-        }
-
-        if (img != "") {
-            @Suppress("MAGIC_NUMBER")
-            img {
-                src = img
-                style = jso {
-                    width = "60%".unsafeCast<Width>()
-                    border = "0.2rem solid rgb(2, 117, 216)".unsafeCast<Border>()
+        className = ClassName("row")
+        div {
+            className = ClassName("col text-center")
+            button {
+                className = ClassName("glowing-btn")
+                span {
+                    className = ClassName("glowing-txt")
+                    +input[0]
+                    span {
+                        className = ClassName("faulty-letter")
+                        +input[1]
+                    }
+                    +input.substring(2)
                 }
             }
-        }
-
-        if (text != "") {
-            marketingTitle("SAVE", false)
         }
     }
 }
