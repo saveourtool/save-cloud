@@ -2,11 +2,14 @@
  * Utils for CpgGraph and Sigma in general
  */
 
-package com.saveourtool.save.frontend.externals.sigma
+package com.saveourtool.save.frontend.externals.graph
 
 import com.saveourtool.save.demo.cpg.CpgEdge
 import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.CpgNode
+import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeEdge
+import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeGraph
+import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeNode
 
 import js.core.jso
 
@@ -19,7 +22,8 @@ private val cpgJsonSerializer = Json { encodeDefaults = true }
 /**
  * @return serialized graph that can be used with useLoadGraph hook
  */
-fun CpgGraph.toJson() = let { graph ->
+fun CpgGraph.toGraphologyJson() = let { graph ->
+    @Suppress("UnusedPrivateProperty")
     val str = cpgJsonSerializer.encodeToString(graph)
     js("JSON.parse(str);")
 }
@@ -73,6 +77,30 @@ fun CpgGraph.paintEdges(
     .let { coloredEdges ->
         copy(edges = coloredEdges)
     }
+
+/**
+ * @return [CytoscapeEdge] from [CpgEdge]
+ */
+fun CpgEdge.asCytoscapeEdge() = CytoscapeEdge(
+    CytoscapeEdge.Data(key, source, target, attributes.label),
+    false
+)
+
+/**
+ * @return [CytoscapeNode] from [CpgNode]
+ */
+fun CpgNode.asCytoscapeNode() = CytoscapeNode(
+    CytoscapeNode.Data(key, label = attributes.label)
+)
+
+/**
+ * @return [CytoscapeGraph] from [CpgGraph]
+ */
+fun CpgGraph.asCytoscapeGraph() = CytoscapeGraph(
+    nodes.map { it.asCytoscapeNode() },
+    edges.map { it.asCytoscapeEdge() },
+    CytoscapeGraph.Attributes(name = attributes.name)
+)
 
 /**
  * @param edgeType type of the edge that should be displayed

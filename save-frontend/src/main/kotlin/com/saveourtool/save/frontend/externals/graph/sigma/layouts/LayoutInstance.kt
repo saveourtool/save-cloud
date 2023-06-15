@@ -1,4 +1,4 @@
-package com.saveourtool.save.frontend.externals.sigma.layouts
+package com.saveourtool.save.frontend.externals.graph.sigma.layouts
 
 /**
  * Wrapper for useLayoutRandom returning value to allow unpacking a pair (has [component1] and [component2])

@@ -46,7 +46,6 @@ import java.nio.file.Path as NioPath
 @Service
 class TestDiscoveringService(
     private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
-    private val validationService: TestSuiteValidationService,
 ) {
     /**
      * @param repositoryPath

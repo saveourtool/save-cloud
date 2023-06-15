@@ -39,7 +39,7 @@ class TopBarTest {
         val button = screen.getByRole("button", jso { name = "Test User" })
         userEvent.click(button)
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
-        assertEquals(3, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
+        assertEquals(4, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
     }
 
     @Test

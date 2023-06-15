@@ -2,7 +2,7 @@
 @file:JsModule("@react-sigma/layout-random")
 @file:JsNonModule
 
-package com.saveourtool.save.frontend.externals.sigma.layouts
+package com.saveourtool.save.frontend.externals.graph.sigma.layouts
 
 import react.*
 

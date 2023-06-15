@@ -2,15 +2,35 @@ name: Reusable build save-cli
 
 on:
   workflow_call:
-    inputs:
-      do-build:
-        type: boolean
-        required: true
+    outputs:
+      version:
+        description: "Version of save-cli taken from gradle/libs.versions.toml"
+        value: ${{ jobs.retrieve_save_cli_version.outputs.version }}
 
 jobs:
+  retrieve_save_cli_version:
+    name: Retrieve save-cli version from save-cloud
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.save-cli-version.outputs.version }}
+    steps:
+      - name: checkout save-cloud
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            gradle/libs.versions.toml
+          sparse-checkout-cone-mode: false
+      - id: save-cli-version
+        name: Store save-cli version in output
+        run: |
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-cli =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo "Detected version $sv"
+          echo version=$sv >> $GITHUB_OUTPUT
+
   build_save-cli:
     name: Build save-cli
-    if: ${{ inputs.do-build }}
+    needs: retrieve_save_cli_version
+    if: ${{ endsWith(needs.retrieve_save_cli_version.outputs.version, 'SNAPSHOT') }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout save-cli
@@ -37,7 +57,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          build-root-directory: save
           arguments: |
             :save-cli:linkReleaseExecutableLinuxX64
             --build-cache
@@ -62,7 +81,8 @@ jobs:
           retention-days: 1
 
   build_save-cli_skipped:
-    if: ${{ !inputs.do-build }}
+    needs: retrieve_save_cli_version
+    if: ${{ !endsWith(needs.retrieve_save_cli_version.outputs.version, 'SNAPSHOT') }}
     runs-on: ubuntu-latest
     steps:
       - name: Do nothing

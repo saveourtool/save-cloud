@@ -21,25 +21,29 @@ val saveCliVersion: String = the<LibrariesForLibs>()
 
 dependencies {
     if (saveCliVersion.isSnapshot()) {
-        val target = "$buildDir/save-cli"
-        val saveCliPath = providers.gradleProperty("saveCliPath")
-        logger.info(
-            "save-cli version is SNAPSHOT ({}), add {} as a runtime dependency",
-            saveCliVersion, saveCliPath
-        )
-        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
-            from(saveCliPath)
-            into(target)
-            eachFile {
-                duplicatesStrategy = DuplicatesStrategy.WARN
+        if (System.getenv().containsKey("SKIP_SAVE_CLI_DEPENDENCY")) {
+            logger.info("Dependency `save-cli` is omitted on CI")
+        } else {
+            val target = "$buildDir/save-cli"
+            val saveCliPath = providers.gradleProperty("saveCliPath")
+            logger.info(
+                "save-cli version is SNAPSHOT ({}), add {} as a runtime dependency",
+                saveCliVersion, saveCliPath
+            )
+            @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+            val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
+                from(saveCliPath)
+                into(target)
+                eachFile {
+                    duplicatesStrategy = DuplicatesStrategy.WARN
+                }
             }
+            add("runtimeOnly",
+                files(layout.buildDirectory.dir(target)).apply {
+                    builtBy(copySaveCliTaskProvider)
+                }
+            )
         }
-        add("runtimeOnly",
-            files(layout.buildDirectory.dir(target)).apply {
-                builtBy(copySaveCliTaskProvider)
-            }
-        )
     }
 }
 

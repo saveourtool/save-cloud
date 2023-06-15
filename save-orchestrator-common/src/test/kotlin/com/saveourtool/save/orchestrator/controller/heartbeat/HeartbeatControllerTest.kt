@@ -387,6 +387,7 @@ class HeartbeatControllerTest {
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
         heartbeats.forEach { (heartbeat, delay) ->
+            @Suppress("SleepInsteadOfDelay")
             Thread.sleep(delay.toLong(DurationUnit.MILLISECONDS))
             webClient.post()
                 .uri("/heartbeat")

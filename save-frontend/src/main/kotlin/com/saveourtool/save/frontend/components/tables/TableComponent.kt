@@ -80,7 +80,6 @@ external interface TableProps<D : Any> : Props {
  * @param initialPageSize initial size of table page
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
- * @param usePageSelection whether to display entries settings
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
@@ -111,11 +110,10 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     columns: (P) -> Array<out ColumnDef<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
-    usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR") tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {},
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
+    getRowProps: (Row<D>) -> PropsWithStyle = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: ChildrenBuilder.(table: Table<D>, navigate: NavigateFunction) -> Unit = { _, _ -> },
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },

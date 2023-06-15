@@ -84,6 +84,7 @@ kotlin {
                 implementation(libs.aws.sdk.s3)
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
                 implementation(libs.ktoml.file)
                 api(libs.kotlinx.coroutines.reactor)
             }
@@ -110,6 +111,7 @@ kotlin {
 
             dependencies {
                 implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
                 implementation(libs.ktoml.file)
             }
         }

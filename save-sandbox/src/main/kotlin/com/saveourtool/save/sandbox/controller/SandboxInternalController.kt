@@ -109,7 +109,7 @@ class SandboxInternalController(
      */
     @PostMapping("/upload-execution-data")
     fun saveExecutionData(
-        @RequestBody testExecutionResults: List<TestExecutionResult>
+        @Suppress("UnusedParameter") @RequestBody testExecutionResults: List<TestExecutionResult>
     ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
         .toMono()
 

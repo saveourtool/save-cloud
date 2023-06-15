@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
@@ -35,6 +36,10 @@ import org.springframework.test.web.reactive.server.WebTestClient
     ConvertingAuthenticationManager::class,
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
+)
+@MockBeans(
+    MockBean(OriginalLoginRepository::class),
+    MockBean(NamedParameterJdbcTemplate::class),
 )
 @AutoConfigureWebTestClient
 class LnkUserOrganizationControllerTest {
@@ -52,12 +57,6 @@ class LnkUserOrganizationControllerTest {
 
     @MockBean
     private lateinit var organizationService: OrganizationService
-
-    @MockBean
-    private lateinit var originalLoginRepository: OriginalLoginRepository
-
-    @MockBean
-    private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @Test
     @WithMockUser

@@ -60,8 +60,6 @@ class LnkUserOrganizationController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     @GetMapping("/{organizationName}/users")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get list of users that are connected with given organization.",
@@ -74,7 +72,6 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
-        authentication: Authentication,
     ): Mono<List<UserInfo>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
@@ -201,7 +198,6 @@ class LnkUserOrganizationController(
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
         @RequestParam prefix: String,
-        authentication: Authentication,
     ): Mono<List<UserInfo>> = Mono.just(organizationName)
         .filter {
             prefix.isNotEmpty()

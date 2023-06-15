@@ -142,12 +142,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         },
-        isTransparentGrid = true,
         useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(it)
-        },
+        isTransparentGrid = true,
         commonHeader = { tableInstance, _ ->
             tr {
                 th {
@@ -173,7 +169,9 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         }
-    )
+    ) {
+        arrayOf(it)
+    }
 
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
@@ -209,12 +207,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         },
-        isTransparentGrid = true,
         useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(it)
-        },
+        isTransparentGrid = true,
         commonHeader = { tableInstance, _ ->
             tr {
                 th {
@@ -240,7 +234,9 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         }
-    )
+    ) {
+        arrayOf(it)
+    }
 
     init {
         state.organizationWithRatingList = emptyArray()

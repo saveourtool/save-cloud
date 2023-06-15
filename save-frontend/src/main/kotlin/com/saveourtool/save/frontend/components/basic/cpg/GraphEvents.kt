@@ -6,7 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic.cpg
 
-import com.saveourtool.save.frontend.externals.sigma.*
+import com.saveourtool.save.frontend.externals.graph.sigma.useRegisterEvents
+import com.saveourtool.save.frontend.externals.graph.sigma.useSetSettings
+import com.saveourtool.save.frontend.externals.graph.sigma.useSigma
 import js.core.jso
 import react.*
 

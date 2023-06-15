@@ -22,6 +22,7 @@ import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
+import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
@@ -43,6 +44,13 @@ val testExecutionDetailsView = testExecutionDetailsView()
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
+
+    val userProfileView: VFC = withRouter { _, params ->
+        userProfileView {
+            userName = params["name"]!!
+        }
+    }
+
     val contestView: VFC = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
@@ -196,6 +204,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
             fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
             demoMainView.create() to "/$DEMO",
+            userProfileView.create() to "/$PROFILE/:name",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

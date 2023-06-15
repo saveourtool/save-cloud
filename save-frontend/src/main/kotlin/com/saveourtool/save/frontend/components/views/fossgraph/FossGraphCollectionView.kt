@@ -75,11 +75,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
         },
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
         isTransparentGrid = true,
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
-        },
         commonHeader = { tableInstance, _ ->
             tr {
                 th {
@@ -105,7 +101,9 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                 }
             }
         }
-    )
+    ) {
+        arrayOf(it.filters)
+    }
 
     main {
         className = ClassName("main-content mt-0 ps")

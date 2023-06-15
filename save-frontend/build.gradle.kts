@@ -122,6 +122,8 @@ kotlin {
             implementation(npm("@react-sigma/layout-random", "^3.1.0"))
             implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
             implementation(npm("@react-sigma/layout-forceatlas2", "^3.1.0"))
+            implementation(npm("react-graph-viz-engine", "^0.1.0"))
+            implementation(npm("cytoscape", "^3.25.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))

@@ -317,7 +317,6 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     fun update(
         @RequestBody projectProblemDto: ProjectProblemDto,
-        authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         projectProblemService.updateProjectProblem(projectProblemDto)
     }.map {
