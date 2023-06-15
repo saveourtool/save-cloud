@@ -7,15 +7,16 @@
 package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.demo.cpg.CpgResult
+import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.demo.graphDemoComponent
-import com.saveourtool.save.frontend.components.basic.graph.graphVizVisualizer
+import com.saveourtool.save.frontend.components.basic.graph.cytoscapeVisualizer
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
-import com.saveourtool.save.frontend.externals.graph.graphviz.GraphVizLayout
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.utils.Languages
+import js.core.jso
 
 import react.*
 import react.dom.html.ReactHTML.br
@@ -88,9 +89,12 @@ val cpgView: VFC = VFC {
                         with(builder) {
                             div {
                                 className = ClassName("card card-body p-0")
-                                graphVizVisualizer {
-                                    layout = GraphVizLayout.preferredLayout
-                                    graph = sampleData
+                                style = jso {
+                                    height = "90%".unsafeCast<Height>()
+                                }
+                                cytoscapeVisualizer {
+                                    graph = cpgResult.cpgGraph
+                                    layout = CytoscapeLayout.CONCENTRIC
                                 }
                                 div {
                                     val alertStyle = when {
@@ -135,53 +139,3 @@ val cpgView: VFC = VFC {
         }
     }
 }
-
-private val sampleData = js("""{
-    "data": {
-        "actors": [
-            {
-                "__typename": "Actor",
-                "ID": 1,
-                "name": "François Lallement",
-                "acted_in": [
-                    {
-                        "__typename": "Movie",
-                        "ID": 3,
-                        "title": "Trip to the Moon, A (Voyage dans la lune, Le)",
-                        "genres": [
-                            {
-                                "__typename": "Genre",
-                                "ID": 5,
-                                "name": "Action"
-                            },
-                            {
-                                "__typename": "Genre",
-                                "ID": 6,
-                                "name": "Adventure"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "__typename": "Actor",
-                "ID": 2,
-                "name": "Jules-Eugène Legris",
-                "acted_in": [
-                    {
-                        "__typename": "Movie",
-                        "ID": 3,
-                        "title": "Trip to the Moon, A (Voyage dans la lune, Le)",
-                        "genres": [
-                            {
-                                "__typename": "Genre",
-                                "ID": 7,
-                                "name": "Sci-Fi"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-}""")

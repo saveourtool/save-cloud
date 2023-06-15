@@ -9,7 +9,7 @@ import com.saveourtool.save.frontend.components.basic.cpg.graphEvents
 import com.saveourtool.save.frontend.components.basic.cpg.graphLoader
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.graph.sigma.getSigmaContainerSettings
+import com.saveourtool.save.frontend.externals.graph.getSigmaContainerSettings
 import com.saveourtool.save.frontend.externals.graph.sigma.sigmaContainer
 import js.core.jso
 import react.ChildrenBuilder
