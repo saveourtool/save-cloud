@@ -7,13 +7,14 @@
 package com.saveourtool.save.frontend.components.basic.cpg
 
 import com.saveourtool.save.demo.cpg.CpgGraph
+import com.saveourtool.save.frontend.externals.graph.paintNodes
 import com.saveourtool.save.frontend.externals.graph.sigma.layouts.LayoutInstance
 import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutCircular
 import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutForceAtlas2
 import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutRandom
-import com.saveourtool.save.frontend.externals.graph.sigma.paintNodes
-import com.saveourtool.save.frontend.externals.graph.sigma.toGraphologyJson
 import com.saveourtool.save.frontend.externals.graph.sigma.useLoadGraph
+import com.saveourtool.save.frontend.externals.graph.toGraphologyJson
+
 import js.core.jso
 import react.FC
 import react.Props
