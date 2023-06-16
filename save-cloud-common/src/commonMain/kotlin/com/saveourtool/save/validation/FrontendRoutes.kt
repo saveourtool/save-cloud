@@ -34,6 +34,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),
     SETTINGS_TOKEN("settings/token"),
+    TOP_RATING("top-rating"),
     ;
 
     override fun toString(): String = path
