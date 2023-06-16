@@ -22,7 +22,7 @@ import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import web.cssom.*
 
-val renderUserRatingTable: FC<Props> = FC { _ ->
+val userRatingTable: FC<Props> = FC { _ ->
 
     @Suppress(
         "TOO_MANY_LINES_IN_LAMBDA",

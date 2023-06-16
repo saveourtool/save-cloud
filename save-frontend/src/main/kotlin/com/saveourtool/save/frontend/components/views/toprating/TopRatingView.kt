@@ -37,8 +37,8 @@ val topRatingView = VFC {
     }
 
     when (selectedMenu) {
-        TopRatingTab.USERS -> renderUserRatingTable()
-        TopRatingTab.ORGANIZATIONS -> renderOrganizationRatingTab()
+        TopRatingTab.USERS -> userRatingTable()
+        TopRatingTab.ORGANIZATIONS -> organizationRatingTab()
     }
 }
 

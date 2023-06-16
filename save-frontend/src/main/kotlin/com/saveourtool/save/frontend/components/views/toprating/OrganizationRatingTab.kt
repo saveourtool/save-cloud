@@ -27,7 +27,7 @@ import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val renderOrganizationRatingTab: FC<Props> = FC { _ ->
+val organizationRatingTab: FC<Props> = FC { _ ->
 
     val (organizationFilter, setOrganizationFilter) = useState(OrganizationFilter.created)
 
