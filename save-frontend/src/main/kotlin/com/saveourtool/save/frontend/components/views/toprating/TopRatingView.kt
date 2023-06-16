@@ -1,3 +1,9 @@
+/**
+ * View for TopRating
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.toprating
 
 import com.saveourtool.save.frontend.TabMenuBar
@@ -32,14 +38,14 @@ val topRatingView = VFC {
 
     when (selectedMenu) {
         TopRatingTab.USERS -> renderUserRatingTable()
-        TopRatingTab.ORGANIZATIONS -> div {}
+        TopRatingTab.ORGANIZATIONS -> renderOrganizationRatingTab()
     }
-
 }
 
 /**
  * Enum that contains values for the tab that is used in top rating view
  */
+@Suppress("WRONG_DECLARATIONS_ORDER")
 enum class TopRatingTab {
     USERS,
     ORGANIZATIONS,

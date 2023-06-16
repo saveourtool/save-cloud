@@ -2,33 +2,41 @@
 
 package com.saveourtool.save.frontend.components.views.toprating
 
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
+
 import js.core.jso
-import react.FC
-import react.Fragment
-import react.Props
-import react.create
+import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
 import react.router.dom.Link
 import web.cssom.*
 
-val renderUserRatingTable: FC<Props> = FC { _ ->
+import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+val renderOrganizationRatingTab: FC<Props> = FC { _ ->
+
+    val (organizationFilter, setOrganizationFilter) = useState(OrganizationFilter.created)
 
     @Suppress(
         "TOO_MANY_LINES_IN_LAMBDA",
         "MAGIC_NUMBER",
+        "TYPE_ALIAS",
     )
-    val userRatingTable: FC<TableProps<UserInfo>> = tableComponent(
+    val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") { cellContext ->
@@ -70,13 +78,13 @@ val renderUserRatingTable: FC<Props> = FC { _ ->
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = cellContext.row.original.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    } ?: "img/undraw_profile.svg"
+                                    } ?: "img/company.svg"
                                     style = jso {
                                         height = 2.rem
                                         width = 2.rem
                                     }
                                 }
-                                to = "/${FrontendRoutes.PROFILE.path}/${cellContext.value}"
+                                to = "#/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }
@@ -91,28 +99,51 @@ val renderUserRatingTable: FC<Props> = FC { _ ->
                 }
             }
         },
-        initialPageSize = 10,
         useServerPaging = false,
         isTransparentGrid = true,
-    )
+        commonHeader = { tableInstance, _ ->
+            tr {
+                th {
+                    colSpan = tableInstance.visibleColumnsCount()
+                    nameFiltersRow {
+                        name = organizationFilter.prefix
+                        onChangeFilters = { filterValue ->
+                            val filter = if (filterValue.isNullOrEmpty()) {
+                                OrganizationFilter.created
+                            } else {
+                                OrganizationFilter(filterValue)
+                            }
+                            setOrganizationFilter(filter)
+                            window.location.href = buildString {
+                                append(window.location.href.substringBefore("?"))
+                                filterValue?.let { append("?organizationName=$filterValue") }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ) {
+        arrayOf(it)
+    }
 
     div {
         className = ClassName("row justify-content-center")
         div {
             className = ClassName("col-8")
-            userRatingTable {
+            tableWithOrganizationRating {
                 getData = { _, _ ->
-                    get(
-                        url = "$apiUrl/users/all",
+                    post(
+                        url = "$apiUrl/organizations/all-by-filters",
                         headers = jsonHeaders,
+                        body = Json.encodeToString(organizationFilter),
                         loadingHandler = ::noopLoadingHandler,
                         responseHandler = ::noopResponseHandler,
-                    ).unsafeMap {
-                        it.decodeFromJsonString<Array<UserInfo>>()
-                    }.let { array ->
-                        array.sortByDescending { it.rating }
-                        array
-                    }
+                    )
+                        .decodeFromJsonString<Array<OrganizationDto>>().let { array ->
+                            array.sortByDescending { it.rating }
+                            array
+                        }
                 }
             }
         }
