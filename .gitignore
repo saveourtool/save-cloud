@@ -17,3 +17,5 @@ save-cloud-charts/save-cloud/charts
 
 # Vim swap files
 *.swp
+
+/save/save-*-SNAPSHOT-linuxX64.kexe
