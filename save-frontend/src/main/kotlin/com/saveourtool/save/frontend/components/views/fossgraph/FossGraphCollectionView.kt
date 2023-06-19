@@ -51,7 +51,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                     Fragment.create {
                         td {
                             Link {
-                                to = "/${FrontendRoutes.FOSS_GRAPH}/${cellContext.row.original.name}"
+                                to = "/${FrontendRoutes.VULNERABILITIES}/${cellContext.row.original.name}"
                                 +cellContext.value
                             }
                         }
@@ -92,7 +92,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
 
                             navigate(
                                 to = buildString {
-                                    "/${FrontendRoutes.FOSS_GRAPH}"
+                                    "/${FrontendRoutes.VULNERABILITIES}"
                                     filterValue?.let { append("?vulnerabilityName=$filterValue") }
                                 }
                             )
@@ -209,7 +209,7 @@ enum class VulnerabilityListTab {
     companion object : TabMenuBar<VulnerabilityListTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: VulnerabilityListTab = PUBLIC
-        override val regexForUrlClassification = "/${FrontendRoutes.FOSS_GRAPH.path}"
+        override val regexForUrlClassification = "/${FrontendRoutes.VULNERABILITIES.path}"
         override fun valueOf(elem: String): VulnerabilityListTab = VulnerabilityListTab.valueOf(elem)
         override fun values(): Array<VulnerabilityListTab> = VulnerabilityListTab.values()
     }
