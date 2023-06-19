@@ -15,7 +15,7 @@ private const val SAVE_FOSS_GRAPH_INTRO_MD = """
 
 private const val SAVE_FOSS_GRAPH_ADD_NEW_MD = """
     |### New vulnerability
-    |You can suggest your own [new vulnerability](#/foss-graph/create-vulnerability), if you didn't find the required one in our list.
+    |You can suggest your own [new vulnerability](#/vuln/create-vulnerability), if you didn't find the required one in our list.
     |After our approval, it will appear in the database.
 """
 

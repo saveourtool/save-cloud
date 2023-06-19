@@ -97,7 +97,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            navigate(to = "/${FrontendRoutes.FOSS_GRAPH}")
+            navigate(to = "/${FrontendRoutes.VULNERABILITIES}")
         }
     }
 
@@ -108,7 +108,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            navigate(to = "/${FrontendRoutes.FOSS_GRAPH}")
+            navigate(to = "/${FrontendRoutes.VULNERABILITIES}")
         }
     }
 
