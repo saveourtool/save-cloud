@@ -35,23 +35,22 @@ val indexView: VFC = VFC {
                     }
 
                     div {
-                        className = ClassName("col-3 text-center")
+                        className = ClassName("col-3 text-center logo-main")
                         creationCard(
                             "#/${FrontendRoutes.SAVE}",
                             "img/save-logo-bg.jpg",
                         )
-                        neonLightingText("SAVE")
+                        neonLightingText("SAVE", "#/${FrontendRoutes.SAVE}")
                     }
 
-
                     div {
-                        className = ClassName("col-3 text-center")
+                        className = ClassName("col-3 text-center logo-main")
                         creationCard(
                             "#/${FrontendRoutes.VULNERABILITIES}",
                             "img/vuln-logo-bg.jpg",
                         )
 
-                        neonLightingText("VULN")
+                        neonLightingText("VULN", "#/${FrontendRoutes.VULNERABILITIES}")
                     }
 
                     div {
@@ -71,20 +70,16 @@ val indexView: VFC = VFC {
     }
 }
 
-
 private fun ChildrenBuilder.creationCard(url: String, img: String) {
     div {
         className = ClassName("row")
         a {
             href = url
-            className = ClassName("column")
-            id = "grayscale"
             @Suppress("MAGIC_NUMBER")
             img {
-                className = ClassName("imgClass")
                 src = img
                 style = jso {
-                    width = "80%".unsafeCast<Width>()
+                    width = "70%".unsafeCast<Width>()
                     border = "0.2rem solid hsl(186 100% 69%)".unsafeCast<Border>()
                 }
             }
@@ -92,21 +87,24 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
     }
 }
 
-private fun ChildrenBuilder.neonLightingText(input: String) {
-    div {
-        className = ClassName("row")
+private fun ChildrenBuilder.neonLightingText(input: String, url: String) {
+    a {
+        href = url
         div {
-            className = ClassName("col text-center")
-            button {
-                className = ClassName("glowing-btn")
-                span {
-                    className = ClassName("glowing-txt")
-                    +input[0]
+            className = ClassName("row")
+            div {
+                className = ClassName("col text-center")
+                button {
+                    className = ClassName("glowing-btn")
                     span {
-                        className = ClassName("faulty-letter")
-                        +input[1]
+                        className = ClassName("glowing-txt")
+                        +input[0]
+                        span {
+                            className = ClassName("faulty-letter")
+                            +input[1]
+                        }
+                        +input.substring(2)
                     }
-                    +input.substring(2)
                 }
             }
         }

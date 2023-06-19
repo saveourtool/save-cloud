@@ -210,27 +210,18 @@
 }
 
 // ============= this is a greyscale effect for pictures
-
-.column {
-}
-
 a:hover {
 	text-decoration: none;
 }
 
-.column img {
-	width: 60%;
-}
-
-.column#grayscale img {
+.logo-main img {
 	-webkit-filter: grayscale(100%);
 	filter: grayscale(100%);
 	-webkit-transition: .3s ease-in-out;
 	transition: .3s ease-in-out;
 }
-.column#grayscale:hover img {
+
+.logo-main:hover img {
 	-webkit-filter: grayscale(0);
 	filter: grayscale(0);
 }
-
-
