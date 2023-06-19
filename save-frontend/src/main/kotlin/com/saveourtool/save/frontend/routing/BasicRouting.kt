@@ -22,6 +22,7 @@ import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
 import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
+import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -205,6 +206,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
             demoMainView.create() to "/$DEMO",
             userProfileView.create() to "/$PROFILE/:name",
+            topRatingView.create() to "/$TOP_RATING",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

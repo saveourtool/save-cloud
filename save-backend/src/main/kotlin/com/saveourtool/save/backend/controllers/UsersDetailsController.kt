@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.StringResponse
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -20,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -48,6 +50,15 @@ class UsersDetailsController(
                         .map { it.user }
                         .map { it.toUserInfo() }
                 }
+
+    /**
+     * @return list of [UserInfo] info about user's
+     */
+    @GetMapping("/all")
+    @PreAuthorize("permitAll()")
+    fun findAll(): Flux<UserInfo> = blockingToFlux {
+        userRepository.findAll().map { it.toUserInfo() }
+    }
 
     /**
      * @param newUserInfo

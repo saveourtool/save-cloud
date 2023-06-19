@@ -28,6 +28,11 @@ private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
     |In case of any error feel free to [contact us](https://github.com/saveourtool/save-cloud/issues/new).
 """
 
+private const val SAVE_FOSS_GRAPH_TOP_RATING_MD = """
+    |### Top rating
+    |You can see the [top rating](#/top-rating) of users and organizations.
+"""
+
 @Suppress(
     "MISSING_KDOC_TOP_LEVEL",
     "MISSING_KDOC_ON_FUNCTION",
@@ -59,6 +64,10 @@ fun ChildrenBuilder.fossGraphIntroductionComponent() {
         div {
             className = ClassName("card-body pt-0 pb-1")
             markdown(SAVE_FOSS_GRAPH_HOW_TO_MD.trimMargin())
+        }
+        div {
+            className = ClassName("card-body pt-0 pb-1")
+            markdown(SAVE_FOSS_GRAPH_TOP_RATING_MD.trimMargin())
         }
     }
 }
