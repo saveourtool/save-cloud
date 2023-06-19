@@ -7,8 +7,13 @@ on:
   workflow_dispatch:
 
 jobs:
+  build_cli:
+    name: Build save-cli
+    uses: ./.github/workflows/build_save-cli_reusable.yml
+
   update_backend_api_spec:
     runs-on: ubuntu-latest
+    needs: build_cli
     steps:
       - uses: peterjgrainger/action-create-branch@v2.4.0
         env:
@@ -40,12 +45,24 @@ jobs:
         run: |
           git pull origin master --no-edit --rebase
 
+      - name: Download save-cli
+        if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
+        uses: actions/download-artifact@v3
+        with:
+          name: save-cli
+          path: ${{ github.workspace }}/save
+      - name: Override saveCliVersion and saveCliPath in Gradle
+        if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
+        run: |
+          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
+
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           arguments: |
             :save-backend:generateOpenApiDocs
+            ${{ env.SAVE_CLI_GRADLE_OPTS || '' }}
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
