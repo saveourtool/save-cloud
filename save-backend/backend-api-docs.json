@@ -8677,6 +8677,29 @@
         ]
       }
     },
+    "/api/v1/users/all": {
+      "get": {
+        "operationId": "findAll",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/global-role": {
       "get": {
         "operationId": "getSelfGlobalRole",
@@ -8801,6 +8824,61 @@
         },
         "tags": [
           "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/approve": {
+      "post": {
+        "description": "Approve vulnerability.",
+        "operationId": "approve",
+        "parameters": [
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully approve vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Approve vulnerability.",
+        "tags": [
+          "vulnerabilities"
         ]
       }
     },
@@ -9223,6 +9301,56 @@
           }
         ],
         "summary": "Save vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/save-all": {
+      "post": {
+        "description": "Save all vulnerabilities.",
+        "operationId": "saveAll",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved all vulnerabilities"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save all vulnerabilities.",
         "tags": [
           "vulnerabilities"
         ]
@@ -10185,6 +10313,7 @@
           "canCreateContests",
           "dateCreated",
           "name",
+          "rating",
           "status"
         ],
         "type": "object",
@@ -10209,6 +10338,10 @@
           "name": {
             "type": "string"
           },
+          "rating": {
+            "type": "integer",
+            "format": "int64"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -10225,6 +10358,7 @@
           "dateCreated",
           "description",
           "name",
+          "rating",
           "status"
         ],
         "type": "object",
@@ -10243,6 +10377,10 @@
           },
           "name": {
             "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int64"
           },
           "status": {
             "type": "string",
