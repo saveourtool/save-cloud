@@ -45,6 +45,7 @@ jobs:
         run: |
           git pull origin master --no-edit --rebase
 
+      # we need save-cli.kexe to start backend, because InternalFileStorage requires it when save-cli has -SNAPSHOT version
       - name: Download save-cli
         if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
         uses: actions/download-artifact@v3
