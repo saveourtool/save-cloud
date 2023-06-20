@@ -6,14 +6,23 @@ import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.externals.graph.asCytoscapeGraph
 import com.saveourtool.save.frontend.externals.graph.cytoscape.cytoscape
-import react.FC
-import react.Props
+import react.*
 
 val cytoscapeVisualizer: FC<CytoscapeVisualizerProps> = FC { props ->
-    cytoscape(
-        props.graph.asCytoscapeGraph(),
-        props.layout
-    )
+    val cytoscapeJs = cytoscape(props.graph.asCytoscapeGraph(), props.layout)
+    if (cytoscapeJs != undefined) {
+        /*
+         * TODO: implement event handling
+         *
+         * Events should be handled like this:
+         *
+         * cytoscapeJs.bind("tap") { event -> val node = event.target }
+         *
+         * TODO: Now there is a problem - graph is being re-rendered on state change, which is a problem
+         * because no node movements are remembered.
+         */
+        Unit
+    }
 }
 
 /**

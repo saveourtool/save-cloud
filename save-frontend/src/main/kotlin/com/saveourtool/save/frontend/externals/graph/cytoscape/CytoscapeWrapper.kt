@@ -20,13 +20,21 @@ private const val CYTOSCAPE_DIV_ID = "cytoscape-div"
  * @param graph data in [CytoscapeGraph] format
  * @param layout [CytoscapeLayout] that should be applied to graph
  * @param divId id that should be assigned to div with graph, [CYTOSCAPE_DIV_ID] by default
+ * @param selectionType type of node selection
+ * @return cytoscape graph as dynamic
  */
-@Suppress("UNUSED_VARIABLE", "TOO_LONG_FUNCTION")
+@Suppress(
+    "UNUSED_VARIABLE",
+    "TOO_LONG_FUNCTION",
+    "UNUSED_PARAMETER",
+    "LongMethod"
+)
 fun ChildrenBuilder.cytoscape(
     graph: CytoscapeGraph,
     layout: CytoscapeLayout,
-    divId: String = CYTOSCAPE_DIV_ID
-) {
+    divId: String = CYTOSCAPE_DIV_ID,
+    selectionType: String = "single",
+): dynamic {
     div {
         id = divId
         style = jso {
@@ -60,7 +68,8 @@ fun ChildrenBuilder.cytoscape(
                     "target-arrow-shape": "triangle",
                     "curve-style": "bezier",
                     "label": "data(label)",
-                    "font-size": 3
+                    "font-size": 3,
+                    "arrow-scale": 0.5
                 }
             }
         ]
@@ -69,7 +78,7 @@ fun ChildrenBuilder.cytoscape(
     val graphLayout = js("""
         {
             "name": layoutName,
-            "padding": 10
+            "padding": 5
         }
     """)
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
@@ -79,11 +88,12 @@ fun ChildrenBuilder.cytoscape(
                 "container" : divContainer,
                 "elements" : cytoscapeGraphJsonStringJs,
                 "layout" : graphLayout,
-                "style" : graphStyle
+                "style" : graphStyle,
+                "selectionType": selectionType
             }
         """)
     }
 
     val cytoscapeJs = kotlinext.js.require("cytoscape")
-    cytoscapeJs(options)
+    return cytoscapeJs(options)
 }
