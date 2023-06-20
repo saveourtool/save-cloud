@@ -42,7 +42,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
     useRequest {
         val userNew: UserInfo = get(
-            "$apiUrl/users/${userName}",
+            "$apiUrl/users/$userName",
             Headers().apply {
                 set("Accept", "application/json")
             },
@@ -53,7 +53,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         setUser(userNew)
 
         val organizationsNew: List<OrganizationDto> = get(
-            "$apiUrl/organizations/get/list-by-user-name?userName=${userName}",
+            "$apiUrl/organizations/get/list-by-user-name?userName=$userName",
             Headers().apply {
                 set("Accept", "application/json")
             },
