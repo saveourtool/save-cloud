@@ -5,21 +5,17 @@ package com.saveourtool.save.frontend.externals.graph.cytoscape
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeGraph
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 
-import js.core.jso
-import react.ChildrenBuilder
-import react.dom.html.ReactHTML.div
+import react.*
 import web.cssom.*
-import web.dom.document
+import web.html.HTMLDivElement
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val CYTOSCAPE_DIV_ID = "cytoscape-div"
-
 /**
  * @param graph data in [CytoscapeGraph] format
  * @param layout [CytoscapeLayout] that should be applied to graph
- * @param divId id that should be assigned to div with graph, [CYTOSCAPE_DIV_ID] by default
+ * @param divRef reference to div where a graph should be rendered in
  * @param selectionType type of node selection
  * @return cytoscape graph as dynamic
  */
@@ -29,20 +25,12 @@ private const val CYTOSCAPE_DIV_ID = "cytoscape-div"
     "UNUSED_PARAMETER",
     "LongMethod"
 )
-fun ChildrenBuilder.cytoscape(
+fun cytoscape(
     graph: CytoscapeGraph,
     layout: CytoscapeLayout,
-    divId: String = CYTOSCAPE_DIV_ID,
+    divRef: MutableRefObject<HTMLDivElement>,
     selectionType: String = "single",
 ): dynamic {
-    div {
-        id = divId
-        style = jso {
-            width = "100%".unsafeCast<Width>()
-            height = "90%".unsafeCast<Height>()
-        }
-    }
-
     val cytoscapeGraphJsonString = Json.encodeToString(graph)
     val cytoscapeGraphJsonStringJs = js("JSON.parse(cytoscapeGraphJsonString);")
     // language=json
@@ -53,9 +41,9 @@ fun ChildrenBuilder.cytoscape(
                 "style": {
                     "background-color": "#666",
                     "label": "data(label)",
-                    "height": 10,
-                    "width": 10,
-                    "font-size": 3
+                    "height": 20,
+                    "width": 20,
+                    "font-size": 7
                 }
             },
             {
@@ -68,7 +56,7 @@ fun ChildrenBuilder.cytoscape(
                     "target-arrow-shape": "triangle",
                     "curve-style": "bezier",
                     "label": "data(label)",
-                    "font-size": 3,
+                    "font-size": 5,
                     "arrow-scale": 0.5
                 }
             }
@@ -82,10 +70,10 @@ fun ChildrenBuilder.cytoscape(
         }
     """)
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
-    val options = document.getElementById(divId)?.let { divContainer ->
+    val options = divRef.current?.let { containerRefCurrent ->
         js("""
             {
-                "container" : divContainer,
+                "container" : containerRefCurrent,
                 "elements" : cytoscapeGraphJsonStringJs,
                 "layout" : graphLayout,
                 "style" : graphStyle,

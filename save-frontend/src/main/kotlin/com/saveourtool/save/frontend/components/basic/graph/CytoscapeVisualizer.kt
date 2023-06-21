@@ -6,22 +6,52 @@ import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.externals.graph.asCytoscapeGraph
 import com.saveourtool.save.frontend.externals.graph.cytoscape.cytoscape
+import js.core.jso
 import react.*
+import react.dom.html.ReactHTML.div
+import web.cssom.Height
+import web.cssom.Width
+import web.html.HTMLDivElement
 
 val cytoscapeVisualizer: FC<CytoscapeVisualizerProps> = FC { props ->
-    val cytoscapeJs = cytoscape(props.graph.asCytoscapeGraph(), props.layout)
-    if (cytoscapeJs != undefined) {
-        /*
-         * TODO: implement event handling
-         *
-         * Events should be handled like this:
-         *
-         * cytoscapeJs.bind("tap") { event -> val node = event.target }
-         *
-         * TODO: Now there is a problem - graph is being re-rendered on state change, which is a problem
-         * because no node movements are remembered.
-         */
-        Unit
+    val divRef: MutableRefObject<HTMLDivElement> = useRef(null)
+    val graph = useMemo(props.graph) { props.graph.asCytoscapeGraph() }
+    val cytoscapeJs = useMemo(graph, props.layout) {
+        cytoscape(graph, props.layout, divRef)
+    }
+
+    val (selectedNode, setSelectedNode) = useState<dynamic>(undefined)
+
+    useEffect {
+        if (cytoscapeJs != undefined) {
+            cytoscapeJs.bind("tap", "node") { event ->
+                val clickedNode = event.target
+
+                if (selectedNode != clickedNode) {
+                    if (selectedNode != undefined) {
+                        cytoscapeJs.nodes().show()
+                    }
+                    val neighbors = clickedNode.neighborhood().add(clickedNode)
+                    cytoscapeJs.nodes().forEach { node ->
+                        val isInNeighbours: Boolean = neighbors.has(node) as Boolean
+                        if (!isInNeighbours) {
+                            node.hide()
+                        }
+                    }
+                    setSelectedNode { clickedNode }
+                } else {
+                    cytoscapeJs.nodes().show()
+                    setSelectedNode { undefined }
+                }
+            }
+        }
+    }
+    div {
+        ref = divRef
+        style = jso {
+            width = "100%".unsafeCast<Width>()
+            height = "90%".unsafeCast<Height>()
+        }
     }
 }
 
