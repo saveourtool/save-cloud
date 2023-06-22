@@ -357,11 +357,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         div {
                             className = ClassName("row")
                             h6 {
-                                className = ClassName("m-0 font-weight-bold text-primary")
-                                style = jso {
-                                    display = Display.flex
-                                    alignItems = AlignItems.center
-                                }
+                                className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
                                 +"Identifier"
                             }
                         }
@@ -377,11 +373,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         div {
                             className = ClassName("row")
                             h6 {
-                                className = ClassName("m-0 font-weight-bold text-primary")
-                                style = jso {
-                                    display = Display.flex
-                                    alignItems = AlignItems.center
-                                }
+                                className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
                                 +"Related link"
                             }
                         }
