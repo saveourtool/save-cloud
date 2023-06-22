@@ -352,7 +352,26 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                             disabled = true
                         }
                     }
-
+                    div {
+                        className = ClassName("card-header py-3")
+                        div {
+                            className = ClassName("row")
+                            h6 {
+                                className = ClassName("m-0 font-weight-bold text-primary")
+                                style = jso {
+                                    display = Display.flex
+                                    alignItems = AlignItems.center
+                                }
+                                +"Identifier"
+                            }
+                        }
+                    }
+                    div {
+                        className = ClassName("card-body")
+                        div {
+                            +"${vulnerability.vulnerabilityIdentifier}"
+                        }
+                    }
                     div {
                         className = ClassName("card-header py-3")
                         div {

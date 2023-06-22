@@ -126,7 +126,8 @@ private fun ChildrenBuilder.inputTextFormOptional(
             placeholder = form.placeholder
             form.tooltip?.let {
                 title = it
-                asDynamic()["tooltip-placement"] = "right"
+                asDynamic()["data-toggle"] = "tooltip"
+                asDynamic()["data-placement"] = "bottom"
             }
             className = if (textValue.isNullOrEmpty()) {
                 ClassName("form-control")
