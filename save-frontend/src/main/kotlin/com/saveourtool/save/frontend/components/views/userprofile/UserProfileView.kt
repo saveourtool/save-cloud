@@ -35,13 +35,14 @@ import web.cssom.*
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
+    val (userName, setUserName) = useStateFromProps(props.userName)
     val (user, setUser) = useState<UserInfo?>(null)
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
 
     useRequest {
         val userNew: UserInfo = get(
-            "$apiUrl/users/${props.userName}",
+            "$apiUrl/users/$userName",
             Headers().apply {
                 set("Accept", "application/json")
             },
@@ -52,7 +53,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         setUser(userNew)
 
         val organizationsNew: List<OrganizationDto> = get(
-            "$apiUrl/organizations/get/list-by-user-name?userName=${props.userName}",
+            "$apiUrl/organizations/get/list-by-user-name?userName=$userName",
             Headers().apply {
                 set("Accept", "application/json")
             },
@@ -84,7 +85,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
                 }
 
                 when (selectedMenu) {
-                    UserProfileTab.VULNERABILITIES -> renderVulnerabilityTable { userName = props.userName }
+                    UserProfileTab.VULNERABILITIES -> renderVulnerabilityTable { this.userName = userName }
                 }
             }
         }

@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.views.demo
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.components.basic.demo.graphDemoComponent
 import com.saveourtool.save.frontend.components.basic.graph.cytoscapeVisualizer
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
@@ -48,7 +47,7 @@ val cpgView: VFC = VFC {
     val (isLogs, setIsLogs) = useState(false)
     val (errorMessage, setErrorMessage) = useState("")
     val errorWindowOpenness = useWindowOpenness()
-    val (selectedLayout, setSelectedLayout) = useState(SigmaLayout.preferredLayout)
+    val (selectedLayout, setSelectedLayout) = useState(CytoscapeLayout.preferredLayout)
 
     displaySimpleModal(
         errorWindowOpenness,
@@ -94,7 +93,8 @@ val cpgView: VFC = VFC {
                                 }
                                 cytoscapeVisualizer {
                                     graph = cpgResult.cpgGraph
-                                    layout = CytoscapeLayout.CONCENTRIC
+                                    layout = selectedLayout
+                                    query = cpgResult.query
                                 }
                                 div {
                                     val alertStyle = when {

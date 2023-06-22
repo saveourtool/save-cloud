@@ -9,8 +9,8 @@ package com.saveourtool.save.frontend.components.basic.demo
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
 import com.saveourtool.save.demo.cpg.CpgEngine
 import com.saveourtool.save.demo.cpg.CpgRunRequest
+import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
-import com.saveourtool.save.frontend.components.basic.cpg.SigmaLayout
 import com.saveourtool.save.frontend.externals.fontawesome.faCaretSquareRight
 import com.saveourtool.save.frontend.externals.fontawesome.faInfoCircle
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
@@ -64,9 +64,7 @@ val graphDemoComponent: FC<GraphDemoComponentProps> = FC { props ->
                     selectedMode = selectedLanguage
                     savedText = codeLines
                     draftText = codeLines
-                    onDraftTextUpdate = { code ->
-                        setCodeLines(code)
-                    }
+                    onDraftTextUpdate = { code -> setCodeLines(code) }
                     isDisabled = false
                 }
                 useTooltip()
@@ -74,11 +72,11 @@ val graphDemoComponent: FC<GraphDemoComponentProps> = FC { props ->
                     className = ClassName("card-body input-group pl-0 pr-0")
                     selectorBuilder(
                         props.selectedLayout.layoutName,
-                        SigmaLayout.values().map { it.layoutName },
+                        CytoscapeLayout.availableLayouts.map { it.layoutName },
                         "form-control custom-select",
                     ) { event ->
                         props.setSelectedLayout(
-                            SigmaLayout.values().find { it.layoutName == event.target.value }!!
+                            CytoscapeLayout.values().find { it.layoutName == event.target.value }!!
                         )
                     }
                     selectorBuilder(
@@ -174,10 +172,10 @@ external interface GraphDemoComponentProps : Props {
     /**
      * Currently selected layout that should be applied in order to place nodes
      */
-    var selectedLayout: SigmaLayout
+    var selectedLayout: CytoscapeLayout
 
     /**
      * Callback to update [selectedLayout]
      */
-    var setSelectedLayout: (SigmaLayout) -> Unit
+    var setSelectedLayout: (CytoscapeLayout) -> Unit
 }
