@@ -64,9 +64,7 @@ val graphDemoComponent: FC<GraphDemoComponentProps> = FC { props ->
                     selectedMode = selectedLanguage
                     savedText = codeLines
                     draftText = codeLines
-                    onDraftTextUpdate = { code ->
-                        setCodeLines(code)
-                    }
+                    onDraftTextUpdate = { code -> setCodeLines(code) }
                     isDisabled = false
                 }
                 useTooltip()

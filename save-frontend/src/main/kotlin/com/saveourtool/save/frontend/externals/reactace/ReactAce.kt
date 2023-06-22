@@ -45,7 +45,7 @@ external interface AceEditorProps : Props {
     var defaultValue: String
     var enableSnippets: Boolean
     var setOptions: dynamic
-    var markers: Array<AceMarker>
+    var markers: AceMarkers
 
     @Suppress("TYPE_ALIAS")
     var onChange: (value: String, event: dynamic) -> Unit
