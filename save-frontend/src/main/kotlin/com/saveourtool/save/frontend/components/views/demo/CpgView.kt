@@ -94,6 +94,7 @@ val cpgView: VFC = VFC {
                                 cytoscapeVisualizer {
                                     graph = cpgResult.cpgGraph
                                     layout = selectedLayout
+                                    query = cpgResult.query
                                 }
                                 div {
                                     val alertStyle = when {

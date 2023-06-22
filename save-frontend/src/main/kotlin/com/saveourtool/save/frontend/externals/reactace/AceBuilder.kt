@@ -11,6 +11,8 @@ import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 
+typealias AceMarkers = Array<AceMarker>
+
 /**
  * @param text displayed text
  * @param selectedMode highlight mode
@@ -43,9 +45,7 @@ fun ChildrenBuilder.aceBuilder(
             value = text
             showPrintMargin = false
             readOnly = disabled
-            onChange = { value, _ ->
-                onChangeFun(value)
-            }
+            onChange = { value, _ -> onChangeFun(value) }
             markers = aceMarkers
         }
     }
@@ -94,3 +94,43 @@ fun aceMarkerBuilder(
     type = markerType
     inFront = false
 }
+
+/**
+ * Get [AceMarker] by [positionString] - string in format
+ *
+ * `<START_LINE>:<START_CHAR>-<END_LINE>:<END_CHAR>`
+ *
+ * @param positionString string that defines start and end positions
+ * @param classes
+ * @return [AceMarker]
+ */
+fun aceMarkerBuilder(
+    positionString: String?,
+    classes: String = "unsaved-marker",
+): AceMarker? = positionString?.split("-")?.let { (start, end) ->
+    val (startRowStr, startColStr) = start.split(":")
+    val (endRowStr, endColStr) = end.split(":")
+    jso {
+        startRow = startRowStr.toInt()
+        startCol = startColStr.toInt()
+        endRow = endRowStr.toInt()
+        endCol = endColStr.toInt()
+        className = classes
+        inFront = false
+    }
+}
+
+/**
+ * Get [AceMarkers] by [CpgNodeAdditionalParams.location] - string in format
+ *
+ * `<FILENAME>(<START_LINE>:<START_CHAR>-<END_LINE>:<END_CHAR>)`
+ *
+ * @param location string that contains start and end positions
+ * @return [AceMarker]
+ */
+fun getAceMarkers(location: String?): AceMarkers = location?.substringAfter("(")
+    ?.substringBefore(")")
+    .takeIf { it != location }
+    .let { positionString ->
+        aceMarkerBuilder(positionString)?.let { arrayOf(it) } ?: emptyArray()
+    }
