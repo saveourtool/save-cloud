@@ -129,7 +129,12 @@ enum class InputTypes(
     ACE_MODE_SELECTOR("mode"),
 
     // ==== vulnerability
-    CVE_NAME("CVE identifier", CVE_NAME_ERROR_MESSAGE, placeholder = "CVE-2023-######"),
+    CVE_NAME(
+        "CVE identifier",
+        CVE_NAME_ERROR_MESSAGE,
+        placeholder = "CVE-2023-######, etc.",
+        tooltip = "If you know the vulnerability identifier, you can enter it here",
+    ),
     ;
 }
 
