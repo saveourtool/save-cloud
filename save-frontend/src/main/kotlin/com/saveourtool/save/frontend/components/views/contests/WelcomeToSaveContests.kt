@@ -14,7 +14,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 import web.cssom.ClassName
-import web.cssom.Height
 import web.cssom.rem
 
 /**

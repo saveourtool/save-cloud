@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso

@@ -64,7 +64,7 @@ fun topBar() = FC<TopBarProps> { props ->
     val location = useLocation()
     nav {
         className =
-            ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+                ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         style = jso {
             width = "100vw;".unsafeCast<Width>()
         }
