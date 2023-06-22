@@ -46,7 +46,7 @@ internal val statistics = VFC {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
                 @Suppress("MAGIC_NUMBER")
-                minHeight = 15.rem
+                height = 15.rem
             }
             div {
                 className = ClassName("col-lg-12")

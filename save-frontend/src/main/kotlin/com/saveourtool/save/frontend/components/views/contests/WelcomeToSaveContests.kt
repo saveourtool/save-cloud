@@ -27,8 +27,7 @@ internal val welcomeToSaveContests = VFC {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
                 @Suppress("MAGIC_NUMBER")
-                maxHeight = 15.rem
-                height = "100%".unsafeCast<Height>()
+                height = 19.rem
             }
             stayTunedImage()
 

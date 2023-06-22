@@ -32,9 +32,9 @@ fun ChildrenBuilder.topLeftCard() {
         className = ClassName("col-lg-6")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
-            @Suppress("MAGIC_NUMBER")
             style = jso {
-                minHeight = 12.5.rem
+                @Suppress("MAGIC_NUMBER")
+                height = 12.5.rem
             }
 
             div {
@@ -93,15 +93,12 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
             style = jso {
                 borderWidth = 0.2.rem
                 borderColor = "#0275d8".unsafeCast<BorderColor>()
+                @Suppress("MAGIC_NUMBER")
+                height = 12.5.rem
             }
 
             div {
                 className = ClassName("col-lg-6 link-container")
-                @Suppress("MAGIC_NUMBER")
-                style = jso {
-                    minHeight = 12.rem
-                }
-
                 a {
                     className = ClassName("link-three ml-5")
                     href = url
