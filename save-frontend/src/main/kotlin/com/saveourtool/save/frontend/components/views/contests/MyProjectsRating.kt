@@ -52,7 +52,7 @@ val myProjectsRating: FC<ContestListViewProps> = FC { props ->
                 title(" Your stats ", icon = faUser)
                 if (myProjects.isEmpty()) {
                     div {
-                        className = ClassName("row justify-content-center")
+                        className = ClassName("row text-center")
                         p {
                             +"You don't have any projects"
                         }

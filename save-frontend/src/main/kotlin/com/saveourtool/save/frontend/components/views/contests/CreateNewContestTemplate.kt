@@ -13,14 +13,13 @@ import web.cssom.*
 
 internal val createNewContestTemplate = VFC {
     div {
-        className = ClassName("col-lg-2")
+        className = ClassName("col-lg-2 text-center")
         a {
             className = ClassName("col-12 flex-column card mb-1 box-shadow btn-hov")
             href = "#/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE.path}/"
             style = jso {
                 @Suppress("MAGIC_NUMBER")
-                maxHeight = 15.rem
-                height = "100%".unsafeCast<Height>()
+                height = 19.rem
                 textDecoration = "none".unsafeCast<TextDecoration>()
             }
             div {
@@ -34,10 +33,7 @@ internal val createNewContestTemplate = VFC {
             }
             h4 {
                 className = ClassName("mb-auto")
-                +"Create new"
-            }
-            h4 {
-                +"contest template"
+                +"Create new contest template"
             }
         }
     }
