@@ -6,6 +6,8 @@ import com.saveourtool.save.demo.cpg.CpgGraph
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.externals.graph.asCytoscapeGraph
 import com.saveourtool.save.frontend.externals.graph.cytoscape.cytoscape
+import com.saveourtool.save.frontend.externals.reactace.AceMarkers
+import com.saveourtool.save.frontend.externals.reactace.getAceMarkers
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -22,6 +24,7 @@ val cytoscapeVisualizer: FC<CytoscapeVisualizerProps> = FC { props ->
     val (selectedNode, setSelectedNode) = useState<dynamic>(undefined)
 
     val showAllNodes = {
+        props.aceMarkersStateSetter(emptyArray())
         if (cytoscapeJs != undefined) {
             cytoscapeJs.nodes().show()
             cytoscapeJs.edges().show()
@@ -41,6 +44,15 @@ val cytoscapeVisualizer: FC<CytoscapeVisualizerProps> = FC { props ->
                             node.hide()
                         }
                     }
+
+                    val clickedNodeId = clickedNode.id() as String
+                    val positionString = props.graph
+                        .nodes
+                        .find { it.key == clickedNodeId }
+                        ?.attributes
+                        ?.additionalInfo
+                        ?.location
+                    props.aceMarkersStateSetter { getAceMarkers(positionString) }
                     setSelectedNode { clickedNode }
                 } else {
                     setSelectedNode { undefined }
@@ -104,4 +116,9 @@ external interface CytoscapeVisualizerProps : Props {
      * Query to neo4J
      */
     var query: String
+
+    /**
+     * [StateSetter] to define [AceMarkers]
+     */
+    var aceMarkersStateSetter: StateSetter<AceMarkers>
 }

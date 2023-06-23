@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.externals.reactace
 
+import com.saveourtool.save.frontend.utils.parsePositionString
 import com.saveourtool.save.utils.DEBOUNCE_PERIOD_FOR_EDITORS
 import com.saveourtool.save.utils.Languages
 
@@ -85,52 +86,71 @@ fun aceMarkerBuilder(
     endLineIndex: Int = beginLineIndex,
     markerType: String = "fullLine",
     classes: String = "unsaved-marker",
-): AceMarker = jso {
-    startRow = beginLineIndex
-    endRow = endLineIndex
-    startCol = 0
-    endCol = 1
-    className = classes
-    type = markerType
-    inFront = false
-}
+): AceMarker = aceMarkerBuilder(
+    beginLineIndex,
+    0,
+    endLineIndex,
+    1,
+    classes,
+    markerType
+)
 
 /**
- * Get [AceMarker] by [positionString] - string in format
+ * Get [AceMarker] from [positionString] - string in format:
  *
- * `<START_LINE>:<START_CHAR>-<END_LINE>:<END_CHAR>`
+ * <FILE> (<START_ROW>:<START_COL>-<END_ROW><END_COL>)
  *
- * @param positionString string that defines start and end positions
+ * @param positionString string that contains beginning and ending positions of requested [AceMarker]
  * @param classes
  * @return [AceMarker]
  */
+@Suppress("DestructuringDeclarationWithTooManyEntries")
 fun aceMarkerBuilder(
-    positionString: String?,
+    positionString: String,
     classes: String = "unsaved-marker",
-): AceMarker? = positionString?.split("-")?.let { (start, end) ->
-    val (startRowStr, startColStr) = start.split(":")
-    val (endRowStr, endColStr) = end.split(":")
-    jso {
-        startRow = startRowStr.toInt()
-        startCol = startColStr.toInt()
-        endRow = endRowStr.toInt()
-        endCol = endColStr.toInt()
-        className = classes
-        inFront = false
+): AceMarker? = positionString.parsePositionString()
+    ?.let { positionList ->
+        val (startRow, startCol, endRow, endCol) = positionList
+        aceMarkerBuilder(
+            startRow,
+            startCol,
+            endRow,
+            endCol,
+            classes,
+            "background",
+        )
     }
-}
 
 /**
  * Get [AceMarkers] by [CpgNodeAdditionalParams.location] - string in format
  *
  * `<FILENAME>(<START_LINE>:<START_CHAR>-<END_LINE>:<END_CHAR>)`
  *
- * @param location string that contains start and end positions
+ * @param positionString string that contains start and end positions
  * @return [AceMarker]
  */
-fun getAceMarkers(location: String?): AceMarkers = location?.substringAfter("(")
-    ?.substringBefore(")")
-    .takeIf { it != location }
-    .let { positionString ->
-        aceMarkerBuilder(positionString)?.let { arrayOf(it) } ?: emptyArray()
-    }
+fun getAceMarkers(
+    positionString: String?
+): AceMarkers = positionString?.let {
+    aceMarkerBuilder(positionString)?.let {
+        arrayOf(it)
+    } ?: emptyArray()
+} ?: emptyArray()
+
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+private fun aceMarkerBuilder(
+    beginLineIndex: Int,
+    beginCharacterIndex: Int,
+    endLineIndex: Int,
+    endCharacterIndex: Int,
+    classes: String,
+    markerType: String
+): AceMarker = jso {
+    startRow = beginLineIndex
+    endRow = endLineIndex
+    startCol = beginCharacterIndex
+    endCol = endCharacterIndex
+    className = classes
+    type = markerType
+    inFront = false
+}

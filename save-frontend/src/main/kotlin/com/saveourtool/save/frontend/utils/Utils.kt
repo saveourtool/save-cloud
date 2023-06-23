@@ -94,6 +94,24 @@ fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
         { event -> this(event.target.value) }
 
 /**
+ * Parse string in format
+ *
+ * FILE (START_ROW:START_COL-END_ROW:END_COL)
+ *
+ * into [[START_ROW, START_COL], [END_ROW, END_COL]]
+ *
+ * @return list in format: [[START_ROW, START_COL], [END_ROW, END_COL]]
+ */
+@Suppress("MAGIC_NUMBER")
+fun String.parsePositionString(): List<Int>? = substringAfter("(", "")
+    .substringBefore(")", "")
+    .split("-")
+    .map { positionList -> positionList.split(":") }
+    .flatten()
+    .takeIf { it.size == 4 }
+    ?.mapIndexed { idx, value -> value.toInt() - idx % 2 }
+
+/**
  * @return `true` if this user is a super-admin, `false` otherwise.
  * @see Role.isSuperAdmin
  */

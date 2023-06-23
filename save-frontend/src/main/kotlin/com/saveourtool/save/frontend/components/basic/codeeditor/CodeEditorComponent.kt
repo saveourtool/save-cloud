@@ -28,7 +28,7 @@ val codeEditorComponent: FC<CodeEditorComponentProps> = FC { props ->
             props.draftText,
             props.selectedMode,
             props.selectedTheme,
-            getAceMarkers(props.savedText, props.draftText),
+            getAceMarkers(props.savedText, props.draftText) + props.aceMarkers,
             props.isDisabled,
         ) {
             props.onDraftTextUpdate(it)
@@ -74,4 +74,9 @@ external interface CodeEditorComponentProps : Props {
      * Flag to disable form editing
      */
     var isDisabled: Boolean
+
+    /**
+     * Additional [AceMarkers]
+     */
+    var aceMarkers: AceMarkers
 }
