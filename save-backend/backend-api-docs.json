@@ -8935,6 +8935,61 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/by-id-name-and-active": {
+      "get": {
+        "description": "Get vulnerability by vulnerabilityIdentifier.",
+        "operationId": "getVulnerabilityByVulnerabilityIdentifierAndActive",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityIdentifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Successfully fetched vulnerability by vulnerabilityIdentifier"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityDto"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get vulnerability by vulnerabilityIdentifier.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/by-name-and-active": {
       "get": {
         "description": "Get vulnerability by name.",
@@ -11355,6 +11410,9 @@
           "userId": {
             "type": "integer",
             "format": "int64"
+          },
+          "vulnerabilityIdentifier": {
+            "type": "string"
           }
         }
       },
