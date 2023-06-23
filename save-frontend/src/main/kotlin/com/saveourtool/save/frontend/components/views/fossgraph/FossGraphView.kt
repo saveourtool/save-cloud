@@ -352,37 +352,43 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                             disabled = true
                         }
                     }
-                    div {
-                        className = ClassName("card-header py-3")
+
+                    if (!vulnerability.vulnerabilityIdentifier.isNullOrEmpty()) {
                         div {
-                            className = ClassName("row")
-                            h6 {
-                                className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
-                                +"Identifier"
+                            className = ClassName("card-header py-3")
+                            div {
+                                className = ClassName("row")
+                                h6 {
+                                    className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
+                                    +"Identifier"
+                                }
+                            }
+                        }
+                        div {
+                            className = ClassName("card-body")
+                            div {
+                                +"${vulnerability.vulnerabilityIdentifier}"
                             }
                         }
                     }
-                    div {
-                        className = ClassName("card-body")
+
+                    if (!vulnerability.relatedLink.isNullOrEmpty()) {
                         div {
-                            +"${vulnerability.vulnerabilityIdentifier}"
-                        }
-                    }
-                    div {
-                        className = ClassName("card-header py-3")
-                        div {
-                            className = ClassName("row")
-                            h6 {
-                                className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
-                                +"Related link"
+                            className = ClassName("card-header py-3")
+                            div {
+                                className = ClassName("row")
+                                h6 {
+                                    className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
+                                    +"Related link"
+                                }
                             }
                         }
-                    }
-                    div {
-                        className = ClassName("card-body")
-                        Link {
-                            to = "${vulnerability.relatedLink}"
-                            +"${vulnerability.relatedLink}"
+                        div {
+                            className = ClassName("card-body")
+                            Link {
+                                to = "${vulnerability.relatedLink}"
+                                +"${vulnerability.relatedLink}"
+                            }
                         }
                     }
                 }
