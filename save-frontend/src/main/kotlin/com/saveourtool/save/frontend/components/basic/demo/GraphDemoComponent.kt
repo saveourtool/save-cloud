@@ -13,6 +13,7 @@ import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCaretSquareRight
 import com.saveourtool.save.frontend.externals.fontawesome.faInfoCircle
+import com.saveourtool.save.frontend.externals.reactace.AceMarkers
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
@@ -66,6 +67,7 @@ val graphDemoComponent: FC<GraphDemoComponentProps> = FC { props ->
                     draftText = codeLines
                     onDraftTextUpdate = { code -> setCodeLines(code) }
                     isDisabled = false
+                    aceMarkers = props.aceMarkers
                 }
                 useTooltip()
                 div {
@@ -178,4 +180,9 @@ external interface GraphDemoComponentProps : Props {
      * Callback to update [selectedLayout]
      */
     var setSelectedLayout: (CytoscapeLayout) -> Unit
+
+    /**
+     * Additional [AceMarkers]
+     */
+    var aceMarkers: AceMarkers
 }

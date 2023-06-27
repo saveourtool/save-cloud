@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demo.graphDemoComponent
 import com.saveourtool.save.frontend.components.basic.graph.cytoscapeVisualizer
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
+import com.saveourtool.save.frontend.externals.reactace.AceMarkers
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.utils.Languages
@@ -49,6 +50,8 @@ val cpgView: VFC = VFC {
     val errorWindowOpenness = useWindowOpenness()
     val (selectedLayout, setSelectedLayout) = useState(CytoscapeLayout.preferredLayout)
 
+    val (aceMarkers, setAceMarkers) = useState<AceMarkers>(emptyArray())
+
     displaySimpleModal(
         errorWindowOpenness,
         "Error log",
@@ -65,6 +68,7 @@ val cpgView: VFC = VFC {
                     this.setSelectedLayout = { setSelectedLayout(it) }
                     this.placeholderText = CPG_PLACEHOLDER_TEXT
                     this.preselectedLanguage = Languages.CPP
+                    this.aceMarkers = aceMarkers
                     this.resultRequest = { demoRequest ->
                         val response = post(
                             "$cpgDemoApiUrl/upload-code",
@@ -94,6 +98,7 @@ val cpgView: VFC = VFC {
                                 cytoscapeVisualizer {
                                     graph = cpgResult.cpgGraph
                                     layout = selectedLayout
+                                    aceMarkersStateSetter = setAceMarkers
                                     query = cpgResult.query
                                 }
                                 div {
