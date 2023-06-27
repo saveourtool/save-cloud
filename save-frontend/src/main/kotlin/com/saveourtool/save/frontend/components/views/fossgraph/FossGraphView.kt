@@ -8,15 +8,10 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
+import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
 import com.saveourtool.save.frontend.utils.*
@@ -29,7 +24,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.span
-import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
@@ -53,40 +47,13 @@ private const val FOR_YELLOW = 67
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
-    val projectWindowOpenness = useWindowOpenness()
     val deleteVulnerabilityWindowOpenness = useWindowOpenness()
 
     val navigate = useNavigate()
 
-    val (vulnerabilityProjects, setVulnerabilityProjects) = useState<Set<VulnerabilityProjectDto>>(setOf())
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
-    val (isUpdateVulnerability, setIsUpdateVulnerability) = useState(false)
     val (user, setUser) = useState(props.currentUserInfo)
-
-    val (deleteProject, setDeleteProject) = useState<VulnerabilityProjectDto?>(null)
-
-    val fetchProject: (VulnerabilityProjectDto) -> Unit = { project ->
-        setVulnerability {
-            it.copy(projects = it.projects.plus(project.copy(vulnerabilityName = it.name)))
-        }
-        setVulnerabilityProjects {
-            it.plus(project.copy(vulnerabilityName = vulnerability.name))
-        }
-        setIsUpdateVulnerability(true)
-        projectWindowOpenness.closeWindow()
-    }
-
-    val enrollRequest = useDeferredRequest {
-        val response = post(
-            url = "$apiUrl/vulnerabilities/save-projects",
-            headers = jsonHeaders,
-            body = Json.encodeToString(vulnerabilityProjects),
-            loadingHandler = ::loadingHandler,
-        )
-        if (response.ok) {
-            setIsUpdateVulnerability(false)
-        }
-    }
+    val (selectedMenu, setSelectedMenu) = useState(VulnerabilityTab.INFO)
 
     val enrollUpdateRequest = useDeferredRequest {
         val vulnerabilityUpdate = vulnerability.copy(isActive = true)
@@ -112,19 +79,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
-    val enrollDeleteProjectRequest = useDeferredRequest {
-        deleteProject?.let {project ->
-            val response = delete(
-                url = "$apiUrl/vulnerabilities/delete-project?projectName=${project.name}&vulnerabilityName=${props.name}",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-            )
-            if (response.ok) {
-                setVulnerability { it.copy(projects = it.projects.minus(project)) }
-            }
-        }
-    }
-
     useRequest {
         val vulnerabilityNew: VulnerabilityDto = get(
             url = "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
@@ -147,106 +101,15 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         setUser(userInfo)
     }
 
-    vulnerabilityProjectWindow {
-        this.windowOpenness = projectWindowOpenness
-        this.fetchProjectCredentials = fetchProject
-    }
-
-    val openSourceProjectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
-        columns = {
-            columns {
-                column(id = "name", header = "Name", { name }) { cellContext ->
-                    Fragment.create {
-                        td {
-                            Link {
-                                to = cellContext.row.original.url
-                                +cellContext.value
-                            }
-                        }
-                    }
-                }
-                column(id = "versions", header = "Versions", { versions }) { cellContext ->
-                    Fragment.create {
-                        td {
-                            +cellContext.value
-                        }
-                    }
-                }
-                column("delete", "") { cellProps ->
-                    Fragment.create {
-                        td {
-                            div {
-                                className = ClassName("d-flex justify-content-end")
-                                buttonBuilder(faTrashAlt, style = "") {
-                                    setDeleteProject(value = cellProps.row.original)
-                                    deleteVulnerabilityWindowOpenness.openWindow()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        initialPageSize = 10,
-        useServerPaging = false,
-        isTransparentGrid = true,
-    )
-
-    val projectTable: FC<TableProps<VulnerabilityProjectDto>> = tableComponent(
-        columns = {
-            columns {
-                column(id = "name", header = "Name", { name }) { cellContext ->
-                    Fragment.create {
-                        td {
-                            Link {
-                                to = cellContext.row.original.url
-                                +cellContext.value
-                            }
-                        }
-                    }
-                }
-                column(id = "versions", header = "Versions", { versions }) { cellContext ->
-                    Fragment.create {
-                        td {
-                            +cellContext.value
-                        }
-                    }
-                }
-                column("delete", "") { cellProps ->
-                    Fragment.create {
-                        td {
-                            div {
-                                className = ClassName("d-flex justify-content-end")
-                                buttonBuilder(faTrashAlt, style = "") {
-                                    setDeleteProject(value = cellProps.row.original)
-                                    deleteVulnerabilityWindowOpenness.openWindow()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        initialPageSize = 10,
-        useServerPaging = false,
-        isTransparentGrid = true,
-    )
-
     displayModal(
         deleteVulnerabilityWindowOpenness.isOpen(),
-        "Deletion of ${deleteProject?.let {
-            "project"
-        } ?: "vulnerability"}",
-        "Are you sure you want to remove this ${deleteProject?.let {
-            "project"
-        } ?: "vulnerability"}?",
+        "Deletion of vulnerability",
+        "Are you sure you want to remove this vulnerability?",
         mediumTransparentModalStyle,
         deleteVulnerabilityWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Ok") {
-            deleteProject?.let {
-                enrollDeleteProjectRequest()
-            } ?: enrollDeleteRequest()
+            enrollDeleteRequest()
             deleteVulnerabilityWindowOpenness.closeWindow()
         }
         buttonBuilder("Close", "secondary") {
@@ -264,7 +127,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    setDeleteProject(null)
                     deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
@@ -398,48 +260,36 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 className = ClassName("col-6")
 
                 div {
-                    className = ClassName("d-flex justify-content-end")
-                    buttonBuilder("Add project", classes = "mr-2", isOutline = true) {
-                        projectWindowOpenness.openWindow()
+                    className = ClassName("mb-4 mt-2")
+                    tab(selectedMenu.name, VulnerabilityTab.values().map { it.name }, "nav nav-tabs mt-3") { value ->
+                        setSelectedMenu { VulnerabilityTab.valueOf(value) }
                     }
-                    buttonBuilder(label = "Save", isDisabled = !isUpdateVulnerability) {
-                        enrollRequest()
-                    }
-                }
-                div {
-                    className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Affected open source projects"
-                }
 
-                openSourceProjectTable {
-                    getData = { _, _ ->
-                        vulnerability.projects.filter { it.type == VulnerabilityProjectType.PROJECT }.toTypedArray()
-                    }
-                }
-
-                div {
-                    className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Affected libraries"
-                }
-
-                projectTable {
-                    getData = { _, _ ->
-                        vulnerability.projects.filter { it.type == VulnerabilityProjectType.LIBRARY }.toTypedArray()
-                    }
-                }
-
-                div {
-                    className = ClassName("mt-5 text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +"Commits with fix"
-                }
-
-                projectTable {
-                    getData = { _, _ ->
-                        vulnerability.projects.filter { it.type == VulnerabilityProjectType.COMMIT }.toTypedArray()
+                    when (selectedMenu) {
+                        VulnerabilityTab.INFO -> vulnerabilityInfo { this.vulnerability = vulnerability }
+                        VulnerabilityTab.COMMENTS -> div
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Enum that contains values for vulnerability
+ */
+@Suppress("WRONG_DECLARATIONS_ORDER")
+enum class VulnerabilityTab {
+    INFO,
+    COMMENTS,
+    ;
+
+    companion object : TabMenuBar<VulnerabilityTab> {
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: VulnerabilityTab = INFO
+        override val regexForUrlClassification = "/${FrontendRoutes.PROFILE.path}"
+        override fun valueOf(elem: String): VulnerabilityTab = VulnerabilityTab.valueOf(elem)
+        override fun values(): Array<VulnerabilityTab> = VulnerabilityTab.values()
     }
 }
 
