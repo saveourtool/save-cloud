@@ -109,7 +109,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
             if (isSuperAdmin || isOwner) {
                 buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    // setDeleteProject(null)
                     deleteVulnerabilityWindowOpenness.openWindow()
                 }
             }
