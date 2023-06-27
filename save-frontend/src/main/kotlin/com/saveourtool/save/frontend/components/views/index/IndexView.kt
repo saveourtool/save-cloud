@@ -29,7 +29,6 @@ val indexView: VFC = VFC {
                 className = ClassName("grid mt-5")
                 div {
                     className = ClassName("row logo-parent")
-
                     div {
                         className = ClassName("col-3 text-center")
                     }
@@ -57,6 +56,7 @@ val indexView: VFC = VFC {
                         className = ClassName("col-3 text-center")
                     }
                 }
+                indexElem { }
             }
         }
     }
