@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.progressbar.Color
 import com.saveourtool.save.frontend.externals.progressbar.progressBar
@@ -97,6 +99,22 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             .decodeFromJsonString()
 
         setUser(userInfo)
+    }
+
+    displayModal(
+        deleteVulnerabilityWindowOpenness.isOpen(),
+        "Deletion of vulnerability",
+        "Are you sure you want to remove this vulnerability?",
+        mediumTransparentModalStyle,
+        deleteVulnerabilityWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok") {
+            enrollDeleteRequest()
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            deleteVulnerabilityWindowOpenness.closeWindow()
+        }
     }
 
     div {
@@ -248,7 +266,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     }
 
                     when (selectedMenu) {
-                        VulnerabilityTab.INFO -> renderVulnerabilityInfo { this.vulnerability = vulnerability }
+                        VulnerabilityTab.INFO -> vulnerabilityInfo { this.vulnerability = vulnerability }
                         VulnerabilityTab.COMMENTS -> div
                     }
                 }
