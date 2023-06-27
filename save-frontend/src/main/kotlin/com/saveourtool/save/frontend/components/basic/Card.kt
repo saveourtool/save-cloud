@@ -14,8 +14,8 @@ import react.FC
 import react.PropsWithChildren
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
-import web.cssom.Height
-import web.cssom.Width
+import web.cssom.rem
+
 
 /**
  * Props for card component
@@ -53,8 +53,7 @@ fun cardComponent(
         className = ClassName("$card card-body mt-0 $paddingInside $pb $boarder")
         if (isFilling) {
             style = jso {
-                width = "100%".unsafeCast<Width>()
-                height = "100%".unsafeCast<Height>()
+                width = 8.rem
             }
         }
         div {
