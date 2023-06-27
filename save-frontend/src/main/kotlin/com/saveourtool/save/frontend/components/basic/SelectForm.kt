@@ -157,10 +157,10 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                     }
                 }
                 className = when {
-                    value == "" || value == null -> ClassName("${props.selectClasses} form-control")
-                    props.validInput == true -> ClassName(" ${props.selectClasses} form-control is-valid")
-                    props.validInput == false -> ClassName(" ${props.selectClasses} form-control is-invalid")
-                    else -> ClassName(" ${props.selectClasses} form-control")
+                    value == "" || value == null -> ClassName("form-control ${props.selectClasses}")
+                    props.validInput == true -> ClassName("form-control ${props.selectClasses} is-valid")
+                    props.validInput == false -> ClassName("form-control ${props.selectClasses} is-invalid")
+                    else -> ClassName("form-control ${props.selectClasses}")
                 }
                 onChange = { event ->
                     elements.find {

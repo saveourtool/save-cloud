@@ -39,7 +39,7 @@ private const val SAVE_FOSS_GRAPH_TOP_RATING_MD = """
 )
 fun ChildrenBuilder.fossGraphIntroductionComponent() {
     div {
-        className = ClassName("card flex-md-column mb-1 box-shadow")
+        className = ClassName("card flex-md-column box-shadow")
         div {
             className = ClassName("card-body d-flex align-items-start")
             div {
