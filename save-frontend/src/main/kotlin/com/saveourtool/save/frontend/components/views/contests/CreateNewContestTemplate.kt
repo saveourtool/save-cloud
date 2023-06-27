@@ -7,7 +7,7 @@ import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import web.cssom.*
 
@@ -31,7 +31,7 @@ internal val createNewContestTemplate = VFC {
                     }
                 }
             }
-            h4 {
+            h3 {
                 className = ClassName("mb-auto")
                 +"Create new contest template"
             }

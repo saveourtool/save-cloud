@@ -185,6 +185,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                     div {
                                         className = ClassName("row-3")
                                         organizationSelectForm {
+                                            selectClasses = "custom-select"
                                             formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
