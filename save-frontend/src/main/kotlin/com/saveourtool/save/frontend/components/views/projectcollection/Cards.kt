@@ -19,7 +19,7 @@ import web.cssom.*
 /**
  * Buttons for creation and deletion of new projects and organizations
  */
-fun ChildrenBuilder.topRightCard() {
+internal fun ChildrenBuilder.topRightCard() {
     creationCard("img/undraw_for_review_eqxk.svg", "organization", "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/")
     creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "#/${FrontendRoutes.CREATE_PROJECT.path}/")
 }
@@ -27,7 +27,7 @@ fun ChildrenBuilder.topRightCard() {
 /**
  * General info card
  */
-fun ChildrenBuilder.topLeftCard() {
+internal fun ChildrenBuilder.topLeftCard() {
     div {
         className = ClassName("col-lg-6")
         div {
