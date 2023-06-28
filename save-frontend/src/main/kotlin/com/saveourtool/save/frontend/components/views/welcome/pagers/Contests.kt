@@ -23,6 +23,7 @@ object Contests : WelcomePager {
 
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
                 width = 80.rem
                 height = "auto".unsafeCast<Height>()

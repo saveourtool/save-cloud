@@ -45,6 +45,7 @@ internal fun ChildrenBuilder.topLeftCard() {
 
                     img {
                         src = "img/save-logo-no-bg.png"
+                        @Suppress("MAGIC_NUMBER")
                         style = jso {
                             width = 8.rem
                         }
@@ -70,7 +71,7 @@ internal fun ChildrenBuilder.topLeftCard() {
                                             "Your new added tools will also be shown below. To create a " +
                                             "new project and to evaluate your tool with benchmarks you will need to have " +
                                             "an organization created. "
-                                    )
+                            )
                             b {
                                 +"To participate in contests you also need to have a public project."
                             }

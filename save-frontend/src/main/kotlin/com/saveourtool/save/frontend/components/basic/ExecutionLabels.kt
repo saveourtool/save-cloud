@@ -250,6 +250,7 @@ fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
             className = ClassName("d-flex justify-content-center")
             img {
                 src = "img/sad_cat.gif"
+                @Suppress("MAGIC_NUMBER")
                 style = jso {
                     width = 10.rem
                 }

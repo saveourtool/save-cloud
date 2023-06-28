@@ -97,6 +97,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                                 className = ClassName("m-2 d-flex align-items-center align-self-stretch flex-column")
                                 img {
                                     src = "img/save-logo-no-bg.png"
+                                    @Suppress("MAGIC_NUMBER")
                                     style = jso {
                                         width = 8.rem
                                     }

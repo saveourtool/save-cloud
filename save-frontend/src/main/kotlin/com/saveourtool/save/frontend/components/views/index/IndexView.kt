@@ -4,11 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
-import kotlinx.browser.window
 import react.ChildrenBuilder
 
 import react.VFC
@@ -18,7 +16,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
-import react.react
 import web.cssom.*
 
 val indexView: VFC = VFC {

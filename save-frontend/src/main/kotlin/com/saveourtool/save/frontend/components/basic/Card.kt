@@ -16,7 +16,6 @@ import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 import web.cssom.rem
 
-
 /**
  * Props for card component
  */

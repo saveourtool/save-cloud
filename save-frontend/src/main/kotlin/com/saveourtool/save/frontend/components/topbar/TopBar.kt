@@ -16,7 +16,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.nav
 import react.router.useLocation
 import web.cssom.ClassName
-import web.cssom.Width
 import web.cssom.vw
 import web.html.ButtonType
 import web.html.HTMLButtonElement
