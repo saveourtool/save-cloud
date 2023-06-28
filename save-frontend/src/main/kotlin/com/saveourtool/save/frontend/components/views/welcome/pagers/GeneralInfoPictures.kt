@@ -56,6 +56,7 @@ object GeneralInfoSecondPicture : WelcomePager {
             +"User-friendly dashboards"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
                 width = 30.rem
             }
@@ -81,6 +82,8 @@ object GeneralInfoThirdPicture : WelcomePager {
             +"Statistics for your tool"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
+
             style = jso {
                 width = 30.rem
             }
@@ -106,6 +109,7 @@ object GeneralInfoFourthPicture : WelcomePager {
             +"Build a team"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
                 width = 30.rem
             }

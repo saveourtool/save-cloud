@@ -1,7 +1,6 @@
 package com.saveourtool.save.gateway.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.web.util.matcher.IpAddressMatcher
 import java.net.InetAddress
 
