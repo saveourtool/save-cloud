@@ -188,7 +188,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                             selectClasses = "custom-select"
                                             formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
-                                            classes = "col-md-12 pl-2 pr-2"
+                                            classes = "col-12 pl-2 pr-2"
                                             formName = "Organization"
                                             getData = { context ->
                                                 context.get(
@@ -225,7 +225,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                             textValue = state.projectCreationRequest.name
                                             validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
                                                     state.conflictErrorMessage == null
-                                            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
+                                            classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Tested tool name"
                                             conflictMessage = state.conflictErrorMessage
                                             onChangeFun = {
@@ -240,7 +240,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                         inputTextFormOptional {
                                             form = InputTypes.PROJECT_EMAIL
                                             textValue = state.projectCreationRequest.email
-                                            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
+                                            classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Contact e-mail"
                                             validInput =
                                                     state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail()
@@ -253,7 +253,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                         }
 
                                         div {
-                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2 text-left")
+                                            className = ClassName("col-12 mt-3 mb-3 pl-2 pr-2 text-left")
                                             label {
                                                 className = ClassName("form-label")
                                                 asDynamic()["for"] = InputTypes.DESCRIPTION.name
@@ -277,7 +277,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                         }
 
                                         div {
-                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-0 row d-flex alighn-items-center")
+                                            className = ClassName("col-12 mt-3 mb-3 pl-2 pr-0 row d-flex alighn-items-center")
                                             label {
                                                 className = ClassName("text-xs")
                                                 fontAwesomeIcon(icon = faQuestionCircle)

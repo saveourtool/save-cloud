@@ -147,7 +147,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         div {
             className = ClassName("row justify-content-center")
             div {
-                className = ClassName("col-lg-10 mt-4 min-vh-100")
+                className = ClassName("col-10 mt-4 min-vh-100")
                 div {
                     className = ClassName("row mb-2")
                     topLeftCard()

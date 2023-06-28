@@ -24,7 +24,7 @@ val demoMainView: VFC = VFC {
             div {
                 className = ClassName("d-flex justify-content-center")
                 div {
-                    className = ClassName("col-md-4 d-flex align-items-stretch")
+                    className = ClassName("col-4 d-flex align-items-stretch")
                     div {
                         div {
                             className = ClassName("mb-2")
@@ -36,7 +36,7 @@ val demoMainView: VFC = VFC {
                     }
                 }
                 div {
-                    className = ClassName("col-lg-7 d-flex align-items-stretch")
+                    className = ClassName("col-7 d-flex align-items-stretch")
                     demoList()
                 }
             }

@@ -48,7 +48,7 @@ class SelectFormTest {
                         disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
-                        classes = "col-md-6 pl-0 pl-2 pr-2"
+                        classes = "col-6 pl-0 pl-2 pr-2"
                         formName = "Organization"
                     }
                 }
@@ -92,7 +92,7 @@ class SelectFormTest {
                         disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
-                        classes = "col-md-6 pl-0 pl-2 pr-2"
+                        classes = "col-6 pl-0 pl-2 pr-2"
                         formName = "Organization"
                         notFoundErrorMessage = "You don't have access to any organizations"
                     }

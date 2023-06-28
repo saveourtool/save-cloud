@@ -112,11 +112,11 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
             div {
                 className = ClassName("d-flex justify-content-center")
                 div {
-                    className = ClassName("col-md-4 d-flex align-items-stretch")
+                    className = ClassName("col-4 d-flex align-items-stretch")
                     fossGraphIntroductionComponent()
                 }
                 div {
-                    className = ClassName("card flex-md-row col-lg-7 d-flex align-items-stretch")
+                    className = ClassName("card flex-md-row col-7 d-flex align-items-stretch")
                     div {
                         className = ClassName("col")
                         div {
