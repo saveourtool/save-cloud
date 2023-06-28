@@ -27,28 +27,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * Props for comment card component
- */
-external interface CommentWindowProps : PropsWithChildren {
-    /**
-     * User comment
-     */
-    var comment: CommentDto
-}
-
-/**
- * Props for new comment card component
- */
-external interface NewCommentWindowProps : PropsWithChildren {
-    /**
-     * Callback invoked when added new comment
-     */
-    var addComment: () -> Unit
-}
-
-/**
  * @return a function component
  */
+@Suppress(
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "MAGIC_NUMBER",
+)
 val newCommentWindow = FC<NewCommentWindowProps> { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
@@ -90,7 +74,10 @@ val newCommentWindow = FC<NewCommentWindowProps> { props ->
 /**
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "MAGIC_NUMBER",
+)
 val commentWindow = FC<CommentWindowProps> { props ->
 
     val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
@@ -151,4 +138,24 @@ val commentWindow = FC<CommentWindowProps> { props ->
             }
         }
     }
+}
+
+/**
+ * Props for comment card component
+ */
+external interface CommentWindowProps : PropsWithChildren {
+    /**
+     * User comment
+     */
+    var comment: CommentDto
+}
+
+/**
+ * Props for new comment card component
+ */
+external interface NewCommentWindowProps : PropsWithChildren {
+    /**
+     * Callback invoked when added new comment
+     */
+    var addComment: () -> Unit
 }
