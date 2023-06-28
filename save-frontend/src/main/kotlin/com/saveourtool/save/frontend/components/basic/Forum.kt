@@ -1,4 +1,4 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.frontend.components.basic
 
@@ -37,9 +37,19 @@ external interface CommentWindowProps : PropsWithChildren {
 }
 
 /**
+ * Props for new comment card component
+ */
+external interface NewCommentWindowProps : PropsWithChildren {
+    /**
+     * Callback invoked when added new comment
+     */
+    var addComment: () -> Unit
+}
+
+/**
  * @return a function component
  */
-fun newCommentWindow() = FC<PropsWithChildren> {
+fun newCommentWindow() = FC<NewCommentWindowProps> { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
     val enrollRequest = useDeferredRequest {
@@ -52,7 +62,7 @@ fun newCommentWindow() = FC<PropsWithChildren> {
             responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
-            window.location.reload()
+            props.addComment()
         }
     }
 

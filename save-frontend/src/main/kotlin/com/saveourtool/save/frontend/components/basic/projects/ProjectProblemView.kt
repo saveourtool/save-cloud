@@ -68,6 +68,19 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         setComments(newComments)
     }
 
+    val enrollCommentsRequest = useDeferredRequest {
+        val newComments = post(
+            url = "$apiUrl/comments/get-all",
+            headers = jsonHeaders,
+            body = window.location.hash,
+            loadingHandler = ::loadingHandler,
+        ).unsafeMap {
+            it.decodeFromJsonString<List<CommentDto>>()
+        }
+
+        setComments(newComments)
+    }
+
     val enrollCloseOpenRequest = useDeferredRequest {
         val response = post(
             url = "$apiUrl/projects/problem/update",
@@ -228,7 +241,9 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
             div {
                 className = ClassName("col-12 mt-4")
-                newCommentCard()
+                newCommentCard {
+                    addComment = { enrollCommentsRequest() }
+                }
             }
 
             comments.forEach { message ->
