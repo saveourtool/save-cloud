@@ -30,6 +30,7 @@ class Comment(
     override fun toDto() = CommentDto(
         message = message,
         userName = user.name ?: "Unknown",
+        userRating = user.rating,
         userAvatar = user.avatar,
         createDate = createDate?.toKotlinLocalDateTime(),
     )

@@ -109,13 +109,21 @@ val commentWindow: FC<CommentWindowProps> = FC { props ->
                             }
                         }
                         div {
-                            className = ClassName("mt-2 md-6 pl-0")
+                            className = ClassName("row mt-2 md-6 pl-0")
                             style = jso {
                                 display = Display.flex
                                 alignItems = AlignItems.center
                             }
+                            div {
+                                className = ClassName("col text-center text-xs font-weight-bold text-info text-uppercase")
+                                +"Rating"
+                            }
+                            div {
+                                className = ClassName("col text-center")
+                                +props.comment.userRating.toString()
+                            }
                             h1 {
-                                className = ClassName("h5 mb-0 text-gray-800")
+                                className = ClassName("col text-center font-weight-bold h4")
                                 +props.comment.userName
                             }
                         }
