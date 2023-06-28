@@ -7,7 +7,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 
 @SpringBootTest
 @SpringJUnitConfig
-class ApplicationStartupTest {
+class StartupTest {
     @Test
     fun contextLoads() {
         // This test method will be executed to check the application startup
