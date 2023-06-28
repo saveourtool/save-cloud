@@ -131,17 +131,16 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                 div {
                     className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("col-lg-6")
+                        className = ClassName("col-6")
                         div {
                             className = ClassName("row mb-2")
                             div {
-                                className = ClassName("col-md-6")
+                                className = ClassName("col-6")
                                 div {
                                     className = ClassName("card flex-md-row mb-1 box-shadow")
                                     style = jso {
                                         height = 14.rem
                                     }
-
                                     div {
                                         className = ClassName("card-body d-flex flex-column align-items-start")
                                         strong {
@@ -175,7 +174,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                 }
                             }
                             div {
-                                className = ClassName("col-md-6")
+                                className = ClassName("col-6")
                                 div {
                                     className = ClassName("card flex-md-row mb-1 box-shadow")
                                     style = jso {
@@ -245,7 +244,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                         }
 
                         div {
-                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            className = ClassName("col container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
                                 className = ClassName("p-5 text-center")
                                 h1 {
@@ -285,7 +284,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                 div {
                                     className = ClassName("row mt-3")
                                     div {
-                                        className = ClassName("col-lg-8")
+                                        className = ClassName("col-8")
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEach { benchmark ->
@@ -353,7 +352,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                         }
                                     }
                                     div {
-                                        className = ClassName("col-lg-4")
+                                        className = ClassName("col-4")
                                         ul {
                                             className = ClassName("list-group")
                                             val languages = state.benchmarks.map { it.language }
@@ -400,7 +399,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                     }
 
                     div {
-                        className = ClassName("col-lg-4 mb-4")
+                        className = ClassName("col-4 mb-4")
                         div {
                             className = ClassName("card shadow mb-4")
                             div {

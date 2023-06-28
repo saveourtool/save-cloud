@@ -11,7 +11,7 @@ import react.ChildrenBuilder
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import web.cssom.Color
-import web.cssom.Width
+import web.cssom.rem
 
 @Suppress("CUSTOM_GETTERS_SETTERS")
 object GeneralInfoFirstPicture : WelcomePager {
@@ -30,8 +30,9 @@ object GeneralInfoFirstPicture : WelcomePager {
             +"Easy to start"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = "65%".unsafeCast<Width>()
+                width = 30.rem
             }
             src = "img/run_view.png"
         }
@@ -55,8 +56,9 @@ object GeneralInfoSecondPicture : WelcomePager {
             +"User-friendly dashboards"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = "130%".unsafeCast<Width>()
+                width = 30.rem
             }
             src = "img/exec_view.png"
         }
@@ -80,8 +82,10 @@ object GeneralInfoThirdPicture : WelcomePager {
             +"Statistics for your tool"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
+
             style = jso {
-                width = "65%".unsafeCast<Width>()
+                width = 30.rem
             }
             src = "img/stat_view.png"
         }
@@ -105,8 +109,9 @@ object GeneralInfoFourthPicture : WelcomePager {
             +"Build a team"
         }
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = "135%".unsafeCast<Width>()
+                width = 30.rem
             }
             src = "img/organization_view.png"
         }

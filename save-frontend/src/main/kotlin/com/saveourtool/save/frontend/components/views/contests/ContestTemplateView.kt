@@ -124,7 +124,7 @@ val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
                         className = ClassName("row")
 
                         div {
-                            className = ClassName("col-md-8 pl-2 pr-2 mt-3 text-left")
+                            className = ClassName("col-8 pl-2 pr-2 mt-3 text-left")
 
                             input {
                                 type = InputType.text
@@ -136,7 +136,7 @@ val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
                         }
 
                         div {
-                            className = ClassName("col-md-4 pl-2 pr-2 mt-3 input-group-sm input-group")
+                            className = ClassName("col-4 pl-2 pr-2 mt-3 input-group-sm input-group")
                             select {
                                 className = ClassName("form-control")
                                 style = jso {

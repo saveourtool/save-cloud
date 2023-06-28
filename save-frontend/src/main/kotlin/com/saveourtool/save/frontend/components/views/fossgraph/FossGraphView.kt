@@ -8,12 +8,12 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
-import com.saveourtool.save.frontend.externals.progressbar.Color
-import com.saveourtool.save.frontend.externals.progressbar.progressBar
+import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
@@ -27,16 +27,10 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
-import web.cssom.AlignItems
-import web.cssom.BorderRadius
-import web.cssom.ClassName
-import web.cssom.Display
+import web.cssom.*
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-private const val FOR_GREEN = 34
-private const val FOR_YELLOW = 67
 
 @Suppress(
     "MAGIC_NUMBER",
@@ -46,6 +40,7 @@ private const val FOR_YELLOW = 67
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
+    useTooltip()
 
     val deleteVulnerabilityWindowOpenness = useWindowOpenness()
 
@@ -122,61 +117,46 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
 
         val isSuperAdmin = props.currentUserInfo?.globalRole?.isHigherOrEqualThan(Role.SUPER_ADMIN) == true
         val isOwner = user?.id == vulnerability.userId
+
         div {
-            className = ClassName("d-flex justify-content-end")
-
-            if (isSuperAdmin || isOwner) {
-                buttonBuilder(label = "Delete", style = "danger", classes = "mr-2") {
-                    deleteVulnerabilityWindowOpenness.openWindow()
+            className = ClassName("d-flex align-items-center justify-content-center mb-4")
+            h1 {
+                className = ClassName("h3 mb-0 text-center text-gray-800")
+                +vulnerability.name
+            }
+            languageSpan(vulnerability.language)
+            div {
+                className = ClassName("mr-3")
+                style = jso {
+                    position = "absolute".unsafeCast<Position>()
+                    right = "0%".unsafeCast<Left>()
+                }
+                if (isSuperAdmin || isOwner) {
+                    buttonBuilder(
+                        icon = faTrash,
+                        style = "danger",
+                        isOutline = true,
+                        classes = "mr-2",
+                        title = "Delete vulnerability",
+                    ) {
+                        deleteVulnerabilityWindowOpenness.openWindow()
+                    }
+                }
+                if (isSuperAdmin && !vulnerability.isActive) {
+                    buttonBuilder(label = "Approve", style = "success") {
+                        enrollUpdateRequest()
+                    }
                 }
             }
-            if (isSuperAdmin && !vulnerability.isActive) {
-                buttonBuilder(label = "Approve", style = "success") {
-                    enrollUpdateRequest()
-                }
-            }
-        }
-
-        h1 {
-            className = ClassName("h3 mb-0 text-center text-gray-800")
-            +vulnerability.name
         }
 
         div {
             className = ClassName("row justify-content-center")
             // ===================== LEFT COLUMN =======================================================================
             div {
-                className = ClassName("col-2 mr-3")
-                div {
-                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-                    +""
-                }
-                div {
-                    className = ClassName("col-xl col-md-6 mb-4")
-                    val progress = vulnerability.progress
-                    val color = if (progress < FOR_GREEN) {
-                        Color.GREEN.hexColor
-                    } else if (progress < FOR_YELLOW) {
-                        Color.YELLOW.hexColor
-                    } else {
-                        Color.RED.hexColor
-                    }
-                    progressBar(progress, color = color)
-
-                    div {
-                        className = ClassName("menu text-right")
-                        div {
-                            className = ClassName("mt-2")
-                            span {
-                                className =
-                                        ClassName("border border-danger ml-2 pr-1 pl-1 text-red-700")
-                                style = jso {
-                                    borderRadius = "2em".unsafeCast<BorderRadius>()
-                                }
-                                +vulnerability.language.value
-                            }
-                        }
-                    }
+                className = ClassName("col-3 mr-3")
+                vulnerabilityBadge {
+                    this.vulnerability = vulnerability
                 }
                 div {
                     className = ClassName("card shadow mb-4")
@@ -266,8 +246,8 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     }
 
                     when (selectedMenu) {
-                        VulnerabilityTab.INFO -> vulnerabilityInfo { this.vulnerability = vulnerability }
-                        VulnerabilityTab.COMMENTS -> div
+                        VulnerabilityTab.INFO -> vulnerabilityInfoTab { this.vulnerability = vulnerability }
+                        VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab { this.vulnerability = vulnerability }
                     }
                 }
             }
@@ -306,4 +286,14 @@ external interface FossGraphViewProps : Props {
      * Information about current user
      */
     var currentUserInfo: UserInfo?
+}
+
+private fun ChildrenBuilder.languageSpan(language: VulnerabilityLanguage) {
+    span {
+        className = ClassName("border border-danger text-danger ml-2 pl-1 pr-1")
+        style = jso {
+            borderRadius = "2em".unsafeCast<BorderRadius>()
+        }
+        +language.value
+    }
 }

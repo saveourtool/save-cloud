@@ -27,7 +27,7 @@ val contestListView: FC<ContestListViewProps> = FC { props ->
             div {
                 className = ClassName("row justify-content-center")
                 div {
-                    className = ClassName("col-lg-9")
+                    className = ClassName("col-9")
 
                     div {
                         className = ClassName("row mb-2")

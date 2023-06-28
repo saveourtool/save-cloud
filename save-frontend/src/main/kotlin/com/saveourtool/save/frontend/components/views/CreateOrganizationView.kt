@@ -25,7 +25,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import web.cssom.ClassName
-import web.cssom.Width
+import web.cssom.rem
 import web.html.ButtonType
 
 import kotlinx.browser.window
@@ -137,7 +137,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mb-4")
                                     src = "img/company.svg"
                                     style = jso {
-                                        width = "40%".unsafeCast<Width>()
+                                        width = 8.rem
                                     }
                                 }
                                 form {

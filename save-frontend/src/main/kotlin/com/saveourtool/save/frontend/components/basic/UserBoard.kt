@@ -48,7 +48,7 @@ private fun userBoard() = FC<UserBoardProps> { props ->
             className = ClassName("row")
             props.users.forEach { user ->
                 div {
-                    className = ClassName("col-md-4 px-0")
+                    className = ClassName("col-4 px-0")
                     figure {
                         Link {
                             img {

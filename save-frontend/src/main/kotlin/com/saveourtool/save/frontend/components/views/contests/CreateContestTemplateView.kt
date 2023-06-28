@@ -78,7 +78,7 @@ val createContestTemplateView: VFC = VFC {
                                     conflictMessage = "Name must not be empty"
                                     textValue = contestTemplate.name
                                     validInput = contestTemplate.name.isNotBlank()
-                                    classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
+                                    classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                     name = "Contest template name:"
                                     onChangeFun = { event ->
                                         setContestTemplate { it.copy(name = event.target.value) }
@@ -86,7 +86,7 @@ val createContestTemplateView: VFC = VFC {
                                 }
 
                                 div {
-                                    className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2 text-left")
+                                    className = ClassName("col-12 mt-3 mb-3 pl-2 pr-2 text-left")
                                     label {
                                         className = ClassName("form-label")
                                         +"Description"
@@ -116,7 +116,7 @@ val createContestTemplateView: VFC = VFC {
                                         className = ClassName("row")
 
                                         div {
-                                            className = ClassName("col-md-8 pl-2 pr-2 mt-3 text-left")
+                                            className = ClassName("col-8 pl-2 pr-2 mt-3 text-left")
 
                                             input {
                                                 type = InputType.text
@@ -133,7 +133,7 @@ val createContestTemplateView: VFC = VFC {
                                         }
 
                                         div {
-                                            className = ClassName("col-md-4 pl-2 pr-2 mt-3 input-group-sm input-group")
+                                            className = ClassName("col-4 pl-2 pr-2 mt-3 input-group-sm input-group")
                                             select {
                                                 className = ClassName("form-control")
                                                 ContestSampleFieldType.values().map { it.toString() }.forEach {

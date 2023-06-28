@@ -69,7 +69,7 @@ internal val featuredContests = VFC {
     }
 
     div {
-        className = ClassName("col-lg-8")
+        className = ClassName("col-8")
         if (featuredContests.isEmpty()) {
             div {
                 className = ClassName("card flex-md-row box-shadow")

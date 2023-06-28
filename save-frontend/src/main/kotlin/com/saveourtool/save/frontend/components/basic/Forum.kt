@@ -1,4 +1,4 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.frontend.components.basic
 
@@ -27,19 +27,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * Props for comment card component
- */
-external interface CommentWindowProps : PropsWithChildren {
-    /**
-     * User comment
-     */
-    var comment: CommentDto
-}
-
-/**
  * @return a function component
  */
-fun newCommentWindow() = FC<PropsWithChildren> {
+@Suppress(
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "MAGIC_NUMBER",
+)
+val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
     val enrollRequest = useDeferredRequest {
@@ -52,7 +46,7 @@ fun newCommentWindow() = FC<PropsWithChildren> {
             responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
-            window.location.reload()
+            props.addComment()
         }
     }
 
@@ -80,8 +74,11 @@ fun newCommentWindow() = FC<PropsWithChildren> {
 /**
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION")
-fun commentWindow() = FC<CommentWindowProps> { props ->
+@Suppress(
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+    "MAGIC_NUMBER",
+)
+val commentWindow: FC<CommentWindowProps> = FC { props ->
 
     val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
     val (avatar, setAvatar) = useState(props.comment.userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
@@ -112,13 +109,21 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
                             }
                         }
                         div {
-                            className = ClassName("mt-2 md-6 pl-0")
+                            className = ClassName("row mt-2 md-6 pl-0")
                             style = jso {
                                 display = Display.flex
                                 alignItems = AlignItems.center
                             }
+                            div {
+                                className = ClassName("col text-center text-xs font-weight-bold text-info text-uppercase")
+                                +"Rating"
+                            }
+                            div {
+                                className = ClassName("col text-center")
+                                +props.comment.userRating.toString()
+                            }
                             h1 {
-                                className = ClassName("h5 mb-0 text-gray-800")
+                                className = ClassName("col text-center font-weight-bold h4")
                                 +props.comment.userName
                             }
                         }
@@ -141,4 +146,24 @@ fun commentWindow() = FC<CommentWindowProps> { props ->
             }
         }
     }
+}
+
+/**
+ * Props for comment card component
+ */
+external interface CommentWindowProps : PropsWithChildren {
+    /**
+     * User comment
+     */
+    var comment: CommentDto
+}
+
+/**
+ * Props for new comment card component
+ */
+external interface NewCommentWindowProps : PropsWithChildren {
+    /**
+     * Callback invoked when added new comment
+     */
+    var addComment: () -> Unit
 }

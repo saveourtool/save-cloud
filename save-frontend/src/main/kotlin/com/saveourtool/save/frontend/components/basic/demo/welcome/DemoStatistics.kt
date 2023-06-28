@@ -44,7 +44,7 @@ internal val statistics = VFC {
         div {
             className = ClassName("row mx-3")
             div {
-                className = ClassName("col-lg-6 mt-2 mb-2")
+                className = ClassName("col-6 mt-2 mb-2")
                 div {
                     className = ClassName("row justify-content-center")
                     strong {
@@ -61,7 +61,7 @@ internal val statistics = VFC {
                 }
             }
             div {
-                className = ClassName("col-lg-6 mt-2")
+                className = ClassName("col-6 mt-2")
                 div {
                     className = ClassName("row justify-content-center")
                     strong {

@@ -114,14 +114,14 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
             className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom")
             idToValue.forEach { (fieldId, text) ->
                 div {
-                    className = ClassName("col-md-6 pl-0 pr-0")
+                    className = ClassName("col-6 pl-0 pr-0")
                     label {
                         className = ClassName("control-label col-auto justify-content-between pl-0")
                         +projectInformationHeaders.getValue(fieldId)
                     }
                 }
                 div {
-                    className = ClassName("col-md-6 pl-0")
+                    className = ClassName("col-6 pl-0")
                     div {
                         className = ClassName("controls col-auto pl-0")
                         input {

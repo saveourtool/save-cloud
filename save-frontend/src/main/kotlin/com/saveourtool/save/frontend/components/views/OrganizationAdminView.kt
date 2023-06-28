@@ -239,7 +239,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             className = ClassName("row justify-content-center")
 
             div {
-                className = ClassName("col-lg-10 mt-4 min-vh-100")
+                className = ClassName("col-10 mt-4 min-vh-100")
 
                 organizationTable {
                     getData = { _, _ ->

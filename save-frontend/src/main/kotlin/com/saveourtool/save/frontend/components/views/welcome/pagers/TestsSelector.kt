@@ -6,7 +6,7 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
 import web.cssom.Height
-import web.cssom.Width
+import web.cssom.rem
 
 @Suppress("CUSTOM_GETTERS_SETTERS", "MAGIC_NUMBER")
 object TestsSelector : WelcomePager {
@@ -20,7 +20,7 @@ object TestsSelector : WelcomePager {
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
             style = jso {
-                width = "100%".unsafeCast<Width>()
+                width = 40.rem
                 height = "auto".unsafeCast<Height>()
             }
             src = "img/tests_selector.png"

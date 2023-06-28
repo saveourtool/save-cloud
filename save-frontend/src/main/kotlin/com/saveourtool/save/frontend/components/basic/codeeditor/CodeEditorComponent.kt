@@ -24,11 +24,17 @@ val codeEditorComponent: FC<CodeEditorComponentProps> = FC { props ->
             }
         }
 
+        val additionalMarkers = if (props.aceMarkers != undefined) {
+            props.aceMarkers
+        } else {
+            emptyArray()
+        }
+
         aceBuilder(
             props.draftText,
             props.selectedMode,
             props.selectedTheme,
-            getAceMarkers(props.savedText, props.draftText) + props.aceMarkers,
+            getAceMarkers(props.savedText, props.draftText) + additionalMarkers,
             props.isDisabled,
         ) {
             props.onDraftTextUpdate(it)

@@ -260,7 +260,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                 className = ClassName("row")
                 organizations.forEach { organization ->
                     div {
-                        className = ClassName("col-md-3")
+                        className = ClassName("col-3")
                         figure {
                             Link {
                                 img {
