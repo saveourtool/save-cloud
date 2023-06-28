@@ -281,16 +281,18 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     }
                 }
 
-                div {
-                    className = ClassName("wrapper container m-0 p-0")
-                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
-
+                if (tableInstance.getPageCount() > 1) {
                     div {
-                        className = ClassName("row ml-1")
-                        +"Page "
-                        em {
-                            className = ClassName("ml-1")
-                            +" ${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
+                        className = ClassName("wrapper container m-0 p-0")
+                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+
+                        div {
+                            className = ClassName("row ml-1")
+                            +"Page "
+                            em {
+                                className = ClassName("ml-1")
+                                +" ${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
+                            }
                         }
                     }
                 }

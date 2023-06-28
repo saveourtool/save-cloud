@@ -40,6 +40,7 @@ import kotlinx.serialization.json.Json
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
+    useTooltip()
 
     val deleteVulnerabilityWindowOpenness = useWindowOpenness()
 
@@ -131,7 +132,13 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     right = "0%".unsafeCast<Left>()
                 }
                 if (isSuperAdmin || isOwner) {
-                    buttonBuilder(icon = faTrash, style = "danger", isOutline = true, classes = "mr-2") {
+                    buttonBuilder(
+                        icon = faTrash,
+                        style = "danger",
+                        isOutline = true,
+                        classes = "mr-2",
+                        title = "Delete vulnerability",
+                    ) {
                         deleteVulnerabilityWindowOpenness.openWindow()
                     }
                 }
