@@ -141,7 +141,6 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     style = jso {
                                         height = 14.rem
                                     }
-
                                     div {
                                         className = ClassName("card-body d-flex flex-column align-items-start")
                                         strong {

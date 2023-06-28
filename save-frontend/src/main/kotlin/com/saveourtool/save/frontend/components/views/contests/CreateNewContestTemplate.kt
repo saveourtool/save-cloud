@@ -13,7 +13,7 @@ import web.cssom.*
 
 internal val createNewContestTemplate = VFC {
     div {
-        className = ClassName("col-lg-2 text-center")
+        className = ClassName("col-2 text-center")
         a {
             className = ClassName("col-12 flex-column card mb-1 box-shadow btn-hov")
             href = "#/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE.path}/"
@@ -27,7 +27,7 @@ internal val createNewContestTemplate = VFC {
                 img {
                     src = "img/undraw_create_new.svg"
                     style = jso {
-                        width = "100%".unsafeCast<Width>()
+                        width = 10.rem
                     }
                 }
             }

@@ -152,7 +152,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     +""
                 }
                 div {
-                    className = ClassName("col-xl col-md-6 mb-4")
+                    className = ClassName("col-xl col-6 mb-4")
                     val progress = vulnerability.progress
                     val color = if (progress < FOR_GREEN) {
                         Color.GREEN.hexColor

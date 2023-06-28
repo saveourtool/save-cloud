@@ -96,7 +96,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             conflictMessage = "Name must not be empty"
             textValue = projectProblem.name
             validInput = projectProblem.name.isNotBlank()
-            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
+            classes = "col-12 pl-2 pr-2 mt-3 text-left"
             name = "Name:"
             onChangeFun = { event ->
                 setProjectProblem { it.copy(name = event.target.value) }
@@ -104,7 +104,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
         }
 
         div {
-            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2 text-left")
+            className = ClassName("col-12 mt-3 mb-3 pl-2 pr-2 text-left")
             label {
                 className = ClassName("form-label")
                 +"Description"
@@ -130,7 +130,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
         }
 
         div {
-            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2 text-left")
+            className = ClassName("col-12 mt-3 mb-3 pl-2 pr-2 text-left")
 
             label {
                 className = ClassName("form-label")
@@ -166,7 +166,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             form = InputTypes.CVE_NAME
             textValue = projectProblem.vulnerabilityName
             validInput = conflictErrorMessage.isNullOrEmpty()
-            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
+            classes = "col-12 pl-2 pr-2 mt-3 text-left"
             name = "CVE identifier"
             onChangeFun = { event ->
                 setConflictErrorMessage(null)

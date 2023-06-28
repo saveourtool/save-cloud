@@ -21,17 +21,17 @@ internal fun ChildrenBuilder.proposeContest() {
         className = ClassName("row mt-3")
 
         div {
-            className = ClassName("col-lg-3 pr-0")
+            className = ClassName("col-3 pr-0")
             img {
                 src = "img/undraw_mailbox_re_dvds.svg"
                 style = jso {
-                    width = "100%".unsafeCast<Width>()
+                    width = 5.rem
                 }
             }
         }
 
         div {
-            className = ClassName("col-lg-9")
+            className = ClassName("col-9")
             p {
                 +"Want to make your own contest? Write us an e-mail:"
             }
@@ -41,11 +41,11 @@ internal fun ChildrenBuilder.proposeContest() {
     div {
         className = ClassName("row")
         div {
-            className = ClassName("col-lg-3 pr-0")
+            className = ClassName("col-3 pr-0")
         }
 
         div {
-            className = ClassName("col-lg-9 justify-content-center")
+            className = ClassName("col-9 justify-content-center")
 
             a {
                 href = "mailto:saveourtool@gmail.com"

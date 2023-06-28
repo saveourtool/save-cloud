@@ -35,7 +35,7 @@ internal val newContests = VFC {
     }
 
     div {
-        className = ClassName("col-lg-5")
+        className = ClassName("col-5")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {

@@ -175,7 +175,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                 div {
                                     className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom")
                                     div {
-                                        className = ClassName("col-md-4 pl-0 pr-0")
+                                        className = ClassName("col-4 pl-0 pr-0")
                                         label {
                                             className = ClassName("btn")
                                             title = AVATAR_TITLE
@@ -198,7 +198,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                     }
                                     div {
-                                        className = ClassName("col-md-6 pl-0")
+                                        className = ClassName("col-6 pl-0")
                                         style = jso {
                                             display = Display.flex
                                             alignItems = AlignItems.center

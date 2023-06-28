@@ -30,6 +30,7 @@ import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
 import web.cssom.ClassName
 import web.cssom.Width
+import web.cssom.rem
 import web.html.HTMLAnchorElement
 
 /**
@@ -249,6 +250,9 @@ fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
             className = ClassName("d-flex justify-content-center")
             img {
                 src = "img/sad_cat.gif"
+                style = jso {
+                    width = 10.rem
+                }
             }
         }
         div {

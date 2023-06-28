@@ -75,6 +75,9 @@ class WelcomeMobileView : AbstractView<WelcomeProps, IndexViewState>(false) {
             className = ClassName("row d-flex justify-content-center mx-auto")
             img {
                 src = "img/sad_cat.gif"
+                style = jso {
+                    width = 12.rem
+                }
             }
         }
     }
