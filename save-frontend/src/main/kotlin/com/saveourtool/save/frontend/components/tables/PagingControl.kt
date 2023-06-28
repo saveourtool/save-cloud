@@ -37,7 +37,7 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
         div {
             className = ClassName("input-group-sm input-group")
             select {
-                className = ClassName("form-control")
+                className = ClassName("form-control custom-select")
                 listOf("10", "25", "50", "100").forEach {
                     option {
                         className = ClassName("list-group-item")
