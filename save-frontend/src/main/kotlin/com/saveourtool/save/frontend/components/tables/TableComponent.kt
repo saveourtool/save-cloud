@@ -207,11 +207,13 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
     div {
         className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
-        div {
-            className = ClassName("card-header py-3")
-            h6 {
-                className = ClassName("m-0 font-weight-bold text-primary text-center")
-                +props.tableHeader
+        if (props.tableHeader != undefined) {
+            div {
+                className = ClassName("card-header py-3")
+                h6 {
+                    className = ClassName("m-0 font-weight-bold text-primary text-center")
+                    +props.tableHeader
+                }
             }
         }
         div {
@@ -287,7 +289,8 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                         className = ClassName("row ml-1")
                         +"Page "
                         em {
-                            +"${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
+                            className = ClassName("ml-1")
+                            +" ${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
                         }
                     }
                 }
