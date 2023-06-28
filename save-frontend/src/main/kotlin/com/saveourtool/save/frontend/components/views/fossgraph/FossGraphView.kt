@@ -266,8 +266,8 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     }
 
                     when (selectedMenu) {
-                        VulnerabilityTab.INFO -> vulnerabilityInfo { this.vulnerability = vulnerability }
-                        VulnerabilityTab.COMMENTS -> div
+                        VulnerabilityTab.INFO -> vulnerabilityInfoTab { this.vulnerability = vulnerability }
+                        VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab { this.vulnerability = vulnerability }
                     }
                 }
             }
