@@ -6,7 +6,7 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
 import web.cssom.Height
-import web.cssom.Width
+import web.cssom.rem
 
 /**
  * Funny picture
@@ -23,8 +23,9 @@ object Contests : WelcomePager {
 
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = "100%".unsafeCast<Width>()
+                width = 80.rem
                 height = "auto".unsafeCast<Height>()
             }
             src = "img/contests.png"

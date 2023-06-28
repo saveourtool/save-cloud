@@ -45,7 +45,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
 
             state.token?.let {
                 div {
-                    className = ClassName("col-md-12 mt-3")
+                    className = ClassName("col-12 mt-3")
                     input {
                         value = state.token ?: ""
                         required = true

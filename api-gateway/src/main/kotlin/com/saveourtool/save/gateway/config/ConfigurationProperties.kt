@@ -1,7 +1,6 @@
 package com.saveourtool.save.gateway.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.web.util.matcher.IpAddressMatcher
 import java.net.InetAddress
 
@@ -9,7 +8,6 @@ import java.net.InetAddress
  * @property backend properties for connection to save-backend
  * @property knownActuatorConsumers comma-separated list of IPs of clients that are allowed to access spring boot actuator
  */
-@ConstructorBinding
 @ConfigurationProperties(prefix = "gateway")
 data class ConfigurationProperties(
     val backend: Backend,

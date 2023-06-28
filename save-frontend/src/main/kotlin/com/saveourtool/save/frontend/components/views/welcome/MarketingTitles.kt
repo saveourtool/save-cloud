@@ -20,7 +20,7 @@ import web.cssom.*
  */
 fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
     div {
-        className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 $textColor")
+        className = ClassName("col-4 text-left mt-5 $textColor")
         marketingTitle("Software", isDark)
         marketingTitle("Analysis", isDark)
         marketingTitle("Verification &", isDark)

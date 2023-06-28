@@ -41,7 +41,7 @@ internal val statistics = VFC {
     }
 
     div {
-        className = ClassName("col-lg-4")
+        className = ClassName("col-4")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
@@ -49,7 +49,7 @@ internal val statistics = VFC {
                 height = 15.rem
             }
             div {
-                className = ClassName("col-lg-12")
+                className = ClassName("col-12")
                 stats(activeContests, finishedContests)
                 proposeContest()
             }
@@ -66,7 +66,7 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
         className = ClassName("row border-bottom mb-3 mx-3")
 
         div {
-            className = ClassName("col-lg-6 mt-2 mb-2")
+            className = ClassName("col-6 mt-2 mb-2")
             div {
                 className = ClassName("row justify-content-center")
                 strong {
@@ -83,7 +83,7 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
             }
         }
         div {
-            className = ClassName("col-lg-6 mt-2")
+            className = ClassName("col-6 mt-2")
             div {
                 className = ClassName("row justify-content-center")
                 strong {
