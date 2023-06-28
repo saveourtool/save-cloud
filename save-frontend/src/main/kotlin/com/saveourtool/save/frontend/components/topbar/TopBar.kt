@@ -16,7 +16,7 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.nav
 import react.router.useLocation
 import web.cssom.ClassName
-import web.cssom.Width
+import web.cssom.vw
 import web.html.ButtonType
 import web.html.HTMLButtonElement
 
@@ -66,7 +66,7 @@ fun topBar() = FC<TopBarProps> { props ->
         className =
                 ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         style = jso {
-            width = "100vw;".unsafeCast<Width>()
+            width = 100.vw
         }
         id = "navigation-top-bar"
         topBarUrlSplits {

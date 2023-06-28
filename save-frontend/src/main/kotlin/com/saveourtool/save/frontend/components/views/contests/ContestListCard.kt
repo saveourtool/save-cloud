@@ -83,7 +83,7 @@ val contestList = VFC {
 
     val (selectedTab, setSelectedTab) = useState(ContestTypesTab.ACTIVE)
     div {
-        className = ClassName("col-lg-6")
+        className = ClassName("col-6")
         div {
             className = ClassName("card flex-md-row flex-wrap d-block mb-1 box-shadow")
             style = jso {

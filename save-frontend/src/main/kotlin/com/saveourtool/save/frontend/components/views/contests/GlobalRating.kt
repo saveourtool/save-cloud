@@ -61,7 +61,7 @@ internal val globalRating = VFC {
     }
 
     div {
-        className = ClassName("col-lg-4")
+        className = ClassName("col-4")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
@@ -128,7 +128,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
             div {
-                className = ClassName("col-lg-2")
+                className = ClassName("col-2")
                 h3 {
                     className = ClassName("text-info")
                     +(i + 1).toString()
@@ -136,7 +136,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
             }
 
             div {
-                className = ClassName("col-lg-6")
+                className = ClassName("col-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     strong {
@@ -151,7 +151,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
             }
 
             div {
-                className = ClassName("col-lg-4")
+                className = ClassName("col-4")
                 p {
                     +project.contestRating.toFixedStr(2)
                 }
@@ -168,7 +168,7 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
             div {
-                className = ClassName("col-lg-2")
+                className = ClassName("col-2")
                 h3 {
                     className = ClassName("text-info")
                     +(i + 1).toString()
@@ -176,7 +176,7 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(
             }
 
             div {
-                className = ClassName("col-lg-6")
+                className = ClassName("col-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     with(organizationWithRating.organization) {
@@ -193,7 +193,7 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(
             }
 
             div {
-                className = ClassName("col-lg-4")
+                className = ClassName("col-4")
                 p {
                     +organizationWithRating.globalRating.toFixedStr(2)
                 }

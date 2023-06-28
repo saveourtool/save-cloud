@@ -72,14 +72,14 @@ val indexView: VFC = VFC {
 
 private fun ChildrenBuilder.creationCard(url: String, img: String) {
     div {
-        className = ClassName("row")
+        className = ClassName("col")
         a {
             href = url
             @Suppress("MAGIC_NUMBER")
             img {
                 src = img
                 style = jso {
-                    width = "70%".unsafeCast<Width>()
+                    width = 20.rem
                     border = "0.2rem solid hsl(186 100% 69%)".unsafeCast<Border>()
                 }
             }

@@ -117,18 +117,18 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div {
                     // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
                     // https://github.com/matteobruni/tsparticles/discussions/4489
-                    /* Particles::class.react {
+                    Particles::class.react {
                         id = "tsparticles"
                         url = "${window.location.origin}/particles.json"
-                    }*/
+                    }
 
-                    className = ClassName("row")
+                    className = ClassName("row justify-content-center")
                     // Marketing information
                     welcomeMarketingTitle("text-white")
 
                     // Sign-in header
                     div {
-                        className = ClassName("col-lg-3 mr-auto ml-5 mt-5 mb-5")
+                        className = ClassName("col-3 mt-5 mb-5")
                         div {
                             className = ClassName("card z-index-0 fadeIn3 fadeInBottom")
                             // if user is not logged in - he needs to input credentials

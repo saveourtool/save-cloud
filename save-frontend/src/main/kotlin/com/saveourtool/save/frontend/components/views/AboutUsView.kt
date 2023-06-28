@@ -22,6 +22,7 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
 import web.cssom.ClassName
 import web.cssom.Color
+import web.cssom.rem
 
 /**
  * [Props] of [AboutUsView]
@@ -95,7 +96,11 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                             div {
                                 className = ClassName("m-2 d-flex align-items-center align-self-stretch flex-column")
                                 img {
-                                    src = "${GITHUB_AVATAR_LINK}saveourtool?size=$DEFAULT_AVATAR_SIZE"
+                                    src = "img/save-logo-no-bg.png"
+                                    @Suppress("MAGIC_NUMBER")
+                                    style = jso {
+                                        width = 8.rem
+                                    }
                                     className = ClassName("img-fluid mt-auto mb-auto")
                                 }
                                 a {
