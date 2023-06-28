@@ -94,8 +94,6 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
     }
 
     val columnCard = cardComponent(isBordered = true, hasBg = true, isNoPadding = false, isPaddingBottomNull = true)
-    val newCommentCard = newCommentWindow()
-    val commentCard = commentWindow()
 
     displayModal(
         closeProjectProblemWindowOpenness.isOpen(),
@@ -241,7 +239,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
             div {
                 className = ClassName("col-12 mt-4")
-                newCommentCard {
+                newCommentWindow {
                     addComment = { enrollCommentsRequest() }
                 }
             }
@@ -249,7 +247,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
             comments.forEach { message ->
                 div {
                     className = ClassName("col-12 mt-4")
-                    commentCard {
+                    commentWindow {
                         comment = message
                     }
                 }

@@ -49,7 +49,7 @@ external interface NewCommentWindowProps : PropsWithChildren {
 /**
  * @return a function component
  */
-fun newCommentWindow() = FC<NewCommentWindowProps> { props ->
+val newCommentWindow = FC<NewCommentWindowProps> { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
     val enrollRequest = useDeferredRequest {
@@ -91,7 +91,7 @@ fun newCommentWindow() = FC<NewCommentWindowProps> { props ->
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun commentWindow() = FC<CommentWindowProps> { props ->
+val commentWindow = FC<CommentWindowProps> { props ->
 
     val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
     val (avatar, setAvatar) = useState(props.comment.userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
