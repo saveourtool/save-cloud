@@ -33,7 +33,7 @@ import kotlinx.serialization.json.Json
     "GENERIC_VARIABLE_WRONG_DECLARATION",
     "MAGIC_NUMBER",
 )
-val newCommentWindow = FC<NewCommentWindowProps> { props ->
+val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
     val enrollRequest = useDeferredRequest {
@@ -78,7 +78,7 @@ val newCommentWindow = FC<NewCommentWindowProps> { props ->
     "GENERIC_VARIABLE_WRONG_DECLARATION",
     "MAGIC_NUMBER",
 )
-val commentWindow = FC<CommentWindowProps> { props ->
+val commentWindow: FC<CommentWindowProps> = FC { props ->
 
     val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
     val (avatar, setAvatar) = useState(props.comment.userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
