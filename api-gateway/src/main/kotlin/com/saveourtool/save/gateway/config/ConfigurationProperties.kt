@@ -9,7 +9,6 @@ import java.net.InetAddress
  * @property backend properties for connection to save-backend
  * @property knownActuatorConsumers comma-separated list of IPs of clients that are allowed to access spring boot actuator
  */
-@ConstructorBinding
 @ConfigurationProperties(prefix = "gateway")
 data class ConfigurationProperties(
     val backend: Backend,
