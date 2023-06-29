@@ -71,6 +71,11 @@ external interface TableProps<D : Any> : Props {
      * Lambda to update number of pages
      */
     var getPageCount: (suspend (pageSize: Int) -> Int)?
+
+    /**
+     * [ClassName] that is applied to card-body section of a table (table itself)
+     */
+    var cardBodyClassName: String
 }
 
 /**
@@ -217,7 +222,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             }
         }
         div {
-            className = ClassName("card-body")
+            className = ClassName("card-body ${props.cardBodyClassName}")
             div {
                 className = ClassName("table-responsive")
                 table {

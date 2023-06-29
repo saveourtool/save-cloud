@@ -26,14 +26,19 @@ external interface FontAwesomeIconModule {
  *
  * @param icon
  * @param classes
+ * @param size size of an icon
  * @param handler
+ *
+ * @see <a href=https://fontawesome.com/docs/web/use-with/react/style#size>size docs</a>
  */
 fun ChildrenBuilder.fontAwesomeIcon(
     icon: FontAwesomeIconModule,
     classes: String = "",
+    size: String? = null,
     handler: ChildrenBuilder.(props: FontAwesomeIconProps) -> Unit = {},
 ): Unit = FontAwesomeIcon::class.react {
     this.icon = icon.definition
     this.className = classes
+    this.size = size
     this.handler(this)
 }
