@@ -190,7 +190,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                             hr { }
                             h6 {
                                 className = ClassName("font-weight-bold text-primary mb-4")
-                                +"Identifier"
+                                +"Original Identifier"
                             }
                             div {
                                 +"${vulnerability.vulnerabilityIdentifier}"
