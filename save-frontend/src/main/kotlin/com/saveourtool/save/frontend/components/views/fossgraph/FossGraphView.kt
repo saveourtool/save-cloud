@@ -23,6 +23,7 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
@@ -37,6 +38,7 @@ import kotlinx.serialization.json.Json
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "TYPE_ALIAS",
+    "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useBackground(Style.WHITE)
@@ -113,7 +115,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     }
 
     div {
-        className = ClassName("card card-body mt-0")
+        className = ClassName("")
 
         val isSuperAdmin = props.currentUserInfo?.globalRole?.isHigherOrEqualThan(Role.SUPER_ADMIN) == true
         val isOwner = user?.id == vulnerability.userId
@@ -159,74 +161,47 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     this.vulnerability = vulnerability
                 }
                 div {
-                    className = ClassName("card shadow mb-4")
+                    className = ClassName("card shadow mt-3 mb-4")
 
                     div {
                         className = ClassName("card-body")
+                        div {
+                            className = ClassName("font-weight-bold text-primary text-uppercase mb-4")
+                            +vulnerability.name
+                        }
                         textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
                             value = vulnerability.shortDescription
                             rows = 2
                             disabled = true
                         }
-                    }
-
-                    div {
-                        className = ClassName("card-header py-3")
-                        div {
-                            className = ClassName("row")
-                            h6 {
-                                className = ClassName("m-0 font-weight-bold text-primary")
-                                style = jso {
-                                    display = Display.flex
-                                    alignItems = AlignItems.center
-                                }
-                                +"Description"
-                            }
+                        hr { }
+                        h6 {
+                            className = ClassName("font-weight-bold text-primary mb-4")
+                            +"Description"
                         }
-                    }
-                    div {
-                        className = ClassName("card-body")
                         textarea {
                             className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
                             value = "${vulnerability.description}"
                             rows = 8
                             disabled = true
                         }
-                    }
-
-                    if (!vulnerability.vulnerabilityIdentifier.isNullOrEmpty()) {
-                        div {
-                            className = ClassName("card-header py-3")
-                            div {
-                                className = ClassName("row")
-                                h6 {
-                                    className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
-                                    +"Identifier"
-                                }
+                        if (!vulnerability.vulnerabilityIdentifier.isNullOrEmpty()) {
+                            hr { }
+                            h6 {
+                                className = ClassName("font-weight-bold text-primary mb-4")
+                                +"Original Identifier"
                             }
-                        }
-                        div {
-                            className = ClassName("card-body")
                             div {
                                 +"${vulnerability.vulnerabilityIdentifier}"
                             }
                         }
-                    }
-
-                    if (!vulnerability.relatedLink.isNullOrEmpty()) {
-                        div {
-                            className = ClassName("card-header py-3")
-                            div {
-                                className = ClassName("row")
-                                h6 {
-                                    className = ClassName("m-0 font-weight-bold text-primary d-flex align-items-center")
-                                    +"Related link"
-                                }
+                        if (!vulnerability.relatedLink.isNullOrEmpty()) {
+                            hr { }
+                            h6 {
+                                className = ClassName("font-weight-bold text-primary mb-4")
+                                +"Related link"
                             }
-                        }
-                        div {
-                            className = ClassName("card-body")
                             Link {
                                 to = "${vulnerability.relatedLink}"
                                 +"${vulnerability.relatedLink}"
@@ -246,8 +221,13 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     }
 
                     when (selectedMenu) {
-                        VulnerabilityTab.INFO -> vulnerabilityInfoTab { this.vulnerability = vulnerability }
-                        VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab { this.vulnerability = vulnerability }
+                        VulnerabilityTab.INFO -> vulnerabilityInfoTab {
+                            this.vulnerability = vulnerability
+                        }
+                        VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab {
+                            this.vulnerability = vulnerability
+                            this.currentUserInfo = user
+                        }
                     }
                 }
             }

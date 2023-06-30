@@ -20,4 +20,11 @@ external interface FontAwesomeIconProps : PropsWithChildren {
      * Color of the element
      */
     var color: String
+
+    /**
+     * Icon size, can be t-shirt size (2xs to 2lx) and x-factor size (1x to 10x)
+     *
+     * @see <a href=https://fontawesome.com/docs/web/use-with/react/style#size>size docs</a>
+     */
+    var size: String?
 }
