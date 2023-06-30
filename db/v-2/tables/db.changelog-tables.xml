@@ -42,6 +42,7 @@
     <include file="comments.xml" relativeToChangelogFile="true"/>
     <include file="contest-sample.xml" relativeToChangelogFile="true"/>
     <include file="contest-sample-field.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-date.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
