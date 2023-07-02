@@ -4,7 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
+import react.FC
+import react.Props
 
 import react.VFC
 import react.dom.html.ReactHTML.div
@@ -12,9 +16,16 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import web.cssom.*
 
-val indexView: VFC = VFC {
-    useBackground(Style.BLUE)
+external interface IndexViewProps : Props {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+}
 
+
+val indexView: FC<IndexViewProps> = FC {props ->
+    useBackground(Style.BLUE)
     main {
         className = ClassName("main-content")
         div {
@@ -22,7 +33,7 @@ val indexView: VFC = VFC {
             div {
                 className = ClassName("grid mt-5")
                 logoButtons { }
-                indexAuth { }
+                indexAuth { props.userInfo }
             }
         }
     }
