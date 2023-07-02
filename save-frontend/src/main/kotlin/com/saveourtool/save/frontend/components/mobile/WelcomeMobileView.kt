@@ -7,16 +7,19 @@ import com.saveourtool.save.frontend.components.views.welcome.chevron
 import com.saveourtool.save.frontend.components.views.welcome.pagers.allWelcomePagers
 import com.saveourtool.save.frontend.components.views.welcome.pagers.renderReadMorePage
 import com.saveourtool.save.frontend.components.views.welcome.welcomeMarketingTitle
+import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.externals.animations.animator
 import com.saveourtool.save.frontend.externals.animations.scrollContainer
 import com.saveourtool.save.frontend.externals.animations.scrollPage
 
 import js.core.jso
+import kotlinx.browser.window
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
+import react.react
 import web.cssom.*
 
 /**
@@ -29,6 +32,13 @@ class WelcomeMobileView : AbstractView<WelcomeProps, IndexViewState>(false) {
                 background =
                         "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
             }
+            // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
+            // https://github.com/matteobruni/tsparticles/discussions/4489
+            Particles::class.react {
+                id = "tsparticles"
+                url = "${window.location.origin}/particles.json"
+            }
+
             sorryYourScreenIsTooSmall()
         }
     }

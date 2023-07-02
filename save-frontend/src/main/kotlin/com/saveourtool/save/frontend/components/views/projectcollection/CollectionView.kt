@@ -13,10 +13,12 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.components.views.contests.tab
+import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
+import kotlinx.browser.window
 
 import react.*
 import react.dom.html.ReactHTML.div
@@ -144,6 +146,8 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
+        particles()
+
         div {
             className = ClassName("row justify-content-center")
             div {

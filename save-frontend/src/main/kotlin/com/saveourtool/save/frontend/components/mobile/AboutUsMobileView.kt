@@ -7,9 +7,12 @@ package com.saveourtool.save.frontend.components.mobile
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.views.AboutUsView
 import com.saveourtool.save.frontend.components.views.Developer
+import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.particles
 import js.core.jso
+import kotlinx.browser.window
 
 import react.*
 import react.dom.html.ReactHTML.a
@@ -26,6 +29,7 @@ import web.cssom.rem
 @OptIn(ExperimentalJsExport::class)
 class AboutUsMobileView : AboutUsView() {
     override fun ChildrenBuilder.render() {
+        particles()
         renderViewHeader()
         renderSaveourtoolInfo()
         renderDevelopers(NUMBER_OF_COLUMNS)
@@ -73,10 +77,16 @@ class AboutUsMobileView : AboutUsView() {
                     img {
                         src = "$GITHUB_AVATAR_LINK${developer.githubNickname}?size=$DEFAULT_AVATAR_SIZE"
                         className = ClassName("img-fluid border border-dark rounded-circle m-0")
+                        style = jso {
+                            width = 10.rem
+                        }
                     }
                 }
                 div {
                     className = ClassName("mt-2")
+                    style = jso {
+                        fontSize = 2.rem
+                    }
                     h6 {
                         className = ClassName("d-flex justify-content-center text-center")
                         +developer.name

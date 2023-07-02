@@ -39,6 +39,8 @@ import kotlinx.serialization.json.Json
     "TYPE_ALIAS",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
+
+    particles()
     useBackground(Style.WHITE)
     useTooltip()
 

@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.particles
 
 import js.core.jso
 import react.*
@@ -63,6 +64,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     protected val infoCard = cardComponent(hasBg = true, isPaddingBottomNull = true, isNoPadding = false)
 
     override fun ChildrenBuilder.render() {
+        particles()
         renderViewHeader()
         renderSaveourtoolInfo()
         renderDevelopers(NUMBER_OF_COLUMNS)
@@ -124,7 +126,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     protected fun ChildrenBuilder.renderDevelopers(columns: Int) {
         div {
             h4 {
-                className = ClassName("text-center mb-1 mt-4")
+                className = ClassName("text-center mb-1 mt-4 text-white")
                 +"Active contributors"
             }
             div {
@@ -162,6 +164,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                     img {
                         src = "$GITHUB_AVATAR_LINK${developer.githubNickname}?size=$DEFAULT_AVATAR_SIZE"
                         className = ClassName("img-fluid border border-dark rounded-circle m-0")
+                        style = jso {
+                            width = 10.rem
+                        }
                     }
                 }
                 div {
@@ -179,6 +184,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                         +developer.description
                     }
                     a {
+                        style = jso {
+                            fontSize = 2.rem
+                        }
                         className = ClassName("d-flex justify-content-center")
                         href = "$GITHUB_LINK${developer.githubNickname}"
                         fontAwesomeIcon(faGithub)

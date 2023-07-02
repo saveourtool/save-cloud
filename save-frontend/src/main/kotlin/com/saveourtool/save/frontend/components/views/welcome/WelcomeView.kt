@@ -38,16 +38,6 @@ import kotlinx.coroutines.launch
  */
 external interface IndexViewState : State {
     /**
-     * State that checks the validity of login
-     */
-    var isValidLogin: Boolean?
-
-    /**
-     * State that checks the validity of password
-     */
-    var isValidPassword: Boolean?
-
-    /**
      * List of OAuth providers, that can be accepted by backend
      */
     var oauthProviders: List<OauthProviderInfo>?
@@ -58,7 +48,7 @@ external interface IndexViewState : State {
  */
 external interface WelcomeProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }
@@ -69,11 +59,6 @@ external interface WelcomeProps : PropsWithChildren {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
-    init {
-        state.isValidLogin = true
-        state.isValidPassword = true
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
@@ -115,12 +100,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div {
-                    // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
-                    // https://github.com/matteobruni/tsparticles/discussions/4489
-                    Particles::class.react {
-                        id = "tsparticles"
-                        url = "${window.location.origin}/particles.json"
-                    }
+                    particles()
 
                     className = ClassName("row justify-content-center")
                     // Marketing information
