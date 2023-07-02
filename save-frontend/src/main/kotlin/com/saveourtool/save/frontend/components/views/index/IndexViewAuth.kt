@@ -28,19 +28,18 @@ val indexAuth: VFC = VFC {
         val oauthProviderInfoList: List<OauthProviderInfo>? = get(
             "${window.location.origin}/sec/oauth-providers",
             Headers(),
-            loadingHandler =  ::loadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         ).run {
             if (ok) decodeFromJsonString() else null
         }
 
         oauthProviderInfoList?.let {
-            setOauthProviders (oauthProviders)
+            setOauthProviders(oauthProviders)
         }
     }
 
-        getOauthProviders()
-
+    getOauthProviders()
 
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
