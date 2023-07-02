@@ -33,7 +33,7 @@ external interface CardProps : PropsWithChildren {
  * @param isBordered adds a border to the card
  * @param hasBg adds a white background
  * @param isPaddingBottomNull disables bottom padding (pb-0)
- * @param isNoPadding is true - removes all remaining padding (pt-0 pr-0 pl-0)
+ * @param isNoPadding if true - removes all remaining padding (pt-0 pr-0 pl-0)
  * @param isFilling
  * @return a functional component representing a card
  */
@@ -58,7 +58,7 @@ fun cardComponent(
             }
         }
         div {
-            className = ClassName("col mr-2 pr-0 pl-0")
+            className = ClassName("col pr-0 pl-0")
             div {
                 className = ClassName("mb-0 text-gray-800")
                 props.children?.let { +it }

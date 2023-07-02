@@ -9586,7 +9586,8 @@
         "required": [
           "message",
           "section",
-          "userName"
+          "userName",
+          "userRating"
         ],
         "type": "object",
         "properties": {
@@ -9604,6 +9605,10 @@
           },
           "userName": {
             "type": "string"
+          },
+          "userRating": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
