@@ -9,10 +9,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
@@ -41,15 +38,14 @@ class UsersDetailsController(
      */
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
-    fun findByName(@PathVariable userName: String): Mono<UserInfo> =
-            userRepository.findByName(userName)
-                ?.toMonoOrNotFound()?.map { it.toUserInfo() }
-                ?: run {
-                    originalLoginRepository.findByName(userName)
-                        .toMonoOrNotFound()
-                        .map { it.user }
-                        .map { it.toUserInfo() }
-                }
+    fun findByName(@PathVariable userName: String): Mono<UserInfo> = userRepository.findByName(userName)
+        ?.toMonoOrNotFound()?.map { it.toUserInfo() }
+        ?: run {
+            blockingToMono { originalLoginRepository.findByName(userName) }
+                .orNotFound()
+                .map { it.user }
+                .map { it.toUserInfo() }
+        }
 
     /**
      * @return list of [UserInfo] info about user's
