@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.externals.fontawesome.faPaperPlane
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
@@ -19,6 +20,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.useState
 import web.cssom.*
@@ -37,7 +39,6 @@ import kotlinx.serialization.json.Json
 )
 val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
     val (comment, setComment) = useState(CommentDto.empty)
-    val (user, setUser) = useStateFromProps(props.currentUserInfo ?: UserInfo("Unknown"))
 
     val enrollRequest = useDeferredRequest {
         val commentNew = comment.copy(section = window.location.hash)
@@ -50,71 +51,78 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
         )
         if (response.ok) {
             props.addComment()
+            setComment(CommentDto.empty)
         }
     }
 
     div {
-        className = ClassName("row no-gutters mx-auto border-secondary")
-        renderLeftColumn(
-            user.avatar,
-            user.name,
-            user.rating,
-        )
+        className = ClassName("shadow col mx-auto border border-secondary card card-body p-0")
         div {
-            className = ClassName("card col-10 input-group needs-validation")
-            textarea {
-                className = ClassName("form-control")
-                style = jso {
-                    width = "100%".unsafeCast<Width>()
-                    height = "100%".unsafeCast<Height>()
+            className = ClassName("row no-gutters mx-auto input-group px-0 shadow-none")
+            renderLeftColumn(
+                props.currentUserInfo.avatar,
+                props.currentUserInfo.name,
+                props.currentUserInfo.rating,
+                "#e1e9ed"
+            )
+            div {
+                className = ClassName("col")
+                textarea {
+                    className = ClassName("form-control p-3 border-0")
+                    style = jso {
+                        width = "100%".unsafeCast<Width>()
+                        height = "100%".unsafeCast<Height>()
+                    }
+                    onChange = { event -> setComment { it.copy(message = event.target.value) } }
+                    value = comment.message
+                    ariaDescribedBy = "${InputTypes.COMMENT.name}Span"
+                    rows = 5
+                    id = InputTypes.COMMENT.name
+                    required = true
+                    placeholder = "Write a comment"
                 }
-                onChange = { event ->
-                    setComment { it.copy(message = event.target.value) }
-                }
-                ariaDescribedBy = "${InputTypes.COMMENT.name}Span"
-                rows = 5
-                id = InputTypes.COMMENT.name
-                required = true
             }
         }
-    }
-    div {
-        className = ClassName("d-flex justify-content-end")
-        buttonBuilder(label = "Comment") {
-            enrollRequest()
+        div {
+            className = ClassName("d-flex justify-content-end p-2")
+            style = jso { background = "#e1e9ed".unsafeCast<Background>() }
+            buttonBuilder(
+                faPaperPlane,
+                isDisabled = comment.message.isBlank(),
+                classes = "rounded-circle btn-sm",
+                isOutline = true,
+            ) {
+                enrollRequest()
+            }
         }
     }
 }
 
 /**
- * @return a function component
+ * [FC] for comment displaying
  */
-@Suppress(
-    "GENERIC_VARIABLE_WRONG_DECLARATION",
-    "MAGIC_NUMBER",
-)
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "MAGIC_NUMBER")
 val commentWindow: FC<CommentWindowProps> = FC { props ->
-
-    val columnCard = cardComponent(isBordered = false, hasBg = true, isNoPadding = false, isPaddingBottomNull = true, isFilling = true)
-
     div {
-        className = ClassName("row no-gutters mx-auto border-secondary")
+        className = ClassName("shadow input-group row no-gutters mx-auto border-secondary")
         renderLeftColumn(
             props.comment.userAvatar,
             props.comment.userName,
             props.comment.userRating,
         )
         div {
-            className = ClassName("card col-10 text-left border-secondary")
+            className = ClassName("shadow-none card col-10 text-left border-0")
             val comment = props.comment
             div {
-                className = ClassName("col")
-                style = jso {
-                    background = "#F1F1F1".unsafeCast<Background>()
+                className = ClassName("flex-wrap")
+                style = jso { background = "#f1f1f1".unsafeCast<Background>() }
+                span {
+                    className = ClassName("ml-1")
+                    +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
                 }
-                +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
             }
-            columnCard {
+            div {
+                className = ClassName("shadow-none card card-body border-0")
                 markdown(comment.message.split("\n").joinToString("\n\n"))
             }
         }
@@ -143,40 +151,36 @@ external interface NewCommentWindowProps : PropsWithChildren {
     /**
      * Information about current user
      */
-    var currentUserInfo: UserInfo?
+    var currentUserInfo: UserInfo
 }
 
-@Suppress(
-    "MAGIC_NUMBER",
-)
+@Suppress("MAGIC_NUMBER")
 private fun ChildrenBuilder.renderLeftColumn(
     userAvatar: String?,
     name: String,
     rating: Long,
+    color: String = "#f1f1f1",
 ) {
     val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
 
     div {
-        className = ClassName("card card-body col-2 border-secondary")
+        className = ClassName("input-group-prepend col-2")
         style = jso {
-            background = "#e1e9ed".unsafeCast<Background>()
+            background = color.unsafeCast<Background>()
         }
         div {
             className = ClassName("mb-0 font-weight-bold text-gray-800")
             form {
                 div {
-                    className = ClassName("row justify-content-center g-3 ml-3 mr-3 pb-2 pt-2 border-bottom")
+                    className = ClassName("row justify-content-center g-3 ml-3 mr-3 pb-2 pt-2 border-bottom-0")
                     div {
                         className = ClassName("md-4 pl-0 pr-0")
                         img {
-                            className =
-                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                             src = avatar
                             height = 80.0
                             width = 80.0
-                            onError = {
-                                setAvatar(AVATAR_PLACEHOLDER)
-                            }
+                            onError = { setAvatar(AVATAR_PLACEHOLDER) }
                         }
                     }
                     div {
