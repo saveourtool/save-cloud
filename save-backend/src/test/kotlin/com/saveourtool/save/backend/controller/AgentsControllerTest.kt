@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
-import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.entities.AgentStatus
@@ -36,7 +35,6 @@ import javax.persistence.EntityManager
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
-    MockBean(LnkVulnerabilityUserRepository::class),
     MockBean(ProjectPermissionEvaluator::class),
 )
 class AgentsControllerTest {
