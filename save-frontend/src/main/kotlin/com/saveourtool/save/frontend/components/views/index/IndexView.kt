@@ -6,14 +6,16 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import js.core.jso
 import react.FC
 import react.Props
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.span
 import web.cssom.*
 
-val indexView: FC<IndexViewProps> = FC {props ->
+val indexView: FC<IndexViewProps> = FC { props ->
     useBackground(Style.BLUE)
     main {
         className = ClassName("main-content")
@@ -22,7 +24,10 @@ val indexView: FC<IndexViewProps> = FC {props ->
             div {
                 className = ClassName("grid mt-5")
                 logoButtons { }
-                indexAuth { props.userInfo }
+                props.userInfo ?: run {
+                    separator { }
+                    indexAuth { props.userInfo }
+                }
             }
         }
     }

@@ -137,10 +137,16 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}")
                         }
                     }
-                }
-                dropdownEntry(faSignOutAlt, "Log out") { attrs ->
-                    attrs.onClick = {
-                        isLogoutModalOpen = true
+                    dropdownEntry(faSignOutAlt, "Log out") { attrs ->
+                        attrs.onClick = {
+                            isLogoutModalOpen = true
+                        }
+                    }
+                } ?: run {
+                    dropdownEntry(faSignInAlt, "Log in") { attrs ->
+                        attrs.onClick = {
+                            navigate(to = "/")
+                        }
                     }
                 }
             }

@@ -1,3 +1,28 @@
+// solution from https://stackoverflow.com/questions/2812770/add-centered-text-to-the-middle-of-a-horizontal-rule
+// ======= separator ========
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 0.07rem solid #FFFFFF;
+}
+
+.separator:not(:empty)::before {
+  margin-right: .4em;
+}
+
+.separator:not(:empty)::after {
+  margin-left: .4em;
+}
+
+// ======= buttons ========
+
 .input-group {
      z-index: 0
 }

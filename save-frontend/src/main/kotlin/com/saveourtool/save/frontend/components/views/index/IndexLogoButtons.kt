@@ -16,7 +16,7 @@ import web.cssom.rem
 
 val logoButtons = VFC {
     div {
-        className = ClassName("row logo-parent")
+        className = ClassName("row logo-parent mb-5")
         div {
             className = ClassName("col-3 text-center")
         }

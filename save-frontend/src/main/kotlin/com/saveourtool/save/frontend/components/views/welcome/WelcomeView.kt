@@ -176,7 +176,9 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         state.oauthProviders?.map {
                             oauthLogin(
                                 3.4.rem,
-                                it, when (it.registrationId) {
+                                it,
+                                "",
+                                when (it.registrationId) {
                                     "github" -> faGithub
                                     "codehub" -> faCopyright
                                     else -> faSignInAlt
