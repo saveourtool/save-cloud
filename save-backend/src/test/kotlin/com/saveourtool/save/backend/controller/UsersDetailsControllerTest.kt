@@ -2,6 +2,9 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
+import com.saveourtool.save.backend.controllers.ProjectController
+import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.info.UserInfo
@@ -11,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -18,7 +23,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(InfraExtension::class)
-
+@MockBeans(MockBean(LnkVulnerabilityUserRepository::class))
 class UsersDetailsControllerTest {
     @Autowired
     private lateinit var webClient: WebTestClient

@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.LnkExecutionAgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.InfraExtension
@@ -46,6 +47,7 @@ import java.time.Instant
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
+    MockBean(LnkVulnerabilityUserRepository::class),
 )
 class TestExecutionControllerTest {
     @Autowired
