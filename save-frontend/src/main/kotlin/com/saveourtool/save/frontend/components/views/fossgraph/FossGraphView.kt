@@ -52,7 +52,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val navigate = useNavigate()
 
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
-    val (user, setUser) = useState(props.currentUserInfo)
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityTab.INFO)
 
     val enrollUpdateRequest = useDeferredRequest {
@@ -90,15 +89,6 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             }
 
         setVulnerability(vulnerabilityNew)
-
-        val userInfo: UserInfo = get(
-            url = "$apiUrl/users/${props.currentUserInfo?.name}",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-            .decodeFromJsonString()
-
-        setUser(userInfo)
     }
 
     displayModal(
@@ -121,7 +111,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         className = ClassName("")
 
         val isSuperAdmin = props.currentUserInfo?.globalRole?.isHigherOrEqualThan(Role.SUPER_ADMIN) == true
-        val isOwner = user?.id == vulnerability.userId
+        val isOwner = props.currentUserInfo?.id == vulnerability.userId
 
         div {
             className = ClassName("d-flex align-items-center justify-content-center mb-4")
@@ -251,7 +241,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         }
                         VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab {
                             this.vulnerability = vulnerability
-                            this.currentUserInfo = user
+                            this.currentUserInfo = props.currentUserInfo
                         }
                     }
                 }
