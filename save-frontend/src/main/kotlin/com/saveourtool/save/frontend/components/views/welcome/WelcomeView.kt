@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.welcome
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.index.oauthLogin
 import com.saveourtool.save.frontend.components.views.welcome.pagers.*
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -170,14 +171,18 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 div {
                     className = ClassName("row")
-                    state.oauthProviders?.map {
-                        oauthLogin(
-                            it, when (it.registrationId) {
-                                "github" -> faGithub
-                                "codehub" -> faCopyright
-                                else -> faSignInAlt
-                            }
-                        )
+                    div {
+                        className = ClassName("col text-center ")
+                        state.oauthProviders?.map {
+                            oauthLogin(
+                                3.4.rem,
+                                it, when (it.registrationId) {
+                                    "github" -> faGithub
+                                    "codehub" -> faCopyright
+                                    else -> faSignInAlt
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -254,20 +259,6 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
-            }
-        }
-    }
-
-    private fun ChildrenBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
-        div {
-            className = ClassName("col text-center px-1")
-            a {
-                href = provider.authorizationLink
-                className = ClassName("btn btn-link px-3 text-white text-lg text-center")
-                style = jso {
-                    fontSize = "3.2rem".unsafeCast<FontSize>()
-                }
-                fontAwesomeIcon(icon = icon)
             }
         }
     }

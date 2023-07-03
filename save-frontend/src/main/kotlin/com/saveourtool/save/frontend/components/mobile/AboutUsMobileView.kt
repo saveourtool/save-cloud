@@ -7,12 +7,10 @@ package com.saveourtool.save.frontend.components.mobile
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.views.AboutUsView
 import com.saveourtool.save.frontend.components.views.Developer
-import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.particles
 import js.core.jso
-import kotlinx.browser.window
 
 import react.*
 import react.dom.html.ReactHTML.a

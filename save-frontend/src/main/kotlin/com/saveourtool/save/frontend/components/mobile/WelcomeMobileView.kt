@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.externals.animations.scrollContainer
 import com.saveourtool.save.frontend.externals.animations.scrollPage
 
 import js.core.jso
-import kotlinx.browser.window
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
@@ -21,6 +20,8 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.react
 import web.cssom.*
+
+import kotlinx.browser.window
 
 /**
  * As a temp stub it was decided to make several views to make SAVE looking nice on mobile devices

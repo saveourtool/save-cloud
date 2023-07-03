@@ -1,3 +1,7 @@
+/**
+ * Beautiful logos with effects for SAVE and VULN services
+ */
+
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.validation.FrontendRoutes

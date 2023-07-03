@@ -1,10 +1,16 @@
+/**
+ * Particles - effect with flying objects on the background
+ */
+
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.externals.animations.Particles
 import react.ChildrenBuilder
-import react.VFC
 import react.react
 
+/**
+ * @param enabled true if particles enabled
+ */
 fun ChildrenBuilder.particles(enabled: Boolean = true) {
     if (enabled) {
         // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
