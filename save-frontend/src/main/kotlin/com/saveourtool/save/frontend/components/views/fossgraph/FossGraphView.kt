@@ -16,7 +16,6 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
