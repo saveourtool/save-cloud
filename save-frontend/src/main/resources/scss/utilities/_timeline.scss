@@ -1,0 +1,112 @@
+$color-timeline-default: #D2D3D8;
+$color-step-completed: #5C6174;
+$color-in-progress: #13CB8F;
+$color-label-default: $color-timeline-default;
+$color-label-completed: $color-step-completed;
+$color-label-loading: $color-in-progress;
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 200ms ease;
+  box-shadow: none;
+  flex-grow: 1;
+  border-radius: 5px;
+  .steps-container {
+    padding-top: 28px;
+    padding-bottom: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .step {
+      z-index: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 200ms ease;
+      flex-grow: 0;
+      height: 1.2rem;
+      width: 1.2rem;
+      border: 4px solid $color-timeline-default;
+      border-radius: 50%;
+      .preloader, svg {
+        display: none;
+      }
+      &.completed {
+        background: $color-step-completed;
+        border: none;
+      }
+      &.in-progress {
+        background: $color-in-progress;
+        border: none;
+        .preloader {
+          display: block;
+          border: 2px solid #fff;
+          border-radius: 50%;
+          border-left-color: transparent;
+          animation-name: spin;
+          animation-duration: 2000ms;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+        }
+      }
+      .text-label {
+        position: absolute;
+        filter: none;
+        bottom: 20px;
+        z-index: 3;
+        color: $color-label-default;
+        transition: all 200ms ease;
+        font-weight: 700;
+        width: 6rem;
+        text-align: center;
+        &.completed {
+          color: $color-label-completed;
+        }
+        &.loading {
+          color: $color-label-loading;
+        }
+      }
+      .date-label {
+        position: absolute;
+        top: 20px;
+        filter: none;
+        z-index: 3;
+        width: 6rem;
+        text-align: center;
+        color: $color-label-default;
+        transition: all 200ms ease;
+        font-weight: 5;
+        &.completed {
+          color: $color-label-completed;
+        }
+        &.loading {
+          color: $color-label-loading;
+        }
+      }
+    }
+    .line {
+      transition: all 200ms ease;
+      height: 2px;
+      flex-grow: 1;
+      max-width: 100%;
+      background: $color-timeline-default;
+      &.completed {
+        background: $color-step-completed;
+      }
+    }
+    .line-end {
+      color: $color-step-completed;
+      border-top: 0.3rem solid transparent;
+      border-bottom: 0.3rem solid transparent;
+      border-left: 0.6rem solid;
+      width: 0;
+      height: 0;
+      max-width: 0;
+      max-height: 0;
+    }
+  }
+}
