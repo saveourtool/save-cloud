@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Jdk
@@ -26,6 +27,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
@@ -39,7 +41,7 @@ import java.util.concurrent.TimeUnit
 @EnableConfigurationProperties(ConfigProperties::class)
 @AutoConfigureWebTestClient
 @ExtendWith(InfraExtension::class)
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "UnusedPrivateProperty")
 class RunExecutionControllerTest(
     @Autowired private var webClient: WebTestClient,
 ) {
@@ -49,6 +51,7 @@ class RunExecutionControllerTest(
     @Autowired private lateinit var testExecutionRepository: TestExecutionRepository
     @Autowired private lateinit var lnkExecutionFileRepository: LnkExecutionFileRepository
     @Autowired private lateinit var lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository
+    @MockBean private lateinit var lnkVulnerabilityUserRepository: LnkVulnerabilityUserRepository
 
     @Suppress(
         "TOO_LONG_FUNCTION",
