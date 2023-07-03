@@ -175,9 +175,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         className = ClassName("col text-center ")
                         state.oauthProviders?.map {
                             oauthLogin(
-                                3.4.rem,
-                                it,
-                                "",
+                                3.4.rem, it, "",
                                 when (it.registrationId) {
                                     "github" -> faGithub
                                     "codehub" -> faCopyright

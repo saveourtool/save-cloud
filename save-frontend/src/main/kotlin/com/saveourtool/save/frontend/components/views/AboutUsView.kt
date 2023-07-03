@@ -164,6 +164,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                     img {
                         src = "$GITHUB_AVATAR_LINK${developer.githubNickname}?size=$DEFAULT_AVATAR_SIZE"
                         className = ClassName("img-fluid border border-dark rounded-circle m-0")
+                        @Suppress("MAGIC_NUMBER")
                         style = jso {
                             width = 10.rem
                         }

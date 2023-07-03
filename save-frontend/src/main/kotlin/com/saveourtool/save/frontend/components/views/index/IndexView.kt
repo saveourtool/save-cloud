@@ -2,19 +2,20 @@
  * Main view for Demos
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import js.core.jso
 import react.FC
 import react.Props
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
-import react.dom.html.ReactHTML.span
 import web.cssom.*
 
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<IndexViewProps> = FC { props ->
     useBackground(Style.BLUE)
     main {
@@ -40,6 +41,9 @@ val indexView: FC<IndexViewProps> = FC { props ->
     }
 }
 
+/**
+ * properties for index view (user info )
+ */
 external interface IndexViewProps : Props {
     /**
      * Currently logged in user or null
