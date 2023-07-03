@@ -9411,6 +9411,53 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/save-date": {
+      "post": {
+        "description": "Save new date.",
+        "operationId": "saveDate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved new date in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save new date.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/save-projects": {
       "post": {
         "description": "Save new projects.",
@@ -11364,8 +11411,36 @@
           }
         }
       },
+      "VulnerabilityDateDto": {
+        "required": [
+          "date",
+          "type",
+          "vulnerabilityName"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CVE created",
+              "CVE updated",
+              "Discovered",
+              "Fixed",
+              "Introduced",
+              "Released"
+            ]
+          },
+          "vulnerabilityName": {
+            "type": "string"
+          }
+        }
+      },
       "VulnerabilityDto": {
         "required": [
+          "dates",
           "isActive",
           "language",
           "name",
@@ -11376,6 +11451,12 @@
         ],
         "type": "object",
         "properties": {
+          "dates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VulnerabilityDateDto"
+            }
+          },
           "description": {
             "type": "string"
           },
@@ -11395,6 +11476,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
           },
           "progress": {
             "type": "integer",
