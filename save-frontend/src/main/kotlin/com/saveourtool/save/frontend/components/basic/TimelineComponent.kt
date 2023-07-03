@@ -22,10 +22,9 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 div {
                     className = ClassName("line completed")
                 }
-                props.dates
-                    .map { (dateTime, label) -> dateTime.date to label }
+                props.dates.toList()
                     .sortedBy { it.first }
-                    .forEach { (date, label) ->
+                    .forEach { (dateTime, label) ->
                         div {
                             className = ClassName("step completed")
                             div {
@@ -34,7 +33,7 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                             }
                             div {
                                 className = ClassName("date-label completed")
-                                +date.toString()
+                                +dateTime.date.toString()
                             }
                         }
                         div {
