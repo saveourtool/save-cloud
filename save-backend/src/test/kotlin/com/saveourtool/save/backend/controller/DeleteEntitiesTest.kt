@@ -42,6 +42,7 @@ import java.util.Optional
 @ExtendWith(InfraExtension::class)
 @MockBeans(
 )
+@Suppress("UnusedPrivateProperty")
 class DeleteEntitiesTest {
     @Autowired
     lateinit var webClient: WebTestClient
