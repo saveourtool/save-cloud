@@ -200,7 +200,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 +"${vulnerability.relatedLink}"
                             }
                         }
-                        if (vulnerability.organization.isNotNull()) {
+                        vulnerability.organization?.run {
                             hr { }
                             h6 {
                                 className = ClassName("font-weight-bold text-primary mb-4")
