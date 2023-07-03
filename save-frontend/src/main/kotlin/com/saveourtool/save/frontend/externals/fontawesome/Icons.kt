@@ -227,3 +227,7 @@ external val faGlobe: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faLink")
 @JsNonModule
 external val faLink: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faPaperPlane")
+@JsNonModule
+external val faPaperPlane: FontAwesomeIconModule
