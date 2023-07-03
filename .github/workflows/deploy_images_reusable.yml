@@ -79,6 +79,8 @@ jobs:
           echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
       - name: Build image for ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
+        env:
+          DOWNLOAD_SAVE_CLI_DEPENDENCY: true
         with:
           gradle-version: wrapper
           arguments: |
