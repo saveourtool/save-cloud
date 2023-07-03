@@ -209,7 +209,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = vulnerability.organization?.avatar?.let {
+                                    src = avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     style = jso {
