@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.postJsonAndAssert
@@ -41,6 +42,7 @@ import java.util.Optional
 @ExtendWith(InfraExtension::class)
 @MockBeans(
 )
+@Suppress("UnusedPrivateProperty")
 class DeleteEntitiesTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -50,6 +52,7 @@ class DeleteEntitiesTest {
     @MockBean private lateinit var executionRepository: ExecutionRepository
     @MockBean private lateinit var projectRepository: ProjectRepository
     @MockBean private lateinit var organizationRepository: OrganizationRepository
+    @MockBean private lateinit var lnkVulnerabilityUserRepository: LnkVulnerabilityUserRepository
     @MockBean private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
 
     @BeforeEach
