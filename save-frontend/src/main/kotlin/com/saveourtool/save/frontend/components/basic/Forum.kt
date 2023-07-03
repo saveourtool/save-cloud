@@ -60,9 +60,9 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
         div {
             className = ClassName("row no-gutters mx-auto input-group px-0 shadow-none")
             renderLeftColumn(
-                props.currentUserInfo?.avatar,
-                props.currentUserInfo?.name,
-                props.currentUserInfo?.rating,
+                props.currentUserInfo.avatar,
+                props.currentUserInfo.name,
+                props.currentUserInfo.rating,
                 "#e1e9ed"
             )
             div {
@@ -151,14 +151,14 @@ external interface NewCommentWindowProps : PropsWithChildren {
     /**
      * Information about current user
      */
-    var currentUserInfo: UserInfo?
+    var currentUserInfo: UserInfo
 }
 
 @Suppress("MAGIC_NUMBER")
 private fun ChildrenBuilder.renderLeftColumn(
     userAvatar: String?,
-    name: String?,
-    rating: Long?,
+    name: String,
+    rating: Long,
     color: String = "#f1f1f1",
 ) {
     val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg")
@@ -195,7 +195,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                         }
                         div {
                             className = ClassName("col-12 text-center text-xs")
-                            +(rating ?: 0L).toString()
+                            +rating.toString()
                         }
                         h1 {
                             className = ClassName("col-12 text-center font-weight-bold h5")
