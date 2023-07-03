@@ -111,6 +111,9 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/*/best",
             "/demo/api/*/run",
             "/api/$v1/vulnerabilities/get-all-public",
+            // `fossGraphView` is public page
+            "/api/$v1/vulnerabilities/by-name-with-description",
+            "/api/$v1/comments/get-all",
         )
     }
 }
