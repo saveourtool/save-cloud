@@ -135,6 +135,7 @@ enum class InputTypes(
         placeholder = "CVE-2023-######, etc.",
         tooltip = "If you know the vulnerability identifier, you can enter it here",
     ),
+    CVE_DATE("CVE date"),
     ;
 }
 

@@ -44,7 +44,6 @@ import kotlinx.serialization.json.Json
     "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
-
     particles()
     useBackground(Style.WHITE)
     useTooltip()
@@ -80,7 +79,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         }
     }
 
-    useRequest {
+    val fetchVulnerability = useDeferredRequest {
         val vulnerabilityNew: VulnerabilityDto = get(
             url = "$apiUrl/vulnerabilities/by-name-with-description?name=${props.name}",
             headers = jsonHeaders,
@@ -108,6 +107,8 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             deleteVulnerabilityWindowOpenness.closeWindow()
         }
     }
+
+    useOnce(fetchVulnerability)
 
     div {
         className = ClassName("")
@@ -241,6 +242,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         VulnerabilityTab.INFO -> vulnerabilityInfoTab {
                             this.vulnerability = vulnerability
                             this.currentUserInfo = props.currentUserInfo
+                            this.fetchVulnerability = fetchVulnerability
                         }
                         VulnerabilityTab.COMMENTS -> vulnerabilityCommentTab {
                             this.vulnerability = vulnerability
