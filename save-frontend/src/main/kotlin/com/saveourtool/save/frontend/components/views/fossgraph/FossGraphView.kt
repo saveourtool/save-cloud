@@ -43,6 +43,8 @@ import kotlinx.serialization.json.Json
     "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
 val fossGraph: FC<FossGraphViewProps> = FC { props ->
+
+    particles()
     useBackground(Style.WHITE)
     useTooltip()
 

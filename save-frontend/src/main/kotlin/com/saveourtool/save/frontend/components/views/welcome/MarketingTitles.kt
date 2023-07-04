@@ -60,9 +60,9 @@ fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
 @Suppress("MAGIC_NUMBER")
 fun ChildrenBuilder.chevron(col: String) {
     div {
-        className = ClassName("row justify-content-center")
+        className = ClassName("mt-5 row justify-content-center")
         h1 {
-            className = ClassName("animate__animated animate__pulse animate__infinite")
+            className = ClassName("mt-5 animate__animated animate__pulse animate__infinite")
             style = jso {
                 fontSize = 5.rem
                 color = col.unsafeCast<Color>()

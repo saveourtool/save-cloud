@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.welcome
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.index.oauthLogin
 import com.saveourtool.save.frontend.components.views.welcome.pagers.*
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -38,16 +39,6 @@ import kotlinx.coroutines.launch
  */
 external interface IndexViewState : State {
     /**
-     * State that checks the validity of login
-     */
-    var isValidLogin: Boolean?
-
-    /**
-     * State that checks the validity of password
-     */
-    var isValidPassword: Boolean?
-
-    /**
      * List of OAuth providers, that can be accepted by backend
      */
     var oauthProviders: List<OauthProviderInfo>?
@@ -58,7 +49,7 @@ external interface IndexViewState : State {
  */
 external interface WelcomeProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }
@@ -69,11 +60,6 @@ external interface WelcomeProps : PropsWithChildren {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
-    init {
-        state.isValidLogin = true
-        state.isValidPassword = true
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
@@ -115,12 +101,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div {
-                    // FixMe: Note that they block user interactions. Particles are superimposed on top of the view in some transitions
-                    // https://github.com/matteobruni/tsparticles/discussions/4489
-                    Particles::class.react {
-                        id = "tsparticles"
-                        url = "${window.location.origin}/particles.json"
-                    }
+                    particles()
 
                     className = ClassName("row justify-content-center")
                     // Marketing information
@@ -190,14 +171,18 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 div {
                     className = ClassName("row")
-                    state.oauthProviders?.map {
-                        oauthLogin(
-                            it, when (it.registrationId) {
-                                "github" -> faGithub
-                                "codehub" -> faCopyright
-                                else -> faSignInAlt
-                            }
-                        )
+                    div {
+                        className = ClassName("col text-center ")
+                        state.oauthProviders?.map {
+                            oauthLogin(
+                                3.4.rem, it, "",
+                                when (it.registrationId) {
+                                    "github" -> faGithub
+                                    "codehub" -> faCopyright
+                                    else -> faSignInAlt
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -274,20 +259,6 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 hrNoMargin()
                 menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
-            }
-        }
-    }
-
-    private fun ChildrenBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
-        div {
-            className = ClassName("col text-center px-1")
-            a {
-                href = provider.authorizationLink
-                className = ClassName("btn btn-link px-3 text-white text-lg text-center")
-                style = jso {
-                    fontSize = "3.2rem".unsafeCast<FontSize>()
-                }
-                fontAwesomeIcon(icon = icon)
             }
         }
     }

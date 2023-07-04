@@ -124,6 +124,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun ChildrenBuilder.render() {
+        particles()
+
         main {
             className = ClassName("main-content mt-0 ps")
             div {

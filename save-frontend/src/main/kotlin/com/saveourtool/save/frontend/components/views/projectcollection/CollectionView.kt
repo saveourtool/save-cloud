@@ -144,6 +144,8 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
+        particles()
+
         div {
             className = ClassName("row justify-content-center")
             div {
