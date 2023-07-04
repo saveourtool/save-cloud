@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -57,10 +58,10 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
     vulnerabilityTable {
         getData = { _, _ ->
             get(
-                url = "$apiUrl/vulnerabilities/by-user-and-active",
+                url = "$apiUrl/vulnerabilities/by-user-and-status",
                 params = jso<dynamic> {
                     userName = props.userName
-                    isActive = true
+                    status = VulnerabilityStatus.APPROVED
                 },
                 headers = jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,

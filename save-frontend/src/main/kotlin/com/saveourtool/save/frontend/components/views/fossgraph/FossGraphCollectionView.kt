@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.fossGraphIntroductionComponent
@@ -84,9 +85,9 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                         name = vulnerabilityFilters.prefixName
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                VulnerabilityFilter("", vulnerabilityFilters.active)
+                                VulnerabilityFilter("", vulnerabilityFilters.status)
                             } else {
-                                VulnerabilityFilter(filterValue, vulnerabilityFilters.active)
+                                VulnerabilityFilter(filterValue, vulnerabilityFilters.status)
                             }
                             setVulnerabilityFilters { filter }
 
@@ -143,18 +144,18 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                                         when (VulnerabilityListTab.valueOf(value)) {
                                             VulnerabilityListTab.PUBLIC -> VulnerabilityFilter(
                                                 prefixName = "",
-                                                active = true
+                                                status = VulnerabilityStatus.APPROVED,
                                             )
 
                                             VulnerabilityListTab.ADMIN -> VulnerabilityFilter(
                                                 prefixName = "",
-                                                active = false
+                                                status = VulnerabilityStatus.CREATED,
                                             )
 
                                             VulnerabilityListTab.OWNER -> VulnerabilityFilter(
                                                 prefixName = "",
-                                                active = false,
-                                                isOwner = true
+                                                status = VulnerabilityStatus.CREATED,
+                                                isOwner = true,
                                             )
                                         }
                                     }

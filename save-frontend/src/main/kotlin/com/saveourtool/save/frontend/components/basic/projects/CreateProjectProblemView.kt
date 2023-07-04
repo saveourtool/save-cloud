@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ProjectProblemCritical
 import com.saveourtool.save.entities.ProjectProblemDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
@@ -52,10 +53,10 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name-and-active",
+            url = "$apiUrl/vulnerabilities/by-name-and-status",
             params = jso<dynamic> {
                 name = projectProblem.vulnerabilityName
-                isActive = true
+                status = VulnerabilityStatus.APPROVED
             },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
