@@ -9,7 +9,11 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.VFC
 import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.span
 import web.cssom.Border
 import web.cssom.ClassName
 import web.cssom.rem
@@ -47,12 +51,12 @@ val logoButtons = VFC {
 }
 
 private fun ChildrenBuilder.creationCard(url: String, img: String) {
-    ReactHTML.div {
+    div {
         className = ClassName("col")
-        ReactHTML.a {
+        a {
             href = url
             @Suppress("MAGIC_NUMBER")
-            (ReactHTML.img {
+            (img {
                 src = img
                 style = jso {
                     width = 20.rem
@@ -64,18 +68,18 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
 }
 
 private fun ChildrenBuilder.neonLightingText(input: String, url: String) {
-    ReactHTML.a {
+    a {
         href = url
-        ReactHTML.div {
+        div {
             className = ClassName("row")
-            ReactHTML.div {
+            div {
                 className = ClassName("col text-center")
-                ReactHTML.button {
+                button {
                     className = ClassName("glowing-btn")
-                    ReactHTML.span {
+                    span {
                         className = ClassName("glowing-txt")
                         +input[0]
-                        ReactHTML.span {
+                        span {
                             className = ClassName("faulty-letter")
                             +input[1]
                         }

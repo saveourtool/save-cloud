@@ -9,7 +9,7 @@ import react.dom.html.ReactHTML.strong
 import web.cssom.ClassName
 
 private const val SAVE_FOSS_GRAPH_INTRO_MD = """
-    |## FOSS graph
+    |## International Vulnerabilities Archive
     |Current page provides the list of publicly disclosed information security vulnerabilities and exposures.
 """
 

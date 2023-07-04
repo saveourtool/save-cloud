@@ -72,21 +72,21 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
 
 val separator = VFC {
     div {
-        className = web.cssom.ClassName("row")
+        className = ClassName("row")
         div {
-            className = web.cssom.ClassName("col-3")
+            className = ClassName("col-3")
         }
 
         div {
-            className = web.cssom.ClassName("col-6")
+            className = ClassName("col-6")
 
             div {
-                className = web.cssom.ClassName("separator mt-5 text-white")
+                className = ClassName("separator mt-5 text-white")
                 +"Sign in"
             }
         }
         div {
-            className = web.cssom.ClassName("col-3")
+            className = ClassName("col-3")
         }
     }
 }
